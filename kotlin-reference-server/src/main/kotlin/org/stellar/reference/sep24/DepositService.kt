@@ -11,11 +11,6 @@ private val log = KotlinLogging.logger {}
 class DepositService(private val cfg: Config) {
   val sep24 = Sep24Helper(cfg)
 
-  suspend fun getClientInfo(transactionId: String) {
-    // 1. Gather all information from the client here, such as KYC.
-    // In this simple implementation we do not require any additional input from the user.
-  }
-
   suspend fun processDeposit(
     transactionId: String,
     amount: BigDecimal,
@@ -38,6 +33,11 @@ class DepositService(private val cfg: Config) {
       sep24.patchTransaction(
         transactionId,
         "pending_anchor",
+        "funds received, transaction is being processed"
+      )
+      sep24.patchTransaction(
+        transactionId,
+        "pending_stellar",
         "funds received, transaction is being processed"
       )
 

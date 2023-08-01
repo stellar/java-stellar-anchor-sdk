@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
@@ -21,6 +23,9 @@ import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.Customers
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.event.EventService
+import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
+import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
@@ -45,13 +50,24 @@ class NotifyOffchainFundsSentHandlerTest {
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
+  @MockK(relaxed = true) private lateinit var eventService: EventService
+
+  @MockK(relaxed = true) private lateinit var eventSession: Session
+
   private lateinit var handler: NotifyOffchainFundsSentHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.handler =
-      NotifyOffchainFundsSentHandler(txn24Store, txn31Store, requestValidator, assetService)
+      NotifyOffchainFundsSentHandler(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService
+      )
   }
 
   @Test
@@ -137,10 +153,12 @@ class NotifyOffchainFundsSentHandlerTest {
     txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -166,13 +184,26 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
-    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
       gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -193,10 +224,12 @@ class NotifyOffchainFundsSentHandlerTest {
     txn31.status = PENDING_RECEIVER.toString()
     txn31.transferReceivedAt = transferReceivedAt
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
     every { txn31Store.save(capture(sep31TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -237,6 +270,20 @@ class NotifyOffchainFundsSentHandlerTest {
       JSONCompareMode.STRICT
     )
 
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_31.sep.toString())
+        .type(AnchorEvent.Type.TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
     assertTrue(sep31TxnCapture.captured.updatedAt >= startDate)
     assertTrue(sep31TxnCapture.captured.updatedAt <= endDate)
     assertTrue(sep31TxnCapture.captured.completedAt >= startDate)
@@ -254,10 +301,12 @@ class NotifyOffchainFundsSentHandlerTest {
     txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -283,13 +332,26 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
-    expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
       gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -306,10 +368,12 @@ class NotifyOffchainFundsSentHandlerTest {
     txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -341,6 +405,20 @@ class NotifyOffchainFundsSentHandlerTest {
       JSONCompareMode.STRICT
     )
 
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
     assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
     assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
@@ -359,10 +437,12 @@ class NotifyOffchainFundsSentHandlerTest {
     txn24.kind = WITHDRAWAL.kind
     txn24.transferReceivedAt = transferReceivedAt
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -392,11 +472,24 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
-    expectedResponse.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
       gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -415,10 +508,12 @@ class NotifyOffchainFundsSentHandlerTest {
     txn24.kind = WITHDRAWAL.kind
     txn24.transferReceivedAt = transferReceivedAt
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -446,11 +541,24 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
-    expectedResponse.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
       gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 

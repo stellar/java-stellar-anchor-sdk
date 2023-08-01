@@ -10,11 +10,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
 import org.stellar.anchor.api.rpc.action.AmountAssetRequest
@@ -25,6 +28,9 @@ import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
+import org.stellar.anchor.event.EventService
+import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
+import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -51,14 +57,25 @@ class NotifyInteractiveFlowCompletedHandlerTest {
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
+  @MockK(relaxed = true) private lateinit var eventService: EventService
+
+  @MockK(relaxed = true) private lateinit var eventSession: Session
+
   private lateinit var handler: NotifyInteractiveFlowCompletedHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
-      NotifyInteractiveFlowCompletedHandler(txn24Store, txn31Store, requestValidator, assetService)
+      NotifyInteractiveFlowCompletedHandler(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService
+      )
   }
 
   @Test
@@ -119,7 +136,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
-        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("0.1", FIAT_USD))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -127,10 +144,12 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = FIAT_USD_CODE
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -148,7 +167,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     expectedSep24Txn.amountOut = "0.9"
     expectedSep24Txn.amountOutAsset = STELLAR_USDC
     expectedSep24Txn.amountFee = "0.1"
-    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
+    expectedSep24Txn.amountFeeAsset = FIAT_USD
     expectedSep24Txn.amountExpected = "1"
 
     JSONAssert.assertEquals(
@@ -163,13 +182,27 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
       gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -184,17 +217,19 @@ class NotifyInteractiveFlowCompletedHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
-        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("0.1", FIAT_USD))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = FIAT_USD_CODE
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -212,7 +247,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     expectedSep24Txn.amountOut = "0.9"
     expectedSep24Txn.amountOutAsset = STELLAR_USDC
     expectedSep24Txn.amountFee = "0.1"
-    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
+    expectedSep24Txn.amountFeeAsset = FIAT_USD
     expectedSep24Txn.amountExpected = "1"
 
     JSONAssert.assertEquals(
@@ -227,13 +262,27 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
       gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -247,7 +296,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
       NotifyInteractiveFlowCompletedRequest.builder()
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
-        .amountOut(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", STELLAR_USDC))
         .amountFee(AmountAssetRequest("1", FIAT_USD))
         .amountExpected(AmountRequest("1"))
         .build()
@@ -279,5 +328,77 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     request.amountExpected.amount = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_expected.amount should be positive", ex.message)
+  }
+
+  @Test
+  fun test_handle_invalidAssets_deposit() {
+    val request =
+      NotifyInteractiveFlowCompletedRequest.builder()
+        .transactionId(TX_ID)
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("1", FIAT_USD))
+        .amountExpected(AmountRequest("1"))
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.requestAssetCode = FIAT_USD_CODE
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    request.amountIn.asset = STELLAR_USDC
+    var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("amount_in.asset should be non-stellar asset", ex.message)
+    request.amountIn.asset = FIAT_USD
+
+    request.amountOut.asset = FIAT_USD
+    ex = assertThrows { handler.handle(request) }
+    assertEquals("amount_out.asset should be stellar asset", ex.message)
+    request.amountOut.asset = STELLAR_USDC
+
+    request.amountFee.asset = STELLAR_USDC
+    ex = assertThrows { handler.handle(request) }
+    assertEquals("amount_fee.asset should be non-stellar asset", ex.message)
+    request.amountFee.asset = FIAT_USD
+  }
+
+  @Test
+  fun test_handle_invalidAssets_withdrawal() {
+    val request =
+      NotifyInteractiveFlowCompletedRequest.builder()
+        .transactionId(TX_ID)
+        .amountIn(AmountAssetRequest("1", STELLAR_USDC))
+        .amountOut(AmountAssetRequest("1", FIAT_USD))
+        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .amountExpected(AmountRequest("1"))
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.requestAssetCode = FIAT_USD_CODE
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    request.amountIn.asset = FIAT_USD
+    var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("amount_in.asset should be stellar asset", ex.message)
+    request.amountIn.asset = STELLAR_USDC
+
+    request.amountOut.asset = STELLAR_USDC
+    ex = assertThrows { handler.handle(request) }
+    assertEquals("amount_out.asset should be non-stellar asset", ex.message)
+    request.amountOut.asset = FIAT_USD
+
+    request.amountFee.asset = FIAT_USD
+    ex = assertThrows { handler.handle(request) }
+    assertEquals("amount_fee.asset should be stellar asset", ex.message)
+    request.amountFee.asset = STELLAR_USDC
   }
 }

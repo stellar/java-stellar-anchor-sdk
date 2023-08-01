@@ -27,6 +27,7 @@ import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
@@ -50,8 +51,15 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig,
-      Sep24DepositInfoGenerator sep24DepositInfoGenerator) {
-    super(txn24Store, txn31Store, requestValidator, assetService, RequestOnchainFundsRequest.class);
+      Sep24DepositInfoGenerator sep24DepositInfoGenerator,
+      EventService eventService) {
+    super(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        RequestOnchainFundsRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
@@ -73,9 +81,24 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
           "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 
-    AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), assetService);
-    AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), assetService);
-    AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
+    if (request.getAmountIn() != null) {
+      if (!AssetValidationUtils.isStellarAsset(request.getAmountIn().getAsset())) {
+        throw new InvalidParamsException("amount_in.asset should be stellar asset");
+      }
+      AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), assetService);
+    }
+    if (request.getAmountOut() != null) {
+      if (AssetValidationUtils.isStellarAsset(request.getAmountOut().getAsset())) {
+        throw new InvalidParamsException("amount_out.asset should be non-stellar asset");
+      }
+      AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), assetService);
+    }
+    if (request.getAmountFee() != null) {
+      if (!AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
+        throw new InvalidParamsException("amount_fee.asset should be stellar asset");
+      }
+      AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
+    }
     if (request.getAmountExpected() != null) {
       AssetValidationUtils.validateAsset(
           "amount_expected",

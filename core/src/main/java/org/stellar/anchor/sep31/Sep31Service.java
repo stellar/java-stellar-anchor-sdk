@@ -3,6 +3,7 @@ package org.stellar.anchor.sep31;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.info;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.Data;
@@ -33,6 +35,7 @@ import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.GetCustomerRequest;
 import org.stellar.anchor.api.callback.GetCustomerResponse;
 import org.stellar.anchor.api.callback.GetFeeRequest;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.NotFoundException;
@@ -41,9 +44,9 @@ import org.stellar.anchor.api.exception.Sep31MissingFieldException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.AssetInfo.Sep12Operation;
-import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
+import org.stellar.anchor.api.sep.operation.Sep12Operation;
+import org.stellar.anchor.api.sep.operation.Sep31Operation.Fields;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
@@ -63,6 +66,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.TransactionHelper;
 
 public class Sep31Service {
 
@@ -75,9 +79,9 @@ public class Sep31Service {
   private final FeeIntegration feeIntegration;
   private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
-  private final EventService eventService;
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;
+  private final EventService.Session eventSession;
 
   public Sep31Service(
       AppConfig appConfig,
@@ -101,7 +105,7 @@ public class Sep31Service {
     this.assetService = assetService;
     this.feeIntegration = feeIntegration;
     this.customerIntegration = customerIntegration;
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
@@ -216,7 +220,13 @@ public class Sep31Service {
       custodyService.createTransaction(txn);
     }
 
-    eventService.publish(txn, TRANSACTION_CREATED);
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("31")
+            .type(TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn))
+            .build());
 
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())
@@ -409,8 +419,7 @@ public class Sep31Service {
           String.format("Transaction (%s) is not expecting any updates", txn.getId()));
     }
 
-    Map<String, AssetInfo.Sep31TxnFieldSpec> expectedFields =
-        txn.getRequiredInfoUpdates().getTransaction();
+    Map<String, AssetInfo.Field> expectedFields = txn.getRequiredInfoUpdates().getTransaction();
     Map<String, String> requestFields = request.getFields().getTransaction();
 
     // validate if any of the fields from the request is not expected in the transaction.
@@ -620,17 +629,17 @@ public class Sep31Service {
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
 
-    Map<String, AssetInfo.Sep31TxnFieldSpec> missingFields =
+    Map<String, AssetInfo.Field> missingFields =
         fieldSpecs.getFields().getTransaction().entrySet().stream()
             .filter(
                 entry -> {
-                  AssetInfo.Sep31TxnFieldSpec field = entry.getValue();
+                  AssetInfo.Field field = entry.getValue();
                   if (field.isOptional()) return false;
                   return requestFields.get(entry.getKey()) == null;
                 })
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-    Sep31TxnFieldSpecs sep31MissingTxnFields = new Sep31TxnFieldSpecs();
+    Fields sep31MissingTxnFields = new Fields();
     sep31MissingTxnFields.setTransaction(missingFields);
 
     if (missingFields.size() > 0) {

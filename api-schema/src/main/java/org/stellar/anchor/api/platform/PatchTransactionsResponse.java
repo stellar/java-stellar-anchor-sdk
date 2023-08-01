@@ -7,7 +7,7 @@ import lombok.Data;
  * The response body of the PATCH /transactions endpoint of the Platform API.
  *
  * @see <a
- *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/ap/Platform%20API.yml">Platform
+ *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/anchor-platform/Platform%20API.yml">Platform
  *     API</a>
  */
 @Data

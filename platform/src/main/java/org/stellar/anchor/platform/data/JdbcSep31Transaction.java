@@ -11,7 +11,8 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.BeanUtils;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.SepTransaction;
+import org.stellar.anchor.api.sep.operation.Sep31Operation;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.reference.model.StellarIdConverter;
 import org.stellar.anchor.sep31.Sep31Refunds;
@@ -90,7 +91,7 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   // Ignored by JPA and Gson
   @SerializedName("required_info_updates")
   @Transient
-  AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
+  Sep31Operation.Fields requiredInfoUpdates;
 
   @Access(AccessType.PROPERTY)
   @Column(name = "requiredInfoUpdates")
@@ -101,7 +102,7 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   public void setRequiredInfoUpdatesJson(String requiredInfoUpdatesJson) {
     if (requiredInfoUpdatesJson != null) {
       this.requiredInfoUpdates =
-          gson.fromJson(requiredInfoUpdatesJson, AssetInfo.Sep31TxnFieldSpecs.class);
+          gson.fromJson(requiredInfoUpdatesJson, Sep31Operation.Fields.class);
     }
   }
 

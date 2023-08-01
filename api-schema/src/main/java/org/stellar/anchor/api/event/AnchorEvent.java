@@ -9,7 +9,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse;
  * The Event object is used for event notification.
  *
  * @see <a
- *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/ap/Events%20Schema.yml">Events
+ *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/anchor-platform/Events%20Schema.yml">Events
  *     Schema</a>
  */
 @Builder

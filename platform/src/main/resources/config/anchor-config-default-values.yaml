@@ -133,23 +133,54 @@ payment_observer:
     # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher 
     max_event_backoff_time: 300
 
-
 event_processor:
   # The context path of the event processing server
   context_path: /
   # The listening port of the event processing server
-  port: 8084
-  # The queue where the event processor will
-  queue:
-    type: kafka
-    kafka:
-      bootstrap_server: localhost:29092
-      event_type_to_topic:
-        all: dev_ap_event_single_queue
-        quote_created: ap_event_quote_created
-        transaction_created: ap_event_transaction_created
-        transaction_status_updated: ap_event_transaction_status_changed
-        transaction_error: ap_event_transaction_error
+  port: 8088
+  # The configuration of the status callback to the client domain
+  client_status_callback:
+    enabled: true
+  # The configuration of the event delivery to the anchor business server
+  callback_api_request:
+    enabled: true
+
+# The list of clients for the Anchor server to safely communicate with the outside wallet servers or clients.
+# Each item in the list may contain the following fields:
+#   - type: `custodial` or `noncustodial`
+#
+#   If the type is `custodial`,
+#   - signing_key: (required) the custodial SEP-10 signing key of the client. If the signing key of the client
+#                  is the same as the `signing_key`, the callback will be activated.
+#   - callback_url: (optional) the URL of the client's callback API endpoint. Optional due to some wallets may opt to
+#                  poll instead, or may use polling first before implementing callbacks at a later stage.
+#   If the type is `noncustodial`,
+#   - domain: (required) the domain of the client. If the `client_domain` field of the transaction is the same as this
+#             domain, the callback will be activated.
+#   - callback_url: (optional) the URL of the client's callback API endpoint
+#   - signing_key: (optional) the signing key of the client. If the public key is specified, the client domain's TOML
+#                 file will be fetched and the `SIGNING_KEY` of the TOML file will be compared with the public key.
+#                 If they don't match, a validation error will be thrown.
+#
+# Examples:
+#     - type: custodial
+#       signing_key: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
+#       callback_url: https://callback.circle.com/api/v1/anchor/callback
+#     - type: noncustodial
+#       domain: lobstr.co
+#       callback_url: https://callback.lobstr.co/api/v2/anchor/callback
+#     - type: noncustodial
+#       domain: vibrant.co
+#       callback_url: https://callback.vibrant.com/api/v2/anchor/callback
+#       signing_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
+clients:
+#     - type: custodial
+#       signing_key:
+#       callback_url:
+#     - type: noncustodial
+#       domain:
+#       callback_url:
+#       signing_key:
 
 ## @param: languages
 ## @supported_values: en
@@ -233,6 +264,18 @@ sep1:
     #
     value: |
 
+sep6:
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable SEP-6 for this instance of AP server.
+  #
+  enabled: false
+  # Configures the features flag returned by the SEP-6 /info endpoint
+  # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-4
+  #
+  features:
+    account_creation: false
+    claimable_balances: false
 
 sep10:
   ## @param: enabled
@@ -264,15 +307,9 @@ sep10:
   ## SEP-1 stellar.toml. See the SEP-10 section `Verifying Client Application Identity` for more information
   ## (https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#verifying-client-application-identity).
   #
+  # If the client_attribution_required is set to true, the list of allowed clients must be configured in the `clients`
+  # section of this configuration file. The `domain` field of the client must be provided.
   client_attribution_required: false
-  ## @param: client_attribution_allow_list
-  ## Set the white list of the client domain. The domains are comma-separated.
-  #
-  client_attribution_allow_list:
-  ## @param: client_attribution_deny_list
-  ## Set the black list of the client domain. The domains are comma-separated.
-  #
-  client_attribution_deny_list:
   ## @param: auth_timeout
   ## @type: integer
   ## Set the authentication challenge transaction timeout in seconds. An expired signed transaction will be rejected.
@@ -286,17 +323,14 @@ sep10:
   ## This is the timeout period after the client has authenticated.
   #
   jwt_timeout: 86400
-  ## @param: omnibus_account_list
-  ## A comma-separated list of omnibus accounts (comma separated).
-  ## The SEP-10 omnibus account is described at:
-  ##     https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
-  #
-  omnibus_account_list:
-  ## @param: require_known_omnibus_account
+  ## @param: known_custodial_account_required
   ## @type: bool
-  ## Whether to require authenticating clients to be in the omnibusAccountList
+  ## Whether to require authenticating clients to be in the list of known custodial accounts.
   #
-  require_known_omnibus_account: false
+  # If the flag is set to true, the client must be one of the custodial clients defined in the clients section
+  # of this configuration file.
+  #
+  known_custodial_account_required: false
 
 sep12:
   ## @param: enabled
@@ -461,6 +495,23 @@ custody:
     read_timeout: 30
     write_timeout: 30
     call_timeout: 60
+  ## Trustline check configuration. Is used only when custody integration is enabled
+  trustline:
+    ## @param: checkCronExpression
+    ## @type: string
+    ## Cron expression which defines how often trustline check job runs. By default, job runs every minute
+    #
+    check_cron_expression: "0 * * * * *"
+    ## @param: checkDuration
+    ## @type: integer
+    ## Determines how long (in MINUTES) trustline will be checked. By default - 1 hour (60 minutes)
+    #
+    check_duration: 60
+    ## @param: checkTimeoutMessage
+    ## @type: string
+    ## The message, that will be added to SEP transaction after check duration is exceeded
+    #
+    check_timeout_message: Trustline check timed out
   fireblocks:
     ## @param: baseUrl
     ## @type: string
@@ -546,19 +597,12 @@ events:
   ## Whether to enable events.
   #
   enabled: false
-  ## @param: event_type_to_queue
-  ## @type: map
-  ## Mapping of the event type to the queue name that messages are published to
-  event_type_to_queue:
-    quote_created: ap_event_quote_created
-    transaction_created: ap_event_transaction_created
-    transaction_status_changed: ap_event_transaction_status_changed
-    transaction_error: ap_event_transaction_error
-  ## @param: publisher_type
+
+  ## @param: queue
   ## @supported_values: `kafka`, `sqs`, or `msk`
-  ## The type of queue to use for event publishing
+  ## The type of queue to use for event processing.
   #
-  publisher:
+  queue:
     type: kafka
     ## If the value of `events.publisher.type` is "kafka", the `events.publisher.kafka` field must be defined.
     kafka:
@@ -576,6 +620,8 @@ events:
       linger_ms: 1000
       # Determines the maximum amount of data to be collected before sending the batch.
       batch_size: 10
+      # Determines the maximum amount of time to wait for the batch to be filled before returning from poll().
+      poll_timeout_seconds: 60
     ## If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
     sqs:
       ## @param: use_IAM
@@ -711,3 +757,16 @@ data:
   #
   flyway_baseline_on_migrate: false
 
+################################
+## RPC Configuration
+################################
+rpc:
+  actions:
+    ## Custom messages for updating transaction via RPC calls
+    custom_messages:
+      ## Custody transaction failed
+      custody_transaction_failed: "The custody transaction has failed"
+      ## Incoming payment received
+      incoming_payment_received: "Received an incoming payment"
+      ## Outgoing payment sent
+      outgoing_payment_sent: "Outgoing payment sent"

@@ -14,24 +14,32 @@ import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyTransactionErrorRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 public class NotifyTransactionErrorHandler extends ActionHandler<NotifyTransactionErrorRequest> {
 
+  private final JdbcTransactionPendingTrustRepo transactionPendingTrustRepo;
+
   public NotifyTransactionErrorHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
+        eventService,
         NotifyTransactionErrorRequest.class);
+    this.transactionPendingTrustRepo = transactionPendingTrustRepo;
   }
 
   @Override
@@ -57,5 +65,9 @@ public class NotifyTransactionErrorHandler extends ActionHandler<NotifyTransacti
 
   @Override
   protected void updateTransactionWithAction(
-      JdbcSepTransaction txn, NotifyTransactionErrorRequest request) {}
+      JdbcSepTransaction txn, NotifyTransactionErrorRequest request) {
+    if (transactionPendingTrustRepo.existsById(txn.getId())) {
+      transactionPendingTrustRepo.deleteById(txn.getId());
+    }
+  }
 }

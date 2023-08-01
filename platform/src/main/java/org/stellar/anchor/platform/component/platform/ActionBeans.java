@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.action.ActionHandler;
 import org.stellar.anchor.platform.action.DoStellarPaymentHandler;
@@ -19,7 +20,7 @@ import org.stellar.anchor.platform.action.NotifyOffchainFundsReceivedHandler;
 import org.stellar.anchor.platform.action.NotifyOffchainFundsSentHandler;
 import org.stellar.anchor.platform.action.NotifyOnchainFundsReceivedHandler;
 import org.stellar.anchor.platform.action.NotifyOnchainFundsSentHandler;
-import org.stellar.anchor.platform.action.NotifyRefundInitiatedHandler;
+import org.stellar.anchor.platform.action.NotifyRefundPendingHandler;
 import org.stellar.anchor.platform.action.NotifyRefundSentHandler;
 import org.stellar.anchor.platform.action.NotifyTransactionErrorHandler;
 import org.stellar.anchor.platform.action.NotifyTransactionExpiredHandler;
@@ -29,6 +30,8 @@ import org.stellar.anchor.platform.action.RequestCustomerInfoUpdateHandler;
 import org.stellar.anchor.platform.action.RequestOffchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestOnchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestTrustHandler;
+import org.stellar.anchor.platform.config.PropertyCustodyConfig;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.service.ActionService;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
@@ -51,7 +54,9 @@ public class ActionBeans {
       CustodyConfig custodyConfig,
       Horizon horizon,
       AssetService assetService,
-      CustodyService custodyService) {
+      CustodyService custodyService,
+      EventService eventService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new DoStellarPaymentHandler(
         txn24Store,
         txn31Store,
@@ -59,7 +64,9 @@ public class ActionBeans {
         custodyConfig,
         horizon,
         assetService,
-        custodyService);
+        custodyService,
+        eventService,
+        transactionPendingTrustRepo);
   }
 
   @Bean
@@ -69,9 +76,16 @@ public class ActionBeans {
       RequestValidator requestValidator,
       CustodyConfig custodyConfig,
       AssetService assetService,
-      CustodyService custodyService) {
+      CustodyService custodyService,
+      EventService eventService) {
     return new DoStellarRefundHandler(
-        txn24Store, txn31Store, requestValidator, custodyConfig, assetService, custodyService);
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        custodyConfig,
+        assetService,
+        custodyService,
+        eventService);
   }
 
   @Bean
@@ -79,8 +93,10 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
-    return new NotifyAmountsUpdatedHandler(txn24Store, txn31Store, requestValidator, assetService);
+      AssetService assetService,
+      EventService eventService) {
+    return new NotifyAmountsUpdatedHandler(
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -88,9 +104,10 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     return new NotifyInteractiveFlowCompletedHandler(
-        txn24Store, txn31Store, requestValidator, assetService);
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -98,9 +115,10 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     return new NotifyOffchainFundsAvailableHandler(
-        txn24Store, txn31Store, requestValidator, assetService);
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -108,9 +126,10 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     return new NotifyOffchainFundsPendingHandler(
-        txn24Store, txn31Store, requestValidator, assetService);
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -120,9 +139,16 @@ public class ActionBeans {
       RequestValidator requestValidator,
       AssetService assetService,
       CustodyService custodyService,
-      CustodyConfig custodyConfig) {
+      CustodyConfig custodyConfig,
+      EventService eventService) {
     return new NotifyOffchainFundsReceivedHandler(
-        txn24Store, txn31Store, requestValidator, assetService, custodyService, custodyConfig);
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        custodyService,
+        custodyConfig,
+        eventService);
   }
 
   @Bean
@@ -130,9 +156,10 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     return new NotifyOffchainFundsSentHandler(
-        txn24Store, txn31Store, requestValidator, assetService);
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -141,9 +168,10 @@ public class ActionBeans {
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       Horizon horizon,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     return new NotifyOnchainFundsReceivedHandler(
-        txn24Store, txn31Store, requestValidator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, horizon, assetService, eventService);
   }
 
   @Bean
@@ -152,18 +180,21 @@ public class ActionBeans {
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       Horizon horizon,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     return new NotifyOnchainFundsSentHandler(
-        txn24Store, txn31Store, requestValidator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, horizon, assetService, eventService);
   }
 
   @Bean
-  NotifyRefundInitiatedHandler notifyRefundInitiatedHandler(
+  NotifyRefundPendingHandler notifyRefundPendingHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
-    return new NotifyRefundInitiatedHandler(txn24Store, txn31Store, requestValidator, assetService);
+      AssetService assetService,
+      EventService eventService) {
+    return new NotifyRefundPendingHandler(
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -171,8 +202,10 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
-    return new NotifyRefundSentHandler(txn24Store, txn31Store, requestValidator, assetService);
+      AssetService assetService,
+      EventService eventService) {
+    return new NotifyRefundSentHandler(
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -180,9 +213,16 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new NotifyTransactionErrorHandler(
-        txn24Store, txn31Store, requestValidator, assetService);
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        transactionPendingTrustRepo);
   }
 
   @Bean
@@ -190,9 +230,16 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new NotifyTransactionExpiredHandler(
-        txn24Store, txn31Store, requestValidator, assetService);
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        transactionPendingTrustRepo);
   }
 
   @Bean
@@ -200,9 +247,10 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     return new NotifyTransactionRecoveryHandler(
-        txn24Store, txn31Store, requestValidator, assetService);
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -211,9 +259,17 @@ public class ActionBeans {
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
-      CustodyConfig custodyConfig) {
+      EventService eventService,
+      PropertyCustodyConfig custodyConfig,
+      CustodyService custodyService) {
     return new NotifyTrustSetHandler(
-        txn24Store, txn31Store, requestValidator, assetService, custodyConfig);
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        custodyConfig,
+        custodyService);
   }
 
   @Bean
@@ -221,9 +277,10 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     return new RequestCustomerInfoUpdateHandler(
-        txn24Store, txn31Store, requestValidator, assetService);
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -231,9 +288,10 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     return new NotifyCustomerInfoUpdatedHandler(
-        txn24Store, txn31Store, requestValidator, assetService);
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -241,8 +299,10 @@ public class ActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
-    return new RequestOffchainFundsHandler(txn24Store, txn31Store, requestValidator, assetService);
+      AssetService assetService,
+      EventService eventService) {
+    return new RequestOffchainFundsHandler(
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
@@ -253,7 +313,8 @@ public class ActionBeans {
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig,
-      Sep24DepositInfoGenerator sep24DepositInfoGenerator) {
+      Sep24DepositInfoGenerator sep24DepositInfoGenerator,
+      EventService eventService) {
     return new RequestOnchainFundsHandler(
         txn24Store,
         txn31Store,
@@ -261,7 +322,8 @@ public class ActionBeans {
         assetService,
         custodyService,
         custodyConfig,
-        sep24DepositInfoGenerator);
+        sep24DepositInfoGenerator,
+        eventService);
   }
 
   @Bean
@@ -270,8 +332,9 @@ public class ActionBeans {
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
-      CustodyConfig custodyConfig) {
+      CustodyConfig custodyConfig,
+      EventService eventService) {
     return new RequestTrustHandler(
-        txn24Store, txn31Store, requestValidator, assetService, custodyConfig);
+        txn24Store, txn31Store, requestValidator, assetService, custodyConfig, eventService);
   }
 }

@@ -28,6 +28,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -49,8 +50,15 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
       RequestValidator requestValidator,
       CustodyConfig custodyConfig,
       AssetService assetService,
-      CustodyService custodyService) {
-    super(txn24Store, txn31Store, requestValidator, assetService, DoStellarRefundRequest.class);
+      CustodyService custodyService,
+      EventService eventService) {
+    super(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        DoStellarRefundRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
   }
@@ -80,6 +88,15 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
             .build(),
         true,
         assetService);
+
+    if (!txn.getAmountInAsset().equals(request.getRefund().getAmount().getAsset())) {
+      throw new InvalidParamsException(
+          "refund.amount.asset does not match transaction amount_in_asset");
+    }
+    if (!txn.getAmountFeeAsset().equals(request.getRefund().getAmountFee().getAsset())) {
+      throw new InvalidParamsException(
+          "refund.amount_fee.asset does not match match transaction amount_fee_asset");
+    }
   }
 
   @Override

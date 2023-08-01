@@ -26,6 +26,7 @@ import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment;
 import org.stellar.anchor.platform.data.JdbcSep24Refunds;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
@@ -48,8 +49,15 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
-    super(txn24Store, txn31Store, requestValidator, assetService, NotifyRefundSentRequest.class);
+      AssetService assetService,
+      EventService eventService) {
+    super(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        NotifyRefundSentRequest.class);
   }
 
   @Override
@@ -107,6 +115,15 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
               .build(),
           true,
           assetService);
+
+      if (!txn.getAmountInAsset().equals(request.getRefund().getAmount().getAsset())) {
+        throw new InvalidParamsException(
+            "refund.amount.asset does not match transaction amount_in_asset");
+      }
+      if (!txn.getAmountFeeAsset().equals(request.getRefund().getAmountFee().getAsset())) {
+        throw new InvalidParamsException(
+            "refund.amount_fee.asset does not match match transaction amount_fee_asset");
+      }
     }
   }
 
@@ -145,7 +162,7 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
             } else {
               List<Sep24RefundPayment> payments = sep24Refunds.getRefundPayments();
 
-              // make sure refund, provided in request, was sent on refund_initialized
+              // make sure refund, provided in request, was sent on refund_pending
               payments.stream()
                   .map(Sep24RefundPayment::getId)
                   .filter(id -> id.equals(refund.getId()))

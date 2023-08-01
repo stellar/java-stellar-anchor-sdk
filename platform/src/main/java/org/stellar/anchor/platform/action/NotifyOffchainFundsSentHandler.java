@@ -20,6 +20,7 @@ import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsSentRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -32,12 +33,14 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
+        eventService,
         NotifyOffchainFundsSentRequest.class);
   }
 

@@ -54,8 +54,14 @@ public class StringHelper {
 
   static Gson gson = GsonUtils.getInstance();
 
-  public static String json(Object obj) {
-    return gson.toJson(obj);
+  /**
+   * Convert an object to JSON string.
+   *
+   * @param object the object to convert
+   * @return JSON string
+   */
+  public static String json(Object object) {
+    return gson.toJson(object);
   }
 
   public static String sanitize(String value) {
