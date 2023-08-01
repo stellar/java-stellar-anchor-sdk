@@ -3,19 +3,23 @@ package org.stellar.anchor.platform.event
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import java.util.*
 import java.util.concurrent.TimeUnit
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.api.platform.PlatformTransactionData
+import org.stellar.anchor.api.sep.sep24.TransactionResponse
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.platform.config.ClientsConfig
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor
+import org.stellar.anchor.sep24.Sep24Helper
+import org.stellar.anchor.sep24.Sep24Helper.fromTxn
 import org.stellar.anchor.sep24.Sep24TransactionStore
-import org.stellar.anchor.util.NetUtil
-import org.stellar.anchor.util.StringHelper.json
 import org.stellar.sdk.KeyPair
 
 class ClientStatusCallbackHandlerTest {
@@ -25,7 +29,6 @@ class ClientStatusCallbackHandlerTest {
   private lateinit var signer: KeyPair
   private lateinit var ts: String
   private lateinit var event: AnchorEvent
-  private lateinit var payload: String
 
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
@@ -37,6 +40,15 @@ class ClientStatusCallbackHandlerTest {
     clientConfig.type = ClientsConfig.ClientType.CUSTODIAL
     clientConfig.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
     clientConfig.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
+
+    sep24TransactionStore = mockk<Sep24TransactionStore>()
+    every { sep24TransactionStore.findByTransactionId(any()) } returns null
+    mockkStatic(Sep24Helper::class)
+    every { fromTxn(any(), any(), any()) } returns mockk<TransactionResponse>()
+
+    assetService = mockk<AssetService>()
+    moreInfoUrlConstructor = mockk<MoreInfoUrlConstructor>()
+
     handler =
       ClientStatusCallbackHandler(
         clientConfig,
@@ -52,7 +64,8 @@ class ClientStatusCallbackHandlerTest {
 
     ts = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toString()
     event = AnchorEvent()
-    payload = ts + "." + NetUtil.getDomainFromURL(clientConfig.callbackUrl) + "." + json(event)
+    event.transaction = GetTransactionResponse()
+    event.transaction.sep = PlatformTransactionData.Sep.SEP_24
   }
 
   @Test
