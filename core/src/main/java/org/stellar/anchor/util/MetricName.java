@@ -46,10 +46,19 @@ public enum MetricName {
   TV_STATUS_CALLBACK("status_callback"),
   TV_KNOWN("known"),
 
+  // platform server metrics
+  PLATFORM_PATCH_TRANSACTION("platform_server.patch_transaction"),
+  PLATFORM_FIND_TRANSACTION("platform_server.get_transaction"),
+  PLATFORM_FIND_TRANSACTIONS("platform_server.get_transactions"),
+  TV_SEP6("sep6"),
+  TV_SEP24("sep24"),
+  TV_SEP31("sep31"),
+
   // Logger metrics
   LOGGER("logger"),
 
   // Tag names
+  SEP("SEP"),
   QUEUE("queue"),
   STATUS("status"),
   TYPE("type");
@@ -58,5 +67,9 @@ public enum MetricName {
 
   MetricName(String name) {
     this.name = name;
+  }
+
+  public String getName() {
+    return name;
   }
 }
