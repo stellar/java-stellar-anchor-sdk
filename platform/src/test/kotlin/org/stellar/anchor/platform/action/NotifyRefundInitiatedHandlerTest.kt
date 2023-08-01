@@ -38,7 +38,7 @@ import org.stellar.anchor.util.GsonUtils
 
 class NotifyRefundInitiatedHandlerTest {
   companion object {
-    private val GSON = GsonUtils.getInstance()
+    private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val FIAT_USD = "iso4217:USD"
     private const val STELLAR_USDC =
@@ -219,8 +219,8 @@ class NotifyRefundInitiatedHandlerTest {
     expectedSep24Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -242,8 +242,8 @@ class NotifyRefundInitiatedHandlerTest {
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -310,8 +310,8 @@ class NotifyRefundInitiatedHandlerTest {
     expectedSep24Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -333,8 +333,8 @@ class NotifyRefundInitiatedHandlerTest {
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment, refundPayment))
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
