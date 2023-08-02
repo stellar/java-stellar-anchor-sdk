@@ -2,9 +2,7 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.platform.config.PropertySep24Config.MoreInfoUrlConfig;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,10 +24,14 @@ public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
 
   @Override
   @SneakyThrows
-  public String construct(Sep24Transaction txn) throws URISyntaxException, MalformedURLException {
+  public String construct(Sep24Transaction txn) {
+    String account = UrlConstructorHelper.getAccount(txn);
     Sep24MoreInfoUrlJwt token =
         new Sep24MoreInfoUrlJwt(
-            txn.getTransactionId(), Instant.now().getEpochSecond() + config.getJwtExpiration());
+            account,
+            txn.getTransactionId(),
+            Instant.now().getEpochSecond() + config.getJwtExpiration(),
+            txn.getClientDomain());
 
     Map<String, String> data = new HashMap<>();
 
