@@ -22,6 +22,7 @@ public class ClientsConfig implements Validator {
   List<ClientConfig> clients = Lists.newLinkedList();
   Map<String, ClientConfig> clientMap = null;
   Map<String, String> domainToClientNameMap = null;
+  Map<String, String> signingKeyToClientNameMap = null;
 
   @Data
   @AllArgsConstructor
@@ -37,6 +38,19 @@ public class ClientsConfig implements Validator {
   public enum ClientType {
     CUSTODIAL,
     NONCUSTODIAL
+  }
+
+  public ClientConfig getClientConfigBySigningKey(String signingKey) {
+    if (signingKeyToClientNameMap == null) {
+      signingKeyToClientNameMap = Maps.newHashMap();
+      clients.forEach(
+          clientConfig -> {
+            if (clientConfig.signingKey != null) {
+              signingKeyToClientNameMap.put(clientConfig.signingKey, clientConfig.name);
+            }
+          });
+    }
+    return getClientConfigByName(signingKeyToClientNameMap.get(signingKey));
   }
 
   public ClientConfig getClientConfigByDomain(String domain) {

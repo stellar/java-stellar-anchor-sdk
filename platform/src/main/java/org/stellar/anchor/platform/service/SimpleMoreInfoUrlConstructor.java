@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.platform.config.PropertySep24Config.MoreInfoUrlConfig;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.net.URI;
 import java.time.Instant;
@@ -30,15 +29,12 @@ public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
   @Override
   @SneakyThrows
   public String construct(Sep24Transaction txn) {
-    String account =
-        isEmpty(txn.getSep10AccountMemo())
-            ? txn.getSep10Account()
-            : txn.getSep10Account() + ":" + txn.getSep10AccountMemo();
     ClientsConfig.ClientConfig clientConfig =
-        clientsConfig.getClientConfigByDomain(txn.getClientDomain());
+        UrlConstructorHelper.getClientConfig(clientsConfig, txn);
+
     Sep24MoreInfoUrlJwt token =
         new Sep24MoreInfoUrlJwt(
-            account,
+            UrlConstructorHelper.getAccount(txn),
             txn.getTransactionId(),
             Instant.now().getEpochSecond() + config.getJwtExpiration(),
             txn.getClientDomain(),

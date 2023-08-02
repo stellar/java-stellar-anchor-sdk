@@ -11,6 +11,7 @@ import java.util.stream.Stream
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -18,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerResponse
+import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.SecretConfig
@@ -48,14 +50,32 @@ class SimpleInteractiveUrlConstructorTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "sep24_jwt_secret"
-    every { clientsConfig.getClientConfigByDomain("lobstr.co") } returns
+
+    val clientConfig =
       ClientsConfig.ClientConfig(
         "lobstr",
-        ClientsConfig.ClientType.CUSTODIAL,
-        "secret",
+        ClientsConfig.ClientType.NONCUSTODIAL,
+        "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
         "lobstr.co",
         "https://callback.lobstr.co/api/v2/anchor/callback"
       )
+    every { clientsConfig.getClientConfigByDomain(any()) } returns null
+    every { clientsConfig.getClientConfigByDomain(clientConfig.domain) } returns clientConfig
+    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKey) } returns
+      clientConfig
+    every {
+      clientsConfig.getClientConfigBySigningKey(
+        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      )
+    } returns
+      ClientsConfig.ClientConfig(
+        "some-wallet",
+        ClientsConfig.ClientType.CUSTODIAL,
+        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+        null,
+        null
+      )
+
     jwtService = JwtService(secretConfig)
     sep24Config = gson.fromJson(SEP24_CONFIG_JSON_1, PropertySep24Config::class.java)
     request = gson.fromJson(REQUEST_JSON_1, HashMap::class.java) as HashMap<String, String>
@@ -80,6 +100,7 @@ class SimpleInteractiveUrlConstructorTest {
     assertEquals("lobstr.co", claims["client_domain"] as String)
     assertEquals("lobstr", claims["client_name"] as String)
 
+    // Unknown client domain
     testTxn.sep10AccountMemo = null
     testTxn.clientDomain = "unknown.com"
     jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest))
@@ -87,7 +108,33 @@ class SimpleInteractiveUrlConstructorTest {
     testJwt(jwt)
     assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO", jwt.sub)
     assertEquals("unknown.com", claims["client_domain"] as String)
-    assertEquals("", claims["client_name"] as String)
+    assertNull(claims["client_name"])
+
+    // Custodial wallet
+    testTxn.sep10Account = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    testTxn.sep10AccountMemo = "1234"
+    testTxn.clientDomain = null
+    jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest))
+    claims = jwt.claims
+    testJwt(jwt)
+    assertEquals("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP:1234", jwt.sub)
+    assertNull(claims["client_domain"])
+    assertEquals("some-wallet", claims["client_name"] as String)
+  }
+
+  @Test
+  fun `test non-custodial wallet with missing client domain`() {
+    val testConfig = gson.fromJson(SEP24_CONFIG_JSON_1, PropertySep24Config::class.java)
+    val testRequest = gson.fromJson(REQUEST_JSON_1, HashMap::class.java)
+    val testTxn = gson.fromJson(TXN_JSON_1, JdbcSep24Transaction::class.java)
+
+    val constructor =
+      SimpleInteractiveUrlConstructor(clientsConfig, testConfig, customerIntegration, jwtService)
+
+    testTxn.clientDomain = null
+    assertThrows<SepValidationException> {
+      constructor.construct(testTxn, testRequest as HashMap<String, String>?)
+    }
   }
 
   @Test
