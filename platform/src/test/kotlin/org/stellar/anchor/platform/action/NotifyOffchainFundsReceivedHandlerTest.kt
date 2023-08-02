@@ -308,7 +308,6 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
 
@@ -459,7 +458,6 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
-    expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

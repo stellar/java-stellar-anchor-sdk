@@ -314,7 +314,6 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
-    expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
