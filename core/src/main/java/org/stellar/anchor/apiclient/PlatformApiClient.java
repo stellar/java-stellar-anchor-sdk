@@ -166,13 +166,7 @@ public class PlatformApiClient extends BaseApiClient {
     if (url == null)
       throw new InvalidConfigException(
           String.format("Invalid endpoint: %s of the client.", endpoint));
-    url =
-        new HttpUrl.Builder()
-            .scheme(url.scheme())
-            .host(url.host())
-            .port(url.port())
-            .addPathSegment("actions")
-            .build();
+    url = new HttpUrl.Builder().scheme(url.scheme()).host(url.host()).port(url.port()).build();
 
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(rpcRequests));
     Request request = getRequestBuilder().url(url).post(requestBody).build();
