@@ -41,6 +41,15 @@ class ObserverConfigAdapter extends SpringConfigAdapter {
     copy(config, "payment_observer.context_path", "server.servlet.context-path");
     copy(config, "payment_observer.port", "server.port");
     set("spring.mvc.converters.preferred-json-mapper", "gson");
+
+    // Enable the management server for Spring Actuator
+    copy(config, "payment_observer.management_server_port", "management.server.port");
+    set("management.endpoints.enabled-by-default", true);
+    if (config.getBoolean("metrics.enabled")) {
+      set("management.endpoints.web.exposure.include", "health,info,prometheus");
+    } else {
+      set("management.endpoints.web.exposure.include", "health,info");
+    }
   }
 
   @Override
