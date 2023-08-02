@@ -6,16 +6,17 @@ import org.junit.jupiter.api.Test
 
 val PostgresConfig =
   TestConfig("default").also {
-    it.env["run_all_servers"] = "false"
-    it.env["run_sep_server"] = "true"
+    it.env[RUN_DOCKER] = "false"
+    it.env[RUN_ALL_SERVERS] = "false"
+    it.env[RUN_SEP_SERVER] = "true"
     it.env["data.flyway_enabled"] = "true"
   }
 
 val H2Config =
   TestConfig("default").also {
-    it.env["run_all_servers"] = "false"
-    it.env["run_sep_server"] = "true"
-    it.env["run_docker"] = "false"
+    it.env[RUN_DOCKER] = "false"
+    it.env[RUN_ALL_SERVERS] = "false"
+    it.env[RUN_SEP_SERVER] = "true"
     it.env["data.type"] = "h2"
     it.env["data.server"] = ""
     it.env["data.database"] = ""
@@ -24,9 +25,9 @@ val H2Config =
 
 val SQLiteConfig =
   TestConfig("default").also {
-    it.env["run_all_servers"] = "false"
-    it.env["run_sep_server"] = "true"
-    it.env["run_docker"] = "false"
+    it.env[RUN_DOCKER] = "false"
+    it.env[RUN_ALL_SERVERS] = "false"
+    it.env[RUN_SEP_SERVER] = "true"
     it.env["data.type"] = "sqlite"
     it.env["data.server"] = ""
     it.env["data.database"] = "platform-test"

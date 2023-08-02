@@ -1,5 +1,6 @@
 package org.stellar.anchor.sep24;
 
+import static io.micrometer.core.instrument.Metrics.counter;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.sep24.InfoResponse.*;
@@ -10,12 +11,13 @@ import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.MemoHelper.memoType;
+import static org.stellar.anchor.util.MetricConstants.*;
 import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
 import static org.stellar.anchor.util.SepHelper.memoTypeString;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
-import com.google.gson.Gson;
+import io.micrometer.core.instrument.Counter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -31,7 +33,7 @@ import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.MetricConstants;
 import org.stellar.anchor.util.TransactionHelper;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
@@ -46,7 +48,19 @@ public class Sep24Service {
   final InteractiveUrlConstructor interactiveUrlConstructor;
   final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
-  static final Gson gson = GsonUtils.getInstance();
+  final Counter sep24TransactionRequestedCounter =
+      counter(MetricConstants.SEP24_TRANSACTION_REQUESTED);
+  final Counter sep24TransactionQueriedCounter = counter(MetricConstants.SEP24_TRANSACTION_QUERIED);
+  final Counter sep24WithdrawalCounter =
+      counter(
+          MetricConstants.SEP24_TRANSACTION_CREATED,
+          MetricConstants.TYPE,
+          MetricConstants.TV_SEP24_WITHDRAWAL);
+  final Counter sep24DepositCounter =
+      counter(
+          MetricConstants.SEP24_TRANSACTION_CREATED,
+          MetricConstants.TYPE,
+          MetricConstants.TV_SEP24_DEPOSIT);
 
   public static final List<String> INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST =
       List.of("amount", "client_domain", "lang");
@@ -77,6 +91,8 @@ public class Sep24Service {
       Sep10Jwt token, Map<String, String> withdrawRequest)
       throws AnchorException, MalformedURLException, URISyntaxException {
     info("Creating withdrawal transaction.");
+    // increment counter
+    sep24TransactionRequestedCounter.increment();
     if (token == null) {
       info("missing SEP-10 token");
       throw new SepValidationException("missing token");
@@ -198,15 +214,21 @@ public class Sep24Service {
         txn.getAmountIn(),
         txn.getAmountOut());
     debug("Transaction details:", txn);
-    return new InteractiveTransactionResponse(
-        "interactive_customer_info_needed",
-        interactiveUrlConstructor.construct(txn, withdrawRequest),
-        txn.getTransactionId());
+    InteractiveTransactionResponse response =
+        new InteractiveTransactionResponse(
+            "interactive_customer_info_needed",
+            interactiveUrlConstructor.construct(txn, withdrawRequest),
+            txn.getTransactionId());
+
+    // increment counter
+    sep24WithdrawalCounter.increment();
+    return response;
   }
 
   public InteractiveTransactionResponse deposit(Sep10Jwt token, Map<String, String> depositRequest)
       throws AnchorException, MalformedURLException, URISyntaxException {
     info("Creating deposit transaction.");
+    counter(SEP24_TRANSACTION_REQUESTED, TYPE, TV_SEP24_DEPOSIT);
     if (token == null) {
       info("missing SEP-10 token");
       throw new SepValidationException("missing token");
@@ -330,10 +352,14 @@ public class Sep24Service {
         txn.getAmountOut());
     debug("Transaction details:", txn);
 
-    return new InteractiveTransactionResponse(
-        "interactive_customer_info_needed",
-        interactiveUrlConstructor.construct(txn, depositRequest),
-        txn.getTransactionId());
+    InteractiveTransactionResponse response =
+        new InteractiveTransactionResponse(
+            "interactive_customer_info_needed",
+            interactiveUrlConstructor.construct(txn, depositRequest),
+            txn.getTransactionId());
+    // increment counter
+    sep24DepositCounter.increment();
+    return response;
   }
 
   public GetTransactionsResponse findTransactions(Sep10Jwt token, GetTransactionsRequest txReq)
@@ -373,7 +399,8 @@ public class Sep24Service {
       list.add(transactionResponse);
     }
     result.setTransactions(list);
-
+    // increment counter
+    sep24TransactionQueriedCounter.increment();
     return result;
   }
 
@@ -422,7 +449,8 @@ public class Sep24Service {
           token.getAccountMemo());
       throw new SepNotFoundException("transaction not found");
     }
-
+    // increment counter
+    sep24TransactionQueriedCounter.increment();
     return Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, txn));
   }
 
