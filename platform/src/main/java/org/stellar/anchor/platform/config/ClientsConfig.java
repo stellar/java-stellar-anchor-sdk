@@ -21,6 +21,7 @@ import org.stellar.anchor.sep10.Sep10Helper;
 public class ClientsConfig implements Validator {
   List<ClientConfig> clients = Lists.newLinkedList();
   Map<String, ClientConfig> clientMap = null;
+  Map<String, String> domainToClientNameMap = null;
 
   @Data
   @AllArgsConstructor
@@ -36,6 +37,19 @@ public class ClientsConfig implements Validator {
   public enum ClientType {
     CUSTODIAL,
     NONCUSTODIAL
+  }
+
+  public ClientConfig getClientConfigByDomain(String domain) {
+    if (domainToClientNameMap == null) {
+      domainToClientNameMap = Maps.newHashMap();
+      clients.forEach(
+          clientConfig -> {
+            if (clientConfig.domain != null) {
+              domainToClientNameMap.put(clientConfig.domain, clientConfig.name);
+            }
+          });
+    }
+    return getClientConfigByName(domainToClientNameMap.get(domain));
   }
 
   public ClientConfig getClientConfigByName(String name) {

@@ -19,6 +19,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
+import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
@@ -534,7 +535,8 @@ internal class Sep24ServiceTest {
         if (accountMemo == null) account else "$account:$accountMemo",
         TEST_TRANSACTION_ID_0,
         Instant.now().epochSecond + 1000,
-        TEST_CLIENT_DOMAIN
+        TEST_CLIENT_DOMAIN,
+        TEST_CLIENT_NAME,
       )
     jwt.claim("asset", "stellar:${TEST_ASSET}:${TEST_ASSET_ISSUER_ACCOUNT_ID}")
     return jwt

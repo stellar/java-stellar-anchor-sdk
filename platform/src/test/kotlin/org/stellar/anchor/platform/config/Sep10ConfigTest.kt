@@ -96,6 +96,13 @@ class Sep10ConfigTest {
   }
 
   @Test
+  fun `test ClientsConfig getClientConfigByDomain`() {
+    assertEquals(clientsConfig.getClientConfigByDomain("unknown"), null)
+    assertEquals(clientsConfig.getClientConfigByDomain("lobstr.co"), clientsConfig.clients[1])
+    assertEquals(clientsConfig.getClientConfigByDomain("circle.com"), clientsConfig.clients[2])
+  }
+
+  @Test
   fun `test when clientAllowList is not defined, clientAttributionAllowList equals to the list of all clients`() {
     val config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
     assertEquals(config.clientAttributionAllowList, listOf("lobstr.co", "circle.com"))
