@@ -21,8 +21,8 @@ public class CallbackApiEventHandler extends EventHandler {
   @SneakyThrows
   @Override
   void handleEvent(AnchorEvent event) {
-    debugF("Sending event (%s) to callback API.", event.getId());
-    traceF("Sending event to callback API: %s", event);
+    debugF("Sending event {} to callback API.", event.getId());
+    traceF("Sending event to callback API: {}", event);
 
     callbackApiClient.sendEvent(SendEventRequest.from(event));
   }
