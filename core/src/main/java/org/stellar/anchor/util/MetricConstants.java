@@ -1,5 +1,10 @@
 package org.stellar.anchor.util;
 
+/**
+ * This class contains constants for metrics names and tag names.
+ *
+ * <p>Please note the constants prefixed with TV_ are used for tag values.
+ */
 public class MetricConstants {
   // SEP-1 metrics
   public static final String SEP1_TOML_ACCESSED = "sep1.toml_accessed";

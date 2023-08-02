@@ -144,16 +144,16 @@ public class TransactionService {
     List<?> txn;
 
     switch (sep) {
-      case SEP_31:
-        txn = txn31Store.findTransactions(params);
+      case SEP_6:
+        txn = txn6Store.findTransactions(params);
         findSep6TransactionsCounter.increment();
         break;
       case SEP_24:
         txn = txn24Store.findTransactions(params);
         findSep24TransactionsCounter.increment();
         break;
-      case SEP_6:
-        txn = txn6Store.findTransactions(params);
+      case SEP_31:
+        txn = txn31Store.findTransactions(params);
         findSep31TransactionsCounter.increment();
         break;
       default:
