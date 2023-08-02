@@ -111,7 +111,7 @@ public class Sep24Service {
     String strAmount = withdrawRequest.get("amount");
 
     String lang = validateLanguage(appConfig, withdrawRequest.get("lang"));
-    debug("language: {}", lang);
+    debugF("language: {}", lang);
 
     if (assetCode == null) {
       info("missing 'asset_code'");
@@ -254,7 +254,7 @@ public class Sep24Service {
     }
 
     String lang = validateLanguage(appConfig, depositRequest.get("lang"));
-    debug("language: {}", lang);
+    debugF("language: {}", lang);
 
     if (assetCode == null) {
       info("missing 'asset_code'");
