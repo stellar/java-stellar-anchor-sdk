@@ -51,7 +51,7 @@ jobs:
       - name: Gradle test and build. (unit tests, integration tests, end-2-end tests and build)
         env:
           run_docker: false
-        run: ./gradlew clean build --no-daemon --stacktrace -x spotlessApply -x spotlessCheck -x spotlessKotlin -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
+        run: ./gradlew clean build --no-daemon --stacktrace -x spotlessApply -x spotlessKotlin -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
 
       - name: Stop docker containers
         env:
