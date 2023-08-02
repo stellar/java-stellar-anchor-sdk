@@ -232,7 +232,7 @@ public class Sep10Service {
       if ((clientDomain != null && challenge.getTransaction().getSignatures().size() != 3)
           || (clientDomain == null && challenge.getTransaction().getSignatures().size() != 2)) {
         infoF(
-            "ALERT: Invalid SEP 10 challenge exception, there is more than one client signer on challenge transaction for an account that doesn't exist. client_domain={}, account_id={}",
+            "Invalid SEP 10 challenge exception, there is more than one client signer on challenge transaction for an account that doesn't exist. client_domain={}, account_id={}",
             clientDomain,
             challenge.getClientAccountId());
         throw new InvalidSep10ChallengeException(
