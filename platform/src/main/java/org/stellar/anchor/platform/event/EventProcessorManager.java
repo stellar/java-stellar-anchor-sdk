@@ -16,12 +16,15 @@ import lombok.SneakyThrows;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
 import org.stellar.anchor.platform.utils.DaemonExecutors;
+import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
+import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.util.Log;
 
 public class EventProcessorManager {
@@ -32,6 +35,9 @@ public class EventProcessorManager {
   private final CallbackApiConfig callbackApiConfig;
   private final ClientsConfig clientsConfig;
   private final EventService eventService;
+  private final AssetService assetService;
+  private final Sep24TransactionStore sep24TransactionStore;
+  private final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
   private final List<EventProcessor> processors = new ArrayList<>();
 
@@ -39,11 +45,17 @@ public class EventProcessorManager {
       EventProcessorConfig eventProcessorConfig,
       CallbackApiConfig callbackApiConfig,
       ClientsConfig clientsConfig,
-      EventService eventService) {
+      EventService eventService,
+      AssetService assetService,
+      Sep24TransactionStore sep24TransactionStore,
+      MoreInfoUrlConstructor moreInfoUrlConstructor) {
     this.eventProcessorConfig = eventProcessorConfig;
     this.callbackApiConfig = callbackApiConfig;
     this.clientsConfig = clientsConfig;
     this.eventService = eventService;
+    this.assetService = assetService;
+    this.sep24TransactionStore = sep24TransactionStore;
+    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
 
   @PostConstruct
@@ -85,7 +97,8 @@ public class EventProcessorManager {
               new EventProcessor(
                   processorName,
                   EventQueue.TRANSACTION,
-                  new ClientStatusCallbackHandler(clientConfig)));
+                  new ClientStatusCallbackHandler(
+                      clientConfig, sep24TransactionStore, assetService, moreInfoUrlConstructor)));
         }
       }
     }
