@@ -1,4 +1,4 @@
-package org.stellar.reference.wallet.plugins
+package org.stellar.reference.wallet
 
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -11,15 +11,12 @@ import java.util.*
 import kotlinx.coroutines.runBlocking
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.reference.wallet.callback.CallbackEventService
-import org.stellar.reference.wallet.data.Config
-import org.stellar.reference.wallet.fetchSigningKey
 import org.stellar.sdk.KeyPair
 
 var signer: KeyPair? = null
 val gson = GsonUtils.getInstance()
 
-fun Route.callback(config: Config, callbackEventService: CallbackEventService) {
+fun Route.callback(config: Config, callbackEventService: CallbackService) {
   route("/callbacks") {
     // The `POST /callback` endpoint of the CallbackAPI to receive an event.
     post {

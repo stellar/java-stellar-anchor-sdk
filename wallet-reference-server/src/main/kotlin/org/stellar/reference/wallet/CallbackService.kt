@@ -1,9 +1,8 @@
-package org.stellar.reference.wallet.callback
+package org.stellar.reference.wallet
 
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
-import org.stellar.reference.wallet.log
 
-class CallbackEventService {
+class CallbackService {
   private val receivedCallbacks: MutableList<Sep24GetTransactionResponse> = mutableListOf()
 
   fun processCallback(receivedCallback: Sep24GetTransactionResponse) {

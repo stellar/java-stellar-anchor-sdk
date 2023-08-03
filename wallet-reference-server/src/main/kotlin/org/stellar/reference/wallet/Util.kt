@@ -4,7 +4,6 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import org.stellar.reference.wallet.data.Config
 import shadow.com.moandjiezana.toml.Toml
 
 class ClientException(message: String) : Exception(message)

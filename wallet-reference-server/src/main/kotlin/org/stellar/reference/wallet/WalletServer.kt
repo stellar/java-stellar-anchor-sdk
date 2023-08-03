@@ -11,10 +11,6 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
-import org.stellar.reference.wallet.callback.CallbackEventService
-import org.stellar.reference.wallet.data.Config
-import org.stellar.reference.wallet.data.LocationConfig
-import org.stellar.reference.wallet.plugins.callback
 
 val log = KotlinLogging.logger {}
 lateinit var walletServer: NettyApplicationEngine
@@ -69,5 +65,5 @@ fun stopServer() {
 }
 
 fun Application.configureRouting(cfg: Config) {
-  routing { callback(cfg, CallbackEventService()) }
+  routing { callback(cfg, CallbackService()) }
 }

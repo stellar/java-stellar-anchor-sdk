@@ -1,4 +1,4 @@
-package org.stellar.reference.wallet.data
+package org.stellar.reference.wallet
 
 data class LocationConfig(val walletServerConfig: String)
 

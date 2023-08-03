@@ -1,4 +1,4 @@
-package org.stellar.reference.wallet.client
+package org.stellar.reference.wallet
 
 import com.google.gson.reflect.TypeToken
 import io.ktor.client.*
@@ -10,7 +10,7 @@ import org.stellar.anchor.api.callback.SendEventResponse
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.util.GsonUtils
 
-class WalletServerClient(val endpoint: Url) {
+class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
   val gson = GsonUtils.getInstance()
   val client = HttpClient()
   suspend fun sendCallback(sendEventRequest: SendEventRequest): SendEventResponse {
