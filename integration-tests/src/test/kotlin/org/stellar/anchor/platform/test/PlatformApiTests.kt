@@ -13,9 +13,13 @@ import org.stellar.anchor.api.rpc.action.ActionMethod.REQUEST_OFFCHAIN_FUNDS
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsReceivedRequest
 import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
+import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.platform.Sep12Client
 import org.stellar.anchor.platform.Sep24Client
+import org.stellar.anchor.platform.Sep31Client
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper.TomlContent
@@ -25,23 +29,31 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     private const val TX_ID = "testTxId"
     private const val JSON_RPC_VERSION = "2.0"
     private const val TX_ID_KEY = "TX_ID"
+    private const val RECEIVER_ID_KEY = "RECEIVER_ID"
+    private const val SENDER_ID_KEY = "SENDER_ID"
   }
 
   private val gson = GsonUtils.getInstance()
 
   private val platformApiClient =
     PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
+  private val sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
   private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
+  private val sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
 
   fun testAll() {
     println("Performing Platform API tests...")
-    `deposit short flow`()
+    `SEP-24 deposit complete short flow`()
+    `SEP-24 deposit complete full with trust flow`()
+    `SEP-24 deposit complete full with recovery flow`()
+    `SEP-24 deposit complete short partial refund flow`()
+    `SEP-31 refunded short`()
     `send single rpc action`()
     `send batch of rpc actions`()
   }
 
   private fun `send single rpc action`() {
-    val depositRequest = gson.fromJson(DEPOSIT_REQUEST, HashMap::class.java)
+    val depositRequest = gson.fromJson(SEP_24_DEPOSIT_REQUEST, HashMap::class.java)
     val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
     val txId = depositResponse.id
 
@@ -72,7 +84,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
   }
 
   private fun `send batch of rpc actions`() {
-    val depositRequest = gson.fromJson(DEPOSIT_REQUEST, HashMap::class.java)
+    val depositRequest = gson.fromJson(SEP_24_DEPOSIT_REQUEST, HashMap::class.java)
     val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
     val txId = depositResponse.id
 
@@ -118,23 +130,118 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     assertEquals(SepTransactionStatus.PENDING_ANCHOR, txResponse.status)
   }
 
-  private fun `deposit short flow`() {
-    val depositRequest = gson.fromJson(DEPOSIT_REQUEST, HashMap::class.java)
-    val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
-    val txId = depositResponse.id
-
-    `test flow`(txId, DEPOSIT_SHORT_FLOW_ACTIONS_REQUEST, DEPOSIT_SHORT_FLOW_ACTIONS_RESPONSE)
+  /**
+   * 1. incomplete -> request_offchain_funds
+   * 2. pending_user_transfer_start -> notify_offchain_funds_received
+   * 3. pending_anchor -> notify_onchain_funds_sent
+   * 4. completed
+   */
+  private fun `SEP-24 deposit complete short flow`() {
+    `test deposit flow`(
+      SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS,
+      SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
+    )
   }
 
-  private fun `test flow`(txId: String, request: String, response: String) {
+  /**
+   * 1. incomplete -> notify_interactive_flow_completed
+   * 2. pending_anchor -> request_offchain_funds
+   * 3. pending_user_transfer_start -> notify_offchain_funds_received
+   * 4. pending_anchor -> request_trust
+   * 5. pending_trust -> notify_trust_set
+   * 6. pending_anchor -> notify_onchain_funds_sent
+   * 7. completed
+   */
+  private fun `SEP-24 deposit complete full with trust flow`() {
+    `test deposit flow`(
+      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_REQUESTS,
+      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> request_offchain_funds
+   * 2. pending_user_transfer_start -> notify_offchain_funds_received
+   * 3. pending_anchor -> notify_transaction_error
+   * 4. error -> notify_transaction_recovery
+   * 5. pending_anchor -> notify_onchain_funds_sent
+   * 6. completed
+   */
+  private fun `SEP-24 deposit complete full with recovery flow`() {
+    `test deposit flow`(
+      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS,
+      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> request_offchain_funds
+   * 2. pending_user_transfer_start -> notify_offchain_funds_received
+   * 3. pending_anchor -> notify_refund_pending
+   * 4. pending_external -> notify_refund_sent
+   * 5. pending_anchor -> notify_onchain_funds_sent
+   * 6. completed
+   */
+  private fun `SEP-24 deposit complete short partial refund flow`() {
+    `test deposit flow`(
+      SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_REQUESTS,
+      SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. pending_receiver -> notify_onchain_funds_received
+   * 2. pending_anchor -> notify_refund_sent
+   * 3. completed
+   */
+  private fun `SEP-31 refunded short`() {
+    `test receive flow`(
+      SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_REQUESTS,
+      SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  private fun `test deposit flow`(actionRequests: String, actionResponse: String) {
+    val depositRequest = gson.fromJson(SEP_24_DEPOSIT_FLOW_REQUEST, HashMap::class.java)
+    val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
+    `test flow`(depositResponse.id, actionRequests, actionResponse)
+  }
+
+  private fun `test receive flow`(actionRequests: String, actionResponses: String) {
+    val receiverCustomerRequest =
+      GsonUtils.getInstance().fromJson(CUSTOMER_1, Sep12PutCustomerRequest::class.java)
+    val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
+    val senderCustomerRequest =
+      GsonUtils.getInstance().fromJson(CUSTOMER_2, Sep12PutCustomerRequest::class.java)
+    val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
+
+    val receiveRequestJson =
+      SEP_31_RECEIVE_FLOW_REQUEST.replace(RECEIVER_ID_KEY, receiverCustomer!!.id)
+        .replace(SENDER_ID_KEY, senderCustomer!!.id)
+    val receiveRequest = gson.fromJson(receiveRequestJson, Sep31PostTransactionRequest::class.java)
+    val receiveResponse = sep31Client.postTransaction(receiveRequest)
+
+    val updatedActionRequests =
+      actionRequests
+        .replace(RECEIVER_ID_KEY, receiverCustomer.id)
+        .replace(SENDER_ID_KEY, senderCustomer.id)
+    val updatedActionResponses =
+      actionResponses
+        .replace(RECEIVER_ID_KEY, receiverCustomer.id)
+        .replace(SENDER_ID_KEY, senderCustomer.id)
+
+    `test flow`(receiveResponse.id, updatedActionRequests, updatedActionResponses)
+  }
+
+  private fun `test flow`(txId: String, actionRequests: String, actionResponses: String) {
     val rpcActionRequestsType = object : TypeToken<List<RpcRequest>>() {}.type
     val rpcActionRequests: List<RpcRequest> =
-      gson.fromJson(request.replace(TX_ID_KEY, txId), rpcActionRequestsType)
+      gson.fromJson(actionRequests.replace(TX_ID_KEY, txId), rpcActionRequestsType)
 
     val rpcActionResponses = platformApiClient.callRpcAction(rpcActionRequests)
 
-    val expectedResult = response.replace(TX_ID_KEY, txId).trimIndent()
-    val actualResult = rpcActionResponses.body?.string()?.replace(TX_ID_KEY, txId)?.trimIndent()
+    val expectedResult = actionResponses.replace(TX_ID_KEY, txId).trimIndent()
+    val actualResult = rpcActionResponses.body?.string()?.trimIndent()
 
     JSONAssert.assertEquals(
       expectedResult,
@@ -143,13 +250,14 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
         JSONCompareMode.STRICT,
         Customization("[*].result.started_at") { _, _ -> true },
         Customization("[*].result.updated_at") { _, _ -> true },
-        Customization("[*].result.completed_at") { _, _ -> true }
+        Customization("[*].result.completed_at") { _, _ -> true },
+        Customization("[*].result.stellar_transactions[*].memo") { _, _ -> true }
       )
     )
   }
 }
 
-private const val DEPOSIT_SHORT_FLOW_ACTIONS_REQUEST =
+private const val SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
   """
 [
   {
@@ -160,19 +268,19 @@ private const val DEPOSIT_SHORT_FLOW_ACTIONS_REQUEST =
       "transaction_id": "TX_ID",
       "message": "test message 1",
       "amount_in": {
-        "amount": "1",
+        "amount": "100",
         "asset": "iso4217:USD"
       },
       "amount_out": {
-        "amount": "0.9",
+        "amount": "95",
         "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
       },
       "amount_fee": {
-        "amount": "0.1",
+        "amount": "5",
         "asset": "iso4217:USD"
       },
       "amount_expected": {
-        "amount": "1"
+        "amount": "100"
       }
     }
   },
@@ -186,7 +294,7 @@ private const val DEPOSIT_SHORT_FLOW_ACTIONS_REQUEST =
       "funds_received_at": "2023-07-04T12:34:56Z",
       "external_transaction_id": "ext-123456",
       "amount_in": {
-        "amount": 2
+        "amount": "100"
       }
     }
   },
@@ -203,7 +311,7 @@ private const val DEPOSIT_SHORT_FLOW_ACTIONS_REQUEST =
 ]
   """
 
-private const val DEPOSIT_SHORT_FLOW_ACTIONS_RESPONSE =
+private const val SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
   """
 [
   {
@@ -214,23 +322,23 @@ private const val DEPOSIT_SHORT_FLOW_ACTIONS_RESPONSE =
       "kind": "deposit",
       "status": "pending_user_transfer_start",
       "amount_expected": {
-        "amount": "1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "amount": "100",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       },
       "amount_in": {
-        "amount": "1",
+        "amount": "100",
         "asset": "iso4217:USD"
       },
       "amount_out": {
-        "amount": "0.9",
+        "amount": "95",
         "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
       },
       "amount_fee": {
-        "amount": "0.1",
+        "amount": "5",
         "asset": "iso4217:USD"
       },
-      "started_at": "2023-08-03T11:49:36.727322Z",
-      "updated_at": "2023-08-03T11:49:58.930151Z",
+      "started_at": "2023-08-03T13:16:01.810865Z",
+      "updated_at": "2023-08-03T13:16:03.309042Z",
       "message": "test message 1",
       "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
     },
@@ -244,23 +352,23 @@ private const val DEPOSIT_SHORT_FLOW_ACTIONS_RESPONSE =
       "kind": "deposit",
       "status": "pending_anchor",
       "amount_expected": {
-        "amount": "1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "amount": "100",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       },
       "amount_in": {
-        "amount": "2",
+        "amount": "100",
         "asset": "iso4217:USD"
       },
       "amount_out": {
-        "amount": "0.9",
+        "amount": "95",
         "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
       },
       "amount_fee": {
-        "amount": "0.1",
+        "amount": "5",
         "asset": "iso4217:USD"
       },
-      "started_at": "2023-08-03T11:49:36.727322Z",
-      "updated_at": "2023-08-03T11:49:59.991254Z",
+      "started_at": "2023-08-03T13:16:01.810865Z",
+      "updated_at": "2023-08-03T13:16:04.486424Z",
       "message": "test message 2",
       "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
       "external_transaction_id": "ext-123456"
@@ -275,24 +383,24 @@ private const val DEPOSIT_SHORT_FLOW_ACTIONS_RESPONSE =
       "kind": "deposit",
       "status": "completed",
       "amount_expected": {
-        "amount": "1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "amount": "100",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       },
       "amount_in": {
-        "amount": "2",
+        "amount": "100",
         "asset": "iso4217:USD"
       },
       "amount_out": {
-        "amount": "0.9",
+        "amount": "95",
         "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
       },
       "amount_fee": {
-        "amount": "0.1",
+        "amount": "5",
         "asset": "iso4217:USD"
       },
-      "started_at": "2023-08-03T11:49:36.727322Z",
-      "updated_at": "2023-08-03T11:50:01.596766Z",
-      "completed_at": "2023-08-03T11:50:01.596771Z",
+      "started_at": "2023-08-03T13:16:01.810865Z",
+      "updated_at": "2023-08-03T13:16:06.158111Z",
+      "completed_at": "2023-08-03T13:16:06.158118Z",
       "message": "test message 3",
       "stellar_transactions": [
         {
@@ -321,7 +429,1146 @@ private const val DEPOSIT_SHORT_FLOW_ACTIONS_RESPONSE =
 ]
   """
 
-private const val DEPOSIT_REQUEST =
+private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_REQUESTS =
+  """
+[
+  {
+    "id": "1",
+    "method": "notify_interactive_flow_completed",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 1",
+      "amount_in": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "95",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "3"
+      }
+    }
+  },
+  {
+    "id": "2",
+    "method": "request_offchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 2",
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+  "id": "3",
+  "method": "notify_offchain_funds_received",
+  "jsonrpc": "2.0",
+  "params": {
+    "transaction_id": "TX_ID",
+    "message": "test message 3",
+    "funds_received_at": "2023-07-04T12:34:56Z",
+    "external_transaction_id": "ext-123456",
+    "amount_in": {
+        "amount": "10.11"
+      },
+      "amount_out": {
+        "amount": "9"
+      },
+      "amount_fee": {
+        "amount": "1.11"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "4",
+    "method": "request_trust",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 4"
+    }
+  },
+  {
+    "id": "5",
+    "method": "notify_trust_set",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 5"
+    }
+  },
+  {
+    "id": "6",
+    "method": "notify_onchain_funds_sent",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 6",
+      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+    }
+  }
+]
+  """
+
+private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_RESPONSES =
+  """
+[
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_anchor",
+      "amount_expected": {
+        "amount": "3",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "95",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T13:24:23.164990Z",
+      "updated_at": "2023-08-03T13:24:24.202429Z",
+      "message": "test message 1",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    },
+    "id": "1"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_user_transfer_start",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T13:24:23.164990Z",
+      "updated_at": "2023-08-03T13:24:25.245103Z",
+      "message": "test message 2",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    },
+    "id": "2"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_anchor",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T13:24:23.164990Z",
+      "updated_at": "2023-08-03T13:24:26.274735Z",
+      "message": "test message 3",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "3"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_trust",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T13:24:23.164990Z",
+      "updated_at": "2023-08-03T13:24:27.297727Z",
+      "message": "test message 4",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "4"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_anchor",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T13:24:23.164990Z",
+      "updated_at": "2023-08-03T13:24:28.344421Z",
+      "message": "test message 5",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "5"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "completed",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T13:24:23.164990Z",
+      "updated_at": "2023-08-03T13:24:30.907307Z",
+      "completed_at": "2023-08-03T13:24:30.907312Z",
+      "message": "test message 6",
+      "stellar_transactions": [
+        {
+          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "created_at": "2023-06-22T08:46:56Z",
+          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "payments": [
+            {
+              "id": "563306435719169",
+              "amount": {
+                "amount": "4.5000000",
+                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "payment_type": "payment",
+              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+            }
+          ]
+        }
+      ],
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "6"
+  }
+]
+  """
+
+private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
+  """
+[
+  {
+    "id": "1",
+    "method": "request_offchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 1",
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "2",
+    "method": "notify_offchain_funds_received",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 2",
+      "funds_received_at": "2023-07-04T12:34:56Z",
+      "external_transaction_id": "ext-123456",
+      "amount_in": {
+        "amount": "10.11"
+      },
+      "amount_out": {
+        "amount": "9"
+      },
+      "amount_fee": {
+        "amount": "1.11"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "3",
+    "method": "notify_transaction_error",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 3"
+    }
+  },
+  {
+    "id": "4",
+    "method": "notify_transaction_recovery",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 4"
+    }
+  },
+  {
+    "id": "5",
+    "method": "notify_onchain_funds_sent",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 5",
+      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+    }
+  }
+]
+  """
+
+private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
+  """
+[
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_user_transfer_start",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T14:07:19.840308Z",
+      "updated_at": "2023-08-03T14:07:20.883323Z",
+      "message": "test message 1",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    },
+    "id": "1"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_anchor",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T14:07:19.840308Z",
+      "updated_at": "2023-08-03T14:07:21.897462Z",
+      "message": "test message 2",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "2"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "error",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T14:07:19.840308Z",
+      "updated_at": "2023-08-03T14:07:22.924959Z",
+      "message": "test message 3",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "3"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_anchor",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T14:07:19.840308Z",
+      "updated_at": "2023-08-03T14:07:23.977509Z",
+      "message": "test message 4",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "4"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "completed",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T14:07:19.840308Z",
+      "updated_at": "2023-08-03T14:07:25.181690Z",
+      "completed_at": "2023-08-03T14:07:25.181694Z",
+      "message": "test message 5",
+      "stellar_transactions": [
+        {
+          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "created_at": "2023-06-22T08:46:56Z",
+          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "payments": [
+            {
+              "id": "563306435719169",
+              "amount": {
+                "amount": "4.5000000",
+                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "payment_type": "payment",
+              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+            }
+          ]
+        }
+      ],
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "5"
+  }
+]
+  """
+
+private const val SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_REQUESTS =
+  """
+[
+  {
+    "id": "1",
+    "method": "request_offchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 1",
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "2",
+    "method": "notify_offchain_funds_received",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 2",
+      "funds_received_at": "2023-07-04T12:34:56Z",
+      "external_transaction_id": "ext-123456",
+      "amount_in": {
+        "amount": "1000.11"
+      },
+      "amount_out": {
+        "amount": "9"
+      },
+      "amount_fee": {
+        "amount": "1.11"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "3",
+    "method": "notify_refund_pending",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 3",
+      "refund": {
+        "id": "123456",
+        "amount": {
+          "amount": "989.11",
+          "asset": "iso4217:USD"
+        },
+        "amount_fee": {
+          "amount": "1",
+          "asset": "iso4217:USD"
+        }
+      }
+    }
+  },
+  {
+    "id": "4",
+    "method": "notify_refund_sent",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 4",
+      "refund": {
+        "id": "123456",
+        "amount": {
+          "amount": "989.11",
+          "asset": "iso4217:USD"
+        },
+        "amount_fee": {
+          "amount": "1",
+          "asset": "iso4217:USD"
+        }
+      }
+    }
+  },
+  {
+    "id": "5",
+    "method": "notify_onchain_funds_sent",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 5",
+      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+    }
+  }
+]    
+  """
+
+private const val SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_RESPONSES =
+  """
+[
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_user_transfer_start",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T14:32:55.369869Z",
+      "updated_at": "2023-08-03T14:32:56.401608Z",
+      "message": "test message 1",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    },
+    "id": "1"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_anchor",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "1000.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T14:32:55.369869Z",
+      "updated_at": "2023-08-03T14:32:57.411722Z",
+      "message": "test message 2",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "2"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_external",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "1000.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T14:32:55.369869Z",
+      "updated_at": "2023-08-03T14:32:58.452076Z",
+      "message": "test message 3",
+      "refunds": {
+        "amount_refunded": {
+          "amount": "990.11",
+          "asset": "iso4217:USD"
+        },
+        "amount_fee": {
+          "amount": "1",
+          "asset": "iso4217:USD"
+        },
+        "payments": [
+          {
+            "id": "123456",
+            "id_type": "stellar",
+            "amount": {
+              "amount": "989.11",
+              "asset": "iso4217:USD"
+            },
+            "fee": {
+              "amount": "1",
+              "asset": "iso4217:USD"
+            }
+          }
+        ]
+      },
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "3"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_anchor",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "1000.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T14:32:55.369869Z",
+      "updated_at": "2023-08-03T14:32:59.512350Z",
+      "message": "test message 4",
+      "refunds": {
+        "amount_refunded": {
+          "amount": "990.11",
+          "asset": "iso4217:USD"
+        },
+        "amount_fee": {
+          "amount": "1",
+          "asset": "iso4217:USD"
+        },
+        "payments": [
+          {
+            "id": "123456",
+            "id_type": "stellar",
+            "amount": {
+              "amount": "989.11",
+              "asset": "iso4217:USD"
+            },
+            "fee": {
+              "amount": "1",
+              "asset": "iso4217:USD"
+            }
+          }
+        ]
+      },
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "4"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "completed",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "1000.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-03T14:32:55.369869Z",
+      "updated_at": "2023-08-03T14:33:00.668544Z",
+      "completed_at": "2023-08-03T14:33:00.668548Z",
+      "message": "test message 5",
+      "refunds": {
+        "amount_refunded": {
+          "amount": "990.11",
+          "asset": "iso4217:USD"
+        },
+        "amount_fee": {
+          "amount": "1",
+          "asset": "iso4217:USD"
+        },
+        "payments": [
+          {
+            "id": "123456",
+            "id_type": "stellar",
+            "amount": {
+              "amount": "989.11",
+              "asset": "iso4217:USD"
+            },
+            "fee": {
+              "amount": "1",
+              "asset": "iso4217:USD"
+            }
+          }
+        ]
+      },
+      "stellar_transactions": [
+        {
+          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "created_at": "2023-06-22T08:46:56Z",
+          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "payments": [
+            {
+              "id": "563306435719169",
+              "amount": {
+                "amount": "4.5000000",
+                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "payment_type": "payment",
+              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+            }
+          ]
+        }
+      ],
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "5"
+  }
+]   
+  """
+
+private const val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_REQUESTS =
+  """
+[
+  {
+    "id": "1",
+    "method": "notify_onchain_funds_received",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 1",
+      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+    }
+  },
+  {
+    "id": "2",
+    "method": "notify_refund_sent",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 2",
+      "refund": {
+        "id": "123456",
+        "amount": {
+          "amount": "1",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "amount_fee": {
+          "amount": "1",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        }
+      }
+    }
+  }
+]   
+  """
+
+private const val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
+  """
+[
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "31",
+      "kind": "receive",
+      "status": "pending_receiver",
+      "amount_expected": {
+        "amount": "10",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_out": {},
+      "amount_fee": {
+        "amount": "0.3",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "started_at": "2023-08-03T15:14:02.506800Z",
+      "updated_at": "2023-08-03T15:14:05.060150Z",
+      "transfer_received_at": "2023-06-22T08:46:56Z",
+      "message": "test message 1",
+      "stellar_transactions": [
+        {
+          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "memo": "NTY3NWI1YzctMGVmNC00NTY2LWFmMGMtOWY4MGVmMjg=",
+          "memo_type": "hash",
+          "created_at": "2023-06-22T08:46:56Z",
+          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "payments": [
+            {
+              "id": "563306435719169",
+              "amount": {
+                "amount": "4.5000000",
+                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "payment_type": "payment",
+              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+            }
+          ]
+        }
+      ],
+      "customers": {
+        "sender": {
+          "id": "SENDER_ID"
+        },
+        "receiver": {
+          "id": "RECEIVER_ID"
+        }
+      },
+      "creator": {
+        "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+      }
+    },
+    "id": "1"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "31",
+      "kind": "receive",
+      "status": "pending_anchor",
+      "amount_expected": {
+        "amount": "10",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_out": {},
+      "amount_fee": {
+        "amount": "0.3",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "started_at": "2023-08-03T15:14:02.506800Z",
+      "updated_at": "2023-08-03T15:14:06.437196Z",
+      "transfer_received_at": "2023-06-22T08:46:56Z",
+      "message": "test message 2",
+      "refunds": {
+        "amount_refunded": {
+          "amount": "2",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "amount_fee": {
+          "amount": "1",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "payments": [
+          {
+            "id": "123456",
+            "id_type": "stellar",
+            "amount": {
+              "amount": "1",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "fee": {
+              "amount": "1",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            }
+          }
+        ]
+      },
+      "stellar_transactions": [
+        {
+          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "memo": "NTY3NWI1YzctMGVmNC00NTY2LWFmMGMtOWY4MGVmMjg=",
+          "memo_type": "hash",
+          "created_at": "2023-06-22T08:46:56Z",
+          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "payments": [
+            {
+              "id": "563306435719169",
+              "amount": {
+                "amount": "4.5000000",
+                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "payment_type": "payment",
+              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+            }
+          ]
+        }
+      ],
+      "customers": {
+        "sender": {
+          "id": "SENDER_ID"
+        },
+        "receiver": {
+          "id": "RECEIVER_ID"
+        }
+      },
+      "creator": {
+        "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+      }
+    },
+    "id": "2"
+  }
+]  
+  """
+
+private const val SEP_24_DEPOSIT_FLOW_REQUEST = """
+{
+  "asset_code": "USDC"
+}
+  """
+
+private const val SEP_31_RECEIVE_FLOW_REQUEST =
+  """
+{
+  "amount": "10",
+  "asset_code": "USDC",
+  "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+  "receiver_id": "RECEIVER_ID",
+  "sender_id": "SENDER_ID",
+  "fields": {
+    "transaction": {
+      "receiver_routing_number": "r0123",
+      "receiver_account_number": "a0456",
+      "type": "SWIFT"
+    }
+  }
+}
+  """
+
+private const val SEP_24_DEPOSIT_REQUEST =
   """{
     "asset_code": "USDC",
     "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
@@ -466,4 +1713,38 @@ private const val EXPECTED_RPC_BATCH_RESPONSE =
       "id":2
    }
 ] 
+"""
+
+private const val CUSTOMER_1 =
+  """
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email_address": "johndoe@test.com",
+  "address": "123 Washington Street",
+  "city": "San Francisco",
+  "state_or_province": "CA",
+  "address_country_code": "US",
+  "clabe_number": "1234",
+  "bank_number": "abcd",
+  "bank_account_number": "1234",
+  "bank_account_type": "checking"
+}
+"""
+
+private const val CUSTOMER_2 =
+  """
+{
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "email_address": "janedoe@test.com",
+  "address": "321 Washington Street",
+  "city": "San Francisco",
+  "state_or_province": "CA",
+  "address_country_code": "US",
+  "clabe_number": "5678",
+  "bank_number": "efgh",
+  "bank_account_number": "5678",
+  "bank_account_type": "checking"
+}
 """
