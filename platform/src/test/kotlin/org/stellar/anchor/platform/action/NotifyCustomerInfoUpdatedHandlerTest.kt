@@ -80,7 +80,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_customer_info_updated] is not supported for status[pending_customer_info_update], kind[null] and protocol[38]",
+      "Action[notify_customer_info_updated] is not supported. Status[pending_customer_info_update], kind[null], protocol[38], funds received[false]",
       ex.message
     )
   }
@@ -96,7 +96,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_customer_info_updated] is not supported for status[incomplete], kind[receive] and protocol[31]",
+      "Action[notify_customer_info_updated] is not supported. Status[incomplete], kind[receive], protocol[31], funds received[false]",
       ex.message
     )
   }

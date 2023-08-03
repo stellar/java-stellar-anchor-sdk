@@ -66,7 +66,7 @@ public class NotifyTransactionRecoveryHandler
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     if (Set.of(SEP_24, SEP_31).contains(Sep.from(txn.getProtocol()))) {
-      if (txn.getTransferReceivedAt() != null) {
+      if (areFundsReceived(txn)) {
         return Set.of(ERROR, EXPIRED);
       }
     }
