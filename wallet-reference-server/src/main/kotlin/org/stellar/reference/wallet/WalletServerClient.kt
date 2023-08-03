@@ -60,7 +60,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
     return gson.fromJson(response.body<String>(), Sep24GetTransactionResponse::class.java)
   }
 
-  suspend fun clearEvents() {
+  suspend fun clearCallbacks() {
     client.delete {
       url {
         this.protocol = endpoint.protocol
