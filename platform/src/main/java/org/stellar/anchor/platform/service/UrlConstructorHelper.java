@@ -1,13 +1,11 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.util.StringHelper.camelToSnake;
-import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
+import static org.stellar.anchor.util.StringHelper.*;
 
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.beanutils.BeanUtils;
 import org.stellar.anchor.sep24.Sep24Transaction;
-import org.stellar.anchor.util.StringHelper;
 
 public class UrlConstructorHelper {
   /**
@@ -24,12 +22,25 @@ public class UrlConstructorHelper {
       try {
         field = camelToSnake(field);
         String value = BeanUtils.getProperty(txn, snakeToCamelCase(field));
-        if (!StringHelper.isEmpty((value))) {
+        if (!isEmpty((value))) {
           data.put(field, value);
         }
       } catch (Exception e) {
         // give up. no need to add the field
       }
     }
+  }
+
+  /**
+   * Get the account from the transaction. If the memo is not empty, this returns the SEP-10 account
+   * concatenated with the memo. Otherwise, it returns the SEP-10 account.
+   *
+   * @param txn
+   * @return the account
+   */
+  public static String getAccount(Sep24Transaction txn) {
+    return isEmpty(txn.getSep10AccountMemo())
+        ? txn.getSep10Account()
+        : txn.getSep10Account() + ":" + txn.getSep10AccountMemo();
   }
 }

@@ -68,7 +68,7 @@ internal class JwtServiceTest {
   @Test
   fun `test apply Sep24MoreInfoUrlJwt encoding and decoding and make sure the original values are not changed`() {
     val jwtService = JwtService(secretConfig)
-    val token = Sep24MoreInfoUrlJwt(TEST_ISS, TEST_EXP)
+    val token = Sep24MoreInfoUrlJwt(TEST_SUB, TEST_ISS, TEST_EXP, CLIENT_DOMAIN)
     val cipher = jwtService.encode(token)
     val sep24MoreInfoUrlJwt = jwtService.decode(cipher, Sep24MoreInfoUrlJwt::class.java)
 
