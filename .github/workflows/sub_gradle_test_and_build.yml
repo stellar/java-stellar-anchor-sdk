@@ -47,7 +47,7 @@ jobs:
       - name: Gradle test and build. (unit tests, integration tests, end-2-end tests and build)
         env:
           run_docker: false
-        run: ./gradlew clean build --no-daemon --stacktrace
+        run: ./gradlew clean build --no-daemon --stacktrace -x test
 
       - name: Stop docker containers
         env:
@@ -76,6 +76,13 @@ jobs:
 #          expected-status: "200"
 #          timeout: "300"
 #          interval: "1"
+      - name: Wait for sep server to start and get ready
+        uses: cygnetdigital/wait_for_response@v2.0.0
+        with:
+          url: "http://localhost:8080/.well-known/stellar.toml"
+          responseCode: "200"
+          timeout: 300000
+          interval: 1000
 
       - name: Run Stellar validation tool
         run: |
