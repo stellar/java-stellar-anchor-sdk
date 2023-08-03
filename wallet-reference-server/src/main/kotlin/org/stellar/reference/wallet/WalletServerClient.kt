@@ -7,7 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventResponse
-import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.anchor.util.GsonUtils
 
 class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
@@ -28,7 +28,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
 
     return gson.fromJson(response.body<String>(), SendEventResponse::class.java)
   }
-  suspend fun getCallbackHistory(txnId: String? = null): List<AnchorEvent> {
+  suspend fun getCallbackHistory(txnId: String? = null): List<Sep24GetTransactionResponse> {
     val response =
       client.get {
         url {
@@ -41,10 +41,13 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
       }
 
     // Parse the JSON string into a list of Person objects
-    return gson.fromJson(response.body<String>(), object : TypeToken<List<AnchorEvent>>() {}.type)
+    return gson.fromJson(
+      response.body<String>(),
+      object : TypeToken<List<Sep24GetTransactionResponse>>() {}.type
+    )
   }
 
-  suspend fun getLatestEvent(): AnchorEvent? {
+  suspend fun getLatestEvent(): Sep24GetTransactionResponse? {
     val response =
       client.get {
         url {
@@ -54,7 +57,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
           encodedPath = "/callbacks/latest"
         }
       }
-    return gson.fromJson(response.body<String>(), AnchorEvent::class.java)
+    return gson.fromJson(response.body<String>(), Sep24GetTransactionResponse::class.java)
   }
 
   suspend fun clearEvents() {

@@ -1,19 +1,68 @@
-{
-  "clients": [
-    {
-      "name": "lobstr",
-      "type": "NONCUSTODIAL",
-      "signingKey": "0x1234",
-      "domain": "lobstr.co",
-      "callbackUrl": "https://lobstr.co/callback"
-    },
-    {
-      "name": "circle",
-      "type": "CUSTODIAL",
-      "signingKey": "0x5678",
-      "domain": "circle.com",
-      "callbackUrl": "https://circle.com/callback"
+[
+  {
+    "transaction": {
+      "id": "e41b3432-60c2-42cf-b847-3ebf09052f5a",
+      "kind": "deposit",
+      "status": "incomplete",
+      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003de41b3432-60c2-42cf-b847-3ebf09052f5a\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlNDFiMzQzMi02MGMyLTQyY2YtYjg0Ny0zZWJmMDkwNTJmNWEiLCJleHAiOjE2OTEwNDU1MzYsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.ZB3OqzM21eajlYpIToqMhgJhaOjogN1cudWMvWAuBCk",
+      "started_at": "2023-08-03T06:42:15.045319Z",
+      "refunded": false,
+      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
     }
-  ]
-}
-
+  },
+  {
+    "transaction": {
+      "id": "e41b3432-60c2-42cf-b847-3ebf09052f5a",
+      "kind": "deposit",
+      "status": "pending_user_transfer_start",
+      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003de41b3432-60c2-42cf-b847-3ebf09052f5a\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlNDFiMzQzMi02MGMyLTQyY2YtYjg0Ny0zZWJmMDkwNTJmNWEiLCJleHAiOjE2OTEwNDU1MzcsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.BF7l1Cr-wA9BxipUGhAs7RKex1INxb2Hubd-9L_0yuA",
+      "amount_in": "5",
+      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_out": "4.5",
+      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_fee": "0.5",
+      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "started_at": "2023-08-03T06:42:15.045319Z",
+      "message": "waiting on the user to transfer funds",
+      "refunded": false,
+      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    }
+  },
+  {
+    "transaction": {
+      "id": "e41b3432-60c2-42cf-b847-3ebf09052f5a",
+      "kind": "deposit",
+      "status": "pending_anchor",
+      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003de41b3432-60c2-42cf-b847-3ebf09052f5a\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlNDFiMzQzMi02MGMyLTQyY2YtYjg0Ny0zZWJmMDkwNTJmNWEiLCJleHAiOjE2OTEwNDU1MzgsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.wUpOerGOKXFpN5yo39W2sHq6rL6HC-ZMYHQ-lnXreBQ",
+      "amount_in": "5",
+      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_out": "4.5",
+      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_fee": "0.5",
+      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "started_at": "2023-08-03T06:42:15.045319Z",
+      "message": "funds received, transaction is being processed",
+      "refunded": false,
+      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    }
+  },
+  {
+    "transaction": {
+      "id": "e41b3432-60c2-42cf-b847-3ebf09052f5a",
+      "kind": "deposit",
+      "status": "completed",
+      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003de41b3432-60c2-42cf-b847-3ebf09052f5a\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJlNDFiMzQzMi02MGMyLTQyY2YtYjg0Ny0zZWJmMDkwNTJmNWEiLCJleHAiOjE2OTEwNDU1NDEsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.Joj3i7d_T6KiIJtUKp8E-kIjMcso_lVbj6XyCiRWe08",
+      "amount_in": "5",
+      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_out": "4.5",
+      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_fee": "0.5",
+      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "started_at": "2023-08-03T06:42:15.045319Z",
+      "stellar_transaction_id": "bc5747f0cb22e6a7b276dbb9d428f449ffdeeaf333e23290902822818031b8fd",
+      "message": "completed",
+      "refunded": false,
+      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    }
+  }
+]

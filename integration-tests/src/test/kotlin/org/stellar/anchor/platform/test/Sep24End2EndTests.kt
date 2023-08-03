@@ -14,12 +14,14 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log.info
 import org.stellar.anchor.util.StringHelper.json
 import org.stellar.reference.client.AnchorReferenceServerClient
+import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.StellarConfiguration
 import org.stellar.walletsdk.Wallet
@@ -62,13 +64,14 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
   private val maxTries = 30
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
+  private val walletServerClient = WalletServerClient(Url(config.env["wallet.server.url"]!!))
 
   private fun `test typical deposit end-to-end flow`(asset: StellarAssetId, amount: String) =
     runBlocking {
       val token = anchor.auth().authenticate(keypair)
       val txnId = makeDeposit(asset, amount, token)
       // Wait for the status to change to COMPLETED
-      waitStatus(txnId, COMPLETED, token)
+      waitForTxnStatus(txnId, COMPLETED, token)
 
       // Check if the transaction can be listed by stellar transaction id
       val fetchedTxn = anchor.getTransaction(txnId, token) as DepositTransaction
@@ -77,12 +80,16 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       assertEquals(fetchedTxn.id, transactionByStellarId.id)
 
       // Check the events sent to the reference server are recorded correctly
-      val actualEvents = waitForEvents(txnId, 4)
+      val actualEvents = waitForBusinessServerEvents(txnId, 4)
       assertNotNull(actualEvents)
       actualEvents?.let { assertEquals(4, it.size) }
       val expectedEvents: List<AnchorEvent> =
         gson.fromJson(expectedDepositEventsJson, object : TypeToken<List<AnchorEvent>>() {}.type)
       compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
+
+      // Check the callbacks sent to the wallet reference server are recorded correctly
+      val actualCallbacks = waitForWalletServerCallbacks(txnId, 4)
+      actualCallbacks?.let { assertEquals(4, it.size) }
     }
 
   private suspend fun makeDeposit(asset: StellarAssetId, amount: String, token: AuthToken): String {
@@ -159,7 +166,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     info("accessing ${withdrawTxn.url}...")
     assertEquals(200, resp.status.value)
     // Wait for the status to change to PENDING_USER_TRANSFER_START
-    waitStatus(withdrawTxn.id, PENDING_USER_TRANSFER_START, token)
+    waitForTxnStatus(withdrawTxn.id, PENDING_USER_TRANSFER_START, token)
     // Submit transfer transaction
     val walletTxn = (anchor.getTransaction(withdrawTxn.id, token) as WithdrawalTransaction)
     val transfer =
@@ -171,7 +178,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     transfer.sign(keypair)
     wallet.stellar().submitTransaction(transfer)
     // Wait for the status to change to PENDING_USER_TRANSFER_END
-    waitStatus(withdrawTxn.id, COMPLETED, token)
+    waitForTxnStatus(withdrawTxn.id, COMPLETED, token)
 
     // Check if the transaction can be listed by stellar transaction id
     val fetchTxn = anchor.getTransaction(withdrawTxn.id, token) as WithdrawalTransaction
@@ -180,15 +187,37 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     assertEquals(fetchTxn.id, transactionByStellarId.id)
 
     // Check the events sent to the reference server are recorded correctly
-    val actualEvents = waitForEvents(withdrawTxn.id, 5)
+    val actualEvents = waitForBusinessServerEvents(withdrawTxn.id, 5)
     assertNotNull(actualEvents)
-    actualEvents?.let { assertEquals(5, it.size) }
-    val expectedEvents: List<AnchorEvent> =
-      gson.fromJson(expectedWithdrawEventJson, object : TypeToken<List<AnchorEvent>>() {}.type)
-    compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
+    actualEvents?.let {
+      assertEquals(5, it.size)
+      val expectedEvents: List<AnchorEvent> =
+        gson.fromJson(expectedWithdrawEventJson, object : TypeToken<List<AnchorEvent>>() {}.type)
+      compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
+    }
+
+    // Check the callbacks sent to the wallet reference server are recorded correctly
+    val actualCallbacks = waitForWalletServerCallbacks(withdrawTxn.id, 5)
+    actualCallbacks?.let { assertEquals(5, it.size) }
   }
 
-  private suspend fun waitForEvents(txnId: String, count: Int): List<AnchorEvent>? {
+  private suspend fun waitForWalletServerCallbacks(
+    txnId: String,
+    count: Int
+  ): List<Sep24GetTransactionResponse>? {
+    var retries = 5
+    while (retries > 0) {
+      val callbacks = walletServerClient.getCallbackHistory(txnId)
+      if (callbacks.size == count) {
+        return callbacks
+      }
+      delay(1.seconds)
+      retries--
+    }
+    return null
+  }
+
+  private suspend fun waitForBusinessServerEvents(txnId: String, count: Int): List<AnchorEvent>? {
     var retries = 5
     while (retries > 0) {
       val events = anchorReferenceServerClient.getEvents(txnId)
@@ -201,7 +230,11 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     return null
   }
 
-  private suspend fun waitStatus(id: String, expectedStatus: TransactionStatus, token: AuthToken) {
+  private suspend fun waitForTxnStatus(
+    id: String,
+    expectedStatus: TransactionStatus,
+    token: AuthToken
+  ) {
     var status: TransactionStatus? = null
 
     for (i in 0..maxTries) {
@@ -247,7 +280,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     val deposits =
       (0..1).map {
         val txnId = makeDeposit(asset, amount, token)
-        waitStatus(txnId, COMPLETED, token)
+        waitForTxnStatus(txnId, COMPLETED, token)
         txnId
       }
     val history = anchor.getHistory(asset, token)

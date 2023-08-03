@@ -51,6 +51,7 @@ class ClientStatusCallbackHandlerTest {
 
     handler =
       ClientStatusCallbackHandler(
+        secretConfig,
         clientConfig,
         sep24TransactionStore,
         assetService,

@@ -1,3 +1,5 @@
 #  Port this server is being run on
 port: 8092
-anchor: "http://localhost:8080"
+anchor:
+  domain: "localhost:8080"
+  endpoint: "http://localhost:8080"

@@ -21,6 +21,7 @@ dependencies {
 
   implementation(project(mapOf("path" to ":api-schema")))
   implementation(project(mapOf("path" to ":core")))
+  implementation(project(mapOf("path" to ":platform")))
 }
 
 tasks {
