@@ -27,7 +27,7 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
 
   // start server
   walletServer =
-    embeddedServer(Netty, port = cfg.port) {
+    embeddedServer(Netty, port = cfg.wallet.port) {
         install(ContentNegotiation) { json() }
         install(CallLogging)
         configureRouting(cfg)

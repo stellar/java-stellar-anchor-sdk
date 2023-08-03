@@ -20,6 +20,7 @@ import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.sep24.Sep24Helper
 import org.stellar.anchor.sep24.Sep24Helper.fromTxn
 import org.stellar.anchor.sep24.Sep24TransactionStore
+import org.stellar.anchor.util.StringHelper.json
 import org.stellar.sdk.KeyPair
 
 class ClientStatusCallbackHandlerTest {
@@ -49,15 +50,6 @@ class ClientStatusCallbackHandlerTest {
     assetService = mockk<AssetService>()
     moreInfoUrlConstructor = mockk<MoreInfoUrlConstructor>()
 
-    handler =
-      ClientStatusCallbackHandler(
-        secretConfig,
-        clientConfig,
-        sep24TransactionStore,
-        assetService,
-        moreInfoUrlConstructor
-      )
-
     secretConfig = mockk()
     every { secretConfig.sep10SigningSeed } returns
       "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF"
@@ -67,20 +59,31 @@ class ClientStatusCallbackHandlerTest {
     event = AnchorEvent()
     event.transaction = GetTransactionResponse()
     event.transaction.sep = PlatformTransactionData.Sep.SEP_24
+
+    handler =
+      ClientStatusCallbackHandler(
+        secretConfig,
+        clientConfig,
+        sep24TransactionStore,
+        assetService,
+        moreInfoUrlConstructor
+      )
   }
 
   @Test
   fun `test verify request signature`() {
     // header example: "X-Stellar-Signature": "t=....., s=......"
     // Get the signature from request
-    val request = handler.buildSignedCallbackRequest(signer, event)
+    val payload = json(event)
+    val request =
+      ClientStatusCallbackHandler.buildRequest(signer, payload, clientConfig.callbackUrl)
     val requestHeader = request.headers["Signature"]
     val parsedSignature = requestHeader?.split(", ")?.get(1)?.substring(2)
     val decodedSignature = Base64.getDecoder().decode(parsedSignature)
 
     // re-compose the signature from request info for verify
     val tsInRequest = requestHeader?.split(", ")?.get(0)?.substring(2)
-    val payloadToVerify = tsInRequest + "." + request.url.host + "." + request.body
+    val payloadToVerify = tsInRequest + "." + request.url.host + "." + payload
     val signatureToVerify = signer.sign(payloadToVerify.toByteArray())
 
     Assertions.assertArrayEquals(decodedSignature, signatureToVerify)

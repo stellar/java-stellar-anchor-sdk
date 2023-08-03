@@ -1,5 +1,8 @@
 #  Port this server is being run on
-port: 8092
+wallet:
+  port: 8092
+  hostname: "localhost:8092"
+
 anchor:
   domain: "localhost:8080"
   endpoint: "http://localhost:8080"

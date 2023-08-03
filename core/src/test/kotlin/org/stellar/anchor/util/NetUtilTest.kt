@@ -161,13 +161,13 @@ internal class NetUtilTest {
       ]
   )
   fun `test good URLs for getDomainFromURL`(testUri: String, compareDomain: String) {
-    val domain = getDomainFromURL(testUri)
+    val domain = getDomainFromUrl(testUri)
     assertEquals(domain, compareDomain)
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["bad url", "http :///test.stellar.org:9800/"])
   fun `test bad URLs for getDomainFromURL`(testUrl: String) {
-    org.junit.jupiter.api.assertThrows<MalformedURLException> { getDomainFromURL(testUrl) }
+    org.junit.jupiter.api.assertThrows<MalformedURLException> { getDomainFromUrl(testUrl) }
   }
 }

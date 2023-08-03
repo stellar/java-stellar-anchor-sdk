@@ -20,8 +20,6 @@ dependencies {
   implementation(libs.slf4j.log4j12)
 
   implementation(project(mapOf("path" to ":api-schema")))
-  implementation(project(mapOf("path" to ":core")))
-  implementation(project(mapOf("path" to ":platform")))
 }
 
 tasks {
@@ -33,4 +31,4 @@ tasks {
   test { useJUnitPlatform() }
 }
 
-application { mainClass.set("com.example.ReferenceServerKt") }
+application { mainClass.set("org.stellar.reference.wallet.WalletServerKt") }

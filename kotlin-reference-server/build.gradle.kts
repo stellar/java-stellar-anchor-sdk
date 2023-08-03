@@ -32,4 +32,4 @@ tasks {
   test { useJUnitPlatform() }
 }
 
-application { mainClass.set("com.example.ReferenceServerKt") }
+application { mainClass.set("org.stellar.reference.ReferenceServerKt") }
