@@ -3,9 +3,7 @@ package org.stellar.reference.sep24
 import java.math.BigDecimal
 import java.math.RoundingMode
 import mu.KotlinLogging
-import org.stellar.reference.data.Amount
-import org.stellar.reference.data.Config
-import org.stellar.reference.data.PatchTransactionTransaction
+import org.stellar.reference.data.*
 
 private val log = KotlinLogging.logger {}
 
@@ -47,7 +45,7 @@ class WithdrawalService(private val cfg: Config) {
 
       try {
         // If some error happens during the job, set anchor transaction to error status
-        sep24.patchTransaction(transactionId, "error", e.message)
+        failTransaction(transactionId, e.message)
       } catch (e: Exception) {
         log.error(e) { "CRITICAL: failed to set transaction status to error" }
       }
@@ -58,16 +56,74 @@ class WithdrawalService(private val cfg: Config) {
     val fee = calculateFee(amount)
     val stellarAsset = "stellar:$asset"
 
-    sep24.patchTransaction(
-      PatchTransactionTransaction(
-        transactionId,
-        status = "pending_user_transfer_start",
-        message = "waiting on the user to transfer funds",
-        amountIn = Amount(amount.toPlainString(), stellarAsset),
-        amountOut = Amount(amount.subtract(fee).toPlainString(), stellarAsset),
-        amountFee = Amount(fee.toPlainString(), stellarAsset),
+    if (cfg.sep24.rpcActionsEnabled) {
+      sep24.rpcAction(
+        "request_onchain_funds",
+        RequestOnchainFundsRequest(
+          transactionId = transactionId,
+          message = "waiting on the user to transfer funds",
+          amountIn = AmountAssetRequest(asset = stellarAsset, amount = amount.toPlainString()),
+          amountOut =
+            AmountAssetRequest(
+              asset = "iso4217:USD",
+              amount = amount.subtract(fee).toPlainString()
+            ),
+          amountFee = AmountAssetRequest(asset = stellarAsset, amount = fee.toPlainString())
+        )
       )
-    )
+    } else {
+      sep24.patchTransaction(
+        PatchTransactionTransaction(
+          transactionId,
+          status = "pending_user_transfer_start",
+          message = "waiting on the user to transfer funds",
+          amountIn = Amount(amount.toPlainString(), stellarAsset),
+          amountOut = Amount(amount.subtract(fee).toPlainString(), stellarAsset),
+          amountFee = Amount(fee.toPlainString(), stellarAsset),
+        )
+      )
+    }
+  }
+
+  private suspend fun sendExternal(transactionId: String) {
+    if (cfg.sep24.rpcActionsEnabled) {
+      sep24.rpcAction(
+        "notify_offchain_funds_sent",
+        NotifyOffchainFundsSentRequest(
+          transactionId = transactionId,
+          message = "pending external transfer"
+        )
+      )
+    } else {
+      sep24.patchTransaction(
+        PatchTransactionTransaction(
+          transactionId,
+          "pending_external",
+          message = "pending external transfer",
+        )
+      )
+
+      // Send bank transfer, etc. here
+    }
+  }
+
+  private suspend fun finalize(transactionId: String) {
+    if (!cfg.sep24.rpcActionsEnabled) {
+      sep24.patchTransaction(
+        PatchTransactionTransaction(transactionId, "completed", message = "completed")
+      )
+    }
+  }
+
+  private suspend fun failTransaction(transactionId: String, message: String?) {
+    if (cfg.sep24.rpcActionsEnabled) {
+      sep24.rpcAction(
+        "notify_transaction_error",
+        NotifyTransactionErrorRequest(transactionId = transactionId, message = message)
+      )
+    } else {
+      sep24.patchTransaction(transactionId, "error", message)
+    }
   }
 
   // Set 10% fee
@@ -75,23 +131,5 @@ class WithdrawalService(private val cfg: Config) {
     val fee = amount.multiply(BigDecimal.valueOf(0.1))
     val scale = if (amount.scale() == 0) 1 else amount.scale()
     return fee.setScale(scale, RoundingMode.DOWN)
-  }
-
-  private suspend fun sendExternal(transactionId: String) {
-    sep24.patchTransaction(
-      PatchTransactionTransaction(
-        transactionId,
-        "pending_external",
-        message = "pending external transfer",
-      )
-    )
-
-    // Send bank transfer, etc. here
-  }
-
-  private suspend fun finalize(transactionId: String) {
-    sep24.patchTransaction(
-      PatchTransactionTransaction(transactionId, "completed", message = "completed")
-    )
   }
 }

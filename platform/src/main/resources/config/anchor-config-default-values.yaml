@@ -668,7 +668,7 @@ events:
 ## Assets Configuration
 #########################
 ## Assets are empty by default.
-## Accepts file reference (eg. 'file:assets.yaml') or in-line definition.
+## Accepts file referenc (eg. 'file:assets.yaml') or in-line definition.
 assets:
   ## @param: type
   ## @supported_values:

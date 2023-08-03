@@ -116,6 +116,7 @@ subprojects {
       useJUnitPlatform()
 
       exclude("**/AnchorPlatformCustodyEnd2EndTest**")
+      exclude("**/AnchorPlatformCustodyActionsEnd2EndTest**")
 
       testLogging {
         events("SKIPPED", "FAILED")
@@ -129,6 +130,7 @@ subprojects {
       useJUnitPlatform()
 
       include("**/AnchorPlatformCustodyEnd2EndTest**")
+      include("**/AnchorPlatformCustodyActionsEnd2EndTest**")
 
       testLogging {
         events("SKIPPED", "FAILED")

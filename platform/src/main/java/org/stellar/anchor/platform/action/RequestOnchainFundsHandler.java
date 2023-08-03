@@ -160,7 +160,7 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
       if (WITHDRAWAL == Kind.from(txn24.getKind())) {
         supportedStatuses.add(INCOMPLETE);
-        if (txn24.getTransferReceivedAt() == null) {
+        if (!areFundsReceived(txn24)) {
           supportedStatuses.add(PENDING_ANCHOR);
         }
       }

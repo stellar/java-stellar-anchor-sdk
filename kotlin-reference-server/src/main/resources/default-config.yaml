@@ -14,3 +14,5 @@ sep24:
   interactiveJwtKey: "secret_sep24_interactive_url_jwt_secret"
   # Indicates, that custody integration is enabled
   custodyEnabled: false
+  # Indicates, that RPC actions should be used instead of PATCH /transactions endpoint
+  rpcActionsEnabled: true

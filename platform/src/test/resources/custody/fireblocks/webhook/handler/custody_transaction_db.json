@@ -1,7 +1,7 @@
 {
   "id": "testId",
-  "sep_txn_id": "testId",
-  "external_id": "testEventId",
+  "sep_tx_id": "testId",
+  "external_tx_id": "testEventId",
   "status": "completed",
   "amount": "1",
   "amount_asset": "stellar:testAmountInAsset",

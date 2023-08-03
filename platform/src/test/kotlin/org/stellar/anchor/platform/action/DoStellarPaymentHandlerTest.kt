@@ -103,7 +103,7 @@ class DoStellarPaymentHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[do_stellar_payment] is not supported for status[pending_anchor], kind[null] and protocol[38]",
+      "Action[do_stellar_payment] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[true]",
       ex.message
     )
   }
@@ -122,7 +122,7 @@ class DoStellarPaymentHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[do_stellar_payment] is not supported for status[pending_trust], kind[deposit] and protocol[24]",
+      "Action[do_stellar_payment] is not supported. Status[pending_trust], kind[deposit], protocol[24], funds received[true]",
       ex.message
     )
   }
@@ -156,7 +156,7 @@ class DoStellarPaymentHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[do_stellar_payment] is not supported for status[pending_anchor], kind[deposit] and protocol[24]",
+      "Action[do_stellar_payment] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
   }

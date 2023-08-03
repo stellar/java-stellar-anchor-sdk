@@ -157,7 +157,7 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
       case SEP_24:
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
         if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-          if (txn24.getTransferReceivedAt() != null) {
+          if (areFundsReceived(txn24)) {
             return Set.of(PENDING_ANCHOR);
           }
         }
