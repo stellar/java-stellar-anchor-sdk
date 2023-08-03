@@ -106,8 +106,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_onchain_funds_received] is not supported for status[pending_user_transfer_start], kind[null] and" +
-        " protocol[38]",
+      "Action[notify_onchain_funds_received] is not supported. Status[pending_user_transfer_start], kind[null], protocol[38], funds received[false]",
       ex.message
     )
   }
@@ -124,7 +123,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_onchain_funds_received] is not supported for status[incomplete], kind[withdrawal] and protocol[24]",
+      "Action[notify_onchain_funds_received] is not supported. Status[incomplete], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -141,7 +140,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_onchain_funds_received] is not supported for status[pending_user_transfer_start], kind[deposit] and protocol[24]",
+      "Action[notify_onchain_funds_received] is not supported. Status[pending_user_transfer_start], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
   }

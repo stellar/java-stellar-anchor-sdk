@@ -89,7 +89,7 @@ class NotifyTransactionRecoveryHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_transaction_recovery] is not supported for status[error], kind[null] and protocol[38]",
+      "Action[notify_transaction_recovery] is not supported. Status[error], kind[null], protocol[38], funds received[true]",
       ex.message
     )
   }
@@ -106,7 +106,7 @@ class NotifyTransactionRecoveryHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_transaction_recovery] is not supported for status[pending_anchor], kind[null] and protocol[24]",
+      "Action[notify_transaction_recovery] is not supported. Status[pending_anchor], kind[null], protocol[24], funds received[true]",
       ex.message
     )
   }
@@ -122,7 +122,7 @@ class NotifyTransactionRecoveryHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_transaction_recovery] is not supported for status[error], kind[null] and protocol[24]",
+      "Action[notify_transaction_recovery] is not supported. Status[error], kind[null], protocol[24], funds received[false]",
       ex.message
     )
   }

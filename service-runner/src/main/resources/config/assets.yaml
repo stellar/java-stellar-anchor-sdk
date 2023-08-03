@@ -165,7 +165,7 @@ assets:
     sep38_enabled: true
   - schema: iso4217
     code: USD
-    significant_decimals: 2
+    significant_decimals: 7
     deposit:
       enabled: true
       min_amount: 0

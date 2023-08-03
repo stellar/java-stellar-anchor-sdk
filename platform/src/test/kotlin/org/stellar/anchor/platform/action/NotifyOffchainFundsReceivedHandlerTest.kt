@@ -100,7 +100,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_received] is not supported for status[pending_user_transfer_start], kind[null] and protocol[38]",
+      "Action[notify_offchain_funds_received] is not supported. Status[pending_user_transfer_start], kind[null], protocol[38], funds received[false]",
       ex.message
     )
   }
@@ -117,7 +117,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_received] is not supported for status[incomplete], kind[deposit] and protocol[24]",
+      "Action[notify_offchain_funds_received] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -134,7 +134,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_received] is not supported for status[pending_user_transfer_start], kind[withdrawal] and protocol[24]",
+      "Action[notify_offchain_funds_received] is not supported. Status[pending_user_transfer_start], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -152,7 +152,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_received] is not supported for status[pending_external], kind[withdrawal] and protocol[24]",
+      "Action[notify_offchain_funds_received] is not supported. Status[pending_external], kind[withdrawal], protocol[24], funds received[true]",
       ex.message
     )
   }
@@ -312,7 +312,6 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
 
@@ -449,6 +448,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
+    expectedSep24Txn.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -485,6 +485,8 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
     assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.transferReceivedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.transferReceivedAt <= endDate)
   }
 
   @Test

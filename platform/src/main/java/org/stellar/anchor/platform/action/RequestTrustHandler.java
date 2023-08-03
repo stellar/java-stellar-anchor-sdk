@@ -73,7 +73,7 @@ public class RequestTrustHandler extends ActionHandler<RequestTrustRequest> {
     if (SEP_24 == Sep.from(txn.getProtocol())) {
       JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
       if (DEPOSIT == Kind.from(txn24.getKind())) {
-        if (txn24.getTransferReceivedAt() != null) {
+        if (areFundsReceived(txn24)) {
           return Set.of(PENDING_ANCHOR);
         }
       }
