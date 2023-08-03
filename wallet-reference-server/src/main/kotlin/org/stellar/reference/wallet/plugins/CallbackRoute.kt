@@ -86,12 +86,9 @@ fun Route.callback(config: Config, callbackEventService: CallbackEventService) {
 
       val event = gson.fromJson(body, Sep24GetTransactionResponse::class.java)
       callbackEventService.processCallback(event)
-
-      //      val signatureToVerify = signer.sign(payloadToVerify.toByteArray())
-
-      call.respond("POST /callback")
+      call.respond("POST /callback received")
     }
-    get { call.respond("GET /callbacks ") }
+    get { call.respond(gson.toJson(callbackEventService.getCallbacks(call.parameters["txnId"]))) }
   }
 
   route("/callbacks/latest") { get { call.respond("GET /callbacks/latest") } }

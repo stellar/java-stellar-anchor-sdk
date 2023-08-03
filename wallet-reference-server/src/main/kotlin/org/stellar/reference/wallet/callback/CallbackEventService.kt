@@ -1,44 +1,34 @@
 package org.stellar.reference.wallet.callback
 
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import org.stellar.anchor.api.event.AnchorEvent
-import org.stellar.reference.wallet.data.SendEventRequest
+import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.reference.wallet.log
 
 class CallbackEventService {
-  private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-  private val receivedEvents: MutableList<AnchorEvent> = mutableListOf()
+  private val receivedCallbacks: MutableList<Sep24GetTransactionResponse> = mutableListOf()
 
-  fun processEvent(receivedEvent: SendEventRequest) {
-    val instant = Instant.ofEpochSecond(receivedEvent.timestamp)
-    val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-
-    log.trace("Received event created on ${dateTime.format(formatter)}")
-    receivedEvents.add(receivedEvent.payload)
+  fun processCallback(receivedCallback: Sep24GetTransactionResponse) {
+    receivedCallbacks.add(receivedCallback)
   }
 
   // Get all events. This is for testing purpose.
   // If txnId is not null, the events are filtered.
-  fun getEvents(txnId: String?): List<AnchorEvent> {
+  fun getCallbacks(txnId: String?): List<Sep24GetTransactionResponse> {
     if (txnId != null) {
       // filter events with txnId
-      return receivedEvents.filter { it.transaction.id == txnId }
+      return receivedCallbacks.filter { it.transaction.id == txnId }
     }
     // return all events
-    return receivedEvents
+    return receivedCallbacks
   }
 
   // Get the latest event recevied. This is for testing purpose
-  fun getLatestEvent(): AnchorEvent? {
-    return receivedEvents.lastOrNull()
+  fun getLatestEvent(): Sep24GetTransactionResponse? {
+    return receivedCallbacks.lastOrNull()
   }
 
   // Clear all events. This is for testing purpose
   fun clearEvents() {
     log.debug("Clearing events")
-    receivedEvents.clear()
+    receivedCallbacks.clear()
   }
 }

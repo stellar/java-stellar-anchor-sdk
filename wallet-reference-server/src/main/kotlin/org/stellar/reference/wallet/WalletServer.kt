@@ -69,5 +69,5 @@ fun stopServer() {
 }
 
 fun Application.configureRouting(cfg: Config) {
-  routing { callback(CallbackEventService()) }
+  routing { callback(cfg, CallbackEventService()) }
 }

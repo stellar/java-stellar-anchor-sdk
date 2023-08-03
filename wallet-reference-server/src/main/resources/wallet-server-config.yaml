@@ -1,2 +1,3 @@
 #  Port this server is being run on
 port: 8092
+anchor: "http://localhost:8080"

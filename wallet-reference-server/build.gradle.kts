@@ -10,14 +10,14 @@ plugins {
 dependencies {
   implementation(libs.bundles.ktor)
   implementation(libs.bundles.ktor.client)
-  implementation(libs.ktor.server.call.logging)
   implementation(libs.google.gson)
   implementation(libs.hoplite.core)
   implementation(libs.hoplite.yaml)
+  implementation(libs.java.stellar.sdk)
   implementation(libs.jjwt)
-
-  implementation(libs.slf4j.log4j12)
   implementation(libs.kotlin.logging)
+  implementation(libs.ktor.server.call.logging)
+  implementation(libs.slf4j.log4j12)
 
   implementation(project(mapOf("path" to ":api-schema")))
   implementation(project(mapOf("path" to ":core")))

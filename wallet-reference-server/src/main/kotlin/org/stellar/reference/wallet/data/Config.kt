@@ -2,6 +2,4 @@ package org.stellar.reference.wallet.data
 
 data class LocationConfig(val walletServerConfig: String)
 
-data class Config(
-  val port: Int,
-)
+data class Config(val port: Int, val anchor: String)
