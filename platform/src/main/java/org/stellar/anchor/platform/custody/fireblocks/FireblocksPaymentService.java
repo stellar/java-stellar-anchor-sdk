@@ -102,35 +102,10 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
     return new CreateTransactionPaymentResponse(response.getId());
   }
 
-  /**
-   * @see CustodyPaymentService#createTransactionRefund(JdbcCustodyTransaction)
-   */
-  @Retryable(
-      value = FireblocksException.class,
-      maxAttemptsExpression = "${custody.fireblocks.retry_config.max_attempts}",
-      backoff = @Backoff(delayExpression = "${custody.fireblocks.retry_config.delay}"),
-      exceptionExpression =
-          "#root instanceof T(org.stellar.anchor.api.exception.FireblocksException) AND"
-              + "(#root.statusCode == 429 OR #root.statusCode == 503)")
-  public CreateTransactionPaymentResponse createTransactionRefund(JdbcCustodyTransaction txn)
-      throws FireblocksException, InvalidConfigException {
-
-    CreateTransactionRequest request = getCreateTransactionRefundRequest(txn);
-
-    //    TODO: uncomment when getCreateTransactionRefundRequest() generates valid request
-    //    CreateTransactionResponse response =
-    //        gson.fromJson(
-    //            fireblocksApiClient.post(TRANSACTIONS_URL, gson.toJson(request)),
-    //            CreateTransactionResponse.class);
-
-    //    return new CreateTransactionPaymentResponse(response.getId());
-    return new CreateTransactionPaymentResponse(txn.getId());
-  }
-
   private CreateTransactionRequest getCreateTransactionRequest(JdbcCustodyTransaction txn)
       throws InvalidConfigException {
     return CreateTransactionRequest.builder()
-        .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAmountAsset()))
+        .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAsset()))
         .amount(txn.getAmount())
         .source(
             new CreateTransactionRequest.TransferPeerPath(
@@ -139,16 +114,6 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
             new CreateTransactionRequest.DestinationTransferPeerPath(
                 ONE_TIME_ADDRESS,
                 new CreateTransactionRequest.OneTimeAddress(txn.getToAccount(), txn.getMemo())))
-        .build();
-  }
-
-  private CreateTransactionRequest getCreateTransactionRefundRequest(JdbcCustodyTransaction txn)
-      throws InvalidConfigException {
-    return CreateTransactionRequest.builder()
-        .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAmountAsset()))
-        .amount(txn.getAmount())
-        // TODO: set source and destination
-        // TODO: what to do with amountFee?
         .build();
   }
 

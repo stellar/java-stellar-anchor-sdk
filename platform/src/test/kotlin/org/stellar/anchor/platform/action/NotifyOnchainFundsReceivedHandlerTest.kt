@@ -1,6 +1,8 @@
 package org.stellar.anchor.platform.action
 
 import com.google.gson.reflect.TypeToken
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
@@ -73,6 +75,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
   @MockK(relaxed = true) private lateinit var eventSession: Session
+
+  @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
   private lateinit var handler: NotifyOnchainFundsReceivedHandler
 
@@ -163,7 +167,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_ok_withAmounts() {
+  fun test_handle_ok_sep24_withAmounts() {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)
@@ -193,17 +197,22 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val stellarTransactions: List<StellarTransaction> =
       gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep24.transaction", "status", "pending_anchor") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
@@ -262,7 +271,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_ok_onlyWithAmountIn() {
+  fun test_handle_ok_sep24_onlyWithAmountIn() {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)
@@ -288,17 +297,22 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val stellarTransactions: List<StellarTransaction> =
       gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep24.transaction", "status", "pending_anchor") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
@@ -351,7 +365,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_ok_withoutAmounts() {
+  fun test_handle_ok_sep24_withoutAmounts() {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)
@@ -375,17 +389,22 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val stellarTransactions: List<StellarTransaction> =
       gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep24.transaction", "status", "pending_anchor") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
@@ -435,7 +454,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
   }
 
   @Test
-  fun test_handle_sep31_ok_withoutAmounts() {
+  fun test_handle_ok_sep31_withoutAmounts() {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)
@@ -457,17 +476,22 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val stellarTransactions: List<StellarTransaction> =
       gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
     every { txn31Store.save(capture(sep31TxnCapture)) } returns null
     every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep31.transaction", "status", "pending_receiver") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep31Txn = JdbcSep31Transaction()
     expectedSep31Txn.status = PENDING_RECEIVER.toString()
@@ -520,7 +544,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_ok_withoutAmounts_invalidStellarTransaction() {
+  fun test_handle_ok_sep24_withoutAmounts_invalidStellarTransaction() {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)

@@ -1,10 +1,11 @@
 package org.stellar.anchor.platform.custody;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.platform.data.CustodyTransactionStatus.CREATED;
 import static org.stellar.anchor.platform.data.CustodyTransactionStatus.SUBMITTED;
+import static org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType.PAYMENT;
+import static org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType.REFUND;
 import static org.stellar.anchor.util.Log.debugF;
 
 import java.time.Instant;
@@ -63,9 +64,10 @@ public abstract class CustodyTransactionService {
             .fromAccount(request.getFromAccount())
             .toAccount(request.getToAccount())
             .amount(request.getAmount())
-            .amountAsset(request.getAmountAsset())
+            .asset(request.getAsset())
             .kind(request.getKind())
             .reconciliationAttemptCount(0)
+            .type(PAYMENT.getType())
             .build());
   }
 
@@ -81,7 +83,8 @@ public abstract class CustodyTransactionService {
   public CreateTransactionPaymentResponse createPayment(String txnId, String requestBody)
       throws AnchorException {
     JdbcCustodyTransaction txn =
-        custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(txnId).orElse(null);
+        custodyTransactionRepo.findFirstBySepTxIdAndTypeOrderByCreatedAtAsc(
+            txnId, PAYMENT.getType());
     if (txn == null) {
       throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
     }
@@ -109,7 +112,8 @@ public abstract class CustodyTransactionService {
   public CreateTransactionPaymentResponse createRefund(
       String txnId, CreateTransactionRefundRequest refundRequest) throws AnchorException {
     JdbcCustodyTransaction txn =
-        custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(txnId).orElse(null);
+        custodyTransactionRepo.findFirstBySepTxIdAndTypeOrderByCreatedAtAsc(
+            txnId, PAYMENT.getType());
     if (txn == null) {
       throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
     }
@@ -118,7 +122,7 @@ public abstract class CustodyTransactionService {
 
     CreateTransactionPaymentResponse response;
     try {
-      response = custodyPaymentService.createTransactionRefund(refundTxn);
+      response = custodyPaymentService.createTransactionPayment(txn, null);
       updateCustodyTransaction(refundTxn, response.getId(), SUBMITTED);
     } catch (FireblocksException e) {
       custodyTransactionRepo.deleteById(refundTxn.getId());
@@ -139,8 +143,10 @@ public abstract class CustodyTransactionService {
             .protocol(txn.getProtocol())
             .toAccount(txn.getFromAccount())
             .amount(refundRequest.getAmount())
-            .amountAsset(txn.getAmountAsset())
-            .kind(DEPOSIT.getKind())
+            .amountFee(refundRequest.getAmountFee())
+            .asset(txn.getAsset())
+            .kind(txn.getKind())
+            .type(REFUND.getType())
             .build());
   }
 

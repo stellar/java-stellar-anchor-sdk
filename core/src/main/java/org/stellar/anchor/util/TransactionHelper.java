@@ -38,7 +38,7 @@ public class TransactionHelper {
             DEPOSIT.getKind().equals(txn.getKind())
                 ? txn.getAmountOut()
                 : Optional.ofNullable(txn.getAmountExpected()).orElse(txn.getAmountIn()))
-        .amountAsset(
+        .asset(
             DEPOSIT.getKind().equals(txn.getKind())
                 ? txn.getAmountOutAsset()
                 : txn.getAmountInAsset())
@@ -54,7 +54,7 @@ public class TransactionHelper {
         .protocol("31")
         .toAccount(txn.getStellarAccountId())
         .amount(txn.getAmountIn())
-        .amountAsset(txn.getAmountInAsset())
+        .asset(txn.getAmountInAsset())
         .kind(RECEIVE.getKind())
         .build();
   }

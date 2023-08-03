@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.action
 
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -37,6 +39,7 @@ import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
+import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep24Refunds
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
@@ -76,7 +79,9 @@ class DoStellarRefundHandlerTest {
 
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
-  @MockK(relaxed = true) private lateinit var eventSession: EventService.Session
+  @MockK(relaxed = true) private lateinit var eventSession: Session
+
+  @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
   private lateinit var handler: DoStellarRefundHandler
 
@@ -264,7 +269,7 @@ class DoStellarRefundHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_ok() {
+  fun test_handle_ok_sep24() {
     val transferReceivedAt = Instant.now()
     val request =
       DoStellarRefundRequest.builder()
@@ -292,17 +297,22 @@ class DoStellarRefundHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep24.transaction", "status", "pending_stellar") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind

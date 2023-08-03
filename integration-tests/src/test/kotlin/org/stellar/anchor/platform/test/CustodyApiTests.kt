@@ -201,7 +201,7 @@ private const val custodyTransactionRequest =
     "fromAccount": "testFromAccount",
     "toAccount": "testToAccount",
     "amount": "0.45",
-    "amountAsset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+    "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
     "kind": "deposit",
     "requestAssetCode": "testRequestAssetCode",
     "requestAssetIssuer": "testRequestAssetIssuer"

@@ -5,6 +5,6 @@
   "protocol": "24",
   "toAccount": "testToAccount",
   "amount": "testAmountOut",
-  "amountAsset": "testAmountOutAsset",
+  "asset": "testAmountOutAsset",
   "kind": "deposit"
 }

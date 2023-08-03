@@ -1,6 +1,9 @@
 package org.stellar.anchor.platform.custody;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
+import static org.stellar.anchor.platform.custody.CustodyPayment.CustodyPaymentStatus.SUCCESS;
+import static org.stellar.anchor.platform.data.CustodyTransactionStatus.COMPLETED;
+import static org.stellar.anchor.platform.data.CustodyTransactionStatus.FAILED;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.warnF;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -10,10 +13,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Set;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
-import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.apiclient.PlatformApiClient;
-import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.custody.CustodyPayment.CustodyPaymentStatus;
 import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
@@ -25,20 +24,14 @@ import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
  */
 public abstract class CustodyPaymentHandler {
 
+  public static final String STELLAR_ASSET_PREFIX = "stellar:";
   private static final Set<String> SUPPORTED_ASSET_TYPES =
       Set.of("credit_alphanum4", "credit_alphanum12", "native");
 
   private final JdbcCustodyTransactionRepo custodyTransactionRepo;
-  private final PlatformApiClient platformApiClient;
-  private final RpcConfig rpcConfig;
 
-  public CustodyPaymentHandler(
-      JdbcCustodyTransactionRepo custodyTransactionRepo,
-      PlatformApiClient platformApiClient,
-      RpcConfig rpcConfig) {
+  public CustodyPaymentHandler(JdbcCustodyTransactionRepo custodyTransactionRepo) {
     this.custodyTransactionRepo = custodyTransactionRepo;
-    this.platformApiClient = platformApiClient;
-    this.rpcConfig = rpcConfig;
   }
 
   /**
@@ -63,40 +56,16 @@ public abstract class CustodyPaymentHandler {
   public abstract void onSent(JdbcCustodyTransaction txn, CustodyPayment payment)
       throws AnchorException, IOException;
 
-  protected void updateTransaction(
-      JdbcCustodyTransaction txn, CustodyPayment payment, SepTransactionStatus newSepTxnStatus)
-      throws AnchorException, IOException {
+  protected void updateTransaction(JdbcCustodyTransaction txn, CustodyPayment payment) {
     txn.setUpdatedAt(payment.getCreatedAt());
     txn.setFromAccount(payment.getFrom());
     txn.setExternalTxId(payment.getExternalTxId());
     txn.setStatus(getCustodyTransactionStatus(payment.getStatus()).toString());
     custodyTransactionRepo.save(txn);
-
-    if (ERROR == newSepTxnStatus) {
-      platformApiClient.notifyTransactionError(
-          txn.getId(), rpcConfig.getActions().getCustomMessages().getCustodyTransactionFailed());
-    } else {
-      switch (Kind.from(txn.getKind())) {
-        case DEPOSIT:
-          platformApiClient.notifyOnchainFundsSent(
-              txn.getSepTxId(),
-              payment.getTransactionHash(),
-              rpcConfig.getActions().getCustomMessages().getOutgoingPaymentSent());
-          break;
-        case WITHDRAWAL:
-        case RECEIVE:
-          platformApiClient.notifyOnchainFundsReceived(
-              txn.getSepTxId(),
-              payment.getTransactionHash(),
-              payment.getAmount(),
-              rpcConfig.getActions().getCustomMessages().getIncomingPaymentReceived());
-          break;
-      }
-    }
   }
 
   protected void validatePayment(JdbcCustodyTransaction txn, CustodyPayment payment) {
-    if (CustodyPaymentStatus.SUCCESS != payment.getStatus()) {
+    if (SUCCESS != payment.getStatus()) {
       return;
     }
 
@@ -108,13 +77,13 @@ public abstract class CustodyPaymentHandler {
           payment.getExternalTxId());
     }
 
-    String paymentAssetName = "stellar:" + payment.getAssetName();
-    if (!txn.getAmountAsset().equals(paymentAssetName)) {
+    String paymentAssetName = STELLAR_ASSET_PREFIX + payment.getAssetName();
+    if (!txn.getAsset().equals(paymentAssetName)) {
       warnF(
           "Incoming payment asset[{}] does not match the expected asset[{}]. Payment: id[{}], "
               + "externalTxId[{}] ",
           payment.getAssetName(),
-          txn.getAmountAsset(),
+          txn.getAsset(),
           payment.getId(),
           payment.getExternalTxId());
     }
@@ -133,13 +102,13 @@ public abstract class CustodyPaymentHandler {
     }
   }
 
-  private CustodyTransactionStatus getCustodyTransactionStatus(
+  protected CustodyTransactionStatus getCustodyTransactionStatus(
       CustodyPaymentStatus custodyPaymentStatus) {
     switch (custodyPaymentStatus) {
       case SUCCESS:
-        return CustodyTransactionStatus.COMPLETED;
+        return COMPLETED;
       case ERROR:
-        return CustodyTransactionStatus.FAILED;
+        return FAILED;
       default:
         throw new RuntimeException(
             String.format("Unsupported custody transaction status[%s]", custodyPaymentStatus));

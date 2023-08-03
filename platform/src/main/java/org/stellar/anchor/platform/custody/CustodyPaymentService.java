@@ -42,18 +42,6 @@ public interface CustodyPaymentService<T> {
       throws CustodyException, InvalidConfigException;
 
   /**
-   * Submits outbound transaction refund
-   *
-   * @param refundTxn {@link JdbcCustodyTransaction} object
-   * @return external transaction payment ID
-   * @throws CustodyException if an error happens on custody service
-   * @throws InvalidConfigException if the Stellar asset code doesn't have a mapping to the custody
-   *     asset code
-   */
-  CreateTransactionPaymentResponse createTransactionRefund(JdbcCustodyTransaction refundTxn)
-      throws CustodyException, InvalidConfigException;
-
-  /**
    * Get custody transaction by id
    *
    * @param txnId custody transaction ID

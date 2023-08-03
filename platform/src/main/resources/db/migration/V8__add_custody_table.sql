@@ -4,7 +4,8 @@ CREATE TABLE custody_transaction (
    external_tx_id VARCHAR(255),
    status VARCHAR(255),
    amount VARCHAR(255),
-   amount_asset VARCHAR(255),
+   amount_fee VARCHAR(255),
+   asset VARCHAR(255),
    created_at TIMESTAMP WITHOUT TIME ZONE,
    updated_at TIMESTAMP WITHOUT TIME ZONE,
    memo VARCHAR(255),
@@ -14,5 +15,6 @@ CREATE TABLE custody_transaction (
    to_account VARCHAR(255),
    kind VARCHAR(255),
    reconciliation_attempt_count integer,
+   type VARCHAR(255),
    CONSTRAINT pk_custody_transaction PRIMARY KEY (id)
 );

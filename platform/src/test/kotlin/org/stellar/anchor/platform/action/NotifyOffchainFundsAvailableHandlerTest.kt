@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.action
 
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -25,6 +27,7 @@ import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
+import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -50,7 +53,9 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
-  @MockK(relaxed = true) private lateinit var eventSession: EventService.Session
+  @MockK(relaxed = true) private lateinit var eventSession: Session
+
+  @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
   private lateinit var handler: NotifyOffchainFundsAvailableHandler
 
@@ -173,16 +178,22 @@ class NotifyOffchainFundsAvailableHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every {
+      Metrics.counter("sep24.transaction", "status", "pending_user_transfer_complete")
+    } returns sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
@@ -240,16 +251,22 @@ class NotifyOffchainFundsAvailableHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every {
+      Metrics.counter("sep24.transaction", "status", "pending_user_transfer_complete")
+    } returns sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind

@@ -1,5 +1,5 @@
 {
-  "id": null,
+  "id": "12345",
   "externalTxId": "testEventId",
   "type": "payment",
   "from": "testFrom",
@@ -8,7 +8,7 @@
   "assetType": "credit_alphanum4",
   "assetName": "testAmountInAsset",
   "createdAt": "2023-05-10T10:18:25.778Z",
-  "status": "SUCCESS",
+  "status": "ERROR",
   "transactionHash": "testTxHash",
   "transactionMemoType": "none",
   "transactionEnvelope": "testEnvelopeXdr"

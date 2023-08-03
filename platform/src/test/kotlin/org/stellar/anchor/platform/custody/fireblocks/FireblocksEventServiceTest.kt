@@ -121,7 +121,9 @@ class FireblocksEventServiceTest {
     every { horizon.server } throws java.lang.RuntimeException("Horizon error")
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
@@ -163,7 +165,9 @@ class FireblocksEventServiceTest {
     every { horizon.server } throws java.lang.RuntimeException("Horizon error")
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
@@ -215,7 +219,9 @@ class FireblocksEventServiceTest {
     every { page.records } returns operationRecords
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
@@ -262,7 +268,9 @@ class FireblocksEventServiceTest {
     every { page.records } returns operationRecords
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
@@ -313,7 +321,9 @@ class FireblocksEventServiceTest {
     every { page.records } returns operationRecords
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
@@ -362,7 +372,9 @@ class FireblocksEventServiceTest {
     val signature: String = generateSignature(eventObjectTxt)
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     eventsService.handleEvent(eventObjectTxt, httpHeaders)
 
@@ -500,7 +512,9 @@ class FireblocksEventServiceTest {
     every { horizon.server } throws java.lang.RuntimeException("Horizon error")
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), any()) } just runs
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns custodyTxn
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns custodyTxn
     every { custodyTransactionRepo.save(capture(transactionToUpdate)) } returns custodyTxn
 
     eventsService.handleEvent(eventObject, httpHeaders)

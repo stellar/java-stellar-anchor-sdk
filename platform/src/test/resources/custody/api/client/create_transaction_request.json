@@ -6,6 +6,6 @@
   "fromAccount": "testFromAccount",
   "toAccount": "testToAccount",
   "amount": "testAmount",
-  "amountAsset": "testAmountAsset",
+  "asset": "testAmountAsset",
   "kind": "testKind"
 }

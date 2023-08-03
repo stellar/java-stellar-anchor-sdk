@@ -100,7 +100,7 @@ class FireblocksPaymentServiceTest {
       JdbcCustodyTransaction.builder()
         .fromAccount(VAULT_ACCOUNT_ID)
         .toAccount(TO_ACCOUNT_ID)
-        .amountAsset(ASSET_ID)
+        .asset(ASSET_ID)
         .amount(AMOUNT)
         .build()
     val response = fireblocksPaymentService.createTransactionPayment(transaction, StringUtils.EMPTY)

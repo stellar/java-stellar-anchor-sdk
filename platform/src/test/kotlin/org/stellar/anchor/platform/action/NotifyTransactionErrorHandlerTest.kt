@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.action
 
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -57,6 +59,8 @@ class NotifyTransactionErrorHandlerTest {
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
   @MockK(relaxed = true) private lateinit var eventSession: Session
+
+  @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
   @MockK(relaxed = true)
   private lateinit var transactionPendingTrustRepo: JdbcTransactionPendingTrustRepo
@@ -158,7 +162,7 @@ class NotifyTransactionErrorHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_ok() {
+  fun test_handle_ok_sep24() {
     val request =
       NotifyTransactionErrorRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
     val txn24 = JdbcSep24Transaction()
@@ -168,12 +172,15 @@ class NotifyTransactionErrorHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { transactionPendingTrustRepo.deleteById(TX_ID) } just Runs
     every { transactionPendingTrustRepo.existsById(TX_ID) } returns true
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep24.transaction", "status", "error") } returns sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -181,6 +188,7 @@ class NotifyTransactionErrorHandlerTest {
 
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { transactionPendingTrustRepo.deleteById(TX_ID) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.id = TX_ID

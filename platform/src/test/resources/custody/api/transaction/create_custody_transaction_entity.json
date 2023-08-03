@@ -3,12 +3,13 @@
   "sep_tx_id": "testId",
   "status": "created",
   "amount": "testAmount",
-  "amount_asset": "testAmountAsset",
+  "asset": "testAmountAsset",
   "memo": "testMemo",
   "memo_type": "testMemoType",
   "protocol": "testProtocol",
   "from_account": "testFromAccount",
   "to_account": "testToAccount",
   "kind": "testKind",
-  "reconciliation_attempt_count": 0
+  "reconciliation_attempt_count": 0,
+  "type":"payment"
 }

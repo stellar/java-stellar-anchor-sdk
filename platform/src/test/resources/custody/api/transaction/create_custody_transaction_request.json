@@ -6,8 +6,9 @@
   "fromAccount": "testFromAccount",
   "toAccount": "testToAccount",
   "amount": "testAmount",
-  "amountAsset": "testAmountAsset",
+  "asset": "testAmountAsset",
   "kind": "testKind",
   "requestAssetCode": "testRequestAssetCode",
-  "requestAssetIssuer": "testRequestAssetIssuer"
+  "requestAssetIssuer": "testRequestAssetIssuer",
+  "type":"payment"
 }

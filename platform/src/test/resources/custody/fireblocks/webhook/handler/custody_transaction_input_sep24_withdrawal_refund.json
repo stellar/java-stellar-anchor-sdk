@@ -1,13 +1,15 @@
 {
   "id": "testId",
   "sep_tx_id": "testId",
-  "status": "saved",
+  "status": "submitted",
   "amount": "1",
-  "amount_asset": "stellar:testAmountInAsset",
+  "amount_fee": "0.1",
+  "asset": "stellar:testAmountInAsset",
   "memo": "testMemo",
   "memo_type": "testMemoType",
   "protocol": "24",
-  "from_account": "testFromAccount",
+  "from_account": "testFromAccount1",
   "to_account": "testToAccount",
-  "kind": "deposit"
+  "kind": "withdrawal",
+  "type": "refund"
 }
