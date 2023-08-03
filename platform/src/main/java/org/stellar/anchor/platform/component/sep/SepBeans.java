@@ -142,8 +142,11 @@ public class SepBeans {
 
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep12"})
-  Sep12Service sep12Service(CustomerIntegration customerIntegration, AssetService assetService) {
-    return new Sep12Service(customerIntegration, assetService);
+  Sep12Service sep12Service(
+      CustomerIntegration customerIntegration,
+      AssetService assetService,
+      EventService eventService) {
+    return new Sep12Service(customerIntegration, assetService, eventService);
   }
 
   @Bean

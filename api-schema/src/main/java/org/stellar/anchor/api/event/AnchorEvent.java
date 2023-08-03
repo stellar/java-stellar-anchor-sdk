@@ -2,6 +2,7 @@ package org.stellar.anchor.api.event;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.*;
+import org.stellar.anchor.api.platform.CustomerUpdatedResponse;
 import org.stellar.anchor.api.platform.GetQuoteResponse;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 
@@ -23,6 +24,7 @@ public class AnchorEvent {
   String sep;
   GetTransactionResponse transaction;
   GetQuoteResponse quote;
+  CustomerUpdatedResponse customer;
 
   public enum Type {
     TRANSACTION_CREATED("transaction_created"),

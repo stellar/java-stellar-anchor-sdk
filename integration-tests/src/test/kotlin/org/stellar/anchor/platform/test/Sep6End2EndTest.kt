@@ -4,6 +4,7 @@ import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlin.test.DefaultAsserter.fail
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -15,6 +16,8 @@ import org.stellar.anchor.util.Log
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.StellarConfiguration
 import org.stellar.walletsdk.Wallet
+import org.stellar.walletsdk.anchor.auth
+import org.stellar.walletsdk.anchor.customer
 import org.stellar.walletsdk.horizon.SigningKeyPair
 
 class Sep6End2EndTest(config: TestConfig, val jwt: String) {
@@ -35,8 +38,8 @@ class Sep6End2EndTest(config: TestConfig, val jwt: String) {
     }
 
   private fun `test typical deposit end-to-end flow`() = runBlocking {
-    val token = anchor.auth().authenticate(keypair).token
-    val sep6Client = Sep6Client("http://localhost:8080/sep6", token)
+    val token = anchor.auth().authenticate(keypair)
+    val sep6Client = Sep6Client("http://localhost:8080/sep6", token.token)
 
     val deposit =
       sep6Client.deposit(
@@ -47,15 +50,30 @@ class Sep6End2EndTest(config: TestConfig, val jwt: String) {
           "type" to "bank_account"
         )
       )
+    waitStatus(deposit.id, "pending_customer_info_update", sep6Client)
+
+    val pendingKycTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))
+    assertNotNull(pendingKycTxn.transaction.requiredInfoMessage)
+    assertNotNull(pendingKycTxn.transaction.requiredInfoUpdates)
+
+    // TODO: PUT customer info
+    try {
+      anchor
+        .customer(token)
+        .add(mapOf("first_name" to "John", "last_name" to "Doe", "email_address" to ""))
+    } catch (e: Exception) {
+      Log.error("Failed to add customer info", e)
+    }
+
     waitStatus(deposit.id, "completed", sep6Client)
 
-    val fetchedTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))
-    Log.info("Fetched transaction: $fetchedTxn")
+    val completedDepositTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))
+    assertNotNull(completedDepositTxn.transaction.how)
     val transactionByStellarId: GetTransactionResponse =
       sep6Client.getTransaction(
-        mapOf("stellar_transaction_id" to fetchedTxn.transaction.stellarTransactionId)
+        mapOf("stellar_transaction_id" to completedDepositTxn.transaction.stellarTransactionId)
       )
-    assertEquals(fetchedTxn.transaction.id, transactionByStellarId.transaction.id)
+    assertEquals(completedDepositTxn.transaction.id, transactionByStellarId.transaction.id)
   }
 
   private suspend fun waitStatus(id: String, expectedStatus: String, sep6Client: Sep6Client) {

@@ -82,6 +82,12 @@ public class PlatformTransactionData {
 
   String how;
 
+  @SerializedName("required_info_message")
+  String requiredInfoMessage;
+
+  @SerializedName("required_info_updates")
+  String requiredInfoUpdates;
+
   public enum Sep {
     @SerializedName("6")
     SEP_6(6),

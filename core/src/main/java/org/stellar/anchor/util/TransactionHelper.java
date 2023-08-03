@@ -70,6 +70,9 @@ public class TransactionHelper {
         .externalTransactionId(txn.getExternalTransactionId())
         .memo(txn.getMemo())
         .memoType(txn.getMemoType())
+        .how(txn.getHow())
+        .requiredInfoMessage(txn.getRequiredInfoMessage())
+        .requiredInfoUpdates(txn.getRequiredInfoUpdates())
         .build();
   }
 

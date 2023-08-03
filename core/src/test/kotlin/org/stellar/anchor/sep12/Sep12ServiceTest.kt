@@ -17,6 +17,7 @@ import org.stellar.anchor.api.shared.ProvidedCustomerField
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.Sep10Jwt
+import org.stellar.anchor.event.EventService
 import org.stellar.anchor.util.StringHelper.json
 
 class Sep12ServiceTest {
@@ -77,6 +78,7 @@ class Sep12ServiceTest {
   private lateinit var sep12Service: Sep12Service
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var assetService: AssetService
+  @MockK(relaxed = true) private lateinit var eventService: EventService
 
   @BeforeEach
   fun setup() {
@@ -87,7 +89,7 @@ class Sep12ServiceTest {
 
     every { assetService.listAllAssets() } returns assets
 
-    sep12Service = Sep12Service(customerIntegration, assetService)
+    sep12Service = Sep12Service(customerIntegration, assetService, eventService)
   }
 
   @AfterEach

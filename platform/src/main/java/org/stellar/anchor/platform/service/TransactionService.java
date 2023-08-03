@@ -182,7 +182,21 @@ public class TransactionService {
     updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
       case "6":
-        txn6Store.save((JdbcSep6Transaction) txn);
+        // TODO: this needs major refactoring
+        JdbcSep6Transaction sep6Transaction = (JdbcSep6Transaction) txn;
+        sep6Transaction.setHow(patch.getTransaction().getHow());
+        sep6Transaction.setRequiredInfoMessage(patch.getTransaction().getRequiredInfoMessage());
+        sep6Transaction.setRequiredInfoUpdates(patch.getTransaction().getRequiredInfoUpdates());
+        Log.infoF(
+            "Updating SEP-6 transaction: {}", GsonUtils.getInstance().toJson(sep6Transaction));
+        txn6Store.save(sep6Transaction);
+        eventSession.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("6")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(TransactionHelper.toGetTransactionResponse(sep6Transaction))
+                .build());
         break;
       case "24":
         JdbcSep24Transaction sep24Transaction = (JdbcSep24Transaction) txn;

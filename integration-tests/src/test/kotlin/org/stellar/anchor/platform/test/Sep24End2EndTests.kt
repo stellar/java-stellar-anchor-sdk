@@ -23,10 +23,8 @@ import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.StellarConfiguration
 import org.stellar.walletsdk.Wallet
-import org.stellar.walletsdk.anchor.DepositTransaction
-import org.stellar.walletsdk.anchor.TransactionStatus
+import org.stellar.walletsdk.anchor.*
 import org.stellar.walletsdk.anchor.TransactionStatus.*
-import org.stellar.walletsdk.anchor.WithdrawalTransaction
 import org.stellar.walletsdk.asset.IssuedAssetId
 import org.stellar.walletsdk.asset.StellarAssetId
 import org.stellar.walletsdk.asset.XLM
@@ -71,9 +69,11 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       waitStatus(txnId, COMPLETED, token)
 
       // Check if the transaction can be listed by stellar transaction id
-      val fetchedTxn = anchor.getTransaction(txnId, token) as DepositTransaction
+      val fetchedTxn = anchor.interactive().getTransaction(txnId, token) as DepositTransaction
       val transactionByStellarId =
-        anchor.getTransactionBy(token, stellarTransactionId = fetchedTxn.stellarTransactionId)
+        anchor
+          .interactive()
+          .getTransactionBy(token, stellarTransactionId = fetchedTxn.stellarTransactionId)
       assertEquals(fetchedTxn.id, transactionByStellarId.id)
 
       // Check the events sent to the reference server are recorded correctly
@@ -89,7 +89,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     // Start interactive deposit
     val deposit = anchor.interactive().deposit(asset, token, mapOf("amount" to amount))
     // Get transaction status and make sure it is INCOMPLETE
-    val transaction = anchor.getTransaction(deposit.id, token)
+    val transaction = anchor.interactive().getTransaction(deposit.id, token)
     assertEquals(INCOMPLETE, transaction.status)
     // Make sure the interactive url is valid. This will also start the reference server's
     // withdrawal process.
@@ -151,7 +151,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     val withdrawTxn = anchor.interactive().withdraw(asset, token, extraFields)
 
     // Get transaction status and make sure it is INCOMPLETE
-    val transaction = anchor.getTransaction(withdrawTxn.id, token)
+    val transaction = anchor.interactive().getTransaction(withdrawTxn.id, token)
     assertEquals(INCOMPLETE, transaction.status)
     // Make sure the interactive url is valid. This will also start the reference server's
     // withdrawal process.
@@ -161,11 +161,12 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     // Wait for the status to change to PENDING_USER_TRANSFER_START
     waitStatus(withdrawTxn.id, PENDING_USER_TRANSFER_START, token)
     // Submit transfer transaction
-    val walletTxn = (anchor.getTransaction(withdrawTxn.id, token) as WithdrawalTransaction)
+    val walletTxn =
+      (anchor.interactive().getTransaction(withdrawTxn.id, token) as WithdrawalTransaction)
     val transfer =
       wallet
         .stellar()
-        .transaction(walletTxn.from)
+        .transaction(walletTxn.from!!)
         .transferWithdrawalTransaction(walletTxn, asset)
         .build()
     transfer.sign(keypair)
@@ -174,9 +175,12 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     waitStatus(withdrawTxn.id, COMPLETED, token)
 
     // Check if the transaction can be listed by stellar transaction id
-    val fetchTxn = anchor.getTransaction(withdrawTxn.id, token) as WithdrawalTransaction
+    val fetchTxn =
+      anchor.interactive().getTransaction(withdrawTxn.id, token) as WithdrawalTransaction
     val transactionByStellarId =
-      anchor.getTransactionBy(token, stellarTransactionId = fetchTxn.stellarTransactionId)
+      anchor
+        .interactive()
+        .getTransactionBy(token, stellarTransactionId = fetchTxn.stellarTransactionId)
     assertEquals(fetchTxn.id, transactionByStellarId.id)
 
     // Check the events sent to the reference server are recorded correctly
@@ -206,7 +210,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
 
     for (i in 0..maxTries) {
       // Get transaction info
-      val transaction = anchor.getTransaction(id, token)
+      val transaction = anchor.interactive().getTransaction(id, token)
 
       if (status != transaction.status) {
         status = transaction.status
@@ -250,7 +254,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         waitStatus(txnId, COMPLETED, token)
         txnId
       }
-    val history = anchor.getHistory(asset, token)
+    val history = anchor.interactive().getHistory(asset, token)
 
     Assertions.assertThat(history).allMatch { deposits.contains(it.id) }
   }

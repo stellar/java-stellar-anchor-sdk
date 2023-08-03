@@ -104,6 +104,9 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
               AnchorEvent event = record.value();
               processor.handleEvent(event);
             });
+      } catch (IllegalStateException ex) {
+        Log.error("Kafka consumer is closed");
+        break;
       } catch (Exception ex) {
         Log.errorEx(ex);
       }
