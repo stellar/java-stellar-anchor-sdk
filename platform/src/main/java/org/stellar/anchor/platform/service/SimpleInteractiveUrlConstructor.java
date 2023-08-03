@@ -65,11 +65,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
 
   @SneakyThrows
   String constructToken(Sep24Transaction txn, Map<String, String> request) {
-
-    String account =
-        (isEmpty(txn.getSep10AccountMemo()))
-            ? txn.getSep10Account()
-            : txn.getSep10Account() + ":" + txn.getSep10AccountMemo();
+    String account = UrlConstructorHelper.getAccount(txn);
     Sep24InteractiveUrlJwt token =
         new Sep24InteractiveUrlJwt(
             account,
