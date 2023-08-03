@@ -62,6 +62,14 @@ jobs:
       - name: Run sep server, observer, java reference server and kotlin reference server
         env:
           run_docker: false
+          run_all_servers: false
+          run_sep_server: true
+          run_platform_server: true
+          run_reference_server: true
+          run_observer: true
+          run_kotlin_reference_server: false
+          run_wallet_server: true
+
           SEP1_TOML_VALUE: service-runner/src/main/resources/config/stellar.host.docker.internal.toml
           SEP10_HOME_DOMAIN: host.docker.internal:8080
         run: |
@@ -69,20 +77,13 @@ jobs:
           cp service-runner/build/libs/anchor-platform-runner-*.jar service-runner/build/libs/anchor-platform-runner.jar
           java -jar service-runner/build/libs/anchor-platform-runner.jar -t &
 
-#      - name: Wait for sep server to start and get ready
-#        uses: mydea/action-wait-for-api@v1
-#        with:
-#          url: "http://localhost:8080/.well-known/stellar.toml"
-#          expected-status: "200"
-#          timeout: "300"
-#          interval: "1"
       - name: Wait for sep server to start and get ready
-        uses: cygnetdigital/wait_for_response@v2.0.0
+        uses: mydea/action-wait-for-api@v1
         with:
           url: "http://localhost:8080/.well-known/stellar.toml"
-          responseCode: "200"
-          timeout: 300000
-          interval: 1000
+          expected-status: "200"
+          timeout: "300"
+          interval: "1"
 
       - name: Run Stellar validation tool
         run: |
