@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
-import java.util.stream.Stream
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -93,6 +92,30 @@ class Sep10ConfigTest {
     assertEquals(clientsConfig.getClientConfigByName("unknown"), clientsConfig.clients[0])
     assertEquals(clientsConfig.getClientConfigByName("lobstr"), clientsConfig.clients[1])
     assertEquals(clientsConfig.getClientConfigByName("circle"), clientsConfig.clients[2])
+  }
+
+  @Test
+  fun `test ClientsConfig getClientConfigByDomain`() {
+    assertEquals(clientsConfig.getClientConfigByDomain("unknown"), null)
+    assertEquals(clientsConfig.getClientConfigByDomain("lobstr.co"), clientsConfig.clients[1])
+    assertEquals(clientsConfig.getClientConfigByDomain("circle.com"), clientsConfig.clients[2])
+  }
+
+  @Test
+  fun `test ClientsConfig getClientConfigBySigningKey`() {
+    assertEquals(clientsConfig.getClientConfigBySigningKey("unknown"), null)
+    assertEquals(
+      clientsConfig.getClientConfigBySigningKey(
+        "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"
+      ),
+      clientsConfig.clients[1]
+    )
+    assertEquals(
+      clientsConfig.getClientConfigBySigningKey(
+        "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"
+      ),
+      clientsConfig.clients[2]
+    )
   }
 
   @Test
@@ -200,53 +223,5 @@ class Sep10ConfigTest {
     config.homeDomain = "www.stellar.org"
     config.postConstruct()
     assertEquals("localhost:8080", config.webAuthDomain)
-  }
-
-  companion object {
-    @JvmStatic
-    fun validOmnibusAccounts(): Stream<List<String>> {
-      return Stream.of(
-        listOf(),
-        listOf("GAU2XSVTXY6GADVFFLDJLWO44SC6MAWPMHZTI4QHYUKV6BGGJFAIEYGB"),
-        listOf(
-          "GCS2KBEGIWILNKFYY6ORT72Y2HUFYG6IIIOESHVQC3E5NIYT3L2I5F5E",
-          "GAU2XSVTXY6GADVFFLDJLWO44SC6MAWPMHZTI4QHYUKV6BGGJFAIEYGB"
-        )
-      )
-    }
-    @JvmStatic
-    fun invalidOmnibusAccounts(): Stream<List<String>> {
-      return Stream.of(
-        listOf("SBBGHY3KIEI4XM2G2MD76DB3F3EPC6A2NR57CY2PFJVE66T7UTAE3SKD"),
-        listOf(
-          "GCS2KBEGIWILNKFYY6ORT72Y2HUFYG6IIIOESHVQC3E5NIYT3L2I5F5E",
-          "SBBGHY3KIEI4XM2G2MD76DB3F3EPC6A2NR57CY2PFJVE66T7UTAE3SKD"
-        ),
-        listOf("1234")
-      )
-    }
-
-    val TEST_CLIENTS_CONFIG =
-      """
-        {
-          "clients": [
-            {
-              "name": "lobstr",
-              "type": "NONCUSTODIAL",
-              "signingKey": "0x1234",
-              "domain": "lobstr.co",
-              "callbackUrl": "https://lobstr.co/callback"
-            },
-            {
-              "name": "circle",
-              "type": "CUSTODIAL",
-              "signingKey": "0x5678",
-              "domain": "circle.com",
-              "callbackUrl": "https://circle.com/callback"
-            }
-          ]
-        }          
-    """
-        .trimIndent()
   }
 }

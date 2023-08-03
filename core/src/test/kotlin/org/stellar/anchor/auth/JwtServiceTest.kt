@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
 import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
+import org.stellar.anchor.auth.JwtService.CLIENT_NAME
 import org.stellar.anchor.config.SecretConfig
 
 internal class JwtServiceTest {
@@ -68,24 +70,31 @@ internal class JwtServiceTest {
   @Test
   fun `test apply Sep24MoreInfoUrlJwt encoding and decoding and make sure the original values are not changed`() {
     val jwtService = JwtService(secretConfig)
-    val token = Sep24MoreInfoUrlJwt(TEST_ISS, TEST_EXP)
+    val token =
+      Sep24MoreInfoUrlJwt(TEST_ACCOUNT, TEST_ISS, TEST_EXP, TEST_CLIENT_DOMAIN, TEST_CLIENT_NAME)
     val cipher = jwtService.encode(token)
     val sep24MoreInfoUrlJwt = jwtService.decode(cipher, Sep24MoreInfoUrlJwt::class.java)
 
+    assertEquals(sep24MoreInfoUrlJwt.sub, token.sub)
     assertEquals(sep24MoreInfoUrlJwt.iss, token.iss)
     assertEquals(sep24MoreInfoUrlJwt.exp, token.exp)
+    assertEquals(sep24MoreInfoUrlJwt.claims[CLIENT_DOMAIN], token.claims[CLIENT_DOMAIN])
+    assertEquals(sep24MoreInfoUrlJwt.claims[CLIENT_NAME], token.claims[CLIENT_NAME])
   }
 
   @Test
   fun `test apply Sep24InteractiveUrlJwt encoding and decoding and make sure the original values are not changed`() {
     val jwtService = JwtService(secretConfig)
-    val token = Sep24InteractiveUrlJwt(TEST_ACCOUNT, TEST_ISS, TEST_EXP, TEST_CLIENT_DOMAIN)
+    val token =
+      Sep24InteractiveUrlJwt(TEST_ACCOUNT, TEST_ISS, TEST_EXP, TEST_CLIENT_DOMAIN, TEST_CLIENT_NAME)
     val cipher = jwtService.encode(token)
     val sep24InteractiveUrlJwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
 
+    assertEquals(sep24InteractiveUrlJwt.sub, token.sub)
     assertEquals(sep24InteractiveUrlJwt.iss, token.iss)
     assertEquals(sep24InteractiveUrlJwt.exp, token.exp)
     assertEquals(sep24InteractiveUrlJwt.claims[CLIENT_DOMAIN], token.claims[CLIENT_DOMAIN])
+    assertEquals(sep24InteractiveUrlJwt.claims[CLIENT_NAME], token.claims[CLIENT_NAME])
   }
 
   @Test

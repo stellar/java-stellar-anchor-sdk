@@ -12,6 +12,7 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.PropertyAppConfig;
 import org.stellar.anchor.platform.config.PropertySecretConfig;
 import org.stellar.anchor.platform.config.PropertySep24Config;
@@ -41,8 +42,9 @@ public class UtilityBeans {
 
   @Bean
   MoreInfoUrlConstructor moreInfoUrlConstructor(
-      PropertySep24Config sep24Config, JwtService jwtService) {
-    return new SimpleMoreInfoUrlConstructor(sep24Config.getMoreInfoUrl(), jwtService);
+      ClientsConfig clientsConfig, PropertySep24Config sep24Config, JwtService jwtService) {
+    return new SimpleMoreInfoUrlConstructor(
+        clientsConfig, sep24Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean
