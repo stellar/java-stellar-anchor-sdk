@@ -17,6 +17,7 @@ import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
 import org.stellar.anchor.api.rpc.action.RequestTrustRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
 import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST
@@ -37,6 +38,7 @@ class RequestTrustHandlerTest {
   companion object {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -81,7 +83,7 @@ class RequestTrustHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "38"
+    every { spyTxn24.protocol } returns SEP_38.sep.toString()
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
@@ -152,10 +154,11 @@ class RequestTrustHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test
@@ -220,7 +223,7 @@ class RequestTrustHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 }

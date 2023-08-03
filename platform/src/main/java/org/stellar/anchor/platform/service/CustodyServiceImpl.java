@@ -56,22 +56,24 @@ public class CustodyServiceImpl implements CustodyService {
 
   @Override
   public CreateTransactionPaymentResponse createTransactionRefund(
-      Sep24Transaction txn24, DoStellarRefundRequest rpcRequest) throws AnchorException {
+      DoStellarRefundRequest request, String memo, String memoType) throws AnchorException {
     if (custodyApiClient.isEmpty()) {
       // custody.type is set to 'none'
       throw new InvalidConfigException("Integration with custody service is not enabled");
     }
 
-    CreateTransactionRefundRequest request =
+    CreateTransactionRefundRequest createTransactionRefundRequest =
         CreateTransactionRefundRequest.builder()
-            .amount(rpcRequest.getRefund().getAmount().getAmount())
-            .amountFee(rpcRequest.getRefund().getAmountFee().getAmount())
-            .memo(txn24.getRefundMemo())
-            .memoType(txn24.getRefundMemoType())
+            .amount(request.getRefund().getAmount().getAmount())
+            .amountFee(request.getRefund().getAmountFee().getAmount())
+            .memo(memo)
+            .memoType(memoType)
             .build();
 
     try {
-      return custodyApiClient.get().createTransactionRefund(txn24.getId(), request);
+      return custodyApiClient
+          .get()
+          .createTransactionRefund(request.getTransactionId(), createTransactionRefundRequest);
     } catch (CustodyException e) {
       throw (getResponseException(e));
     }

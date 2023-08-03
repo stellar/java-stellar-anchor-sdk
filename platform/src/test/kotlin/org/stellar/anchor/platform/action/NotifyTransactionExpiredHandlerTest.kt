@@ -15,16 +15,21 @@ import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
 import org.stellar.anchor.api.rpc.action.NotifyTransactionExpiredRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.Customers
+import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -37,6 +42,7 @@ class NotifyTransactionExpiredHandlerTest {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val TX_MESSAGE = "testMessage"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -80,7 +86,7 @@ class NotifyTransactionExpiredHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "38"
+    every { spyTxn24.protocol } returns SEP_38.sep.toString()
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
@@ -161,14 +167,15 @@ class NotifyTransactionExpiredHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test
-  fun test_handle_ok() {
+  fun test_handle_sep24_ok() {
     val request =
       NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
     val txn24 = JdbcSep24Transaction()
@@ -234,7 +241,74 @@ class NotifyTransactionExpiredHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
+  }
+
+  @Test
+  fun test_handle_sep31_ok() {
+    val request =
+      NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
+    val txn31 = JdbcSep31Transaction()
+    txn31.status = PENDING_ANCHOR.toString()
+    val sep31TxnCapture = slot<JdbcSep31Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
+
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(TX_ID) } returns txn31
+    every { txn31Store.save(capture(sep31TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+
+    val expectedSep31Txn = JdbcSep31Transaction()
+    expectedSep31Txn.status = EXPIRED.toString()
+    expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
+    expectedSep31Txn.requiredInfoMessage = TX_MESSAGE
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep31Txn),
+      gson.toJson(sep31TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = PlatformTransactionData.Sep.SEP_31
+    expectedResponse.kind = PlatformTransactionData.Kind.RECEIVE
+    expectedResponse.status = EXPIRED
+    expectedResponse.amountIn = Amount(null, null)
+    expectedResponse.amountOut = Amount(null, null)
+    expectedResponse.amountExpected = Amount(null, null)
+    expectedResponse.amountFee = Amount(null, null)
+    expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
+    expectedResponse.message = TX_MESSAGE
+    expectedResponse.customers = Customers(StellarId(null, null), StellarId(null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(PlatformTransactionData.Sep.SEP_31.sep.toString())
+        .type(AnchorEvent.Type.TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(expectedSep31Txn.updatedAt >= startDate)
+    assertTrue(expectedSep31Txn.updatedAt <= endDate)
   }
 }

@@ -1,20 +1,18 @@
 package org.stellar.anchor.platform.action;
 
 import static java.util.Collections.emptySet;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31;
-import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_RECOVERY;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
+import static org.stellar.anchor.api.rpc.action.ActionMethod.REQUEST_CUSTOMER_INFO_UPDATE;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
 
 import java.util.Set;
+import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
-import org.stellar.anchor.api.rpc.action.NotifyTransactionRecoveryRequest;
+import org.stellar.anchor.api.rpc.action.RequestCustomerInfoUpdateRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
@@ -23,10 +21,10 @@ import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
-public class NotifyTransactionRecoveryHandler
-    extends ActionHandler<NotifyTransactionRecoveryRequest> {
+public class RequestCustomerInfoUpdateHandler
+    extends ActionHandler<RequestCustomerInfoUpdateRequest> {
 
-  public NotifyTransactionRecoveryHandler(
+  public RequestCustomerInfoUpdateHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -38,43 +36,35 @@ public class NotifyTransactionRecoveryHandler
         requestValidator,
         assetService,
         eventService,
-        NotifyTransactionRecoveryRequest.class);
+        RequestCustomerInfoUpdateRequest.class);
+  }
+
+  @Override
+  protected void validate(JdbcSepTransaction txn, RequestCustomerInfoUpdateRequest request)
+      throws InvalidRequestException, InvalidParamsException, BadRequestException {
+    super.validate(txn, request);
   }
 
   @Override
   public ActionMethod getActionType() {
-    return NOTIFY_TRANSACTION_RECOVERY;
+    return REQUEST_CUSTOMER_INFO_UPDATE;
   }
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, NotifyTransactionRecoveryRequest request)
-      throws InvalidRequestException {
-    switch (Sep.from(txn.getProtocol())) {
-      case SEP_24:
-        return PENDING_ANCHOR;
-      case SEP_31:
-        return PENDING_RECEIVER;
-      default:
-        throw new InvalidRequestException(
-            String.format(
-                "Action[%s] is not supported for protocol[%s]",
-                getActionType(), txn.getProtocol()));
-    }
+      JdbcSepTransaction txn, RequestCustomerInfoUpdateRequest request) {
+    return PENDING_CUSTOMER_INFO_UPDATE;
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    if (Set.of(SEP_24, SEP_31).contains(Sep.from(txn.getProtocol()))) {
-      if (areFundsReceived(txn)) {
-        return Set.of(ERROR, EXPIRED);
-      }
+    if (SEP_31 == Sep.from(txn.getProtocol())) {
+      return Set.of(PENDING_RECEIVER);
     }
     return emptySet();
   }
 
   @Override
   protected void updateTransactionWithAction(
-      JdbcSepTransaction txn, NotifyTransactionRecoveryRequest request)
-      throws InvalidParamsException {}
+      JdbcSepTransaction txn, RequestCustomerInfoUpdateRequest request) {}
 }
