@@ -1,0 +1,19 @@
+{
+  "clients": [
+    {
+      "name": "lobstr",
+      "type": "NONCUSTODIAL",
+      "signingKey": "0x1234",
+      "domain": "lobstr.co",
+      "callbackUrl": "https://lobstr.co/callback"
+    },
+    {
+      "name": "circle",
+      "type": "CUSTODIAL",
+      "signingKey": "0x5678",
+      "domain": "circle.com",
+      "callbackUrl": "https://circle.com/callback"
+    }
+  ]
+}
+

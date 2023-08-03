@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.operation.Sep38Operation;
 
 /**
  * The response body of the GET /info endpoint of SEP-38.
@@ -28,7 +29,7 @@ public class InfoResponse {
       }
       newAsset.setAsset(assetName);
 
-      AssetInfo.Sep38Operation sep38Info = assetInfo.getSep38();
+      Sep38Operation sep38Info = assetInfo.getSep38();
       newAsset.setCountryCodes(sep38Info.getCountryCodes());
       newAsset.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
       newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
@@ -52,10 +53,10 @@ public class InfoResponse {
     private List<String> countryCodes;
 
     @SerializedName("sell_delivery_methods")
-    private List<AssetInfo.Sep38Operation.DeliveryMethod> sellDeliveryMethods;
+    private List<Sep38Operation.DeliveryMethod> sellDeliveryMethods;
 
     @SerializedName("buy_delivery_methods")
-    private List<AssetInfo.Sep38Operation.DeliveryMethod> buyDeliveryMethods;
+    private List<Sep38Operation.DeliveryMethod> buyDeliveryMethods;
 
     private transient List<String> exchangeableAssetNames;
 
@@ -72,7 +73,7 @@ public class InfoResponse {
     }
 
     private boolean supportsDeliveryMethod(
-        List<AssetInfo.Sep38Operation.DeliveryMethod> deliveryMethods, String method) {
+        List<Sep38Operation.DeliveryMethod> deliveryMethods, String method) {
       boolean noneIsAvailable = deliveryMethods == null || deliveryMethods.size() == 0;
       boolean noneIsProvided = method == null || method.equals("");
       if (noneIsAvailable && noneIsProvided) {
@@ -87,7 +88,7 @@ public class InfoResponse {
         return true;
       }
 
-      AssetInfo.Sep38Operation.DeliveryMethod foundMethod =
+      Sep38Operation.DeliveryMethod foundMethod =
           deliveryMethods.stream()
               .filter(dMethod -> dMethod.getName().equals(method))
               .findFirst()

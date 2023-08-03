@@ -5,14 +5,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.http.HttpStatus;
-import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.exception.SepNotAuthorizedException;
-import org.stellar.anchor.api.exception.SepNotFoundException;
+import org.stellar.anchor.api.exception.*;
+import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.GsonUtils;
 
+/** The base class for CallbackAPI and PlatformAPI clients. */
 public abstract class BaseApiClient {
   static final Gson gson = GsonUtils.getInstance();
   static final OkHttpClient client =
@@ -22,6 +23,19 @@ public abstract class BaseApiClient {
           .writeTimeout(10, TimeUnit.MINUTES)
           .callTimeout(10, TimeUnit.MINUTES)
           .build();
+  final AuthHelper authHelper;
+  final String endpoint;
+
+  /**
+   * Creates a new BaseApiClient.
+   *
+   * @param authHelper the AuthHelper to use for authentication.
+   * @param endpoint the API endpoint.
+   */
+  protected BaseApiClient(AuthHelper authHelper, String endpoint) {
+    this.authHelper = authHelper;
+    this.endpoint = endpoint;
+  }
 
   String handleResponse(Response response) throws AnchorException, IOException {
     if (response.body() == null) throw new SepException("Empty response");
@@ -37,5 +51,15 @@ public abstract class BaseApiClient {
     }
 
     return responseBody;
+  }
+
+  Request.Builder getRequestBuilder() throws InvalidConfigException {
+    Request.Builder requestBuilder =
+        new Request.Builder().header("Content-Type", "application/json");
+
+    AuthHeader<String, String> authHeader = authHelper.createPlatformServerAuthHeader();
+    return authHeader == null
+        ? requestBuilder
+        : requestBuilder.header(authHeader.getName(), authHeader.getValue());
   }
 }

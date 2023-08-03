@@ -23,7 +23,6 @@ import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsMana
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor;
-import org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
@@ -36,6 +35,8 @@ import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
+import org.stellar.anchor.sep6.Sep6Service;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 /** SEP configurations */
 @Configuration
@@ -50,21 +51,22 @@ public class SepBeans {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "sep6")
+  Sep6Config sep6Config() {
+    return new PropertySep6Config();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "sep10")
-  Sep10Config sep10Config(AppConfig appConfig, SecretConfig secretConfig) {
-    return new PropertySep10Config(appConfig, secretConfig);
+  Sep10Config sep10Config(
+      AppConfig appConfig, SecretConfig secretConfig, ClientsConfig clientsConfig) {
+    return new PropertySep10Config(appConfig, clientsConfig, secretConfig);
   }
 
   @Bean
   @ConfigurationProperties(prefix = "sep12")
   Sep12Config sep12Config(CallbackApiConfig callbackApiConfig) {
     return new PropertySep12Config(callbackApiConfig);
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "sep24")
-  PropertySep24Config sep24Config(SecretConfig secretConfig) {
-    return new PropertySep24Config(secretConfig);
   }
 
   @Bean
@@ -88,6 +90,9 @@ public class SepBeans {
   public FilterRegistrationBean<Filter> sep10TokenFilter(JwtService jwtService) {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10JwtFilter(jwtService));
+    registrationBean.addUrlPatterns("/sep6/transaction");
+    registrationBean.addUrlPatterns("/sep6/transactions*");
+    registrationBean.addUrlPatterns("/sep6/transactions/*");
     registrationBean.addUrlPatterns("/sep12/*");
     registrationBean.addUrlPatterns("/sep24/transaction");
     registrationBean.addUrlPatterns("/sep24/transactions*");
@@ -103,6 +108,13 @@ public class SepBeans {
   @ConditionalOnAllSepsEnabled(seps = {"sep1"})
   Sep1Service sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     return new Sep1Service(sep1Config);
+  }
+
+  @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep6"})
+  Sep6Service sep6Service(
+      Sep6Config sep6Config, AssetService assetService, Sep6TransactionStore txnStore) {
+    return new Sep6Service(sep6Config, assetService, txnStore);
   }
 
   @Bean
@@ -146,16 +158,12 @@ public class SepBeans {
 
   @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
+      ClientsConfig clientsConfig,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
-    return new SimpleInteractiveUrlConstructor(sep24Config, customerIntegration, jwtService);
-  }
-
-  @Bean
-  MoreInfoUrlConstructor moreInfoUrlConstructor(
-      PropertySep24Config sep24Config, JwtService jwtService) {
-    return new SimpleMoreInfoUrlConstructor(sep24Config.getMoreInfoUrl(), jwtService);
+    return new SimpleInteractiveUrlConstructor(
+        clientsConfig, sep24Config, customerIntegration, jwtService);
   }
 
   @Bean

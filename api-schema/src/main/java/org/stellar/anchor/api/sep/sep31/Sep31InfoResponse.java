@@ -3,7 +3,8 @@ package org.stellar.anchor.api.sep.sep31;
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 import lombok.Data;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.operation.Sep12Operation;
+import org.stellar.anchor.api.sep.operation.Sep31Operation;
 
 /**
  * The response body of the /info endpoint of the SEP-31.
@@ -38,7 +39,7 @@ public class Sep31InfoResponse {
     @SerializedName("max_amount")
     Long maxAmount;
 
-    AssetInfo.Sep12Operation sep12;
-    AssetInfo.Sep31TxnFieldSpecs fields;
+    Sep12Operation sep12;
+    Sep31Operation.Fields fields;
   }
 }

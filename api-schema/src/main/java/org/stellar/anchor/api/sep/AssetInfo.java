@@ -2,9 +2,9 @@ package org.stellar.anchor.api.sep;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
-import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
+import org.stellar.anchor.api.sep.operation.Sep31Operation;
+import org.stellar.anchor.api.sep.operation.Sep38Operation;
 
 @SuppressWarnings("unused")
 @Data
@@ -34,6 +34,9 @@ public class AssetInfo {
   SendOperation send;
   Sep31Operation sep31;
   Sep38Operation sep38;
+
+  @SerializedName("sep6_enabled")
+  Boolean sep6Enabled = false;
 
   @SerializedName("sep24_enabled")
   Boolean sep24Enabled = false;
@@ -74,9 +77,17 @@ public class AssetInfo {
     Long maxAmount;
   }
 
-  public static class DepositOperation extends AssetOperation {}
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class DepositOperation extends AssetOperation {
+    List<String> methods;
+  }
 
-  public static class WithdrawOperation extends AssetOperation {}
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class WithdrawOperation extends AssetOperation {
+    List<String> methods;
+  }
 
   @Data
   public static class SendOperation {
@@ -94,74 +105,12 @@ public class AssetInfo {
   }
 
   @Data
-  public static class Sep31Operation {
-    @SerializedName("quotes_supported")
-    boolean quotesSupported;
-
-    @SerializedName("quotes_required")
-    boolean quotesRequired;
-
-    Sep12Operation sep12;
-    Sep31TxnFieldSpecs fields;
-  }
-
-  @Data
-  public static class Sep12Operation {
-    Sep12Types sender;
-    Sep12Types receiver;
-  }
-
-  @Data
-  public static class Sep12Types {
-    Map<String, Sep12Type> types;
-  }
-
-  @Data
-  public static class Sep12Type {
-    String description;
-  }
-
-  @Data
-  public static class Sep31TxnFieldSpecs {
-    Map<String, Sep31TxnFieldSpec> transaction;
-  }
-
-  @Data
+  @Builder
   @AllArgsConstructor
-  public static class Sep31TxnFieldSpec {
+  @NoArgsConstructor
+  public static class Field {
     String description;
     List<String> choices;
     boolean optional;
-
-    public Sep31TxnFieldSpec() {}
-  }
-
-  @Data
-  public static class Sep38Operation {
-    @SerializedName("exchangeable_assets")
-    List<String> exchangeableAssets;
-
-    @SerializedName("country_codes")
-    List<String> countryCodes;
-
-    @SerializedName("sell_delivery_methods")
-    List<DeliveryMethod> sellDeliveryMethods;
-
-    @SerializedName("buy_delivery_methods")
-    List<DeliveryMethod> buyDeliveryMethods;
-
-    Integer decimals;
-
-    @Data
-    public static class DeliveryMethod {
-      String name;
-
-      String description;
-
-      public DeliveryMethod(String name, String description) {
-        this.name = name;
-        this.description = description;
-      }
-    }
   }
 }

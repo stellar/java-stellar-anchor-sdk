@@ -1,25 +1,29 @@
 package org.stellar.anchor.sep24;
 
+import static io.micrometer.core.instrument.Metrics.counter;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.sep24.InfoResponse.*;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.sep24.Sep24Helper.*;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.MemoHelper.memoType;
+import static org.stellar.anchor.util.MetricConstants.*;
 import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
 import static org.stellar.anchor.util.SepHelper.memoTypeString;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
-import com.google.gson.Gson;
+import io.micrometer.core.instrument.Counter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
@@ -29,7 +33,8 @@ import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.MetricConstants;
+import org.stellar.anchor.util.TransactionHelper;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
@@ -39,11 +44,23 @@ public class Sep24Service {
   final AssetService assetService;
   final JwtService jwtService;
   final Sep24TransactionStore txnStore;
-  final EventService eventService;
+  final EventService.Session eventSession;
   final InteractiveUrlConstructor interactiveUrlConstructor;
   final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
-  static final Gson gson = GsonUtils.getInstance();
+  final Counter sep24TransactionRequestedCounter =
+      counter(MetricConstants.SEP24_TRANSACTION_REQUESTED);
+  final Counter sep24TransactionQueriedCounter = counter(MetricConstants.SEP24_TRANSACTION_QUERIED);
+  final Counter sep24WithdrawalCounter =
+      counter(
+          MetricConstants.SEP24_TRANSACTION_CREATED,
+          MetricConstants.TYPE,
+          MetricConstants.TV_SEP24_WITHDRAWAL);
+  final Counter sep24DepositCounter =
+      counter(
+          MetricConstants.SEP24_TRANSACTION_CREATED,
+          MetricConstants.TYPE,
+          MetricConstants.TV_SEP24_DEPOSIT);
 
   public static final List<String> INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST =
       List.of("amount", "client_domain", "lang");
@@ -64,7 +81,7 @@ public class Sep24Service {
     this.assetService = assetService;
     this.jwtService = jwtService;
     this.txnStore = txnStore;
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.interactiveUrlConstructor = interactiveUrlConstructor;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
     info("Sep24Service initialized.");
@@ -72,8 +89,10 @@ public class Sep24Service {
 
   public InteractiveTransactionResponse withdraw(
       Sep10Jwt token, Map<String, String> withdrawRequest)
-      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
+      throws AnchorException, MalformedURLException, URISyntaxException {
     info("Creating withdrawal transaction.");
+    // increment counter
+    sep24TransactionRequestedCounter.increment();
     if (token == null) {
       info("missing SEP-10 token");
       throw new SepValidationException("missing token");
@@ -92,7 +111,7 @@ public class Sep24Service {
     String strAmount = withdrawRequest.get("amount");
 
     String lang = validateLanguage(appConfig, withdrawRequest.get("lang"));
-    debug("language: {}", lang);
+    debugF("language: {}", lang);
 
     if (assetCode == null) {
       info("missing 'asset_code'");
@@ -180,7 +199,14 @@ public class Sep24Service {
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
-    eventService.publish(txn, TRANSACTION_CREATED);
+
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("24")
+            .type(TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .build());
 
     infoF(
         "Saved withdraw transaction. from={}, amountIn={}, amountOut={}.",
@@ -188,15 +214,21 @@ public class Sep24Service {
         txn.getAmountIn(),
         txn.getAmountOut());
     debug("Transaction details:", txn);
-    return new InteractiveTransactionResponse(
-        "interactive_customer_info_needed",
-        interactiveUrlConstructor.construct(txn, withdrawRequest),
-        txn.getTransactionId());
+    InteractiveTransactionResponse response =
+        new InteractiveTransactionResponse(
+            "interactive_customer_info_needed",
+            interactiveUrlConstructor.construct(txn, withdrawRequest),
+            txn.getTransactionId());
+
+    // increment counter
+    sep24WithdrawalCounter.increment();
+    return response;
   }
 
   public InteractiveTransactionResponse deposit(Sep10Jwt token, Map<String, String> depositRequest)
-      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
+      throws AnchorException, MalformedURLException, URISyntaxException {
     info("Creating deposit transaction.");
+    counter(SEP24_TRANSACTION_REQUESTED, TYPE, TV_SEP24_DEPOSIT);
     if (token == null) {
       info("missing SEP-10 token");
       throw new SepValidationException("missing token");
@@ -222,7 +254,7 @@ public class Sep24Service {
     }
 
     String lang = validateLanguage(appConfig, depositRequest.get("lang"));
-    debug("language: {}", lang);
+    debugF("language: {}", lang);
 
     if (assetCode == null) {
       info("missing 'asset_code'");
@@ -304,7 +336,14 @@ public class Sep24Service {
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
-    eventService.publish(txn, TRANSACTION_CREATED);
+
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("24")
+            .type(TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .build());
 
     infoF(
         "Saved deposit transaction. to={}, amountIn={}, amountOut={}.",
@@ -313,10 +352,14 @@ public class Sep24Service {
         txn.getAmountOut());
     debug("Transaction details:", txn);
 
-    return new InteractiveTransactionResponse(
-        "interactive_customer_info_needed",
-        interactiveUrlConstructor.construct(txn, depositRequest),
-        txn.getTransactionId());
+    InteractiveTransactionResponse response =
+        new InteractiveTransactionResponse(
+            "interactive_customer_info_needed",
+            interactiveUrlConstructor.construct(txn, depositRequest),
+            txn.getTransactionId());
+    // increment counter
+    sep24DepositCounter.increment();
+    return response;
   }
 
   public GetTransactionsResponse findTransactions(Sep10Jwt token, GetTransactionsRequest txReq)
@@ -352,11 +395,12 @@ public class Sep24Service {
     List<TransactionResponse> list = new ArrayList<>();
     debugF("found {} transactions", txns.size());
     for (Sep24Transaction txn : txns) {
-      TransactionResponse transactionResponse = fromTxn(txn, txReq.getLang());
+      TransactionResponse transactionResponse = fromTxn(assetService, moreInfoUrlConstructor, txn);
       list.add(transactionResponse);
     }
     result.setTransactions(list);
-
+    // increment counter
+    sep24TransactionQueriedCounter.increment();
     return result;
   }
 
@@ -405,8 +449,9 @@ public class Sep24Service {
           token.getAccountMemo());
       throw new SepNotFoundException("transaction not found");
     }
-
-    return Sep24GetTransactionResponse.of(fromTxn(txn, txReq.getLang()));
+    // increment counter
+    sep24TransactionQueriedCounter.increment();
+    return Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, txn));
   }
 
   public InfoResponse getInfo() {
@@ -414,11 +459,16 @@ public class Sep24Service {
     List<AssetInfo> assets = assetService.listAllAssets();
     debugF("{} assets found", assets.size());
 
-    Map<String, AssetInfo.AssetOperation> depositMap = new HashMap<>();
-    Map<String, AssetInfo.AssetOperation> withdrawMap = new HashMap<>();
+    Map<String, InfoResponse.OperationResponse> depositMap = new HashMap<>();
+    Map<String, InfoResponse.OperationResponse> withdrawMap = new HashMap<>();
     for (AssetInfo asset : assets) {
-      if (asset.getDeposit().getEnabled()) depositMap.put(asset.getCode(), asset.getDeposit());
-      if (asset.getWithdraw().getEnabled()) withdrawMap.put(asset.getCode(), asset.getWithdraw());
+      if (asset.getDeposit().getEnabled())
+        depositMap.put(
+            asset.getCode(), InfoResponse.OperationResponse.fromAssetOperation(asset.getDeposit()));
+      if (asset.getWithdraw().getEnabled())
+        withdrawMap.put(
+            asset.getCode(),
+            InfoResponse.OperationResponse.fromAssetOperation(asset.getWithdraw()));
     }
 
     return InfoResponse.builder()
@@ -430,60 +480,5 @@ public class Sep24Service {
                 sep24Config.getFeatures().getAccountCreation(),
                 sep24Config.getFeatures().getClaimableBalances()))
         .build();
-  }
-
-  TransactionResponse fromTxn(Sep24Transaction txn, String lang)
-      throws MalformedURLException, URISyntaxException, SepException {
-    debugF(
-        "Converting Sep24Transaction to Transaction Response. kind={}, transactionId={}, lang={}",
-        txn.getTransactionId(),
-        txn.getTransactionId(),
-        lang);
-    TransactionResponse response;
-    if (txn.getKind().equals(Sep24Transaction.Kind.DEPOSIT.toString())) {
-      response = fromDepositTxn(txn);
-    } else if (txn.getKind().equals(WITHDRAWAL.toString())) {
-      response = fromWithdrawTxn(txn);
-    } else {
-      throw new SepException(String.format("unsupported txn kind:%s", txn.getKind()));
-    }
-
-    // Calculate refund information.
-    AssetInfo assetInfo =
-        assetService.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
-    return Sep24Helper.updateRefundInfo(response, txn, assetInfo);
-  }
-
-  public TransactionResponse fromDepositTxn(Sep24Transaction txn)
-      throws MalformedURLException, URISyntaxException {
-
-    DepositTransactionResponse txnR =
-        gson.fromJson(gson.toJson(txn), DepositTransactionResponse.class);
-
-    setSharedTransactionResponseFields(txnR, txn);
-
-    txnR.setDepositMemo(txn.getMemo());
-    txnR.setDepositMemoType(txn.getMemoType());
-
-    txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
-
-    return txnR;
-  }
-
-  public WithdrawTransactionResponse fromWithdrawTxn(Sep24Transaction txn)
-      throws MalformedURLException, URISyntaxException {
-
-    WithdrawTransactionResponse txnR =
-        gson.fromJson(gson.toJson(txn), WithdrawTransactionResponse.class);
-
-    setSharedTransactionResponseFields(txnR, txn);
-
-    txnR.setWithdrawMemo(txn.getMemo());
-    txnR.setWithdrawMemoType(txn.getMemoType());
-    txnR.setWithdrawAnchorAccount(txn.getWithdrawAnchorAccount());
-
-    txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
-
-    return txnR;
   }
 }

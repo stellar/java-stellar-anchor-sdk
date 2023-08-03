@@ -1,16 +1,21 @@
 package org.stellar.anchor.sep31;
 
+import static io.micrometer.core.instrument.Metrics.counter;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
+import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_CREATED;
+import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_PATCHED;
 import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 
+import io.micrometer.core.instrument.Counter;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
@@ -19,11 +24,12 @@ import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.*;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.AssetInfo.Sep12Operation;
-import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
+import org.stellar.anchor.api.sep.operation.Sep12Operation;
+import org.stellar.anchor.api.sep.operation.Sep31Operation.Fields;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.api.shared.Amount;
@@ -36,6 +42,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.TransactionHelper;
 
 public class Sep31Service {
   private final AppConfig appConfig;
@@ -47,7 +54,9 @@ public class Sep31Service {
   private final FeeIntegration feeIntegration;
   private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
-  private final EventService eventService;
+  private final EventService.Session eventSession;
+  private final Counter sep31TransactionCreatedCounter = counter(SEP31_TRANSACTION_CREATED);
+  private final Counter sep31TransactionPatchedCounter = counter(SEP31_TRANSACTION_PATCHED);
 
   public Sep31Service(
       AppConfig appConfig,
@@ -69,7 +78,7 @@ public class Sep31Service {
     this.assetService = assetService;
     this.feeIntegration = feeIntegration;
     this.customerIntegration = customerIntegration;
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
     Log.info("Sep31Service initialized.");
   }
@@ -178,15 +187,25 @@ public class Sep31Service {
 
     updateDepositInfo();
 
-    eventService.publish(txn, TRANSACTION_CREATED);
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("31")
+            .type(TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn))
+            .build());
 
-    return Sep31PostTransactionResponse.builder()
-        .id(txn.getId())
-        .stellarAccountId(txn.getStellarAccountId())
-        .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
-        .stellarMemoType(
-            isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
-        .build();
+    Sep31PostTransactionResponse response =
+        Sep31PostTransactionResponse.builder()
+            .id(txn.getId())
+            .stellarAccountId(txn.getStellarAccountId())
+            .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
+            .stellarMemoType(
+                isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
+            .build();
+    // increment counter
+    sep31TransactionCreatedCounter.increment();
+    return response;
   }
 
   /**
@@ -348,8 +367,11 @@ public class Sep31Service {
     Context.get().setTransactionFields(txn.getFields());
     validateRequiredFields();
 
-    Sep31Transaction savedTxn = sep31TransactionStore.save(txn);
-    return savedTxn.toSep31GetTransactionResponse();
+    Sep31GetTransactionResponse response =
+        sep31TransactionStore.save(txn).toSep31GetTransactionResponse();
+    // increment counter
+    sep31TransactionPatchedCounter.increment();
+    return response;
   }
 
   /**
@@ -371,8 +393,7 @@ public class Sep31Service {
           String.format("Transaction (%s) is not expecting any updates", txn.getId()));
     }
 
-    Map<String, AssetInfo.Sep31TxnFieldSpec> expectedFields =
-        txn.getRequiredInfoUpdates().getTransaction();
+    Map<String, AssetInfo.Field> expectedFields = txn.getRequiredInfoUpdates().getTransaction();
     Map<String, String> requestFields = request.getFields().getTransaction();
 
     // validate if any of the fields from the request is not expected in the transaction.
@@ -582,17 +603,17 @@ public class Sep31Service {
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
 
-    Map<String, AssetInfo.Sep31TxnFieldSpec> missingFields =
+    Map<String, AssetInfo.Field> missingFields =
         fieldSpecs.getFields().getTransaction().entrySet().stream()
             .filter(
                 entry -> {
-                  AssetInfo.Sep31TxnFieldSpec field = entry.getValue();
+                  AssetInfo.Field field = entry.getValue();
                   if (field.isOptional()) return false;
                   return requestFields.get(entry.getKey()) == null;
                 })
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-    Sep31TxnFieldSpecs sep31MissingTxnFields = new Sep31TxnFieldSpecs();
+    Fields sep31MissingTxnFields = new Fields();
     sep31MissingTxnFields.setTransaction(missingFields);
 
     if (missingFields.size() > 0) {
