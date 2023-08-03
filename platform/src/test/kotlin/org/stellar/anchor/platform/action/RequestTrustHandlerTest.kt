@@ -85,7 +85,7 @@ class RequestTrustHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_trust] is not supported for status[pending_anchor], kind[null] and protocol[38]",
+      "Action[request_trust] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[true]",
       ex.message
     )
   }
@@ -103,7 +103,7 @@ class RequestTrustHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_trust] is not supported for status[pending_trust], kind[deposit] and protocol[24]",
+      "Action[request_trust] is not supported. Status[pending_trust], kind[deposit], protocol[24], funds received[true]",
       ex.message
     )
   }
@@ -137,7 +137,7 @@ class RequestTrustHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_trust] is not supported for status[pending_anchor], kind[deposit] and protocol[24]",
+      "Action[request_trust] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
   }

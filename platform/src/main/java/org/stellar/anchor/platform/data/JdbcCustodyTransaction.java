@@ -29,12 +29,12 @@ public class JdbcCustodyTransaction {
 
   @Id String id;
 
-  @SerializedName("sep_txn_id")
-  @Column(name = "sep_txn_id")
+  @SerializedName("sep_tx_id")
+  @Column(name = "sep_tx_id")
   String sepTxId;
 
-  @SerializedName("external_id")
-  @Column(name = "external_id")
+  @SerializedName("external_tx_id")
+  @Column(name = "external_tx_id")
   String externalTxId;
 
   @SerializedName("status")

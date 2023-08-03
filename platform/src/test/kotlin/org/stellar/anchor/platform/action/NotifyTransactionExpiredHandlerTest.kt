@@ -84,7 +84,7 @@ class NotifyTransactionExpiredHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_transaction_expired] is not supported for status[error], kind[null] and protocol[38]",
+      "Action[notify_transaction_expired] is not supported. Status[error], kind[null], protocol[38], funds received[false]",
       ex.message
     )
   }
@@ -100,7 +100,7 @@ class NotifyTransactionExpiredHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_transaction_expired] is not supported for status[expired], kind[null] and protocol[24]",
+      "Action[notify_transaction_expired] is not supported. Status[expired], kind[null], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -116,7 +116,7 @@ class NotifyTransactionExpiredHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_transaction_expired] is not supported for status[completed], kind[null] and protocol[24]",
+      "Action[notify_transaction_expired] is not supported. Status[completed], kind[null], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -147,7 +147,7 @@ class NotifyTransactionExpiredHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_transaction_expired] is not supported for status[pending_anchor], kind[null] and protocol[24]",
+      "Action[notify_transaction_expired] is not supported. Status[pending_anchor], kind[null], protocol[24], funds received[true]",
       ex.message
     )
   }

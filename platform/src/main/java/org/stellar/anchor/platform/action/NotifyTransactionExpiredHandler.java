@@ -56,7 +56,7 @@ public class NotifyTransactionExpiredHandler
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     if (SEP_24 == Sep.from(txn.getProtocol())) {
-      if (txn.getTransferReceivedAt() == null) {
+      if (!areFundsReceived(txn)) {
         return Arrays.stream(SepTransactionStatus.values())
             .filter(s -> !isErrorStatus(s) && !isFinalStatus(s))
             .collect(toSet());

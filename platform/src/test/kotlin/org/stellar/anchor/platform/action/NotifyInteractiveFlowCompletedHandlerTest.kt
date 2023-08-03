@@ -90,7 +90,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_interactive_flow_completed] is not supported for status[incomplete], kind[null] and protocol[38]",
+      "Action[notify_interactive_flow_completed] is not supported. Status[incomplete], kind[null], protocol[38], funds received[false]",
       ex.message
     )
   }
@@ -107,7 +107,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_interactive_flow_completed] is not supported for status[pending_anchor], kind[deposit] and protocol[24]",
+      "Action[notify_interactive_flow_completed] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
   }

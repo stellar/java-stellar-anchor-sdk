@@ -81,7 +81,7 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_pending] is not supported for status[pending_anchor], kind[null] and protocol[38]",
+      "Action[notify_offchain_funds_pending] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[true]",
       ex.message
     )
   }
@@ -99,7 +99,7 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_pending] is not supported for status[pending_trust], kind[withdrawal] and protocol[24]",
+      "Action[notify_offchain_funds_pending] is not supported. Status[pending_trust], kind[withdrawal], protocol[24], funds received[true]",
       ex.message
     )
   }
@@ -117,7 +117,7 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_pending] is not supported for status[pending_anchor], kind[deposit] and protocol[24]",
+      "Action[notify_offchain_funds_pending] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[true]",
       ex.message
     )
   }
@@ -134,7 +134,7 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_pending] is not supported for status[pending_anchor], kind[withdrawal] and protocol[24]",
+      "Action[notify_offchain_funds_pending] is not supported. Status[pending_anchor], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
   }

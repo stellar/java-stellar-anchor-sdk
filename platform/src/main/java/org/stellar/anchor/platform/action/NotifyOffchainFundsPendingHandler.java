@@ -57,7 +57,7 @@ public class NotifyOffchainFundsPendingHandler
     if (SEP_24 == Sep.from(txn.getProtocol())) {
       JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
       if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-        if (txn24.getTransferReceivedAt() != null) {
+        if (areFundsReceived(txn)) {
           return Set.of(PENDING_ANCHOR);
         }
       }
