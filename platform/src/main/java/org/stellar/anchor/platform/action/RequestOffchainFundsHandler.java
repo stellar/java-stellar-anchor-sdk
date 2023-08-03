@@ -117,7 +117,7 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
       JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
       if (DEPOSIT == Kind.from(txn24.getKind())) {
         supportedStatuses.add(INCOMPLETE);
-        if (txn24.getTransferReceivedAt() == null) {
+        if (!areFundsReceived(txn24)) {
           supportedStatuses.add(PENDING_ANCHOR);
         }
       }

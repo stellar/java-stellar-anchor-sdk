@@ -20,6 +20,7 @@ import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
 import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsSentRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
@@ -43,6 +44,10 @@ class NotifyOnchainFundsSentHandlerTest {
   companion object {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
+    private const val STELLAR_TX_ID = "stellarTxId"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
+    private const val PAYMENT_OPERATION_RECORD_FILE_PATH = "action/payment_operation_record.json"
+    private const val STELLAR_TRANSACTIONS_FILE_PATH = "action/stellar_transactions.json"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -85,11 +90,11 @@ class NotifyOnchainFundsSentHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "38"
+    every { spyTxn24.protocol } returns SEP_38.sep.toString()
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_onchain_funds_sent] is not supported for status[pending_stellar], kind[null] and protocol[38]",
+      "Action[notify_onchain_funds_sent] is not supported. Status[pending_stellar], kind[null], protocol[38], funds received[false]",
       ex.message
     )
   }
@@ -106,7 +111,7 @@ class NotifyOnchainFundsSentHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_onchain_funds_sent] is not supported for status[incomplete], kind[deposit] and protocol[24]",
+      "Action[notify_onchain_funds_sent] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -123,7 +128,7 @@ class NotifyOnchainFundsSentHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_onchain_funds_sent] is not supported for status[pending_stellar], kind[withdrawal] and protocol[24]",
+      "Action[notify_onchain_funds_sent] is not supported. Status[pending_stellar], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -140,7 +145,7 @@ class NotifyOnchainFundsSentHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_onchain_funds_sent] is not supported for status[pending_anchor], kind[withdrawal] and protocol[24]",
+      "Action[notify_onchain_funds_sent] is not supported. Status[pending_anchor], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -156,10 +161,11 @@ class NotifyOnchainFundsSentHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test
@@ -168,7 +174,7 @@ class NotifyOnchainFundsSentHandlerTest {
     val request =
       NotifyOnchainFundsSentRequest.builder()
         .transactionId(TX_ID)
-        .stellarTransactionId("stellarTxId")
+        .stellarTransactionId(STELLAR_TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -177,15 +183,13 @@ class NotifyOnchainFundsSentHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    val operationRecordsJson =
-      FileUtil.getResourceFileAsString("action/payment_operation_record.json")
+    val operationRecordsJson = FileUtil.getResourceFileAsString(PAYMENT_OPERATION_RECORD_FILE_PATH)
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
       gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
 
-    val stellarTransactionsJson =
-      FileUtil.getResourceFileAsString("action/payment_stellar_transaction.json")
+    val stellarTransactionsJson = FileUtil.getResourceFileAsString(STELLAR_TRANSACTIONS_FILE_PATH)
     val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
     val stellarTransactions: List<StellarTransaction> =
       gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
@@ -193,7 +197,7 @@ class NotifyOnchainFundsSentHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-    every { horizon.getStellarTxnOperations("stellarTxId") } returns operationRecords
+    every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
@@ -208,7 +212,7 @@ class NotifyOnchainFundsSentHandlerTest {
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
-    expectedSep24Txn.stellarTransactionId = "stellarTxId"
+    expectedSep24Txn.stellarTransactionId = STELLAR_TX_ID
     expectedSep24Txn.stellarTransactions = stellarTransactions
 
     JSONAssert.assertEquals(
@@ -246,10 +250,10 @@ class NotifyOnchainFundsSentHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
-    assertTrue(expectedSep24Txn.completedAt >= startDate)
-    assertTrue(expectedSep24Txn.completedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.completedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.completedAt <= endDate)
   }
 
   @Test
@@ -258,7 +262,7 @@ class NotifyOnchainFundsSentHandlerTest {
     val request =
       NotifyOnchainFundsSentRequest.builder()
         .transactionId(TX_ID)
-        .stellarTransactionId("stellarTxId")
+        .stellarTransactionId(STELLAR_TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()

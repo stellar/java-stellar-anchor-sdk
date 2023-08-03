@@ -1,15 +1,16 @@
 package org.stellar.anchor.platform.action;
 
-import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_ONCHAIN_FUNDS_RECEIVED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_SENDER;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
 import static org.stellar.anchor.platform.utils.PaymentsUtil.addStellarTransaction;
 import static org.stellar.anchor.util.Log.errorEx;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -113,18 +114,33 @@ public class NotifyOnchainFundsReceivedHandler
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request)
       throws InvalidRequestException {
-    return PENDING_ANCHOR;
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_24:
+        return PENDING_ANCHOR;
+      case SEP_31:
+        return PENDING_RECEIVER;
+      default:
+        throw new InvalidRequestException(
+            String.format(
+                "Action[%s] is not supported for protocol[%s]",
+                getActionType(), txn.getProtocol()));
+    }
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    if (SEP_24 == Sep.from(txn.getProtocol())) {
-      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-      if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-        return Set.of(PENDING_USR_TRANSFER_START);
-      }
+    Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_24:
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        if (WITHDRAWAL == Kind.from(txn24.getKind())) {
+          supportedStatuses.add(PENDING_USR_TRANSFER_START);
+        }
+        break;
+      case SEP_31:
+        supportedStatuses.add(PENDING_SENDER);
     }
-    return emptySet();
+    return supportedStatuses;
   }
 
   @Override

@@ -1,12 +1,12 @@
 package org.stellar.anchor.platform.action;
 
-import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_OFFCHAIN_FUNDS_PENDING;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
 
+import java.util.HashSet;
 import java.util.Set;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
@@ -54,15 +54,20 @@ public class NotifyOffchainFundsPendingHandler
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    if (SEP_24 == Sep.from(txn.getProtocol())) {
-      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-      if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-        if (txn24.getTransferReceivedAt() != null) {
-          return Set.of(PENDING_ANCHOR);
+    Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_24:
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        if (WITHDRAWAL == Kind.from(txn24.getKind())) {
+          if (areFundsReceived(txn)) {
+            return Set.of(PENDING_ANCHOR);
+          }
         }
-      }
+        break;
+      case SEP_31:
+        supportedStatuses.add(PENDING_RECEIVER);
     }
-    return emptySet();
+    return supportedStatuses;
   }
 
   @Override

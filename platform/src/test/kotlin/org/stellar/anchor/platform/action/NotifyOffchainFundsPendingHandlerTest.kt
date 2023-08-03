@@ -15,17 +15,19 @@ import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
-import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
-import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
-import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.*
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsPendingRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.Customers
+import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -36,6 +38,8 @@ class NotifyOffchainFundsPendingHandlerTest {
   companion object {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
+    private const val EXTERNAL_TX_ID = "testExternalTxId"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -67,7 +71,7 @@ class NotifyOffchainFundsPendingHandlerTest {
   }
 
   @Test
-  fun test_handle_unsupportedProtocol() {
+  fun test_handle_sep24_unsupportedProtocol() {
     val request = NotifyOffchainFundsPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -77,17 +81,17 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "38"
+    every { spyTxn24.protocol } returns SEP_38.sep.toString()
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_pending] is not supported for status[pending_anchor], kind[null] and protocol[38]",
+      "Action[notify_offchain_funds_pending] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[true]",
       ex.message
     )
   }
 
   @Test
-  fun test_handle_unsupportedStatus() {
+  fun test_handle_sep24_unsupportedStatus() {
     val request = NotifyOffchainFundsPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_TRUST.toString()
@@ -99,13 +103,13 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_pending] is not supported for status[pending_trust], kind[withdrawal] and protocol[24]",
+      "Action[notify_offchain_funds_pending] is not supported. Status[pending_trust], kind[withdrawal], protocol[24], funds received[true]",
       ex.message
     )
   }
 
   @Test
-  fun test_handle_unsupportedKind() {
+  fun test_handle_sep24_unsupportedKind() {
     val request = NotifyOffchainFundsPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -117,13 +121,13 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_pending] is not supported for status[pending_anchor], kind[deposit] and protocol[24]",
+      "Action[notify_offchain_funds_pending] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[true]",
       ex.message
     )
   }
 
   @Test
-  fun test_handle_transferNotReceived() {
+  fun test_handle_sep24_transferNotReceived() {
     val request = NotifyOffchainFundsPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -134,13 +138,13 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_pending] is not supported for status[pending_anchor], kind[withdrawal] and protocol[24]",
+      "Action[notify_offchain_funds_pending] is not supported. Status[pending_anchor], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
   }
 
   @Test
-  fun test_handle_invalidRequest() {
+  fun test_handle_sep24_invalidRequest() {
     val request = NotifyOffchainFundsPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -149,19 +153,20 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test
-  fun test_handle_ok_deposit_withExternalTxId() {
+  fun test_handle_sep24_ok_deposit_withExternalTxId() {
     val transferReceivedAt = Instant.now()
     val request =
       NotifyOffchainFundsPendingRequest.builder()
         .transactionId(TX_ID)
-        .externalTransactionId("externalTxId")
+        .externalTransactionId(EXTERNAL_TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -186,7 +191,7 @@ class NotifyOffchainFundsPendingHandlerTest {
     expectedSep24Txn.status = PENDING_EXTERNAL.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
-    expectedSep24Txn.externalTransactionId = "externalTxId"
+    expectedSep24Txn.externalTransactionId = EXTERNAL_TX_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -198,7 +203,7 @@ class NotifyOffchainFundsPendingHandlerTest {
     expectedResponse.sep = SEP_24
     expectedResponse.kind = WITHDRAWAL
     expectedResponse.status = PENDING_EXTERNAL
-    expectedResponse.externalTransactionId = "externalTxId"
+    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
 
@@ -222,12 +227,82 @@ class NotifyOffchainFundsPendingHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 
   @Test
-  fun test_handle_ok_deposit_withoutExternalTxId() {
+  fun test_handle_sep31_ok_deposit_withExternalTxId() {
+    val request =
+      NotifyOffchainFundsPendingRequest.builder()
+        .transactionId(TX_ID)
+        .externalTransactionId(EXTERNAL_TX_ID)
+        .build()
+    val txn31 = JdbcSep31Transaction()
+    txn31.status = PENDING_RECEIVER.toString()
+    val sep31TxnCapture = slot<JdbcSep31Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
+
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(TX_ID) } returns txn31
+    every { txn31Store.save(capture(sep31TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+
+    val expectedSep31Txn = JdbcSep24Transaction()
+    expectedSep31Txn.status = PENDING_EXTERNAL.toString()
+    expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
+    expectedSep31Txn.externalTransactionId = EXTERNAL_TX_ID
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep31Txn),
+      gson.toJson(sep31TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_31
+    expectedResponse.kind = RECEIVE
+    expectedResponse.status = PENDING_EXTERNAL
+    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
+    expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
+    expectedResponse.amountIn = Amount()
+    expectedResponse.amountOut = Amount()
+    expectedResponse.amountFee = Amount()
+    expectedResponse.amountExpected = Amount()
+    expectedResponse.customers = Customers(StellarId(), StellarId())
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_31.sep.toString())
+        .type(AnchorEvent.Type.TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep31TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep31TxnCapture.captured.updatedAt <= endDate)
+  }
+
+  @Test
+  fun test_handle_sep24_ok_deposit_withoutExternalTxId() {
     val transferReceivedAt = Instant.now()
     val request = NotifyOffchainFundsPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
@@ -287,7 +362,7 @@ class NotifyOffchainFundsPendingHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 }

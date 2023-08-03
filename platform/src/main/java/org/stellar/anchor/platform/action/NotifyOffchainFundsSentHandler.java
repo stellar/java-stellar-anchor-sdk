@@ -6,6 +6,7 @@ import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_OFFCHAIN_FUN
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_COMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
 
@@ -52,37 +53,53 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOffchainFundsSentRequest request)
       throws InvalidRequestException {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    switch (Kind.from(txn24.getKind())) {
-      case DEPOSIT:
-        return PENDING_EXTERNAL;
-      case WITHDRAWAL:
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_24:
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        switch (Kind.from(txn24.getKind())) {
+          case DEPOSIT:
+            return PENDING_EXTERNAL;
+          case WITHDRAWAL:
+            return COMPLETED;
+          default:
+            throw new InvalidRequestException(
+                String.format(
+                    "Kind[%s] is not supported for protocol[%s] and action[%s]",
+                    txn24.getKind(), txn24.getProtocol(), getActionType()));
+        }
+      case SEP_31:
         return COMPLETED;
       default:
         throw new InvalidRequestException(
             String.format(
-                "Invalid kind[%s] for protocol[%s] and action[%s]",
-                txn24.getKind(), txn24.getProtocol(), getActionType()));
+                "Action[%s] is not supported for protocol[%s]",
+                getActionType(), txn.getProtocol()));
     }
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-    if (SEP_24 == Sep.from(txn.getProtocol())) {
-      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-      switch (Kind.from(txn24.getKind())) {
-        case DEPOSIT:
-          supportedStatuses.add(PENDING_USR_TRANSFER_START);
-          break;
-        case WITHDRAWAL:
-          if (txn24.getTransferReceivedAt() != null) {
-            supportedStatuses.add(PENDING_ANCHOR);
-          }
-          supportedStatuses.add(PENDING_USR_TRANSFER_COMPLETE);
-          supportedStatuses.add(PENDING_EXTERNAL);
-          break;
-      }
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_24:
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        switch (Kind.from(txn24.getKind())) {
+          case DEPOSIT:
+            supportedStatuses.add(PENDING_USR_TRANSFER_START);
+            break;
+          case WITHDRAWAL:
+            if (areFundsReceived(txn24)) {
+              supportedStatuses.add(PENDING_ANCHOR);
+            }
+            supportedStatuses.add(PENDING_USR_TRANSFER_COMPLETE);
+            supportedStatuses.add(PENDING_EXTERNAL);
+            break;
+        }
+        break;
+      case SEP_31:
+        supportedStatuses.add(PENDING_RECEIVER);
+        supportedStatuses.add(PENDING_EXTERNAL);
+        break;
     }
     return supportedStatuses;
   }
@@ -90,14 +107,16 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOffchainFundsSentRequest request) {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (request.getExternalTransactionId() != null) {
-      txn24.setExternalTransactionId(request.getExternalTransactionId());
-      if (DEPOSIT == Kind.from(txn24.getKind())) {
-        if (request.getFundsSentAt() != null) {
-          txn24.setTransferReceivedAt(request.getFundsSentAt());
-        } else {
-          txn24.setTransferReceivedAt(Instant.now());
+      txn.setExternalTransactionId(request.getExternalTransactionId());
+      if (SEP_24 == Sep.from(txn.getProtocol())) {
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        if (DEPOSIT == Kind.from(txn24.getKind())) {
+          if (request.getFundsSentAt() != null) {
+            txn24.setTransferReceivedAt(request.getFundsSentAt());
+          } else {
+            txn24.setTransferReceivedAt(Instant.now());
+          }
         }
       }
     }

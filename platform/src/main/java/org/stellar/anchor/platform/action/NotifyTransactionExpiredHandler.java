@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.action;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 
@@ -55,8 +56,8 @@ public class NotifyTransactionExpiredHandler
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    if (SEP_24 == Sep.from(txn.getProtocol())) {
-      if (txn.getTransferReceivedAt() == null) {
+    if (Set.of(SEP_24, SEP_31).contains(Sep.from(txn.getProtocol()))) {
+      if (!areFundsReceived(txn)) {
         return Arrays.stream(SepTransactionStatus.values())
             .filter(s -> !isErrorStatus(s) && !isFinalStatus(s))
             .collect(toSet());

@@ -123,7 +123,7 @@ public class NotifyOffchainFundsReceivedHandler
       JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
       if (DEPOSIT == Kind.from(txn24.getKind())) {
         supportedStatuses.add(PENDING_USR_TRANSFER_START);
-        if (txn.getTransferReceivedAt() != null) {
+        if (areFundsReceived(txn24)) {
           supportedStatuses.add(PENDING_EXTERNAL);
         }
       }
@@ -138,9 +138,10 @@ public class NotifyOffchainFundsReceivedHandler
       txn.setExternalTransactionId(request.getExternalTransactionId());
       if (request.getFundsReceivedAt() != null) {
         txn.setTransferReceivedAt(request.getFundsReceivedAt());
-      } else {
-        txn.setTransferReceivedAt(Instant.now());
       }
+    }
+    if (txn.getTransferReceivedAt() == null) {
+      txn.setTransferReceivedAt(Instant.now());
     }
 
     if (request.getAmountIn() != null) {

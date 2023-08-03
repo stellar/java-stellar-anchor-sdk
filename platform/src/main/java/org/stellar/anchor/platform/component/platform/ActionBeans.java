@@ -12,6 +12,7 @@ import org.stellar.anchor.platform.action.ActionHandler;
 import org.stellar.anchor.platform.action.DoStellarPaymentHandler;
 import org.stellar.anchor.platform.action.DoStellarRefundHandler;
 import org.stellar.anchor.platform.action.NotifyAmountsUpdatedHandler;
+import org.stellar.anchor.platform.action.NotifyCustomerInfoUpdatedHandler;
 import org.stellar.anchor.platform.action.NotifyInteractiveFlowCompletedHandler;
 import org.stellar.anchor.platform.action.NotifyOffchainFundsAvailableHandler;
 import org.stellar.anchor.platform.action.NotifyOffchainFundsPendingHandler;
@@ -25,6 +26,7 @@ import org.stellar.anchor.platform.action.NotifyTransactionErrorHandler;
 import org.stellar.anchor.platform.action.NotifyTransactionExpiredHandler;
 import org.stellar.anchor.platform.action.NotifyTransactionRecoveryHandler;
 import org.stellar.anchor.platform.action.NotifyTrustSetHandler;
+import org.stellar.anchor.platform.action.RequestCustomerInfoUpdateHandler;
 import org.stellar.anchor.platform.action.RequestOffchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestOnchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestTrustHandler;
@@ -268,6 +270,28 @@ public class ActionBeans {
         eventService,
         custodyConfig,
         custodyService);
+  }
+
+  @Bean
+  RequestCustomerInfoUpdateHandler requestCustomerInfoUpdateHandler(
+      Sep24TransactionStore txn24Store,
+      Sep31TransactionStore txn31Store,
+      RequestValidator requestValidator,
+      AssetService assetService,
+      EventService eventService) {
+    return new RequestCustomerInfoUpdateHandler(
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
+  }
+
+  @Bean
+  NotifyCustomerInfoUpdatedHandler notifyCustomerInfoUpdatedHandler(
+      Sep24TransactionStore txn24Store,
+      Sep31TransactionStore txn31Store,
+      RequestValidator requestValidator,
+      AssetService assetService,
+      EventService eventService) {
+    return new NotifyCustomerInfoUpdatedHandler(
+        txn24Store, txn31Store, requestValidator, assetService, eventService);
   }
 
   @Bean
