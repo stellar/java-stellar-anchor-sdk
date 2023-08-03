@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.event;
 
 import static org.stellar.anchor.sep24.Sep24Helper.fromTxn;
 import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.NetUtil.getDomainFromUrl;
+import static org.stellar.anchor.util.NetUtil.getDomainFromURL;
 import static org.stellar.anchor.util.OkHttpUtil.buildJsonRequestBody;
 import static org.stellar.anchor.util.StringHelper.json;
 
@@ -57,7 +57,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
   void handleEvent(AnchorEvent event) {
     if (event.getTransaction() != null) {
       KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
-      Request request = buildSignedCallbackRequest(signer, event);
+      Request request = buildHttpRequest(signer, event);
       httpClient.newCall(request).execute();
       debugF(
           "Sending event: {} to client status api: {}", json(event), clientConfig.getCallbackUrl());
@@ -65,15 +65,15 @@ public class ClientStatusCallbackHandler extends EventHandler {
   }
 
   @SneakyThrows
-  Request buildSignedCallbackRequest(KeyPair signer, AnchorEvent event) {
+  Request buildHttpRequest(KeyPair signer, AnchorEvent event) {
     String payload = getPayload(event);
-    return buildRequest(signer, payload, clientConfig.getCallbackUrl());
+    return buildHttpRequest(signer, payload, clientConfig.getCallbackUrl());
   }
 
   @SneakyThrows
-  public static Request buildRequest(KeyPair signer, String payload, String url) {
+  public static Request buildHttpRequest(KeyPair signer, String payload, String url) {
     // Prepare the payload to sign
-    String domain = getDomainFromUrl(url);
+    String domain = getDomainFromURL(url);
     String currentTs = String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()));
     String payloadToSign = currentTs + "." + domain + "." + payload;
     // Sign the payload using the Anchor private key

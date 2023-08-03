@@ -7,8 +7,6 @@ import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import shadow.com.moandjiezana.toml.Toml
 
-class ClientException(message: String) : Exception(message)
-
 fun fetchSigningKey(config: Config): String = runBlocking {
   val endpoint = Url(config.anchor.endpoint)
   val client = HttpClient()

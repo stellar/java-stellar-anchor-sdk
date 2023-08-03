@@ -24,13 +24,13 @@ class CallbackService {
     return receivedCallbacks
   }
 
-  // Get the latest event recevied. This is for testing purpose
-  fun getLatestEvent(): Sep24GetTransactionResponse? {
+  // Get the latest event received. This is for testing purpose
+  fun getLatestCallback(): Sep24GetTransactionResponse? {
     return receivedCallbacks.lastOrNull()
   }
 
   // Clear all events. This is for testing purpose
-  fun clearEvents() {
+  fun clear() {
     log.debug("Clearing events")
     receivedCallbacks.clear()
   }

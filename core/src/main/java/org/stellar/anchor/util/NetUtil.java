@@ -60,7 +60,7 @@ public class NetUtil {
     }
   }
 
-  public static String getDomainFromUrl(String strUri) throws MalformedURLException {
+  public static String getDomainFromURL(String strUri) throws MalformedURLException {
     URL uri = new URL(strUri);
     if (uri.getPort() < 0) {
       return uri.getHost();

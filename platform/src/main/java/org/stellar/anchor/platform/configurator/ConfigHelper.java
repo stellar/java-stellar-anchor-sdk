@@ -100,9 +100,17 @@ public class ConfigHelper {
     String elementName;
   }
 
+  // regex to extract the list name, index, and elementName if envName is an element of a list.
   static String regexPattern = "(.*)(\\[\\d+\\])_(.*)";
   static Pattern pattern = Pattern.compile(regexPattern);
 
+  /**
+   * Extract the list name, index, and elementName if envName is an element of a list.
+   *
+   * @param envName
+   * @return null if envName is not an element of a list in the config schema. Otherwise, return the
+   *     list name extraction result.
+   */
   static ListNameExtractResult extractListNameIfAny(String envName) {
     Matcher matcher = pattern.matcher(envName);
     if (matcher.find()) {

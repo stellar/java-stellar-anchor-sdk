@@ -13,6 +13,7 @@ import org.stellar.anchor.util.GsonUtils
 class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
   val gson = GsonUtils.getInstance()
   val client = HttpClient()
+
   suspend fun sendCallback(sendEventRequest: SendEventRequest): SendEventResponse {
     val response =
       client.post {
@@ -28,6 +29,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
 
     return gson.fromJson(response.body<String>(), SendEventResponse::class.java)
   }
+
   suspend fun getCallbackHistory(txnId: String? = null): List<Sep24GetTransactionResponse> {
     val response =
       client.get {
@@ -47,7 +49,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
     )
   }
 
-  suspend fun getLatestEvent(): Sep24GetTransactionResponse? {
+  suspend fun getLatestCallback(): Sep24GetTransactionResponse? {
     val response =
       client.get {
         url {

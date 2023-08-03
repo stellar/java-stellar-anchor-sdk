@@ -76,7 +76,7 @@ class ClientStatusCallbackHandlerTest {
     // Get the signature from request
     val payload = json(event)
     val request =
-      ClientStatusCallbackHandler.buildRequest(signer, payload, clientConfig.callbackUrl)
+      ClientStatusCallbackHandler.buildHttpRequest(signer, payload, clientConfig.callbackUrl)
     val requestHeader = request.headers["Signature"]
     val parsedSignature = requestHeader?.split(", ")?.get(1)?.substring(2)
     val decodedSignature = Base64.getDecoder().decode(parsedSignature)

@@ -14,7 +14,6 @@ dependencies {
   implementation(libs.hoplite.core)
   implementation(libs.hoplite.yaml)
   implementation(libs.java.stellar.sdk)
-  implementation(libs.jjwt)
   implementation(libs.kotlin.logging)
   implementation(libs.ktor.server.call.logging)
   implementation(libs.slf4j.log4j12)

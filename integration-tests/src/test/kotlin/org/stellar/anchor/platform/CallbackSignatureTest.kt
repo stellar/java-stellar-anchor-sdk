@@ -18,7 +18,7 @@ class CallbackSignatureTest {
   fun `test the SEP24 callback signature creation and verification`() {
     // create the request with the secret-key signer
     val request =
-      ClientStatusCallbackHandler.buildRequest(
+      ClientStatusCallbackHandler.buildHttpRequest(
         signerSecret,
         "test_payload",
         "http://localhost:8092/callbacks"
