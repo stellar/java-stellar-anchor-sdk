@@ -67,7 +67,7 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
-        startKotlinReferenceServer(null, false);
+        startKotlinReferenceServer(null, true);
         anyServerStarted = true;
       }
 
