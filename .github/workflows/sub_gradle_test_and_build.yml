@@ -69,13 +69,13 @@ jobs:
           cp service-runner/build/libs/anchor-platform-runner-*.jar service-runner/build/libs/anchor-platform-runner.jar
           java -jar service-runner/build/libs/anchor-platform-runner.jar -t &
 
-      - name: Wait for sep server to start and get ready
-        uses: mydea/action-wait-for-api@v1
-        with:
-          url: "http://localhost:8080/.well-known/stellar.toml"
-          expected-status: "200"
-          timeout: "300"
-          interval: "1"
+#      - name: Wait for sep server to start and get ready
+#        uses: mydea/action-wait-for-api@v1
+#        with:
+#          url: "http://localhost:8080/.well-known/stellar.toml"
+#          expected-status: "200"
+#          timeout: "300"
+#          interval: "1"
 
       - name: Run Stellar validation tool
         run: |
