@@ -201,6 +201,9 @@ spec:
           - name: http
             containerPort: {{ $stellarObserverDeployment.port | default 8083 }}
             protocol: TCP
+          - name: metrics
+            containerPort: 8082
+            protocol: TCP
           {{- if (.Values.deployment).env }}
           env:
 {{ toYaml .Values.deployment.env | indent 12 }}
