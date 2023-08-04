@@ -14,11 +14,9 @@ dependencies {
   implementation(libs.hoplite.core)
   implementation(libs.hoplite.yaml)
   implementation(libs.java.stellar.sdk)
-  implementation(libs.jjwt)
-  implementation(libs.javax.jaxb.api)
-
-  implementation(libs.slf4j.log4j12)
   implementation(libs.kotlin.logging)
+  implementation(libs.ktor.server.call.logging)
+  implementation(libs.slf4j.log4j12)
 
   implementation(project(mapOf("path" to ":api-schema")))
 }
@@ -32,4 +30,4 @@ tasks {
   test { useJUnitPlatform() }
 }
 
-application { mainClass.set("org.stellar.reference.ReferenceServerKt") }
+application { mainClass.set("org.stellar.reference.wallet.WalletServerKt") }

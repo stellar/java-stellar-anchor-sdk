@@ -41,6 +41,7 @@ dependencies {
   implementation(project(":platform"))
   implementation(project(":anchor-reference-server"))
   implementation(project(":kotlin-reference-server"))
+  implementation(project(":wallet-reference-server"))
   implementation(project(":service-runner"))
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

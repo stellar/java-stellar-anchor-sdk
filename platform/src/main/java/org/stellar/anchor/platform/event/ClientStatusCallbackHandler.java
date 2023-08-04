@@ -13,13 +13,12 @@ import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.config.ClientsConfig.ClientConfig;
-import org.stellar.anchor.platform.config.PropertySecretConfig;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -33,17 +32,20 @@ public class ClientStatusCallbackHandler extends EventHandler {
           .writeTimeout(10, TimeUnit.MINUTES)
           .callTimeout(10, TimeUnit.MINUTES)
           .build();
+  private final SecretConfig secretConfig;
   private final ClientConfig clientConfig;
   private final Sep24TransactionStore sep24TransactionStore;
   private final AssetService assetService;
   private final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
   public ClientStatusCallbackHandler(
+      SecretConfig secretConfig,
       ClientConfig clientConfig,
       Sep24TransactionStore sep24TransactionStore,
       AssetService assetService,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
     super();
+    this.secretConfig = secretConfig;
     this.clientConfig = clientConfig;
     this.sep24TransactionStore = sep24TransactionStore;
     this.assetService = assetService;
@@ -54,8 +56,8 @@ public class ClientStatusCallbackHandler extends EventHandler {
   @Override
   void handleEvent(AnchorEvent event) {
     if (event.getTransaction() != null) {
-      KeyPair signer = KeyPair.fromSecretSeed(new PropertySecretConfig().getSep10SigningSeed());
-      Request request = buildSignedCallbackRequest(signer, event);
+      KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
+      Request request = buildHttpRequest(signer, event);
       httpClient.newCall(request).execute();
       debugF(
           "Sending event: {} to client status api: {}", json(event), clientConfig.getCallbackUrl());
@@ -63,23 +65,27 @@ public class ClientStatusCallbackHandler extends EventHandler {
   }
 
   @SneakyThrows
-  Request buildSignedCallbackRequest(KeyPair signer, AnchorEvent event) {
+  Request buildHttpRequest(KeyPair signer, AnchorEvent event) {
+    String payload = getPayload(event);
+    return buildHttpRequest(signer, payload, clientConfig.getCallbackUrl());
+  }
+
+  @SneakyThrows
+  public static Request buildHttpRequest(KeyPair signer, String payload, String url) {
     // Prepare the payload to sign
+    String domain = getDomainFromURL(url);
     String currentTs = String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()));
-    String domain = getDomainFromURL(clientConfig.getCallbackUrl());
-    String txnPayload = getPayload(event);
-    RequestBody requestBody = buildJsonRequestBody(txnPayload);
-    String payload = currentTs + "." + domain + "." + requestBody;
+    String payloadToSign = currentTs + "." + domain + "." + payload;
     // Sign the payload using the Anchor private key
     // Base64 encode the signature
     String encodedSignature =
-        new String(Base64.getEncoder().encode(signer.sign(payload.getBytes())));
+        new String(Base64.getEncoder().encode(signer.sign(payloadToSign.getBytes())));
 
     // Build the X-Stellar-Signature header
     return new Request.Builder()
-        .url(clientConfig.getCallbackUrl())
+        .url(url)
         .header("Signature", String.format("t=%s, s=%s", currentTs, encodedSignature))
-        .post(requestBody)
+        .post(buildJsonRequestBody(payload))
         .build();
   }
 

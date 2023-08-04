@@ -20,6 +20,7 @@ import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
@@ -34,6 +35,7 @@ public class EventProcessorManager {
   public static final String CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX =
       "client-status-callback-";
   public static final String CALLBACK_API_EVENT_PROCESSOR_NAME = "callback-api-";
+  private final SecretConfig secretConfig;
   private final EventProcessorConfig eventProcessorConfig;
   private final CallbackApiConfig callbackApiConfig;
   private final ClientsConfig clientsConfig;
@@ -45,6 +47,7 @@ public class EventProcessorManager {
   private final List<EventProcessor> processors = new ArrayList<>();
 
   public EventProcessorManager(
+      SecretConfig secretConfig,
       EventProcessorConfig eventProcessorConfig,
       CallbackApiConfig callbackApiConfig,
       ClientsConfig clientsConfig,
@@ -52,6 +55,7 @@ public class EventProcessorManager {
       AssetService assetService,
       Sep24TransactionStore sep24TransactionStore,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
+    this.secretConfig = secretConfig;
     this.eventProcessorConfig = eventProcessorConfig;
     this.callbackApiConfig = callbackApiConfig;
     this.clientsConfig = clientsConfig;
@@ -101,7 +105,11 @@ public class EventProcessorManager {
                   processorName,
                   EventQueue.TRANSACTION,
                   new ClientStatusCallbackHandler(
-                      clientConfig, sep24TransactionStore, assetService, moreInfoUrlConstructor)));
+                      secretConfig,
+                      clientConfig,
+                      sep24TransactionStore,
+                      assetService,
+                      moreInfoUrlConstructor)));
         }
       }
     }
