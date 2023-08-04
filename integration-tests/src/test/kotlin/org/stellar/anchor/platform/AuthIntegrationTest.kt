@@ -55,6 +55,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     @BeforeAll
     @JvmStatic
     fun setup() {
+      println("Running JwtAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
           TestConfig(testProfileName = "default").also {
@@ -261,6 +262,7 @@ internal class ApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
     @BeforeAll
     @JvmStatic
     fun setup() {
+      println("Running ApiKeyAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
           TestConfig(testProfileName = "default").also {

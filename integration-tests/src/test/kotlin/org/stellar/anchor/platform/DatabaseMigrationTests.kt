@@ -41,6 +41,7 @@ class PostgresMigrationTest : AbstractIntegrationTest(PostgresConfig) {
     @BeforeAll
     @JvmStatic
     fun construct() {
+      println("Running PostgresMigrationTest")
       singleton.setUp()
     }
 
@@ -64,6 +65,7 @@ class H2MigrationTest : AbstractIntegrationTest(H2Config) {
     @BeforeAll
     @JvmStatic
     fun construct() {
+      println("Running H2MigrationTest")
       singleton.setUp()
     }
 
@@ -87,6 +89,7 @@ class SQLiteMigrationTest : AbstractIntegrationTest(SQLiteConfig) {
     @BeforeAll
     @JvmStatic
     fun construct() {
+      println("Running SQLiteMigrationTest")
       singleton.setUp()
     }
 

@@ -11,6 +11,7 @@ class AnchorPlatformEnd2EndTest : AbstractIntegrationTest(TestConfig(testProfile
     @BeforeAll
     @JvmStatic
     fun construct() {
+      println("Running AnchorPlatformEnd2EndTest")
       singleton.setUp()
     }
 
