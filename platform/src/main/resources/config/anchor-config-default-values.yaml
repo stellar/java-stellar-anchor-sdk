@@ -206,7 +206,7 @@ event_processor:
 #       domain: vibrant.co
 #       callback_url: https://callback.vibrant.com/api/v2/anchor/callback
 #       signing_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
-#clients:
+clients:
 #     - name:
 #       type: custodial
 #       signing_key:
