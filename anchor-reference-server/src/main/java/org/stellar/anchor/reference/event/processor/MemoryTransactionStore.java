@@ -1,11 +1,13 @@
-package org.stellar.anchor.reference.event;
+package org.stellar.anchor.reference.event.processor;
 
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 import lombok.NoArgsConstructor;
+import org.stellar.anchor.reference.event.ActiveTransactionStore;
 
-@NoArgsConstructor()
+/** In-memory implementation of {@link ActiveTransactionStore} for testing purposes. */
+@NoArgsConstructor
 public class MemoryTransactionStore implements ActiveTransactionStore {
   private final HashMap<String, Set<String>> transactionsByStellarAccount = new HashMap<>();
 
@@ -28,7 +30,7 @@ public class MemoryTransactionStore implements ActiveTransactionStore {
   }
 
   @Override
-  public Set<String> getTransactionIdsByStellarAccount(String stellarAccount) {
+  public Set<String> getTransactions(String stellarAccount) {
     return Optional.of(transactionsByStellarAccount.get(stellarAccount)).orElse(Set.of());
   }
 }

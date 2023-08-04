@@ -6,11 +6,13 @@ import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestHelper
@@ -193,6 +195,43 @@ class Sep6ServiceTest {
     """
       .trimIndent()
 
+  val depositTxnJson =
+    """
+      {
+          "status": "incomplete",
+          "kind": "deposit",
+          "type": "bank_account",
+          "requestAssetCode": "USDC",
+          "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountOut": "100",
+          "amountOutAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+      }
+    """
+      .trimIndent()
+
+  val depositTxnEventJson =
+    """
+      {
+          "type": "TRANSACTION_CREATED",
+          "sep": "6",
+          "transaction": {
+              "sep": "6",
+              "kind": "deposit",
+              "status": "incomplete",
+              "amount_in": {},
+              "amount_out": {
+                  "amount": "100",
+                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_fee": {},
+              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          }
+      }
+    """
+      .trimIndent()
+
   @Test
   fun `test INFO response`() {
     val infoResponse = sep6Service.info
@@ -220,14 +259,79 @@ class Sep6ServiceTest {
     verify(exactly = 1) { txnStore.save(any()) }
     verify(exactly = 1) { eventSession.publish(any()) }
 
-    // TODO: more assertions
+    JSONAssert.assertEquals(depositTxnJson, gson.toJson(slotTxn.captured), JSONCompareMode.LENIENT)
     assert(slotTxn.captured.id.isNotEmpty())
-    assert(slotTxn.captured.requestAssetIssuer.isNotEmpty())
+    assertNotNull(slotTxn.captured.startedAt)
+
+    JSONAssert.assertEquals(
+      depositTxnEventJson,
+      gson.toJson(slotEvent.captured),
+      JSONCompareMode.LENIENT
+    )
     assert(slotEvent.captured.id.isNotEmpty())
+    assert(slotEvent.captured.transaction.id.isNotEmpty())
+    assertNotNull(slotEvent.captured.transaction.startedAt)
 
     // Verify response
     assertEquals(slotTxn.captured.id, response.id)
     assert(response.how.isNotBlank())
+  }
+
+  @Test
+  fun `test deposit with account mismatch`() {
+    val request =
+      GetDepositRequest.builder()
+        .assetCode(TEST_ASSET)
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .amount("100")
+        .build()
+
+    assertThrows<SepNotAuthorizedException> {
+      sep6Service.deposit(TestHelper.createSep10Jwt("other-account"), request)
+    }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test deposit with unsupported asset`() {
+    val request =
+      GetDepositRequest.builder()
+        .assetCode("??")
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .amount("100")
+        .build()
+
+    assertThrows<SepValidationException> {
+      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test deposit does not send event if transaction fails to save`() {
+    every { txnStore.save(any()) } throws RuntimeException("unexpected failure")
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val request =
+      GetDepositRequest.builder()
+        .assetCode(TEST_ASSET)
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .amount("100")
+        .build()
+    assertThrows<java.lang.RuntimeException> {
+      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+
+    // Verify effects
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify { eventSession wasNot called }
   }
 
   @Test

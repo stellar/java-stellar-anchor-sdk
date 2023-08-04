@@ -6,6 +6,10 @@ import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.reference.event.*;
+import org.stellar.anchor.reference.event.processor.MemoryTransactionStore;
+import org.stellar.anchor.reference.event.processor.NoopEventProcessor;
+import org.stellar.anchor.reference.event.processor.Sep24EventProcessor;
+import org.stellar.anchor.reference.event.processor.Sep6EventProcessor;
 import org.stellar.sdk.Server;
 
 @Configuration

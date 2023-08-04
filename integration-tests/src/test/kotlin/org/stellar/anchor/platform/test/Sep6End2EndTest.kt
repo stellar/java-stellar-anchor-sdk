@@ -20,7 +20,7 @@ import org.stellar.walletsdk.anchor.auth
 import org.stellar.walletsdk.anchor.customer
 import org.stellar.walletsdk.horizon.SigningKeyPair
 
-class Sep6End2EndTest(config: TestConfig, val jwt: String) {
+class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
   private val walletSecretKey = System.getenv("WALLET_SECRET_KEY") ?: CLIENT_WALLET_SECRET
   private val keypair = SigningKeyPair.fromSecret(walletSecretKey)
   private val wallet =
@@ -36,10 +36,12 @@ class Sep6End2EndTest(config: TestConfig, val jwt: String) {
         socketTimeoutMillis = 10000
       }
     }
+  private val maxTries = 30
 
   private fun `test typical deposit end-to-end flow`() = runBlocking {
     val token = anchor.auth().authenticate(keypair)
-    val sep6Client = Sep6Client("http://localhost:8080/sep6", token.token)
+    // TODO: migrate this to wallet-sdk when it's available
+    val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     val deposit =
       sep6Client.deposit(
@@ -56,15 +58,12 @@ class Sep6End2EndTest(config: TestConfig, val jwt: String) {
     assertNotNull(pendingKycTxn.transaction.requiredInfoMessage)
     assertNotNull(pendingKycTxn.transaction.requiredInfoUpdates)
 
-    // TODO: PUT customer info
-    try {
-      anchor
-        .customer(token)
-        .add(mapOf("first_name" to "John", "last_name" to "Doe", "email_address" to ""))
-    } catch (e: Exception) {
-      Log.error("Failed to add customer info", e)
-    }
-
+    // Supply KYC info to continue with the transaction
+    anchor
+      .customer(token)
+      .add(
+        mapOf("first_name" to "John", "last_name" to "Doe", "email_address" to "customer@email.com")
+      )
     waitStatus(deposit.id, "completed", sep6Client)
 
     val completedDepositTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))
@@ -77,7 +76,7 @@ class Sep6End2EndTest(config: TestConfig, val jwt: String) {
   }
 
   private suspend fun waitStatus(id: String, expectedStatus: String, sep6Client: Sep6Client) {
-    for (i in 0..40) {
+    for (i in 0..maxTries) {
       val transaction = sep6Client.getTransaction(mapOf("id" to id))
       if (expectedStatus != transaction.transaction.status) {
         Log.info("Transaction status: ${transaction.transaction.status}")
@@ -92,10 +91,7 @@ class Sep6End2EndTest(config: TestConfig, val jwt: String) {
     fail("Transaction status did not match expected status $expectedStatus")
   }
 
-  private fun `test asynchronous deposit end-to-end flow`() = runBlocking {}
-
   fun testAll() {
     `test typical deposit end-to-end flow`()
-    `test asynchronous deposit end-to-end flow`()
   }
 }

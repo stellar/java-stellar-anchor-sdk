@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * The response to the GET /deposit endpoint of SEP-6.
+ * The response to the GET /deposit endpoint.
  *
  * @see <a
  *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response">GET

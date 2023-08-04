@@ -27,6 +27,7 @@ import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.reference.config.KafkaListenerSettings;
+import org.stellar.anchor.reference.event.processor.AnchorEventProcessor;
 import org.stellar.anchor.util.Log;
 
 public class KafkaListener extends AbstractEventListener implements HealthCheckable {

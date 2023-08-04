@@ -18,6 +18,9 @@ anchor.settings:
   distributionWalletMemo:
   distributionWalletMemoType:
 
+  # The Stellar account that will be used to send the Stellar assets to the customer.
+  secret: SAJW2O2NH5QMMVWYAN352OEXS2RUY675A2HPK5HEG2FRR2NXPYA4OLYN
+
 # These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
 # and `Anchor->Platform`, specially when they are in different clusters.
 #

@@ -14,8 +14,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse;
  *     Schema</a>
  */
 @Builder
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class AnchorEvent {
@@ -32,7 +31,7 @@ public class AnchorEvent {
     @SuppressWarnings("unused")
     TRANSACTION_ERROR("transaction_error"),
     QUOTE_CREATED("quote_created"),
-    KYC_UPDATED("kyc_updated");
+    CUSTOMER_UPDATED("customer_updated");
 
     @JsonValue public final String type;
 

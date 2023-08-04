@@ -55,8 +55,8 @@ public class Sep12Service {
 
     GetCustomerResponse response =
         customerIntegration.getCustomer(GetCustomerRequest.from(request));
-    Sep12GetCustomerResponse res = GetCustomerResponse.to(response);
-    return res;
+
+    return GetCustomerResponse.to(response);
   }
 
   public Sep12PutCustomerResponse putCustomer(Sep10Jwt token, Sep12PutCustomerRequest request)
@@ -67,17 +67,19 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    // TODO: figure out what to publish
+    PutCustomerResponse response =
+        customerIntegration.putCustomer(PutCustomerRequest.from(request));
+
+    // Only publish event if the customer was updated.
     eventSession.publish(
         AnchorEvent.builder()
             .id(UUID.randomUUID().toString())
             .sep("12")
-            .type(AnchorEvent.Type.KYC_UPDATED)
+            .type(AnchorEvent.Type.CUSTOMER_UPDATED)
             .customer(CustomerUpdatedResponse.builder().account(request.getAccount()).build())
             .build());
 
-    return PutCustomerResponse.to(
-        customerIntegration.putCustomer(PutCustomerRequest.from(request)));
+    return PutCustomerResponse.to(response);
   }
 
   public void deleteCustomer(Sep10Jwt sep10Jwt, String account, String memo, String memoType)

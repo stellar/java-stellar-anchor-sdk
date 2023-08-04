@@ -15,7 +15,6 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  // TODO: remove this
   public Sep6TransactionBuilder transactionId(String txnId) {
     txn.setTransactionId(txnId);
     return this;
