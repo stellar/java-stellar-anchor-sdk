@@ -15,9 +15,7 @@ dependencies {
   implementation(libs.hoplite.yaml)
   implementation(libs.java.stellar.sdk)
   implementation(libs.kotlin.logging)
-  implementation(libs.ktor.server.call.logging)
-  implementation(libs.slf4j.log4j12)
-
+  implementation(libs.slf4j.simple)
   implementation(project(mapOf("path" to ":api-schema")))
 }
 

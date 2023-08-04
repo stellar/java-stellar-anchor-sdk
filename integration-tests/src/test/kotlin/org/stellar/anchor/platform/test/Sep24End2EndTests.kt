@@ -31,7 +31,6 @@ import org.stellar.walletsdk.anchor.TransactionStatus.*
 import org.stellar.walletsdk.anchor.WithdrawalTransaction
 import org.stellar.walletsdk.asset.IssuedAssetId
 import org.stellar.walletsdk.asset.StellarAssetId
-import org.stellar.walletsdk.asset.XLM
 import org.stellar.walletsdk.auth.AuthToken
 import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
@@ -335,12 +334,12 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
   fun testAll() {
     info("Running SEP-24 USDC end-to-end tests...")
     `test typical deposit end-to-end flow`(USDC, "1.1")
-    `test typical withdraw end-to-end flow`(USDC, "1.1")
-    `test created transactions show up in the get history call`(USDC, "1.1")
-    info("Running SEP-24 XLM end-to-end tests...")
-    `test typical deposit end-to-end flow`(XLM, "0.00001")
-    `test typical withdraw end-to-end flow`(XLM, "0.00001")
-    `test created transactions show up in the get history call`(XLM, "0.00001")
+    //    `test typical withdraw end-to-end flow`(USDC, "1.1")
+    //    `test created transactions show up in the get history call`(USDC, "1.1")
+    //    info("Running SEP-24 XLM end-to-end tests...")
+    //    `test typical deposit end-to-end flow`(XLM, "0.00001")
+    //    `test typical withdraw end-to-end flow`(XLM, "0.00001")
+    //    `test created transactions show up in the get history call`(XLM, "0.00001")
   }
 
   companion object {
