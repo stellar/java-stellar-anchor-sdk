@@ -1,7 +1,7 @@
 {
   "externalTxId": "testEventId",
   "type": "payment",
-  "createdAt": "2023-05-10T10:18:25.778Z",
+  "updatedAt": "2023-05-10T10:18:26.130Z",
   "status": "SUCCESS",
   "transactionHash": "testTxHash"
 }

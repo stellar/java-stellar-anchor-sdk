@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.custody;
 
-import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.platform.custody.CustodyPayment.CustodyPaymentStatus.SUCCESS;
 import static org.stellar.anchor.platform.data.CustodyTransactionStatus.COMPLETED;
 import static org.stellar.anchor.platform.data.CustodyTransactionStatus.FAILED;
@@ -57,7 +56,7 @@ public abstract class CustodyPaymentHandler {
       throws AnchorException, IOException;
 
   protected void updateTransaction(JdbcCustodyTransaction txn, CustodyPayment payment) {
-    txn.setUpdatedAt(payment.getCreatedAt());
+    txn.setUpdatedAt(payment.getUpdatedAt());
     txn.setFromAccount(payment.getFrom());
     txn.setExternalTxId(payment.getExternalTxId());
     txn.setStatus(getCustodyTransactionStatus(payment.getStatus()).toString());

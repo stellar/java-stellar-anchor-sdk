@@ -7,7 +7,7 @@
   "amount": "1.0000000",
   "assetType": "credit_alphanum4",
   "assetName": "testAmountInAsset",
-  "createdAt": "2023-05-10T10:18:25.778Z",
+  "updatedAt": "2023-05-10T10:18:25.778Z",
   "status": "ERROR",
   "transactionHash": "testTxHash",
   "transactionMemoType": "none",
