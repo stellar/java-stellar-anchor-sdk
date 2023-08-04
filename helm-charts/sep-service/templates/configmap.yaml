@@ -192,8 +192,8 @@ data:
         publisherType: kafka
       {{- end }}
       metrics-service:
-        optionalMetricsEnabled: false   # optional metrics that periodically query the database
-        runInterval: 30                 # interval to query the database to generate the optional metrics
+        optionalMetricsEnabled: {{ (.Values.stellar.app_config.metrics_service).enabled | default "false" }}  # optional metrics that periodically query the database
+        runInterval: {{ (.Values.stellar.app_config.metrics_service).runInterval | default 30 }}                 # interval to query the database to generate the optional metrics
       {{- if (.Values.stellar.app_config).kafka_publisher }}
       kafka.publisher:
         bootstrapServer: {{ .Values.stellar.app_config.kafka_publisher.bootstrapServer | default "missing_bootstrapServer:port" }}
