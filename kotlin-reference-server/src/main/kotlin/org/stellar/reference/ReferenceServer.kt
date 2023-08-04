@@ -68,7 +68,7 @@ fun readCfg(envMap: Map<String, String>?): Config {
 }
 
 fun stopServer() {
-  if (::referenceKotlinSever.isInitialized) (referenceKotlinSever).stop(1000, 1000)
+  if (::referenceKotlinSever.isInitialized) (referenceKotlinSever).stop(2000, 30000)
 }
 
 fun Application.configureRouting(cfg: Config) {

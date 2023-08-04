@@ -61,7 +61,7 @@ fun readCfg(envMap: Map<String, String>?): Config {
 }
 
 fun stopServer() {
-  if (::walletServer.isInitialized) (walletServer).stop(1000, 1000)
+  if (::walletServer.isInitialized) (walletServer).stop(2000, 30000)
 }
 
 fun Application.configureRouting(cfg: Config) {
