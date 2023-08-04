@@ -248,6 +248,8 @@ class CustodyTransactionServiceTest {
         getResourceFileAsString("service/custodyTransaction/custody_transaction_payment.json"),
         JdbcCustodyTransaction::class.java
       )
+    val refundTransaction = JdbcCustodyTransaction()
+    refundTransaction.id = REFUND_TRANSACTION_ID
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
 
     every {
@@ -256,11 +258,11 @@ class CustodyTransactionServiceTest {
         PAYMENT.type
       )
     } returns transaction
-    every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns transaction
+    every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns refundTransaction
 
     custodyTransactionService.createRefund(TRANSACTION_ID, request)
 
-    verify(exactly = 1) { custodyPaymentService.createTransactionPayment(transaction, null) }
+    verify(exactly = 1) { custodyPaymentService.createTransactionPayment(refundTransaction, null) }
   }
 
   @Test
@@ -281,7 +283,7 @@ class CustodyTransactionServiceTest {
       )
     } returns transaction
     every { custodyTransactionRepo.save(any()) } returns refundTransaction
-    every { custodyPaymentService.createTransactionPayment(transaction, null) } throws
+    every { custodyPaymentService.createTransactionPayment(refundTransaction, null) } throws
       FireblocksException("Bad request", 400)
 
     val ex =
@@ -311,7 +313,7 @@ class CustodyTransactionServiceTest {
       )
     } returns transaction
     every { custodyTransactionRepo.save(any()) } returns refundTransaction
-    every { custodyPaymentService.createTransactionPayment(transaction, null) } throws
+    every { custodyPaymentService.createTransactionPayment(refundTransaction, null) } throws
       FireblocksException("Too many requests", 429)
 
     val ex =
@@ -341,7 +343,7 @@ class CustodyTransactionServiceTest {
       )
     } returns transaction
     every { custodyTransactionRepo.save(any()) } returns refundTransaction
-    every { custodyPaymentService.createTransactionPayment(transaction, null) } throws
+    every { custodyPaymentService.createTransactionPayment(refundTransaction, null) } throws
       FireblocksException("Service unavailable", 503)
 
     val ex =
@@ -371,7 +373,7 @@ class CustodyTransactionServiceTest {
       )
     } returns transaction
     every { custodyTransactionRepo.save(any()) } returns refundTransaction
-    every { custodyPaymentService.createTransactionPayment(transaction, null) } throws
+    every { custodyPaymentService.createTransactionPayment(refundTransaction, null) } throws
       FireblocksException("Forbidden", 403)
 
     val ex =

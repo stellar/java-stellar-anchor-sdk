@@ -123,7 +123,7 @@ public abstract class CustodyTransactionService {
 
     CreateTransactionPaymentResponse response;
     try {
-      response = custodyPaymentService.createTransactionPayment(txn, null);
+      response = custodyPaymentService.createTransactionPayment(refundTxn, null);
       updateCustodyTransaction(refundTxn, response.getId(), SUBMITTED);
     } catch (FireblocksException e) {
       custodyTransactionRepo.deleteById(refundTxn.getId());
