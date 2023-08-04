@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.service;
 import static org.stellar.anchor.sep24.Sep24Service.INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.AssetHelper.*;
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import com.google.gson.Gson;
@@ -72,6 +73,11 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   String constructToken(Sep24Transaction txn, Map<String, String> request) {
     ClientsConfig.ClientConfig clientConfig =
         UrlConstructorHelper.getClientConfig(clientsConfig, txn);
+
+    debugF(
+        "Resolving configs for token construct. Got config: {}, all configs: {}",
+        clientConfig,
+        clientsConfig);
 
     Sep24InteractiveUrlJwt token =
         new Sep24InteractiveUrlJwt(
