@@ -65,6 +65,7 @@ public abstract class CustodyTransactionService {
             .fromAccount(request.getFromAccount())
             .toAccount(request.getToAccount())
             .amount(request.getAmount())
+            .amountFee(request.getAmountFee())
             .asset(request.getAsset())
             .kind(request.getKind())
             .reconciliationAttemptCount(0)
