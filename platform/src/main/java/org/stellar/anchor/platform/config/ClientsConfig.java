@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.config;
 
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import com.google.common.collect.Lists;
@@ -86,6 +87,7 @@ public class ClientsConfig implements Validator {
   }
 
   private void validateClient(ClientConfig clientConfig, Errors errors) {
+    debugF("Validating client {}", clientConfig);
     if (isEmpty(clientConfig.name)) {
       errors.reject("empty-client-name", "The client.name cannot be empty and must be defined");
     }
