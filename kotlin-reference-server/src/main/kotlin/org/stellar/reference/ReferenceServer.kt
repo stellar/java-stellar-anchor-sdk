@@ -69,7 +69,7 @@ fun readCfg(envMap: Map<String, String>?): Config {
 
 fun stopServer() {
   log.info("Stopping Kotlin business reference server...")
-  if (::referenceKotlinSever.isInitialized) (referenceKotlinSever).stop(1000, 3000)
+  if (::referenceKotlinSever.isInitialized) (referenceKotlinSever).stop(5000, 30000)
   log.info("Kotlin reference server stopped...")
 }
 

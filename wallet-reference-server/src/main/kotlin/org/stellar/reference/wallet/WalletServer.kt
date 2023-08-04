@@ -60,7 +60,7 @@ fun readCfg(envMap: Map<String, String>?): Config {
 
 fun stopServer() {
   log.info("Stopping wallet server...")
-  if (::walletServer.isInitialized) (walletServer).stop(1000, 30000)
+  if (::walletServer.isInitialized) (walletServer).stop(5000, 30000)
   log.info("Wallet server stopped...")
 }
 
