@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.controller.custody;
 
+import static org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType.PAYMENT;
+
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,7 +33,7 @@ public class CustodyTransactionController {
       value = "/transactions",
       method = {RequestMethod.POST})
   public void createCustodyTransaction(@RequestBody CreateCustodyTransactionRequest request) {
-    custodyTransactionService.create(request);
+    custodyTransactionService.create(request, PAYMENT);
   }
 
   @SneakyThrows

@@ -25,6 +25,7 @@ import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableExcepti
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
 import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
+import org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
 public abstract class CustodyTransactionService {
@@ -48,7 +49,7 @@ public abstract class CustodyTransactionService {
    * @param request custody transaction info
    * @return {@link JdbcCustodyTransaction} object
    */
-  public JdbcCustodyTransaction create(CreateCustodyTransactionRequest request)
+  public JdbcCustodyTransaction create(CreateCustodyTransactionRequest request, PaymentType type)
       throws CustodyBadRequestException {
     validateRequest(request);
 
@@ -67,7 +68,7 @@ public abstract class CustodyTransactionService {
             .asset(request.getAsset())
             .kind(request.getKind())
             .reconciliationAttemptCount(0)
-            .type(PAYMENT.getType())
+            .type(type.getType())
             .build());
   }
 
@@ -146,8 +147,8 @@ public abstract class CustodyTransactionService {
             .amountFee(refundRequest.getAmountFee())
             .asset(txn.getAsset())
             .kind(txn.getKind())
-            .type(REFUND.getType())
-            .build());
+            .build(),
+        REFUND);
   }
 
   private void updateCustodyTransaction(

@@ -65,7 +65,7 @@ class CustodyTransactionServiceTest {
 
     every { custodyTransactionRepo.save(capture(entityCapture)) } returns null
 
-    custodyTransactionService.create(request)
+    custodyTransactionService.create(request, PAYMENT)
 
     val actualCustodyTransaction = entityCapture.captured
     assertTrue(!Instant.now().isBefore(actualCustodyTransaction.createdAt))
@@ -89,7 +89,9 @@ class CustodyTransactionServiceTest {
     request.memo = "YzRhMDgzNWItYjFmYy00NDZlLTkzYTUtMTFlYzhiZTk="
 
     val exception =
-      assertThrows<CustodyBadRequestException> { custodyTransactionService.create(request) }
+      assertThrows<CustodyBadRequestException> {
+        custodyTransactionService.create(request, PAYMENT)
+      }
     Assertions.assertEquals(
       "Memo type [hash] is not supported by Fireblocks custody service",
       exception.message

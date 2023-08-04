@@ -17,5 +17,4 @@ public class CreateCustodyTransactionRequest {
   private String amountFee;
   private String asset;
   private String kind;
-  private String type;
 }
