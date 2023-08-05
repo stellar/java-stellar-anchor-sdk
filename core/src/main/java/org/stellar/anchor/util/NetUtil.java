@@ -1,5 +1,6 @@
 package org.stellar.anchor.util;
 
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.jsonwebtoken.lang.Strings;
@@ -15,7 +16,14 @@ import okhttp3.Response;
 public class NetUtil {
   public static String fetch(String url) throws IOException {
     Request request = OkHttpUtil.buildGetRequest(url);
+    debugF("request:{}", request.toString());
     Response response = getCall(request).execute();
+    debugF("response:{}", response.toString());
+
+    // Check if response was successful (status code 200)
+    if (!response.isSuccessful()) {
+      throw new IOException("Server returned HTTP error code " + response.code());
+    }
 
     if (response.body() == null) return "";
     return Objects.requireNonNull(response.body()).string();
