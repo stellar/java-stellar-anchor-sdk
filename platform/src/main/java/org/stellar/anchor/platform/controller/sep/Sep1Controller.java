@@ -46,7 +46,11 @@ public class Sep1Controller {
     }
     HttpHeaders headers = new HttpHeaders();
     headers.set("content-type", "text/plain");
-    return ResponseEntity.ok().headers(headers).body(sep1Service.getStellarToml());
+    try {
+      return ResponseEntity.ok().headers(headers).body(sep1Service.getStellarToml());
+    } catch (Exception e) {
+      throw new SepNotFoundException("There was an error fetching the TOML file.");
+    }
   }
 
   @ExceptionHandler({SepNotFoundException.class})
