@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.component.sep;
 
-import java.io.IOException;
 import javax.servlet.Filter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -11,11 +10,12 @@ import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.filter.Sep10JwtFilter;
+import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.platform.config.*;
@@ -79,6 +79,22 @@ public class SepBeans {
     return new PropertySep38Config();
   }
 
+  @Bean
+  @ConfigurationProperties(prefix = "data")
+  PropertyDataConfig dataConfig(SecretConfig secretConfig) {
+    return new PropertyDataConfig(secretConfig);
+  }
+
+  /**
+   * Used by SEP-10 authentication service.
+   *
+   * @return the jwt service used by SEP-10.
+   */
+  @Bean
+  public JwtService jwtService(SecretConfig secretConfig) {
+    return new JwtService(secretConfig);
+  }
+
   /**
    * Register sep-10 token filter.
    *
@@ -87,7 +103,7 @@ public class SepBeans {
   @Bean
   public FilterRegistrationBean<Filter> sep10TokenFilter(JwtService jwtService) {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
-    registrationBean.setFilter(new Sep10JwtFilter(jwtService));
+    registrationBean.setFilter(new JwtTokenFilter(jwtService));
     registrationBean.addUrlPatterns("/sep12/*");
     registrationBean.addUrlPatterns("/sep24/transaction");
     registrationBean.addUrlPatterns("/sep24/transactions*");
@@ -100,8 +116,14 @@ public class SepBeans {
   }
 
   @Bean
+  public Horizon horizon(AppConfig appConfig) {
+    return new Horizon(appConfig);
+  }
+
+  @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep1"})
-  Sep1Service sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
+  Sep1Service sep1Service(Sep1Config sep1Config)
+      throws SepNotFoundException, InvalidConfigException {
     return new Sep1Service(sep1Config);
   }
 
@@ -146,10 +168,8 @@ public class SepBeans {
 
   @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
-      PropertySep24Config sep24Config,
-      CustomerIntegration customerIntegration,
-      JwtService jwtService) {
-    return new SimpleInteractiveUrlConstructor(sep24Config, customerIntegration, jwtService);
+      PropertySep24Config sep24Config, JwtService jwtService) {
+    return new SimpleInteractiveUrlConstructor(sep24Config.getInteractiveUrl(), jwtService);
   }
 
   @Bean

@@ -5,7 +5,9 @@ import java.nio.file.Path
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.config.Sep1Config.TomlType.*
 import org.stellar.anchor.platform.config.PropertySep1Config
 import org.stellar.anchor.platform.config.PropertySep1Config.TomlConfig
@@ -13,6 +15,7 @@ import org.stellar.anchor.platform.config.Sep1ConfigTest
 import org.stellar.anchor.sep1.Sep1Service
 
 class Sep1ServiceTest {
+
   lateinit var sep1: Sep1Service
   val stellarToml =
     """
@@ -47,7 +50,7 @@ class Sep1ServiceTest {
 
   @Test
   fun `test Sep1Service reading toml from inline string`() {
-
+    println("test Sep1Service reading toml from inline string")
     val config = PropertySep1Config(true, TomlConfig(STRING, stellarToml))
     sep1 = Sep1Service(config)
     assertEquals(sep1.stellarToml, stellarToml)
@@ -55,6 +58,7 @@ class Sep1ServiceTest {
 
   @Test
   fun `test Sep1Service reading toml from file`() {
+    println("test Sep1Service reading toml from file")
     val config = PropertySep1Config(true, TomlConfig(FILE, Sep1ConfigTest.getTestTomlAsFile()))
     sep1 = Sep1Service(config)
     assertEquals(sep1.stellarToml, Files.readString(Path.of(Sep1ConfigTest.getTestTomlAsFile())))
@@ -66,9 +70,37 @@ class Sep1ServiceTest {
     mockServer.start()
     val mockAnchorUrl = mockServer.url("").toString()
     mockServer.enqueue(MockResponse().setBody(stellarToml))
-
     val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
     sep1 = Sep1Service(config)
     assertEquals(sep1.stellarToml, stellarToml)
+  }
+
+  @Test
+  fun `getStellarToml throws exception when redirect results in error`() {
+    println("getStellarToml throws exception when redirect results in error")
+    val mockServer = MockWebServer()
+    mockServer.start()
+    val mockAnchorUrl = mockServer.url("").toString()
+
+    // Enqueue a response with a 302 status and a Location header to simulate a redirect.
+    mockServer.enqueue(
+      MockResponse()
+        .setResponseCode(302)
+        .setHeader("Location", mockServer.url("/new_location").toString())
+    )
+
+    // Enqueue a response at the redirect location that provides a server error.
+    mockServer.enqueue(MockResponse().setResponseCode(500))
+
+    val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
+
+    try {
+      sep1 = Sep1Service(config)
+    } catch (e: Exception) {
+      assertTrue(e is SepNotFoundException)
+      assertEquals("stellar.toml not found at $mockAnchorUrl", e.message)
+    } finally {
+      mockServer.shutdown()
+    }
   }
 }
