@@ -6,6 +6,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.config.Sep1Config.TomlType.*
@@ -94,13 +95,10 @@ class Sep1ServiceTest {
 
     val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
 
-    try {
+    val exception = assertThrows(SepNotFoundException::class.java) {
       sep1 = Sep1Service(config)
-    } catch (e: Exception) {
-      assertTrue(e is SepNotFoundException)
-      assertEquals("stellar.toml not found at $mockAnchorUrl", e.message)
-    } finally {
-      mockServer.shutdown()
     }
+    assertEquals("stellar.toml not found at $mockAnchorUrl", exception.message)
+    mockServer.shutdown()
   }
 }
