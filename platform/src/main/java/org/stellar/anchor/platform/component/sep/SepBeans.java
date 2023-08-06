@@ -102,7 +102,7 @@ public class SepBeans {
 
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep1"})
-  Sep1Service sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException, SepNotFoundException {
+  Sep1Service sep1Service(Sep1Config sep1Config) throws InvalidConfigException, SepNotFoundException {
     return new Sep1Service(sep1Config);
   }
 

@@ -16,9 +16,7 @@ import okhttp3.Response;
 public class NetUtil {
   public static String fetch(String url) throws IOException {
     Request request = OkHttpUtil.buildGetRequest(url);
-    debugF("request:{}", request.toString());
     Response response = getCall(request).execute();
-    debugF("response:{}", response.toString());
 
     // Check if response was successful (status code 200)
     if (!response.isSuccessful()) {

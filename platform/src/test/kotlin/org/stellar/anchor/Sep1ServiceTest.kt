@@ -7,8 +7,8 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.exception.SepNotFoundException
+import org.junit.jupiter.api.Tes
 import org.stellar.anchor.config.Sep1Config.TomlType.*
 import org.stellar.anchor.platform.config.PropertySep1Config
 import org.stellar.anchor.platform.config.PropertySep1Config.TomlConfig
@@ -51,7 +51,6 @@ class Sep1ServiceTest {
 
   @Test
   fun `test Sep1Service reading toml from inline string`() {
-    println("test Sep1Service reading toml from inline string")
     val config = PropertySep1Config(true, TomlConfig(STRING, stellarToml))
     sep1 = Sep1Service(config)
     assertEquals(sep1.stellarToml, stellarToml)
@@ -59,7 +58,6 @@ class Sep1ServiceTest {
 
   @Test
   fun `test Sep1Service reading toml from file`() {
-    println("test Sep1Service reading toml from file")
     val config = PropertySep1Config(true, TomlConfig(FILE, Sep1ConfigTest.getTestTomlAsFile()))
     sep1 = Sep1Service(config)
     assertEquals(sep1.stellarToml, Files.readString(Path.of(Sep1ConfigTest.getTestTomlAsFile())))
