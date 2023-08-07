@@ -75,7 +75,7 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
       case SEP_31:
         JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
         Sep31Refunds sep31Refunds = txn31.getRefunds();
-        if (request.getRefund() == null && PENDING_RECEIVER == currentStatus) {
+        if (request.getRefund() == null) {
           throw new InvalidParamsException("refund is required");
         }
 
@@ -180,28 +180,8 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
         }
         break;
       case SEP_31:
-        JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
-        Sep31Refunds sep31Refunds = txn31.getRefunds();
-
-        if (PENDING_RECEIVER == SepTransactionStatus.from(txn.getStatus())) {
-          totalRefunded =
-              sum(assetInfo, refund.getAmount().getAmount(), refund.getAmountFee().getAmount());
-        } else { // PENDING_STELLAR
-          if (refund == null) {
-            totalRefunded = decimal(sep31Refunds.getAmountRefunded(), assetInfo);
-          } else {
-            // only one payment should exist
-            RefundPayment payment = sep31Refunds.getRefundPayments().get(0);
-
-            // make sure refund, provided in request, was sent on pending_stellar
-            if (!payment.getId().equals(refund.getId())) {
-              throw new InvalidParamsException("Invalid refund id");
-            }
-
-            totalRefunded =
-                sum(assetInfo, refund.getAmount().getAmount(), refund.getAmountFee().getAmount());
-          }
-        }
+        totalRefunded =
+            sum(assetInfo, refund.getAmount().getAmount(), refund.getAmountFee().getAmount());
         break;
       default:
         throw new InvalidRequestException(
@@ -292,19 +272,8 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
                   .build();
 
           JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
-          Sep31Refunds sep31Refunds = txn31.getRefunds();
-          if (sep31Refunds == null) {
-            sep31Refunds = new JdbcSep31Refunds();
-          }
-
-          if (sep31Refunds.getRefundPayments() == null) {
-            sep31Refunds.setRefundPayments(List.of(sep31RefundPayment));
-          } else {
-            List<RefundPayment> payments = sep31Refunds.getRefundPayments();
-            payments.removeIf(payment -> payment.getId().equals(request.getRefund().getId()));
-            payments.add(sep31RefundPayment);
-            sep31Refunds.setRefundPayments(payments);
-          }
+          Sep31Refunds sep31Refunds = new JdbcSep31Refunds();
+          sep31Refunds.setRefundPayments(List.of(sep31RefundPayment));
 
           sep31Refunds.recalculateAmounts(assetInfo);
           txn31.setRefunds(sep31Refunds);
