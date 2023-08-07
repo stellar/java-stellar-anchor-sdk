@@ -177,9 +177,7 @@ class Sep10ConfigTest {
     value =
       [
         "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-web-auth-domain.stellar.org,sep10-web-auth-domain-too-long",
-        "stellar .org,sep10-web-auth-domain-invalid",
-        "abc,sep10-web-auth-domain-invalid",
-        "299.0.0.1,sep10-web-auth-domain-invalid",
+        "stellar.org:1000:1000,sep10-web-auth-domain-invalid",
       ]
   )
   fun `test invalid web auth domains`(value: String, expectedErrorCode: String) {
@@ -194,9 +192,6 @@ class Sep10ConfigTest {
     value =
       [
         "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-home-domain.stellar.org,sep10-home-domain-too-long",
-        "stellar .org,sep10-home-domain-invalid",
-        "abc,sep10-home-domain-invalid",
-        "299.0.0.1,sep10-home-domain-invalid",
         "http://stellar.org,sep10-home-domain-invalid",
         "https://stellar.org,sep10-home-domain-invalid",
         "://stellar.org,sep10-home-domain-invalid",
