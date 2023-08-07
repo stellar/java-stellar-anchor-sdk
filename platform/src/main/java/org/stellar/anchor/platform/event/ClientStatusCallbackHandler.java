@@ -6,6 +6,7 @@ import static org.stellar.anchor.util.NetUtil.getDomainFromURL;
 import static org.stellar.anchor.util.OkHttpUtil.buildJsonRequestBody;
 import static org.stellar.anchor.util.StringHelper.json;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.Base64;
@@ -13,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.Response;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
@@ -52,16 +54,19 @@ public class ClientStatusCallbackHandler extends EventHandler {
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
 
-  @SneakyThrows
   @Override
-  void handleEvent(AnchorEvent event) {
+  boolean handleEvent(AnchorEvent event) throws IOException {
     if (event.getTransaction() != null) {
       KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
       Request request = buildHttpRequest(signer, event);
-      httpClient.newCall(request).execute();
+      Response response = httpClient.newCall(request).execute();
       debugF(
           "Sending event: {} to client status api: {}", json(event), clientConfig.getCallbackUrl());
+      if (response.code() < 200 || response.code() >= 400) {
+        return false;
+      }
     }
+    return true;
   }
 
   @SneakyThrows

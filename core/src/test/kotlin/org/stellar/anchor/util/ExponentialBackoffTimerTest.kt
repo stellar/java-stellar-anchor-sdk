@@ -72,7 +72,7 @@ internal class ExponentialBackoffTimerTest {
     val exponentialBackoffTimer = ExponentialBackoffTimer(1, 5)
 
     val beforeSleep = Instant.now()
-    exponentialBackoffTimer.sleep()
+    exponentialBackoffTimer.backoff()
     val afterSleep = Instant.now()
 
     assertEquals(1, ChronoUnit.SECONDS.between(beforeSleep, afterSleep))

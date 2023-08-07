@@ -31,16 +31,13 @@ public class ExponentialBackoffTimer {
     this.maxSleepSeconds = maxSleepSeconds;
   }
 
-  public void increase() {
-    sleepSeconds = Long.min(sleepSeconds * 2, maxSleepSeconds);
-  }
-
   public void reset() {
     sleepSeconds = initialSleepSeconds;
   }
 
-  public void sleep() throws InterruptedException {
+  public void backoff() throws InterruptedException {
     Thread.sleep(sleepSeconds * 1000);
+    sleepSeconds = Long.min(sleepSeconds * 2, maxSleepSeconds);
   }
 
   public long currentTimer() {
