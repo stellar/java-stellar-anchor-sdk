@@ -56,7 +56,7 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
       FireblocksApiClient fireblocksApiClient, FireblocksConfig fireblocksConfig) {
     this.fireblocksApiClient = fireblocksApiClient;
     this.fireblocksConfig = fireblocksConfig;
-    transactionDetailsListType = new TypeToken<ArrayList<TransactionDetails>>() {}.getType();
+    this.transactionDetailsListType = new TypeToken<ArrayList<TransactionDetails>>() {}.getType();
   }
 
   /**

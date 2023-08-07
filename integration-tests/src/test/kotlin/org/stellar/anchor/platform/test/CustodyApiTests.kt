@@ -52,7 +52,7 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
     )
 
     val mockedCustodyDepositAddressResponse =
-      MockResponse().setResponseCode(200).setBody(custodyDepositAddressResponse)
+      MockResponse().setResponseCode(200).setBody(CUSTODY_DEPOSIT_ADDRESS_RESPONSE)
 
     custodyMockServer.enqueue(mockedCustodyDepositAddressResponse)
 
@@ -61,7 +61,7 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
         "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
       )
     JSONAssert.assertEquals(
-      expectedDepositAddress,
+      EXPECTED_DEPOSIT_ADDRESS,
       gson.toJson(depositAddressResponse),
       JSONCompareMode.STRICT
     )
@@ -75,22 +75,22 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
       "${custodyMockServer.url("")}/v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses",
       requestUrl.toString()
     )
-    JSONAssert.assertEquals(custodyDepositAddressRequest, requestBody, JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(CUSTODY_DEPOSIT_ADDRESS_REQUEST, requestBody, JSONCompareMode.STRICT)
   }
 
   private fun `test custody transaction payment`(custodyMockServer: MockWebServer) {
-    val depositRequest = gson.fromJson(depositRequest, HashMap::class.java)
+    val depositRequest = gson.fromJson(DEPOSIT_REQUEST, HashMap::class.java)
     val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
     val txId = depositResponse.id
 
     val mockedCustodyTransactionPaymentResponse =
-      MockResponse().setResponseCode(200).setBody(custodyTransactionPaymentResponse)
+      MockResponse().setResponseCode(200).setBody(CUSTODY_TRANSACTION_PAYMENT_RESPONSE)
 
     custodyMockServer.enqueue(mockedCustodyTransactionPaymentResponse)
 
     custodyApiClient.createTransaction(
       gson.fromJson(
-        custodyTransactionRequest.replace(TX_ID_KEY, txId),
+        CUSTODY_TRANSACTION_REQUEST.replace(TX_ID_KEY, txId),
         CreateCustodyTransactionRequest::class.java
       )
     )
@@ -136,11 +136,15 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
     val requestBody = recordedRequest.body.readUtf8()
 
     Assertions.assertEquals("${custodyMockServer.url("")}/v1/transactions", requestUrl.toString())
-    JSONAssert.assertEquals(custodyTransactionPaymentRequest, requestBody, JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(
+      CUSTODY_TRANSACTION_PAYMENT_REQUEST,
+      requestBody,
+      JSONCompareMode.STRICT
+    )
 
     custodyApiClient.sendWebhook(
-      webhookRequest,
-      mapOf(FIREBLOCKS_SIGNATURE_HEADER to webhookSignature)
+      WEBHOOK_REQUEST,
+      mapOf(FIREBLOCKS_SIGNATURE_HEADER to WEBHOOK_SIGNATURE)
     )
 
     txResponse = platformApiClient.getTransaction(txId)
@@ -148,7 +152,7 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
     txResponse.updatedAt = null
 
     JSONAssert.assertEquals(
-      expectedTransactionResponse.replace(TX_ID_KEY, txId),
+      EXPECTED_TRANSACTION_RESPONSE.replace(TX_ID_KEY, txId),
       gson.toJson(txResponse),
       CustomComparator(
         JSONCompareMode.STRICT,
@@ -159,14 +163,14 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
   }
 }
 
-private const val depositRequest =
+private const val DEPOSIT_REQUEST =
   """{
     "asset_code": "USDC",
     "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
     "lang": "en"
 }"""
 
-private const val expectedDepositAddress =
+private const val EXPECTED_DEPOSIT_ADDRESS =
   """
   {
     "memoType":"id",
@@ -175,12 +179,12 @@ private const val expectedDepositAddress =
   }
 """
 
-private const val custodyDepositAddressRequest = """
+private const val CUSTODY_DEPOSIT_ADDRESS_REQUEST = """
   {
   }
 """
 
-private const val custodyDepositAddressResponse =
+private const val CUSTODY_DEPOSIT_ADDRESS_RESPONSE =
   """
   {
     "address":"testAddress",
@@ -191,7 +195,7 @@ private const val custodyDepositAddressResponse =
   }
 """
 
-private const val custodyTransactionRequest =
+private const val CUSTODY_TRANSACTION_REQUEST =
   """
   {
     "id" : "TX_ID",
@@ -208,7 +212,7 @@ private const val custodyTransactionRequest =
   }
 """
 
-private const val custodyTransactionPaymentRequest =
+private const val CUSTODY_TRANSACTION_PAYMENT_REQUEST =
   """
     {
       "assetId": "XLM_USDC_T_CEKS",
@@ -227,7 +231,7 @@ private const val custodyTransactionPaymentRequest =
     }
 """
 
-private const val custodyTransactionPaymentResponse =
+private const val CUSTODY_TRANSACTION_PAYMENT_RESPONSE =
   """
     {
       "id":"df0442b4-6d53-44cd-82d7-3c48edc0b1ac",
@@ -235,7 +239,7 @@ private const val custodyTransactionPaymentResponse =
     }
 """
 
-private const val webhookRequest =
+private const val WEBHOOK_REQUEST =
   """
   {
   "type": "TRANSACTION_STATUS_UPDATED",
@@ -301,10 +305,10 @@ private const val webhookRequest =
 }
 """
 
-private const val webhookSignature =
+private const val WEBHOOK_SIGNATURE =
   "jwWIW/EX4XdkD9sS0YSybaYCnITwdDsCADV99mVyimhLPz6EhQDV6hJEfA4/BcNtXveJNbchKCwVI1l5o0eHc/1F0l4WsfIGNcDl68CDBWpe6LyQ3ZWUS7X/VMEeFFTBkgGcRl7aDjX2Yn9HuLFnSFRR2r4eDKP8y4G7hUbPUdE="
 
-private const val expectedTransactionResponse =
+private const val EXPECTED_TRANSACTION_RESPONSE =
   """
   {
   "id": "TX_ID",
