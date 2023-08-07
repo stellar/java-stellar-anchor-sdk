@@ -53,12 +53,14 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     `SEP-24 withdraw full refund`()
     `SEP-31 refunded short`()
     `SEP-31 complete full with recovery`()
+    `validations and errors`()
     `send single rpc action`()
     `send batch of rpc actions`()
   }
 
   private fun `send single rpc action`() {
     val depositRequest = gson.fromJson(SEP_24_DEPOSIT_REQUEST, HashMap::class.java)
+    @Suppress("UNCHECKED_CAST")
     val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
     val txId = depositResponse.id
 
@@ -90,6 +92,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
 
   private fun `send batch of rpc actions`() {
     val depositRequest = gson.fromJson(SEP_24_DEPOSIT_REQUEST, HashMap::class.java)
+    @Suppress("UNCHECKED_CAST")
     val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
     val txId = depositResponse.id
 
@@ -124,10 +127,8 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
       response.body?.string()?.trimIndent(),
       CustomComparator(
         JSONCompareMode.STRICT,
-        Customization("[0].result.started_at") { _, _ -> true },
-        Customization("[0].result.updated_at") { _, _ -> true },
-        Customization("[1].result.started_at") { _, _ -> true },
-        Customization("[1].result.updated_at") { _, _ -> true }
+        Customization("[*].result.started_at") { _, _ -> true },
+        Customization("[*].result.updated_at") { _, _ -> true }
       )
     )
 
@@ -277,8 +278,13 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     )
   }
 
+  private fun `validations and errors`() {
+    `test deposit flow`(VALIDATIONS_AND_ERRORS_REQUESTS, VALIDATIONS_AND_ERRORS_RESPONSES)
+  }
+
   private fun `test deposit flow`(actionRequests: String, actionResponse: String) {
     val depositRequest = gson.fromJson(SEP_24_DEPOSIT_FLOW_REQUEST, HashMap::class.java)
+    @Suppress("UNCHECKED_CAST")
     val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
     `test flow`(depositResponse.id, actionRequests, actionResponse)
   }
@@ -311,6 +317,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
 
   private fun `test withdraw flow`(actionRequests: String, actionResponse: String) {
     val withdrawRequest = gson.fromJson(SEP_24_WITHDRAW_FLOW_REQUEST, HashMap::class.java)
+    @Suppress("UNCHECKED_CAST")
     val withdrawResponse = sep24Client.withdraw(withdrawRequest as HashMap<String, String>)
     `test flow`(withdrawResponse.id, actionRequests, actionResponse)
   }
@@ -3094,6 +3101,730 @@ private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_REQ
       "message": "test message 4",
       "external_transaction_id": "ext-123456"
     }
+  }
+]
+  """
+
+private const val VALIDATIONS_AND_ERRORS_REQUESTS =
+  """
+[
+  {
+    "id": "1",
+    "method": "notify_interactive_flow_completed",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_1",
+      "message": "test message 1",
+      "amount_in": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "95",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "3"
+      }
+    }
+  },
+  {
+    "method": "notify_interactive_flow_completed",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 2",
+      "amount_in": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "95",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "3"
+      }
+    }
+  },
+  {
+    "id": "3",
+    "method": "notify_interactive_flow_completed",
+    "jsonrpc": "3.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 3",
+      "amount_in": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "95",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "3"
+      }
+    }
+  },
+  {
+    "id": "4",
+    "method": "unsupported method",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 4",
+      "amount_in": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "95",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "3"
+      }
+    }
+  },
+  {
+    "id": "5",
+    "method": "request_onchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 5",
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "6",
+    "method": "request_offchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 6",
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "iso4217:USD"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "7",
+    "method": "request_offchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 7",
+      "amount_in": {
+        "amount": "0",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5iso4217:USD"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "8",
+    "method": "request_offchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 8",
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "0",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5iso4217:USD"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "9",
+    "method": "request_offchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 9",
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso111:III"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "10",
+    "method": "notify_interactive_flow_completed",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 10",
+      "amount_in": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "95",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "3"
+      }
+    }
+  },
+  {
+    "id": "11",
+    "method": "notify_interactive_flow_completed",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 11",
+      "amount_in": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "95",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "3"
+      }
+    }
+  },
+  {
+    "id": "12",
+    "method": "request_offchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 12",
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "13",
+    "method": "request_offchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 13",
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "14",
+    "method": "notify_onchain_funds_sent",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 14",
+      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+    }
+  },
+  {
+  "id": "15",
+  "method": "notify_offchain_funds_received",
+  "jsonrpc": "2.0",
+  "params": {
+    "transaction_id": "TX_ID",
+    "message": "test message 15",
+    "funds_received_at": "2023-07-04T12:34:56Z",
+    "external_transaction_id": "ext-123456",
+    "amount_in": {
+        "amount": "10.11"
+      },
+      "amount_out": {
+        "amount": "9"
+      },
+      "amount_fee": {
+        "amount": "1.11"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+  "id": "16",
+  "method": "notify_offchain_funds_received",
+  "jsonrpc": "2.0",
+  "params": {
+    "transaction_id": "TX_ID",
+    "message": "test message 16",
+    "funds_received_at": "2023-07-04T12:34:56Z",
+    "external_transaction_id": "ext-123456",
+    "amount_in": {
+        "amount": "10.11"
+      },
+      "amount_out": {
+        "amount": "9"
+      },
+      "amount_fee": {
+        "amount": "1.11"
+      },
+      "amount_expected": {
+        "amount": "10.11"
+      }
+    }
+  },
+  {
+    "id": "17",
+    "method": "notify_refund_sent",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 17",
+      "refund": {
+        "id": "123456",
+        "amount": {
+          "amount": "989.11",
+          "asset": "iso4217:USD"
+        },
+        "amount_fee": {
+          "amount": "1",
+          "asset": "iso4217:USD"
+        }
+      }
+    }
+  },
+  {
+    "id": "18",
+    "method": "notify_refund_sent",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 18",
+      "refund": {
+        "id": "123456",
+        "amount": {
+          "amount": "989.11",
+          "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        },
+        "amount_fee": {
+          "amount": "1",
+          "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        }
+      }
+    }
+  },
+  {
+    "id": "19",
+    "method": "notify_onchain_funds_sent",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 19",
+      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+    }
+  },
+  {
+    "id": "20",
+    "method": "notify_onchain_funds_sent",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "message": "test message 20",
+      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+    }
+  }
+]
+  """
+
+private const val VALIDATIONS_AND_ERRORS_RESPONSES =
+  """
+[
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_1",
+      "code": -32600,
+      "message": "Transaction with id[TX_1] is not found"
+    },
+    "id": "1"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32600,
+      "message": "Id can't be NULL"
+    }
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32600,
+      "message": "Unsupported JSON-RPC protocol version[3.0]"
+    },
+    "id": "3"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32601,
+      "message": "No matching action method[unsupported method]"
+    },
+    "id": "4"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32600,
+      "message": "Action[request_onchain_funds] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]"
+    },
+    "id": "5"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32602,
+      "message": "amount_in.asset should be non-stellar asset"
+    },
+    "id": "6"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32602,
+      "message": "amount_in.amount should be positive"
+    },
+    "id": "7"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32602,
+      "message": "amount_out.amount should be positive"
+    },
+    "id": "8"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32602,
+      "message": "'iso111:III' is not a supported asset."
+    },
+    "id": "9"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_anchor",
+      "amount_expected": {
+        "amount": "3",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "95",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-07T10:53:58.811934Z",
+      "updated_at": "2023-08-07T10:53:59.928900700Z",
+      "message": "test message 10",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    },
+    "id": "10"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32600,
+      "message": "Action[notify_interactive_flow_completed] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]"
+    },
+    "id": "11"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_user_transfer_start",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-07T10:53:58.811934Z",
+      "updated_at": "2023-08-07T10:54:00.955526600Z",
+      "message": "test message 12",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    },
+    "id": "12"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32600,
+      "message": "Action[request_offchain_funds] is not supported. Status[pending_user_transfer_start], kind[deposit], protocol[24], funds received[false]"
+    },
+    "id": "13"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32600,
+      "message": "Action[notify_onchain_funds_sent] is not supported. Status[pending_user_transfer_start], kind[deposit], protocol[24], funds received[false]"
+    },
+    "id": "14"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_anchor",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-07T10:53:58.811934Z",
+      "updated_at": "2023-08-07T10:54:01.996630700Z",
+      "message": "test message 15",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "15"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32600,
+      "message": "Action[notify_offchain_funds_received] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[true]"
+    },
+    "id": "16"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32602,
+      "message": "Refund amount exceeds amount_in"
+    },
+    "id": "17"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32602,
+      "message": "refund.amount.asset does not match transaction amount_in_asset"
+    },
+    "id": "18"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "24",
+      "kind": "deposit",
+      "status": "completed",
+      "amount_expected": {
+        "amount": "10.11",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_in": {
+        "amount": "10.11",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_fee": {
+        "amount": "1.11",
+        "asset": "iso4217:USD"
+      },
+      "started_at": "2023-08-07T10:53:58.811934Z",
+      "updated_at": "2023-08-07T10:54:03.165199600Z",
+      "completed_at": "2023-08-07T10:54:03.165199600Z",
+      "message": "test message 19",
+      "stellar_transactions": [
+        {
+          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "created_at": "2023-06-22T08:46:56Z",
+          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "payments": [
+            {
+              "id": "563306435719169",
+              "amount": {
+                "amount": "4.5000000",
+                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "payment_type": "payment",
+              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+            }
+          ]
+        }
+      ],
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "external_transaction_id": "ext-123456"
+    },
+    "id": "19"
+  },
+  {
+    "jsonrpc": "2.0",
+    "error": {
+      "id": "TX_ID",
+      "code": -32600,
+      "message": "Action[notify_onchain_funds_sent] is not supported. Status[completed], kind[deposit], protocol[24], funds received[true]"
+    },
+    "id": "20"
   }
 ]
   """
