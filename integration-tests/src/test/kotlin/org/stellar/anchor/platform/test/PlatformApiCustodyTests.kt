@@ -11,12 +11,14 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
 import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.RpcResponse
-import org.stellar.anchor.api.rpc.action.ActionMethod
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
-import org.stellar.anchor.platform.*
+import org.stellar.anchor.platform.Sep12Client
+import org.stellar.anchor.platform.Sep24Client
+import org.stellar.anchor.platform.Sep31Client
+import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
@@ -53,8 +55,8 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
       object : Dispatcher() {
         override fun dispatch(request: RecordedRequest): MockResponse {
           if (
-            "POST".equals(request.method) &&
-              "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses".equals(request.path)
+            "POST" == request.method &&
+              "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses" == request.path
           ) {
             JSONAssert.assertEquals(
               CUSTODY_DEPOSIT_ADDRESS_REQUEST,
@@ -64,7 +66,7 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
 
             return MockResponse().setResponseCode(200).setBody(CUSTODY_DEPOSIT_ADDRESS_RESPONSE)
           }
-          if ("POST".equals(request.method) && "//v1/transactions".equals(request.path)) {
+          if ("POST" == request.method && "//v1/transactions" == request.path) {
             JSONAssert.assertEquals(
               CUSTODY_TRANSACTION_PAYMENT_REQUEST,
               request.body.readUtf8(),
@@ -81,15 +83,14 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
 
     `test withdraw flow`(
       SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS,
-      SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES,
-      mapOf()
+      SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES
     )
   }
 
   private fun `test deposit flow`(actionRequests: String, actionResponse: String) {
     val depositRequest = gson.fromJson(SEP_24_DEPOSIT_FLOW_REQUEST, HashMap::class.java)
     val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
-    `test flow`(depositResponse.id, actionRequests, actionResponse, mapOf())
+    `test flow`(depositResponse.id, actionRequests, actionResponse)
   }
 
   private fun `test receive flow`(actionRequests: String, actionResponses: String) {
@@ -115,25 +116,16 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
         .replace(RECEIVER_ID_KEY, receiverCustomer.id)
         .replace(SENDER_ID_KEY, senderCustomer.id)
 
-    `test flow`(receiveResponse.id, updatedActionRequests, updatedActionResponses, mapOf())
+    `test flow`(receiveResponse.id, updatedActionRequests, updatedActionResponses)
   }
 
-  private fun `test withdraw flow`(
-    actionRequests: String,
-    actionResponse: String,
-    postActions: Map<ActionMethod, Runnable>
-  ) {
+  private fun `test withdraw flow`(actionRequests: String, actionResponse: String) {
     val withdrawRequest = gson.fromJson(SEP_24_WITHDRAW_FLOW_REQUEST, HashMap::class.java)
     val withdrawResponse = sep24Client.withdraw(withdrawRequest as HashMap<String, String>)
-    `test flow`(withdrawResponse.id, actionRequests, actionResponse, postActions)
+    `test flow`(withdrawResponse.id, actionRequests, actionResponse)
   }
 
-  private fun `test flow`(
-    txId: String,
-    actionRequests: String,
-    actionResponses: String,
-    postActions: Map<ActionMethod, Runnable>
-  ) {
+  private fun `test flow`(txId: String, actionRequests: String, actionResponses: String) {
     val rpcActionRequestsType = object : TypeToken<List<RpcRequest>>() {}.type
     val rpcActionRequests: List<RpcRequest> =
       gson.fromJson(actionRequests.replace(TX_ID_KEY, txId), rpcActionRequestsType)
@@ -145,8 +137,6 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
       rpcActionResponses.addAll(
         gson.fromJson(rpcActionResponse.body?.string()?.trimIndent(), rpcActionResponsesType)
       )
-      val postAction = postActions.get(ActionMethod.from(it.method))
-      postAction?.run()
     }
 
     val expectedResult = actionResponses.replace(TX_ID_KEY, txId).trimIndent()
