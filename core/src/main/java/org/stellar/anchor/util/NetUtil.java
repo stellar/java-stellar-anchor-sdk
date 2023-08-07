@@ -39,7 +39,7 @@ public class NetUtil {
     if (isEmpty(serverPort)) return false;
     String[] tokens = Strings.split(serverPort, ":");
     if (tokens == null) {
-      return true;
+      return !hostnameLookup || isHostnameResolvable(serverPort);
     }
     switch (tokens.length) {
       case 2:
