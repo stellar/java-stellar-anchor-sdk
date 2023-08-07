@@ -89,14 +89,6 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
                     RECEIVE, txn.getProtocol(), getActionType()));
           }
         }
-
-        if (PENDING_STELLAR == currentStatus) {
-          if (sep31Refunds == null
-              || sep31Refunds.getRefundPayments() == null
-              || sep31Refunds.getRefundPayments().isEmpty()) {
-            throw new InvalidRequestException("Custody payment hasn't been completed yet");
-          }
-        }
     }
 
     if (request.getRefund() != null) {

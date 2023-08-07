@@ -1303,19 +1303,6 @@ class NotifyRefundSentHandlerTest {
   }
 
   @Test
-  fun test_handle_sep31_custody_payment_not_completed() {
-    val request = NotifyRefundSentRequest.builder().transactionId(TX_ID).build()
-    val txn31 = JdbcSep31Transaction()
-    txn31.status = PENDING_STELLAR.toString()
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns null
-    every { txn31Store.findByTransactionId(any()) } returns txn31
-
-    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Custody payment hasn't been completed yet", ex.message)
-  }
-
-  @Test
   fun test_handle_sep31_pending_external_invalid_id() {
     val request =
       NotifyRefundSentRequest.builder()
