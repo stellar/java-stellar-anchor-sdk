@@ -37,7 +37,7 @@ public class ExponentialBackoffTimer {
 
   public void backoff() throws InterruptedException {
     Thread.sleep(sleepSeconds * 1000);
-    sleepSeconds = Long.min(sleepSeconds * 2, maxSleepSeconds);
+    increase();
   }
 
   public long currentTimer() {
@@ -46,5 +46,9 @@ public class ExponentialBackoffTimer {
 
   public boolean isTimerMaxed() {
     return sleepSeconds >= maxSleepSeconds;
+  }
+
+  void increase() {
+    sleepSeconds = Long.min(sleepSeconds * 2, maxSleepSeconds);
   }
 }
