@@ -68,13 +68,15 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
 
     val recordedRequest = custodyMockServer.takeRequest()
 
-    val requestUrl = recordedRequest.requestUrl
+    val requestPath = recordedRequest.path
+    val requestMethod = recordedRequest.method
     val requestBody = recordedRequest.body.readUtf8()
 
     Assertions.assertEquals(
-      "${custodyMockServer.url("")}/v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses",
-      requestUrl.toString()
+      "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses",
+      requestPath.toString()
     )
+    Assertions.assertEquals("POST", requestMethod)
     JSONAssert.assertEquals(CUSTODY_DEPOSIT_ADDRESS_REQUEST, requestBody, JSONCompareMode.STRICT)
   }
 
@@ -132,15 +134,18 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
 
     val recordedRequest = custodyMockServer.takeRequest()
 
-    val requestUrl = recordedRequest.requestUrl
+    val requestPath = recordedRequest.path
+    val requestMethod = recordedRequest.method
     val requestBody = recordedRequest.body.readUtf8()
 
-    Assertions.assertEquals("${custodyMockServer.url("")}/v1/transactions", requestUrl.toString())
+    Assertions.assertEquals("//v1/transactions", requestPath.toString())
     JSONAssert.assertEquals(
       CUSTODY_TRANSACTION_PAYMENT_REQUEST,
       requestBody,
       JSONCompareMode.STRICT
     )
+
+    Assertions.assertEquals("POST", requestMethod)
 
     custodyApiClient.sendWebhook(
       WEBHOOK_REQUEST,
