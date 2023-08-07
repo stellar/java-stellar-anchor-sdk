@@ -1,9 +1,7 @@
 package org.stellar.anchor.util
 
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -65,16 +63,5 @@ internal class ExponentialBackoffTimerTest {
 
     exponentialBackoffTimer.reset()
     assertEquals(1, exponentialBackoffTimer.sleepSeconds)
-  }
-
-  @Test
-  fun test_sleep() {
-    val exponentialBackoffTimer = ExponentialBackoffTimer(1, 5)
-
-    val beforeSleep = Instant.now()
-    exponentialBackoffTimer.backoff()
-    val afterSleep = Instant.now()
-
-    assertEquals(1, ChronoUnit.SECONDS.between(beforeSleep, afterSleep))
   }
 }

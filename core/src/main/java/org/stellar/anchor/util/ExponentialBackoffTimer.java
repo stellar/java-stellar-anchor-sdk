@@ -36,7 +36,7 @@ public class ExponentialBackoffTimer {
   }
 
   public void backoff() throws InterruptedException {
-    Thread.sleep(sleepSeconds * 1000);
+    sleep();
     increase();
   }
 
@@ -50,5 +50,10 @@ public class ExponentialBackoffTimer {
 
   void increase() {
     sleepSeconds = Long.min(sleepSeconds * 2, maxSleepSeconds);
+  }
+
+  // NOTE: The sleep() is separated out from backoff for testing purposes.
+  void sleep() throws InterruptedException {
+    Thread.sleep(sleepSeconds * 1000);
   }
 }

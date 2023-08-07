@@ -196,68 +196,27 @@ public class EventProcessorManager {
           Metrics.counter(EVENT_RECEIVED, QUEUE, toMetricTag(eventQueue.name()))
               .increment(events.size());
           debugF("Received {} events from queue", events.size());
-          // The event delivery should retry in one of the 3 ways:
-          //
-          // Error #1: If connection error (IOException) happens, the events will be retried with
-          // exponential
-          // backoff timer. All subsequent events will NOT be delivered until the connection becomes
-          // successful.
-          //
-          // Error #2: If the business server returns HTTP status code other than 200s or 300s, we
-          // will retry [3] times
-          // with backoff timer. After 3 retries, we will skip the event and proceed to next
-          // sub-sequent events.
-          //
-          // Error #3: If the event processor encounters an un-expected error caused by the un-seen
-          // bugs, the
-          // event will be delivered to a no-op DLQ class which has Log.error implementation.
           events.forEach(
-              event -> {
-                boolean isProcessed = false;
-                int httpStatusNotOkAttempts = 0;
-                // For every event, reset the timer.
-                httpErrorBackoffTimer.reset();
-                networkBackoffTimer.reset();
-                // Retry until the event is processed or the thread is interrupted.
-                while (!isProcessed || !Thread.currentThread().isInterrupted()) {
-                  try {
-                    if (eventHandler.handleEvent(event)) {
-                      // ***** The event is processed successfully.
-                      isProcessed = true;
-                      Metrics.counter(EVENT_PROCESSED, QUEUE, toMetricTag(eventQueue.name()))
-                          .increment(events.size());
-                    } else {
-                      // ***** Error #2. HTTP status code other than 200s or 300s
-                      networkBackoffTimer.reset();
-                      if (httpStatusNotOkAttempts < HTTP_STATUS_MAX_RETRIES) {
-                        // retry.
-                        httpStatusNotOkAttempts++;
-                        httpErrorBackoffTimer.backoff();
-                      } else {
-                        // retry > 3 times, skip the event.
-                        isProcessed = true;
-                      }
-                    }
-                  } catch (IOException ioex) {
-                    // ***** Error #1: connection error
-                    httpErrorBackoffTimer.reset();
-                    httpStatusNotOkAttempts = 0;
-                    try {
-                      networkBackoffTimer.backoff();
-                    } catch (InterruptedException e) {
-                      // The thread is interrupted, so we need to stop the processor. This will
-                      // break the while loop.
-                      isProcessed = false;
-                    }
-                  } catch (Exception e) {
-                    // ***** Error #3. uncaught exception
-                    networkBackoffTimer.reset();
-                    httpErrorBackoffTimer.reset();
-                    sendToDLQ(event, e);
-                    isProcessed = true;
-                  }
-                }
-              });
+              // The event delivery should retry in one of the 3 ways:
+              //
+              // Error #1: If connection error (IOException) happens, the events will be retried
+              // with
+              // exponential
+              // backoff timer. All subsequent events will NOT be delivered until the connection
+              // becomes
+              // successful.
+              //
+              // Error #2: If the business server returns HTTP status code other than 200s or 300s,
+              // we
+              // will retry [3] times
+              // with backoff timer. After 3 retries, we will skip the event and proceed to next
+              // sub-sequent events.
+              //
+              // Error #3: If the event processor encounters an un-expected error caused by the
+              // un-seen
+              // bugs, the
+              // event will be delivered to a no-op DLQ class which has Log.error implementation.
+              this::handleEvent);
           // Do not continue if the thread is interrupted.
           if (Thread.currentThread().isInterrupted()) break;
           queueSession.ack(readResponse);
@@ -270,6 +229,52 @@ public class EventProcessorManager {
       } finally {
         queueSession.close();
         infoF("Closing queue session [{}]", queueSession.getSessionName());
+      }
+    }
+
+    private void handleEvent(AnchorEvent event) {
+      boolean isProcessed = false;
+      int httpStatusNotOkAttempts = 0;
+      // For every event, reset the timer.
+      httpErrorBackoffTimer.reset();
+      networkBackoffTimer.reset();
+      // Retry until the event is processed or the thread is interrupted.
+      while (!isProcessed || !Thread.currentThread().isInterrupted()) {
+        try {
+          if (eventHandler.handleEvent(event)) {
+            // ***** The event is processed successfully.
+            isProcessed = true;
+            Metrics.counter(EVENT_PROCESSED, QUEUE, toMetricTag(eventQueue.name())).increment();
+          } else {
+            // ***** Error #2. HTTP status code other than 200s or 300s
+            networkBackoffTimer.reset();
+            if (httpStatusNotOkAttempts < HTTP_STATUS_MAX_RETRIES) {
+              // retry.
+              httpStatusNotOkAttempts++;
+              httpErrorBackoffTimer.backoff();
+            } else {
+              // retry > 3 times, skip the event.
+              isProcessed = true;
+            }
+          }
+        } catch (IOException ioex) {
+          // ***** Error #1: connection error
+          httpErrorBackoffTimer.reset();
+          httpStatusNotOkAttempts = 0;
+          try {
+            networkBackoffTimer.backoff();
+          } catch (InterruptedException e) {
+            // The thread is interrupted, so we need to stop the processor. This will
+            // break the while loop.
+            isProcessed = false;
+          }
+        } catch (Exception e) {
+          // ***** Error #3. uncaught exception
+          networkBackoffTimer.reset();
+          httpErrorBackoffTimer.reset();
+          sendToDLQ(event, e);
+          isProcessed = true;
+        }
       }
     }
 
