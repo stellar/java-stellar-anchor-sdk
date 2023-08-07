@@ -150,7 +150,7 @@ public class FireblocksEventService extends CustodyEventService {
             CustodyPayment.fromPayment(
                 Optional.empty(),
                 td.getId(),
-                Instant.ofEpochMilli(td.getCreatedAt()),
+                Instant.ofEpochMilli(td.getLastUpdated()),
                 status,
                 message,
                 td.getTxHash());
@@ -160,7 +160,7 @@ public class FireblocksEventService extends CustodyEventService {
             CustodyPayment.fromPayment(
                 Optional.of(paymentOperation),
                 td.getId(),
-                Instant.ofEpochMilli(td.getCreatedAt()),
+                Instant.ofEpochMilli(td.getLastUpdated()),
                 status,
                 message,
                 td.getTxHash());
@@ -171,7 +171,7 @@ public class FireblocksEventService extends CustodyEventService {
             CustodyPayment.fromPathPayment(
                 Optional.of(pathPaymentOperation),
                 td.getId(),
-                Instant.ofEpochMilli(td.getCreatedAt()),
+                Instant.ofEpochMilli(td.getLastUpdated()),
                 status,
                 message,
                 td.getTxHash());
