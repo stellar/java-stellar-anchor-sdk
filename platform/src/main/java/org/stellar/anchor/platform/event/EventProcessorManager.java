@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.event;
 
+import static java.lang.Thread.currentThread;
 import static org.stellar.anchor.event.EventService.*;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MetricConstants.*;
@@ -76,7 +77,8 @@ public class EventProcessorManager {
           new EventProcessor(
               CALLBACK_API_EVENT_PROCESSOR_NAME,
               EventQueue.TRANSACTION,
-              new CallbackApiEventHandler(callbackApiConfig)));
+              new CallbackApiEventHandler(callbackApiConfig),
+              eventService));
     }
     // Create a processor of the client status callback handler for each client defined in the
     // clientsConfig
@@ -112,7 +114,8 @@ public class EventProcessorManager {
                     clientConfig,
                     sep24TransactionStore,
                     assetService,
-                    moreInfoUrlConstructor)));
+                    moreInfoUrlConstructor),
+                eventService));
       }
     }
 
@@ -132,7 +135,7 @@ public class EventProcessorManager {
     }
   }
 
-  class EventProcessor implements Runnable {
+  static class EventProcessor implements Runnable {
     // The initial backoff time for connection error.
     private final long NETWORK_INITIAL_BACKOFF_TIME_SECONDS = 1;
     // The maximum backoff time for connection error.
@@ -148,6 +151,7 @@ public class EventProcessorManager {
     private final String name;
     private final EventQueue eventQueue;
     private final EventHandler eventHandler;
+    private final EventService eventService;
 
     private final ScheduledExecutorService consumerScheduler =
         DaemonExecutors.newScheduledThreadPool(1);
@@ -162,10 +166,12 @@ public class EventProcessorManager {
     // The flag to indicate if the processor is stopped.
     private boolean stopped = false;
 
-    public EventProcessor(String name, EventQueue eventQueue, EventHandler eventHandler) {
+    public EventProcessor(
+        String name, EventQueue eventQueue, EventHandler eventHandler, EventService eventService) {
       this.name = name;
       this.eventQueue = eventQueue;
       this.eventHandler = eventHandler;
+      this.eventService = eventService;
     }
 
     public void start() {
@@ -190,35 +196,16 @@ public class EventProcessorManager {
           getConsumerRestartCount() + 1);
       Session queueSession = eventService.createSession(name, eventQueue);
       try {
-        while (!Thread.currentThread().isInterrupted() && !stopped) {
+        while (!currentThread().isInterrupted() && !stopped) {
           ReadResponse readResponse = queueSession.read();
           List<AnchorEvent> events = readResponse.getEvents();
           Metrics.counter(EVENT_RECEIVED, QUEUE, toMetricTag(eventQueue.name()))
               .increment(events.size());
           debugF("Received {} events from queue", events.size());
-          events.forEach(
-              // The event delivery should retry in one of the 3 ways:
-              //
-              // Error #1: If connection error (IOException) happens, the events will be retried
-              // with
-              // exponential
-              // backoff timer. All subsequent events will NOT be delivered until the connection
-              // becomes
-              // successful.
-              //
-              // Error #2: If the business server returns HTTP status code other than 200s or 300s,
-              // we
-              // will retry [3] times
-              // with backoff timer. After 3 retries, we will skip the event and proceed to next
-              // sub-sequent events.
-              //
-              // Error #3: If the event processor encounters an un-expected error caused by the
-              // un-seen
-              // bugs, the
-              // event will be delivered to a no-op DLQ class which has Log.error implementation.
-              this::handleEvent);
-          // Do not continue if the thread is interrupted.
-          if (Thread.currentThread().isInterrupted()) break;
+          for (AnchorEvent event : events) {
+            handleEvent(event);
+            if (currentThread().isInterrupted()) break;
+          }
           queueSession.ack(readResponse);
         }
 
@@ -232,69 +219,83 @@ public class EventProcessorManager {
       }
     }
 
-    private void handleEvent(AnchorEvent event) {
+    void handleEvent(AnchorEvent event) {
       boolean isProcessed = false;
       int httpStatusNotOkAttempts = 0;
       // For every event, reset the timer.
-      httpErrorBackoffTimer.reset();
-      networkBackoffTimer.reset();
+      getHttpErrorBackoffTimer().reset();
+      getNetworkBackoffTimer().reset();
       // Retry until the event is processed or the thread is interrupted.
-      while (!isProcessed || !Thread.currentThread().isInterrupted()) {
+      while (!isProcessed && !currentThread().isInterrupted()) {
         try {
           if (eventHandler.handleEvent(event)) {
             // ***** The event is processed successfully.
             isProcessed = true;
-            Metrics.counter(EVENT_PROCESSED, QUEUE, toMetricTag(eventQueue.name())).increment();
+            incrementProcessedCounter();
           } else {
             // ***** Error #2. HTTP status code other than 200s or 300s
-            networkBackoffTimer.reset();
+            httpStatusNotOkAttempts++;
             if (httpStatusNotOkAttempts < HTTP_STATUS_MAX_RETRIES) {
               // retry.
-              httpStatusNotOkAttempts++;
-              httpErrorBackoffTimer.backoff();
+              getNetworkBackoffTimer().reset();
+              getHttpErrorBackoffTimer().backoff();
             } else {
-              // retry > 3 times, skip the event.
+              // retry >= 3 times, skip the event.
               isProcessed = true;
+              incrementProcessedCounter();
             }
           }
         } catch (IOException ioex) {
           // ***** Error #1: connection error
-          httpErrorBackoffTimer.reset();
+          getHttpErrorBackoffTimer().reset();
           httpStatusNotOkAttempts = 0;
           try {
-            networkBackoffTimer.backoff();
+            getNetworkBackoffTimer().backoff();
           } catch (InterruptedException e) {
             // The thread is interrupted, so we need to stop the processor. This will
             // break the while loop.
-            isProcessed = false;
+            currentThread().interrupt();
           }
         } catch (Exception e) {
           // ***** Error #3. uncaught exception
-          networkBackoffTimer.reset();
-          httpErrorBackoffTimer.reset();
+          getNetworkBackoffTimer().reset();
+          getHttpErrorBackoffTimer().reset();
           sendToDLQ(event, e);
           isProcessed = true;
         }
       }
     }
 
-    private void sendToDLQ(AnchorEvent event, Exception e) {
+    void incrementProcessedCounter() {
+      Metrics.counter(EVENT_PROCESSED, QUEUE, toMetricTag(eventQueue.name())).increment();
+    }
+
+    void sendToDLQ(AnchorEvent event, Exception e) {
+      Log.errorF("Failed to process event: {}", json(event));
       Log.errorEx(e);
     }
 
     long getConsumerRestartCount() {
       return ((ScheduledThreadPoolExecutor) consumerScheduler).getCompletedTaskCount();
     }
-  }
 
-  private String toMetricTag(String name) {
-    switch (name) {
-      case CALLBACK_API_EVENT_PROCESSOR_NAME:
-        return TV_BUSINESS_SERVER_CALLBACK;
-      case CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX:
-        return TV_STATUS_CALLBACK;
-      default:
-        return TV_UNKNOWN;
+    ExponentialBackoffTimer getHttpErrorBackoffTimer() {
+      return httpErrorBackoffTimer;
+    }
+
+    ExponentialBackoffTimer getNetworkBackoffTimer() {
+      return networkBackoffTimer;
+    }
+
+    private String toMetricTag(String name) {
+      switch (name) {
+        case CALLBACK_API_EVENT_PROCESSOR_NAME:
+          return TV_BUSINESS_SERVER_CALLBACK;
+        case CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX:
+          return TV_STATUS_CALLBACK;
+        default:
+          return TV_UNKNOWN;
+      }
     }
   }
 }
