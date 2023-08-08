@@ -1,14 +1,13 @@
 package org.stellar.anchor
 
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.stellar.anchor.api.exception.SepNotFoundException
-import org.junit.jupiter.api.Tes
+import org.junit.jupiter.api.Test
 import org.stellar.anchor.config.Sep1Config.TomlType.*
 import org.stellar.anchor.platform.config.PropertySep1Config
 import org.stellar.anchor.platform.config.PropertySep1Config.TomlConfig
@@ -75,8 +74,7 @@ class Sep1ServiceTest {
   }
 
   @Test
-  fun `getStellarToml throws exception when redirect results in error`() {
-    println("getStellarToml throws exception when redirect results in error")
+  fun `getStellarToml throws exception when redirect is encountered`() {
     val mockServer = MockWebServer()
     mockServer.start()
     val mockAnchorUrl = mockServer.url("").toString()
@@ -91,12 +89,29 @@ class Sep1ServiceTest {
     // Enqueue a response at the redirect location that provides a server error.
     mockServer.enqueue(MockResponse().setResponseCode(500))
 
+    // Enqueue an empty response to prevent a timeout.
+    mockServer.enqueue(MockResponse())
+
     val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
 
-    val exception = assertThrows(SepNotFoundException::class.java) {
-      sep1 = Sep1Service(config)
-    }
-    assertEquals("stellar.toml not found at $mockAnchorUrl", exception.message)
+    val exception = assertThrows(IOException::class.java) { Sep1Service(config) }
+    assertEquals("Unable to fetch data from $mockAnchorUrl", exception.message)
+    mockServer.shutdown()
+  }
+
+  @Test
+  fun `getStellarToml throws exception when redirected location results in error`() {
+    val mockServer = MockWebServer()
+    mockServer.start()
+    val mockAnchorUrl = mockServer.url("/new_location").toString()
+
+    // Enqueue a response that provides a server error.
+    mockServer.enqueue(MockResponse().setResponseCode(500))
+
+    val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
+
+    val exception = assertThrows(IOException::class.java) { sep1 = Sep1Service(config) }
+    assertEquals("Unable to fetch data from $mockAnchorUrl", exception.message)
     mockServer.shutdown()
   }
 }

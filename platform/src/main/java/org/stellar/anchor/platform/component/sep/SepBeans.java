@@ -11,7 +11,6 @@ import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
-import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
@@ -102,7 +101,7 @@ public class SepBeans {
 
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep1"})
-  Sep1Service sep1Service(Sep1Config sep1Config) throws InvalidConfigException, SepNotFoundException {
+  Sep1Service sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     return new Sep1Service(sep1Config);
   }
 

@@ -1,6 +1,5 @@
 package org.stellar.anchor.util;
 
-import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.jsonwebtoken.lang.Strings;
@@ -20,10 +19,12 @@ public class NetUtil {
 
     // Check if response was successful (status code 200)
     if (!response.isSuccessful()) {
-      throw new IOException("Server returned HTTP error code " + response.code());
+      throw new IOException(String.format("Unable to fetch data from %s", url));
     }
 
-    if (response.body() == null) return "";
+    if (response.body() == null) {
+      throw new IOException("Response body is empty.");
+    }
     return Objects.requireNonNull(response.body()).string();
   }
 
