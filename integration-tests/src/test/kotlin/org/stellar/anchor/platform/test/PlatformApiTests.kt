@@ -264,7 +264,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
   }
 
   /**
-   * 1. pending_receiver -> notify_onchain_funds_received
+   * 1. pending_sender -> notify_onchain_funds_received
    * 2. pending_receiver -> request_customer_info_update
    * 3. pending_customer_info_update -> notify_customer_info_updated
    * 4. pending_receiver -> notify_transaction_error
@@ -2639,7 +2639,7 @@ private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUEST
   },
   {
     "id": "5",
-    "method": "notify_transaction_error",
+    "method": "notify_transaction_recovery",
     "jsonrpc": "2.0",
     "params": {
       "transaction_id": "TX_ID",
@@ -2648,30 +2648,21 @@ private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUEST
   },
   {
     "id": "6",
-    "method": "notify_transaction_recovery",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "TX_ID",
-      "message": "test message 6"
-    }
-  },
-  {
-    "id": "7",
     "method": "notify_offchain_funds_pending",
     "jsonrpc": "2.0",
     "params": {
       "transaction_id": "TX_ID",
-      "message": "test message 7",
+      "message": "test message 6",
       "external_transaction_id": "ext123456789"
     }
   },
   {
-    "id": "8",
+    "id": "7",
     "method": "notify_offchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
       "transaction_id": "TX_ID",
-      "message": "test message 8",
+      "message": "test message 7",
       "external_transaction_id": "ext123456789"
     }
   }
@@ -2919,15 +2910,6 @@ private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONS
   },
   {
     "jsonrpc": "2.0",
-    "error": {
-      "id": "TX_ID",
-      "code": -32600,
-      "message": "Action[notify_transaction_error] is not supported. Status[error], kind[receive], protocol[31], funds received[true]"
-    },
-    "id": "5"
-  },
-  {
-    "jsonrpc": "2.0",
     "result": {
       "id": "TX_ID",
       "sep": "31",
@@ -2949,7 +2931,7 @@ private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONS
       "started_at": "2023-08-07T08:01:24.478460Z",
       "updated_at": "2023-08-07T08:01:29.797331Z",
       "transfer_received_at": "2023-06-22T08:46:56Z",
-      "message": "test message 6",
+      "message": "test message 5",
       "stellar_transactions": [
         {
           "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
@@ -2983,7 +2965,7 @@ private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONS
         "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
       }
     },
-    "id": "6"
+    "id": "5"
   },
   {
     "jsonrpc": "2.0",
@@ -3007,6 +2989,67 @@ private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONS
       },
       "started_at": "2023-08-07T08:01:24.478460Z",
       "updated_at": "2023-08-07T08:01:30.816913Z",
+      "transfer_received_at": "2023-06-22T08:46:56Z",
+      "message": "test message 6",
+      "stellar_transactions": [
+        {
+          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "memo": "ZmQzY2I4M2YtY2UwNC00Mjc2LWFiYzEtY2QzNWUzNDk=",
+          "memo_type": "hash",
+          "created_at": "2023-06-22T08:46:56Z",
+          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "payments": [
+            {
+              "id": "563306435719169",
+              "amount": {
+                "amount": "4.5000000",
+                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "payment_type": "payment",
+              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+            }
+          ]
+        }
+      ],
+      "external_transaction_id": "ext123456789",
+      "customers": {
+        "sender": {
+          "id": "SENDER_ID"
+        },
+        "receiver": {
+          "id": "RECEIVER_ID"
+        }
+      },
+      "creator": {
+        "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+      }
+    },
+    "id": "6"
+  },
+  {
+    "jsonrpc": "2.0",
+    "result": {
+      "id": "TX_ID",
+      "sep": "31",
+      "kind": "receive",
+      "status": "completed",
+      "amount_expected": {
+        "amount": "10",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_in": {
+        "amount": "10",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "amount_out": {},
+      "amount_fee": {
+        "amount": "0.3",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      },
+      "started_at": "2023-08-07T08:01:24.478460Z",
+      "updated_at": "2023-08-07T08:01:31.828811Z",
+      "completed_at": "2023-08-07T08:01:31.828809Z",
       "transfer_received_at": "2023-06-22T08:46:56Z",
       "message": "test message 7",
       "stellar_transactions": [
@@ -3044,67 +3087,6 @@ private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONS
       }
     },
     "id": "7"
-  },
-  {
-    "jsonrpc": "2.0",
-    "result": {
-      "id": "TX_ID",
-      "sep": "31",
-      "kind": "receive",
-      "status": "completed",
-      "amount_expected": {
-        "amount": "10",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-      },
-      "amount_in": {
-        "amount": "10",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-      },
-      "amount_out": {},
-      "amount_fee": {
-        "amount": "0.3",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-      },
-      "started_at": "2023-08-07T08:01:24.478460Z",
-      "updated_at": "2023-08-07T08:01:31.828811Z",
-      "completed_at": "2023-08-07T08:01:31.828809Z",
-      "transfer_received_at": "2023-06-22T08:46:56Z",
-      "message": "test message 8",
-      "stellar_transactions": [
-        {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-          "memo": "ZmQzY2I4M2YtY2UwNC00Mjc2LWFiYzEtY2QzNWUzNDk=",
-          "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
-          "payments": [
-            {
-              "id": "563306435719169",
-              "amount": {
-                "amount": "4.5000000",
-                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-              },
-              "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
-            }
-          ]
-        }
-      ],
-      "external_transaction_id": "ext123456789",
-      "customers": {
-        "sender": {
-          "id": "SENDER_ID"
-        },
-        "receiver": {
-          "id": "RECEIVER_ID"
-        }
-      },
-      "creator": {
-        "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-      }
-    },
-    "id": "8"
   }
 ]
   """
