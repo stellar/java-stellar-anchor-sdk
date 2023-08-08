@@ -2,7 +2,10 @@ package org.stellar.anchor.sep1;
 
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.MetricConstants.SEP1_TOML_ACCESSED;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -13,6 +16,7 @@ import org.stellar.anchor.util.NetUtil;
 
 public class Sep1Service {
   private String tomlValue;
+  Counter sep1TomlAccessedCounter = Metrics.counter(SEP1_TOML_ACCESSED);
 
   /**
    * Construct the Sep1Service that reads the stellar.toml content from Java resource.
@@ -47,6 +51,7 @@ public class Sep1Service {
   }
 
   public String getStellarToml() {
+    sep1TomlAccessedCounter.increment();
     return tomlValue;
   }
 }

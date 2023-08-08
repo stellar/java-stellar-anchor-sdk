@@ -1,7 +1,11 @@
 package org.stellar.anchor.sep12;
 
 import static org.stellar.anchor.util.Log.infoF;
+import static org.stellar.anchor.util.MetricConstants.*;
+import static org.stellar.anchor.util.MetricConstants.SEP12_CUSTOMER;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -22,6 +26,13 @@ import org.stellar.sdk.xdr.MemoType;
 
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
+  private final Counter sep12GetCustomerCounter =
+      Metrics.counter(SEP12_CUSTOMER, TYPE, TV_SEP12_GET_CUSTOMER);
+  private final Counter sep12PutCustomerCounter =
+      Metrics.counter(SEP12_CUSTOMER, TYPE, TV_SEP12_PUT_CUSTOMER);
+  private final Counter sep12DeleteCustomerCounter =
+      Metrics.counter(SEP12_CUSTOMER, TYPE, TV_SEP12_DELETE_CUSTOMER);
+
   private final Set<String> knownTypes;
 
   private final EventService.Session eventSession;
@@ -55,8 +66,11 @@ public class Sep12Service {
 
     GetCustomerResponse response =
         customerIntegration.getCustomer(GetCustomerRequest.from(request));
+    Sep12GetCustomerResponse res = GetCustomerResponse.to(response);
 
-    return GetCustomerResponse.to(response);
+    // increment counter
+    sep12GetCustomerCounter.increment();
+    return res;
   }
 
   public Sep12PutCustomerResponse putCustomer(Sep10Jwt token, Sep12PutCustomerRequest request)
@@ -79,6 +93,8 @@ public class Sep12Service {
             .customer(CustomerUpdatedResponse.builder().account(request.getAccount()).build())
             .build());
 
+    // increment counter
+    sep12PutCustomerCounter.increment();
     return PutCustomerResponse.to(response);
   }
 
@@ -125,6 +141,9 @@ public class Sep12Service {
           "No existing customer found for account={} memo={} memoType={}", account, memo, memoType);
       throw new SepNotFoundException("User not found.");
     }
+
+    // increment counter
+    sep12DeleteCustomerCounter.increment();
   }
 
   void validateGetOrPutRequest(Sep12CustomerRequestBase requestBase, Sep10Jwt token)

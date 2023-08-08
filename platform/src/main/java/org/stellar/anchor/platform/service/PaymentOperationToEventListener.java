@@ -267,12 +267,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
     // Patch transaction
     patchTransaction(txn, stellarTransaction, paymentTime, newStatus);
-
-    // Update metrics
-    Metrics.counter(AnchorMetrics.SEP24_TRANSACTION.toString(), "status", newStatus.toString())
-        .increment();
-    Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
-        .increment(Double.parseDouble(payment.getAmount()));
   }
 
   Instant parsePaymentTime(String paymentTimeStr) {

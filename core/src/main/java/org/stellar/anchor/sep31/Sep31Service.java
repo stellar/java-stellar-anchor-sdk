@@ -1,5 +1,6 @@
 package org.stellar.anchor.sep31;
 
+import static io.micrometer.core.instrument.Metrics.counter;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
@@ -7,11 +8,14 @@ import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
+import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_CREATED;
+import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_PATCHED;
 import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 
+import io.micrometer.core.instrument.Counter;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
@@ -51,6 +55,8 @@ public class Sep31Service {
   private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
   private final EventService.Session eventSession;
+  private final Counter sep31TransactionCreatedCounter = counter(SEP31_TRANSACTION_CREATED);
+  private final Counter sep31TransactionPatchedCounter = counter(SEP31_TRANSACTION_PATCHED);
 
   public Sep31Service(
       AppConfig appConfig,
@@ -189,13 +195,17 @@ public class Sep31Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn))
             .build());
 
-    return Sep31PostTransactionResponse.builder()
-        .id(txn.getId())
-        .stellarAccountId(txn.getStellarAccountId())
-        .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
-        .stellarMemoType(
-            isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
-        .build();
+    Sep31PostTransactionResponse response =
+        Sep31PostTransactionResponse.builder()
+            .id(txn.getId())
+            .stellarAccountId(txn.getStellarAccountId())
+            .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
+            .stellarMemoType(
+                isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
+            .build();
+    // increment counter
+    sep31TransactionCreatedCounter.increment();
+    return response;
   }
 
   /**
@@ -357,8 +367,11 @@ public class Sep31Service {
     Context.get().setTransactionFields(txn.getFields());
     validateRequiredFields();
 
-    Sep31Transaction savedTxn = sep31TransactionStore.save(txn);
-    return savedTxn.toSep31GetTransactionResponse();
+    Sep31GetTransactionResponse response =
+        sep31TransactionStore.save(txn).toSep31GetTransactionResponse();
+    // increment counter
+    sep31TransactionPatchedCounter.increment();
+    return response;
   }
 
   /**

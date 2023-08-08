@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.service;
 import static org.stellar.anchor.sep24.Sep24Service.INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.AssetHelper.*;
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import com.google.gson.Gson;
@@ -17,6 +18,7 @@ import org.stellar.anchor.api.callback.PutCustomerRequest;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt;
+import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
@@ -24,14 +26,18 @@ import org.stellar.anchor.util.GsonUtils;
 
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   public static final String FORWARD_KYC_CUSTOMER_TYPE = "sep24-customer";
+
+  private final ClientsConfig clientsConfig;
   private final PropertySep24Config sep24Config;
   private final CustomerIntegration customerIntegration;
   private final JwtService jwtService;
 
   public SimpleInteractiveUrlConstructor(
+      ClientsConfig clientsConfig,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
+    this.clientsConfig = clientsConfig;
     this.sep24Config = sep24Config;
     this.customerIntegration = customerIntegration;
     this.jwtService = jwtService;
@@ -65,17 +71,21 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
 
   @SneakyThrows
   String constructToken(Sep24Transaction txn, Map<String, String> request) {
+    ClientsConfig.ClientConfig clientConfig =
+        UrlConstructorHelper.getClientConfig(clientsConfig, txn);
 
-    String account =
-        (isEmpty(txn.getSep10AccountMemo()))
-            ? txn.getSep10Account()
-            : txn.getSep10Account() + ":" + txn.getSep10AccountMemo();
+    debugF(
+        "Resolving configs for token construct. Got config: {}, all configs: {}",
+        clientConfig,
+        clientsConfig);
+
     Sep24InteractiveUrlJwt token =
         new Sep24InteractiveUrlJwt(
-            account,
+            UrlConstructorHelper.getAccount(txn),
             txn.getTransactionId(),
             Instant.now().getEpochSecond() + sep24Config.getInteractiveUrl().getJwtExpiration(),
-            txn.getClientDomain());
+            txn.getClientDomain(),
+            clientConfig != null ? clientConfig.getName() : null);
 
     // Add required JWT fields from request
     Map<String, String> data = new HashMap<>(extractRequiredJwtFieldsFromRequest(request));

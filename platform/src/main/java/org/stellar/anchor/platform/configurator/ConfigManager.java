@@ -87,7 +87,7 @@ public abstract class ConfigManager
             icex.getMessage(),
             System.lineSeparator());
         // We should not continue.
-        System.exit(1);
+        throw new RuntimeException(icex);
       }
       adapter.updateSpringEnv(applicationContext, config);
     }

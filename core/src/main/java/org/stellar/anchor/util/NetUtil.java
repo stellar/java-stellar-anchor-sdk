@@ -35,11 +35,11 @@ public class NetUtil {
     }
   }
 
-  public static boolean isServerPortValid(String serverPort) {
+  public static boolean isServerPortValid(String serverPort, boolean hostnameLookup) {
     if (isEmpty(serverPort)) return false;
     String[] tokens = Strings.split(serverPort, ":");
     if (tokens == null) {
-      return isHostnameValid(serverPort);
+      return !hostnameLookup || isHostnameResolvable(serverPort);
     }
     switch (tokens.length) {
       case 2:
@@ -47,13 +47,13 @@ public class NetUtil {
         try {
           int port = Integer.parseInt(strPort);
           if (port > 65535 || port < 0) {
-            return false;
+            return !hostnameLookup || isHostnameResolvable(serverPort);
           }
         } catch (NumberFormatException ex) {
           return false;
         }
       case 1:
-        return isHostnameValid(tokens[0]);
+        return !hostnameLookup || isHostnameResolvable(serverPort);
       case 0:
       default:
         return false;
@@ -68,7 +68,7 @@ public class NetUtil {
     return uri.getHost() + ":" + uri.getPort();
   }
 
-  static boolean isHostnameValid(String hostname) {
+  static boolean isHostnameResolvable(String hostname) {
     try {
       InetAddress.getAllByName(hostname);
       return true;

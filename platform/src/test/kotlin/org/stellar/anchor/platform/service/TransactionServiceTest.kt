@@ -77,19 +77,19 @@ class TransactionServiceTest {
   @Test
   fun test_getTransaction_failure() {
     // null tx id is rejected with 400
-    var ex: AnchorException = assertThrows { transactionService.getTransactionResponse(null) }
+    var ex: AnchorException = assertThrows { transactionService.findTransaction(null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("transaction id cannot be empty", ex.message)
 
     // empty tx id is rejected with 400
-    ex = assertThrows { transactionService.getTransactionResponse("") }
+    ex = assertThrows { transactionService.findTransaction("") }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("transaction id cannot be empty", ex.message)
 
     // non-existent transaction is rejected with 404
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
-    ex = assertThrows { transactionService.getTransactionResponse("not-found-tx-id") }
+    ex = assertThrows { transactionService.findTransaction("not-found-tx-id") }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("transaction (id=not-found-tx-id) is not found", ex.message)
   }
@@ -105,7 +105,7 @@ class TransactionServiceTest {
     val mockSep31Transaction = gson.fromJson(jsonSep31Transaction, JdbcSep31Transaction::class.java)
 
     every { sep31TransactionStore.findByTransactionId(TEST_TXN_ID) } returns mockSep31Transaction
-    val gotGetTransactionResponse = transactionService.getTransactionResponse(TEST_TXN_ID)
+    val gotGetTransactionResponse = transactionService.findTransaction(TEST_TXN_ID)
 
     JSONAssert.assertEquals(
       wantedGetSep31TransactionResponse,
@@ -125,7 +125,7 @@ class TransactionServiceTest {
     val mockSep24Transaction = gson.fromJson(jsonSep24Transaction, JdbcSep24Transaction::class.java)
 
     every { sep24TransactionStore.findByTransactionId(TEST_TXN_ID) } returns mockSep24Transaction
-    val gotGetTransactionResponse = transactionService.getTransactionResponse(TEST_TXN_ID)
+    val gotGetTransactionResponse = transactionService.findTransaction(TEST_TXN_ID)
 
     JSONAssert.assertEquals(
       wantedGetSep24TransactionResponse,

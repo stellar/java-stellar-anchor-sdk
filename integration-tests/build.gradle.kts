@@ -7,11 +7,7 @@ plugins {
   alias(libs.plugins.kotlin.jvm)
 }
 
-repositories {
-  maven {
-    url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-  }
-}
+repositories { maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") } }
 
 dependencies {
   implementation("org.springframework.boot:spring-boot")
@@ -41,6 +37,7 @@ dependencies {
   implementation(project(":platform"))
   implementation(project(":anchor-reference-server"))
   implementation(project(":kotlin-reference-server"))
+  implementation(project(":wallet-reference-server"))
   implementation(project(":service-runner"))
 
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -51,4 +48,12 @@ dependencies {
   testImplementation(libs.dotenv)
 }
 
-tasks { bootJar { enabled = false } }
+tasks {
+  bootJar { enabled = false }
+  test {
+    useJUnitPlatform()
+    // Setting forkEvery to 1 makes Gradle test execution to start a separeate JVM for each integration test classes.
+    // This is to to avoid the interaction between static states between each integration test classes.
+    setForkEvery(1)
+  }
+}
