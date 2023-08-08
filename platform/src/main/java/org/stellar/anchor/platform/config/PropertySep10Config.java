@@ -119,7 +119,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
                 homeDomain, iaex));
       }
 
-      if (!NetUtil.isServerPortValid(homeDomain)) {
+      if (!NetUtil.isServerPortValid(homeDomain, false)) {
         errors.rejectValue(
             "homeDomain",
             "sep10-home-domain-invalid",
@@ -139,7 +139,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
                 webAuthDomain, iaex));
       }
 
-      if (!NetUtil.isServerPortValid(webAuthDomain)) {
+      if (!NetUtil.isServerPortValid(webAuthDomain, false)) {
         errors.rejectValue(
             "webAuthDomain",
             "sep10-web-auth-domain-invalid",
@@ -172,7 +172,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
 
       if (!ListHelper.isEmpty(getDefaultAllowClientDomain())) {
         for (String clientDomain : getDefaultAllowClientDomain()) {
-          if (!NetUtil.isServerPortValid(clientDomain)) {
+          if (!NetUtil.isServerPortValid(clientDomain, false)) {
             errors.rejectValue(
                 "clientAttributionAllowList",
                 "sep10-client_attribution_allow_list_invalid",

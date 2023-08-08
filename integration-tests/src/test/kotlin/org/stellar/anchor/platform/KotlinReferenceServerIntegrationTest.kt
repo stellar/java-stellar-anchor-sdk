@@ -22,6 +22,7 @@ internal class KotlinReferenceServerIntegrationTest {
 
   @BeforeAll
   fun setup() {
+    println("Running KotlinReferenceServerIntegrationTest")
     testProfileRunner.start()
   }
 

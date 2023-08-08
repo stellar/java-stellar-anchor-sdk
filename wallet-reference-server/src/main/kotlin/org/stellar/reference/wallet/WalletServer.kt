@@ -6,7 +6,6 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
@@ -29,7 +28,6 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
   walletServer =
     embeddedServer(Netty, port = cfg.wallet.port) {
         install(ContentNegotiation) { json() }
-        install(CallLogging)
         configureRouting(cfg)
         install(CORS) {
           anyHost()
@@ -61,7 +59,9 @@ fun readCfg(envMap: Map<String, String>?): Config {
 }
 
 fun stopServer() {
-  if (::walletServer.isInitialized) (walletServer).stop(1000, 1000)
+  log.info("Stopping wallet server...")
+  if (::walletServer.isInitialized) (walletServer).stop(5000, 30000)
+  log.info("Wallet server stopped...")
 }
 
 fun Application.configureRouting(cfg: Config) {
