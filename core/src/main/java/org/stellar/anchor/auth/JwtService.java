@@ -16,7 +16,10 @@ import org.stellar.anchor.config.SecretConfig;
 
 @Getter
 public class JwtService {
+  // SEP-24 specific claims
   public static final String CLIENT_DOMAIN = "client_domain";
+  public static final String CLIENT_NAME = "client_name";
+
   String sep10JwtSecret;
   String sep24InteractiveUrlJwtSecret;
   String sep24MoreInfoUrlJwtSecret;
@@ -94,7 +97,11 @@ public class JwtService {
     }
     Calendar calExp = Calendar.getInstance();
     calExp.setTimeInMillis(1000L * token.getExp());
-    JwtBuilder builder = Jwts.builder().setId(token.getJti()).setExpiration(calExp.getTime());
+    JwtBuilder builder =
+        Jwts.builder()
+            .setId(token.getJti())
+            .setExpiration(calExp.getTime())
+            .setSubject(token.getSub());
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
     }

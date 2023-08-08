@@ -2,8 +2,11 @@ package org.stellar.anchor.platform.event;
 
 import static org.stellar.anchor.event.EventService.*;
 import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.MetricConstants.*;
+import static org.stellar.anchor.util.MetricConstants.EVENT_RECEIVED;
 import static org.stellar.anchor.util.StringHelper.json;
 
+import io.micrometer.core.instrument.Metrics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
@@ -16,34 +19,50 @@ import lombok.SneakyThrows;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
+import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
 import org.stellar.anchor.platform.utils.DaemonExecutors;
+import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
+import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.util.Log;
 
 public class EventProcessorManager {
   public static final String CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX =
       "client-status-callback-";
   public static final String CALLBACK_API_EVENT_PROCESSOR_NAME = "callback-api-";
+  private final SecretConfig secretConfig;
   private final EventProcessorConfig eventProcessorConfig;
   private final CallbackApiConfig callbackApiConfig;
   private final ClientsConfig clientsConfig;
   private final EventService eventService;
+  private final AssetService assetService;
+  private final Sep24TransactionStore sep24TransactionStore;
+  private final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
   private final List<EventProcessor> processors = new ArrayList<>();
 
   public EventProcessorManager(
+      SecretConfig secretConfig,
       EventProcessorConfig eventProcessorConfig,
       CallbackApiConfig callbackApiConfig,
       ClientsConfig clientsConfig,
-      EventService eventService) {
+      EventService eventService,
+      AssetService assetService,
+      Sep24TransactionStore sep24TransactionStore,
+      MoreInfoUrlConstructor moreInfoUrlConstructor) {
+    this.secretConfig = secretConfig;
     this.eventProcessorConfig = eventProcessorConfig;
     this.callbackApiConfig = callbackApiConfig;
     this.clientsConfig = clientsConfig;
     this.eventService = eventService;
+    this.assetService = assetService;
+    this.sep24TransactionStore = sep24TransactionStore;
+    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
 
   @PostConstruct
@@ -85,7 +104,12 @@ public class EventProcessorManager {
               new EventProcessor(
                   processorName,
                   EventQueue.TRANSACTION,
-                  new ClientStatusCallbackHandler(clientConfig)));
+                  new ClientStatusCallbackHandler(
+                      secretConfig,
+                      clientConfig,
+                      sep24TransactionStore,
+                      assetService,
+                      moreInfoUrlConstructor)));
         }
       }
     }
@@ -148,6 +172,8 @@ public class EventProcessorManager {
         while (!Thread.currentThread().isInterrupted() && !stopped) {
           ReadResponse readResponse = queueSession.read();
           List<AnchorEvent> events = readResponse.getEvents();
+          Metrics.counter(EVENT_RECEIVED, QUEUE, toMetricTag(eventQueue.name()))
+              .increment(events.size());
           debugF("Received {} events from queue", events.size());
           events.forEach(
               event -> {
@@ -158,6 +184,8 @@ public class EventProcessorManager {
                   try {
                     eventHandler.handleEvent(event);
                     isProcessed = true;
+                    Metrics.counter(EVENT_PROCESSED, QUEUE, toMetricTag(eventQueue.name()))
+                        .increment(events.size());
                   } catch (Exception e) {
                     Log.errorEx(e);
                     backoffTimer(attempts++);
@@ -191,6 +219,17 @@ public class EventProcessorManager {
 
     long getConsumerRestartCount() {
       return ((ScheduledThreadPoolExecutor) consumerScheduler).getCompletedTaskCount();
+    }
+  }
+
+  private String toMetricTag(String name) {
+    switch (name) {
+      case CALLBACK_API_EVENT_PROCESSOR_NAME:
+        return TV_BUSINESS_SERVER_CALLBACK;
+      case CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX:
+        return TV_STATUS_CALLBACK;
+      default:
+        return TV_UNKNOWN;
     }
   }
 }

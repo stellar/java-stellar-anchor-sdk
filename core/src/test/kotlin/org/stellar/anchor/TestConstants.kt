@@ -7,6 +7,7 @@ class TestConstants {
     const val TEST_MEMO = "123"
     const val TEST_WEB_AUTH_DOMAIN = "test.stellar.org/auth"
     const val TEST_CLIENT_DOMAIN = "test.client.stellar.org"
+    const val TEST_CLIENT_NAME = "test_client"
     const val TEST_HOME_DOMAIN = "test.stellar.org"
     const val TEST_JWT_SECRET = "jwt_secret"
     const val TEST_ASSET = "USDC"

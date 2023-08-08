@@ -1,0 +1,11 @@
+wallet:
+  #  Port this server is being run on
+  port: 8092
+  # The hostname of this server
+  hostname: "localhost:8092"
+
+anchor:
+  # The domain of the anchor server
+  domain: "localhost:8080"
+  # The endpoint of the anchor server
+  endpoint: "http://localhost:8080"

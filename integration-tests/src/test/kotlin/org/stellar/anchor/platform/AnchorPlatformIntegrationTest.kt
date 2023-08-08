@@ -13,6 +13,7 @@ class AnchorPlatformIntegrationTest :
     @BeforeAll
     @JvmStatic
     fun construct() {
+      println("Running AnchorPlatformIntegrationTest")
       singleton.setUp()
     }
 
