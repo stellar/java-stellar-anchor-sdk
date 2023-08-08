@@ -13,8 +13,11 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.skyscreamer.jsonassert.JSONAssert
+import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
@@ -65,6 +68,14 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
   private val walletServerClient = WalletServerClient(Url(config.env["wallet.server.url"]!!))
+  private val jwtService: JwtService =
+    JwtService(
+      config.env["secret.sep10.jwt_secret"]!!,
+      config.env["secret.sep24.interactive_url.jwt_secret"]!!,
+      config.env["secret.sep24.more_info_url.jwt_secret"]!!,
+      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.platform_api.auth_secret"]!!
+    )
 
   private fun `test typical deposit end-to-end flow`(asset: StellarAssetId, amount: String) =
     runBlocking {
@@ -104,6 +115,10 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
   private suspend fun makeDeposit(asset: StellarAssetId, amount: String, token: AuthToken): String {
     // Start interactive deposit
     val deposit = anchor.interactive().deposit(asset, token, mapOf("amount" to amount))
+    val params = UriComponentsBuilder.fromUriString(deposit.url).build().queryParams
+    val cipher = params["token"]!![0]
+    val interactiveJwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
+    assertEquals("referenceCustodial", interactiveJwt.claims[JwtService.CLIENT_NAME])
     // Get transaction status and make sure it is INCOMPLETE
     val transaction = anchor.getTransaction(deposit.id, token)
     assertEquals(INCOMPLETE, transaction.status)
