@@ -5,16 +5,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.Data;
-import lombok.Getter;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 
 public class ConfigMap {
-  @Getter int version;
+  int version;
   final Map<String, ConfigEntry> data;
 
   // ConfigMap keys will be in normalized form (dot separated hierarchy)
   public ConfigMap() {
     data = new HashMap<>();
+  }
+
+  public int getVersion() {
+    return version;
   }
 
   public void setVersion(int version) {
