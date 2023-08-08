@@ -7,4 +7,4 @@ maintainers:
 sources:
   - https://github.com/stellar/java-stellar-anchor-sdk
 name: sep
-version: 0.3.95
+version: 0.3.96
