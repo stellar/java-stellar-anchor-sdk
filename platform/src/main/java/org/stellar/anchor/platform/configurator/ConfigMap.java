@@ -1,21 +1,20 @@
 package org.stellar.anchor.platform.configurator;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.Data;
+import lombok.Getter;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 
 public class ConfigMap {
-  int version;
+  @Getter int version;
   final Map<String, ConfigEntry> data;
 
   // ConfigMap keys will be in normalized form (dot separated hierarchy)
   public ConfigMap() {
     data = new HashMap<>();
-  }
-
-  public int getVersion() {
-    return version;
   }
 
   public void setVersion(int version) {
@@ -70,7 +69,16 @@ public class ConfigMap {
   }
 
   public void merge(ConfigMap config) {
+    // TODO: instead of merging, create a property source with higher precedence
+    // Matches any string of the form: <listName>[<index>].<elementName>
+    Pattern pattern = Pattern.compile("^([a-zA-Z0-9_]+)\\[([0-9]+)]\\.([a-zA-Z0-9_]+)$");
     for (String name : config.names()) {
+      Matcher matcher = pattern.matcher(name);
+      // If the name is a list element, remove potential conflicting list names.
+      if (matcher.find()) {
+        String listName = matcher.group(1);
+        data.remove(listName);
+      }
       data.put(name, config.data.get(name));
     }
   }
