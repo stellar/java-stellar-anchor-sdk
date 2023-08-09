@@ -103,6 +103,10 @@ class NotifyRefundSentHandlerTest {
       "Action[notify_refund_sent] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -129,6 +133,10 @@ class NotifyRefundSentHandlerTest {
       "Action[notify_refund_sent] is not supported. Status[incomplete], kind[withdrawal], protocol[24], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -144,6 +152,10 @@ class NotifyRefundSentHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("refund is required", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -161,6 +173,10 @@ class NotifyRefundSentHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -197,6 +213,10 @@ class NotifyRefundSentHandlerTest {
     request.refund.amountFee.amount = "-0.1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("refund.amountFee.amount should be non-negative", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -235,6 +255,10 @@ class NotifyRefundSentHandlerTest {
       "refund.amount_fee.asset does not match match transaction amount_fee_asset",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -626,6 +650,10 @@ class NotifyRefundSentHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("Refund amount exceeds amount_in", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -906,6 +934,10 @@ class NotifyRefundSentHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("Invalid refund id", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -1032,6 +1064,10 @@ class NotifyRefundSentHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("refund is required", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -1068,5 +1104,9 @@ class NotifyRefundSentHandlerTest {
       "Multiple refunds aren't supported for kind[RECEIVE], protocol[31] and action[notify_refund_sent]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 }

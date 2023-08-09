@@ -14,7 +14,7 @@ import org.stellar.anchor.config.CustodyConfig;
 @Data
 public class PropertyCustodyConfig implements CustodyConfig, Validator {
 
-  private String type;
+  private CustodyType type;
   private HttpClientConfig httpClient;
   private Trustline trustline;
 
@@ -34,7 +34,7 @@ public class PropertyCustodyConfig implements CustodyConfig, Validator {
   }
 
   private void validateType(Errors errors) {
-    if (isEmpty(type)) {
+    if (type == null) {
       errors.rejectValue(
           "type", "custody-type-empty", "The custody.type cannot be empty and must be defined");
     }

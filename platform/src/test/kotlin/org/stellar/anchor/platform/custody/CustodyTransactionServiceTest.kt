@@ -23,7 +23,6 @@ import org.stellar.anchor.api.exception.custody.CustodyBadRequestException
 import org.stellar.anchor.api.exception.custody.CustodyNotFoundException
 import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksCustodyTransactionService
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType.PAYMENT
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
@@ -49,7 +48,7 @@ class CustodyTransactionServiceTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     custodyTransactionService =
-      FireblocksCustodyTransactionService(custodyTransactionRepo, custodyPaymentService)
+      CustodyTransactionService(custodyTransactionRepo, custodyPaymentService)
   }
 
   @Test
@@ -74,27 +73,6 @@ class CustodyTransactionServiceTest {
       entityJson,
       gson.toJson(entityCapture.captured),
       CustomComparator(JSONCompareMode.STRICT, Customization("id") { _, _ -> true })
-    )
-  }
-
-  @Test
-  fun `test create sep24 deposit transaction with hash memo type and integration with Fireblocks`() {
-    val request =
-      gson.fromJson(
-        getResourceFileAsString("custody/api/transaction/create_custody_transaction_request.json"),
-        CreateCustodyTransactionRequest::class.java
-      )
-    request.kind = "deposit"
-    request.memoType = "hash"
-    request.memo = "YzRhMDgzNWItYjFmYy00NDZlLTkzYTUtMTFlYzhiZTk="
-
-    val exception =
-      assertThrows<CustodyBadRequestException> {
-        custodyTransactionService.create(request, PAYMENT)
-      }
-    Assertions.assertEquals(
-      "Memo type [hash] is not supported by Fireblocks custody service",
-      exception.message
     )
   }
 

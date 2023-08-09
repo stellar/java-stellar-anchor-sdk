@@ -87,6 +87,10 @@ class RequestCustomerInfoUpdateHandlerTest {
       "Action[request_customer_info_update] is not supported. Status[pending_receiver], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -103,6 +107,10 @@ class RequestCustomerInfoUpdateHandlerTest {
       "Action[request_customer_info_update] is not supported. Status[incomplete], kind[receive], protocol[31], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -118,6 +126,10 @@ class RequestCustomerInfoUpdateHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test

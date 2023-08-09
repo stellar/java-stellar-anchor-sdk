@@ -118,6 +118,10 @@ class DoStellarRefundHandlerTest {
       "Action[do_stellar_refund] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -135,6 +139,10 @@ class DoStellarRefundHandlerTest {
       "Action[do_stellar_refund] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -152,6 +160,10 @@ class DoStellarRefundHandlerTest {
       "Action[do_stellar_refund] is not supported. Status[incomplete], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -169,6 +181,10 @@ class DoStellarRefundHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -189,6 +205,10 @@ class DoStellarRefundHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("Action[do_stellar_refund] requires enabled custody integration", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -226,6 +246,10 @@ class DoStellarRefundHandlerTest {
     request.refund.amountFee.amount = "-0.1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("refund.amountFee.amount should be non-negative", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -266,6 +290,10 @@ class DoStellarRefundHandlerTest {
       "refund.amount_fee.asset does not match match transaction amount_fee_asset",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -505,6 +533,10 @@ class DoStellarRefundHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("Refund amount exceeds amount_in", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -538,6 +570,10 @@ class DoStellarRefundHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("Refund amount exceeds amount_in", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -571,6 +607,10 @@ class DoStellarRefundHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("Refund amount is less than amount_in", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -616,5 +656,9 @@ class DoStellarRefundHandlerTest {
       "Multiple refunds aren't supported for kind[RECEIVE], protocol[31] and action[do_stellar_refund]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 }

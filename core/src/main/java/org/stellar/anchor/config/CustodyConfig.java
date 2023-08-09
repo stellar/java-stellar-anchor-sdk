@@ -1,12 +1,27 @@
 package org.stellar.anchor.config;
 
+import static org.stellar.anchor.config.CustodyConfig.CustodyType.NONE;
+
 public interface CustodyConfig {
 
-  String NONE_CUSTODY_TYPE = "none";
-
   default boolean isCustodyIntegrationEnabled() {
-    return !NONE_CUSTODY_TYPE.equals(getType());
+    return NONE != getType();
   }
 
-  String getType();
+  CustodyType getType();
+
+  enum CustodyType {
+    NONE("none"),
+    FIREBLOCKS("fireblocks");
+
+    private final String type;
+
+    CustodyType(String type) {
+      this.type = type;
+    }
+
+    public String toString() {
+      return type;
+    }
+  }
 }

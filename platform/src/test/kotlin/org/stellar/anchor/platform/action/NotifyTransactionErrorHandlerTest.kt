@@ -98,6 +98,10 @@ class NotifyTransactionErrorHandlerTest {
       "Action[notify_transaction_error] is not supported. Status[error], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -114,6 +118,10 @@ class NotifyTransactionErrorHandlerTest {
       "Action[notify_transaction_error] is not supported. Status[expired], kind[null], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -130,6 +138,10 @@ class NotifyTransactionErrorHandlerTest {
       "Action[notify_transaction_error] is not supported. Status[completed], kind[null], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -143,6 +155,10 @@ class NotifyTransactionErrorHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("message is required", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -159,6 +175,10 @@ class NotifyTransactionErrorHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test

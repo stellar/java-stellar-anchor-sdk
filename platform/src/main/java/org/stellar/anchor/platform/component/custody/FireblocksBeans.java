@@ -16,7 +16,6 @@ import org.stellar.anchor.platform.custody.CustodyTransactionService;
 import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
 import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient;
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksCustodyTransactionService;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksPaymentService;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
@@ -69,12 +68,5 @@ public class FireblocksBeans {
   CustodyPaymentService<TransactionDetails> custodyPaymentService(
       FireblocksApiClient fireblocksApiClient, FireblocksConfig fireblocksConfig) {
     return new FireblocksPaymentService(fireblocksApiClient, fireblocksConfig);
-  }
-
-  @Bean
-  CustodyTransactionService fireblocksCustodyTransactionService(
-      JdbcCustodyTransactionRepo custodyTransactionRepo,
-      CustodyPaymentService<TransactionDetails> custodyPaymentService) {
-    return new FireblocksCustodyTransactionService(custodyTransactionRepo, custodyPaymentService);
   }
 }
