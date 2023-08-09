@@ -1,6 +1,5 @@
 package org.stellar.anchor.api.event;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.*;
 import org.stellar.anchor.api.platform.GetQuoteResponse;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
@@ -27,11 +26,10 @@ public class AnchorEvent {
   public enum Type {
     TRANSACTION_CREATED("transaction_created"),
     TRANSACTION_STATUS_CHANGED("transaction_status_changed"),
-    @SuppressWarnings("unused")
     TRANSACTION_ERROR("transaction_error"),
     QUOTE_CREATED("quote_created");
 
-    @JsonValue public final String type;
+    public final String type;
 
     Type(String type) {
       this.type = type;
