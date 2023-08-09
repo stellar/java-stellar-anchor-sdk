@@ -17,13 +17,13 @@ import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.KafkaConfig;
+import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
 public class KafkaSession implements EventService.Session {
@@ -31,8 +31,8 @@ public class KafkaSession implements EventService.Session {
   final KafkaConfig kafkaConfig;
   final String sessionName;
   final String topic;
-  Producer<String, AnchorEvent> producer = null;
-  Consumer<String, AnchorEvent> consumer = null;
+  Producer<String, String> producer = null;
+  Consumer<String, String> consumer = null;
 
   KafkaSession(KafkaConfig kafkaConfig, String sessionName, EventQueue queue) {
     this.kafkaConfig = kafkaConfig;
@@ -46,7 +46,8 @@ public class KafkaSession implements EventService.Session {
       if (producer == null) {
         producer = createProducer();
       }
-      ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(topic, event);
+      String serialized = GsonUtils.getInstance().toJson(event);
+      ProducerRecord<String, String> record = new ProducerRecord<>(topic, serialized);
       record.headers().add(new RecordHeader("type", event.getType().type.getBytes()));
       // If the queue is offline, throw an exception
       try {
@@ -76,15 +77,17 @@ public class KafkaSession implements EventService.Session {
       consumer.subscribe(java.util.Collections.singletonList(topic));
     }
 
-    ConsumerRecords<String, AnchorEvent> consumerRecords =
+    ConsumerRecords<String, String> consumerRecords =
         consumer.poll(Duration.ofSeconds(kafkaConfig.getPollTimeoutSeconds()));
     ArrayList<AnchorEvent> events = new ArrayList<>(consumerRecords.count());
     if (consumerRecords.isEmpty()) {
       Log.debugF("Received {} Kafka records", consumerRecords.count());
     } else {
       Log.infoF("Received {} Kafka records", consumerRecords.count());
-      for (ConsumerRecord<String, AnchorEvent> record : consumerRecords) {
-        events.add(record.value());
+      for (ConsumerRecord<String, String> record : consumerRecords) {
+        AnchorEvent deserialized =
+            GsonUtils.getInstance().fromJson(record.value(), AnchorEvent.class);
+        events.add(deserialized);
       }
       // TOOD: emit metrics here.
     }
@@ -123,13 +126,13 @@ public class KafkaSession implements EventService.Session {
     return sessionName;
   }
 
-  private Producer<String, AnchorEvent> createProducer() {
+  private Producer<String, String> createProducer() {
     Log.debugF("kafkaConfig: {}", kafkaConfig);
 
     Properties props = new Properties();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
     props.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-    props.put(VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+    props.put(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     if (!isEmpty(kafkaConfig.getClientId())) {
       props.put(CLIENT_ID_CONFIG, kafkaConfig.getClientId());
     }
@@ -144,7 +147,7 @@ public class KafkaSession implements EventService.Session {
     return new KafkaProducer<>(props);
   }
 
-  Consumer<String, AnchorEvent> createConsumer() {
+  Consumer<String, String> createConsumer() {
     Properties props = new Properties();
 
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
@@ -156,7 +159,7 @@ public class KafkaSession implements EventService.Session {
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 
     return new KafkaConsumer<>(props);
   }
