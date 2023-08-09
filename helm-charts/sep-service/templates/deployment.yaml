@@ -27,8 +27,8 @@ spec:
       {{- if (.Values.deployment).annotations }}
       annotations:
       {{- range $key, $value := .Values.deployment.annotations }}
-          {{ $key }}: {{ $value | quote }}
-          {{- end }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
       {{- end }}
     spec:
       {{- if (.Values.deployment).serviceAccountName }}
@@ -146,11 +146,11 @@ spec:
         {{ $key }}: {{ $value }}
         {{- end }}
         {{- end }}
-      {{- if (.Values.deployment).annotations }}
+      {{- if (.Values.stellarObserver.deployment).annotations }}
       annotations:
-        {{- range $key, $value := .Values.deployment.annotations }}
-          {{ $key }}: {{ $value | quote }}
-          {{- end }}
+        {{- range $key, $value := .Values.stellarObserver.deployment.annotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
       {{- end }}
     spec:
       {{- if (.Values.deployment).serviceAccountName }}
