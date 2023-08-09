@@ -1,6 +1,7 @@
 package org.stellar.anchor.sep1;
 
 import static org.stellar.anchor.util.Log.debug;
+import static org.stellar.anchor.util.Log.debugF;
 
 import java.io.IOException;
 import java.nio.file.Path;
