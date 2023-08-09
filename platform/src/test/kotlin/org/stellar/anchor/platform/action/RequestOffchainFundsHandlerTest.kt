@@ -98,6 +98,10 @@ class RequestOffchainFundsHandlerTest {
       "Action[request_offchain_funds] is not supported. Status[incomplete], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -115,6 +119,10 @@ class RequestOffchainFundsHandlerTest {
       "Action[request_offchain_funds] is not supported. Status[pending_external], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -133,6 +141,10 @@ class RequestOffchainFundsHandlerTest {
       "Action[request_offchain_funds] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -150,6 +162,10 @@ class RequestOffchainFundsHandlerTest {
       "Action[request_offchain_funds] is not supported. Status[incomplete], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -166,6 +182,10 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -439,6 +459,10 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("amount_in is required", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -457,6 +481,10 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("amount_out is required", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -477,6 +505,10 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("amount_fee is required", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -501,6 +533,10 @@ class RequestOffchainFundsHandlerTest {
       "All or none of the amount_in, amount_out, and amount_fee should be set",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -541,6 +577,10 @@ class RequestOffchainFundsHandlerTest {
     request.amountExpected.amount = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_expected.amount should be positive", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -576,5 +616,9 @@ class RequestOffchainFundsHandlerTest {
     request.amountFee.asset = STELLAR_USDC
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_fee.asset should be non-stellar asset", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 }

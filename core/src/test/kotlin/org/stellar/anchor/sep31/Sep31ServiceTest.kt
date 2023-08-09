@@ -32,11 +32,8 @@ import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.config.CustodyConfig
-import org.stellar.anchor.config.CustodySecretConfig
-import org.stellar.anchor.config.SecretConfig
-import org.stellar.anchor.config.Sep31Config
+import org.stellar.anchor.config.*
+import org.stellar.anchor.config.CustodyConfig.CustodyType.NONE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.custody.CustodyService
@@ -305,7 +302,7 @@ class Sep31ServiceTest {
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
-    every { custodyConfig.type } returns "fireblocks"
+    every { custodyConfig.type } returns NONE
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
 

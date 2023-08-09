@@ -110,6 +110,10 @@ class DoStellarPaymentHandlerTest {
       "Action[do_stellar_payment] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -129,6 +133,10 @@ class DoStellarPaymentHandlerTest {
       "Action[do_stellar_payment] is not supported. Status[pending_trust], kind[deposit], protocol[24], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -145,6 +153,10 @@ class DoStellarPaymentHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals("Action[do_stellar_payment] requires disabled custody integration", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -163,6 +175,10 @@ class DoStellarPaymentHandlerTest {
       "Action[do_stellar_payment] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -180,6 +196,10 @@ class DoStellarPaymentHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test

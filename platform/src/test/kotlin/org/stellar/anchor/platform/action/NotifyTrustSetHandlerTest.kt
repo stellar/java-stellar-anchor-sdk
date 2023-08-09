@@ -97,6 +97,10 @@ class NotifyTrustSetHandlerTest {
       "Action[notify_trust_set] is not supported. Status[pending_trust], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -114,6 +118,10 @@ class NotifyTrustSetHandlerTest {
       "Action[notify_trust_set] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -131,6 +139,10 @@ class NotifyTrustSetHandlerTest {
       "Action[notify_trust_set] is not supported. Status[pending_anchor], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -147,6 +159,10 @@ class NotifyTrustSetHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test

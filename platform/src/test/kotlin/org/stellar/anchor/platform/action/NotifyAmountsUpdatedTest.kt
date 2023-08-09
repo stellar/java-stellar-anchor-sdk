@@ -99,6 +99,10 @@ class NotifyAmountsUpdatedTest {
       "Action[notify_amounts_updated] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -117,6 +121,10 @@ class NotifyAmountsUpdatedTest {
       "Action[notify_amounts_updated] is not supported. Status[incomplete], kind[withdrawal], protocol[24], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -135,6 +143,10 @@ class NotifyAmountsUpdatedTest {
       "Action[notify_amounts_updated] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -152,6 +164,10 @@ class NotifyAmountsUpdatedTest {
       "Action[notify_amounts_updated] is not supported. Status[pending_anchor], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -169,6 +185,10 @@ class NotifyAmountsUpdatedTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -201,6 +221,10 @@ class NotifyAmountsUpdatedTest {
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_fee.amount should be non-negative", ex.message)
     request.amountFee.amount = "1"
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
