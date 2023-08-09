@@ -71,10 +71,12 @@ public class ConfigMap {
         .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getValue()));
   }
 
+  // TODO: instead of merging, create a property source with higher precedence
   public void merge(ConfigMap config) {
-    // TODO: instead of merging, create a property source with higher precedence
     // Matches any string of the form: <listName>[<index>].<elementName>
-    Pattern pattern = Pattern.compile("^([a-zA-Z0-9_]+)\\[([0-9]+)]\\.([a-zA-Z0-9_]+)$");
+    // <listName> can be a dot separated hierarchy of names.
+    Pattern pattern =
+        Pattern.compile("^([a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)*)\\[(\\d+)](?:\\.[a-zA-Z0-9_]+)*$");
     for (String name : config.names()) {
       Matcher matcher = pattern.matcher(name);
       // If the name is a list element, remove potential conflicting list names.
