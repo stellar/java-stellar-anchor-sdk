@@ -178,6 +178,12 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     assertTrue(txs.size <= records.size)
 
     val txIds = txs.stream().map { it.id }.toList()
+    val recordTxIds = records.stream().map { it.id }.toList()
+    val filteredTxIds = records.stream().map { it.id }.filter { txIds.contains(it) }.toList()
+    printRequest("!!! FIRST LIST: $txIds")
+    printRequest("!!! SECOND LIST: $recordTxIds")
+    printRequest("!!! FILTERED LIST: $filteredTxIds")
+
     assertEquals(
       txIds.toString(),
       records.stream().map { it.id }.filter { txIds.contains(it) }.toList().toString(),
