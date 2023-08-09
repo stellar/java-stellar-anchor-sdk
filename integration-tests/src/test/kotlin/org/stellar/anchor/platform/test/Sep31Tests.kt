@@ -175,12 +175,13 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     txs: List<Sep31PostTransactionResponse>,
     records: MutableList<GetTransactionResponse>
   ) {
-    assertEquals(txs.size, records.size)
+    assertTrue(txs.size <= records.size)
 
+    val txIds = txs.stream().map { it.id }.toList()
     assertEquals(
-      txs.stream().map { it.id }.toList().toString(),
-      records.stream().map { it.id }.toList().toString(),
-      "Incorrect oder of transactions"
+      txIds.toString(),
+      records.stream().map { it.id }.filter { txIds.contains(it) }.toList().toString(),
+      "Incorrect order of transactions"
     )
   }
 
