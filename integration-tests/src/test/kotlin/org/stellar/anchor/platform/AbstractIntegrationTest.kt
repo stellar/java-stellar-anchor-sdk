@@ -28,6 +28,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   lateinit var sep38Tests: Sep38Tests
   lateinit var sepHealthTests: SepHealthTests
   lateinit var platformApiTests: PlatformApiTests
+  lateinit var platformApiCustodyTests: PlatformApiCustodyTests
   lateinit var callbackApiTests: CallbackApiTests
   lateinit var stellarObserverTests: StellarObserverTests
   lateinit var custodyApiTests: CustodyApiTests
@@ -65,6 +66,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     sep38Tests = Sep38Tests(config, toml, jwt)
     sepHealthTests = SepHealthTests(config, toml, jwt)
     platformApiTests = PlatformApiTests(config, toml, jwt)
+    platformApiCustodyTests = PlatformApiCustodyTests(config, toml, jwt)
     callbackApiTests = CallbackApiTests(config, toml, jwt)
     stellarObserverTests = StellarObserverTests()
     custodyApiTests = CustodyApiTests(config, toml, jwt)
