@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.controller.sep;
 
+import java.io.IOException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,17 +41,13 @@ public class Sep1Controller {
   @RequestMapping(
       value = "/.well-known/stellar.toml",
       method = {RequestMethod.GET, RequestMethod.OPTIONS})
-  public ResponseEntity<String> getToml() throws SepNotFoundException {
+  public ResponseEntity<String> getToml() throws IOException, SepNotFoundException {
     if (!sep1Config.isEnabled()) {
       throw new SepNotFoundException("Not Found");
     }
     HttpHeaders headers = new HttpHeaders();
     headers.set("content-type", "text/plain");
-    try {
-      return ResponseEntity.ok().headers(headers).body(sep1Service.getStellarToml());
-    } catch (Exception e) {
-      throw new SepNotFoundException("There was an error fetching the TOML file.");
-    }
+    return ResponseEntity.ok().headers(headers).body(sep1Service.getStellarToml());
   }
 
   @ExceptionHandler({SepNotFoundException.class})
