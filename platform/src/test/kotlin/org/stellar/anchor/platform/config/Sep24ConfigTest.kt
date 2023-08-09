@@ -12,6 +12,8 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.config.CustodyConfig
+import org.stellar.anchor.config.CustodyConfig.CustodyType.FIREBLOCKS
+import org.stellar.anchor.config.CustodyConfig.CustodyType.NONE
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config
 import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig
@@ -110,7 +112,7 @@ class Sep24ConfigTest {
     config.features = Sep24Config.Features()
     config.features.accountCreation = false
     config.features.claimableBalances = false
-    every { custodyConfig.type } returns "fireblocks"
+    every { custodyConfig.type } returns FIREBLOCKS
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }
@@ -120,7 +122,7 @@ class Sep24ConfigTest {
     config.features = Sep24Config.Features()
     config.features.accountCreation = true
     config.features.claimableBalances = true
-    every { custodyConfig.type } returns CustodyConfig.NONE_CUSTODY_TYPE
+    every { custodyConfig.type } returns NONE
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }

@@ -65,6 +65,7 @@ import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.TransactionHelper;
 
@@ -334,6 +335,14 @@ public class Sep31Service {
     Sep31Transaction txn = Context.get().getTransaction();
     SepDepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
     infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
+
+    if (!CustodyUtils.isMemoTypeSupported(custodyConfig.getType(), depositInfo.getMemoType())) {
+      throw new BadRequestException(
+          String.format(
+              "Memo type[%s] is not supported for custody type[%s]",
+              depositInfo.getMemoType(), custodyConfig.getType()));
+    }
+
     txn.setStellarAccountId(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());
     txn.setStellarMemoType(isEmpty(depositInfo.getMemoType()) ? "none" : depositInfo.getMemoType());

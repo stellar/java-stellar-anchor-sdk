@@ -3,10 +3,14 @@ package org.stellar.anchor.platform.config
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.config.CustodyConfig.CustodyType
+import org.stellar.anchor.config.CustodyConfig.CustodyType.FIREBLOCKS
+import org.stellar.anchor.config.CustodyConfig.CustodyType.NONE
 import org.stellar.anchor.platform.config.PropertyCustodyConfig.Trustline
 
 class PropertyCustodyConfigTest {
@@ -17,15 +21,15 @@ class PropertyCustodyConfigTest {
   @BeforeEach
   fun setUp() {
     config = PropertyCustodyConfig()
-    config.type = "custodyType"
+    config.type = FIREBLOCKS
     config.httpClient = HttpClientConfig(10, 30, 30, 60)
     config.trustline = Trustline("* * * * * *", 10, "testMessage")
     errors = BindException(config, "config")
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["none", "fireblocks"])
-  fun `test valid type`(type: String) {
+  @EnumSource(names = ["NONE", "FIREBLOCKS"])
+  fun `test valid type`(type: CustodyType) {
     config.type = type
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
@@ -35,7 +39,7 @@ class PropertyCustodyConfigTest {
   @NullSource
   @ValueSource(strings = [""])
   fun `test empty type`(type: String?) {
-    config.type = type
+    config.type = null
     config.validate(config, errors)
     assertErrorCode(errors, "custody-type-empty")
   }
@@ -107,7 +111,7 @@ class PropertyCustodyConfigTest {
   @ParameterizedTest
   @ValueSource(ints = [-1, Int.MIN_VALUE])
   fun `test invalid http_client none type`(timeout: Int) {
-    config.type = "none"
+    config.type = NONE
     config.httpClient.connectTimeout = timeout
     config.httpClient.readTimeout = timeout
     config.httpClient.writeTimeout = timeout
@@ -159,7 +163,7 @@ class PropertyCustodyConfigTest {
   @ParameterizedTest
   @ValueSource(ints = [-1, Int.MIN_VALUE])
   fun `test invalid trustline none type`(timeout: Int) {
-    config.type = "none"
+    config.type = NONE
     config.trustline.checkDuration = timeout
     config.validate(config, errors)
     assertFalse(errors.hasErrors())

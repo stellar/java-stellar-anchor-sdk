@@ -99,6 +99,10 @@ class NotifyInteractiveFlowCompletedHandlerTest {
       "Action[notify_interactive_flow_completed] is not supported. Status[incomplete], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -116,6 +120,10 @@ class NotifyInteractiveFlowCompletedHandlerTest {
       "Action[notify_interactive_flow_completed] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -131,6 +139,10 @@ class NotifyInteractiveFlowCompletedHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -342,6 +354,10 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     request.amountExpected.amount = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_expected.amount should be positive", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -378,6 +394,10 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_fee.asset should be non-stellar asset", ex.message)
     request.amountFee.asset = FIAT_USD
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -414,5 +434,9 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_fee.asset should be stellar asset", ex.message)
     request.amountFee.asset = STELLAR_USDC
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 }

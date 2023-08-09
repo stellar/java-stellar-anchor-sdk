@@ -107,6 +107,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
       "Action[notify_offchain_funds_received] is not supported. Status[pending_user_transfer_start], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -124,6 +128,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
       "Action[notify_offchain_funds_received] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -141,6 +149,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
       "Action[notify_offchain_funds_received] is not supported. Status[pending_user_transfer_start], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -159,6 +171,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
       "Action[notify_offchain_funds_received] is not supported. Status[pending_external], kind[withdrawal], protocol[24], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -176,6 +192,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -535,6 +555,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
       "Invalid amounts combination provided: all, none or only amount_in should be set",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -573,5 +597,9 @@ class NotifyOffchainFundsReceivedHandlerTest {
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_fee.amount should be non-negative", ex.message)
     request.amountFee.amount = "1"
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 }
