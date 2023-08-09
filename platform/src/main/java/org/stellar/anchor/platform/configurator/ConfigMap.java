@@ -1,6 +1,8 @@
 package org.stellar.anchor.platform.configurator;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.Data;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -69,8 +71,19 @@ public class ConfigMap {
         .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getValue()));
   }
 
+  // TODO: instead of merging, create a property source with higher precedence
   public void merge(ConfigMap config) {
+    // Matches any string of the form: <listName>[<index>].<elementName>
+    // <listName> can be a dot separated hierarchy of names.
+    Pattern pattern =
+        Pattern.compile("^([a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)*)\\[(\\d+)](?:\\.[a-zA-Z0-9_]+)*$");
     for (String name : config.names()) {
+      Matcher matcher = pattern.matcher(name);
+      // If the name is a list element, remove potential conflicting list names.
+      if (matcher.find()) {
+        String listName = matcher.group(1);
+        data.remove(listName);
+      }
       data.put(name, config.data.get(name));
     }
   }
