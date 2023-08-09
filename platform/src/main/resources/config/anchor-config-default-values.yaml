@@ -219,7 +219,7 @@ sep1:
   ## @type: bool
   ## Whether to enable SEP-1 for this instance of AP server.
   #
-  enabled: true
+  enabled: false
   toml:
     ## @param: type
     ## @type: string
@@ -227,11 +227,11 @@ sep1:
     ##     `string`: value contains the content of the stellar toml file
     ##     `file`: value contains the path to the stellar toml file
     ##     `url`: value contains the url to the stellar toml file
-    type: url
+    type: file
     ## @param: value
     ## @type: string
     #
-    value: http://169.254.169.254/latest/meta-data/
+    value: |
 
 
 sep10:
