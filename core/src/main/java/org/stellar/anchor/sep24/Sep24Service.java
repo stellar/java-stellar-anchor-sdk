@@ -354,6 +354,15 @@ public class Sep24Service {
 
     if (memo != null) {
       debug("transaction memo detected.", memo);
+
+      if (!CustodyUtils.isMemoTypeSupported(
+          custodyConfig.getType(), memoTypeString(memoType(memo)))) {
+        throw new SepValidationException(
+            String.format(
+                "Memo type[%s] is not supported for custody type[%s]",
+                memoTypeString(memoType(memo)), custodyConfig.getType()));
+      }
+
       builder.memo(memo.toString());
       builder.memoType(memoTypeString(memoType(memo)));
     }
