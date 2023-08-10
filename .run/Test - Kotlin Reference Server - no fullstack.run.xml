@@ -1,0 +1,19 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Test - Kotlin Reference Server - no fullstack" type="JUnit" factoryName="JUnit">
+    <module name="java-stellar-anchor-sdk.integration-tests.test" />
+    <shortenClasspath name="ARGS_FILE" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="org.stellar.anchor.platform.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <option name="PACKAGE_NAME" value="org.stellar.anchor.platform" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.KotlinReferenceServerIntegrationTest" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="class" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

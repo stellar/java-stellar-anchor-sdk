@@ -3,6 +3,7 @@ package org.stellar.anchor.apiclient;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
@@ -15,24 +16,41 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.platform.*;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.auth.AuthHelper;
-import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.OkHttpUtil;
 
+/** The client for the PlatformAPI endpoints. */
 public class PlatformApiClient extends BaseApiClient {
-  private final AuthHelper authHelper;
-  private final String endpoint;
-
   public PlatformApiClient(AuthHelper authHelper, String endpoint) {
-    this.authHelper = authHelper;
-    this.endpoint = endpoint;
+    super(authHelper, endpoint);
   }
 
+  /**
+   * Get the transaction with the given id by calling the /transactions/{id} endpoint.
+   *
+   * @param id the id of the transaction to get.
+   * @return the GetTransactionResponse.
+   * @throws IOException if the request fails due to IO errors.
+   * @throws AnchorException if the response is not successful.
+   */
   public GetTransactionResponse getTransaction(String id) throws IOException, AnchorException {
     Request request = getRequestBuilder().url(endpoint + "/transactions/" + id).get().build();
     String responseBody = handleResponse(client.newCall(request).execute());
     return gson.fromJson(responseBody, GetTransactionResponse.class);
   }
 
+  /**
+   * Search the transactions with the given filters by calling the /transactions endpoint.
+   *
+   * @param sep The SEP number (eg: 6, 24, 31) to filter by.
+   * @param order_by The field to order by.
+   * @param order The direction to order by.
+   * @param statuses The statuses to filter by.
+   * @param pageSize The number of transactions to return per page.
+   * @param pageNumber The page number of the search.
+   * @return The GetTransactionsResponse.
+   * @throws IOException if the request fails due to IO errors.
+   * @throws AnchorException if the response is not successful.
+   */
   public GetTransactionsResponse getTransactions(
       TransactionsSeps sep,
       @Nullable TransactionsOrderBy order_by,
@@ -41,7 +59,8 @@ public class PlatformApiClient extends BaseApiClient {
       @Nullable Integer pageSize,
       @Nullable Integer pageNumber)
       throws IOException, AnchorException {
-    HttpUrl.Builder builder = HttpUrl.parse(endpoint + "/transactions").newBuilder();
+    HttpUrl.Builder builder =
+        Objects.requireNonNull(HttpUrl.parse(endpoint + "/transactions")).newBuilder();
 
     builder.addQueryParameter("sep", sep.name().toLowerCase().replaceAll("sep_", ""));
 
@@ -56,13 +75,14 @@ public class PlatformApiClient extends BaseApiClient {
     return gson.fromJson(responseBody, GetTransactionsResponse.class);
   }
 
-  private <T> void addToBuilder(
-      HttpUrl.Builder builder, T val, String name, Function<T, String> f) {
-    if (val != null) {
-      builder.addQueryParameter(name, f.apply(val));
-    }
-  }
-
+  /**
+   * Patch the transaction.
+   *
+   * @param txnRequest The request to patch the transaction.
+   * @return The response of the patch request.
+   * @throws IOException if the request fails due to IO errors.
+   * @throws AnchorException if the response is not successful.
+   */
   public PatchTransactionsResponse patchTransaction(PatchTransactionsRequest txnRequest)
       throws IOException, AnchorException {
     HttpUrl url = HttpUrl.parse(endpoint);
@@ -110,13 +130,10 @@ public class PlatformApiClient extends BaseApiClient {
     return gson.fromJson(responseBody, HashMap.class);
   }
 
-  Request.Builder getRequestBuilder() throws InvalidConfigException {
-    Request.Builder requestBuilder =
-        new Request.Builder().header("Content-Type", "application/json");
-
-    AuthHeader<String, String> authHeader = authHelper.createPlatformServerAuthHeader();
-    return authHeader == null
-        ? requestBuilder
-        : requestBuilder.header(authHeader.getName(), authHeader.getValue());
+  private <T> void addToBuilder(
+      HttpUrl.Builder builder, T val, String name, Function<T, String> f) {
+    if (val != null) {
+      builder.addQueryParameter(name, f.apply(val));
+    }
   }
 }

@@ -6,7 +6,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.logging.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.stellar.reference.ClientException
@@ -68,7 +68,7 @@ fun Route.testSep24(
             val stellarAsset = asset.replace("stellar:", "")
 
             // Run deposit processing asynchronously
-            CoroutineScope(Job()).launch {
+            CoroutineScope(Dispatchers.Default).launch {
               depositService.processDeposit(
                 transactionId,
                 amountExpected,
@@ -88,7 +88,7 @@ fun Route.testSep24(
             val stellarAsset = asset.replace("stellar:", "")
 
             // Run deposit processing asynchronously
-            CoroutineScope(Job()).launch {
+            CoroutineScope(Dispatchers.Default).launch {
               withdrawalService.processWithdrawal(transactionId, amountExpected, stellarAsset)
             }
           }

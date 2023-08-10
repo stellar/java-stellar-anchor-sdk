@@ -5,13 +5,63 @@ import kotlin.test.assertNull
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.io.ClassPathResource
 import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.DEFAULT
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.FILE
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class ConfigManagerTest {
+  val configManager =
+    spyk(
+      object : ConfigManager() {
+        override fun initialize(context: ConfigurableApplicationContext) {}
+      }
+    )
+  @Test
+  fun `test reading a file and it is processed correctly`() {
+    val testingConfigFile = ClassPathResource("config/test_anchor_config.yaml")
+    every { configManager.getConfigFileAsResource(any()) } returns testingConfigFile
+
+    val config = configManager.processConfigurations(null)
+    assertEquals(config.get("languages").value, "tw, en, fr")
+    assertEquals(config.get("clients[0].name").value, "vibrant")
+    assertEquals(config.get("clients[0].domain").value, "vibrant.co")
+    assertEquals(
+      config.get("clients[0].callback_url").value,
+      "https://callback.vibrant.com/api/v2/anchor/callback"
+    )
+    assertEquals(
+      config.get("clients[0].signing_key").value,
+      "GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU"
+    )
+
+    assertEquals(config.get("clients[1].name").value, "lobstr")
+    assertEquals(config.get("clients[1].type").value, "noncustodial")
+    assertEquals(config.get("clients[1].domain").value, "lobstr.co")
+    assertEquals(
+      config.get("clients[1].callback_url").value,
+      "https://callback.lobstr.co/api/v2/anchor/callback"
+    )
+  }
+  @Test
+  fun `test reading a file missing version throws an exception`() {
+    val testingConfigFile = ClassPathResource("config/test_anchor_config_missing_version.yaml")
+    every { configManager.getConfigFileAsResource(any()) } returns testingConfigFile
+
+    val ex =
+      org.junit.jupiter.api.assertThrows<IllegalStateException> {
+        configManager.processConfigurations(null)
+      }
+    assertEquals(
+      ex.message,
+      "java.io.FileNotFoundException: class path resource [config/anchor-config-schema-v0.yaml] cannot be opened because it does not exist"
+    )
+  }
+}
+
+@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
+class ConfigManagerTestExt {
   private lateinit var configManager: ConfigManager
 
   @BeforeEach

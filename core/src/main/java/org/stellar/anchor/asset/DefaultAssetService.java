@@ -1,14 +1,11 @@
 package org.stellar.anchor.asset;
 
-import static org.stellar.anchor.util.Log.error;
 import static org.stellar.anchor.util.Log.infoF;
 
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
@@ -25,7 +22,7 @@ public class DefaultAssetService implements AssetService {
   Assets assets;
 
   public static DefaultAssetService fromAssetConfig(AssetsConfig assetsConfig)
-      throws InvalidConfigException, IOException {
+      throws InvalidConfigException {
     switch (assetsConfig.getType()) {
       case JSON:
         return fromJson(assetsConfig.getValue());
@@ -68,20 +65,7 @@ public class DefaultAssetService implements AssetService {
   public static DefaultAssetService fromJson(String assetsJson) throws InvalidConfigException {
     DefaultAssetService assetService = new DefaultAssetService();
     assetService.assets = gson.fromJson(assetsJson, Assets.class);
-    if (assetService.assets == null
-        || assetService.assets.getAssets() == null
-        || assetService.assets.getAssets().size() == 0) {
-      error("Invalid asset defined. content=", assetsJson);
-      throw new InvalidConfigException(
-          "Invalid assets defined in configuration. Please check the logs for details.");
-    }
-    // TODO: remove this check once we support SEP-31 and SEP-38 for native asset
-    AssetInfo nativeAsset = assetService.getAsset("native");
-    if (nativeAsset != null && (nativeAsset.getSep31Enabled() || nativeAsset.getSep38Enabled())) {
-      error("Native asset does not support SEP-31 or SEP-38. content=", assetsJson);
-      throw new InvalidConfigException(
-          "Invalid assets defined in configuration. Please check the logs for details.");
-    }
+    AssetServiceValidator.validate(assetService);
     return assetService;
   }
 

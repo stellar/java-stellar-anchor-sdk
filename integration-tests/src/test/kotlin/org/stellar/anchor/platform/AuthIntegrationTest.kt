@@ -55,9 +55,10 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     @BeforeAll
     @JvmStatic
     fun setup() {
+      println("Running JwtAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(profileName = "default").also {
+          TestConfig(testProfileName = "default").also {
             // enable platform server jwt auth
             it.env["platform_server.auth.type"] = "jwt"
             // enable business server callback auth
@@ -261,9 +262,10 @@ internal class ApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
     @BeforeAll
     @JvmStatic
     fun setup() {
+      println("Running ApiKeyAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(profileName = "default").also {
+          TestConfig(testProfileName = "default").also {
             // enable platform server api_key auth
             it.env["platform_server.auth.type"] = "api_key"
           }

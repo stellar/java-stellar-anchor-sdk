@@ -12,6 +12,8 @@ import io.ktor.server.routing.*
 import mu.KotlinLogging
 import org.stellar.reference.data.Config
 import org.stellar.reference.data.LocationConfig
+import org.stellar.reference.event.EventService
+import org.stellar.reference.plugins.event
 import org.stellar.reference.plugins.sep24
 import org.stellar.reference.plugins.testSep24
 import org.stellar.reference.sep24.DepositService
@@ -66,19 +68,23 @@ fun readCfg(envMap: Map<String, String>?): Config {
 }
 
 fun stopServer() {
-  if (::referenceKotlinSever.isInitialized) (referenceKotlinSever).stop(1000, 1000)
+  log.info("Stopping Kotlin business reference server...")
+  if (::referenceKotlinSever.isInitialized) (referenceKotlinSever).stop(5000, 30000)
+  log.info("Kotlin reference server stopped...")
 }
 
 fun Application.configureRouting(cfg: Config) {
   routing {
     val helper = Sep24Helper(cfg)
-    val deposit = DepositService(cfg)
-    val withdrawal = WithdrawalService(cfg)
+    val depositService = DepositService(cfg)
+    val withdrawalService = WithdrawalService(cfg)
+    val eventService = EventService()
 
-    sep24(helper, deposit, withdrawal, cfg.sep24.interactiveJwtKey)
+    sep24(helper, depositService, withdrawalService, cfg.sep24.interactiveJwtKey)
+    event(eventService)
 
     if (cfg.sep24.enableTest) {
-      testSep24(helper, deposit, withdrawal, cfg.sep24.interactiveJwtKey)
+      testSep24(helper, depositService, withdrawalService, cfg.sep24.interactiveJwtKey)
     }
   }
 }

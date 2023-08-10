@@ -12,18 +12,25 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.reference.config.SqsListenerSettings;
 import org.stellar.anchor.util.Log;
 
 public class SqsListener extends AbstractEventListener {
+  private final SqsListenerSettings sqsListenerSettings;
   private final AnchorEventProcessor processor;
   private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(5);
-  private final AmazonSQSAsync sqsClient;
+  private AmazonSQSAsync sqsClient;
 
   public SqsListener(SqsListenerSettings sqsListenerSettings, AnchorEventProcessor processor) {
+    this.sqsListenerSettings = sqsListenerSettings;
     this.processor = processor;
+  }
+
+  @PostConstruct
+  public void start() {
     this.sqsClient =
         AmazonSQSAsyncClientBuilder.standard()
             .withRegion(sqsListenerSettings.getRegion())
@@ -43,6 +50,12 @@ public class SqsListener extends AbstractEventListener {
           new SqsListen(q.getTransactionCreated()), 0, 10, TimeUnit.SECONDS);
       executor.scheduleAtFixedRate(new SqsListen(q.getTransactionError()), 0, 10, TimeUnit.SECONDS);
     }
+  }
+
+  @PreDestroy
+  public void stop() throws InterruptedException {
+    executor.shutdownNow();
+    executor.awaitTermination(10, TimeUnit.SECONDS);
   }
 
   public List<Message> getSqsMessages(String queueUrl) {
@@ -83,14 +96,5 @@ public class SqsListener extends AbstractEventListener {
         Log.errorEx(ex);
       }
     }
-  }
-
-  public void stop() {
-    executor.shutdownNow();
-  }
-
-  @PreDestroy
-  public void destroy() {
-    stop();
   }
 }

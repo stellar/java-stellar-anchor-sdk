@@ -1,11 +1,14 @@
 package org.stellar.anchor.platform.configurator
 
+import javax.xml.bind.annotation.XmlType.DEFAULT
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.exception.InvalidConfigException
+import org.stellar.anchor.platform.configurator.ConfigMap.ConfigEntry
 
 class ConfigMapTest {
   @Test
@@ -49,5 +52,30 @@ class ConfigMapTest {
     val cm = ConfigMap()
     cm.put(testKey, value, ConfigMap.ConfigSource.ENV)
     Assertions.assertEquals(false, cm.getBoolean(testKey))
+  }
+
+  @Test
+  fun `test merge`() {
+    val cm = ConfigMap()
+    cm.put("clients", "", ConfigMap.ConfigSource.DEFAULT)
+    cm.put("my.property", "", ConfigMap.ConfigSource.DEFAULT)
+    cm.put("other", "", ConfigMap.ConfigSource.DEFAULT)
+    val override = ConfigMap()
+    override.put("clients[0]", "a", ConfigMap.ConfigSource.ENV)
+    override.put("clients[1]", "b", ConfigMap.ConfigSource.ENV)
+    override.put("my.property[0]", "c", ConfigMap.ConfigSource.ENV)
+
+    cm.merge(override)
+
+    assert(
+      cm.data.equals(
+        mapOf(
+          "clients[0]" to ConfigEntry("a", ConfigMap.ConfigSource.ENV),
+          "clients[1]" to ConfigEntry("b", ConfigMap.ConfigSource.ENV),
+          "my.property[0]" to ConfigEntry("c", ConfigMap.ConfigSource.ENV),
+          "other" to ConfigEntry("", ConfigMap.ConfigSource.DEFAULT)
+        )
+      )
+    )
   }
 }

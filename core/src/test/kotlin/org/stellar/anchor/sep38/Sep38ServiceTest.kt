@@ -15,7 +15,8 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.TestHelper.Companion.createSep10Jwt
 import org.stellar.anchor.api.callback.GetRateRequest
-import org.stellar.anchor.api.callback.GetRateRequest.Type.*
+import org.stellar.anchor.api.callback.GetRateRequest.Type.FIRM
+import org.stellar.anchor.api.callback.GetRateRequest.Type.INDICATIVE
 import org.stellar.anchor.api.callback.GetRateResponse
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.event.AnchorEvent.Type.QUOTE_CREATED
@@ -24,7 +25,7 @@ import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.platform.GetQuoteResponse
-import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.operation.Sep38Operation
 import org.stellar.anchor.api.sep.sep38.*
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6
@@ -33,10 +34,11 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.util.StringHelper.json
 
 class Sep38ServiceTest {
-  internal class PropertySep38Config : Sep38Config {
+  class PropertySep38Config : Sep38Config {
     override fun isEnabled(): Boolean {
       return true
     }
@@ -52,15 +54,16 @@ class Sep38ServiceTest {
   }
 
   private lateinit var sep38Service: Sep38Service
+  private val sep38Config = PropertySep38Config()
 
   // store/db related:
   @MockK(relaxed = true) private lateinit var quoteStore: Sep38QuoteStore
-
-  // events related
+  // events
   @MockK(relaxed = true) private lateinit var eventService: EventService
-
-  // sep10 related:
+  @MockK(relaxed = true) private lateinit var eventSession: Session
+  // sep10
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
+  // sep38
 
   @BeforeEach
   fun setUp() {
@@ -68,15 +71,16 @@ class Sep38ServiceTest {
 
     val assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     val assets = assetService.listAllAssets()
-    val sep8Config = PropertySep38Config()
-    this.sep38Service = Sep38Service(sep8Config, assetService, null, null, eventService)
+    this.sep38Service = Sep38Service(sep38Config, assetService, null, null, eventService)
     assertEquals(4, assets.size)
 
     // sep10 related:
     every { secretConfig.sep10JwtSecretKey } returns "secret"
-
     // store/db related:
     every { quoteStore.newInstance() } returns PojoSep38Quote()
+    // events related:
+    every { eventService.createSession(any(), EventService.EventQueue.TRANSACTION) } returns
+      eventSession
   }
 
   @AfterEach
@@ -87,7 +91,7 @@ class Sep38ServiceTest {
 
   @Test
   fun `test GET info`() {
-    val infoResponse = sep38Service.getInfo()
+    val infoResponse = sep38Service.info
     assertEquals(3, infoResponse.assets.size)
 
     val assetMap = HashMap<String, InfoResponse.Asset>()
@@ -119,16 +123,10 @@ class Sep38ServiceTest {
     assertNotNull(fiatUSD)
     assertEquals(listOf("USA"), fiatUSD!!.countryCodes)
     val wantSellDeliveryMethod =
-      AssetInfo.Sep38Operation.DeliveryMethod(
-        "WIRE",
-        "Send USD directly to the Anchor's bank account."
-      )
+      Sep38Operation.DeliveryMethod("WIRE", "Send USD directly to the Anchor's bank account.")
     assertEquals(listOf(wantSellDeliveryMethod), fiatUSD.sellDeliveryMethods)
     val wantBuyDeliveryMethod =
-      AssetInfo.Sep38Operation.DeliveryMethod(
-        "WIRE",
-        "Have USD sent directly to your bank account."
-      )
+      Sep38Operation.DeliveryMethod("WIRE", "Have USD sent directly to your bank account.")
     assertEquals(listOf(wantBuyDeliveryMethod), fiatUSD.buyDeliveryMethods)
     wantAssets =
       listOf("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5", stellarUSDC)
@@ -146,13 +144,7 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+      Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
 
     // empty sell_asset
     ex = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
@@ -219,13 +211,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq2) } returns
       GetRateResponse.indicativePrice("2", "100", "200", mockSellAssetFee(fiatUSD))
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+      Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
 
     // test happy path with the minimum parameters
     var gotResponse: GetPricesResponse? = null
@@ -264,13 +250,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq2) } returns
       GetRateResponse.indicativePrice("2.1", "100", "210", mockSellAssetFee(fiatUSD))
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+      Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
 
     // test happy path with all the parameters
     var gotResponse: GetPricesResponse? = null
@@ -296,13 +276,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq1) } returns
       GetRateResponse.indicativePrice("1", "100", "100", mockSellAssetFee(fiatUSD))
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+      Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
 
     // test happy path with the minimum parameters and specify buy_delivery_method
     var gotResponse: GetPricesResponse? = null
@@ -326,13 +300,7 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+      Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
 
     // empty sell_asset
     ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
@@ -478,13 +446,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse.indicativePrice("1.02", "100", "97.0874", mockFee)
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+      Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
 
     // test happy path with the minimum parameters using sellAmount
     val getPriceRequest =
@@ -523,13 +485,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse.indicativePrice("1.02", "103", "100", mockFee)
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+      Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
 
     // test happy path with the minimum parameters using buyAmount
     val getPriceRequest =
@@ -570,13 +526,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse.indicativePrice("1.02", "100", "97.0873786", mockFee)
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+      Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
 
     // test happy path with all the parameters using sellAmount
     val getPriceRequest =
@@ -620,13 +570,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse.indicativePrice("1.02345678901", "103.3456789", "100", mockFee)
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+      Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
 
     // test happy path with all the parameters using buyAmount
     val getPriceRequest =
@@ -663,13 +607,7 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+      Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
 
     // empty sep38QuoteStore should throw an error
     ex = assertThrows { sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build()) }
@@ -679,11 +617,11 @@ class Sep38ServiceTest {
     // mocked quote store
     sep38Service =
       Sep38Service(
-        sep38Service.sep38Config,
+        sep38Config,
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
-        null
+        eventService
       )
 
     // empty token
@@ -986,7 +924,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
     sep38Service =
       Sep38Service(
-        sep38Service.sep38Config,
+        sep38Config,
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
@@ -998,7 +936,7 @@ class Sep38ServiceTest {
 
     // Mock event service
     val slotEvent = slot<AnchorEvent>()
-    every { eventService.publish(capture(slotEvent)) } just Runs
+    every { eventSession.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
     val token = createSep10Jwt()
@@ -1045,7 +983,7 @@ class Sep38ServiceTest {
     assertEquals(mockFee, savedQuote.fee)
 
     // verify the published event
-    verify(exactly = 1) { eventService.publish(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
     val wantEvent = AnchorEvent()
     wantEvent.id = slotEvent.captured.id
     wantEvent.type = QUOTE_CREATED
@@ -1097,7 +1035,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
     sep38Service =
       Sep38Service(
-        sep38Service.sep38Config,
+        sep38Config,
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
@@ -1109,7 +1047,7 @@ class Sep38ServiceTest {
 
     // Mock event service
     val slotEvent = slot<AnchorEvent>()
-    every { eventService.publish(capture(slotEvent)) } just Runs
+    every { eventSession.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
     val token = createSep10Jwt()
@@ -1155,7 +1093,7 @@ class Sep38ServiceTest {
     assertNotNull(savedQuote.createdAt)
 
     // verify the published event
-    verify(exactly = 1) { eventService.publish(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
     val wantEvent = AnchorEvent()
     wantEvent.id = slotEvent.captured.id
     wantEvent.type = QUOTE_CREATED
@@ -1210,7 +1148,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
     sep38Service =
       Sep38Service(
-        sep38Service.sep38Config,
+        sep38Config,
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
@@ -1222,7 +1160,7 @@ class Sep38ServiceTest {
 
     // Mock event service
     val slotEvent = slot<AnchorEvent>()
-    every { eventService.publish(capture(slotEvent)) } just Runs
+    every { eventSession.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
     val token = createSep10Jwt()
@@ -1273,7 +1211,7 @@ class Sep38ServiceTest {
     assertEquals(mockFee, savedQuote.fee)
 
     // verify the published event
-    verify(exactly = 1) { eventService.publish(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
     val wantEvent = AnchorEvent()
     wantEvent.id = slotEvent.captured.id
     wantEvent.type = QUOTE_CREATED
@@ -1327,7 +1265,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
     sep38Service =
       Sep38Service(
-        sep38Service.sep38Config,
+        sep38Config,
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
@@ -1339,7 +1277,7 @@ class Sep38ServiceTest {
 
     // Mock event service
     val slotEvent = slot<AnchorEvent>()
-    every { eventService.publish(capture(slotEvent)) } just Runs
+    every { eventSession.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
     val token = createSep10Jwt()
@@ -1390,7 +1328,7 @@ class Sep38ServiceTest {
     assertNotNull(savedQuote.createdAt)
 
     // verify the published event
-    verify(exactly = 1) { eventService.publish(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
     val wantEvent = AnchorEvent()
     wantEvent.id = slotEvent.captured.id
     wantEvent.type = QUOTE_CREATED
@@ -1452,7 +1390,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
     sep38Service =
       Sep38Service(
-        sep38Service.sep38Config,
+        sep38Config,
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
@@ -1464,7 +1402,7 @@ class Sep38ServiceTest {
 
     // Mock event service
     val slotEvent = slot<AnchorEvent>()
-    every { eventService.publish(capture(slotEvent)) } just Runs
+    every { eventSession.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
     val token = createSep10Jwt()
@@ -1515,7 +1453,7 @@ class Sep38ServiceTest {
     assertNotNull(savedQuote.createdAt)
 
     // verify the published event
-    verify(exactly = 1) { eventService.publish(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
     val wantEvent = AnchorEvent()
     wantEvent.id = slotEvent.captured.id
     wantEvent.type = QUOTE_CREATED
@@ -1546,7 +1484,7 @@ class Sep38ServiceTest {
 
     // mocked quote store
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, null, quoteStore, null)
+      Sep38Service(sep38Config, sep38Service.assetService, null, quoteStore, eventService)
 
     // empty token
     ex = assertThrows { sep38Service.getQuote(null, null) }
@@ -1628,7 +1566,7 @@ class Sep38ServiceTest {
 
     // mocked quote store
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, null, quoteStore, null)
+      Sep38Service(sep38Config, sep38Service.assetService, null, quoteStore, eventService)
 
     // mock quote store response
     val now = Instant.now()
