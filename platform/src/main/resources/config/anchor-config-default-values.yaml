@@ -227,7 +227,7 @@ sep1:
     ##     `string`: value contains the content of the stellar toml file
     ##     `file`: value contains the path to the stellar toml file
     ##     `url`: value contains the url to the stellar toml file
-    type: file
+    type: string
     ## @param: value
     ## @type: string
     #
