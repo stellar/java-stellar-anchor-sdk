@@ -375,7 +375,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       """
 [
   {
-    "type": "TRANSACTION_CREATED",
+    "type": "transaction_created",
     "sep": "24",
     "transaction": {
       "sep": "24",
@@ -387,7 +387,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     }
   },
   {
-    "type": "TRANSACTION_STATUS_CHANGED",
+    "type": "transaction_status_changed",
     "sep": "24",
     "transaction": {
       "sep": "24",
@@ -407,7 +407,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     }
   },
   {
-    "type": "TRANSACTION_STATUS_CHANGED",
+    "type": "transaction_status_changed",
     "sep": "24",
     "transaction": {
       "sep": "24",
@@ -427,7 +427,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     }
   },
   {
-    "type": "TRANSACTION_STATUS_CHANGED",
+    "type": "transaction_status_changed",
     "sep": "24",
     "transaction": {
       "sep": "24",
@@ -467,7 +467,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     """
     [
       {
-        "type": "TRANSACTION_CREATED",
+        "type": "transaction_created",
         "sep": "24",
         "transaction": {
           "sep": "24",
@@ -481,7 +481,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       },
       {
-        "type": "TRANSACTION_STATUS_CHANGED",
+        "type": "transaction_status_changed",
         "sep": "24",
         "transaction": {
           "sep": "24",
@@ -502,7 +502,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       },
       {
-        "type": "TRANSACTION_STATUS_CHANGED",
+        "type": "transaction_status_changed",
         "id": "f0b75f9e-1b53-442a-91dd-d6c002a51bfc",
         "sep": "24",
         "transaction": {
@@ -544,7 +544,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       },
       {
-        "type": "TRANSACTION_STATUS_CHANGED",
+        "type": "transaction_status_changed",
         "id": "b44d90ec-2d9a-4768-a952-085026f5b3da",
         "sep": "24",
         "transaction": {
@@ -586,7 +586,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       },
       {
-        "type": "TRANSACTION_STATUS_CHANGED",
+        "type": "transaction_status_changed",
         "id": "0556b75c-b054-49a0-b778-654050a6cba4",
         "sep": "24",
         "transaction": {
