@@ -1,21 +1,26 @@
 package org.stellar.anchor.util;
 
+import static org.stellar.anchor.util.Log.*;
+
 import com.moandjiezana.toml.Toml;
 import java.io.IOException;
 import java.net.URL;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 
 public class Sep1Helper {
   public static TomlContent readToml(String url) throws IOException {
     return new TomlContent(new URL(url));
   }
 
-  public static TomlContent parse(String tomlString) {
+  public static TomlContent parse(String tomlString) throws InvalidConfigException {
     try {
       return new TomlContent(tomlString);
     } catch (Exception e) {
-      // obfuscate exception message to prevent metadata leaks
-      throw new RuntimeException(
-          "Failed to parse TOML content"); // or return null or a default TomlContent instance
+      // Obfuscate the message and rethrow
+      String obfuscatedMessage = "Failed to parse TOML content. Invalid Config.";
+      debugF(e.toString()); // Log the exception
+      throw new InvalidConfigException(
+          obfuscatedMessage); // Preserve the original exception as the cause
     }
   }
 
@@ -23,8 +28,16 @@ public class Sep1Helper {
     private final Toml toml;
 
     TomlContent(URL url) throws IOException {
-      String tomlValue = NetUtil.fetch(url.toString());
-      toml = new Toml().read(tomlValue);
+      try {
+        String tomlValue = NetUtil.fetch(url.toString());
+        toml = new Toml().read(tomlValue);
+      } catch (IOException e) {
+        // Obfuscate the message and rethrow
+        String obfuscatedMessage =
+            String.format("An error occurred while fetching the TOML from %s", url);
+        Log.error(e.toString());
+        throw new IOException(obfuscatedMessage); // Preserve the original exception as the cause
+      }
     }
 
     TomlContent(String tomlString) {

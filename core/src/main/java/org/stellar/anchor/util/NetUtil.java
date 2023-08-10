@@ -1,5 +1,6 @@
 package org.stellar.anchor.util;
 
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.jsonwebtoken.lang.Strings;
@@ -13,19 +14,30 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class NetUtil {
+
   public static String fetch(String url) throws IOException {
-    Request request = OkHttpUtil.buildGetRequest(url);
-    Response response = getCall(request).execute();
 
-    // Check if response was successful (status code 200)
-    if (!response.isSuccessful()) {
-      throw new IOException(String.format("Unable to fetch data from %s", url));
-    }
+    try {
+      Request request = OkHttpUtil.buildGetRequest(url);
+      Response response = getCall(request).execute();
+      String message =
+          String.format("NetUtil:fetch of %s unsuccessful. response: %s", url, response.toString());
 
-    if (response.body() == null) {
-      throw new IOException("Response body is empty.");
+      // Check if response was successful (status code 200) and throw IOException
+      if (!response.isSuccessful()) {
+        debugF(message);
+        throw new IOException(message);
+      }
+
+      if (response.body() == null) {
+        debugF(message);
+        throw new IOException(message);
+      }
+      return Objects.requireNonNull(response.body()).string();
+    } catch (IOException e) {
+      debugF(e.toString());
+      throw e;
     }
-    return Objects.requireNonNull(response.body()).string();
   }
 
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")

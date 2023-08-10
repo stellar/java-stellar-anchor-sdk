@@ -1,6 +1,5 @@
 package org.stellar.anchor.sep1;
 
-import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
 
 import java.io.IOException;
@@ -23,10 +22,10 @@ public class Sep1Service {
    */
   public Sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     if (sep1Config.isEnabled()) {
-      debug("sep1Config:", sep1Config);
+      debugF("sep1Config: {}", sep1Config);
       switch (sep1Config.getType()) {
         case STRING:
-          debug("reading stellar.toml from config[sep1.toml.value]");
+          debugF("reading stellar.toml from config[sep1.toml.value]");
           tomlValue = sep1Config.getValue();
           break;
         case FILE:
@@ -35,7 +34,7 @@ public class Sep1Service {
           break;
         case URL:
           debugF("reading stellar.toml from {}", sep1Config.getValue());
-          tomlValue = NetUtil.fetch(sep1Config.getValue());
+          tomlValue = fetchTomlFromURL(sep1Config.getValue());
           break;
         default:
           throw new InvalidConfigException(
@@ -43,6 +42,17 @@ public class Sep1Service {
       }
 
       Log.info("Sep1Service initialized.");
+    }
+  }
+
+  private String fetchTomlFromURL(String url) throws IOException {
+    try {
+      return NetUtil.fetch(url);
+    } catch (IOException e) {
+      // Obfuscate the message and rethrow
+      String obfuscatedMessage = String.format("Unable to fetch data from %s", url);
+      debugF(obfuscatedMessage); // Log the obfuscated message using the debugF method
+      throw new IOException(obfuscatedMessage); // Preserve the original exception as the cause
     }
   }
 
