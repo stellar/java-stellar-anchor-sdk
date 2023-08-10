@@ -10,7 +10,13 @@ public class Sep1Helper {
   }
 
   public static TomlContent parse(String tomlString) {
-    return new TomlContent(tomlString);
+    try {
+      return new TomlContent(tomlString);
+    } catch (Exception e) {
+      // obfuscate exception message to prevent metadata leaks
+      throw new RuntimeException(
+          "Failed to parse TOML content"); // or return null or a default TomlContent instance
+    }
   }
 
   public static class TomlContent {
