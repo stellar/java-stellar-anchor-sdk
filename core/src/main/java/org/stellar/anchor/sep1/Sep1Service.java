@@ -51,7 +51,7 @@ public class Sep1Service {
     } catch (IOException e) {
       // Obfuscate the message and rethrow
       String obfuscatedMessage = String.format("Unable to fetch data from %s", url);
-      debugF(obfuscatedMessage); // Log the obfuscated message using the debugF method
+      debugF(e.toString()); // Log the obfuscated message using the debugF method
       throw new IOException(obfuscatedMessage); // Preserve the original exception as the cause
     }
   }
