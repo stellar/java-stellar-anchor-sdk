@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.controller.sep;
 
+import java.io.IOException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class Sep1Controller {
   @RequestMapping(
       value = "/.well-known/stellar.toml",
       method = {RequestMethod.GET, RequestMethod.OPTIONS})
-  public ResponseEntity<String> getToml() throws SepNotFoundException {
+  public ResponseEntity<String> getToml() throws IOException, SepNotFoundException {
     if (!sep1Config.isEnabled()) {
       throw new SepNotFoundException("Not Found");
     }

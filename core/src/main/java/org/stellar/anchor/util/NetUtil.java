@@ -17,7 +17,14 @@ public class NetUtil {
     Request request = OkHttpUtil.buildGetRequest(url);
     Response response = getCall(request).execute();
 
-    if (response.body() == null) return "";
+    // Check if response was successful (status code 200)
+    if (!response.isSuccessful()) {
+      throw new IOException(String.format("Unable to fetch data from %s", url));
+    }
+
+    if (response.body() == null) {
+      throw new IOException("Response body is empty.");
+    }
     return Objects.requireNonNull(response.body()).string();
   }
 
