@@ -23,7 +23,7 @@ public class NetUtil {
       String message =
           String.format("NetUtil:fetch of %s unsuccessful. response: %s", url, response.toString());
 
-      // Check if response was successful (status code 200) and throw IOException
+      // Check if response was unsuccessful (ie not status code 2xx) and throw IOException
       if (!response.isSuccessful()) {
         debugF(message);
         throw new IOException(message);
