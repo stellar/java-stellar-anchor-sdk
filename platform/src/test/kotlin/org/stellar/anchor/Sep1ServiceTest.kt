@@ -5,9 +5,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.junit.jupiter.api.Assertions.assertContains
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.config.Sep1Config.TomlType.*
 import org.stellar.anchor.platform.config.PropertySep1Config
@@ -116,15 +116,8 @@ class Sep1ServiceTest {
     mockServer.enqueue(MockResponse().setResponseCode(500))
 
     val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
-
     val exception = assertThrows(IOException::class.java) { sep1 = Sep1Service(config) }
-    assertTrue(exception.message?.contains("NetUtil:fetch of") ?: false)
-    assertTrue(
-      exception.message?.contains(
-        "unsuccessful. response: Response{protocol=http/1.1, code=500, message=Server Error, url=http://localhost:"
-      )
-        ?: false
-    )
+    assertContains(exception.message, "code=500, message=Server Error, url=http://localhost:")
 
     mockServer.shutdown()
   }

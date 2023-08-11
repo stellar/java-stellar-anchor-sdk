@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Objects;
 import okhttp3.Call;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -33,7 +32,8 @@ public class NetUtil {
         debugF(message);
         throw new IOException(message);
       }
-      return Objects.requireNonNull(response.body()).string();
+
+      return response.body().string();
     } catch (IOException e) {
       debugF(e.toString());
       throw e;
