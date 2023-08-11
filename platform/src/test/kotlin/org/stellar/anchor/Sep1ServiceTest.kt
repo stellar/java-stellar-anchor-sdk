@@ -78,7 +78,7 @@ class Sep1ServiceTest {
   // endpoint still returns a 200 the exception will be raised/obfuscated
   // when the toml is parsed.
   @Test
-  fun `getStellarToml fetches invalid data during malicious re-direct`() {
+  fun `getStellarTomlthrows exception when redirect is encountered`() {
     val mockServer = MockWebServer()
     mockServer.start()
     val mockAnchorUrl = mockServer.url("").toString()
