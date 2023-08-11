@@ -22,7 +22,6 @@ public class Sep1Service {
    */
   public Sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     if (sep1Config.isEnabled()) {
-      debugF("sep1Config: {}", sep1Config);
       switch (sep1Config.getType()) {
         case STRING:
           debugF("reading stellar.toml from config[sep1.toml.value]");
@@ -49,10 +48,9 @@ public class Sep1Service {
     try {
       return NetUtil.fetch(url);
     } catch (IOException e) {
-      // Obfuscate the message and rethrow
       String obfuscatedMessage = String.format("Unable to fetch data from %s", url);
-      debugF(e.toString()); // Log the obfuscated message using the debugF method
-      throw new IOException(obfuscatedMessage); // Preserve the original exception as the cause
+      debugF("Sep1Service fetchTomlFromURL Error fetching Toml from URL:{}", url);
+      throw new IOException(obfuscatedMessage);
     }
   }
 
