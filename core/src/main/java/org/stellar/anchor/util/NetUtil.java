@@ -21,7 +21,7 @@ public class NetUtil {
       Request request = OkHttpUtil.buildGetRequest(url);
       Response response = getCall(request).execute();
       String message =
-          String.format("NetUtil:fetch of %s unsuccessful. response: %s", url, response.toString());
+          String.format("Error fetching from URL: %s response: %s", url, response.toString());
 
       // Check if response was unsuccessful (ie not status code 2xx) and throw IOException
       if (!response.isSuccessful()) {

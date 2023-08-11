@@ -37,7 +37,7 @@ public class Sep1Service {
           break;
         case URL:
           debugF("reading stellar.toml from {}", sep1Config.getValue());
-          tomlValue = fetchTomlFromURL(sep1Config.getValue());
+          tomlValue = NetUtil.fetch(sep1Config.getValue());
           break;
         default:
           throw new InvalidConfigException(
@@ -45,16 +45,6 @@ public class Sep1Service {
       }
 
       Log.info("Sep1Service initialized.");
-    }
-  }
-
-  private String fetchTomlFromURL(String url) throws IOException {
-    try {
-      return NetUtil.fetch(url);
-    } catch (IOException e) {
-      String obfuscatedMessage = String.format("Unable to fetch data from %s", url);
-      debugF("Sep1Service fetchTomlFromURL Error fetching Toml from URL:{}", url);
-      throw new IOException(obfuscatedMessage);
     }
   }
 
