@@ -7,6 +7,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.config.Sep1Config.TomlType.*
 import org.stellar.anchor.platform.config.PropertySep1Config
@@ -17,7 +18,7 @@ import org.stellar.anchor.sep1.Sep1Service
 class Sep1ServiceTest {
 
   lateinit var sep1: Sep1Service
-  val stellarToml =
+  private val stellarToml =
     """
           ACCOUNTS = [ "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE" ]
           VERSION = "0.1.0"
@@ -63,7 +64,7 @@ class Sep1ServiceTest {
   }
 
   @Test
-  fun `test Sep1Service reading toml from url`() {
+  fun `getStellarToml fetches data during re-direct`() {
     val mockServer = MockWebServer()
     mockServer.start()
     val mockAnchorUrl = mockServer.url("").toString()
@@ -73,11 +74,21 @@ class Sep1ServiceTest {
     assertEquals(sep1.stellarToml, stellarToml)
   }
 
+  // this test is not expected to raise an exception. given the re-direct to a malicious
+  // endpoint still returns a 200 the exception will be raised/obfuscated
+  // when the toml is parsed.
   @Test
-  fun `getStellarToml throws exception when redirect is encountered`() {
+  fun `getStellarTomlthrows exception when redirect is encountered`() {
     val mockServer = MockWebServer()
     mockServer.start()
     val mockAnchorUrl = mockServer.url("").toString()
+    val metadata =
+      "{\n" +
+        "  \"ami-id\": \"ami-12345678\",\n" +
+        "  \"instance-id\": \"i-1234567890abcdef\",\n" +
+        "  \"instance-type\": \"t2.micro\"\n" +
+        "  // ... other metadata ...\n" +
+        "}"
 
     // Enqueue a response with a 302 status and a Location header to simulate a redirect.
     mockServer.enqueue(
@@ -86,16 +97,12 @@ class Sep1ServiceTest {
         .setHeader("Location", mockServer.url("/new_location").toString())
     )
 
-    // Enqueue a response at the redirect location that provides a server error.
-    mockServer.enqueue(MockResponse().setResponseCode(500))
-
-    // Enqueue an empty response to prevent a timeout.
-    mockServer.enqueue(MockResponse())
+    // Enqueue a response at the redirect location that simulates AWS metadata leak.
+    mockServer.enqueue(MockResponse().setResponseCode(200).setBody(metadata))
 
     val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
-
-    val exception = assertThrows(IOException::class.java) { Sep1Service(config) }
-    assertEquals("Unable to fetch data from $mockAnchorUrl", exception.message)
+    val sep1 = Sep1Service(config)
+    assertEquals(sep1.getStellarToml(), metadata)
     mockServer.shutdown()
   }
 
@@ -109,9 +116,10 @@ class Sep1ServiceTest {
     mockServer.enqueue(MockResponse().setResponseCode(500))
 
     val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
-
     val exception = assertThrows(IOException::class.java) { sep1 = Sep1Service(config) }
-    assertEquals("Unable to fetch data from $mockAnchorUrl", exception.message)
+    assertTrue(
+      exception.message?.contains("Unsuccessful response code: 500, message: Server Error") == true
+    )
     mockServer.shutdown()
   }
 }
