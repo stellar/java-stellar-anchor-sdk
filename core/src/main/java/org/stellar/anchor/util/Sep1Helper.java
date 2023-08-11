@@ -14,7 +14,7 @@ public class Sep1Helper {
     } catch (IOException e) {
       String obfuscatedMessage =
           String.format("An error occurred while fetching the TOML from %s", url);
-      Log.error("Sep1Service fetchTomlFromURL Error fetching Toml from URL:{}", url);
+      Log.error(e.toString());
       throw new IOException(obfuscatedMessage); // Preserve the original exception as the cause
     }
   }
@@ -25,7 +25,7 @@ public class Sep1Helper {
     } catch (Exception e) {
       // Obfuscate the message and rethrow
       String obfuscatedMessage = "Failed to parse TOML content. Invalid Config.";
-      debugF(obfuscatedMessage); // Log the parsing exception
+      Log.error(e.toString()); // Log the parsing exception
       throw new InvalidConfigException(
           obfuscatedMessage); // Preserve the original exception as the cause
     }
