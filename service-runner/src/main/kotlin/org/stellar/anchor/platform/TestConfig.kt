@@ -1,12 +1,10 @@
 package org.stellar.anchor.platform
 
-data class TestConfig(var profileName: String) {
+data class TestConfig(var testProfileName: String) {
   val env = mutableMapOf<String, String>()
-  //  val testEnvFile: String
-  //  val configEnvFile: String
+  // override test profile name with TEST_PROFILE_NAME system env variable
+  private val profileName = System.getenv("TEST_PROFILE_NAME") ?: testProfileName
   init {
-    // override test profile name with TEST_PROFILE_NAME env variable
-    profileName = System.getenv("TEST_PROFILE_NAME") ?: profileName
     // read test.env file
     val testEnv = readResourceAsMap("profiles/${profileName}/test.env")
     // read config.env file

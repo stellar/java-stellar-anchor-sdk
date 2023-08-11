@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.operation.Sep31Operation;
 
 /**
  * The response to the GET /transaction endpoint of SEP-31.
@@ -78,7 +78,7 @@ public class Sep31GetTransactionResponse {
     String requiredInfoMessage;
 
     @SerializedName("required_info_updates")
-    AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
+    Sep31Operation.Fields requiredInfoUpdates;
   }
 
   @Data

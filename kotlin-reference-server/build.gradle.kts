@@ -10,14 +10,15 @@ plugins {
 dependencies {
   implementation(libs.bundles.ktor)
   implementation(libs.bundles.ktor.client)
+  implementation(libs.google.gson)
+  implementation(libs.hoplite.core)
+  implementation(libs.hoplite.yaml)
   implementation(libs.java.stellar.sdk)
   implementation(libs.jjwt)
   implementation(libs.javax.jaxb.api)
-  implementation(libs.hoplite.core)
-  implementation(libs.hoplite.yaml)
-
-  implementation(libs.slf4j2.simple)
   implementation(libs.kotlin.logging)
+  implementation(libs.slf4j.simple)
+  implementation(project(mapOf("path" to ":api-schema")))
 }
 
 tasks {
@@ -29,4 +30,4 @@ tasks {
   test { useJUnitPlatform() }
 }
 
-application { mainClass.set("com.example.ReferenceServerKt") }
+application { mainClass.set("org.stellar.reference.ReferenceServerKt") }

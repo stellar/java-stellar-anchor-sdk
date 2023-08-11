@@ -13,11 +13,21 @@ import kotlinx.coroutines.*
 import org.springframework.context.ConfigurableApplicationContext
 import org.stellar.anchor.util.Log.info
 
+const val RUN_DOCKER = "run_docker"
+const val RUN_ALL_SERVERS = "run_all_servers"
+const val RUN_SEP_SERVER = "run_sep_server"
+const val RUN_PLATFORM_SERVER = "run_platform_server"
+const val RUN_EVENT_PROCESSING_SERVER = "run_event_processing_server"
+const val RUN_PAYMENT_OBSERVER = "run_observer"
+const val RUN_KOTLIN_REFERENCE_SERVER = "run_kotlin_reference_server"
+const val RUN_REFERENCE_SERVER = "run_reference_server"
+const val RUN_WALLET_SERVER = "run_wallet_server"
+
 lateinit var testProfileExecutor: TestProfileExecutor
 
 fun main() = runBlocking {
   info("Starting TestPfofileExecutor...")
-  testProfileExecutor = TestProfileExecutor(TestConfig(profileName = "default"))
+  testProfileExecutor = TestProfileExecutor(TestConfig(testProfileName = "default"))
 
   launch {
     Runtime.getRuntime()
@@ -41,7 +51,9 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartSepServer: Boolean = false
   private var shouldStartPlatformServer: Boolean = false
   private var shouldStartReferenceServer: Boolean = false
+  private var shouldStartWalletServer: Boolean = false
   private var shouldStartObserver: Boolean = false
+  private var shouldStartEventProcessingServer: Boolean = false
   private var shouldStartKotlinReferenceServer: Boolean = false
 
   fun start(wait: Boolean = false, preStart: (config: TestConfig) -> Unit = {}) {
@@ -49,13 +61,16 @@ class TestProfileExecutor(val config: TestConfig) {
 
     preStart(this.config)
 
-    shouldStartDockerCompose = config.env["run_docker"].toBoolean()
-    shouldStartAllServers = config.env["run_all_servers"].toBoolean()
-    shouldStartSepServer = config.env["run_sep_server"].toBoolean()
-    shouldStartPlatformServer = config.env["run_platform_server"].toBoolean()
-    shouldStartReferenceServer = config.env["run_reference_server"].toBoolean()
-    shouldStartObserver = config.env["run_observer"].toBoolean()
-    shouldStartKotlinReferenceServer = config.env["run_kotlin_reference_server"].toBoolean()
+    shouldStartDockerCompose = config.env[RUN_DOCKER].toBoolean()
+    shouldStartAllServers = config.env[RUN_ALL_SERVERS].toBoolean()
+
+    shouldStartSepServer = config.env[RUN_SEP_SERVER].toBoolean()
+    shouldStartPlatformServer = config.env[RUN_PLATFORM_SERVER].toBoolean()
+    shouldStartObserver = config.env[RUN_PAYMENT_OBSERVER].toBoolean()
+    shouldStartEventProcessingServer = config.env[RUN_EVENT_PROCESSING_SERVER].toBoolean()
+    shouldStartKotlinReferenceServer = config.env[RUN_KOTLIN_REFERENCE_SERVER].toBoolean()
+    shouldStartReferenceServer = config.env[RUN_REFERENCE_SERVER].toBoolean()
+    shouldStartWalletServer = config.env[RUN_WALLET_SERVER].toBoolean()
 
     startDocker()
     // TODO: Check server readiness instead of wait for 5 seconds
@@ -82,7 +97,11 @@ class TestProfileExecutor(val config: TestConfig) {
 
       if (shouldStartAllServers || shouldStartKotlinReferenceServer) {
         info("Starting Kotlin reference server...")
-        jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, false) }
+        jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, wait) }
+      }
+      if (shouldStartAllServers || shouldStartWalletServer) {
+        info("Starting wallet server...")
+        jobs += scope.launch { ServiceRunner.startWalletServer(envMap, wait) }
       }
       if (shouldStartAllServers || shouldStartReferenceServer) {
         info("Starting Java reference server...")
@@ -93,6 +112,13 @@ class TestProfileExecutor(val config: TestConfig) {
         info("Starting observer...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
       }
+
+      if (shouldStartAllServers || shouldStartEventProcessingServer) {
+        info("Starting event processing server...")
+        jobs +=
+          scope.launch { runningServers.add(ServiceRunner.startEventProcessingServer(envMap)) }
+      }
+
       if (shouldStartAllServers || shouldStartSepServer) {
         info("Starting SEP server...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startSepServer(envMap)) }
@@ -147,7 +173,15 @@ class TestProfileExecutor(val config: TestConfig) {
       it.close()
       it.stop()
     }
+
+    runningServers.forEach {
+      while (it.isRunning || it.isActive) {
+        sleep(1000)
+      }
+    }
+
     org.stellar.reference.stop()
+    org.stellar.reference.wallet.stop()
   }
 
   private fun shutdownDocker() {

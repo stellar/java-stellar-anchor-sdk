@@ -6,15 +6,9 @@ import java.nio.charset.StandardCharsets.UTF_8
 import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.util.FileCopyUtils
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.anchor.util.StringHelper.json
 
-// val gson: Gson = GsonUtils.builder().setPrettyPrinting().create()
 val gson: Gson = GsonUtils.getInstance()
-
-fun json(value: Any?): String {
-  if (value != null) return gson.toJson(value)
-  return "null"
-}
-
 val resourceLoader = DefaultResourceLoader()
 
 fun resourceAsString(path: String): String {

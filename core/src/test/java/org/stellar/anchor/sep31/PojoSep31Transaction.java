@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.operation.Sep31Operation;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.api.shared.StellarTransaction;
 
@@ -30,7 +30,7 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String requiredInfoMessage;
   String quoteId;
   String clientDomain;
-  AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
+  Sep31Operation.Fields requiredInfoUpdates;
   Map<String, String> fields;
   Boolean refunded;
   PojoSep31Refunds refunds;

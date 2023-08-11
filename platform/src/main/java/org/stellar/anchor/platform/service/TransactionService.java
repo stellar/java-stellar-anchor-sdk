@@ -2,20 +2,24 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
-import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
+import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
+import static org.stellar.anchor.util.MetricConstants.*;
 import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -27,6 +31,7 @@ import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.apiclient.TransactionsSeps;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventService.Session;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -37,6 +42,8 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
+import org.stellar.anchor.util.*;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
@@ -45,11 +52,37 @@ import org.stellar.sdk.Memo;
 
 public class TransactionService {
   private final Sep38QuoteStore quoteStore;
-  private final Sep31TransactionStore txn31Store;
+  private final Sep6TransactionStore txn6Store;
   private final Sep24TransactionStore txn24Store;
+  private final Sep31TransactionStore txn31Store;
+
   private final List<AssetInfo> assets;
-  private final EventService eventService;
+  private final Session eventSession;
   private final AssetService assetService;
+  private final Counter findSep6TransactionCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTION, SEP, TV_SEP6);
+  private final Counter findSep24TransactionCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTION, TYPE, TV_SEP24);
+  private final Counter findSep31TransactionCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTION, TYPE, TV_SEP31);
+  private final Counter findUnknownTransactionCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTION, TYPE, TV_UNKNOWN);
+
+  private final Counter findSep6TransactionsCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTIONS, TYPE, TV_UNKNOWN);
+  private final Counter findSep24TransactionsCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTIONS, TYPE, TV_UNKNOWN);
+  private final Counter findSep31TransactionsCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTIONS, TYPE, TV_UNKNOWN);
+
+  @SuppressWarnings("unused")
+  private final Counter patchSep6TransactionCounter =
+      Metrics.counter(PLATFORM_PATCH_TRANSACTION, SEP, TV_SEP6);
+
+  private final Counter patchSep24TransactionCounter =
+      Metrics.counter(PLATFORM_PATCH_TRANSACTION, SEP, TV_SEP24);
+  private final Counter patchSep31TransactionCounter =
+      Metrics.counter(PLATFORM_PATCH_TRANSACTION, SEP, TV_SEP31);
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getStatus(), EXPIRED.getStatus(), ERROR.getStatus())
@@ -57,16 +90,18 @@ public class TransactionService {
   }
 
   public TransactionService(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Sep38QuoteStore quoteStore,
       AssetService assetService,
       EventService eventService) {
+    this.txn6Store = txn6Store;
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
     this.assets = assetService.listAllAssets();
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.assetService = assetService;
   }
 
@@ -77,29 +112,52 @@ public class TransactionService {
    * @param txnId the transaction ID
    * @return the result
    */
-  public GetTransactionResponse getTransactionResponse(String txnId) throws AnchorException {
+  public GetTransactionResponse findTransaction(String txnId) throws AnchorException {
     if (Objects.toString(txnId, "").isEmpty()) {
       Log.info("Rejecting GET {platformApi}/transaction/:id because the id is empty.");
       throw new BadRequestException("transaction id cannot be empty");
     }
-    JdbcSepTransaction txn = findTransaction(txnId);
+    JdbcSepTransaction txn = queryTransactionById(txnId);
     if (txn != null) {
+      switch (txn.getProtocol()) {
+        case "6":
+          findSep6TransactionCounter.increment();
+          break;
+        case "24":
+          findSep24TransactionCounter.increment();
+          break;
+        case "31":
+          findSep31TransactionCounter.increment();
+          break;
+        default:
+          findUnknownTransactionCounter.increment();
+      }
+
       return toGetTransactionResponse(txn, assetService);
     } else {
       throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
     }
   }
 
-  public GetTransactionsResponse getTransactionsResponse(
-      TransactionsSeps sep, TransactionsParams params) throws AnchorException {
+  public GetTransactionsResponse findTransactions(TransactionsSeps sep, TransactionsParams params)
+      throws AnchorException {
     List<?> txn;
 
-    if (sep == TransactionsSeps.SEP_31) {
-      txn = txn31Store.findTransactions(params);
-    } else if (sep == TransactionsSeps.SEP_24) {
-      txn = txn24Store.findTransactions(params);
-    } else {
-      throw new BadRequestException("SEP not supported");
+    switch (sep) {
+      case SEP_6:
+        txn = txn6Store.findTransactions(params);
+        findSep6TransactionsCounter.increment();
+        break;
+      case SEP_24:
+        txn = txn24Store.findTransactions(params);
+        findSep24TransactionsCounter.increment();
+        break;
+      case SEP_31:
+        txn = txn31Store.findTransactions(params);
+        findSep31TransactionsCounter.increment();
+        break;
+      default:
+        throw new BadRequestException("SEP not supported");
     }
 
     return new GetTransactionsResponse(
@@ -109,12 +167,12 @@ public class TransactionService {
   }
 
   /**
-   * Fetch the transaction.
+   * Query transaction by id.
    *
    * @param txnId the transaction ID
    * @return an object of JdbcSepTransaction
    */
-  public JdbcSepTransaction findTransaction(String txnId) throws AnchorException {
+  JdbcSepTransaction queryTransactionById(String txnId) throws AnchorException {
     Sep31Transaction txn31 = txn31Store.findByTransactionId(txnId);
     if (txn31 != null) {
       return (JdbcSep31Transaction) txn31;
@@ -156,12 +214,11 @@ public class TransactionService {
     validateAsset("amount_out", patch.getTransaction().getAmountOut());
     validateAsset("amount_fee", patch.getTransaction().getAmountFee(), true);
 
-    JdbcSepTransaction txn = findTransaction(patch.getTransaction().getId());
+    JdbcSepTransaction txn = queryTransactionById(patch.getTransaction().getId());
     if (txn == null)
       throw new BadRequestException(
           String.format("transaction(id=%s) not found", patch.getTransaction().getId()));
 
-    String lastStatus = txn.getStatus();
     updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
       case "24":
@@ -177,28 +234,30 @@ public class TransactionService {
           sep24Transaction.setMemoType(memoTypeAsString(MEMO_HASH));
         }
         txn24Store.save(sep24Transaction);
-        eventService.publish(sep24Transaction, TRANSACTION_STATUS_CHANGED);
+        eventSession.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("24")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(
+                    TransactionHelper.toGetTransactionResponse(sep24Transaction, assetService))
+                .build());
+        patchSep24TransactionCounter.increment();
         break;
       case "31":
-        txn31Store.save((JdbcSep31Transaction) txn);
-        eventService.publish((JdbcSep31Transaction) txn, TRANSACTION_STATUS_CHANGED);
+        JdbcSep31Transaction sep31Transaction = (JdbcSep31Transaction) txn;
+        txn31Store.save(sep31Transaction);
+        eventSession.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("24")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(TransactionHelper.toGetTransactionResponse(sep31Transaction))
+                .build());
+        patchSep31TransactionCounter.increment();
         break;
     }
-    if (!lastStatus.equals(txn.getStatus())) updateMetrics(txn);
     return toGetTransactionResponse(txn, assetService);
-  }
-
-  void updateMetrics(JdbcSepTransaction txn) {
-    switch (txn.getProtocol()) {
-      case "24":
-        Metrics.counter(AnchorMetrics.SEP24_TRANSACTION.toString(), "status", txn.getStatus())
-            .increment();
-        break;
-      case "31":
-        Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", txn.getStatus())
-            .increment();
-        break;
-    }
   }
 
   void updateSepTransaction(PlatformTransactionData patch, JdbcSepTransaction txn)

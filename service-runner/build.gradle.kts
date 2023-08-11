@@ -23,10 +23,12 @@ dependencies {
   implementation(libs.coroutines.core)
 
   // From projects
+  implementation(project(":api-schema"))
   implementation(project(":core"))
   implementation(project(":platform"))
   implementation(project(":anchor-reference-server"))
   implementation(project(":kotlin-reference-server"))
+  implementation(project(":wallet-reference-server"))
 }
 
 tasks {

@@ -12,8 +12,9 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.AssetInfo.Field
 import org.stellar.anchor.api.sep.SepTransactionStatus
+import org.stellar.anchor.api.sep.operation.Sep31Operation
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.Sep31RefundPayment
 import org.stellar.anchor.api.shared.Amount
@@ -69,11 +70,10 @@ class Sep31TransactionTest {
         .build()
 
     // mock missing SEP-31 "transaction.fields"
-    val mockMissingFields = AssetInfo.Sep31TxnFieldSpecs()
+    val mockMissingFields = Sep31Operation.Fields()
     mockMissingFields.transaction =
       mapOf(
-        "receiver_account_number" to
-          AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false),
+        "receiver_account_number" to Field("bank account number of the destination", null, false),
       )
 
     stellarTransaction =
@@ -151,11 +151,10 @@ class Sep31TransactionTest {
         )
         .build()
 
-    val requiredInfoUpdates = AssetInfo.Sep31TxnFieldSpecs()
+    val requiredInfoUpdates = Sep31Operation.Fields()
     requiredInfoUpdates.transaction =
       mapOf(
-        "receiver_account_number" to
-          AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false)
+        "receiver_account_number" to Field("bank account number of the destination", null, false)
       )
 
     val wantSep31GetTransactionResponse =

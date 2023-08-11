@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform
 
-import io.github.cdimascio.dotenv.internal.DotenvParser
-import io.github.cdimascio.dotenv.internal.DotenvReader
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -9,6 +7,7 @@ import java.io.OutputStream
 import java.net.URL
 import java.net.URLDecoder
 import java.nio.file.Files
+import java.util.*
 import java.util.jar.JarFile
 import org.stellar.anchor.util.Log.info
 
@@ -49,10 +48,9 @@ fun getResourceFile(resourceName: String): File {
  * @return A map of the key value pairs.
  */
 fun readResourceAsMap(file: File): MutableMap<String, String> {
-  return DotenvParser(DotenvReader(file.parentFile.absolutePath, file.name), false, false)
-    .parse()
-    .associate { it.key to it.value }
-    .toMutableMap()
+  val prop = Properties()
+  prop.load(file.inputStream())
+  return prop.entries.associate { it.key.toString() to it.value.toString() }.toMutableMap()
 }
 
 /**

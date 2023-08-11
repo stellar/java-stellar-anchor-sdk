@@ -6,3 +6,7 @@ stellar:
 
 horizon:
   aster: star
+
+clients:
+  - type: custodial
+    key: GAB

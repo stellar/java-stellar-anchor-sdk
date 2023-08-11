@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.Sep31CustomerInfoNeededException;
 import org.stellar.anchor.api.exception.Sep31MissingFieldException;
-import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
+import org.stellar.anchor.api.sep.operation.Sep31Operation.Fields;
 import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
@@ -96,7 +96,7 @@ public class Sep31Controller {
 
   public static class Sep31MissingFieldResponse {
     String error;
-    Sep31TxnFieldSpecs fields;
+    Fields fields;
 
     public static Sep31MissingFieldResponse from(Sep31MissingFieldException exception) {
       Sep31MissingFieldResponse instance = new Sep31MissingFieldResponse();
