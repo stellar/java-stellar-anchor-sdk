@@ -1,6 +1,5 @@
 package org.stellar.anchor.util;
 
-import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.jsonwebtoken.lang.Strings;
@@ -14,30 +13,33 @@ import okhttp3.Response;
 
 public class NetUtil {
 
+  /**
+   * Fetches the content from the specified URL using an HTTP GET request.
+   *
+   * <p>This method expects a response body to be present in the HTTP response. If the response is
+   * unsuccessful (i.e., not a 2xx status code) or if the response body is null, an IOException will
+   * be thrown.
+   *
+   * @param url The URL to fetch content from.
+   * @return The content of the response body as a string.
+   * @throws IOException If the response is unsuccessful, or if the response body is null.
+   */
   public static String fetch(String url) throws IOException {
 
-    try {
-      Request request = OkHttpUtil.buildGetRequest(url);
-      Response response = getCall(request).execute();
-      String message =
-          String.format("Error fetching from URL: %s response: %s", url, response.toString());
+    Request request = OkHttpUtil.buildGetRequest(url);
+    Response response = getCall(request).execute();
 
-      // Check if response was unsuccessful (ie not status code 2xx) and throw IOException
-      if (!response.isSuccessful()) {
-        debugF(message);
-        throw new IOException(message);
-      }
-
-      if (response.body() == null) {
-        debugF(message);
-        throw new IOException(message);
-      }
-
-      return response.body().string();
-    } catch (IOException e) {
-      debugF(e.toString());
-      throw e;
+    // Check if response was unsuccessful (ie not status code 2xx) and throw IOException
+    if (!response.isSuccessful()) {
+      throw new IOException(response.toString());
     }
+
+    // Since fetch expects a response body, we will throw IOException if its null
+    if (response.body() == null) {
+      throw new IOException(response.toString());
+    }
+
+    return response.body().string();
   }
 
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")

@@ -64,7 +64,7 @@ class Sep1ServiceTest {
   }
 
   @Test
-  fun `test Sep1Service reading toml from url`() {
+  fun `getStellarToml fetches data during re-direct`() {
     val mockServer = MockWebServer()
     mockServer.start()
     val mockAnchorUrl = mockServer.url("").toString()
