@@ -7,25 +7,44 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Objects;
 import okhttp3.Call;
 import okhttp3.Request;
 import okhttp3.Response;
 
 public class NetUtil {
+
+  /**
+   * Fetches the content from the specified URL using an HTTP GET request.
+   *
+   * <p>This method expects a response body to be present in the HTTP response. If the response is
+   * unsuccessful (i.e., not a 2xx status code) or if the response body is null, an IOException will
+   * be thrown.
+   *
+   * @param url The URL to fetch content from.
+   * @return The content of the response body as a string.
+   * @throws IOException If the response is unsuccessful, or if the response body is null.
+   */
   public static String fetch(String url) throws IOException {
+
     Request request = OkHttpUtil.buildGetRequest(url);
     Response response = getCall(request).execute();
 
-    // Check if response was successful (status code 200)
+    // Check if response was unsuccessful (ie not status code 2xx) and throw IOException
     if (!response.isSuccessful()) {
-      throw new IOException(String.format("Unable to fetch data from %s", url));
+      throw new IOException(
+          "Unsuccessful response code: " + response.code() + ", message: " + response.message());
     }
 
+    // Since fetch expects a response body, we will throw IOException if its null
     if (response.body() == null) {
-      throw new IOException("Response body is empty.");
+      throw new IOException(
+          "Null response body. Response code: "
+              + response.code()
+              + ", message: "
+              + response.message());
     }
-    return Objects.requireNonNull(response.body()).string();
+
+    return response.body().string();
   }
 
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
