@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.event;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.*;
 import org.stellar.anchor.api.platform.GetQuoteResponse;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
@@ -24,9 +25,13 @@ public class AnchorEvent {
   GetQuoteResponse quote;
 
   public enum Type {
+    @SerializedName("transaction_created")
     TRANSACTION_CREATED("transaction_created"),
+    @SerializedName("transaction_status_changed")
     TRANSACTION_STATUS_CHANGED("transaction_status_changed"),
+    @SerializedName("transaction_error")
     TRANSACTION_ERROR("transaction_error"),
+    @SerializedName("quote_created")
     QUOTE_CREATED("quote_created");
 
     public final String type;
