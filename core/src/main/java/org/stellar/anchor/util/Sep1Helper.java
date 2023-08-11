@@ -28,6 +28,7 @@ public class Sep1Helper {
       Log.error(e.toString()); // Log the parsing exception
       throw new InvalidConfigException(
           obfuscatedMessage); // Preserve the original exception as the cause
+
     }
   }
 

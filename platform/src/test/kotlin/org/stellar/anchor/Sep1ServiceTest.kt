@@ -120,7 +120,6 @@ class Sep1ServiceTest {
     assertTrue(
       exception.message?.contains("code=500, message=Server Error, url=http://localhost:") == true
     )
-
     mockServer.shutdown()
   }
 }
