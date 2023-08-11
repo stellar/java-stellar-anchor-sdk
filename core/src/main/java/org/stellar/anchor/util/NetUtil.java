@@ -40,7 +40,6 @@ public class NetUtil {
     }
 
     return response.body().string();
-
   }
 
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
