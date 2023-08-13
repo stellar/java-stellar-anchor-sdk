@@ -27,7 +27,6 @@ import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_TOML
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
-import org.stellar.anchor.TestConstants.Companion.TEST_NETWORK_PASS_PHRASE
 import org.stellar.anchor.TestConstants.Companion.TEST_SIGNING_SEED
 import org.stellar.anchor.TestConstants.Companion.TEST_WEB_AUTH_DOMAIN
 import org.stellar.anchor.api.exception.SepException
@@ -45,6 +44,7 @@ import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil
 import org.stellar.sdk.*
+import org.stellar.sdk.Network.TESTNET
 import org.stellar.sdk.requests.ErrorResponse
 import org.stellar.sdk.responses.AccountResponse
 import shadow.com.google.gson.annotations.SerializedName
@@ -99,7 +99,7 @@ internal class Sep10ServiceTest {
     every { sep10Config.jwtTimeout } returns 900
     every { sep10Config.homeDomain } returns TEST_HOME_DOMAIN
 
-    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
 
     every { secretConfig.sep10SigningSeed } returns TEST_SIGNING_SEED
     every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
@@ -168,7 +168,7 @@ internal class Sep10ServiceTest {
         .build()
 
     val transaction =
-      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, TESTNET)
         .addPreconditions(
           TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
         )
@@ -186,7 +186,7 @@ internal class Sep10ServiceTest {
     // 2 ------ Create Services
     every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
     every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
-    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     val horizon = Horizon(appConfig)
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
 
@@ -202,7 +202,7 @@ internal class Sep10ServiceTest {
 
     val clientAccount = horizon.server.accounts().account(clientMasterKP.accountId)
     val multisigTx =
-      TransactionBuilder(AccountConverter.enableMuxed(), clientAccount, Network.TESTNET)
+      TransactionBuilder(AccountConverter.enableMuxed(), clientAccount, TESTNET)
         .addPreconditions(
           TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
         )
@@ -262,7 +262,7 @@ internal class Sep10ServiceTest {
         .build()
 
     val transaction =
-      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, TESTNET)
         .addPreconditions(
           TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
         )
@@ -279,7 +279,7 @@ internal class Sep10ServiceTest {
     // 2 ------ Create Services
     every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
     every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
-    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     val horizon = Horizon(appConfig)
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
 
@@ -338,7 +338,7 @@ internal class Sep10ServiceTest {
         .build()
 
     val transaction =
-      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, TESTNET)
         .addPreconditions(
           TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
         )
@@ -355,7 +355,7 @@ internal class Sep10ServiceTest {
     // 2 ------ Create Services
     every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
     every { appConfig.horizonUrl } returns mockHorizonUrl
-    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     val horizon = Horizon(appConfig)
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
 
@@ -382,11 +382,11 @@ internal class Sep10ServiceTest {
 
     val challengeResponse = sep10Service.createChallenge(cr)
 
-    assertEquals(challengeResponse.networkPassphrase, TEST_NETWORK_PASS_PHRASE)
+    assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
     verify(exactly = 1) {
       Sep10Challenge.newChallenge(
         any(),
-        Network(TEST_NETWORK_PASS_PHRASE),
+        Network(TESTNET.networkPassphrase),
         TEST_ACCOUNT,
         TEST_HOME_DOMAIN,
         TEST_WEB_AUTH_DOMAIN,
@@ -405,7 +405,7 @@ internal class Sep10ServiceTest {
     val txn =
       Sep10Challenge.newChallenge(
         signer,
-        Network(TEST_NETWORK_PASS_PHRASE),
+        Network(TESTNET.networkPassphrase),
         clientKeyPair.accountId,
         TEST_HOME_DOMAIN,
         TEST_WEB_AUTH_DOMAIN,
@@ -532,9 +532,6 @@ internal class Sep10ServiceTest {
 
     // Test client domain rejection
     cr.clientDomain = TEST_CLIENT_DOMAIN
-    assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
-
-    // Test client domain not allowed
     assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
   }
 

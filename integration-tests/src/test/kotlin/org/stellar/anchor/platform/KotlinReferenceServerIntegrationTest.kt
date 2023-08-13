@@ -14,14 +14,15 @@ internal class KotlinReferenceServerIntegrationTest {
   private val testProfileRunner =
     TestProfileExecutor(
       TestConfig("sep24").also {
-        it.env["run_all_servers"] = "false"
-        it.env["run_kotlin_reference_server"] = "true"
-        it.env["run_docker"] = "false"
+        it.env[RUN_DOCKER] = "false"
+        it.env[RUN_ALL_SERVERS] = "false"
+        it.env[RUN_KOTLIN_REFERENCE_SERVER] = "true"
       }
     )
 
   @BeforeAll
   fun setup() {
+    println("Running KotlinReferenceServerIntegrationTest")
     testProfileRunner.start()
   }
 

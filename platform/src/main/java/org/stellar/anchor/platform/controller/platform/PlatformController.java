@@ -29,7 +29,7 @@ public class PlatformController {
       method = {RequestMethod.GET})
   public GetTransactionResponse getTransaction(@PathVariable(name = "id") String txnId)
       throws AnchorException {
-    return transactionService.getTransactionResponse(txnId);
+    return transactionService.findTransaction(txnId);
   }
 
   @CrossOrigin(origins = "*")
@@ -59,6 +59,6 @@ public class PlatformController {
       throws AnchorException {
     TransactionsParams params =
         new TransactionsParams(order_by, order, statuses, pageNumber, pageSize);
-    return transactionService.getTransactionsResponse(sep, params);
+    return transactionService.findTransactions(sep, params);
   }
 }

@@ -1,9 +1,14 @@
 package org.stellar.anchor.platform.event;
 
+import static java.lang.Thread.currentThread;
 import static org.stellar.anchor.event.EventService.*;
 import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.MetricConstants.*;
+import static org.stellar.anchor.util.MetricConstants.EVENT_RECEIVED;
 import static org.stellar.anchor.util.StringHelper.json;
 
+import io.micrometer.core.instrument.Metrics;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
@@ -16,34 +21,51 @@ import lombok.SneakyThrows;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
+import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
 import org.stellar.anchor.platform.utils.DaemonExecutors;
+import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
+import org.stellar.anchor.sep24.Sep24TransactionStore;
+import org.stellar.anchor.util.ExponentialBackoffTimer;
 import org.stellar.anchor.util.Log;
 
 public class EventProcessorManager {
   public static final String CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX =
       "client-status-callback-";
   public static final String CALLBACK_API_EVENT_PROCESSOR_NAME = "callback-api-";
+  private final SecretConfig secretConfig;
   private final EventProcessorConfig eventProcessorConfig;
   private final CallbackApiConfig callbackApiConfig;
   private final ClientsConfig clientsConfig;
   private final EventService eventService;
+  private final AssetService assetService;
+  private final Sep24TransactionStore sep24TransactionStore;
+  private final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
   private final List<EventProcessor> processors = new ArrayList<>();
 
   public EventProcessorManager(
+      SecretConfig secretConfig,
       EventProcessorConfig eventProcessorConfig,
       CallbackApiConfig callbackApiConfig,
       ClientsConfig clientsConfig,
-      EventService eventService) {
+      EventService eventService,
+      AssetService assetService,
+      Sep24TransactionStore sep24TransactionStore,
+      MoreInfoUrlConstructor moreInfoUrlConstructor) {
+    this.secretConfig = secretConfig;
     this.eventProcessorConfig = eventProcessorConfig;
     this.callbackApiConfig = callbackApiConfig;
     this.clientsConfig = clientsConfig;
     this.eventService = eventService;
+    this.assetService = assetService;
+    this.sep24TransactionStore = sep24TransactionStore;
+    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
 
   @PostConstruct
@@ -55,38 +77,45 @@ public class EventProcessorManager {
           new EventProcessor(
               CALLBACK_API_EVENT_PROCESSOR_NAME,
               EventQueue.TRANSACTION,
-              new CallbackApiEventHandler(callbackApiConfig)));
-      // Create a processor of the client status callback handler for each client defined in the
-      // clientsConfig
-      if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
-        for (ClientsConfig.ClientConfig clientConfig : clientsConfig.getClients()) {
-          if (clientConfig.getCallbackUrl().isEmpty()) {
+              new CallbackApiEventHandler(callbackApiConfig),
+              eventService));
+    }
+    // Create a processor of the client status callback handler for each client defined in the
+    // clientsConfig
+    if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
+      for (ClientsConfig.ClientConfig clientConfig : clientsConfig.getClients()) {
+        if (clientConfig.getCallbackUrl().isEmpty()) {
 
-            Log.info(String.format("Client status callback skipped: %s", json(clientConfig)));
-            continue;
-          }
-
-          String processorName;
-          switch (clientConfig.getType()) {
-            case CUSTODIAL:
-              processorName =
-                  CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX + clientConfig.getSigningKey();
-              break;
-            case NONCUSTODIAL:
-              processorName =
-                  CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX + clientConfig.getDomain();
-              break;
-            default:
-              errorF("Unknown client type: {}", clientConfig.getType());
-              throw new InternalServerErrorException(
-                  "Unknown client type: " + clientConfig.getType());
-          }
-          processors.add(
-              new EventProcessor(
-                  processorName,
-                  EventQueue.TRANSACTION,
-                  new ClientStatusCallbackHandler(clientConfig)));
+          Log.info(String.format("Client status callback skipped: %s", json(clientConfig)));
+          continue;
         }
+
+        String processorName;
+        switch (clientConfig.getType()) {
+          case CUSTODIAL:
+            processorName =
+                CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX + clientConfig.getSigningKey();
+            break;
+          case NONCUSTODIAL:
+            processorName =
+                CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX + clientConfig.getDomain();
+            break;
+          default:
+            errorF("Unknown client type: {}", clientConfig.getType());
+            throw new InternalServerErrorException(
+                "Unknown client type: " + clientConfig.getType());
+        }
+        processors.add(
+            new EventProcessor(
+                processorName,
+                EventQueue.TRANSACTION,
+                new ClientStatusCallbackHandler(
+                    secretConfig,
+                    clientConfig,
+                    sep24TransactionStore,
+                    assetService,
+                    moreInfoUrlConstructor),
+                eventService));
       }
     }
 
@@ -106,21 +135,44 @@ public class EventProcessorManager {
     }
   }
 
-  class EventProcessor implements Runnable {
+  static class EventProcessor implements Runnable {
+    // The initial backoff time for connection error.
+    private final long NETWORK_INITIAL_BACKOFF_TIME_SECONDS = 1;
+    // The maximum backoff time for connection error.
+    private final long NETWORK_MAX_BACKOFF_TIME_SECONDS = 30;
+    // The maximum number of retries for connection error.
+    private final long NETWORK_MAX_RETRIES = 3;
+    // The initial backoff time for HTTP status code other than 200s or 300s.
+    private final long HTTP_STATUS_INITIAL_BACKOFF_TIME_SECONDS = 1;
+    // The maximum backoff time for HTTP status code other than 200s or 300s.
+    private final long HTTP_STATUS_MAX_BACKOFF_TIME_SECONDS = 5;
+    // The maximum number of retries for HTTP status code other than 200s or 300s.
+    private final long HTTP_STATUS_MAX_RETRIES = 3;
+
     private final String name;
     private final EventQueue eventQueue;
     private final EventHandler eventHandler;
+    private final EventService eventService;
 
     private final ScheduledExecutorService consumerScheduler =
         DaemonExecutors.newScheduledThreadPool(1);
     private ScheduledFuture<?> processingTask = null;
-    private boolean stopped = false;
-    private static final int INITIAL_DELAY = 1000; // Initial delay in milliseconds
+    private final ExponentialBackoffTimer networkBackoffTimer =
+        new ExponentialBackoffTimer(
+            NETWORK_INITIAL_BACKOFF_TIME_SECONDS, NETWORK_MAX_BACKOFF_TIME_SECONDS);
+    private final ExponentialBackoffTimer httpErrorBackoffTimer =
+        new ExponentialBackoffTimer(
+            HTTP_STATUS_INITIAL_BACKOFF_TIME_SECONDS, HTTP_STATUS_MAX_BACKOFF_TIME_SECONDS);
 
-    public EventProcessor(String name, EventQueue eventQueue, EventHandler eventHandler) {
+    // The flag to indicate if the processor is stopped.
+    private boolean stopped = false;
+
+    public EventProcessor(
+        String name, EventQueue eventQueue, EventHandler eventHandler, EventService eventService) {
       this.name = name;
       this.eventQueue = eventQueue;
       this.eventHandler = eventHandler;
+      this.eventService = eventService;
     }
 
     public void start() {
@@ -145,28 +197,16 @@ public class EventProcessorManager {
           getConsumerRestartCount() + 1);
       Session queueSession = eventService.createSession(name, eventQueue);
       try {
-        while (!Thread.currentThread().isInterrupted() && !stopped) {
+        while (!currentThread().isInterrupted() && !stopped) {
           ReadResponse readResponse = queueSession.read();
           List<AnchorEvent> events = readResponse.getEvents();
+          Metrics.counter(EVENT_RECEIVED, QUEUE, toMetricTag(eventQueue.name()))
+              .increment(events.size());
           debugF("Received {} events from queue", events.size());
-          events.forEach(
-              event -> {
-                // TODO: Implement retry mechanism here
-                boolean isProcessed = false;
-                int attempts = 0;
-                while (!isProcessed) {
-                  try {
-                    eventHandler.handleEvent(event);
-                    isProcessed = true;
-                  } catch (Exception e) {
-                    Log.errorEx(e);
-                    backoffTimer(attempts++);
-                    // TODO: handle retry according to response
-                    // if downstream cannot consume event -> keep retry
-                    // if it's code issue -> event goes to dead letter queue
-                  }
-                }
-              });
+          for (AnchorEvent event : events) {
+            handleEvent(event);
+            if (currentThread().isInterrupted()) break;
+          }
           queueSession.ack(readResponse);
         }
 
@@ -180,17 +220,83 @@ public class EventProcessorManager {
       }
     }
 
-    private void backoffTimer(int attempts) {
-      int delay = (int) (Math.pow(2, attempts) * INITIAL_DELAY);
-      try {
-        Thread.sleep(delay);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
+    void handleEvent(AnchorEvent event) {
+      boolean isProcessed = false;
+      int networkErrorRetryAttempts = 0;
+      int httpStatusRetryAttempts = 0;
+      // For every event, reset the timer.
+      getHttpErrorBackoffTimer().reset();
+      getNetworkBackoffTimer().reset();
+      // Retry until the event is processed or the thread is interrupted.
+      while (!isProcessed && !currentThread().isInterrupted()) {
+        try {
+          if (eventHandler.handleEvent(event)) {
+            // ***** The event is processed successfully.
+            isProcessed = true;
+            incrementProcessedCounter();
+          } else {
+            // ***** Error #2. HTTP status code other than 200s or 300s
+            if (++httpStatusRetryAttempts <= HTTP_STATUS_MAX_RETRIES) {
+              // retry.
+              getHttpErrorBackoffTimer().backoff();
+            } else {
+              // retry >= 3 times, skip the event.
+              isProcessed = true;
+              incrementProcessedCounter();
+            }
+          }
+        } catch (IOException ioex) {
+          // Retry for connection error
+          if (++networkErrorRetryAttempts <= NETWORK_MAX_RETRIES) {
+            try {
+              getNetworkBackoffTimer().backoff();
+            } catch (InterruptedException e) {
+              // The thread is interrupted, so we need to stop the processor. This will
+              // break the while loop.
+              currentThread().interrupt();
+            }
+          } else {
+            isProcessed = true;
+            incrementProcessedCounter();
+          }
+        } catch (Exception e) {
+          // ***** Error #3. uncaught exception
+          sendToDLQ(event, e);
+          isProcessed = true;
+        }
       }
+    }
+
+    void incrementProcessedCounter() {
+      Metrics.counter(EVENT_PROCESSED, QUEUE, toMetricTag(eventQueue.name())).increment();
+    }
+
+    void sendToDLQ(AnchorEvent event, Exception e) {
+      Log.errorF("Failed to process event: {}", json(event));
+      Log.errorEx(e);
     }
 
     long getConsumerRestartCount() {
       return ((ScheduledThreadPoolExecutor) consumerScheduler).getCompletedTaskCount();
+    }
+
+    ExponentialBackoffTimer getHttpErrorBackoffTimer() {
+      return httpErrorBackoffTimer;
+    }
+
+    ExponentialBackoffTimer getNetworkBackoffTimer() {
+      return networkBackoffTimer;
+    }
+
+    private String toMetricTag(String name) {
+      switch (name) {
+        case CALLBACK_API_EVENT_PROCESSOR_NAME:
+          return TV_BUSINESS_SERVER_CALLBACK;
+        case CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX:
+          return TV_STATUS_CALLBACK;
+        default:
+          return TV_UNKNOWN;
+      }
     }
   }
 }

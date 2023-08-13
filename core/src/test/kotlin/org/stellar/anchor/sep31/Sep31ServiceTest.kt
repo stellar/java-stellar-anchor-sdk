@@ -43,6 +43,7 @@ import org.stellar.anchor.sep31.Sep31Service.Context
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.sdk.Network.TESTNET
 
 class Sep31ServiceTest {
   companion object {
@@ -293,7 +294,7 @@ class Sep31ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     every { secretConfig.sep10JwtSecretKey } returns TestConstants.TEST_JWT_SECRET
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND

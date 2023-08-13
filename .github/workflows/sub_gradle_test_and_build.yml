@@ -20,11 +20,11 @@ jobs:
           sudo echo "127.0.0.1 db" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 zookeeper" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 kafka" | sudo tee -a /etc/hosts
-          sudo echo "127.0.0.1 reference-server" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 sep24-reference-ui" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 reference-server" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 wallet-server" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts 
-
 
       - name: Build and run the stack with docker compose
         env:
@@ -34,6 +34,10 @@ jobs:
       # Check the docker containers
       - name: Check running containers
         run: docker ps
+
+      # Prepare Stellar Validation Tests
+      - name: Pull Stellar Validation Tests Docker Image
+        run: docker pull stellar/anchor-tests:v0.5.12 &
 
       # Set up JDK 11
       - name: Set up JDK 11
@@ -47,7 +51,7 @@ jobs:
       - name: Gradle test and build. (unit tests, integration tests, end-2-end tests and build)
         env:
           run_docker: false
-        run: ./gradlew clean build --no-daemon --stacktrace
+        run: ./gradlew clean build --no-daemon --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
 
       - name: Stop docker containers
         env:
@@ -62,6 +66,17 @@ jobs:
       - name: Run sep server, observer, java reference server and kotlin reference server
         env:
           run_docker: false
+          run_all_servers: false
+          run_sep_server: true
+          run_platform_server: true
+          run_reference_server: true
+          run_observer: true
+          run_kotlin_reference_server: true
+          # Running wallet server is not required for sep tests. However, running wallet server
+          # and kotlin reference server at the same time causes `ktor` to block the JVM.
+          # If we need to run both `ktor` servers, we will need to run them in separate JVMs.
+          run_wallet_server: false
+
           SEP1_TOML_VALUE: service-runner/src/main/resources/config/stellar.host.docker.internal.toml
           SEP10_HOME_DOMAIN: host.docker.internal:8080
         run: |
