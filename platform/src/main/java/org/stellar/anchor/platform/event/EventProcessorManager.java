@@ -140,7 +140,8 @@ public class EventProcessorManager {
     private final long NETWORK_INITIAL_BACKOFF_TIME_SECONDS = 1;
     // The maximum backoff time for connection error.
     private final long NETWORK_MAX_BACKOFF_TIME_SECONDS = 30;
-
+    // The maximum number of retries for connection error.
+    private final long NETWORK_MAX_RETRIES = 3;
     // The initial backoff time for HTTP status code other than 200s or 300s.
     private final long HTTP_STATUS_INITIAL_BACKOFF_TIME_SECONDS = 1;
     // The maximum backoff time for HTTP status code other than 200s or 300s.
@@ -221,7 +222,8 @@ public class EventProcessorManager {
 
     void handleEvent(AnchorEvent event) {
       boolean isProcessed = false;
-      int httpStatusNotOkAttempts = 0;
+      int networkErrorRetryAttempts = 0;
+      int httpStatusRetryAttempts = 0;
       // For every event, reset the timer.
       getHttpErrorBackoffTimer().reset();
       getNetworkBackoffTimer().reset();
@@ -234,10 +236,8 @@ public class EventProcessorManager {
             incrementProcessedCounter();
           } else {
             // ***** Error #2. HTTP status code other than 200s or 300s
-            httpStatusNotOkAttempts++;
-            if (httpStatusNotOkAttempts < HTTP_STATUS_MAX_RETRIES) {
+            if (++httpStatusRetryAttempts <= HTTP_STATUS_MAX_RETRIES) {
               // retry.
-              getNetworkBackoffTimer().reset();
               getHttpErrorBackoffTimer().backoff();
             } else {
               // retry >= 3 times, skip the event.
@@ -246,20 +246,21 @@ public class EventProcessorManager {
             }
           }
         } catch (IOException ioex) {
-          // ***** Error #1: connection error
-          getHttpErrorBackoffTimer().reset();
-          httpStatusNotOkAttempts = 0;
-          try {
-            getNetworkBackoffTimer().backoff();
-          } catch (InterruptedException e) {
-            // The thread is interrupted, so we need to stop the processor. This will
-            // break the while loop.
-            currentThread().interrupt();
+          // Retry for connection error
+          if (++networkErrorRetryAttempts <= NETWORK_MAX_RETRIES) {
+            try {
+              getNetworkBackoffTimer().backoff();
+            } catch (InterruptedException e) {
+              // The thread is interrupted, so we need to stop the processor. This will
+              // break the while loop.
+              currentThread().interrupt();
+            }
+          } else {
+            isProcessed = true;
+            incrementProcessedCounter();
           }
         } catch (Exception e) {
           // ***** Error #3. uncaught exception
-          getNetworkBackoffTimer().reset();
-          getHttpErrorBackoffTimer().reset();
           sendToDLQ(event, e);
           isProcessed = true;
         }
