@@ -4,11 +4,13 @@ package org.stellar.anchor.util
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.io.IOException
 import java.net.MalformedURLException
 import okhttp3.Response
 import okhttp3.ResponseBody
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -36,15 +38,17 @@ internal class NetUtilTest {
   }
 
   @Test
-  fun `test fetch()`() {
+  fun `test fetch successful response`() {
     mockkStatic(NetUtil::class)
     every { NetUtil.getCall(any()) } returns mockCall
     every { mockCall.execute() } returns mockResponse
+    every { mockResponse.isSuccessful } returns true
     every { mockResponse.body } returns mockResponseBody
     every { mockResponseBody.string() } returns "result"
 
     val result = NetUtil.fetch("http://hello")
-    assert(result.equals("result"))
+    assertEquals("result", result)
+
     verify {
       NetUtil.getCall(any())
       mockCall.execute()
@@ -52,15 +56,24 @@ internal class NetUtilTest {
   }
 
   @Test
-  fun `test fetch() throws exception`() {
+  fun `test fetch unsuccessful response`() {
     mockkStatic(NetUtil::class)
     every { NetUtil.getCall(any()) } returns mockCall
     every { mockCall.execute() } returns mockResponse
-    every { mockResponse.body } returns null
-    every { mockResponseBody.string() } returns "result"
+    every { mockResponse.isSuccessful } returns false
 
-    val result = NetUtil.fetch("http://hello")
-    assert(result.equals(""))
+    assertThrows(IOException::class.java) { NetUtil.fetch("http://hello") }
+  }
+
+  @Test
+  fun `test fetch null response body`() {
+    mockkStatic(NetUtil::class)
+    every { NetUtil.getCall(any()) } returns mockCall
+    every { mockCall.execute() } returns mockResponse
+    every { mockResponse.isSuccessful } returns true
+    every { mockResponse.body } returns null
+
+    assertThrows(IOException::class.java) { NetUtil.fetch("http://hello") }
   }
 
   @Test

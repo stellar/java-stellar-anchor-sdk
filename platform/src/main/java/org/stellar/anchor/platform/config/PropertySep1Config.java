@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.util.NetUtil;
 import org.stellar.anchor.util.Sep1Helper;
@@ -59,12 +60,11 @@ public class PropertySep1Config implements Sep1Config, Validator {
         case STRING:
           try {
             Sep1Helper.parse(config.getToml().getValue());
-          } catch (IllegalStateException isex) {
+          } catch (InvalidConfigException e) {
             errors.rejectValue(
                 "value",
                 "sep1-toml-value-string-invalid",
-                String.format(
-                    "sep1.toml.value does not contain a valid TOML. %s", isex.getMessage()));
+                String.format("sep1.toml.value does not contain a valid TOML. %s", e.getMessage()));
           }
           break;
         case URL:
