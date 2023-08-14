@@ -214,7 +214,7 @@ class Sep6ServiceTest {
   val depositTxnEventJson =
     """
       {
-          "type": "TRANSACTION_CREATED",
+          "type": "transaction_created",
           "sep": "6",
           "transaction": {
               "sep": "6",

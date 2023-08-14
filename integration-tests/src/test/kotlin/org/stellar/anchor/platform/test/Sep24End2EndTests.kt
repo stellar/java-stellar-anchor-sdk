@@ -13,8 +13,11 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.skyscreamer.jsonassert.JSONAssert
+import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
@@ -23,6 +26,7 @@ import org.stellar.anchor.util.StringHelper.json
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
+import org.stellar.walletsdk.InteractiveFlowResponse
 import org.stellar.walletsdk.StellarConfiguration
 import org.stellar.walletsdk.Wallet
 import org.stellar.walletsdk.anchor.*
@@ -63,17 +67,32 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
   private val walletServerClient = WalletServerClient(Url(config.env["wallet.server.url"]!!))
+  private val jwtService: JwtService =
+    JwtService(
+      config.env["secret.sep10.jwt_secret"]!!,
+      config.env["secret.sep24.interactive_url.jwt_secret"]!!,
+      config.env["secret.sep24.more_info_url.jwt_secret"]!!,
+      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.platform_api.auth_secret"]!!
+    )
 
   private fun `test typical deposit end-to-end flow`(asset: StellarAssetId, amount: String) =
     runBlocking {
       walletServerClient.clearCallbacks()
       val token = anchor.auth().authenticate(keypair)
-      val txnId = makeDeposit(asset, amount, token)
+      val response = makeDeposit(asset, amount, token)
+
+      // Assert the interactive URL JWT is valid
+      val params = UriComponentsBuilder.fromUriString(response.url).build().queryParams
+      val cipher = params["token"]!![0]
+      val interactiveJwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
+      assertEquals("referenceCustodial", interactiveJwt.claims[JwtService.CLIENT_NAME])
+
       // Wait for the status to change to COMPLETED
-      waitForTxnStatus(txnId, COMPLETED, token)
+      waitForTxnStatus(response.id, COMPLETED, token)
 
       // Check if the transaction can be listed by stellar transaction id
-      val fetchedTxn = anchor.interactive().getTransaction(txnId, token) as DepositTransaction
+      val fetchedTxn = anchor.interactive().getTransaction(response.id, token) as DepositTransaction
       val transactionByStellarId =
         anchor
           .interactive()
@@ -81,7 +100,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       assertEquals(fetchedTxn.id, transactionByStellarId.id)
 
       // Check the events sent to the reference server are recorded correctly
-      val actualEvents = waitForBusinessServerEvents(txnId, 4)
+      val actualEvents = waitForBusinessServerEvents(response.id, 4)
       assertNotNull(actualEvents)
       actualEvents?.let { assertEquals(4, it.size) }
       val expectedEvents: List<AnchorEvent> =
@@ -89,7 +108,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
 
       // Check the callbacks sent to the wallet reference server are recorded correctly
-      val actualCallbacks = waitForWalletServerCallbacks(txnId, 4)
+      val actualCallbacks = waitForWalletServerCallbacks(response.id, 4)
       actualCallbacks?.let {
         assertEquals(4, it.size)
         val expectedCallbacks: List<Sep24GetTransactionResponse> =
@@ -101,9 +120,14 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       }
     }
 
-  private suspend fun makeDeposit(asset: StellarAssetId, amount: String, token: AuthToken): String {
+  private suspend fun makeDeposit(
+    asset: StellarAssetId,
+    amount: String,
+    token: AuthToken
+  ): InteractiveFlowResponse {
     // Start interactive deposit
     val deposit = anchor.interactive().deposit(asset, token, mapOf("amount" to amount))
+
     // Get transaction status and make sure it is INCOMPLETE
     val transaction = anchor.interactive().getTransaction(deposit.id, token)
     assertEquals(INCOMPLETE, transaction.status)
@@ -113,7 +137,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     info("accessing ${deposit.url}...")
     assertEquals(200, resp.status.value)
 
-    return transaction.id
+    return deposit
   }
 
   private fun compareAndAssertEvents(
@@ -327,7 +351,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     val token = anchor.auth().authenticate(newAcc)
     val deposits =
       (0..1).map {
-        val txnId = makeDeposit(asset, amount, token)
+        val txnId = makeDeposit(asset, amount, token).id
         waitForTxnStatus(txnId, COMPLETED, token)
         txnId
       }
@@ -355,7 +379,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       """
 [
   {
-    "type": "TRANSACTION_CREATED",
+    "type": "transaction_created",
     "sep": "24",
     "transaction": {
       "sep": "24",
@@ -367,7 +391,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     }
   },
   {
-    "type": "TRANSACTION_STATUS_CHANGED",
+    "type": "transaction_status_changed",
     "sep": "24",
     "transaction": {
       "sep": "24",
@@ -387,7 +411,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     }
   },
   {
-    "type": "TRANSACTION_STATUS_CHANGED",
+    "type": "transaction_status_changed",
     "sep": "24",
     "transaction": {
       "sep": "24",
@@ -407,7 +431,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     }
   },
   {
-    "type": "TRANSACTION_STATUS_CHANGED",
+    "type": "transaction_status_changed",
     "sep": "24",
     "transaction": {
       "sep": "24",
@@ -447,7 +471,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     """
     [
       {
-        "type": "TRANSACTION_CREATED",
+        "type": "transaction_created",
         "sep": "24",
         "transaction": {
           "sep": "24",
@@ -461,7 +485,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       },
       {
-        "type": "TRANSACTION_STATUS_CHANGED",
+        "type": "transaction_status_changed",
         "sep": "24",
         "transaction": {
           "sep": "24",
@@ -482,7 +506,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       },
       {
-        "type": "TRANSACTION_STATUS_CHANGED",
+        "type": "transaction_status_changed",
         "id": "f0b75f9e-1b53-442a-91dd-d6c002a51bfc",
         "sep": "24",
         "transaction": {
@@ -524,7 +548,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       },
       {
-        "type": "TRANSACTION_STATUS_CHANGED",
+        "type": "transaction_status_changed",
         "id": "b44d90ec-2d9a-4768-a952-085026f5b3da",
         "sep": "24",
         "transaction": {
@@ -566,7 +590,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       },
       {
-        "type": "TRANSACTION_STATUS_CHANGED",
+        "type": "transaction_status_changed",
         "id": "0556b75c-b054-49a0-b778-654050a6cba4",
         "sep": "24",
         "transaction": {

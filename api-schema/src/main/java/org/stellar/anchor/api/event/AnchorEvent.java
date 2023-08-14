@@ -1,6 +1,6 @@
 package org.stellar.anchor.api.event;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.google.gson.annotations.SerializedName;
 import lombok.*;
 import org.stellar.anchor.api.platform.CustomerUpdatedResponse;
 import org.stellar.anchor.api.platform.GetQuoteResponse;
@@ -26,14 +26,18 @@ public class AnchorEvent {
   CustomerUpdatedResponse customer;
 
   public enum Type {
+    @SerializedName("transaction_created")
     TRANSACTION_CREATED("transaction_created"),
+    @SerializedName("transaction_status_changed")
     TRANSACTION_STATUS_CHANGED("transaction_status_changed"),
-    @SuppressWarnings("unused")
+    @SerializedName("transaction_error")
     TRANSACTION_ERROR("transaction_error"),
+    @SerializedName("quote_created")
     QUOTE_CREATED("quote_created"),
+    @SerializedName("customer_updated")
     CUSTOMER_UPDATED("customer_updated");
 
-    @JsonValue public final String type;
+    public final String type;
 
     Type(String type) {
       this.type = type;
