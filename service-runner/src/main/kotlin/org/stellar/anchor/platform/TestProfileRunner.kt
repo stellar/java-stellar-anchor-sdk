@@ -88,8 +88,9 @@ class TestProfileExecutor(val config: TestConfig) {
       val envMap = config.env
 
       envMap["assets.value"] = getResourceFile(envMap["assets.value"]!!).absolutePath
-      envMap["sep1.toml.value"] = getResourceFile(envMap["sep1.toml.value"]!!).absolutePath
-
+      if (envMap["sep1.toml.type"] != "url") {
+        envMap["sep1.toml.value"] = getResourceFile(envMap["sep1.toml.value"]!!).absolutePath
+      }
       // Start servers
       val jobs = mutableListOf<Job>()
       val scope = CoroutineScope(Dispatchers.Default)
