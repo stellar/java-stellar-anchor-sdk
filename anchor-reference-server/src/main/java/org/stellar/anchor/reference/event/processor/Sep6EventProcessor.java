@@ -6,8 +6,11 @@ import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
+import org.stellar.anchor.api.callback.GetCustomerRequest;
+import org.stellar.anchor.api.callback.GetCustomerResponse;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PatchTransactionRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
@@ -19,6 +22,7 @@ import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.reference.event.ActiveTransactionStore;
+import org.stellar.anchor.reference.service.CustomerService;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.*;
 import org.stellar.sdk.responses.AccountResponse;
@@ -31,6 +35,7 @@ public class Sep6EventProcessor implements SepAnchorEventProcessor {
   private final AppSettings appSettings;
   private final PlatformApiClient platformApiClient;
   private final Server server;
+  private final CustomerService customerService;
   private final ActiveTransactionStore activeTransactionStore;
 
   @Override
@@ -70,8 +75,22 @@ public class Sep6EventProcessor implements SepAnchorEventProcessor {
               .id(event.getTransaction().getId())
               .status(newStatus)
               .build());
-      activeTransactionStore.add(
-          event.getTransaction().getDestinationAccount(), event.getTransaction().getId());
+      try {
+        GetCustomerResponse customer =
+            customerService.getCustomer(
+                GetCustomerRequest.builder()
+                    .account(event.getTransaction().getDestinationAccount())
+                    .build());
+        activeTransactionStore.add(customer.getId(), event.getTransaction().getId());
+        Log.infoF(
+            "Added transaction {} to active transaction store for customer {}",
+            event.getTransaction().getId(),
+            customer.getId());
+      } catch (NotFoundException e) {
+        Log.error(
+            "Error getting customer for account {}",
+            event.getTransaction().getDestinationAccount());
+      }
     } else {
       Log.warnF("Unexpected transaction status: {}", eventStatus);
     }
@@ -103,14 +122,21 @@ public class Sep6EventProcessor implements SepAnchorEventProcessor {
                 .id(transaction.getId())
                 .updatedAt(Instant.now())
                 .status(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE)
-                .requiredInfoUpdates(
-                    "Provide the missing information to continue with the transaction.")
-                // TODO: format to be decided in ANCHOR-386
-                .requiredInfoMessage("{}")
                 .build());
         break;
       case COMPLETED:
-        activeTransactionStore.remove(transaction.getDestinationAccount(), transaction.getId());
+        try {
+          GetCustomerResponse customer =
+              customerService.getCustomer(
+                  GetCustomerRequest.builder().id(transaction.getDestinationAccount()).build());
+          activeTransactionStore.remove(customer.getId(), event.getTransaction().getId());
+          Log.infoF(
+              "Removed transaction {} from active transaction store for customer {}",
+              event.getTransaction().getId(),
+              customer.getId());
+        } catch (NotFoundException e) {
+          Log.error("Error getting customer for account {}", transaction.getDestinationAccount());
+        }
       default:
         Log.warnF("Unexpected transaction status: {}", eventStatus);
         break;
@@ -120,7 +146,7 @@ public class Sep6EventProcessor implements SepAnchorEventProcessor {
   @Override
   public void onCustomerUpdated(AnchorEvent event) {
     Log.infoF("Received KYC updated event: {}", event);
-    String observedAccount = event.getCustomer().getAccount();
+    String observedAccount = event.getCustomer().getId();
     Set<String> transactionIds = activeTransactionStore.getTransactions(observedAccount);
     Log.infoF(
         "Found {} transactions to update for account {}", transactionIds.size(), observedAccount);

@@ -57,9 +57,6 @@ public class Sep6Service {
     if (request == null) {
       throw new SepValidationException("missing request");
     }
-    if (!request.getAccount().equals(token.getAccount())) {
-      throw new SepNotAuthorizedException("account does not match token");
-    }
 
     AssetInfo asset = assetService.getAsset(request.getAssetCode());
     if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep6Enabled()) {

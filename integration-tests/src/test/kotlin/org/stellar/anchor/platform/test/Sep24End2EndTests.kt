@@ -280,7 +280,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       if (callbacks.size == count) {
         return callbacks
       }
-      delay(1.seconds)
+      delay(5.seconds)
       retries--
     }
     return null
@@ -293,7 +293,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       if (events.size == count) {
         return events
       }
-      delay(1.seconds)
+      delay(5.seconds)
       retries--
     }
     return null

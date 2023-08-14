@@ -268,7 +268,10 @@ class Sep12ServiceTest {
     assertNotNull(kycUpdateEventSlot.captured.id)
     assertEquals("12", kycUpdateEventSlot.captured.sep)
     assertEquals(AnchorEvent.Type.CUSTOMER_UPDATED, kycUpdateEventSlot.captured.type)
-    assertEquals(CustomerUpdatedResponse(TEST_ACCOUNT), kycUpdateEventSlot.captured.customer)
+    assertEquals(
+      CustomerUpdatedResponse(mockCallbackApiPutCustomerResponse.id),
+      kycUpdateEventSlot.captured.customer
+    )
 
     // validate the response
     verify(exactly = 1) { customerIntegration.putCustomer(any()) }

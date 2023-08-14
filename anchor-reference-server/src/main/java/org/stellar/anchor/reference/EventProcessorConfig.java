@@ -10,6 +10,7 @@ import org.stellar.anchor.reference.event.processor.MemoryTransactionStore;
 import org.stellar.anchor.reference.event.processor.NoopEventProcessor;
 import org.stellar.anchor.reference.event.processor.Sep24EventProcessor;
 import org.stellar.anchor.reference.event.processor.Sep6EventProcessor;
+import org.stellar.anchor.reference.service.CustomerService;
 import org.stellar.sdk.Server;
 
 @Configuration
@@ -34,8 +35,10 @@ public class EventProcessorConfig {
       AppSettings appSettings,
       PlatformApiClient platformApiClient,
       Server server,
+      CustomerService customerService,
       ActiveTransactionStore activeTransactionStore) {
-    return new Sep6EventProcessor(appSettings, platformApiClient, server, activeTransactionStore);
+    return new Sep6EventProcessor(
+        appSettings, platformApiClient, server, customerService, activeTransactionStore);
   }
 
   @Bean

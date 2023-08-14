@@ -23,6 +23,7 @@
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <envs>
+      <env name="TEST_PROFILE_NAME" value="sep24" />
       <env name="run_all_servers" value="false" />
       <env name="run_docker" value="false" />
     </envs>

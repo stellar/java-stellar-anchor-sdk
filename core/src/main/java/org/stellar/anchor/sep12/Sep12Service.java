@@ -90,7 +90,7 @@ public class Sep12Service {
             .id(UUID.randomUUID().toString())
             .sep("12")
             .type(AnchorEvent.Type.CUSTOMER_UPDATED)
-            .customer(CustomerUpdatedResponse.builder().account(request.getAccount()).build())
+            .customer(CustomerUpdatedResponse.builder().id(response.getId()).build())
             .build());
 
     // increment counter

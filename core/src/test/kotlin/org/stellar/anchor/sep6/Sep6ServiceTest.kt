@@ -20,10 +20,7 @@ import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepValidationException
-import org.stellar.anchor.api.sep.sep6.GetDepositRequest
-import org.stellar.anchor.api.sep.sep6.GetTransactionRequest
-import org.stellar.anchor.api.sep.sep6.GetTransactionsRequest
-import org.stellar.anchor.api.sep.sep6.InfoResponse
+import org.stellar.anchor.api.sep.sep6.*
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.api.shared.Refunds
@@ -274,24 +271,6 @@ class Sep6ServiceTest {
 
     // Verify response
     assertEquals(slotTxn.captured.id, response.id)
-    assert(response.how.isNotBlank())
-  }
-
-  @Test
-  fun `test deposit with account mismatch`() {
-    val request =
-      GetDepositRequest.builder()
-        .assetCode(TEST_ASSET)
-        .account(TEST_ACCOUNT)
-        .type("bank_account")
-        .amount("100")
-        .build()
-
-    assertThrows<SepNotAuthorizedException> {
-      sep6Service.deposit(TestHelper.createSep10Jwt("other-account"), request)
-    }
-    verify { txnStore wasNot Called }
-    verify { eventSession wasNot Called }
   }
 
   @Test

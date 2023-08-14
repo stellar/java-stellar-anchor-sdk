@@ -14,7 +14,6 @@ import org.stellar.anchor.api.shared.CustomerField;
 import org.stellar.anchor.api.shared.ProvidedCustomerField;
 import org.stellar.anchor.reference.model.Customer;
 import org.stellar.anchor.reference.repo.CustomerRepo;
-import org.stellar.anchor.util.Log;
 
 @Service
 public class CustomerService {
@@ -168,7 +167,6 @@ public class CustomerService {
     Customer customer = new Customer();
     customer.setId(UUID.randomUUID().toString());
     updateCustomer(customer, request);
-    Log.info("Creating new customer: {}", customer);
     return customer;
   }
 

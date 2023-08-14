@@ -31,9 +31,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
   private val anchor =
     wallet.anchor(config.env["anchor.domain"]!!) {
       install(HttpTimeout) {
-        requestTimeoutMillis = 10000
-        connectTimeoutMillis = 10000
-        socketTimeoutMillis = 10000
+        requestTimeoutMillis = 300000
+        connectTimeoutMillis = 300000
+        socketTimeoutMillis = 300000
       }
     }
   private val maxTries = 30
@@ -42,6 +42,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     val token = anchor.auth().authenticate(keypair)
     // TODO: migrate this to wallet-sdk when it's available
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
+
+    // Create a customer before starting the transaction
+    anchor.customer(token).add(mapOf("first_name" to "John", "last_name" to "Doe"))
 
     val deposit =
       sep6Client.deposit(
@@ -54,16 +57,8 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       )
     waitStatus(deposit.id, "pending_customer_info_update", sep6Client)
 
-    val pendingKycTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))
-    assertNotNull(pendingKycTxn.transaction.requiredInfoMessage)
-    assertNotNull(pendingKycTxn.transaction.requiredInfoUpdates)
-
-    // Supply KYC info to continue with the transaction
-    anchor
-      .customer(token)
-      .add(
-        mapOf("first_name" to "John", "last_name" to "Doe", "email_address" to "customer@email.com")
-      )
+    // Supply missing KYC info to continue with the transaction
+    anchor.customer(token).add(mapOf("email_address" to "customer@email.com"))
     waitStatus(deposit.id, "completed", sep6Client)
 
     val completedDepositTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))

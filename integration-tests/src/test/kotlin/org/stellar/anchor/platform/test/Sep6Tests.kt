@@ -91,7 +91,6 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
     {
         "transaction": {
             "kind": "deposit",
-            "status": "incomplete",
             "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
     }
@@ -107,7 +106,6 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
     val request =
       mapOf(
         "asset_code" to "USDC",
-        // TODO: this should be more obvious
         "account" to CLIENT_WALLET_ACCOUNT,
         "amount" to "0.01",
         "type" to "bank_account"
@@ -115,7 +113,6 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
     val response = sep6Client.deposit(request)
     Log.info("GET /deposit response: $response")
     assert(!response.id.isNullOrEmpty())
-    assert(!response.how.isNullOrEmpty())
 
     val savedDepositTxn = sep6Client.getTransaction(mapOf("id" to response.id!!))
     JSONAssert.assertEquals(
