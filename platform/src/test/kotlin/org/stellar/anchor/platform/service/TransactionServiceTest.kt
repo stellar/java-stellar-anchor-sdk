@@ -89,6 +89,7 @@ class TransactionServiceTest {
     // non-existent transaction is rejected with 404
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns null
     ex = assertThrows { transactionService.findTransaction("not-found-tx-id") }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("transaction (id=not-found-tx-id) is not found", ex.message)
@@ -118,6 +119,7 @@ class TransactionServiceTest {
   fun `test get SEP24 transaction`() {
     // Mock the store
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.newInstance() } returns JdbcSep24Transaction()
     every { sep24TransactionStore.newRefunds() } returns JdbcSep24Refunds()
     every { sep24TransactionStore.newRefundPayment() } answers { JdbcSep24RefundPayment() }
