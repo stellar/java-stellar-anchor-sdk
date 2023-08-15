@@ -63,8 +63,8 @@ class EventProcessorTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = [1, 10, 100])
-  fun `test that when event handler throws IOException, networkBackoffTimer is called many times`(
+  @ValueSource(ints = [1, 3, 5, 10, 100])
+  fun `test that when event handler throws IOException, networkBackoffTimer is called at most 3 times`(
     attempts: Int
   ) {
     var counter = attempts
@@ -82,11 +82,16 @@ class EventProcessorTest {
     eventProcessor.handleEvent(event)
 
     // Check if handleEvent is called `attempts` times
-    verify(exactly = attempts) { eventHandler.handleEvent(any()) }
-    // Check if the timer is called `attempts` times when the handleEvent is called 3 times.
-    verify(exactly = attempts) { networkErrorBackoffTimer.backoff() }
-    // Make sure the metric does not show it passes
-    verify(exactly = 0) { eventProcessor.incrementProcessedCounter() }
+    verify(atLeast = 1, atMost = 3) { eventHandler.handleEvent(any()) }
+    // Check if the timer is called `attempts` times when the handleEvent is called at most 3 times.
+    verify(atLeast = 1, atMost = 3) { networkErrorBackoffTimer.backoff() }
+    // Make sure the metric does not show it passes before running out of retry
+    if (attempts < 3) {
+      // If thread interrupted before 3 retries
+      verify(exactly = 0) { eventProcessor.incrementProcessedCounter() }
+    } else {
+      verify(exactly = 1) { eventProcessor.incrementProcessedCounter() }
+    }
   }
 
   @ParameterizedTest
