@@ -13,6 +13,7 @@ public class RpcConfig {
   @NoArgsConstructor
   public static class Actions {
     private CustomMessages customMessages;
+    private int batchSizeLimit;
   }
 
   @Data

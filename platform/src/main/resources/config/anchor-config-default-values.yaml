@@ -770,3 +770,5 @@ rpc:
       incoming_payment_received: "Received an incoming payment"
       ## Outgoing payment sent
       outgoing_payment_sent: "Outgoing payment sent"
+    ## Batch size limit
+    batch_size_limit: 40
