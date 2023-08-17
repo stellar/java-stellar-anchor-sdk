@@ -17,6 +17,7 @@ import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED
 import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest
 import org.stellar.anchor.platform.action.ActionHandler
+import org.stellar.anchor.platform.config.RpcConfig
 import org.stellar.anchor.platform.utils.RpcUtil
 import org.stellar.anchor.platform.utils.RpcUtil.JSON_RPC_VERSION
 import org.stellar.anchor.util.GsonUtils
@@ -30,10 +31,12 @@ class ActionServiceTest {
     private const val VALID_RPC_METHOD_2 = "request_offchain_funds"
     private const val INVALID_RPC_METHOD = "invalid_rpc_method"
     private const val INVALID_RPC_PROTOCOL = "invalid_rpc_protocol"
+    private const val BATCH_SIZE_LIMIT = 2
   }
 
   @MockK(relaxed = true)
   private lateinit var actionHandler: ActionHandler<NotifyInteractiveFlowCompletedRequest>
+  @MockK(relaxed = true) private lateinit var rpcConfig: RpcConfig
 
   private lateinit var actionService: ActionService
 
@@ -46,7 +49,7 @@ class ActionServiceTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { actionHandler.actionType } returns NOTIFY_INTERACTIVE_FLOW_COMPLETED
-    actionService = ActionService(listOf(actionHandler))
+    actionService = ActionService(listOf(actionHandler), rpcConfig)
   }
 
   @Test
@@ -60,6 +63,7 @@ class ActionServiceTest {
         .build()
 
     every { actionHandler.handle(any()) } returns rpcResponse
+    every { rpcConfig.actions.batchSizeLimit } returns BATCH_SIZE_LIMIT
 
     val response = actionService.handleRpcCalls(listOf(rpcRequest, rpcRequest))
 
@@ -104,6 +108,8 @@ class ActionServiceTest {
         .id(RPC_ID)
         .build()
 
+    every { rpcConfig.actions.batchSizeLimit } returns BATCH_SIZE_LIMIT
+
     val response = actionService.handleRpcCalls(listOf(invalidRpcRequest))
 
     val expectedResponse =
@@ -129,6 +135,8 @@ class ActionServiceTest {
   @Test
   fun `test handle invalid rpc call`() {
     val invalidRpcRequest = RpcRequest.builder().method(INVALID_RPC_METHOD).id(RPC_ID).build()
+
+    every { rpcConfig.actions.batchSizeLimit } returns BATCH_SIZE_LIMIT
 
     val response = actionService.handleRpcCalls(listOf(invalidRpcRequest))
 
@@ -162,6 +170,8 @@ class ActionServiceTest {
         .params(RPC_PARAMS)
         .build()
 
+    every { rpcConfig.actions.batchSizeLimit } returns BATCH_SIZE_LIMIT
+
     val response = actionService.handleRpcCalls(listOf(invalidRpcRequest))
 
     val expectedResponse =
@@ -193,6 +203,8 @@ class ActionServiceTest {
         .id(RPC_ID)
         .params(RPC_PARAMS)
         .build()
+
+    every { rpcConfig.actions.batchSizeLimit } returns BATCH_SIZE_LIMIT
 
     val response = actionService.handleRpcCalls(listOf(invalidRpcRequest))
 
@@ -232,6 +244,8 @@ class ActionServiceTest {
         .id(RPC_ID)
         .build()
 
+    every { rpcConfig.actions.batchSizeLimit } returns BATCH_SIZE_LIMIT
+
     every { actionHandler.handle(any()) } returns rpcResponse
 
     val response = actionService.handleRpcCalls(listOf(rpcRequest, invalidRpcRequest))
@@ -269,6 +283,8 @@ class ActionServiceTest {
   fun `test handle internal exception`() {
     val rpcRequest = RpcRequest.builder().build()
 
+    every { rpcConfig.actions.batchSizeLimit } returns BATCH_SIZE_LIMIT
+
     mockkStatic(RpcUtil::class)
     every { RpcUtil.validateRpcRequest(rpcRequest) } throws NullPointerException(ERROR_MSG)
 
@@ -297,6 +313,8 @@ class ActionServiceTest {
   fun `test handle bad request exception`() {
     val rpcRequest = RpcRequest.builder().build()
 
+    every { rpcConfig.actions.batchSizeLimit } returns BATCH_SIZE_LIMIT
+
     mockkStatic(RpcUtil::class)
     every { RpcUtil.validateRpcRequest(rpcRequest) } throws BadRequestException(ERROR_MSG)
 
@@ -310,6 +328,39 @@ class ActionServiceTest {
         "error": {
           "code": -32602,
           "message": "Error message"
+        }
+      }
+    ]
+    """
+        .trimIndent()
+
+    JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
+
+    verify(exactly = 0) { actionHandler.handle(any()) }
+  }
+
+  @Test
+  fun `test handle batch limit size exceeded`() {
+    val rpcRequest =
+      RpcRequest.builder()
+        .method(VALID_RPC_METHOD_1)
+        .jsonrpc(JSON_RPC_VERSION)
+        .id(RPC_ID)
+        .params(RPC_PARAMS)
+        .build()
+
+    every { rpcConfig.actions.batchSizeLimit } returns BATCH_SIZE_LIMIT
+
+    val response = actionService.handleRpcCalls(listOf(rpcRequest, rpcRequest, rpcRequest))
+
+    val expectedResponse =
+      """
+    [
+      {
+        "jsonrpc": "2.0",
+        "error": {
+          "code": -32600,
+          "message": "RPC batch size limit[2] exceeded"
         }
       }
     ]

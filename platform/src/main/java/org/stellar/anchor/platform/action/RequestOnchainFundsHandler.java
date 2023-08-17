@@ -36,6 +36,7 @@ import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.sdk.Memo;
 
 public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFundsRequest> {
@@ -206,6 +207,13 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       txn24.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
       txn24.setMemo(sep24DepositInfo.getMemo());
       txn24.setMemoType(sep24DepositInfo.getMemoType());
+    }
+
+    if (!CustodyUtils.isMemoTypeSupported(custodyConfig.getType(), txn24.getMemoType())) {
+      throw new InvalidParamsException(
+          String.format(
+              "Memo type[%s] is not supported for custody type[%s]",
+              txn24.getMemoType(), custodyConfig.getType()));
     }
 
     if (custodyConfig.isCustodyIntegrationEnabled()) {

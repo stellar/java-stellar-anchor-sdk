@@ -2,6 +2,7 @@ package org.stellar.anchor.apiclient;
 
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_ONCHAIN_FUNDS_RECEIVED;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_ONCHAIN_FUNDS_SENT;
+import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_REFUND_SENT;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_ERROR;
 
 import java.io.IOException;
@@ -18,12 +19,18 @@ import okhttp3.Response;
 import org.springframework.data.domain.Sort;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
-import org.stellar.anchor.api.platform.*;
+import org.stellar.anchor.api.platform.GetTransactionResponse;
+import org.stellar.anchor.api.platform.GetTransactionsResponse;
+import org.stellar.anchor.api.platform.PatchTransactionsRequest;
+import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.rpc.RpcRequest;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsReceivedRequest;
 import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsSentRequest;
+import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest;
+import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest.Refund;
 import org.stellar.anchor.api.rpc.action.NotifyTransactionErrorRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.auth.AuthHelper;
@@ -141,6 +148,22 @@ public class PlatformApiClient extends BaseApiClient {
     sendRpcNotification(NOTIFY_ONCHAIN_FUNDS_RECEIVED, request);
   }
 
+  public void notifyRefundSent(
+      String txnId, String stellarTxnId, String amount, String amountFee, String asset)
+      throws AnchorException, IOException {
+    NotifyRefundSentRequest request =
+        NotifyRefundSentRequest.builder()
+            .transactionId(txnId)
+            .refund(
+                Refund.builder()
+                    .id(stellarTxnId)
+                    .amount(AmountAssetRequest.builder().amount(amount).asset(asset).build())
+                    .amountFee(AmountAssetRequest.builder().amount(amountFee).asset(asset).build())
+                    .build())
+            .build();
+    sendRpcNotification(NOTIFY_REFUND_SENT, request);
+  }
+
   public void notifyTransactionError(String txnId, String message)
       throws AnchorException, IOException {
     NotifyTransactionErrorRequest request =
@@ -166,13 +189,7 @@ public class PlatformApiClient extends BaseApiClient {
     if (url == null)
       throw new InvalidConfigException(
           String.format("Invalid endpoint: %s of the client.", endpoint));
-    url =
-        new HttpUrl.Builder()
-            .scheme(url.scheme())
-            .host(url.host())
-            .port(url.port())
-            .addPathSegment("actions")
-            .build();
+    url = new HttpUrl.Builder().scheme(url.scheme()).host(url.host()).port(url.port()).build();
 
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(rpcRequests));
     Request request = getRequestBuilder().url(url).post(requestBody).build();

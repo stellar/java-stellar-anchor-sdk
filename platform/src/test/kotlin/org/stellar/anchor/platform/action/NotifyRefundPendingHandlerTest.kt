@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.action
 
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -62,6 +64,8 @@ class NotifyRefundPendingHandlerTest {
 
   @MockK(relaxed = true) private lateinit var eventSession: Session
 
+  @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
+
   private lateinit var handler: NotifyRefundPendingHandler
 
   @BeforeEach
@@ -95,6 +99,10 @@ class NotifyRefundPendingHandlerTest {
       "Action[notify_refund_pending] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -113,6 +121,10 @@ class NotifyRefundPendingHandlerTest {
       "Action[notify_refund_pending] is not supported. Status[pending_anchor], kind[withdrawal], protocol[24], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -130,6 +142,10 @@ class NotifyRefundPendingHandlerTest {
       "Action[notify_refund_pending] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -147,6 +163,10 @@ class NotifyRefundPendingHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -179,6 +199,10 @@ class NotifyRefundPendingHandlerTest {
     request.refund.amountFee.amount = "-0.1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("refund.amountFee.amount should be non-negative", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -215,6 +239,10 @@ class NotifyRefundPendingHandlerTest {
       "refund.amount_fee.asset does not match match transaction amount_fee_asset",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -249,16 +277,21 @@ class NotifyRefundPendingHandlerTest {
     payment.amount = request.refund.amount.amount
     payment.fee = request.refund.amountFee.amount
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep24.transaction", "status", "pending_external") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
@@ -359,16 +392,21 @@ class NotifyRefundPendingHandlerTest {
     refunds.payments = listOf(payment)
     txn24.refunds = refunds
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep24.transaction", "status", "pending_external") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
@@ -463,5 +501,9 @@ class NotifyRefundPendingHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("Refund amount exceeds amount_in", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 }

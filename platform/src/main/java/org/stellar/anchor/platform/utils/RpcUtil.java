@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.utils;
 
 import static org.stellar.anchor.api.rpc.RpcErrorCode.INVALID_PARAMS;
+import static org.stellar.anchor.api.rpc.RpcErrorCode.INVALID_REQUEST;
 
 import com.google.gson.Gson;
 import java.util.ArrayList;
@@ -47,6 +48,17 @@ public class RpcUtil {
                 .code(ex.getErrorCode().getErrorCode())
                 .message(ex.getMessage())
                 .data(ex.getAdditionalData())
+                .build())
+        .build();
+  }
+
+  public static RpcResponse getRpcBatchLimitErrorResponse(int limit) {
+    return RpcResponse.builder()
+        .jsonrpc(JSON_RPC_VERSION)
+        .error(
+            RpcResponse.RpcError.builder()
+                .code(INVALID_REQUEST.getErrorCode())
+                .message(String.format("RPC batch size limit[%d] exceeded", limit))
                 .build())
         .build();
   }

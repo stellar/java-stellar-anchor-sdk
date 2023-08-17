@@ -128,3 +128,4 @@ custody.fireblocks.reconciliation.max_attempts:
 rpc.actions.custom_messages.custody_transaction_failed:
 rpc.actions.custom_messages.incoming_payment_received:
 rpc.actions.custom_messages.outgoing_payment_sent:
+rpc.actions.batch_size_limit:

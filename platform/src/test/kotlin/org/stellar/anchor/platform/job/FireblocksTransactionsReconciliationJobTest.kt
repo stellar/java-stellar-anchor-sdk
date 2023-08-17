@@ -23,7 +23,6 @@ import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.custody.CustodyPayment
 import org.stellar.anchor.platform.custody.CustodyPaymentService
 import org.stellar.anchor.platform.custody.CustodyTransactionService
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksCustodyTransactionService
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService
 import org.stellar.anchor.platform.data.CustodyTransactionStatus
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
@@ -52,7 +51,7 @@ class FireblocksTransactionsReconciliationJobTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     custodyTransactionService =
-      FireblocksCustodyTransactionService(custodyTransactionRepo, custodyPaymentService)
+      CustodyTransactionService(custodyTransactionRepo, custodyPaymentService)
 
     reconciliationJob =
       FireblocksTransactionsReconciliationJob(

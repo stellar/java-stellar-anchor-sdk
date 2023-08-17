@@ -40,6 +40,7 @@ import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config
@@ -75,6 +76,8 @@ internal class Sep24ServiceTest {
 
   @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
 
+  @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
+
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
   private lateinit var jwtService: JwtService
@@ -109,7 +112,8 @@ internal class Sep24ServiceTest {
         txnStore,
         eventService,
         interactiveUrlConstructor,
-        moreInfoUrlConstructor
+        moreInfoUrlConstructor,
+        custodyConfig
       )
   }
 

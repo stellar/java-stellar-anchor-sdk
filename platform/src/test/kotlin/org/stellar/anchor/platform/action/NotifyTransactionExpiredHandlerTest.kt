@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.action
 
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -60,6 +62,8 @@ class NotifyTransactionExpiredHandlerTest {
   @MockK(relaxed = true)
   private lateinit var transactionPendingTrustRepo: JdbcTransactionPendingTrustRepo
 
+  @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
+
   private lateinit var handler: NotifyTransactionExpiredHandler
 
   @BeforeEach
@@ -93,6 +97,10 @@ class NotifyTransactionExpiredHandlerTest {
       "Action[notify_transaction_expired] is not supported. Status[error], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -109,6 +117,10 @@ class NotifyTransactionExpiredHandlerTest {
       "Action[notify_transaction_expired] is not supported. Status[expired], kind[null], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -125,6 +137,10 @@ class NotifyTransactionExpiredHandlerTest {
       "Action[notify_transaction_expired] is not supported. Status[completed], kind[null], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -138,6 +154,10 @@ class NotifyTransactionExpiredHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("message is required", ex.message)
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -156,6 +176,10 @@ class NotifyTransactionExpiredHandlerTest {
       "Action[notify_transaction_expired] is not supported. Status[pending_anchor], kind[null], protocol[24], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -172,10 +196,14 @@ class NotifyTransactionExpiredHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
-  fun test_handle_sep24_ok() {
+  fun test_handle_ok_sep24() {
     val request =
       NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
     val txn24 = JdbcSep24Transaction()
@@ -185,12 +213,16 @@ class NotifyTransactionExpiredHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { transactionPendingTrustRepo.deleteById(TX_ID) } just Runs
     every { transactionPendingTrustRepo.existsById(TX_ID) } returns true
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep24.transaction", "status", "expired") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -198,6 +230,7 @@ class NotifyTransactionExpiredHandlerTest {
 
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { transactionPendingTrustRepo.deleteById(TX_ID) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.id = TX_ID

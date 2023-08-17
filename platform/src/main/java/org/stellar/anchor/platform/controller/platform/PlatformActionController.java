@@ -22,9 +22,7 @@ public class PlatformActionController {
   }
 
   @CrossOrigin(origins = "*")
-  @RequestMapping(
-      value = "/actions",
-      method = {RequestMethod.POST})
+  @RequestMapping(method = {RequestMethod.POST})
   @ResponseStatus(value = HttpStatus.OK)
   public List<RpcResponse> handleAction(@RequestBody List<RpcRequest> rpcCalls) {
     return actionService.handleRpcCalls(rpcCalls);

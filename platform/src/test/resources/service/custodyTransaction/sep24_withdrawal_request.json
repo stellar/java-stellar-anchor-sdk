@@ -6,6 +6,6 @@
   "fromAccount": "testFromAccount",
   "toAccount": "testWithdrawAnchorAccount",
   "amount": "testAmountExpected",
-  "amountAsset": "testAmountInAsset",
+  "asset": "testAmountInAsset",
   "kind": "withdrawal"
 }

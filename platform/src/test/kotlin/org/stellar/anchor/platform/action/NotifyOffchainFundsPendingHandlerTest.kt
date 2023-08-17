@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.action
 
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -54,6 +56,8 @@ class NotifyOffchainFundsPendingHandlerTest {
 
   @MockK(relaxed = true) private lateinit var eventSession: Session
 
+  @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
+
   private lateinit var handler: NotifyOffchainFundsPendingHandler
 
   @BeforeEach
@@ -88,6 +92,10 @@ class NotifyOffchainFundsPendingHandlerTest {
       "Action[notify_offchain_funds_pending] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -106,6 +114,10 @@ class NotifyOffchainFundsPendingHandlerTest {
       "Action[notify_offchain_funds_pending] is not supported. Status[pending_trust], kind[withdrawal], protocol[24], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -124,6 +136,10 @@ class NotifyOffchainFundsPendingHandlerTest {
       "Action[notify_offchain_funds_pending] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[true]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -141,6 +157,10 @@ class NotifyOffchainFundsPendingHandlerTest {
       "Action[notify_offchain_funds_pending] is not supported. Status[pending_anchor], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
@@ -158,10 +178,14 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
   @Test
-  fun test_handle_sep24_ok_deposit_withExternalTxId() {
+  fun test_handle_ok_sep24_deposit_withExternalTxId() {
     val transferReceivedAt = Instant.now()
     val request =
       NotifyOffchainFundsPendingRequest.builder()
@@ -175,16 +199,21 @@ class NotifyOffchainFundsPendingHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep24.transaction", "status", "pending_external") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
@@ -232,7 +261,7 @@ class NotifyOffchainFundsPendingHandlerTest {
   }
 
   @Test
-  fun test_handle_sep31_ok_deposit_withExternalTxId() {
+  fun test_handle_ok_sep31_deposit_withExternalTxId() {
     val request =
       NotifyOffchainFundsPendingRequest.builder()
         .transactionId(TX_ID)
@@ -243,16 +272,21 @@ class NotifyOffchainFundsPendingHandlerTest {
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
     every { txn31Store.save(capture(sep31TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep31.transaction", "status", "pending_external") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep31Txn = JdbcSep24Transaction()
     expectedSep31Txn.status = PENDING_EXTERNAL.toString()
@@ -302,7 +336,7 @@ class NotifyOffchainFundsPendingHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_ok_deposit_withoutExternalTxId() {
+  fun test_handle_ok_sep24_deposit_withoutExternalTxId() {
     val transferReceivedAt = Instant.now()
     val request = NotifyOffchainFundsPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
@@ -312,16 +346,21 @@ class NotifyOffchainFundsPendingHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    mockkStatic(Metrics::class)
+
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { Metrics.counter("sep24.transaction", "status", "pending_external") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind

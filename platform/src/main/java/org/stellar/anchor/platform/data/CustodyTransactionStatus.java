@@ -21,4 +21,13 @@ public enum CustodyTransactionStatus {
   public String toString() {
     return status;
   }
+
+  public static CustodyTransactionStatus from(String str) {
+    for (CustodyTransactionStatus status : values()) {
+      if (status.status.equals(str)) {
+        return status;
+      }
+    }
+    throw new IllegalArgumentException("No matching constant for [" + str + "]");
+  }
 }

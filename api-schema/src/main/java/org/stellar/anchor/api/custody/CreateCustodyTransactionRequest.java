@@ -14,6 +14,7 @@ public class CreateCustodyTransactionRequest {
   private String fromAccount;
   private String toAccount;
   private String amount;
-  private String amountAsset;
+  private String amountFee;
+  private String asset;
   private String kind;
 }

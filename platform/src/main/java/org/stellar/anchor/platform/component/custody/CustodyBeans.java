@@ -7,6 +7,7 @@ import okhttp3.OkHttpClient.Builder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.api.custody.fireblocks.TransactionDetails;
 import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.filter.ApiKeyFilter;
@@ -15,6 +16,8 @@ import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.config.RpcConfig;
+import org.stellar.anchor.platform.custody.CustodyPaymentService;
+import org.stellar.anchor.platform.custody.CustodyTransactionService;
 import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
 import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
@@ -78,5 +81,12 @@ public class CustodyBeans {
         .writeTimeout(custodyConfig.getHttpClient().getWriteTimeout(), TimeUnit.SECONDS)
         .callTimeout(custodyConfig.getHttpClient().getCallTimeout(), TimeUnit.SECONDS)
         .build();
+  }
+
+  @Bean
+  CustodyTransactionService custodyTransactionService(
+      JdbcCustodyTransactionRepo custodyTransactionRepo,
+      CustodyPaymentService<TransactionDetails> custodyPaymentService) {
+    return new CustodyTransactionService(custodyTransactionRepo, custodyPaymentService);
   }
 }

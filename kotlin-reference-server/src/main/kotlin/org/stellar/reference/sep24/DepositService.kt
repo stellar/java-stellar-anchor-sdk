@@ -70,7 +70,7 @@ class DepositService(private val cfg: Config) {
     val stellarAsset = "stellar:$asset"
 
     if (cfg.sep24.rpcActionsEnabled) {
-      sep24.rpcAction2(
+      sep24.rpcAction(
         "request_offchain_funds",
         RequestOffchainFundsRequest(
           transactionId = transactionId,

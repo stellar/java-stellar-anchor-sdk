@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.custody;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 import static org.stellar.anchor.util.Log.warnF;
 
 import java.io.IOException;
@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
@@ -47,18 +48,19 @@ public abstract class CustodyEventService {
       return;
     }
 
-    switch (custodyTransaction.getProtocol()) {
-      case "24":
-        if (Kind.DEPOSIT.getKind().equals(custodyTransaction.getKind())) {
-          sep24CustodyPaymentHandler.onSent(custodyTransaction, payment);
-          return;
-        } else if (WITHDRAWAL.getKind().equals(custodyTransaction.getKind())) {
-          sep24CustodyPaymentHandler.onReceived(custodyTransaction, payment);
-          return;
+    switch (Sep.from(custodyTransaction.getProtocol())) {
+      case SEP_24:
+        switch (Kind.from(custodyTransaction.getKind())) {
+          case DEPOSIT:
+            sep24CustodyPaymentHandler.onSent(custodyTransaction, payment);
+            return;
+          case WITHDRAWAL:
+            sep24CustodyPaymentHandler.onReceived(custodyTransaction, payment);
+            return;
         }
         break;
-      case "31":
-        if (Kind.RECEIVE.getKind().equals(custodyTransaction.getKind())) {
+      case SEP_31:
+        if (RECEIVE == Kind.from(custodyTransaction.getKind())) {
           sep31CustodyPaymentHandler.onReceived(custodyTransaction, payment);
           return;
         }
@@ -79,7 +81,7 @@ public abstract class CustodyEventService {
 
     if (custodyTransaction == null) {
       custodyTransaction =
-          custodyTransactionRepo.findByToAccountAndMemo(
+          custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(
               custodyPayment.getTo(), custodyPayment.getTransactionMemo());
     }
 
@@ -88,7 +90,7 @@ public abstract class CustodyEventService {
 
   public void setExternalTxId(String to, String memo, String externalTxId) {
     JdbcCustodyTransaction custodyTransaction =
-        custodyTransactionRepo.findByToAccountAndMemo(to, memo);
+        custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(to, memo);
 
     if (custodyTransaction != null && StringUtils.isEmpty(custodyTransaction.getExternalTxId())) {
       custodyTransaction.setExternalTxId(externalTxId);

@@ -1,0 +1,14 @@
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "status": "submitted",
+  "amount": "1",
+  "asset": "stellar:testAmountInAsset",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "31",
+  "from_account": "testFromAccount1",
+  "to_account": "testToAccount",
+  "kind": "receive",
+  "type": "payment"
+}

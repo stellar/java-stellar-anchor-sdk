@@ -34,7 +34,7 @@ public class CustodyPayment {
   String assetIssuer;
   String assetName;
 
-  Instant createdAt;
+  Instant updatedAt;
   CustodyPaymentStatus status;
   String message;
 
@@ -46,7 +46,7 @@ public class CustodyPayment {
   public static CustodyPayment fromPayment(
       Optional<PaymentOperationResponse> paymentOperation,
       String externalTxId,
-      Instant createdAt,
+      Instant updatedAt,
       CustodyPaymentStatus status,
       String message,
       String transactionHash)
@@ -106,7 +106,7 @@ public class CustodyPayment {
         .assetCode(assetCode)
         .assetIssuer(assetIssuer)
         .assetName(assetName)
-        .createdAt(createdAt)
+        .updatedAt(updatedAt)
         .status(status)
         .message(message)
         .transactionHash(transactionHash)
@@ -119,7 +119,7 @@ public class CustodyPayment {
   public static CustodyPayment fromPathPayment(
       Optional<PathPaymentBaseOperationResponse> pathPaymentOperation,
       String externalTxId,
-      Instant createdAt,
+      Instant updatedAt,
       CustodyPaymentStatus status,
       String message,
       String transactionHash)
@@ -179,7 +179,7 @@ public class CustodyPayment {
         .assetCode(assetCode)
         .assetIssuer(assetIssuer)
         .assetName(assetName)
-        .createdAt(createdAt)
+        .updatedAt(updatedAt)
         .status(status)
         .message(message)
         .transactionHash(transactionHash)

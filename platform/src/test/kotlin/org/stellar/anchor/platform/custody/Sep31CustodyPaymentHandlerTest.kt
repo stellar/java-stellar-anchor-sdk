@@ -4,12 +4,10 @@ import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
-import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.platform.config.RpcConfig
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
@@ -22,8 +20,6 @@ class Sep31CustodyPaymentHandlerTest {
   @MockK(relaxed = true) private lateinit var custodyTransactionRepo: JdbcCustodyTransactionRepo
 
   @MockK(relaxed = true) private lateinit var platformApiClient: PlatformApiClient
-
-  @MockK(relaxed = true) private lateinit var sep31TransactionCounter: Counter
 
   @MockK(relaxed = true) private lateinit var paymentReceivedCounter: Counter
 
@@ -41,16 +37,14 @@ class Sep31CustodyPaymentHandlerTest {
   }
 
   @Test
-  fun test_handleEvent_onReceived_successStatus() {
+  fun test_handleEvent_onReceived_payment() {
     val txn =
       gson.fromJson(
         FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_transaction_input.json"
+          "custody/fireblocks/webhook/handler/custody_transaction_input_sep31_receive_payment.json"
         ),
         JdbcCustodyTransaction::class.java
       )
-    txn.kind = PlatformTransactionData.Kind.RECEIVE.kind
-    txn.protocol = "31"
     val payment =
       gson.fromJson(
         FileUtil.getResourceFileAsString(
@@ -60,52 +54,122 @@ class Sep31CustodyPaymentHandlerTest {
       )
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
-    val txnIdCapture = slot<String>()
-    val stellarTxnIdCapture = slot<String>()
-    val amountCapture = slot<String>()
-    val messageCapture = slot<String>()
-
     mockkStatic(Metrics::class)
 
     every { rpcConfig.actions.customMessages.incomingPaymentReceived } returns "payment received"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
-    every {
-      platformApiClient.notifyOnchainFundsReceived(
-        capture(txnIdCapture),
-        capture(stellarTxnIdCapture),
-        capture(amountCapture),
-        capture(messageCapture)
-      )
-    } just Runs
-    every { Metrics.counter("sep31.transaction", "status", "pending_receiver") } returns
-      sep31TransactionCounter
     every { Metrics.counter("payment.received", "asset", "testAmountInAsset") } returns
       paymentReceivedCounter
 
     sep31CustodyPaymentHandler.onReceived(txn, payment)
 
-    verify(exactly = 1) { sep31TransactionCounter.increment() }
     verify(exactly = 1) { paymentReceivedCounter.increment(1.0000000) }
+    verify(exactly = 1) {
+      platformApiClient.notifyOnchainFundsReceived(
+        txn.id,
+        payment.transactionHash,
+        payment.amount,
+        "payment received"
+      )
+    }
 
     JSONAssert.assertEquals(
       FileUtil.getResourceFileAsString(
-        "custody/fireblocks/webhook/handler/custody_transaction_db_receive.json"
+        "custody/fireblocks/webhook/handler/custody_transaction_db_sep31_receive_payment.json"
       ),
       gson.toJson(custodyTxCapture.captured),
       JSONCompareMode.STRICT
     )
-    Assertions.assertEquals(txn.id, txnIdCapture.captured)
-    Assertions.assertEquals(payment.transactionHash, stellarTxnIdCapture.captured)
-    Assertions.assertEquals(payment.amount, amountCapture.captured)
-    Assertions.assertEquals("payment received", messageCapture.captured)
   }
 
   @Test
-  fun test_handleEvent_onSent() {
+  fun test_handleEvent_onReceived_refund() {
     val txn =
       gson.fromJson(
         FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_transaction_input.json"
+          "custody/fireblocks/webhook/handler/custody_transaction_input_sep31_receive_refund.json"
+        ),
+        JdbcCustodyTransaction::class.java
+      )
+    val payment =
+      gson.fromJson(
+        FileUtil.getResourceFileAsString(
+          "custody/fireblocks/webhook/handler/custody_payment_with_id.json"
+        ),
+        CustodyPayment::class.java
+      )
+
+    val custodyTxCapture = slot<JdbcCustodyTransaction>()
+    mockkStatic(Metrics::class)
+
+    every { rpcConfig.actions.customMessages.incomingPaymentReceived } returns "payment received"
+    every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
+
+    sep31CustodyPaymentHandler.onReceived(txn, payment)
+
+    verify(exactly = 0) { Metrics.counter("payment.sent", any(), any()) }
+    verify(exactly = 1) {
+      platformApiClient.notifyRefundSent(
+        txn.id,
+        payment.transactionHash,
+        payment.amount,
+        txn.amountFee,
+        txn.asset
+      )
+    }
+
+    JSONAssert.assertEquals(
+      FileUtil.getResourceFileAsString(
+        "custody/fireblocks/webhook/handler/custody_transaction_db_sep31_receive_refund.json"
+      ),
+      gson.toJson(custodyTxCapture.captured),
+      JSONCompareMode.STRICT
+    )
+  }
+
+  @Test
+  fun test_handleEvent_onReceived_payment_error() {
+    val txn =
+      gson.fromJson(
+        FileUtil.getResourceFileAsString(
+          "custody/fireblocks/webhook/handler/custody_transaction_input_sep31_receive_payment.json"
+        ),
+        JdbcCustodyTransaction::class.java
+      )
+    val payment =
+      gson.fromJson(
+        FileUtil.getResourceFileAsString(
+          "custody/fireblocks/webhook/handler/custody_payment_with_id_error.json"
+        ),
+        CustodyPayment::class.java
+      )
+
+    val custodyTxCapture = slot<JdbcCustodyTransaction>()
+    mockkStatic(Metrics::class)
+
+    every { rpcConfig.actions.customMessages.custodyTransactionFailed } returns "payment failed"
+    every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
+
+    sep31CustodyPaymentHandler.onReceived(txn, payment)
+
+    verify(exactly = 0) { Metrics.counter("payment.received", any(), any()) }
+    verify(exactly = 1) { platformApiClient.notifyTransactionError(txn.id, "payment failed") }
+
+    JSONAssert.assertEquals(
+      FileUtil.getResourceFileAsString(
+        "custody/fireblocks/webhook/handler/custody_transaction_db_sep31_receive_payment_error.json"
+      ),
+      gson.toJson(custodyTxCapture.captured),
+      JSONCompareMode.STRICT
+    )
+  }
+
+  @Test
+  fun test_handleEvent_onSent_payment() {
+    val txn =
+      gson.fromJson(
+        FileUtil.getResourceFileAsString(
+          "custody/fireblocks/webhook/handler/custody_transaction_input_sep31_receive_payment.json"
         ),
         JdbcCustodyTransaction::class.java
       )
@@ -121,9 +185,7 @@ class Sep31CustodyPaymentHandlerTest {
 
     sep31CustodyPaymentHandler.onSent(txn, payment)
 
-    verify(exactly = 0) { Metrics.counter("sep31.transaction", any(), any()) }
     verify(exactly = 0) { Metrics.counter("payment.sent", any(), any()) }
     verify(exactly = 0) { custodyTransactionRepo.save(any()) }
-    verify(exactly = 0) { platformApiClient.patchTransaction(any()) }
   }
 }

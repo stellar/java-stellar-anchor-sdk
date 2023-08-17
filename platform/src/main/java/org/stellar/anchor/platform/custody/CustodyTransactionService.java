@@ -1,10 +1,11 @@
 package org.stellar.anchor.platform.custody;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.platform.data.CustodyTransactionStatus.CREATED;
 import static org.stellar.anchor.platform.data.CustodyTransactionStatus.SUBMITTED;
+import static org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType.PAYMENT;
+import static org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType.REFUND;
 import static org.stellar.anchor.util.Log.debugF;
 
 import java.time.Instant;
@@ -24,9 +25,10 @@ import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableExcepti
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
 import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
+import org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
-public abstract class CustodyTransactionService {
+public class CustodyTransactionService {
 
   private final CustodyPaymentService<?> custodyPaymentService;
   private final JdbcCustodyTransactionRepo custodyTransactionRepo;
@@ -38,19 +40,14 @@ public abstract class CustodyTransactionService {
     this.custodyPaymentService = custodyPaymentService;
   }
 
-  protected abstract void validateRequest(CreateCustodyTransactionRequest request)
-      throws CustodyBadRequestException;
-
   /**
    * Create custody transaction
    *
    * @param request custody transaction info
    * @return {@link JdbcCustodyTransaction} object
    */
-  public JdbcCustodyTransaction create(CreateCustodyTransactionRequest request)
+  public JdbcCustodyTransaction create(CreateCustodyTransactionRequest request, PaymentType type)
       throws CustodyBadRequestException {
-    validateRequest(request);
-
     return custodyTransactionRepo.save(
         JdbcCustodyTransaction.builder()
             .id(UUID.randomUUID().toString())
@@ -63,9 +60,11 @@ public abstract class CustodyTransactionService {
             .fromAccount(request.getFromAccount())
             .toAccount(request.getToAccount())
             .amount(request.getAmount())
-            .amountAsset(request.getAmountAsset())
+            .amountFee(request.getAmountFee())
+            .asset(request.getAsset())
             .kind(request.getKind())
             .reconciliationAttemptCount(0)
+            .type(type.getType())
             .build());
   }
 
@@ -81,7 +80,8 @@ public abstract class CustodyTransactionService {
   public CreateTransactionPaymentResponse createPayment(String txnId, String requestBody)
       throws AnchorException {
     JdbcCustodyTransaction txn =
-        custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(txnId).orElse(null);
+        custodyTransactionRepo.findFirstBySepTxIdAndTypeOrderByCreatedAtAsc(
+            txnId, PAYMENT.getType());
     if (txn == null) {
       throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
     }
@@ -109,7 +109,8 @@ public abstract class CustodyTransactionService {
   public CreateTransactionPaymentResponse createRefund(
       String txnId, CreateTransactionRefundRequest refundRequest) throws AnchorException {
     JdbcCustodyTransaction txn =
-        custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(txnId).orElse(null);
+        custodyTransactionRepo.findFirstBySepTxIdAndTypeOrderByCreatedAtAsc(
+            txnId, PAYMENT.getType());
     if (txn == null) {
       throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
     }
@@ -118,7 +119,7 @@ public abstract class CustodyTransactionService {
 
     CreateTransactionPaymentResponse response;
     try {
-      response = custodyPaymentService.createTransactionRefund(refundTxn);
+      response = custodyPaymentService.createTransactionPayment(refundTxn, null);
       updateCustodyTransaction(refundTxn, response.getId(), SUBMITTED);
     } catch (FireblocksException e) {
       custodyTransactionRepo.deleteById(refundTxn.getId());
@@ -139,9 +140,11 @@ public abstract class CustodyTransactionService {
             .protocol(txn.getProtocol())
             .toAccount(txn.getFromAccount())
             .amount(refundRequest.getAmount())
-            .amountAsset(txn.getAmountAsset())
-            .kind(DEPOSIT.getKind())
-            .build());
+            .amountFee(refundRequest.getAmountFee())
+            .asset(txn.getAsset())
+            .kind(txn.getKind())
+            .build(),
+        REFUND);
   }
 
   private void updateCustodyTransaction(

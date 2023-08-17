@@ -162,7 +162,8 @@ public class SepBeans {
       Sep24TransactionStore sep24TransactionStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
-      MoreInfoUrlConstructor moreInfoUrlConstructor) {
+      MoreInfoUrlConstructor moreInfoUrlConstructor,
+      CustodyConfig custodyConfig) {
     return new Sep24Service(
         appConfig,
         sep24Config,
@@ -171,7 +172,8 @@ public class SepBeans {
         sep24TransactionStore,
         eventService,
         interactiveUrlConstructor,
-        moreInfoUrlConstructor);
+        moreInfoUrlConstructor,
+        custodyConfig);
   }
 
   @Bean

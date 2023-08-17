@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.service;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static org.stellar.anchor.platform.utils.RpcUtil.getRpcBatchLimitErrorResponse;
 import static org.stellar.anchor.platform.utils.RpcUtil.getRpcErrorResponse;
 import static org.stellar.anchor.platform.utils.RpcUtil.getRpcSuccessResponse;
 import static org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest;
@@ -20,17 +21,24 @@ import org.stellar.anchor.api.rpc.RpcRequest;
 import org.stellar.anchor.api.rpc.RpcResponse;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.platform.action.ActionHandler;
+import org.stellar.anchor.platform.config.RpcConfig;
 
 public class ActionService {
 
   private final Map<ActionMethod, ActionHandler<?>> actionHandlerMap;
+  private final RpcConfig rpcConfig;
 
-  public ActionService(List<ActionHandler<?>> actionHandlers) {
+  public ActionService(List<ActionHandler<?>> actionHandlers, RpcConfig rpcConfig) {
     this.actionHandlerMap =
         actionHandlers.stream().collect(toMap(ActionHandler::getActionType, identity()));
+    this.rpcConfig = rpcConfig;
   }
 
   public List<RpcResponse> handleRpcCalls(List<RpcRequest> rpcCalls) {
+    if (rpcCalls.size() > rpcConfig.getActions().getBatchSizeLimit()) {
+      return List.of(getRpcBatchLimitErrorResponse(rpcConfig.getActions().getBatchSizeLimit()));
+    }
+
     return rpcCalls.stream()
         .map(
             rc -> {

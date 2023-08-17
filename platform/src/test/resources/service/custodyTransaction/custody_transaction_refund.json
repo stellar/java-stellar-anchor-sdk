@@ -4,7 +4,7 @@
   "external_tx_id": "testEventId",
   "status": "completed",
   "amount": "1",
-  "amount_asset": "stellar:testAmountInAsset",
+  "asset": "stellar:testAmountInAsset",
   "updated_at": "2023-05-10T10:18:25.778Z",
   "memo": "testMemo",
   "memo_type": "testMemoType",
@@ -12,5 +12,6 @@
   "from_account": "testFrom",
   "to_account": "testToAccount",
   "kind": "withdrawal",
-  "reconciliation_attempt_count": 0
+  "reconciliation_attempt_count": 0,
+  "type": "refund"
 }

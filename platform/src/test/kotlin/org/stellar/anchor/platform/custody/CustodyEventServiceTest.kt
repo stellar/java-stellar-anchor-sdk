@@ -55,7 +55,9 @@ class CustodyEventServiceTest {
         .build()
 
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns null
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     custodyEventService.handlePayment(payment)
 
@@ -76,7 +78,9 @@ class CustodyEventServiceTest {
         .build()
 
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns null
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     custodyEventService.handlePayment(payment)
 
@@ -98,7 +102,9 @@ class CustodyEventServiceTest {
     val txn = JdbcCustodyTransaction.builder().kind("receive").protocol("24").build()
 
     every { custodyTransactionRepo.findByExternalTxId("testExternalTxId") } returns txn
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     custodyEventService.handlePayment(payment)
 
@@ -120,7 +126,9 @@ class CustodyEventServiceTest {
     val txn = JdbcCustodyTransaction.builder().kind("deposit").protocol("24").build()
 
     every { custodyTransactionRepo.findByExternalTxId("testExternalTxId") } returns txn
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     custodyEventService.handlePayment(payment)
 
@@ -142,7 +150,9 @@ class CustodyEventServiceTest {
     val txn = JdbcCustodyTransaction.builder().kind("withdrawal").protocol("24").build()
 
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns null
-    every { custodyTransactionRepo.findByToAccountAndMemo("testTo", "testMemo") } returns txn
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc("testTo", "testMemo")
+    } returns txn
 
     custodyEventService.handlePayment(payment)
 
@@ -164,7 +174,9 @@ class CustodyEventServiceTest {
     val txn = JdbcCustodyTransaction.builder().kind("deposit").protocol("31").build()
 
     every { custodyTransactionRepo.findByExternalTxId("testExternalTxId") } returns txn
-    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc(any(), any())
+    } returns null
 
     custodyEventService.handlePayment(payment)
 
@@ -186,7 +198,9 @@ class CustodyEventServiceTest {
     val txn = JdbcCustodyTransaction.builder().kind("receive").protocol("31").build()
 
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns txn
-    every { custodyTransactionRepo.findByToAccountAndMemo("testTo", "testMemo") } returns null
+    every {
+      custodyTransactionRepo.findFirstByToAccountAndMemoOrderByCreatedAtDesc("testTo", "testMemo")
+    } returns null
 
     custodyEventService.handlePayment(payment)
 
