@@ -1,8 +1,10 @@
 package org.stellar.anchor.sep6;
 
 import java.time.Instant;
+import org.stellar.anchor.SepTransaction;
+import org.stellar.anchor.api.shared.Refunds;
 
-public interface Sep6Transaction {
+public interface Sep6Transaction extends SepTransaction {
 
   /**
    * The database ID.
@@ -52,6 +54,24 @@ public interface Sep6Transaction {
   void setStatus(String status);
 
   /**
+   * Estimated number of seconds until a status change is expected.
+   *
+   * @return the status ETA.
+   */
+  Long getStatusEta();
+
+  void setStatusEta(Long statusEta);
+
+  /**
+   * A URL that the user can visit if they want more infomration about their account / status.
+   *
+   * @return the more info URL.
+   */
+  String getMoreInfoUrl();
+
+  void setMoreInfoUrl(String moreInfoUrl);
+
+  /**
    * <code>deposit</code>, <code>deposit-exchange</code>, <code>withdrawal</code> or <code>
    * withdrawal-exchange</code>.
    *
@@ -79,6 +99,15 @@ public interface Sep6Transaction {
   Instant getCompletedAt();
 
   void setCompletedAt(Instant completedAt);
+
+  /**
+   * The deposit or withdrawal method used. E.g. <code>bank_account</code>, <code>cash</code>
+   *
+   * @return the deposit or withdraw method.
+   */
+  String getType();
+
+  void setType(String type);
 
   /**
    * The code of the asset of interest. E.g. BTC, ETH, USD, INR, etc.
@@ -195,8 +224,8 @@ public interface Sep6Transaction {
   void setWithdrawAnchorAccount(String withdrawAnchorAccount);
 
   /**
-   * For withdrawals, the Stellar account the assets were withdrawn from. For deposits, the Stellar
-   * account the assets were deposited to.
+   * For withdrawals, the Stellar account the assets were withdrawn from. For deposits, the
+   * sent-from address (perhaps BTC, IBAN, bank account).
    *
    * @return the account the assets were deposited to or withdrawn from.
    */
@@ -246,13 +275,22 @@ public interface Sep6Transaction {
   void setQuoteId(String quoteId);
 
   /**
+   * Human-readable explanation of the transaction status.
+   *
+   * @return the message.
+   */
+  String getMessage();
+
+  void setMessage(String message);
+
+  /**
    * Describes any on or off-chain refund associated with this transaction.
    *
    * @return the refunds.
    */
-  Sep6Refunds getRefunds();
+  Refunds getRefunds();
 
-  void setRefunds(Sep6Refunds refunds);
+  void setRefunds(Refunds refunds);
 
   /**
    * The memo the anchor must use when sending refund payments back to the user. If not specified,
@@ -273,6 +311,24 @@ public interface Sep6Transaction {
   String getRefundMemoType();
 
   void setRefundMemoType(String refundMemoType);
+
+  /**
+   * A human-readable message indicating any errors that require updated information from the user.
+   *
+   * @return the required info message.
+   */
+  String getRequiredInfoMessage();
+
+  void setRequiredInfoMessage(String requiredInfoMessage);
+
+  /**
+   * A set of fields that require updates from the user.
+   *
+   * @return the required info updates.
+   */
+  String getRequiredInfoUpdates();
+
+  void setRequiredInfoUpdates(String requiredInfoUpdates);
 
   enum Kind {
     DEPOSIT("deposit"),

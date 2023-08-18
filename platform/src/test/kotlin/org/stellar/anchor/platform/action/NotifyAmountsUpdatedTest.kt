@@ -254,7 +254,7 @@ class NotifyAmountsUpdatedTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_anchor") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

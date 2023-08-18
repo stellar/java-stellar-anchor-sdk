@@ -12,6 +12,7 @@ include("platform")
 /** Anchor Reference Server */
 include("anchor-reference-server")
 include("kotlin-reference-server")
+include("wallet-reference-server")
 
 /** Integration tests */
 include("integration-tests")

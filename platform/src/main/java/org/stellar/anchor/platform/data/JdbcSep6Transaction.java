@@ -9,8 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.BeanUtils;
-import org.stellar.anchor.SepTransaction;
-import org.stellar.anchor.sep6.Sep6Refunds;
+import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.sep6.Sep6Transaction;
 
 @Getter
@@ -19,17 +18,30 @@ import org.stellar.anchor.sep6.Sep6Transaction;
 @Access(AccessType.FIELD)
 @TypeDef(name = "json", typeClass = JsonType.class)
 @NoArgsConstructor
-public class JdbcSep6Transaction extends JdbcSepTransaction
-    implements Sep6Transaction, SepTransaction {
+public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Transaction {
   public String getProtocol() {
     return "6";
   }
 
+  @SerializedName("status_eta")
+  @Column(name = "status_eta")
+  Long statusEta;
+
+  @SerializedName("more_info_url")
+  @Column(name = "more_info_url")
+  String moreInfoUrl;
+
+  @SerializedName("kind")
+  @Column(name = "kind")
   String kind;
 
   @SerializedName("transaction_id")
   @Column(name = "transaction_id")
   String transactionId;
+
+  @SerializedName("type")
+  @Column(name = "type")
+  String type;
 
   @SerializedName("request_asset_code")
   @Column(name = "request_asset_code")
@@ -75,19 +87,23 @@ public class JdbcSep6Transaction extends JdbcSepTransaction
   @Column(name = "quote_id")
   String quoteId;
 
+  @SerializedName("message")
+  @Column(name = "message")
+  String message;
+
   @Column(columnDefinition = "json")
   @Type(type = "json")
-  JdbcSep6Refunds refunds;
+  Refunds refunds;
 
   @Override
-  public Sep6Refunds getRefunds() {
+  public Refunds getRefunds() {
     return refunds;
   }
 
   @Override
-  public void setRefunds(Sep6Refunds refunds) {
+  public void setRefunds(Refunds refunds) {
     if (refunds != null) {
-      this.refunds = new JdbcSep6Refunds();
+      this.refunds = new Refunds();
       BeanUtils.copyProperties(refunds, this.refunds);
     }
   }
@@ -100,5 +116,11 @@ public class JdbcSep6Transaction extends JdbcSepTransaction
   @Column(name = "refund_memo_type")
   String refundMemoType;
 
-  // TODO: ANCHOR-356 Add required_info_* fields with /withdraw implementation
+  @SerializedName("required_info_message")
+  @Column(name = "required_info_message")
+  String requiredInfoMessage;
+
+  @SerializedName("required_info_updates")
+  @Column(name = "required_info_updates")
+  String requiredInfoUpdates;
 }

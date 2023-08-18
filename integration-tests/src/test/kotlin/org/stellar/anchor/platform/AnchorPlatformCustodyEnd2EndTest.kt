@@ -12,6 +12,7 @@ class AnchorPlatformCustodyEnd2EndTest :
     @BeforeAll
     @JvmStatic
     fun construct() {
+      println("Running AnchorPlatformCustodyEnd2EndTest")
       singleton.setUp(mapOf())
     }
 

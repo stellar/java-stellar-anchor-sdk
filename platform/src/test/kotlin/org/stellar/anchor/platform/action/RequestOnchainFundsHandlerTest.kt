@@ -245,7 +245,7 @@ class RequestOnchainFundsHandlerTest {
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { custodyConfig.type } returns NONE
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_user_transfer_start") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -359,7 +359,7 @@ class RequestOnchainFundsHandlerTest {
     every { sep24DepositInfoGenerator.generate(ofType(Sep24Transaction::class)) } returns
       depositInfo
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_user_transfer_start") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -462,7 +462,7 @@ class RequestOnchainFundsHandlerTest {
     every { custodyConfig.type } returns NONE
     every { custodyService.createTransaction(capture(sep24CustodyTxnCapture)) } just Runs
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_user_transfer_start") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -567,7 +567,7 @@ class RequestOnchainFundsHandlerTest {
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { custodyConfig.type } returns NONE
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_user_transfer_start") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -671,7 +671,7 @@ class RequestOnchainFundsHandlerTest {
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { custodyConfig.type } returns NONE
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_user_transfer_start") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

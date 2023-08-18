@@ -74,7 +74,7 @@ commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
-docker-compose-rule = {module = "com.palantir.docker.compose:docker-compose-junit-jupiter", version.ref = "docker-compose-rule" }
+docker-compose-rule = { module = "com.palantir.docker.compose:docker-compose-junit-jupiter", version.ref = "docker-compose-rule" }
 dotenv = { module = "io.github.cdimascio:dotenv-java", version.ref = "dotenv" }
 findbugs-jsr305 = { module = "com.google.code.findbugs:jsr305", version.ref = "findbugs-jsr305" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core" }
@@ -110,6 +110,7 @@ ktor-client-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
+ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
 log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
@@ -128,9 +129,10 @@ reactor-netty = { module = "io.projectreactor.netty:reactor-netty", version.ref 
 scala-library = { module = "org.scala-lang:scala-library", version.ref = "scala-library" }
 servlet-api = { module = "javax.servlet:servlet-api", version.ref = "servlet-api" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
-slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j" }
-stellar-wallet-sdk = { module = "org.stellar:wallet-sdk", version.ref = "stellar-wallet-sdk"}
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j2" }
+slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j2" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j2" }
+stellar-wallet-sdk = { module = "org.stellar:wallet-sdk", version.ref = "stellar-wallet-sdk" }
 toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-data-commons = { module = "org.springframework.data:spring-data-commons", version.ref = "spring-boot" }

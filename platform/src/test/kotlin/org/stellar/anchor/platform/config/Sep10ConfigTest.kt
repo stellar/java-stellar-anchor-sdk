@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
-import java.util.stream.Stream
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -30,6 +29,7 @@ class Sep10ConfigTest {
 
     clientsConfig.clients.add(
       ClientsConfig.ClientConfig(
+        "unknown",
         CUSTODIAL,
         "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
         null,
@@ -39,6 +39,7 @@ class Sep10ConfigTest {
 
     clientsConfig.clients.add(
       ClientsConfig.ClientConfig(
+        "lobstr",
         NONCUSTODIAL,
         "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ",
         "lobstr.co",
@@ -48,10 +49,11 @@ class Sep10ConfigTest {
 
     clientsConfig.clients.add(
       ClientsConfig.ClientConfig(
+        "circle",
         NONCUSTODIAL,
         "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE",
-        "stellar.org",
-        "https://callback.stellar.org/api/v2/anchor/callback"
+        "circle.com",
+        "https://callback.circle.com/api/v2/anchor/callback"
       )
     )
 
@@ -75,17 +77,66 @@ class Sep10ConfigTest {
     config.isClientAttributionRequired = true
     config.validateClientAttribution(errors)
     assertFalse(errors.hasErrors())
-    println(config.clientAttributionAllowList)
-    println(config.knownCustodialAccountList)
   }
 
   @Test
-  fun `test both client attribution deny and allow lists are empty`() {
-    // Create a cofnig with empty ClientsConfig lists
+  fun `test validation of empty client allow list when client attribution is required`() {
     val config = PropertySep10Config(appConfig, ClientsConfig(), secretConfig)
     config.isClientAttributionRequired = true
     config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-attribution-lists-empty")
+  }
+
+  @Test
+  fun `test ClientsConfig getClientConfigByName`() {
+    assertEquals(clientsConfig.getClientConfigByName("unknown"), clientsConfig.clients[0])
+    assertEquals(clientsConfig.getClientConfigByName("lobstr"), clientsConfig.clients[1])
+    assertEquals(clientsConfig.getClientConfigByName("circle"), clientsConfig.clients[2])
+  }
+
+  @Test
+  fun `test ClientsConfig getClientConfigByDomain`() {
+    assertEquals(clientsConfig.getClientConfigByDomain("unknown"), null)
+    assertEquals(clientsConfig.getClientConfigByDomain("lobstr.co"), clientsConfig.clients[1])
+    assertEquals(clientsConfig.getClientConfigByDomain("circle.com"), clientsConfig.clients[2])
+  }
+
+  @Test
+  fun `test ClientsConfig getClientConfigBySigningKey`() {
+    assertEquals(clientsConfig.getClientConfigBySigningKey("unknown"), null)
+    assertEquals(
+      clientsConfig.getClientConfigBySigningKey(
+        "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"
+      ),
+      clientsConfig.clients[1]
+    )
+    assertEquals(
+      clientsConfig.getClientConfigBySigningKey(
+        "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"
+      ),
+      clientsConfig.clients[2]
+    )
+  }
+
+  @Test
+  fun `test when clientAllowList is not defined, clientAttributionAllowList equals to the list of all clients`() {
+    val config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
+    assertEquals(config.clientAttributionAllowList, listOf("lobstr.co", "circle.com"))
+  }
+
+  @Test
+  fun `test when clientAllowList is defined, clientAttributionAllowList returns correct values`() {
+    val config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
+    config.clientAllowList = listOf("lobstr")
+    assertEquals(config.clientAttributionAllowList, listOf("lobstr.co"))
+
+    config.clientAllowList = listOf("circle")
+    assertEquals(config.clientAttributionAllowList, listOf("circle.com"))
+
+    config.clientAllowList = listOf("invalid")
+    config.validateClientAttribution(errors)
+    assertErrorCode(errors, "sep10-client-allow-list-invalid")
+    assertTrue(config.clientAttributionAllowList.isEmpty())
   }
 
   @Test
@@ -126,9 +177,7 @@ class Sep10ConfigTest {
     value =
       [
         "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-web-auth-domain.stellar.org,sep10-web-auth-domain-too-long",
-        "stellar .org,sep10-web-auth-domain-invalid",
-        "abc,sep10-web-auth-domain-invalid",
-        "299.0.0.1,sep10-web-auth-domain-invalid",
+        "stellar.org:1000:1000,sep10-web-auth-domain-invalid",
       ]
   )
   fun `test invalid web auth domains`(value: String, expectedErrorCode: String) {
@@ -143,9 +192,6 @@ class Sep10ConfigTest {
     value =
       [
         "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-home-domain.stellar.org,sep10-home-domain-too-long",
-        "stellar .org,sep10-home-domain-invalid",
-        "abc,sep10-home-domain-invalid",
-        "299.0.0.1,sep10-home-domain-invalid",
         "http://stellar.org,sep10-home-domain-invalid",
         "https://stellar.org,sep10-home-domain-invalid",
         "://stellar.org,sep10-home-domain-invalid",
@@ -172,30 +218,5 @@ class Sep10ConfigTest {
     config.homeDomain = "www.stellar.org"
     config.postConstruct()
     assertEquals("localhost:8080", config.webAuthDomain)
-  }
-
-  companion object {
-    @JvmStatic
-    fun validOmnibusAccounts(): Stream<List<String>> {
-      return Stream.of(
-        listOf(),
-        listOf("GAU2XSVTXY6GADVFFLDJLWO44SC6MAWPMHZTI4QHYUKV6BGGJFAIEYGB"),
-        listOf(
-          "GCS2KBEGIWILNKFYY6ORT72Y2HUFYG6IIIOESHVQC3E5NIYT3L2I5F5E",
-          "GAU2XSVTXY6GADVFFLDJLWO44SC6MAWPMHZTI4QHYUKV6BGGJFAIEYGB"
-        )
-      )
-    }
-    @JvmStatic
-    fun invalidOmnibusAccounts(): Stream<List<String>> {
-      return Stream.of(
-        listOf("SBBGHY3KIEI4XM2G2MD76DB3F3EPC6A2NR57CY2PFJVE66T7UTAE3SKD"),
-        listOf(
-          "GCS2KBEGIWILNKFYY6ORT72Y2HUFYG6IIIOESHVQC3E5NIYT3L2I5F5E",
-          "SBBGHY3KIEI4XM2G2MD76DB3F3EPC6A2NR57CY2PFJVE66T7UTAE3SKD"
-        ),
-        listOf("1234")
-      )
-    }
   }
 }

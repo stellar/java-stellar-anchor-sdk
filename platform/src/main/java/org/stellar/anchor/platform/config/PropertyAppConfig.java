@@ -1,6 +1,8 @@
 package org.stellar.anchor.platform.config;
 
 import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.sdk.Network.PUBLIC;
+import static org.stellar.sdk.Network.TESTNET;
 
 import java.util.List;
 import lombok.Data;
@@ -15,8 +17,8 @@ import org.stellar.anchor.util.NetUtil;
 
 @Data
 public class PropertyAppConfig implements AppConfig, Validator {
-  @Value("${stellar_network.network_passphrase}")
-  private String stellarNetworkPassphrase;
+  @Value("${stellar_network.network}")
+  private String stellarNetwork;
 
   @Value("${stellar_network.horizon_url}")
   private String horizonUrl;
@@ -39,9 +41,20 @@ public class PropertyAppConfig implements AppConfig, Validator {
   void validateConfig(AppConfig config, Errors errors) {
     ValidationUtils.rejectIfEmpty(
         errors,
-        "stellarNetworkPassphrase",
-        "stellar-network-passphrase-empty",
-        "stellar_network.network_passphrase is not defined.");
+        "stellarNetwork",
+        "stellar-network-empty",
+        "stellar_network.network is not defined.");
+
+    try {
+      config.getStellarNetworkPassphrase();
+    } catch (Exception ex) {
+      errors.rejectValue(
+          "stellarNetwork",
+          "stellar-network-invalid",
+          String.format(
+              "The stellar_network.network:%s is not valid. Please check the configuration.",
+              config.getStellarNetwork()));
+    }
 
     if (isEmpty(config.getHorizonUrl())) {
       errors.rejectValue(
@@ -70,6 +83,19 @@ public class PropertyAppConfig implements AppConfig, Validator {
               String.format("%s defined in languages is not valid", lang));
         }
       }
+    }
+  }
+
+  @Override
+  public String getStellarNetworkPassphrase() {
+    switch (stellarNetwork.toUpperCase()) {
+      case "TESTNET":
+        return TESTNET.getNetworkPassphrase();
+      case "PUBLIC":
+        return PUBLIC.getNetworkPassphrase();
+      default:
+        throw new RuntimeException(
+            "Invalid stellar network " + stellarNetwork + ". Please check the configuration.");
     }
   }
 }

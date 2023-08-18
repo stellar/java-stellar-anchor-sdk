@@ -54,6 +54,9 @@ public class CallbackApiClient extends BaseApiClient {
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(sendEventRequest));
     Request request = getRequestBuilder().url(url).post(requestBody).build();
     Response response = client.newCall(request).execute();
-    return gson.fromJson(handleResponse(response), SendEventResponse.class);
+    SendEventResponse sendEventResponse =
+        gson.fromJson(handleResponse(response), SendEventResponse.class);
+    sendEventResponse.setCode(response.code());
+    return sendEventResponse;
   }
 }

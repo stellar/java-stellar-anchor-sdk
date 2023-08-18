@@ -29,32 +29,29 @@ public class ConfigReader {
   }
 
   public boolean has(String name) {
-    if (configSchema.getString(name) == null) {
-      return false;
-    }
-
-    return isEmpty(configSchema.getString(name));
+    return name != null && configSchema.getString(name) != null;
   }
 
   public void validate(ConfigMap configMap) throws InvalidConfigException {
     List<String> errors = new LinkedList<>();
     for (String name : configMap.names()) {
-      // If the name is an array field, the element of the field is not validated.
-      name = trimToArrayName(name);
-      if (this.configSchema.getString(name) == null) {
-        errors.add(
-            String.format(
-                "Invalid configuration: %s=%s. (version=%d)",
-                name, configMap.getString(name), version));
+      if (!isEmpty(name)) {
+        // If the name is an array field, the element of the field is not validated.
+        name = trimToArrayName(name);
+        if (this.configSchema.getString(name) == null) {
+          errors.add(
+              String.format(
+                  "Invalid configuration: %s=%s. (version=%d)",
+                  name, configMap.getString(name), version));
+        }
       }
     }
-
     if (errors.size() > 0) {
       throw new InvalidConfigException(errors);
     }
   }
 
-  private Pattern arrayPattern = Pattern.compile("\\[\\d+\\]");
+  private final Pattern arrayPattern = Pattern.compile("\\[\\d+\\]");
 
   /**
    * If the name is an array field, return the name without the array index and truncate the rest of
@@ -66,6 +63,9 @@ public class ConfigReader {
    * @return name of the array
    */
   String trimToArrayName(String fieldName) {
+    if (fieldName == null) {
+      System.out.println("hello");
+    }
     Matcher matcher = arrayPattern.matcher(fieldName);
 
     if (matcher.find()) {

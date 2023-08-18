@@ -8,6 +8,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
+import static org.stellar.anchor.util.MetricConstants.*;
 
 import com.google.gson.Gson;
 import io.micrometer.core.instrument.Metrics;
@@ -31,7 +32,6 @@ import org.stellar.anchor.event.EventService.Session;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
-import org.stellar.anchor.platform.service.AnchorMetrics;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -191,12 +191,10 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   private void updateMetrics(JdbcSepTransaction txn) {
     switch (Sep.from(txn.getProtocol())) {
       case SEP_24:
-        Metrics.counter(AnchorMetrics.SEP24_TRANSACTION.toString(), "status", txn.getStatus())
-            .increment();
+        Metrics.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP24).increment();
         break;
       case SEP_31:
-        Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", txn.getStatus())
-            .increment();
+        Metrics.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP31).increment();
         break;
     }
   }
