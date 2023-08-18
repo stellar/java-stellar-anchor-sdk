@@ -10,9 +10,12 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
+import org.stellar.reference.dao.H2CustomerRepository
 import org.stellar.reference.data.Config
 import org.stellar.reference.data.LocationConfig
 import org.stellar.reference.event.EventService
+import org.stellar.reference.integration.customer.CustomerService
+import org.stellar.reference.integration.customer.customer
 import org.stellar.reference.plugins.event
 import org.stellar.reference.plugins.sep24
 import org.stellar.reference.plugins.testSep24
@@ -79,9 +82,12 @@ fun Application.configureRouting(cfg: Config) {
     val depositService = DepositService(cfg)
     val withdrawalService = WithdrawalService(cfg)
     val eventService = EventService()
+    val customerRepo = H2CustomerRepository()
+    val customerService = CustomerService(customerRepo)
 
     sep24(helper, depositService, withdrawalService, cfg.sep24.interactiveJwtKey)
     event(eventService)
+    customer(customerService)
 
     if (cfg.sep24.enableTest) {
       testSep24(helper, depositService, withdrawalService, cfg.sep24.interactiveJwtKey)

@@ -18,6 +18,8 @@ dependencies {
   implementation(libs.javax.jaxb.api)
   implementation(libs.kotlin.logging)
   implementation(libs.slf4j.simple)
+  implementation(libs.h2database)
+  implementation(libs.exposed)
   implementation(project(mapOf("path" to ":api-schema")))
 }
 

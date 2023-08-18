@@ -14,6 +14,7 @@ commons-validator = "1.7"
 commons-text = "1.10.0"
 docker-compose-rule = "1.9.0"
 dotenv = "2.3.2"
+exposed = "0.41.1"
 findbugs-jsr305 = "3.0.2"
 flyway-core = "8.5.13"
 google-gson = "2.8.9"
@@ -76,6 +77,7 @@ commons-validator = { module = "commons-validator:commons-validator", version.re
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 docker-compose-rule = { module = "com.palantir.docker.compose:docker-compose-junit-jupiter", version.ref = "docker-compose-rule" }
 dotenv = { module = "io.github.cdimascio:dotenv-java", version.ref = "dotenv" }
+exposed = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 findbugs-jsr305 = { module = "com.google.code.findbugs:jsr305", version.ref = "findbugs-jsr305" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core" }
 google-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }

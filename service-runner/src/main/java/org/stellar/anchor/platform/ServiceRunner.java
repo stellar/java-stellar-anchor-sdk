@@ -6,7 +6,7 @@ import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.stellar.anchor.reference.AnchorReferenceServer;
-import org.stellar.reference.RefenreceServerStartKt;
+import org.stellar.reference.ReferenceServerStartKt;
 import org.stellar.reference.wallet.WalletServerStartKt;
 
 public class ServiceRunner {
@@ -108,7 +108,7 @@ public class ServiceRunner {
   }
 
   public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {
-    RefenreceServerStartKt.start(envMap, wait);
+    ReferenceServerStartKt.start(envMap, wait);
   }
 
   public static void startWalletServer(Map<String, String> envMap, boolean wait) {
