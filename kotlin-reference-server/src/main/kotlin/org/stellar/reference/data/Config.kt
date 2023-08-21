@@ -18,3 +18,12 @@ data class Sep24(
 ) {
   val keyPair = KeyPair.fromSecretSeed(secret)
 }
+
+data class AppSettings(
+  val version: String,
+  val platformApiEndpoint: String,
+  val hostUrl: String,
+  val distributionWallet: String,
+  val distributionWalletMemo: String,
+  val distributionWalletMemoType: String,
+)

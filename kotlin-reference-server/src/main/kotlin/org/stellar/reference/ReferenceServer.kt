@@ -47,6 +47,7 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
           allowHeader(HttpHeaders.Authorization)
           allowHeader(HttpHeaders.ContentType)
         }
+        // TODO: authentication https://ktor.io/docs/jwt.html#add_dependencies
       }
       .start(wait)
 }
