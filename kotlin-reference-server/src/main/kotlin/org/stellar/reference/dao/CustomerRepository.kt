@@ -7,6 +7,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.stellar.reference.model.Customer
 
 interface CustomerRepository : Closeable {
+  fun init()
   fun get(id: String): Customer?
   fun get(stellarAccount: String, memo: String?, memoType: String?): Customer?
   fun create(customer: Customer): String?
@@ -14,7 +15,11 @@ interface CustomerRepository : Closeable {
   fun delete(id: String)
 }
 
-class H2CustomerRepository(private val db: Database) : CustomerRepository {
+class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
+  override fun init() {
+    transaction(db) { SchemaUtils.create(Customers) }
+  }
+
   override fun get(id: String): Customer? =
     transaction(db) {
         Customers.select { Customers.id.eq(id) }
@@ -107,7 +112,5 @@ class H2CustomerRepository(private val db: Database) : CustomerRepository {
   override fun delete(id: String): Unit =
     transaction(db) { Customers.deleteWhere { Customers.id.eq(id) } }
 
-  override fun close() {
-    TODO()
-  }
+  override fun close() {}
 }

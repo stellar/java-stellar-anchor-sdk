@@ -10,7 +10,8 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
-import org.stellar.reference.dao.H2CustomerRepository
+import org.jetbrains.exposed.sql.Database
+import org.stellar.reference.dao.JdbcCustomerRepository
 import org.stellar.reference.data.Config
 import org.stellar.reference.data.LocationConfig
 import org.stellar.reference.event.EventService
@@ -82,7 +83,9 @@ fun Application.configureRouting(cfg: Config) {
     val depositService = DepositService(cfg)
     val withdrawalService = WithdrawalService(cfg)
     val eventService = EventService()
-    val customerRepo = H2CustomerRepository()
+    val database = Database.connect("jdbc:h2:mem:test", driver = "org.h2.Driver")
+    val customerRepo = JdbcCustomerRepository(database)
+    customerRepo.init()
     val customerService = CustomerService(customerRepo)
 
     sep24(helper, depositService, withdrawalService, cfg.sep24.interactiveJwtKey)
