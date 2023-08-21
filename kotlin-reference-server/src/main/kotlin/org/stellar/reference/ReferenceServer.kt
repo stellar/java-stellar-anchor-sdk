@@ -1,9 +1,13 @@
 package org.stellar.reference
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import com.sksamuel.hoplite.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -47,7 +51,15 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
           allowHeader(HttpHeaders.Authorization)
           allowHeader(HttpHeaders.ContentType)
         }
-        // TODO: authentication https://ktor.io/docs/jwt.html#add_dependencies
+        // TODO: should be configurable by auth type
+        install(Authentication) {
+          jwt("platform-auth") {
+            // TODO: validate payload https://ktor.io/docs/jwt.html#validate-payload
+            verifier(
+              JWT.require(Algorithm.HMAC256(cfg.integrationAuth.platformToAnchorSecret)).build()
+            )
+          }
+        }
       }
       .start(wait)
 }

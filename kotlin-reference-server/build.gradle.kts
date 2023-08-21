@@ -21,6 +21,8 @@ dependencies {
   implementation(libs.h2database)
   implementation(libs.exposed)
   implementation(project(mapOf("path" to ":api-schema")))
+  implementation("io.ktor:ktor-server-auth:${libs.versions.ktor}")
+  implementation("io.ktor:ktor-server-auth-jwt:${libs.versions.ktor}")
 }
 
 tasks {
