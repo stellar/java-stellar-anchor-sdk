@@ -16,7 +16,7 @@ data class Sep24(
   val secret: String,
   val interactiveJwtKey: String,
   val custodyEnabled: Boolean,
-  val rpcActionsEnabled: Boolean
+  val rpcEnabled: Boolean
 ) {
   val keyPair: KeyPair? = if (custodyEnabled) null else KeyPair.fromSecretSeed(secret)
 }

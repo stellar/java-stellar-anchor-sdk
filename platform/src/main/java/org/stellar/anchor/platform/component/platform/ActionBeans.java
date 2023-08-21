@@ -8,32 +8,32 @@ import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.platform.action.ActionHandler;
-import org.stellar.anchor.platform.action.DoStellarPaymentHandler;
-import org.stellar.anchor.platform.action.DoStellarRefundHandler;
-import org.stellar.anchor.platform.action.NotifyAmountsUpdatedHandler;
-import org.stellar.anchor.platform.action.NotifyCustomerInfoUpdatedHandler;
-import org.stellar.anchor.platform.action.NotifyInteractiveFlowCompletedHandler;
-import org.stellar.anchor.platform.action.NotifyOffchainFundsAvailableHandler;
-import org.stellar.anchor.platform.action.NotifyOffchainFundsPendingHandler;
-import org.stellar.anchor.platform.action.NotifyOffchainFundsReceivedHandler;
-import org.stellar.anchor.platform.action.NotifyOffchainFundsSentHandler;
-import org.stellar.anchor.platform.action.NotifyOnchainFundsReceivedHandler;
-import org.stellar.anchor.platform.action.NotifyOnchainFundsSentHandler;
-import org.stellar.anchor.platform.action.NotifyRefundPendingHandler;
-import org.stellar.anchor.platform.action.NotifyRefundSentHandler;
-import org.stellar.anchor.platform.action.NotifyTransactionErrorHandler;
-import org.stellar.anchor.platform.action.NotifyTransactionExpiredHandler;
-import org.stellar.anchor.platform.action.NotifyTransactionRecoveryHandler;
-import org.stellar.anchor.platform.action.NotifyTrustSetHandler;
-import org.stellar.anchor.platform.action.RequestCustomerInfoUpdateHandler;
-import org.stellar.anchor.platform.action.RequestOffchainFundsHandler;
-import org.stellar.anchor.platform.action.RequestOnchainFundsHandler;
-import org.stellar.anchor.platform.action.RequestTrustHandler;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
-import org.stellar.anchor.platform.service.ActionService;
+import org.stellar.anchor.platform.rpc.DoStellarPaymentHandler;
+import org.stellar.anchor.platform.rpc.DoStellarRefundHandler;
+import org.stellar.anchor.platform.rpc.NotifyAmountsUpdatedHandler;
+import org.stellar.anchor.platform.rpc.NotifyCustomerInfoUpdatedHandler;
+import org.stellar.anchor.platform.rpc.NotifyInteractiveFlowCompletedHandler;
+import org.stellar.anchor.platform.rpc.NotifyOffchainFundsAvailableHandler;
+import org.stellar.anchor.platform.rpc.NotifyOffchainFundsPendingHandler;
+import org.stellar.anchor.platform.rpc.NotifyOffchainFundsReceivedHandler;
+import org.stellar.anchor.platform.rpc.NotifyOffchainFundsSentHandler;
+import org.stellar.anchor.platform.rpc.NotifyOnchainFundsReceivedHandler;
+import org.stellar.anchor.platform.rpc.NotifyOnchainFundsSentHandler;
+import org.stellar.anchor.platform.rpc.NotifyRefundPendingHandler;
+import org.stellar.anchor.platform.rpc.NotifyRefundSentHandler;
+import org.stellar.anchor.platform.rpc.NotifyTransactionErrorHandler;
+import org.stellar.anchor.platform.rpc.NotifyTransactionExpiredHandler;
+import org.stellar.anchor.platform.rpc.NotifyTransactionRecoveryHandler;
+import org.stellar.anchor.platform.rpc.NotifyTrustSetHandler;
+import org.stellar.anchor.platform.rpc.RequestCustomerInfoUpdateHandler;
+import org.stellar.anchor.platform.rpc.RequestOffchainFundsHandler;
+import org.stellar.anchor.platform.rpc.RequestOnchainFundsHandler;
+import org.stellar.anchor.platform.rpc.RequestTrustHandler;
+import org.stellar.anchor.platform.rpc.RpcMethodHandler;
+import org.stellar.anchor.platform.service.RpcService;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -43,8 +43,8 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 public class ActionBeans {
 
   @Bean
-  ActionService actionService(List<ActionHandler<?>> actionHandlers, RpcConfig rpcConfig) {
-    return new ActionService(actionHandlers, rpcConfig);
+  RpcService rpcService(List<RpcMethodHandler<?>> rpcMethodHandlers, RpcConfig rpcConfig) {
+    return new RpcService(rpcMethodHandlers, rpcConfig);
   }
 
   @Bean

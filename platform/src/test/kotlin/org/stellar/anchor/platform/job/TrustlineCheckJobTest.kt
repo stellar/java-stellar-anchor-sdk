@@ -8,13 +8,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
-import org.stellar.anchor.api.rpc.action.NotifyTrustSetRequest
+import org.stellar.anchor.api.rpc.method.NotifyTrustSetRequest
 import org.stellar.anchor.horizon.Horizon
-import org.stellar.anchor.platform.action.NotifyTrustSetHandler
 import org.stellar.anchor.platform.config.PropertyCustodyConfig
 import org.stellar.anchor.platform.config.PropertyCustodyConfig.Trustline
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrust
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo
+import org.stellar.anchor.platform.rpc.NotifyTrustSetHandler
 import org.stellar.anchor.util.GsonUtils
 
 class TrustlineCheckJobTest {

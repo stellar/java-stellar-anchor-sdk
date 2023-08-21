@@ -147,7 +147,7 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
     val rpcActionRequests: List<RpcRequest> =
       gson.fromJson(actionRequests.replace(TX_ID_KEY, txId), rpcActionRequestsType)
 
-    val rpcActionResponses = platformApiClient.callRpcAction(rpcActionRequests)
+    val rpcActionResponses = platformApiClient.sendRpcRequest(rpcActionRequests)
 
     val expectedResult = actionResponses.replace(TX_ID_KEY, txId).trimIndent()
     val actualResult = rpcActionResponses.body?.string()?.trimIndent()

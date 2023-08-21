@@ -6,7 +6,7 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
+import org.stellar.anchor.api.rpc.method.AmountAssetRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.util.SepHelper;

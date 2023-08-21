@@ -1,9 +1,9 @@
 package org.stellar.anchor.apiclient;
 
-import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_ONCHAIN_FUNDS_RECEIVED;
-import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_ONCHAIN_FUNDS_SENT;
-import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_REFUND_SENT;
-import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_ERROR;
+import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_ONCHAIN_FUNDS_RECEIVED;
+import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_ONCHAIN_FUNDS_SENT;
+import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_REFUND_SENT;
+import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_TRANSACTION_ERROR;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -24,14 +24,14 @@ import org.stellar.anchor.api.platform.GetTransactionsResponse;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.rpc.RpcRequest;
-import org.stellar.anchor.api.rpc.action.ActionMethod;
-import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
-import org.stellar.anchor.api.rpc.action.AmountRequest;
-import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsReceivedRequest;
-import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsSentRequest;
-import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest;
-import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest.Refund;
-import org.stellar.anchor.api.rpc.action.NotifyTransactionErrorRequest;
+import org.stellar.anchor.api.rpc.method.AmountAssetRequest;
+import org.stellar.anchor.api.rpc.method.AmountRequest;
+import org.stellar.anchor.api.rpc.method.NotifyOnchainFundsReceivedRequest;
+import org.stellar.anchor.api.rpc.method.NotifyOnchainFundsSentRequest;
+import org.stellar.anchor.api.rpc.method.NotifyRefundSentRequest;
+import org.stellar.anchor.api.rpc.method.NotifyRefundSentRequest.Refund;
+import org.stellar.anchor.api.rpc.method.NotifyTransactionErrorRequest;
+import org.stellar.anchor.api.rpc.method.RpcMethod;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.OkHttpUtil;
@@ -171,7 +171,7 @@ public class PlatformApiClient extends BaseApiClient {
     sendRpcNotification(NOTIFY_TRANSACTION_ERROR, request);
   }
 
-  public void sendRpcNotification(ActionMethod method, Object requestParams)
+  public void sendRpcNotification(RpcMethod method, Object requestParams)
       throws IOException, AnchorException {
     RpcRequest rpcRequest =
         RpcRequest.builder()
@@ -181,10 +181,10 @@ public class PlatformApiClient extends BaseApiClient {
             .params(requestParams)
             .build();
 
-    callRpcAction(List.of(rpcRequest));
+    sendRpcRequest(List.of(rpcRequest));
   }
 
-  public Response callRpcAction(List<RpcRequest> rpcRequests) throws IOException, AnchorException {
+  public Response sendRpcRequest(List<RpcRequest> rpcRequests) throws IOException, AnchorException {
     HttpUrl url = HttpUrl.parse(endpoint);
     if (url == null)
       throw new InvalidConfigException(

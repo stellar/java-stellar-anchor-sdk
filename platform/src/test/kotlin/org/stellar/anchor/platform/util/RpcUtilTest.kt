@@ -16,7 +16,7 @@ import org.stellar.anchor.api.exception.rpc.MethodNotFoundException
 import org.stellar.anchor.api.rpc.RpcErrorCode
 import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.RpcResponse
-import org.stellar.anchor.api.rpc.action.RpcActionParamsRequest
+import org.stellar.anchor.api.rpc.method.RpcMethodParamsRequest
 import org.stellar.anchor.platform.utils.RpcUtil
 import org.stellar.anchor.platform.utils.RpcUtil.JSON_RPC_VERSION
 
@@ -31,7 +31,7 @@ class RpcUtilTest {
     private val rpcRequest =
       RpcRequest.builder()
         .id(RPC_ID)
-        .params(RpcActionParamsRequest.builder().transactionId(TXN_ID).build())
+        .params(RpcMethodParamsRequest.builder().transactionId(TXN_ID).build())
         .build()
   }
 

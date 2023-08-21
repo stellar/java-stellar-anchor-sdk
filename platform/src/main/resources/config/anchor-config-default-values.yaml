@@ -391,7 +391,7 @@ sep24:
   ## @supported_values:
   ##     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
   ##     custody: the memo and memo type are generated through Custody API, for example Fireblocks, as well as the deposit address.
-  ##     none: deposit address, memo and memo type should be provided by the business in requests/action.
+  ##     none: deposit address, memo and memo type should be provided by the business in PATCH/RPC request.
   #
   deposit_info_generator_type: self
 
@@ -761,14 +761,13 @@ data:
 ## RPC Configuration
 ################################
 rpc:
-  actions:
-    ## Custom messages for updating transaction via RPC calls
-    custom_messages:
-      ## Custody transaction failed
-      custody_transaction_failed: "The custody transaction has failed"
-      ## Incoming payment received
-      incoming_payment_received: "Received an incoming payment"
-      ## Outgoing payment sent
-      outgoing_payment_sent: "Outgoing payment sent"
-    ## Batch size limit
-    batch_size_limit: 40
+  ## Custom messages for updating transaction via RPC calls
+  custom_messages:
+    ## Custody transaction failed
+    custody_transaction_failed: "The custody transaction has failed"
+    ## Incoming payment received
+    incoming_payment_received: "Received an incoming payment"
+    ## Outgoing payment sent
+    outgoing_payment_sent: "Outgoing payment sent"
+  ## Batch size limit
+  batch_size_limit: 40

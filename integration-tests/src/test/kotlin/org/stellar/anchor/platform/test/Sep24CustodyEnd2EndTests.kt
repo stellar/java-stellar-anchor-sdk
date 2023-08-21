@@ -262,7 +262,6 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
     info("Running SEP-24 USDC end-to-end tests...")
     `test typical deposit end-to-end flow`(USDC, "5")
     `test typical withdraw end-to-end flow`(USDC, "5")
-    `test typical withdraw end-to-end flow`(USDC, "5")
     `test created transactions show up in the get history call`(USDC, "5")
     info("Running SEP-24 XLM end-to-end tests...")
     `test typical deposit end-to-end flow`(XLM, "0.00001")
