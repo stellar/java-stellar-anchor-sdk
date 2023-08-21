@@ -17,5 +17,5 @@ object Quotes : Table() {
   val countryCode = varchar("country_code", 255).nullable()
   val clientId = varchar("client_id", 255).nullable()
   val transactionId = varchar("transaction_id", 255).nullable()
-  val fee  = varchar("fee", 255).nullable()
+  val fee = varchar("fee", 255).nullable()
 }
