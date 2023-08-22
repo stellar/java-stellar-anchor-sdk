@@ -221,7 +221,7 @@ class NotifyTransactionExpiredHandlerTest {
     every { transactionPendingTrustRepo.deleteById(TX_ID) } just Runs
     every { transactionPendingTrustRepo.existsById(TX_ID) } returns true
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "expired") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

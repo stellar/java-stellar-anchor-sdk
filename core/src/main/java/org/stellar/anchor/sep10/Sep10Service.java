@@ -1,9 +1,12 @@
 package org.stellar.anchor.sep10;
 
 import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_CREATED;
+import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_VALIDATED;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
@@ -32,6 +35,8 @@ public class Sep10Service {
   final Horizon horizon;
   final JwtService jwtService;
   final String serverAccountId;
+  final Counter sep10ChallengeCreatedCounter = Metrics.counter(SEP10_CHALLENGE_CREATED);
+  final Counter sep10ChallengeValidatedCounter = Metrics.counter(SEP10_CHALLENGE_VALIDATED);
 
   public Sep10Service(
       AppConfig appConfig,
@@ -51,8 +56,7 @@ public class Sep10Service {
     Log.info("Sep10Service initialized.");
   }
 
-  public ChallengeResponse createChallenge(ChallengeRequest challengeRequest)
-      throws SepException, MalformedURLException {
+  public ChallengeResponse createChallenge(ChallengeRequest challengeRequest) throws SepException {
     info("Creating challenge");
     //
     // Validations
@@ -158,6 +162,8 @@ public class Sep10Service {
       ChallengeResponse challengeResponse =
           ChallengeResponse.of(txn.toEnvelopeXdrBase64(), appConfig.getStellarNetworkPassphrase());
       trace("challengeResponse:", challengeResponse);
+      // increment counter
+      sep10ChallengeCreatedCounter.increment();
       return challengeResponse;
     } catch (InvalidSep10ChallengeException ex) {
       warnEx(ex);
@@ -245,6 +251,8 @@ public class Sep10Service {
           sep10Config.getWebAuthDomain(),
           signers);
 
+      // increment counter
+      sep10ChallengeValidatedCounter.increment();
       return clientDomain;
     }
 
@@ -272,6 +280,8 @@ public class Sep10Service {
         threshold,
         signers);
 
+    // increment counter
+    sep10ChallengeValidatedCounter.increment();
     return clientDomain;
   }
 

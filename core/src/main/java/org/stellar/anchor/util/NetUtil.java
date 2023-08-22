@@ -7,18 +7,44 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Objects;
 import okhttp3.Call;
 import okhttp3.Request;
 import okhttp3.Response;
 
 public class NetUtil {
+
+  /**
+   * Fetches the content from the specified URL using an HTTP GET request.
+   *
+   * <p>This method expects a response body to be present in the HTTP response. If the response is
+   * unsuccessful (i.e., not a 2xx status code) or if the response body is null, an IOException will
+   * be thrown.
+   *
+   * @param url The URL to fetch content from.
+   * @return The content of the response body as a string.
+   * @throws IOException If the response is unsuccessful, or if the response body is null.
+   */
   public static String fetch(String url) throws IOException {
+
     Request request = OkHttpUtil.buildGetRequest(url);
     Response response = getCall(request).execute();
 
-    if (response.body() == null) return "";
-    return Objects.requireNonNull(response.body()).string();
+    // Check if response was unsuccessful (ie not status code 2xx) and throw IOException
+    if (!response.isSuccessful()) {
+      throw new IOException(
+          "Unsuccessful response code: " + response.code() + ", message: " + response.message());
+    }
+
+    // Since fetch expects a response body, we will throw IOException if its null
+    if (response.body() == null) {
+      throw new IOException(
+          "Null response body. Response code: "
+              + response.code()
+              + ", message: "
+              + response.message());
+    }
+
+    return response.body().string();
   }
 
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -35,11 +61,11 @@ public class NetUtil {
     }
   }
 
-  public static boolean isServerPortValid(String serverPort) {
+  public static boolean isServerPortValid(String serverPort, boolean hostnameLookup) {
     if (isEmpty(serverPort)) return false;
     String[] tokens = Strings.split(serverPort, ":");
     if (tokens == null) {
-      return isHostnameValid(serverPort);
+      return !hostnameLookup || isHostnameResolvable(serverPort);
     }
     switch (tokens.length) {
       case 2:
@@ -47,13 +73,13 @@ public class NetUtil {
         try {
           int port = Integer.parseInt(strPort);
           if (port > 65535 || port < 0) {
-            return false;
+            return !hostnameLookup || isHostnameResolvable(serverPort);
           }
         } catch (NumberFormatException ex) {
           return false;
         }
       case 1:
-        return isHostnameValid(tokens[0]);
+        return !hostnameLookup || isHostnameResolvable(serverPort);
       case 0:
       default:
         return false;
@@ -68,7 +94,7 @@ public class NetUtil {
     return uri.getHost() + ":" + uri.getPort();
   }
 
-  static boolean isHostnameValid(String hostname) {
+  static boolean isHostnameResolvable(String hostname) {
     try {
       InetAddress.getAllByName(hostname);
       return true;

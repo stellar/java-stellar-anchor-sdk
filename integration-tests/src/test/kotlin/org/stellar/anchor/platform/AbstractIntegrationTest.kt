@@ -33,7 +33,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   lateinit var stellarObserverTests: StellarObserverTests
   lateinit var custodyApiTests: CustodyApiTests
   lateinit var eventProcessingServerTests: EventProcessingServerTests
-  lateinit var sep24E2eTests: Sep24End2EndTest
+  lateinit var sep24E2eTests: Sep24End2EndTests
   lateinit var sep24ActionsE2eTests: Sep24ActionsEnd2EndTests
   lateinit var sep24CustodyE2eTests: Sep24CustodyEnd2EndTests
   lateinit var sep24CustodyActionsE2eTests: Sep24CustodyActionsEnd2EndTests
@@ -70,7 +70,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     callbackApiTests = CallbackApiTests(config, toml, jwt)
     stellarObserverTests = StellarObserverTests()
     custodyApiTests = CustodyApiTests(config, toml, jwt)
-    sep24E2eTests = Sep24End2EndTest(config, jwt)
+    sep24E2eTests = Sep24End2EndTests(config, jwt)
     sep24CustodyE2eTests = Sep24CustodyEnd2EndTests(config, jwt)
     sep24ActionsE2eTests = Sep24ActionsEnd2EndTests(config, jwt)
     sep24CustodyActionsE2eTests = Sep24CustodyActionsEnd2EndTests(config, jwt)

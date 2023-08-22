@@ -1,8 +1,5 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run - Event Processing Server - no Docker " type="JetRunConfigurationType">
-    <envs>
-      <env name="TEST_PROFILE_NAME" value="sep24" />
-    </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunEventProcessingServer" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
     <shortenClasspath name="ARGS_FILE" />

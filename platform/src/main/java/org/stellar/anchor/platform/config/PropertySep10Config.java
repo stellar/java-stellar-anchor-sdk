@@ -6,6 +6,7 @@ import static org.stellar.anchor.platform.config.ClientsConfig.ClientType.NONCUS
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -28,10 +29,12 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private String webAuthDomain;
   private String homeDomain;
   private boolean clientAttributionRequired = false;
-  private final List<String> clientAttributionAllowList;
+  private List<String> defaultAllowClientDomain;
+  private List<String> clientAllowList = null;
   private Integer authTimeout = 900;
   private Integer jwtTimeout = 86400;
   private boolean knownCustodialAccountRequired = false;
+  private List<String> knownCustodialAccountList = new ArrayList<>();
   private AppConfig appConfig;
   private final ClientsConfig clientsConfig;
   private SecretConfig secretConfig;
@@ -41,11 +44,17 @@ public class PropertySep10Config implements Sep10Config, Validator {
     this.appConfig = appConfig;
     this.clientsConfig = clientsConfig;
     this.secretConfig = secretConfig;
-    this.clientAttributionAllowList =
+    this.defaultAllowClientDomain =
         clientsConfig.clients.stream()
             .filter(
                 cfg -> cfg.getType() == NONCUSTODIAL && StringHelper.isNotEmpty(cfg.getDomain()))
             .map(ClientConfig::getDomain)
+            .collect(Collectors.toList());
+    this.knownCustodialAccountList =
+        clientsConfig.clients.stream()
+            .filter(
+                cfg -> cfg.getType() == CUSTODIAL && StringHelper.isNotEmpty(cfg.getSigningKey()))
+            .map(ClientConfig::getSigningKey)
             .collect(Collectors.toList());
   }
 
@@ -110,7 +119,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
                 homeDomain, iaex));
       }
 
-      if (!NetUtil.isServerPortValid(homeDomain)) {
+      if (!NetUtil.isServerPortValid(homeDomain, false)) {
         errors.rejectValue(
             "homeDomain",
             "sep10-home-domain-invalid",
@@ -130,7 +139,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
                 webAuthDomain, iaex));
       }
 
-      if (!NetUtil.isServerPortValid(webAuthDomain)) {
+      if (!NetUtil.isServerPortValid(webAuthDomain, false)) {
         errors.rejectValue(
             "webAuthDomain",
             "sep10-web-auth-domain-invalid",
@@ -155,20 +164,30 @@ public class PropertySep10Config implements Sep10Config, Validator {
 
   void validateClientAttribution(Errors errors) {
     if (clientAttributionRequired) {
-      if (ListHelper.isEmpty(getClientAttributionAllowList())) {
+      if (ListHelper.isEmpty(getDefaultAllowClientDomain())) {
         errors.reject(
             "sep10-client-attribution-lists-empty",
             "sep10.client_attribution_required is set to true but no NONCUSTODIAL clients are defined in the clients: section of the configuration.");
       }
 
-      if (!ListHelper.isEmpty(getClientAttributionAllowList())) {
-        for (String clientDomain : getClientAttributionAllowList()) {
-          if (!NetUtil.isServerPortValid(clientDomain)) {
+      if (!ListHelper.isEmpty(getDefaultAllowClientDomain())) {
+        for (String clientDomain : getDefaultAllowClientDomain()) {
+          if (!NetUtil.isServerPortValid(clientDomain, false)) {
             errors.rejectValue(
                 "clientAttributionAllowList",
                 "sep10-client_attribution_allow_list_invalid",
                 format("%s is not a valid value for client domain.", clientDomain));
           }
+        }
+      }
+    }
+
+    if (clientAllowList != null && !clientAllowList.isEmpty()) {
+      for (String clientName : clientAllowList) {
+        if (clientsConfig.getClientConfigByName(clientName) == null) {
+          errors.reject(
+              "sep10-client-allow-list-invalid",
+              format("Invalid client name:%s in sep10.client_allow_list", clientName));
         }
       }
     }
@@ -194,14 +213,21 @@ public class PropertySep10Config implements Sep10Config, Validator {
 
   @Override
   public List<String> getClientAttributionAllowList() {
-    return clientAttributionAllowList;
+    // if clientAllowList is not defined, all client domains from the clients section are allowed.
+    if (clientAllowList == null || clientAllowList.isEmpty()) return defaultAllowClientDomain;
+    // Look up the client domains from the clients section.
+    return clientAllowList.stream()
+        .map(
+            clientName ->
+                (clientsConfig.getClientConfigByName(clientName) == null)
+                    ? null
+                    : clientsConfig.getClientConfigByName(clientName).getDomain())
+        .filter(StringHelper::isNotEmpty)
+        .collect(Collectors.toList());
   }
 
   @Override
   public List<String> getKnownCustodialAccountList() {
-    return clientsConfig.clients.stream()
-        .filter(cfg -> cfg.getType() == CUSTODIAL && StringHelper.isNotEmpty(cfg.getSigningKey()))
-        .map(ClientConfig::getSigningKey)
-        .collect(Collectors.toList());
+    return knownCustodialAccountList;
   }
 }

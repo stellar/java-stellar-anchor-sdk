@@ -16,10 +16,8 @@ dependencies {
   implementation(libs.java.stellar.sdk)
   implementation(libs.jjwt)
   implementation(libs.javax.jaxb.api)
-
-  implementation(libs.slf4j.log4j12)
   implementation(libs.kotlin.logging)
-
+  implementation(libs.slf4j.simple)
   implementation(project(mapOf("path" to ":api-schema")))
 }
 
@@ -32,4 +30,4 @@ tasks {
   test { useJUnitPlatform() }
 }
 
-application { mainClass.set("com.example.ReferenceServerKt") }
+application { mainClass.set("org.stellar.reference.ReferenceServerKt") }

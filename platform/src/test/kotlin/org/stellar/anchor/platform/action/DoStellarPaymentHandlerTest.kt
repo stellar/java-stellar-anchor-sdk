@@ -224,7 +224,7 @@ class DoStellarPaymentHandlerTest {
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
     every { horizon.isTrustlineConfigured(TO_ACCOUNT, AMOUNT_OUT_ASSET) } returns true
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_stellar") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -308,7 +308,7 @@ class DoStellarPaymentHandlerTest {
     every { horizon.isTrustlineConfigured(TO_ACCOUNT, AMOUNT_OUT_ASSET) } returns false
     every { transactionPendingTrustRepo.save(capture(txnPendingTrustCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_trust") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

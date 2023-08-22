@@ -22,6 +22,7 @@ data.type:
 event_processor.callback_api_request.enabled:
 event_processor.client_status_callback.enabled:
 event_processor.context_path:
+event_processor.management_server_port:
 event_processor.port:
 events.enabled:
 events.queue.kafka.batch_size:
@@ -41,9 +42,10 @@ events.queue.sqs.use_iam:
 events.queue.type:
 languages:
 metrics.enabled:
-metrics.extras_enabled:
-metrics.run_interval:
+metrics.extended_metrics.enabled:
+metrics.extended_metrics.run_interval:
 payment_observer.context_path:
+payment_observer.management_server_port:
 payment_observer.port:
 payment_observer.stellar.initial_event_backoff_time:
 payment_observer.stellar.initial_stream_backoff_time:
@@ -62,11 +64,13 @@ platform_server.auth.api_key.http_header:
 platform_server.auth.jwt.http_header:
 platform_server.auth.type:
 platform_server.context_path:
+platform_server.management_server_port:
 platform_server.port:
 sep1.enabled:
 sep1.toml.type:
 sep1.toml.value:
 sep10.auth_timeout:
+sep10.client_allow_list:
 sep10.client_attribution_required:
 sep10.enabled:
 sep10.home_domain:

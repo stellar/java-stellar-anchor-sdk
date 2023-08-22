@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SendEventResponse {
+  /** The http status code of the response. */
+  int code;
   /** The message of the response. */
   String message;
 }

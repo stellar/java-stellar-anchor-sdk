@@ -7,10 +7,14 @@ import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
+import static org.stellar.anchor.util.MetricConstants.SEP38_PRICE_QUERIED;
+import static org.stellar.anchor.util.MetricConstants.SEP38_QUOTE_CREATED;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -35,7 +39,6 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.util.Log;
 
 public class Sep38Service {
-  final Sep38Config sep38Config;
   final AssetService assetService;
   final RateIntegration rateIntegration;
   final Sep38QuoteStore sep38QuoteStore;
@@ -43,6 +46,8 @@ public class Sep38Service {
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
   final int pricePrecision = 10;
+  final Counter sep38PriceQueried = Metrics.counter(SEP38_PRICE_QUERIED);
+  final Counter sep38QuoteCreated = Metrics.counter(SEP38_QUOTE_CREATED);
 
   public Sep38Service(
       Sep38Config sep38Config,
@@ -51,7 +56,6 @@ public class Sep38Service {
       Sep38QuoteStore sep38QuoteStore,
       EventService eventService) {
     debug("sep38Config:", sep38Config);
-    this.sep38Config = sep38Config;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
     this.sep38QuoteStore = sep38QuoteStore;
@@ -118,6 +122,8 @@ public class Sep38Service {
       response.addAsset(buyAssetName, buyAsset.getDecimals(), rate.getPrice());
     }
 
+    // increment counter
+    sep38PriceQueried.increment();
     return response;
   }
 
@@ -438,8 +444,11 @@ public class Sep38Service {
     updateField(newQuote, "transactionId", event, "quote.transactionId");
     updateField(rate, "fee", event, "quote.fee");
 
+    // publish event
     eventSession.publish(event);
 
+    // increment counter
+    sep38QuoteCreated.increment();
     return builder.build();
   }
 

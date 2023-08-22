@@ -69,6 +69,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     @BeforeAll
     @JvmStatic
     fun setup() {
+      println("Running PlatformJwtAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
           TestConfig(testProfileName = "default").also {
@@ -277,6 +278,7 @@ internal class CustodyJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     @BeforeAll
     @JvmStatic
     fun setup() {
+      println("Running CustodyJwtAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
           TestConfig(testProfileName = "default-custody").also {
@@ -367,6 +369,7 @@ internal class PlatformApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest()
     @BeforeAll
     @JvmStatic
     fun setup() {
+      println("Running PlatformApiKeyAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
           TestConfig(testProfileName = "default").also {
@@ -448,6 +451,7 @@ internal class CustodyApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() 
     @BeforeAll
     @JvmStatic
     fun setup() {
+      println("Running CustodyApiKeyAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
           TestConfig(testProfileName = "default-custody").also {

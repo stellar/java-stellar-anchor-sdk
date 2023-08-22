@@ -220,7 +220,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_anchor") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -320,7 +320,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_anchor") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -412,7 +412,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "pending_anchor") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -499,7 +499,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     every { txn31Store.save(capture(sep31TxnCapture)) } returns null
     every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep31.transaction", "status", "pending_receiver") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep31") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

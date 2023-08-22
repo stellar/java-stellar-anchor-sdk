@@ -15,11 +15,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
+import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
@@ -50,6 +50,7 @@ import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
 import org.stellar.sdk.MemoId
 import org.stellar.sdk.MemoText
+import org.stellar.sdk.Network.TESTNET
 
 internal class Sep24ServiceTest {
   companion object {
@@ -89,7 +90,7 @@ internal class Sep24ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns TEST_JWT_SECRET
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns TEST_JWT_SECRET
@@ -540,7 +541,8 @@ internal class Sep24ServiceTest {
         if (accountMemo == null) account else "$account:$accountMemo",
         TEST_TRANSACTION_ID_0,
         Instant.now().epochSecond + 1000,
-        TEST_CLIENT_DOMAIN
+        TEST_CLIENT_DOMAIN,
+        TEST_CLIENT_NAME,
       )
     jwt.claim("asset", "stellar:${TEST_ASSET}:${TEST_ASSET_ISSUER_ACCOUNT_ID}")
     return jwt

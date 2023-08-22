@@ -225,7 +225,7 @@ class NotifyOnchainFundsSentHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("sep24.transaction", "status", "completed") } returns
+    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

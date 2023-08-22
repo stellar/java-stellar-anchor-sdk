@@ -12,6 +12,7 @@ import org.apache.commons.cli.ParseException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.stellar.anchor.reference.AnchorReferenceServer;
 import org.stellar.reference.RefenreceServerStartKt;
+import org.stellar.reference.wallet.WalletServerStartKt;
 
 public class ServiceRunner {
 
@@ -29,6 +30,7 @@ public class ServiceRunner {
     options.addOption("e", "event-processor", false, "Start the event processor.");
     options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.");
     options.addOption("k", "kotlin-reference-server", false, "Start Kotlin reference server.");
+    options.addOption("w", "wallet-reference-server", false, "Start wallet reference server.");
     options.addOption("t", "test-profile-runner", false, "Run the stack with test profile.");
 
     CommandLineParser parser = new DefaultParser();
@@ -68,6 +70,11 @@ public class ServiceRunner {
 
       if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
         startKotlinReferenceServer(null, true);
+        anyServerStarted = true;
+      }
+
+      if (cmd.hasOption("wallet-reference-server") || cmd.hasOption("all")) {
+        startWalletServer(null, false);
         anyServerStarted = true;
       }
 
@@ -118,6 +125,10 @@ public class ServiceRunner {
 
   public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {
     RefenreceServerStartKt.start(envMap, wait);
+  }
+
+  public static void startWalletServer(Map<String, String> envMap, boolean wait) {
+    WalletServerStartKt.start(envMap, wait);
   }
 
   public static void startTestProfileRunner() {

@@ -2,7 +2,6 @@ package org.stellar.anchor.apiclient;
 
 import com.google.gson.Gson;
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -45,8 +44,7 @@ public abstract class BaseApiClient {
       throw new SepNotAuthorizedException("Forbidden");
     } else if (response.code() == HttpStatus.SC_NOT_FOUND) {
       throw new SepNotFoundException("Not found");
-    } else if (!List.of(HttpStatus.SC_OK, HttpStatus.SC_CREATED, HttpStatus.SC_ACCEPTED)
-        .contains(response.code())) {
+    } else if (response.code() >= 400 || response.code() < 200) {
       throw new SepException(responseBody);
     }
 
