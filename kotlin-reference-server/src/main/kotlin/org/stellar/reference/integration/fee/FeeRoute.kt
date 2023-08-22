@@ -1,5 +1,6 @@
 package org.stellar.reference.integration.fee
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -21,8 +22,15 @@ fun Route.fee(feeService: FeeService) {
           .senderId(call.parameters["sender_id"])
           .receiverId(call.parameters["receiver_id"])
           .build()
-      val response = GsonUtils.getInstance().toJson(feeService.getFee(request))
-      call.respond(response)
+      try {
+        val response = GsonUtils.getInstance().toJson(feeService.getFee(request))
+        call.respond(response)
+      } catch (e: Exception) {
+        call.respond(
+          HttpStatusCode.BadRequest,
+          e.message ?: "Error retrieving fee",
+        )
+      }
     }
   }
 }

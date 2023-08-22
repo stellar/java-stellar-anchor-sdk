@@ -102,6 +102,14 @@ fun Application.configureAuth(cfg: Config) {
           verifier(
             JWT.require(Algorithm.HMAC256(cfg.integrationAuth.platformToAnchorSecret)).build()
           )
+          validate { credential ->
+            val principal = JWTPrincipal(credential.payload)
+            if (principal.payload.expiresAt.time < System.currentTimeMillis()) {
+              null
+            } else {
+              principal
+            }
+          }
           challenge { _, _ ->
             call.respond(HttpStatusCode.Unauthorized, "Token is invalid or expired")
           }

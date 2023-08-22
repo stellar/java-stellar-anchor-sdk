@@ -1,5 +1,6 @@
 package org.stellar.reference.integration.rate
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -25,8 +26,15 @@ fun Route.rate(rateService: RateService) {
           .clientId(call.parameters["client_id"])
           .id(call.parameters["id"])
           .build()
-      val response = GsonUtils.getInstance().toJson(rateService.getRate(request))
-      call.respond(response)
+      try {
+        val response = GsonUtils.getInstance().toJson(rateService.getRate(request))
+        call.respond(response)
+      } catch (e: Exception) {
+        call.respond(
+          HttpStatusCode.BadRequest,
+          e.message ?: "Error retrieving rate",
+        )
+      }
     }
   }
 }
