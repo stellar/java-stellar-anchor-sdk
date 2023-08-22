@@ -4,6 +4,7 @@ import java.io.Closeable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.stellar.reference.log
 import org.stellar.reference.model.Customer
 
 interface CustomerRepository : Closeable {
@@ -16,9 +17,11 @@ interface CustomerRepository : Closeable {
 }
 
 class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
-  override fun init() {
-    transaction(db) { SchemaUtils.create(Customers) }
-  }
+  override fun init() =
+    transaction(db) {
+      log.info { "Creating customers table" }
+      SchemaUtils.create(Customers)
+    }
 
   override fun get(id: String): Customer? =
     transaction(db) {
@@ -55,7 +58,7 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
         Customers.select { query }
           .mapNotNull {
             Customer(
-              id = it[Customers.id].value,
+              id = it[Customers.id],
               stellarAccount = it[Customers.stellarAccount],
               memo = it[Customers.memo],
               memoType = it[Customers.memoType],
@@ -75,7 +78,7 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
   override fun create(customer: Customer): String? =
     transaction(db) {
         Customers.insert {
-          it[id] = customer.id
+          it[id] = customer.id!!
           it[stellarAccount] = customer.stellarAccount
           it[memo] = customer.memo
           it[memoType] = customer.memoType
@@ -91,11 +94,10 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
       .resultedValues
       ?.firstOrNull()
       ?.get(Customers.id)
-      ?.value
 
   override fun update(customer: Customer): Unit =
     transaction(db) {
-      Customers.update({ Customers.id.eq(customer.id) }) {
+      Customers.update({ Customers.id.eq(customer.id!!) }) {
         it[stellarAccount] = customer.stellarAccount
         it[memo] = customer.memo
         it[memoType] = customer.memoType

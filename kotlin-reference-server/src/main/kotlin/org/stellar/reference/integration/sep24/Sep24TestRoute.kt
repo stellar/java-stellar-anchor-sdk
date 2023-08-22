@@ -1,4 +1,4 @@
-package org.stellar.reference.plugins
+package org.stellar.reference.integration.sep24
 
 import io.ktor.http.*
 import io.ktor.server.application.*

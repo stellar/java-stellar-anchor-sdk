@@ -1,13 +1,14 @@
 package org.stellar.reference.data
 
+import com.sksamuel.hoplite.ConfigAlias
 import org.stellar.sdk.KeyPair
 
 data class LocationConfig(val ktReferenceServerConfig: String)
 
 data class Config(
-  val sep24: Sep24,
-  val appSettings: AppSettings,
-  val integrationAuth: IntegrationAuth
+  @ConfigAlias("anchor.settings") val appSettings: AppSettings,
+  val integrationAuth: IntegrationAuth,
+  val sep24: Sep24
 )
 
 data class Sep24(
@@ -31,14 +32,14 @@ data class AppSettings(
 )
 
 data class IntegrationAuth(
-  val authType: AuthType,
+  val authType: Type,
   val platformToAnchorSecret: String,
   val anchorToPlatformSecret: String,
   val expirationMilliseconds: Long
-)
-
-enum class AuthType {
-  NONE,
-  API_KEY,
-  JWT
+) {
+  enum class Type {
+    NONE,
+    API_KEY,
+    JWT
+  }
 }

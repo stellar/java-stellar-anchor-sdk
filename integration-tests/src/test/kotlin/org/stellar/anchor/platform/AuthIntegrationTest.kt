@@ -60,16 +60,16 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
         TestProfileExecutor(
           TestConfig(testProfileName = "default").also {
             // enable platform server jwt auth
-            it.env["platform_server.auth.type"] = "jwt"
+            it.env["platform_server.auth.type"] = "JWT"
             // enable business server callback auth
-            it.env["integration-auth.authType"] = "jwt"
+            it.env["integration-auth.authType"] = "JWT"
             it.env["integration-auth.platformToAnchorSecret"] = PLATFORM_TO_ANCHOR_SECRET
             it.env["integration-auth.anchorToPlatformSecret"] = ANCHOR_TO_PLATFORM_SECRET
             it.env["integration-auth.expirationMilliseconds"] =
               JWT_EXPIRATION_MILLISECONDS.toString()
           }
         )
-      testProfileRunner.start()
+      testProfileRunner.start { it.env[RUN_KOTLIN_REFERENCE_SERVER] = "true" }
     }
 
     @AfterAll

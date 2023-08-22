@@ -3,7 +3,7 @@ package org.stellar.reference.dao
 import org.jetbrains.exposed.sql.Table
 
 object Quotes : Table() {
-  val id = varchar("id", 255).entityId()
+  val id = varchar("id", 255).uniqueIndex()
   val price = varchar("price", 255).nullable()
   val totalPrice = varchar("total_price", 255).nullable()
   val expiresAt = long("expires_at").nullable()

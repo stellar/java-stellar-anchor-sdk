@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.reference.log
 import org.stellar.reference.model.Quote
 import org.stellar.reference.model.RateFee
 
@@ -18,9 +19,11 @@ interface QuoteRepository : Closeable {
 }
 
 class JdbcQuoteRepository(private val db: Database) : QuoteRepository {
-  override fun init() {
-    transaction(db) { SchemaUtils.create(Quotes) }
-  }
+  override fun init() =
+    transaction(db) {
+      log.info("Creating quotes table")
+      SchemaUtils.create(Quotes)
+    }
 
   override fun get(id: String): Quote? =
     transaction(db) {
@@ -73,7 +76,6 @@ class JdbcQuoteRepository(private val db: Database) : QuoteRepository {
       .resultedValues
       ?.firstOrNull()
       ?.get(Quotes.id)
-      ?.value
 
   override fun close() {}
 }

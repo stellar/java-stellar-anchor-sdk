@@ -21,7 +21,11 @@ class CustomerService(private val customerRepository: CustomerRepository) {
         }
         request.account != null -> {
           customerRepository.get(request.account, request.memo, request.memoType)
-            ?: throw RuntimeException("Customer with account ${request.account} not found")
+            ?: Customer(
+              stellarAccount = request.account,
+              memo = request.memo,
+              memoType = request.memoType
+            )
         }
         else -> {
           throw RuntimeException("Either id or account must be provided")
@@ -84,12 +88,15 @@ class CustomerService(private val customerRepository: CustomerRepository) {
     val providedFields = mutableMapOf<String, ProvidedCustomerField>()
     val missingFields = mutableMapOf<String, CustomerField>()
 
-    // Extract fields from customer
-    mapOf(
+    val commonFields =
+      mapOf(
         "first_name" to createField(customer.firstName, "string", "The customer's first name"),
         "last_name" to createField(customer.lastName, "string", "The customer's last name"),
         "email_address" to
           createField(customer.emailAddress, "string", "The customer's email address"),
+      )
+    val sep31ReceiverFields =
+      mapOf(
         "bank_account_number" to
           createField(customer.bankAccountNumber, "string", "The customer's bank account number"),
         "bank_account_type" to
@@ -103,6 +110,10 @@ class CustomerService(private val customerRepository: CustomerRepository) {
           createField(customer.bankRoutingNumber, "string", "The customer's bank routing number"),
         "clabe_number" to createField(customer.clabeNumber, "string", "The customer's CLABE number")
       )
+
+    // Extract fields from customer
+    commonFields
+      .plus(sep31ReceiverFields)
       .forEach(
         fun(entry: Map.Entry<String, Field>) {
           when (entry.value) {

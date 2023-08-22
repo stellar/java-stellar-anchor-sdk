@@ -4,7 +4,7 @@ import org.jetbrains.exposed.sql.Table
 
 /** Exposed table for the Customer model. */
 object Customers : Table() {
-  val id = varchar("id", 255).entityId()
+  val id = varchar("id", 255).uniqueIndex()
   val stellarAccount = varchar("stellar_account", 255).index().nullable()
   val memo = varchar("memo", 255).nullable()
   val memoType = varchar("memo_type", 255).nullable()
