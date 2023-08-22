@@ -8,22 +8,18 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.reference.log
 import org.stellar.reference.model.Quote
 import org.stellar.reference.model.RateFee
 
 interface QuoteRepository : Closeable {
-  fun init()
   fun get(id: String): Quote?
   fun create(quote: Quote): String?
 }
 
 class JdbcQuoteRepository(private val db: Database) : QuoteRepository {
-  override fun init() =
-    transaction(db) {
-      log.info("Creating quotes table")
-      SchemaUtils.create(Quotes)
-    }
+  init {
+    transaction(db) { SchemaUtils.create(Quotes) }
+  }
 
   override fun get(id: String): Quote? =
     transaction(db) {
@@ -33,8 +29,8 @@ class JdbcQuoteRepository(private val db: Database) : QuoteRepository {
             id = id,
             price = it[Quotes.price],
             totalPrice = it[Quotes.totalPrice],
-            expiresAt = it[Quotes.expiresAt]?.let { ts -> Instant.ofEpochSecond(ts) },
-            createdAt = it[Quotes.createdAt]?.let { ts -> Instant.ofEpochSecond(ts) },
+            expiresAt = it[Quotes.expiresAt]?.let { ts -> Instant.ofEpochMilli(ts) },
+            createdAt = it[Quotes.createdAt]?.let { ts -> Instant.ofEpochMilli(ts) },
             sellAsset = it[Quotes.sellAsset],
             sellAmount = it[Quotes.sellAmount],
             sellDeliveryMethod = it[Quotes.sellDeliveryMethod],
@@ -43,7 +39,6 @@ class JdbcQuoteRepository(private val db: Database) : QuoteRepository {
             buyDeliveryMethod = it[Quotes.buyDeliveryMethod],
             countryCode = it[Quotes.countryCode],
             clientId = it[Quotes.clientId],
-            transactionId = it[Quotes.transactionId],
             fee =
               it[Quotes.fee]?.let { fee ->
                 GsonUtils.getInstance().fromJson(fee, RateFee::class.java)
@@ -69,7 +64,6 @@ class JdbcQuoteRepository(private val db: Database) : QuoteRepository {
           it[buyDeliveryMethod] = quote.buyDeliveryMethod
           it[countryCode] = quote.countryCode
           it[clientId] = quote.clientId
-          it[transactionId] = quote.transactionId
           it[fee] = GsonUtils.getInstance().toJson(quote.fee)
         }
       }

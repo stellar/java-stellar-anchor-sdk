@@ -6,10 +6,11 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.reference.integration.BadRequestException
+import org.stellar.reference.integration.NotFoundException
 
 fun Route.customer(customerService: CustomerService) {
   authenticate("integration-auth") {
@@ -27,30 +28,50 @@ fun Route.customer(customerService: CustomerService) {
         try {
           val response = GsonUtils.getInstance().toJson(customerService.getCustomer(request))
           call.respond(response)
+        } catch (e: BadRequestException) {
+          call.respond(HttpStatusCode.BadRequest, e)
+        } catch (e: NotFoundException) {
+          call.respond(HttpStatusCode.NotFound, e)
         } catch (e: Exception) {
-          call.respond(
-            HttpStatusCode.NotFound,
-            ErrorResponse("customer for 'id' '${request.id}' not found", request.id)
-          )
+          call.respond(HttpStatusCode.InternalServerError)
         }
       }
       put {
         val request =
           GsonUtils.getInstance().fromJson(call.receive<String>(), PutCustomerRequest::class.java)
-        val response = GsonUtils.getInstance().toJson(customerService.upsertCustomer(request))
-        call.respond(response)
+        try {
+          val response = GsonUtils.getInstance().toJson(customerService.upsertCustomer(request))
+          call.respond(response)
+        } catch (e: BadRequestException) {
+          call.respond(HttpStatusCode.BadRequest, e)
+        } catch (e: Exception) {
+          call.respond(HttpStatusCode.InternalServerError)
+        }
       }
       delete("{id}") {
         val id = call.parameters["id"]!!
         try {
           customerService.deleteCustomer(id)
           call.respond(HttpStatusCode.NoContent)
+        } catch (e: NotFoundException) {
+          call.respond(HttpStatusCode.NotFound, e)
         } catch (e: Exception) {
-          call.respond(HttpStatusCode.NotFound)
+          call.respond(HttpStatusCode.InternalServerError)
+        }
+      }
+    }
+    route("/invalidate_clabe") {
+      get("{id}") {
+        val id = call.parameters["id"]!!
+        try {
+          customerService.invalidateClabe(id)
+          call.respond(HttpStatusCode.OK)
+        } catch (e: NotFoundException) {
+          call.respond(HttpStatusCode.NotFound, e)
+        } catch (e: Exception) {
+          call.respond(HttpStatusCode.InternalServerError)
         }
       }
     }
   }
 }
-
-@Serializable data class ErrorResponse(val error: String, val id: String)

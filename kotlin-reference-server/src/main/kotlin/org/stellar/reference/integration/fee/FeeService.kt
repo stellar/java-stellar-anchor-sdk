@@ -3,8 +3,10 @@ package org.stellar.reference.integration.fee
 import java.math.BigDecimal
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetFeeResponse
+import org.stellar.anchor.api.exception.UnprocessableEntityException
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.reference.dao.CustomerRepository
+import org.stellar.reference.integration.BadRequestException
 
 class FeeService(private val customerRepository: CustomerRepository) {
   fun getFee(request: GetFeeRequest): GetFeeResponse {
@@ -17,33 +19,33 @@ class FeeService(private val customerRepository: CustomerRepository) {
 
   private fun validateRequest(request: GetFeeRequest) {
     if (request.sendAsset == null) {
-      throw RuntimeException("Send asset must be provided")
+      throw BadRequestException("Send asset must be provided")
     }
 
     if (request.receiveAsset == null) {
-      throw RuntimeException("Receive asset must be provided")
+      throw BadRequestException("Receive asset must be provided")
     }
 
     if (request.clientId == null) {
-      throw RuntimeException("Client id must be provided")
+      throw BadRequestException("Client id must be provided")
     }
 
     if (request.sendAmount == null && request.receiveAmount == null) {
-      throw RuntimeException("Either send or receive amount must be provided")
+      throw BadRequestException("Either send or receive amount must be provided")
     }
 
     if (request.senderId == null) {
-      throw RuntimeException("Sender id must be provided")
+      throw BadRequestException("Sender id must be provided")
     } else {
       customerRepository.get(request.senderId)
-        ?: throw RuntimeException("Sender ${request.senderId} not found")
+        ?: throw UnprocessableEntityException("Sender ${request.senderId} not found")
     }
 
     if (request.receiverId == null) {
-      throw RuntimeException("Receiver id must be provided")
+      throw BadRequestException("Receiver id must be provided")
     } else {
       customerRepository.get(request.receiverId)
-        ?: throw RuntimeException("Receiver ${request.receiverId} not found")
+        ?: throw UnprocessableEntityException("Receiver ${request.receiverId} not found")
     }
   }
 }

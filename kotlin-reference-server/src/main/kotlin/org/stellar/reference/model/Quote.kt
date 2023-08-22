@@ -21,7 +21,6 @@ data class Quote(
   @SerialName("buy_delivery_method") val buyDeliveryMethod: String?,
   @SerialName("country_code") val countryCode: String?,
   @SerialName("client_id") val clientId: String?,
-  @SerialName("transaction_id") val transactionId: String?,
   val fee: RateFee?,
 )
 

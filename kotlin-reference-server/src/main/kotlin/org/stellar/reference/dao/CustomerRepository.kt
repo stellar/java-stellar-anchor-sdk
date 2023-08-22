@@ -4,11 +4,9 @@ import java.io.Closeable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.stellar.reference.log
 import org.stellar.reference.model.Customer
 
 interface CustomerRepository : Closeable {
-  fun init()
   fun get(id: String): Customer?
   fun get(stellarAccount: String, memo: String?, memoType: String?): Customer?
   fun create(customer: Customer): String?
@@ -17,11 +15,9 @@ interface CustomerRepository : Closeable {
 }
 
 class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
-  override fun init() =
-    transaction(db) {
-      log.info { "Creating customers table" }
-      SchemaUtils.create(Customers)
-    }
+  init {
+    transaction(db) { SchemaUtils.create(Customers) }
+  }
 
   override fun get(id: String): Customer? =
     transaction(db) {

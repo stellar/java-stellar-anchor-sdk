@@ -8,6 +8,8 @@ import org.stellar.anchor.api.callback.PutCustomerResponse
 import org.stellar.anchor.api.shared.CustomerField
 import org.stellar.anchor.api.shared.ProvidedCustomerField
 import org.stellar.reference.dao.CustomerRepository
+import org.stellar.reference.integration.BadRequestException
+import org.stellar.reference.integration.NotFoundException
 import org.stellar.reference.model.Customer
 import org.stellar.reference.model.Status
 
@@ -17,7 +19,7 @@ class CustomerService(private val customerRepository: CustomerRepository) {
       when {
         request.id != null -> {
           customerRepository.get(request.id)
-            ?: throw RuntimeException("Customer with id ${request.id} not found")
+            ?: throw NotFoundException("customer for 'id' '${request.id}' not found", request.id)
         }
         request.account != null -> {
           customerRepository.get(request.account, request.memo, request.memoType)
@@ -28,10 +30,10 @@ class CustomerService(private val customerRepository: CustomerRepository) {
             )
         }
         else -> {
-          throw RuntimeException("Either id or account must be provided")
+          throw BadRequestException("Either id or account must be provided")
         }
       }
-    return convertCustomerToResponse(customer)
+    return convertCustomerToResponse(customer, request.type)
   }
 
   fun upsertCustomer(request: PutCustomerRequest): PutCustomerResponse {
@@ -41,7 +43,7 @@ class CustomerService(private val customerRepository: CustomerRepository) {
         request.account != null ->
           customerRepository.get(request.account, request.memo, request.memoType)
         else -> {
-          throw RuntimeException("Either id or account must be provided")
+          throw BadRequestException("Either id or account must be provided")
         }
       }
 
@@ -84,7 +86,15 @@ class CustomerService(private val customerRepository: CustomerRepository) {
     customerRepository.delete(id)
   }
 
-  private fun convertCustomerToResponse(customer: Customer): GetCustomerResponse {
+  fun invalidateClabe(id: String) {
+    try {
+      customerRepository.update(customerRepository.get(id)!!.copy(clabeNumber = null))
+    } catch (e: Exception) {
+      throw NotFoundException("customer for 'id' '$id' not found", id)
+    }
+  }
+
+  private fun convertCustomerToResponse(customer: Customer, type: String): GetCustomerResponse {
     val providedFields = mutableMapOf<String, ProvidedCustomerField>()
     val missingFields = mutableMapOf<String, CustomerField>()
 
@@ -110,18 +120,21 @@ class CustomerService(private val customerRepository: CustomerRepository) {
           createField(customer.bankRoutingNumber, "string", "The customer's bank routing number"),
         "clabe_number" to createField(customer.clabeNumber, "string", "The customer's CLABE number")
       )
+    val fields =
+      when (type) {
+        "sep31-receiver" -> commonFields.plus(sep31ReceiverFields)
+        else -> commonFields
+      }
 
     // Extract fields from customer
-    commonFields
-      .plus(sep31ReceiverFields)
-      .forEach(
-        fun(entry: Map.Entry<String, Field>) {
-          when (entry.value) {
-            is Field.Provided -> providedFields[entry.key] = (entry.value as Field.Provided).field
-            is Field.Missing -> missingFields[entry.key] = (entry.value as Field.Missing).field
-          }
+    fields.forEach(
+      fun(entry: Map.Entry<String, Field>) {
+        when (entry.value) {
+          is Field.Provided -> providedFields[entry.key] = (entry.value as Field.Provided).field
+          is Field.Missing -> missingFields[entry.key] = (entry.value as Field.Missing).field
         }
-      )
+      }
+    )
 
     val status =
       when {
