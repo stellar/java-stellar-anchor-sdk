@@ -10,8 +10,7 @@ public enum RpcErrorCode {
   INVALID_REQUEST(-32600),
   METHOD_NOT_FOUND(-32601),
   INVALID_PARAMS(-32602),
-  INTERNAL_ERROR(-32603),
-  PARSE_ERROR(-32700);
+  INTERNAL_ERROR(-32603);
 
   private final int errorCode;
   private static final Map<Integer, RpcErrorCode> errorCodeMap;
