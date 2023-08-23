@@ -12,6 +12,8 @@ import org.stellar.anchor.api.callback.GetRateResponse
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.sep.sep38.RateFeeDetail
 import org.stellar.reference.dao.QuoteRepository
+import org.stellar.reference.integration.BadRequestException
+import org.stellar.reference.integration.NotFoundException
 import org.stellar.reference.model.Quote
 
 class RateService(private val quoteRepository: QuoteRepository) {
@@ -107,7 +109,7 @@ class RateService(private val quoteRepository: QuoteRepository) {
           return GetRateResponse(rate)
         }
         else -> {
-          throw RuntimeException("Either id or sell and buy assets must be provided")
+          throw BadRequestException("Either id or sell and buy assets must be provided")
         }
       }
 
@@ -116,7 +118,7 @@ class RateService(private val quoteRepository: QuoteRepository) {
 
   private fun getRate(id: String): GetRateResponse.Rate {
     val quote =
-      quoteRepository.get(id) ?: throw RuntimeException("Rate with quote id $id not found")
+      quoteRepository.get(id) ?: throw NotFoundException("Rate with quote id $id not found", id)
     val rateFee = RateFee("0", quote.fee?.asset)
     quote.fee
       ?.details

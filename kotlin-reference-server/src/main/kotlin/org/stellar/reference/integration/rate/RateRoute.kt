@@ -9,7 +9,9 @@ import io.ktor.server.routing.*
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.integration.BadRequestException
+import org.stellar.reference.integration.NotFoundException
 import org.stellar.reference.integration.UnprocessableEntityException
+import org.stellar.reference.log
 
 fun Route.rate(rateService: RateService) {
   authenticate("integration-auth") {
@@ -33,9 +35,12 @@ fun Route.rate(rateService: RateService) {
         call.respond(response)
       } catch (e: BadRequestException) {
         call.respond(HttpStatusCode.BadRequest, e)
+      } catch (e: NotFoundException) {
+        call.respond(HttpStatusCode.NotFound, e)
       } catch (e: UnprocessableEntityException) {
         call.respond(HttpStatusCode.UnprocessableEntity, e)
       } catch (e: Exception) {
+        log.error("Unexpected exception", e)
         call.respond(HttpStatusCode.InternalServerError)
       }
     }
