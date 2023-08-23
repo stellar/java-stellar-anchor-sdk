@@ -5,7 +5,6 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// TODO: check what is nullable
 @Serializable
 data class Quote(
   val id: String,

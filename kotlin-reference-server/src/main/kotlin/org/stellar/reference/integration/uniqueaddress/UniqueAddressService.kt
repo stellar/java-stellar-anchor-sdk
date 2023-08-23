@@ -25,13 +25,11 @@ class UniqueAddressService(private val settings: AppSettings) {
     val memo = settings.distributionWalletMemo
     val memoType = settings.distributionWalletMemoType
 
-    // TODO: double check this
     if (memo.isNotBlank() && memoType.isNotBlank()) {
       when (memoType) {
         "text" -> MemoId(memo.toLong())
         "id" -> MemoText(memo)
-        "hash" -> MemoHash(Hex.encodeHexString(Base64.getDecoder().decode(memo.toByteArray())))
-        "none" -> throw RuntimeException("distributionWalletMemoType cannot be 'none'")
+        "hash" -> MemoHash(Hex.encodeHexString(Base64.getDecoder().decode(memo)))
         else ->
           throw RuntimeException(
             "Invalid distributionWalletMemoType: ${settings.distributionWalletMemoType}"

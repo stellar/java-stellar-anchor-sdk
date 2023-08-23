@@ -31,7 +31,7 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
 
   // start server
   referenceKotlinSever =
-    embeddedServer(Netty, port = cfg.sep24.port) {
+    embeddedServer(Netty, port = cfg.appSettings.port) {
         install(ContentNegotiation) { json() }
         configureAuth(cfg)
         configureRouting(cfg)
