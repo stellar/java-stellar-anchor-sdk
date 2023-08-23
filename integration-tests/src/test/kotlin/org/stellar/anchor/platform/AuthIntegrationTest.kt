@@ -58,7 +58,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
       println("Running JwtAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(testProfileName = "default").also {
+          TestConfig(testProfileName = "sep24").also {
             // enable platform server jwt auth
             it.env["platform_server.auth.type"] = "JWT"
             // enable business server callback auth
@@ -264,7 +264,7 @@ internal class ApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
       println("Running ApiKeyAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(testProfileName = "default").also {
+          TestConfig(testProfileName = "sep24").also {
             // enable platform server api_key auth
             it.env["platform_server.auth.type"] = "api_key"
           }

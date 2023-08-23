@@ -11,6 +11,7 @@ import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.integration.BadRequestException
 import org.stellar.reference.integration.NotFoundException
+import org.stellar.reference.log
 
 fun Route.customer(customerService: CustomerService) {
   authenticate("integration-auth") {
@@ -33,6 +34,7 @@ fun Route.customer(customerService: CustomerService) {
         } catch (e: NotFoundException) {
           call.respond(HttpStatusCode.NotFound, e)
         } catch (e: Exception) {
+          log.error("Unexpected exception", e)
           call.respond(HttpStatusCode.InternalServerError)
         }
       }
