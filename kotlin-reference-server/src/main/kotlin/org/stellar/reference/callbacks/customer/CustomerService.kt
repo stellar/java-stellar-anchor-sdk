@@ -1,4 +1,4 @@
-package org.stellar.reference.integration.customer
+package org.stellar.reference.callbacks.customer
 
 import java.util.*
 import org.stellar.anchor.api.callback.GetCustomerRequest
@@ -7,9 +7,9 @@ import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerResponse
 import org.stellar.anchor.api.shared.CustomerField
 import org.stellar.anchor.api.shared.ProvidedCustomerField
+import org.stellar.reference.callbacks.BadRequestException
+import org.stellar.reference.callbacks.NotFoundException
 import org.stellar.reference.dao.CustomerRepository
-import org.stellar.reference.integration.BadRequestException
-import org.stellar.reference.integration.NotFoundException
 import org.stellar.reference.model.Customer
 import org.stellar.reference.model.Status
 

@@ -1,4 +1,4 @@
-package org.stellar.reference.integration
+package org.stellar.reference.callbacks
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient

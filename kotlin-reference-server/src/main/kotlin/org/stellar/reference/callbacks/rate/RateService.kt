@@ -1,4 +1,4 @@
-package org.stellar.reference.integration.rate
+package org.stellar.reference.callbacks.rate
 
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -11,9 +11,9 @@ import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateResponse
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.sep.sep38.RateFeeDetail
+import org.stellar.reference.callbacks.BadRequestException
+import org.stellar.reference.callbacks.NotFoundException
 import org.stellar.reference.dao.QuoteRepository
-import org.stellar.reference.integration.BadRequestException
-import org.stellar.reference.integration.NotFoundException
 import org.stellar.reference.model.Quote
 
 class RateService(private val quoteRepository: QuoteRepository) {

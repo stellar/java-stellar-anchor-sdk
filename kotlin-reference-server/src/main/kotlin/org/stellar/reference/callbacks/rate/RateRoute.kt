@@ -1,18 +1,23 @@
-package org.stellar.reference.integration.rate
+package org.stellar.reference.callbacks.rate
 
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.reference.integration.BadRequestException
-import org.stellar.reference.integration.NotFoundException
-import org.stellar.reference.integration.UnprocessableEntityException
+import org.stellar.reference.callbacks.BadRequestException
+import org.stellar.reference.callbacks.NotFoundException
+import org.stellar.reference.callbacks.UnprocessableEntityException
 import org.stellar.reference.log
 
+/**
+ * Defines the routes related to the rate callback API. See
+ * [Rate Callbacks](https://developers.stellar.org/api/anchor-platform/callbacks/rate/).
+ *
+ * @param rateService the [RateService] to use to process the requests.
+ */
 fun Route.rate(rateService: RateService) {
   authenticate("integration-auth") {
     get("/rate") {

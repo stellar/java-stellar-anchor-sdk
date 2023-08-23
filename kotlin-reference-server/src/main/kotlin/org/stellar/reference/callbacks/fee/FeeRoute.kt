@@ -1,17 +1,22 @@
-package org.stellar.reference.integration.fee
+package org.stellar.reference.callbacks.fee
 
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.reference.integration.BadRequestException
-import org.stellar.reference.integration.UnprocessableEntityException
+import org.stellar.reference.callbacks.BadRequestException
+import org.stellar.reference.callbacks.UnprocessableEntityException
 import org.stellar.reference.log
 
+/**
+ * Defines the routes related to the fee callback API. See
+ * [Fee Callbacks](https://developers.stellar.org/api/anchor-platform/callbacks/fee/).
+ *
+ * @param feeService the [FeeService] to use to process the requests.
+ */
 fun Route.fee(feeService: FeeService) {
   authenticate("integration-auth") {
     get("/fee") {

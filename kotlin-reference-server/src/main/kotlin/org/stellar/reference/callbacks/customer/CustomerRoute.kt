@@ -1,4 +1,4 @@
-package org.stellar.reference.integration.customer
+package org.stellar.reference.callbacks.customer
 
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -9,10 +9,16 @@ import io.ktor.server.routing.*
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.reference.integration.BadRequestException
-import org.stellar.reference.integration.NotFoundException
+import org.stellar.reference.callbacks.BadRequestException
+import org.stellar.reference.callbacks.NotFoundException
 import org.stellar.reference.log
 
+/**
+ * Defines the routes related to the customer callback API. See
+ * [Customer Callbacks](https://developers.stellar.org/api/anchor-platform/callbacks/customer/).
+ *
+ * @param customerService the [CustomerService] to use to process the requests.
+ */
 fun Route.customer(customerService: CustomerService) {
   authenticate("integration-auth") {
     route("/customer") {

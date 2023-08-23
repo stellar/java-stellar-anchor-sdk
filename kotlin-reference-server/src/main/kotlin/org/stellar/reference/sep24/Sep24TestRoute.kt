@@ -1,4 +1,4 @@
-package org.stellar.reference.integration.sep24
+package org.stellar.reference.sep24
 
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -11,9 +11,6 @@ import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.stellar.reference.ClientException
 import org.stellar.reference.jwt.JwtDecoder
-import org.stellar.reference.sep24.DepositService
-import org.stellar.reference.sep24.Sep24Helper
-import org.stellar.reference.sep24.WithdrawalService
 
 private val log = KotlinLogging.logger {}
 

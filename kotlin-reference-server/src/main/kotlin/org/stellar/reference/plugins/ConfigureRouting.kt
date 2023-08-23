@@ -3,24 +3,24 @@ package org.stellar.reference.plugins
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.Database
+import org.stellar.reference.callbacks.customer.CustomerService
+import org.stellar.reference.callbacks.customer.customer
+import org.stellar.reference.callbacks.fee.FeeService
+import org.stellar.reference.callbacks.fee.fee
+import org.stellar.reference.callbacks.rate.RateService
+import org.stellar.reference.callbacks.rate.rate
+import org.stellar.reference.callbacks.uniqueaddress.UniqueAddressService
+import org.stellar.reference.callbacks.uniqueaddress.uniqueAddress
 import org.stellar.reference.dao.JdbcCustomerRepository
 import org.stellar.reference.dao.JdbcQuoteRepository
 import org.stellar.reference.data.Config
 import org.stellar.reference.event.EventService
 import org.stellar.reference.event.event
-import org.stellar.reference.integration.customer.CustomerService
-import org.stellar.reference.integration.customer.customer
-import org.stellar.reference.integration.fee.FeeService
-import org.stellar.reference.integration.fee.fee
-import org.stellar.reference.integration.rate.RateService
-import org.stellar.reference.integration.rate.rate
-import org.stellar.reference.integration.sep24.sep24
-import org.stellar.reference.integration.sep24.testSep24
-import org.stellar.reference.integration.uniqueaddress.UniqueAddressService
-import org.stellar.reference.integration.uniqueaddress.uniqueAddress
 import org.stellar.reference.sep24.DepositService
 import org.stellar.reference.sep24.Sep24Helper
 import org.stellar.reference.sep24.WithdrawalService
+import org.stellar.reference.sep24.sep24
+import org.stellar.reference.sep24.testSep24
 
 fun Application.configureRouting(cfg: Config) = routing {
   val helper = Sep24Helper(cfg)

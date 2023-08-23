@@ -1,4 +1,4 @@
-package org.stellar.reference.integration.uniqueaddress
+package org.stellar.reference.callbacks.uniqueaddress
 
 import java.util.*
 import org.apache.commons.codec.binary.Hex

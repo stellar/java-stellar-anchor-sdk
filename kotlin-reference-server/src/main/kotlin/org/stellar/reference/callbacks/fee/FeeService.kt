@@ -1,12 +1,12 @@
-package org.stellar.reference.integration.fee
+package org.stellar.reference.callbacks.fee
 
 import java.math.BigDecimal
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetFeeResponse
 import org.stellar.anchor.api.exception.UnprocessableEntityException
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.reference.callbacks.BadRequestException
 import org.stellar.reference.dao.CustomerRepository
-import org.stellar.reference.integration.BadRequestException
 
 class FeeService(private val customerRepository: CustomerRepository) {
   fun getFee(request: GetFeeRequest): GetFeeResponse {
