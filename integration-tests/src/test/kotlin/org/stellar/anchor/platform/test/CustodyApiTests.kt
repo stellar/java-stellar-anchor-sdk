@@ -14,8 +14,8 @@ import org.skyscreamer.jsonassert.comparator.CustomComparator
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotFoundException
-import org.stellar.anchor.api.rpc.action.*
-import org.stellar.anchor.api.rpc.action.ActionMethod.*
+import org.stellar.anchor.api.rpc.method.*
+import org.stellar.anchor.api.rpc.method.RpcMethod.*
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
