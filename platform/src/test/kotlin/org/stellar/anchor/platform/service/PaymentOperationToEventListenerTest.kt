@@ -84,7 +84,7 @@ class PaymentOperationToEventListenerTest {
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     p.transactionMemo = "my_memo_2"
     p.assetType = "credit_alphanum4"
-    p.sourceAccount = "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5"
+    p.to = "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5"
     p.amount = "1"
     p.assetName = "FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     var slotMemo = slot<String>()
@@ -95,7 +95,7 @@ class PaymentOperationToEventListenerTest {
     val sep24Txn = JdbcSep24Transaction()
     sep24Txn.amountIn = "1"
     every {
-      sep24TransactionStore.findByStellarAccountIdAndMemo(capture(slotAccount), capture(slotMemo))
+      sep24TransactionStore.findByToAccountAndMemo(capture(slotAccount), capture(slotMemo))
     } returns sep24Txn
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
@@ -238,7 +238,7 @@ class PaymentOperationToEventListenerTest {
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemo(
-        "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
       )
     }
@@ -308,7 +308,7 @@ class PaymentOperationToEventListenerTest {
     val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
     every {
       sep31TransactionStore.findByStellarAccountIdAndMemo(
-        "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         capture(slotMemo)
       )
     } returns sep31TxCopy
@@ -331,7 +331,7 @@ class PaymentOperationToEventListenerTest {
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemo(
-        "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
       )
     }
@@ -395,8 +395,8 @@ class PaymentOperationToEventListenerTest {
 
     val sep24TxnCopy = gson.fromJson(gson.toJson(sep24TxMock), JdbcSep24Transaction::class.java)
     every {
-      sep24TransactionStore.findByStellarAccountIdAndMemo(
-        "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
+      sep24TransactionStore.findByToAccountAndMemo(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         capture(slotMemo)
       )
     } returns sep24TxnCopy
@@ -418,8 +418,8 @@ class PaymentOperationToEventListenerTest {
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep24TransactionStore.findByStellarAccountIdAndMemo(
-        "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
+      sep24TransactionStore.findByToAccountAndMemo(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
       )
     }
