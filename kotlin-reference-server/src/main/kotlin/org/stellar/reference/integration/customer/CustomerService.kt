@@ -94,7 +94,7 @@ class CustomerService(private val customerRepository: CustomerRepository) {
     }
   }
 
-  private fun convertCustomerToResponse(customer: Customer, type: String?): GetCustomerResponse {
+  private fun convertCustomerToResponse(customer: Customer, type: String): GetCustomerResponse {
     val providedFields = mutableMapOf<String, ProvidedCustomerField>()
     val missingFields = mutableMapOf<String, CustomerField>()
 
