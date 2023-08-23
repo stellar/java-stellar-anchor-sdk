@@ -9,12 +9,15 @@ on:
   pull_request:
 
 jobs:
-  gradle_test_and_build:
-    uses: ./.github/workflows/sub_gradle_test_and_build.yml
+#  gradle_test_and_build:
+#    uses: ./.github/workflows/sub_gradle_test_and_build.yml
+
+  jacoco_coverage_report:
+    uses: ./.github/workflows/sub_jacoco_coverage_report.yml
 
   complete:
     if: always()
-    needs: [gradle_test_and_build]
+    needs: [jacoco_coverage_report]
     runs-on: ubuntu-22.04
     steps:
     - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')

@@ -6,6 +6,7 @@ plugins {
   java
   alias(libs.plugins.spotless)
   alias(libs.plugins.kotlin.jvm) apply false
+  jacoco
 }
 
 tasks {
@@ -25,6 +26,7 @@ tasks {
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
+  apply(plugin = "jacoco")
 
   repositories {
     mavenLocal()
@@ -36,6 +38,7 @@ subprojects {
 
   /** Specifies JDK-11 */
   java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
+  jacoco { toolVersion = "0.8.10" }
 
   spotless {
     val javaVersion = System.getProperty("java.version")
@@ -62,6 +65,15 @@ subprojects {
     }
 
     kotlin { ktfmt("0.42").googleStyle() }
+
+    tasks.jacocoTestReport {
+      dependsOn(tasks.test) // tests are required to run before generating the report
+      reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.required.set(false)
+      }
+    }
   }
 
   dependencies {
