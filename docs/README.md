@@ -47,18 +47,17 @@ contribute to this project.
   observer, and reference servers, etc. It also contains the main entry point of the Anchor Platform.
 - __integration-tests__: Contains the integration tests and end-2-end tests for the Anchor Platform.
 
-[SEPs]: https://github.com/stellar/stellar-protocol/tree/master/ecosystem
+## References
+[SEP-1](https://stellar.org/protocol/sep-6): Stellar Info File
 
-[SEP-6]: https://stellar.org/protocol/sep-6
+[SEP-6](https://stellar.org/protocol/sep-6): Deposit and Withdrawal API
 
-[SEP-10]: https://stellar.org/protocol/sep-10
+[SEP-10](https://stellar.org/protocol/sep-10): Stellar Web Authentication
 
-[SEP-12]: https://stellar.org/protocol/sep-12
+[SEP-12](https://stellar.org/protocol/sep-12): KYC API
 
-[SEP-24]: https://stellar.org/protocol/sep-24
+[SEP-24](https://stellar.org/protocol/sep-24): Hosted Deposit and Withdrawal
 
-[SEP-31]: https://stellar.org/protocol/sep-31
+[SEP-31](https://stellar.org/protocol/sep-31): Cross-Border Payments API
 
-[SEP-38]: https://stellar.org/protocol/sep-38
-
-[rfq]: https://en.wikipedia.org/wiki/Request_for_quotation
+[SEP-38](https://stellar.org/protocol/sep-38): Anchor RFQ API
