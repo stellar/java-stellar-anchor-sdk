@@ -7,6 +7,9 @@
   * [Set up `docker`](#set-up-docker)
   * [Set up your hosts file](#set-up-your-hosts-file)
   * [Build the Project with Gradle](#build-the-project-with-gradle)
+    * [Clean](#clean)
+    * [Build](#build)
+    * [Running Unit Tests](#running-unit-tests)
   * [Set up the Git Hooks](#set-up-the-git-hooks)
 * [Set up the Development Environment with IntelliJ IDEA](#set-up-the-development-environment-with-intellij-idea)
   * [Configuring Gradle on IntelliJ IDEA](#configuring-gradle-on-intellij-idea)
@@ -76,11 +79,24 @@ following entries to your `C:\Windows\System32\Drivers\etc\hosts` file.
 
 ## Build the Project with Gradle
 
-To build the project, run:
+### Clean
 
-```shell
-./gradlew build
-```
+`./gradlew clean`
+
+### Build
+
+Buile all projects: `./gradlew build`
+
+Build a subproject: `./gradlew :[subproject]:build`
+
+Build the Spring Boot application: `./gradlew bootJar`
+
+### Running Unit Tests
+
+Run all tests: `./gradlew test`
+
+Run subproject tests: `./gradlew :[subproject]:test`
+
 
 ## Set up the Git Hooks
 

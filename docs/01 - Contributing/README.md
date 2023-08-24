@@ -1,0 +1,47 @@
+# How to contribute
+
+<!-- TOC -->
+* [How to contribute](#how-to-contribute)
+  * [Setup the Development Environment](#setup-the-development-environment)
+  * [Git Guidelines](#git-guidelines)
+  * [Logging Levels](#logging-levels)
+  * [Database Migration](#database-migration)
+  * [Publishing the SDK library to Maven Central](#publishing-the-sdk-library-to-maven-central)
+  * [Testing with AWS Services](#testing-with-aws-services)
+<!-- TOC -->
+
+👍🎉 First off, thanks for taking the time to contribute! 🎉👍
+
+Check out the [Stellar Contribution Guide](https://github.com/stellar/.github/blob/master/CONTRIBUTING.md) that apply to
+all Stellar projects.
+
+## Setup the Development Environment
+
+Check out
+the [How to set up the development environment](A%20-%20Development%20Environment.md) guide.
+
+## Git Guidelines
+
+Check out the [Git Guidelines](B%20-%20Git%20Guidelines.md) guide.
+
+## Logging Levels
+
+When contributing code, think twice about a given log message because not every bit of information is equally important.
+Therefore, the logging levels should be used consistently.
+
+Please follow the [Logging Guidelines](C%20-%20Logging%20Guidelines.md).
+
+## Database Migration
+
+Please refer to [Database Migration](D%20-%20Database%20Migration.md) for information on
+this topic.
+
+## Publishing the SDK library to Maven Central
+
+Please refer to [Publishing the SDK](E%20-%20Publishing%20the%20SDK.md) for information on
+this topic.
+
+## Testing with AWS Services
+
+Please refer to [Testing with AWS Services](F%20-%20Testing%20with%20AWS%20Services.md) for
+information on this topic.
