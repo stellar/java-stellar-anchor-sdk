@@ -4,7 +4,7 @@
 * [How to contribute](#how-to-contribute)
   * [Set up the Development Environment](#set-up-the-development-environment)
   * [Git Guidelines](#git-guidelines)
-  * [Logging Levels](#logging-levels)
+  * [Logging Guidelines](#logging-guidelines)
   * [Database Migration](#database-migration)
   * [Publishing the SDK library to Maven Central](#publishing-the-sdk-library-to-maven-central)
   * [Testing with AWS Services](#testing-with-aws-services)
@@ -24,7 +24,7 @@ the [How to set up the development environment](A%20-%20Development%20Environmen
 
 Check out the [Git Guidelines](B%20-%20Git%20Guidelines.md) guide.
 
-## Logging Levels
+## Logging Guidelines
 
 When contributing code, think twice about a given log message because not every bit of information is equally important.
 Therefore, the logging levels should be used consistently.
