@@ -1,11 +1,8 @@
 # How to contribute
 
 - [How to contribute](#how-to-contribute)
-  - [Debeloper Tools](#debeloper-tools)
+  - [Setup the development environment](#setup-the-development-environment)
   - [How to Build with Gradle](#how-to-build-with-gradle)
-    - [Clean](#clean)
-    - [Build](#build)
-    - [Running Unit Tests](#running-unit-tests)
   - [Coding Guidelines](#coding-guidelines)
     - [Coding Style](#coding-style)
     - [Git Commit Messages](#git-commit-messages)
@@ -13,14 +10,15 @@
     - [Logging Levels](#logging-levels)
   - [Database Migration](#database-migration)
   - [Publishing](#publishing)
+  - [Git Workflow](#git-work-flow)
 
 👍🎉 First off, thanks for taking the time to contribute! 🎉👍
 
 Check out the [Stellar Contribution Guide](https://github.com/stellar/.github/blob/master/CONTRIBUTING.md) that apply to all Stellar projects.
 
-## Debeloper Tools
+## Setup the Development Environment
 
-Check out the [Debeloper Tools](/docs/02%20-%20Contributing/B%20-%20Developer%20Tools.md).
+Check out the [How to set up the development environment](/docs/02%20-%20Contributing/B%20-%20Development%20Environment.md) guide.
 
 ## How to Build with Gradle
 
