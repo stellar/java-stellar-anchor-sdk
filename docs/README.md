@@ -29,7 +29,7 @@ project's [releases page](https://github.com/stellar/java-stellar-anchor-sdk/rel
 
 ## Contributing
 
-Please refer to our [How to contribute](/docs/01 - Contributing) guide for more information on how to
+Please refer to our [How to contribute](/docs/01%20-%20Contributing/README.md) guide for more information on how to
 contribute to this project.
 
 ## Directory Layout
