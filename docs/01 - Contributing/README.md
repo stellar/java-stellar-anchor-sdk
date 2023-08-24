@@ -2,7 +2,7 @@
 
 <!-- TOC -->
 * [How to contribute](#how-to-contribute)
-  * [Setup the Development Environment](#setup-the-development-environment)
+  * [Set up the Development Environment](#set-up-the-development-environment)
   * [Git Guidelines](#git-guidelines)
   * [Logging Levels](#logging-levels)
   * [Database Migration](#database-migration)
@@ -15,7 +15,7 @@
 Check out the [Stellar Contribution Guide](https://github.com/stellar/.github/blob/master/CONTRIBUTING.md) that apply to
 all Stellar projects.
 
-## Setup the Development Environment
+## Set up the Development Environment
 
 Check out
 the [How to set up the development environment](A%20-%20Development%20Environment.md) guide.
