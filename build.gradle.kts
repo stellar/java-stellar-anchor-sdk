@@ -73,7 +73,7 @@ subprojects {
     implementation(
       rootProject.libs.scala.library
     ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a
-      // safer one.
+    // safer one.
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
     implementation(rootProject.libs.log4j.template.json)
@@ -121,6 +121,15 @@ subprojects {
         showStandardStreams = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
       }
+    }
+
+    processResources {
+      doFirst {
+        val existingFile = file("$buildDir/resources/main/metadata.properties")
+        existingFile.delete()
+      }
+      // This is to replace the %APP_VERSION_TOKEN% in the  metadata.properties file.
+      filter { line -> line.replace("%APP_VERSION_TOKEN%", rootProject.version.toString()) }
     }
   }
 
