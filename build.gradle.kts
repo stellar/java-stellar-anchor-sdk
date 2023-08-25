@@ -65,15 +65,13 @@ subprojects {
   }
 
   dependencies {
-    // This is to fix the missing implementation in JSR305 that causes "unknown enum constant
-    // When.MAYBE" warning.
+    // `rootProject` is required here if we want to use the libs object in the root project.
     implementation(rootProject.libs.findbugs.jsr305)
     implementation(rootProject.libs.aws.sqs)
     implementation(rootProject.libs.postgresql)
-    implementation(
-      rootProject.libs.scala.library
-    ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a
-    // safer one.
+    // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
+    // one.
+    implementation(rootProject.libs.scala.library)
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
     implementation(rootProject.libs.log4j.template.json)
