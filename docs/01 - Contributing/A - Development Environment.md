@@ -1,22 +1,24 @@
 # How to set up the development environment
 
 <!-- TOC -->
+
 * [How to set up the development environment](#how-to-set-up-the-development-environment)
-  * [Install JDK 11](#install-jdk-11)
-  * [Checkout the Project](#checkout-the-project)
-  * [Set up `docker`](#set-up-docker)
-  * [Set up your hosts file](#set-up-your-hosts-file)
-  * [Build the Project with Gradle](#build-the-project-with-gradle)
-    * [Clean](#clean)
-    * [Build](#build)
-    * [Running Unit Tests](#running-unit-tests)
-  * [Set up the Git Hooks](#set-up-the-git-hooks)
+    * [Install JDK 11](#install-jdk-11)
+    * [Checkout the Project](#checkout-the-project)
+    * [Set up `docker`](#set-up-docker)
+    * [Set up your hosts file](#set-up-your-hosts-file)
+    * [Build the Project with Gradle](#build-the-project-with-gradle)
+        * [Clean](#clean)
+        * [Build](#build)
+        * [Running Unit Tests](#running-unit-tests)
+    * [Set up the Git Hooks](#set-up-the-git-hooks)
 * [Set up the Development Environment with IntelliJ IDEA](#set-up-the-development-environment-with-intellij-idea)
-  * [Configuring Gradle on IntelliJ IDEA](#configuring-gradle-on-intellij-idea)
-  * [Run Configurations](#run-configurations)
-    * [Example: Debug the Platform Server](#example-debug-the-platform-server)
-    * [Example: Debug the Junit or the End-to-End Tests](#example-debug-the-junit-or-the-end-to-end-tests)
-  * [Running the Tests From Gradle in IntelliJ](#running-the-tests-from-gradle-in-intellij)
+    * [Configuring Gradle on IntelliJ IDEA](#configuring-gradle-on-intellij-idea)
+    * [Run Configurations](#run-configurations)
+        * [Example: Debug the Platform Server](#example-debug-the-platform-server)
+        * [Example: Debug the Junit or the End-to-End Tests](#example-debug-the-junit-or-the-end-to-end-tests)
+    * [Running the Tests From Gradle in IntelliJ](#running-the-tests-from-gradle-in-intellij)
+
 <!-- TOC -->
 
 ## Install JDK 11
@@ -66,6 +68,9 @@ Docker version 23.0.5, build bc4487a
 On macOS and Linux, you need to add the following entries to your `/etc/hosts` file. And on Windows, you need to add the
 following entries to your `C:\Windows\System32\Drivers\etc\hosts` file.
 
+These entries are needed to successfully run integration tests and end-2-end tests for the docker containers to
+communicate with each other.
+
 ```shell
 127.0.0.1 db
 127.0.0.1 zookeeper
@@ -96,7 +101,6 @@ Build the Spring Boot application: `./gradlew bootJar`
 Run all tests: `./gradlew test`
 
 Run subproject tests: `./gradlew :[subproject]:test`
-
 
 ## Set up the Git Hooks
 
@@ -199,5 +203,6 @@ To make sure your configuration worked, please make sure you can run all the tes
 3. Right-click it and select the `run` or `debug` option:
    ![running-the-tests.png](/docs/resources/img/running-the-tests.png)
 
-__Note__: You may need to check there is no active docker containers running on your machine from the previous debug sessions. If there are, please stop and delete them. 
+__Note__: You may need to check there is no active docker containers running on your machine from the previous debug
+sessions. If there are, please stop and delete them. 
 
