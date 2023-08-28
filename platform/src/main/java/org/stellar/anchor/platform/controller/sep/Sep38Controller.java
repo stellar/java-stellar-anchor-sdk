@@ -69,11 +69,13 @@ public class Sep38Controller {
   @RequestMapping(
       value = "/price",
       method = {RequestMethod.GET})
-  public GetPriceResponse getPrice(@RequestParam Map<String, String> params) {
+  public GetPriceResponse getPrice(
+      HttpServletRequest request, @RequestParam Map<String, String> params) {
     debugF("GET /price params={}", params);
     Sep38GetPriceRequest getPriceRequest =
         gson.fromJson(gson.toJson(params), Sep38GetPriceRequest.class);
-    return sep38Service.getPrice(getPriceRequest);
+    Sep10Jwt sep10Jwt = getSep10Token(request);
+    return sep38Service.getPrice(sep10Jwt, getPriceRequest);
   }
 
   @SneakyThrows

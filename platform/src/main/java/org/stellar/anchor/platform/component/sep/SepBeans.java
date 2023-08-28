@@ -212,9 +212,15 @@ public class SepBeans {
       Sep38Config sep38Config,
       AssetService assetService,
       RateIntegration rateIntegration,
+      CustomerIntegration customerIntegration,
       Sep38QuoteStore sep38QuoteStore,
       EventService eventService) {
     return new Sep38Service(
-        sep38Config, assetService, rateIntegration, sep38QuoteStore, eventService);
+        sep38Config,
+        assetService,
+        rateIntegration,
+        customerIntegration,
+        sep38QuoteStore,
+        eventService);
   }
 }
