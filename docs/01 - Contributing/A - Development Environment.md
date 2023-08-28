@@ -1,24 +1,22 @@
 # How to set up the development environment
 
 <!-- TOC -->
-
 * [How to set up the development environment](#how-to-set-up-the-development-environment)
-    * [Install JDK 11](#install-jdk-11)
-    * [Checkout the Project](#checkout-the-project)
-    * [Set up `docker`](#set-up-docker)
-    * [Set up your hosts file](#set-up-your-hosts-file)
-    * [Build the Project with Gradle](#build-the-project-with-gradle)
-        * [Clean](#clean)
-        * [Build](#build)
-        * [Running Unit Tests](#running-unit-tests)
-    * [Set up the Git Hooks](#set-up-the-git-hooks)
+  * [Install JDK 11](#install-jdk-11)
+  * [Checkout the Project](#checkout-the-project)
+  * [Set up `docker`](#set-up-docker)
+  * [Set up your hosts file](#set-up-your-hosts-file)
+  * [Build the Project with Gradle](#build-the-project-with-gradle)
+    * [Clean](#clean)
+    * [Build](#build)
+    * [Running Unit Tests](#running-unit-tests)
+  * [Set up the Git Hooks](#set-up-the-git-hooks)
 * [Set up the Development Environment with IntelliJ IDEA](#set-up-the-development-environment-with-intellij-idea)
-    * [Configuring Gradle on IntelliJ IDEA](#configuring-gradle-on-intellij-idea)
-    * [Run Configurations](#run-configurations)
-        * [Example: Debug the Platform Server](#example-debug-the-platform-server)
-        * [Example: Debug the Junit or the End-to-End Tests](#example-debug-the-junit-or-the-end-to-end-tests)
-    * [Running the Tests From Gradle in IntelliJ](#running-the-tests-from-gradle-in-intellij)
-
+  * [Configuring Gradle on IntelliJ IDEA](#configuring-gradle-on-intellij-idea)
+  * [Run Configurations](#run-configurations)
+    * [Example: Debug the Platform Server](#example-debug-the-platform-server)
+    * [Example: Debug the Junit or the End-to-End Tests](#example-debug-the-junit-or-the-end-to-end-tests)
+  * [Running the Tests From Gradle in IntelliJ](#running-the-tests-from-gradle-in-intellij)
 <!-- TOC -->
 
 ## Install JDK 11
@@ -83,6 +81,8 @@ communicate with each other.
 ```
 
 ## Build the Project with Gradle
+
+This project is wrapped with Gradle version `8.2.1`. You can use the Gradle wrapper to build the project.
 
 ### Clean
 
