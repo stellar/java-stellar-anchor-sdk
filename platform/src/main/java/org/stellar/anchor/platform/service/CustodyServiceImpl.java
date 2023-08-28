@@ -15,7 +15,7 @@ import org.stellar.anchor.api.exception.custody.CustodyBadRequestException;
 import org.stellar.anchor.api.exception.custody.CustodyNotFoundException;
 import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException;
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
-import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest;
+import org.stellar.anchor.api.rpc.method.DoStellarRefundRequest;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.sep24.Sep24Transaction;

@@ -69,7 +69,7 @@ class DepositService(private val cfg: Config) {
     val fee = calculateFee(amount)
     val stellarAsset = "stellar:$asset"
 
-    if (cfg.sep24.rpcActionsEnabled) {
+    if (cfg.sep24.rpcEnabled) {
       sep24.rpcAction(
         "request_offchain_funds",
         RequestOffchainFundsRequest(
@@ -96,7 +96,7 @@ class DepositService(private val cfg: Config) {
   }
 
   private suspend fun notifyTransactionProcessed(transactionId: String) {
-    if (cfg.sep24.rpcActionsEnabled) {
+    if (cfg.sep24.rpcEnabled) {
       sep24.rpcAction(
         "notify_offchain_funds_received",
         NotifyOffchainFundsReceivedRequest(
@@ -119,7 +119,7 @@ class DepositService(private val cfg: Config) {
   }
 
   private suspend fun sendCustodyStellarTransaction(transactionId: String) {
-    if (cfg.sep24.rpcActionsEnabled) {
+    if (cfg.sep24.rpcEnabled) {
       sep24.rpcAction("do_stellar_payment", DoStellarPaymentRequest(transactionId = transactionId))
     } else {
       sep24.sendCustodyStellarTransaction(transactionId)
@@ -127,7 +127,7 @@ class DepositService(private val cfg: Config) {
   }
 
   private suspend fun finalizeCustodyStellarTransaction(transactionId: String) {
-    if (!cfg.sep24.rpcActionsEnabled) {
+    if (!cfg.sep24.rpcEnabled) {
       sep24.patchTransaction(
         PatchTransactionTransaction(transactionId, "completed", message = "completed")
       )
@@ -140,7 +140,7 @@ class DepositService(private val cfg: Config) {
     asset: String,
     amount: BigDecimal
   ) {
-    if (cfg.sep24.rpcActionsEnabled) {
+    if (cfg.sep24.rpcEnabled) {
       sep24.rpcAction(
         "notify_onchain_funds_sent",
         NotifyOnchainFundsSentRequest(
@@ -183,7 +183,7 @@ class DepositService(private val cfg: Config) {
   }
 
   private suspend fun failTransaction(transactionId: String, message: String?) {
-    if (cfg.sep24.rpcActionsEnabled) {
+    if (cfg.sep24.rpcEnabled) {
       sep24.rpcAction(
         "notify_transaction_error",
         NotifyTransactionErrorRequest(transactionId = transactionId, message = message)

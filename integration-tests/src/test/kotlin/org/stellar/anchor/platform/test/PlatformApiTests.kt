@@ -8,10 +8,10 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
 import org.stellar.anchor.api.rpc.RpcRequest
-import org.stellar.anchor.api.rpc.action.ActionMethod
-import org.stellar.anchor.api.rpc.action.ActionMethod.REQUEST_OFFCHAIN_FUNDS
-import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsReceivedRequest
-import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest
+import org.stellar.anchor.api.rpc.method.NotifyOffchainFundsReceivedRequest
+import org.stellar.anchor.api.rpc.method.RequestOffchainFundsRequest
+import org.stellar.anchor.api.rpc.method.RpcMethod
+import org.stellar.anchor.api.rpc.method.RpcMethod.REQUEST_OFFCHAIN_FUNDS
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
@@ -54,11 +54,11 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     `SEP-31 refunded short`()
     `SEP-31 complete full with recovery`()
     `validations and errors`()
-    `send single rpc action`()
-    `send batch of rpc actions`()
+    `send single rpc request`()
+    `send batch of rpc requests`()
   }
 
-  private fun `send single rpc action`() {
+  private fun `send single rpc request`() {
     val depositRequest = gson.fromJson(SEP_24_DEPOSIT_REQUEST, HashMap::class.java)
 
     @Suppress("UNCHECKED_CAST")
@@ -75,7 +75,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
         .params(requestOffchainFundsParams)
         .id(1)
         .build()
-    val response = platformApiClient.callRpcAction(listOf(rpcRequest))
+    val response = platformApiClient.sendRpcRequest(listOf(rpcRequest))
     assertEquals(HttpStatus.SC_OK, response.code)
     JSONAssert.assertEquals(
       EXPECTED_RPC_RESPONSE.replace(TX_ID, txId).trimIndent(),
@@ -91,7 +91,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     assertEquals(SepTransactionStatus.PENDING_USR_TRANSFER_START, txResponse.status)
   }
 
-  private fun `send batch of rpc actions`() {
+  private fun `send batch of rpc requests`() {
     val depositRequest = gson.fromJson(SEP_24_DEPOSIT_REQUEST, HashMap::class.java)
 
     @Suppress("UNCHECKED_CAST")
@@ -117,11 +117,11 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     val rpcRequest2 =
       RpcRequest.builder()
         .id(2)
-        .method(ActionMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED.toString())
+        .method(RpcMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED.toString())
         .jsonrpc(JSON_RPC_VERSION)
         .params(notifyOffchainFundsReceivedParams)
         .build()
-    val response = platformApiClient.callRpcAction(listOf(rpcRequest1, rpcRequest2))
+    val response = platformApiClient.sendRpcRequest(listOf(rpcRequest1, rpcRequest2))
     assertEquals(HttpStatus.SC_OK, response.code)
 
     JSONAssert.assertEquals(
@@ -331,7 +331,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     val rpcActionRequests: List<RpcRequest> =
       gson.fromJson(actionRequests.replace(TX_ID_KEY, txId), rpcActionRequestsType)
 
-    val rpcActionResponses = platformApiClient.callRpcAction(rpcActionRequests)
+    val rpcActionResponses = platformApiClient.sendRpcRequest(rpcActionRequests)
 
     val expectedResult = actionResponses.replace(TX_ID_KEY, txId).trimIndent()
     val actualResult = rpcActionResponses.body?.string()?.trimIndent()
@@ -3558,7 +3558,7 @@ private const val VALIDATIONS_AND_ERRORS_RESPONSES =
     "error": {
       "id": "TX_ID",
       "code": -32601,
-      "message": "No matching action method[unsupported method]"
+      "message": "No matching RPC method[unsupported method]"
     },
     "id": "4"
   },
@@ -3567,7 +3567,7 @@ private const val VALIDATIONS_AND_ERRORS_RESPONSES =
     "error": {
       "id": "TX_ID",
       "code": -32600,
-      "message": "Action[request_onchain_funds] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]"
+      "message": "RPC method[request_onchain_funds] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]"
     },
     "id": "5"
   },
@@ -3642,7 +3642,7 @@ private const val VALIDATIONS_AND_ERRORS_RESPONSES =
     "error": {
       "id": "TX_ID",
       "code": -32600,
-      "message": "Action[notify_interactive_flow_completed] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]"
+      "message": "RPC method[notify_interactive_flow_completed] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]"
     },
     "id": "11"
   },
@@ -3681,7 +3681,7 @@ private const val VALIDATIONS_AND_ERRORS_RESPONSES =
     "error": {
       "id": "TX_ID",
       "code": -32600,
-      "message": "Action[request_offchain_funds] is not supported. Status[pending_user_transfer_start], kind[deposit], protocol[24], funds received[false]"
+      "message": "RPC method[request_offchain_funds] is not supported. Status[pending_user_transfer_start], kind[deposit], protocol[24], funds received[false]"
     },
     "id": "13"
   },
@@ -3690,7 +3690,7 @@ private const val VALIDATIONS_AND_ERRORS_RESPONSES =
     "error": {
       "id": "TX_ID",
       "code": -32600,
-      "message": "Action[notify_onchain_funds_sent] is not supported. Status[pending_user_transfer_start], kind[deposit], protocol[24], funds received[false]"
+      "message": "RPC method[notify_onchain_funds_sent] is not supported. Status[pending_user_transfer_start], kind[deposit], protocol[24], funds received[false]"
     },
     "id": "14"
   },
@@ -3730,7 +3730,7 @@ private const val VALIDATIONS_AND_ERRORS_RESPONSES =
     "error": {
       "id": "TX_ID",
       "code": -32600,
-      "message": "Action[notify_offchain_funds_received] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[true]"
+      "message": "RPC method[notify_offchain_funds_received] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[true]"
     },
     "id": "16"
   },
@@ -3808,7 +3808,7 @@ private const val VALIDATIONS_AND_ERRORS_RESPONSES =
     "error": {
       "id": "TX_ID",
       "code": -32600,
-      "message": "Action[notify_onchain_funds_sent] is not supported. Status[completed], kind[deposit], protocol[24], funds received[true]"
+      "message": "RPC method[notify_onchain_funds_sent] is not supported. Status[completed], kind[deposit], protocol[24], funds received[true]"
     },
     "id": "20"
   }

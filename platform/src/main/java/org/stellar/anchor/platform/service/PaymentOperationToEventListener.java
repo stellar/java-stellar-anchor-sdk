@@ -76,8 +76,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Find a transaction matching the memo, assumes transactions are unique to account+memo
     JdbcSep31Transaction sep31Txn = null;
     try {
-      sep31Txn =
-          sep31TransactionStore.findByStellarAccountIdAndMemo(payment.getSourceAccount(), memo);
+      sep31Txn = sep31TransactionStore.findByStellarAccountIdAndMemo(payment.getTo(), memo);
     } catch (Exception ex) {
       errorEx(ex);
     }
@@ -95,8 +94,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Find a transaction matching the memo, assumes transactions are unique to account+memo
     JdbcSep24Transaction sep24Txn;
     try {
-      sep24Txn =
-          sep24TransactionStore.findByStellarAccountIdAndMemo(payment.getSourceAccount(), memo);
+      sep24Txn = sep24TransactionStore.findByToAccountAndMemo(payment.getTo(), memo);
     } catch (Exception ex) {
       errorEx(ex);
       return;
@@ -145,7 +143,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
         txn.getId(),
         payment.getTransactionHash(),
         payment.getAmount(),
-        rpcConfig.getActions().getCustomMessages().getIncomingPaymentReceived());
+        rpcConfig.getCustomMessages().getIncomingPaymentReceived());
 
     // Update metrics
     Metrics.counter(
@@ -187,13 +185,13 @@ public class PaymentOperationToEventListener implements PaymentListener {
       platformApiClient.notifyOnchainFundsSent(
           txn.getId(),
           payment.getTransactionHash(),
-          rpcConfig.getActions().getCustomMessages().getOutgoingPaymentSent());
+          rpcConfig.getCustomMessages().getOutgoingPaymentSent());
     } else if (WITHDRAWAL.getKind().equals(txn.getKind())) {
       platformApiClient.notifyOnchainFundsReceived(
           txn.getId(),
           payment.getTransactionHash(),
           payment.getAmount(),
-          rpcConfig.getActions().getCustomMessages().getIncomingPaymentReceived());
+          rpcConfig.getCustomMessages().getIncomingPaymentReceived());
     }
 
     // Update metrics

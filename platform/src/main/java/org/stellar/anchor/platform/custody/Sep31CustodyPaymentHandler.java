@@ -44,8 +44,7 @@ public class Sep31CustodyPaymentHandler extends CustodyPaymentHandler {
 
     if (FAILED == CustodyTransactionStatus.from(txn.getStatus())) {
       platformApiClient.notifyTransactionError(
-          txn.getSepTxId(),
-          rpcConfig.getActions().getCustomMessages().getCustodyTransactionFailed());
+          txn.getSepTxId(), rpcConfig.getCustomMessages().getCustodyTransactionFailed());
     } else {
       switch (PaymentType.from(txn.getType())) {
         case PAYMENT:
@@ -53,7 +52,7 @@ public class Sep31CustodyPaymentHandler extends CustodyPaymentHandler {
               txn.getSepTxId(),
               payment.getTransactionHash(),
               payment.getAmount(),
-              rpcConfig.getActions().getCustomMessages().getIncomingPaymentReceived());
+              rpcConfig.getCustomMessages().getIncomingPaymentReceived());
 
           Metrics.counter(
                   AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())

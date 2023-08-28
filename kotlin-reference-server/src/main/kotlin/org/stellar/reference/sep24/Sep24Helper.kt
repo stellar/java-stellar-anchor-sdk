@@ -68,7 +68,7 @@ class Sep24Helper(private val cfg: Config) {
       resp.status != HttpStatusCode.OK ||
         gson.fromJson<List<RpcResponse>>(respBody, rpcResponseType)[0].error != null
     ) {
-      log.error { "Unexpected error on rpc action. Response body: $respBody" }
+      log.error { "Unexpected error on rpc request. Response body: $respBody" }
       throw Exception(respBody)
     }
   }

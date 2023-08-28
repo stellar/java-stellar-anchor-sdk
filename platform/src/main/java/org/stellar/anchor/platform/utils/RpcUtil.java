@@ -11,7 +11,7 @@ import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.exception.rpc.RpcException;
 import org.stellar.anchor.api.rpc.RpcRequest;
 import org.stellar.anchor.api.rpc.RpcResponse;
-import org.stellar.anchor.api.rpc.action.RpcActionParamsRequest;
+import org.stellar.anchor.api.rpc.method.RpcMethodParamsRequest;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.StringHelper;
@@ -91,8 +91,8 @@ public class RpcUtil {
 
   private static String getTransactionId(Object params) {
     try {
-      RpcActionParamsRequest request =
-          gson.fromJson(gson.toJson(params), RpcActionParamsRequest.class);
+      RpcMethodParamsRequest request =
+          gson.fromJson(gson.toJson(params), RpcMethodParamsRequest.class);
       return request.getTransactionId();
     } catch (Exception e) {
       Log.errorEx("Failed to retrieve transaction id from request", e);

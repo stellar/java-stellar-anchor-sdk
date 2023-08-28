@@ -56,7 +56,7 @@ class Sep31CustodyPaymentHandlerTest {
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
     mockkStatic(Metrics::class)
 
-    every { rpcConfig.actions.customMessages.incomingPaymentReceived } returns "payment received"
+    every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
     every { Metrics.counter("payment.received", "asset", "testAmountInAsset") } returns
       paymentReceivedCounter
@@ -102,7 +102,7 @@ class Sep31CustodyPaymentHandlerTest {
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
     mockkStatic(Metrics::class)
 
-    every { rpcConfig.actions.customMessages.incomingPaymentReceived } returns "payment received"
+    every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
 
     sep31CustodyPaymentHandler.onReceived(txn, payment)
@@ -147,7 +147,7 @@ class Sep31CustodyPaymentHandlerTest {
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
     mockkStatic(Metrics::class)
 
-    every { rpcConfig.actions.customMessages.custodyTransactionFailed } returns "payment failed"
+    every { rpcConfig.customMessages.custodyTransactionFailed } returns "payment failed"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
 
     sep31CustodyPaymentHandler.onReceived(txn, payment)

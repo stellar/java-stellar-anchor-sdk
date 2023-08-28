@@ -2,7 +2,7 @@ package org.stellar.anchor.custody;
 
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest;
+import org.stellar.anchor.api.rpc.method.DoStellarRefundRequest;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.Sep31Transaction;
 

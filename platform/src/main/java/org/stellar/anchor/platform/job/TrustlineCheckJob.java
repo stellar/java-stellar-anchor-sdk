@@ -6,12 +6,12 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.rpc.action.NotifyTrustSetRequest;
+import org.stellar.anchor.api.rpc.method.NotifyTrustSetRequest;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.platform.action.NotifyTrustSetHandler;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrust;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
+import org.stellar.anchor.platform.rpc.NotifyTrustSetHandler;
 
 public class TrustlineCheckJob {
 

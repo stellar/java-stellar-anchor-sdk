@@ -19,7 +19,7 @@ public interface JdbcSep24TransactionRepo
 
   JdbcSep24Transaction findOneByStellarTransactionId(String stellarTransactionId);
 
-  JdbcSep24Transaction findOneBySep10AccountAndMemo(String accountId, String memo);
+  JdbcSep24Transaction findOneByToAccountAndMemo(String accountId, String memo);
 
   List<Sep24Transaction> findBySep10AccountAndRequestAssetCodeOrderByStartedAtDesc(
       String stellarAccount, String assetCode);

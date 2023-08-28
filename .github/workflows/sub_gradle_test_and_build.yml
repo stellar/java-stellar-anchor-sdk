@@ -114,6 +114,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Set up Gradle properties
+        run: |
+          echo "kotlin.daemon.jvmargs=-Xmx2g" >> gradle.properties
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
