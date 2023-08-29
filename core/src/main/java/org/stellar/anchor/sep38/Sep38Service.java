@@ -258,21 +258,6 @@ public class Sep38Service {
         .build();
   }
 
-  private String getClientIdFromToken(Sep10Jwt token) throws AnchorException {
-    if (token == null || token.getAccount() == null) return null;
-    // Get clientId if the client exists
-    try {
-      GetCustomerResponse customer =
-          customerIntegration.getCustomer(
-              GetCustomerRequest.builder().account(token.getAccount()).build());
-      return customer.getId();
-    } catch (NotFoundException nfex) {
-      // skip only if customer not found.
-      debugF("Unable to get customer {} from customer integration server.", token.getAccount());
-    }
-    return null;
-  }
-
   public Sep38QuoteResponse postQuote(Sep10Jwt token, Sep38PostQuoteRequest request)
       throws AnchorException {
     if (this.rateIntegration == null) {
@@ -538,5 +523,10 @@ public class Sep38Service {
     BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, pricePrecision, RoundingMode.FLOOR);
 
     return formatAmount(bTotalPrice, pricePrecision);
+  }
+
+  private String getClientIdFromToken(Sep10Jwt token) {
+    if (token == null) return null;
+    return token.getAccount();
   }
 }

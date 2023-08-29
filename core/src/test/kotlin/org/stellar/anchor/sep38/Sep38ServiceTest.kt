@@ -983,7 +983,7 @@ class Sep38ServiceTest {
         .sellAsset(fiatUSD)
         .sellAmount("103")
         .buyAsset(stellarUSDC)
-        .clientId(CLIENT_ID)
+        .clientId(PUBLIC_KEY)
         .build()
     val wantRateResponse = GetRateResponse(rate)
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
@@ -1641,9 +1641,6 @@ class Sep38ServiceTest {
 
   @Test
   fun `test clientId passed to getRate in Callback API`() {
-    val getCustomerRequest = GetCustomerRequest.builder().account(PUBLIC_KEY).build()
-    every { mockCustomerIntegration.getCustomer(getCustomerRequest) } returns
-      GetCustomerResponse.builder().id(CLIENT_ID).build()
     val slotGetRateRequest = slot<GetRateRequest>()
     every { mockRateIntegration.getRate(capture(slotGetRateRequest)) } returns
       GetRateResponse.indicativePrice("1", "100", "100", mockSellAssetFee(fiatUSD))
@@ -1657,6 +1654,6 @@ class Sep38ServiceTest {
         .context(SEP31)
         .build()
     sep38Service.getPrice(token, getPriceRequest)
-    assertEquals(CLIENT_ID, slotGetRateRequest.captured.clientId)
+    assertEquals(PUBLIC_KEY, slotGetRateRequest.captured.clientId)
   }
 }
