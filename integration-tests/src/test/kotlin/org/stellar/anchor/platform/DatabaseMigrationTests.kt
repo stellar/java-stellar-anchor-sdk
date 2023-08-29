@@ -42,13 +42,13 @@ class PostgresMigrationTest : AbstractIntegrationTest(PostgresConfig) {
     @JvmStatic
     fun construct() {
       println("Running PostgresMigrationTest")
-      singleton.setUp()
+      singleton.testProfileRunner.start()
     }
 
     @AfterAll
     @JvmStatic
     fun destroy() {
-      singleton.tearDown()
+      singleton.testProfileRunner.shutdown()
     }
   }
 
@@ -66,13 +66,13 @@ class H2MigrationTest : AbstractIntegrationTest(H2Config) {
     @JvmStatic
     fun construct() {
       println("Running H2MigrationTest")
-      singleton.setUp()
+      singleton.testProfileRunner.start()
     }
 
     @AfterAll
     @JvmStatic
     fun destroy() {
-      singleton.tearDown()
+      singleton.testProfileRunner.start()
     }
   }
 
@@ -90,13 +90,13 @@ class SQLiteMigrationTest : AbstractIntegrationTest(SQLiteConfig) {
     @JvmStatic
     fun construct() {
       println("Running SQLiteMigrationTest")
-      singleton.setUp()
+      singleton.testProfileRunner.start()
     }
 
     @AfterAll
     @JvmStatic
     fun destroy() {
-      singleton.tearDown()
+      singleton.testProfileRunner.shutdown()
     }
   }
 
