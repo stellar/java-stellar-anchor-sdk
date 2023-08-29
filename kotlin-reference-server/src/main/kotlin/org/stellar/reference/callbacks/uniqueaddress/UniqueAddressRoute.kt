@@ -8,6 +8,7 @@ import io.ktor.server.routing.*
 import org.stellar.anchor.api.callback.GetUniqueAddressRequest
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.log
+import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
 
 /**
  * Defines the routes related to the unique address callback API. See
@@ -16,7 +17,7 @@ import org.stellar.reference.log
  * @param uniqueAddressService the [UniqueAddressService] to use to process the requests.
  */
 fun Route.uniqueAddress(uniqueAddressService: UniqueAddressService) {
-  authenticate("integration-auth") {
+  authenticate(AUTH_CONFIG_ENDPOINT) {
     get("/unique_address") {
       val request = GetUniqueAddressRequest(call.parameters["transaction_id"]!!)
       try {

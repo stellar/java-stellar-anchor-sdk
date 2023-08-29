@@ -10,6 +10,7 @@ import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.callbacks.BadRequestException
 import org.stellar.reference.callbacks.UnprocessableEntityException
 import org.stellar.reference.log
+import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
 
 /**
  * Defines the routes related to the fee callback API. See
@@ -18,7 +19,7 @@ import org.stellar.reference.log
  * @param feeService the [FeeService] to use to process the requests.
  */
 fun Route.fee(feeService: FeeService) {
-  authenticate("integration-auth") {
+  authenticate(AUTH_CONFIG_ENDPOINT) {
     get("/fee") {
       val request =
         GetFeeRequest.builder()

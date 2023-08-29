@@ -11,6 +11,7 @@ import org.stellar.reference.callbacks.BadRequestException
 import org.stellar.reference.callbacks.NotFoundException
 import org.stellar.reference.callbacks.UnprocessableEntityException
 import org.stellar.reference.log
+import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
 
 /**
  * Defines the routes related to the rate callback API. See
@@ -19,7 +20,7 @@ import org.stellar.reference.log
  * @param rateService the [RateService] to use to process the requests.
  */
 fun Route.rate(rateService: RateService) {
-  authenticate("integration-auth") {
+  authenticate(AUTH_CONFIG_ENDPOINT) {
     get("/rate") {
       val request =
         GetRateRequest.builder()

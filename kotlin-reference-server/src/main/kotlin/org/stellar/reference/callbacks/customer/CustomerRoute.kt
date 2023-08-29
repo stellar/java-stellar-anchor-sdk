@@ -12,6 +12,7 @@ import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.callbacks.BadRequestException
 import org.stellar.reference.callbacks.NotFoundException
 import org.stellar.reference.log
+import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
 
 /**
  * Defines the routes related to the customer callback API. See
@@ -20,7 +21,7 @@ import org.stellar.reference.log
  * @param customerService the [CustomerService] to use to process the requests.
  */
 fun Route.customer(customerService: CustomerService) {
-  authenticate("integration-auth") {
+  authenticate(AUTH_CONFIG_ENDPOINT) {
     route("/customer") {
       get {
         val request =

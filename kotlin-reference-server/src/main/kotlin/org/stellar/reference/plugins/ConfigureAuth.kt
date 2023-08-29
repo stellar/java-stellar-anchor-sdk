@@ -10,11 +10,13 @@ import io.ktor.server.response.*
 import org.stellar.reference.data.AuthSettings
 import org.stellar.reference.data.Config
 
+const val AUTH_CONFIG_ENDPOINT = "endpoint-auth"
+
 fun Application.configureAuth(cfg: Config) {
   when (cfg.authSettings.type) {
     AuthSettings.Type.JWT ->
       authentication {
-        jwt("integration-auth") {
+        jwt(AUTH_CONFIG_ENDPOINT) {
           verifier(JWT.require(Algorithm.HMAC256(cfg.authSettings.platformToAnchorSecret)).build())
           validate { credential ->
             val principal = JWTPrincipal(credential.payload)
@@ -34,7 +36,7 @@ fun Application.configureAuth(cfg: Config) {
     }
     AuthSettings.Type.NONE -> {
       log.warn("Authentication is disabled. Endpoints are not secured.")
-      authentication { basic("integration-auth") { skipWhen { true } } }
+      authentication { basic(AUTH_CONFIG_ENDPOINT) { skipWhen { true } } }
     }
   }
 }
