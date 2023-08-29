@@ -4,6 +4,8 @@ package org.stellar.anchor.sep38
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -34,8 +36,6 @@ import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.util.StringHelper.json
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 class Sep38ServiceTest {
   class PropertySep38Config : Sep38Config {
