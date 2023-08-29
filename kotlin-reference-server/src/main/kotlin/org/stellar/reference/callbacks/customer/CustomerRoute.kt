@@ -70,6 +70,7 @@ fun Route.customer(customerService: CustomerService) {
       }
     }
     route("/invalidate_clabe") {
+      // TODO: Consider to enable this endpoint only when testing
       get("{id}") {
         val id = call.parameters["id"]!!
         try {

@@ -41,7 +41,9 @@ class UniqueAddressService(private val settings: AppSettings) {
     val builder =
       GetUniqueAddressResponse.UniqueAddress.builder().stellarAddress(settings.distributionWallet)
 
-    if (settings.distributionWallet.isBlank() || settings.distributionWalletMemoType.isBlank()) {
+    if (
+      settings.distributionWalletMemo.isBlank() || settings.distributionWalletMemoType.isBlank()
+    ) {
       val paddedMemo = request.transactionId.take(32).padStart(32, '0')
       val encodedMemo = Base64.getEncoder().encodeToString(paddedMemo.toByteArray())
       builder.memoType("hash").memo(encodedMemo)
