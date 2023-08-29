@@ -40,7 +40,6 @@ import org.stellar.anchor.util.Log;
 public class Sep38Service {
   final AssetService assetService;
   final RateIntegration rateIntegration;
-  final CustomerIntegration customerIntegration;
   final Sep38QuoteStore sep38QuoteStore;
   final EventService.Session eventSession;
   final InfoResponse infoResponse;
@@ -53,10 +52,8 @@ public class Sep38Service {
       Sep38Config sep38Config,
       AssetService assetService,
       RateIntegration rateIntegration,
-      CustomerIntegration customerIntegration,
       Sep38QuoteStore sep38QuoteStore,
       EventService eventService) {
-    this.customerIntegration = customerIntegration;
     debug("sep38Config:", sep38Config);
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
