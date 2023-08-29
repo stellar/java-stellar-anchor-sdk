@@ -13,7 +13,7 @@ import org.stellar.reference.client.AnchorReferenceServerClient
 internal class KotlinReferenceServerIntegrationTest {
   private val testProfileRunner =
     TestProfileExecutor(
-      TestConfig("sep24").also {
+      TestConfig("default").also {
         it.env[RUN_DOCKER] = "false"
         it.env[RUN_ALL_SERVERS] = "false"
         it.env[RUN_KOTLIN_REFERENCE_SERVER] = "true"
