@@ -69,7 +69,6 @@ jobs:
           run_all_servers: false
           run_sep_server: true
           run_platform_server: true
-          run_reference_server: true
           run_observer: true
           run_kotlin_reference_server: true
           # Running wallet server is not required for sep tests. However, running wallet server

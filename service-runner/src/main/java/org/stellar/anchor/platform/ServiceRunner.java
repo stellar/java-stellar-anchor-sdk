@@ -5,7 +5,6 @@ import static org.stellar.anchor.util.Log.info;
 import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.stellar.anchor.reference.AnchorReferenceServer;
 import org.stellar.reference.ReferenceServerStartKt;
 import org.stellar.reference.wallet.WalletServerStartKt;
 
@@ -51,11 +50,6 @@ public class ServiceRunner {
         anyServerStarted = true;
       }
 
-      if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
-        startAnchorReferenceServer(null);
-        anyServerStarted = true;
-      }
-
       if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
         startKotlinReferenceServer(null, false);
         anyServerStarted = true;
@@ -93,18 +87,6 @@ public class ServiceRunner {
 
   public static ConfigurableApplicationContext startEventProcessingServer(Map<String, String> env) {
     return new EventProcessingServer().start(env);
-  }
-
-  public static ConfigurableApplicationContext startAnchorReferenceServer(Map<String, String> env) {
-    String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
-
-    int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
-
-    if (strPort != null) {
-      port = Integer.parseInt(strPort);
-    }
-
-    return AnchorReferenceServer.start(env, port, "/");
   }
 
   public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {

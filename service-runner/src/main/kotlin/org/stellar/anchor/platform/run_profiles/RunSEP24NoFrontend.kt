@@ -14,6 +14,6 @@ fun main() = runBlocking {
   testProfileExecutor.start(true) {
     it.env["run_docker"] = "false"
     it.env["run_all_servers"] = "false"
-    it.env["run_reference_server"] = "true"
+    it.env["run_kotlin_reference_server"] = "true"
   }
 }

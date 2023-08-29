@@ -68,7 +68,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
             it.env["auth.expirationMilliseconds"] = JWT_EXPIRATION_MILLISECONDS.toString()
           }
         )
-      testProfileRunner.start { it.env[RUN_KOTLIN_REFERENCE_SERVER] = "true" }
+      testProfileRunner.start()
     }
 
     @AfterAll

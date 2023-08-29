@@ -20,7 +20,6 @@ const val RUN_PLATFORM_SERVER = "run_platform_server"
 const val RUN_EVENT_PROCESSING_SERVER = "run_event_processing_server"
 const val RUN_PAYMENT_OBSERVER = "run_observer"
 const val RUN_KOTLIN_REFERENCE_SERVER = "run_kotlin_reference_server"
-const val RUN_REFERENCE_SERVER = "run_reference_server"
 const val RUN_WALLET_SERVER = "run_wallet_server"
 
 lateinit var testProfileExecutor: TestProfileExecutor
@@ -50,7 +49,6 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartAllServers: Boolean = false
   private var shouldStartSepServer: Boolean = false
   private var shouldStartPlatformServer: Boolean = false
-  private var shouldStartReferenceServer: Boolean = false
   private var shouldStartWalletServer: Boolean = false
   private var shouldStartObserver: Boolean = false
   private var shouldStartEventProcessingServer: Boolean = false
@@ -69,7 +67,6 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartObserver = config.env[RUN_PAYMENT_OBSERVER].toBoolean()
     shouldStartEventProcessingServer = config.env[RUN_EVENT_PROCESSING_SERVER].toBoolean()
     shouldStartKotlinReferenceServer = config.env[RUN_KOTLIN_REFERENCE_SERVER].toBoolean()
-    shouldStartReferenceServer = config.env[RUN_REFERENCE_SERVER].toBoolean()
     shouldStartWalletServer = config.env[RUN_WALLET_SERVER].toBoolean()
 
     startDocker()
@@ -103,22 +100,15 @@ class TestProfileExecutor(val config: TestConfig) {
         info("Starting wallet server...")
         jobs += scope.launch { ServiceRunner.startWalletServer(envMap, wait) }
       }
-      if (shouldStartAllServers || shouldStartReferenceServer) {
-        info("Starting Java reference server...")
-        jobs +=
-          scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer(envMap)) }
-      }
       if (shouldStartAllServers || shouldStartObserver) {
         info("Starting observer...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
       }
-
       if (shouldStartAllServers || shouldStartEventProcessingServer) {
         info("Starting event processing server...")
         jobs +=
           scope.launch { runningServers.add(ServiceRunner.startEventProcessingServer(envMap)) }
       }
-
       if (shouldStartAllServers || shouldStartSepServer) {
         info("Starting SEP server...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startSepServer(envMap)) }
