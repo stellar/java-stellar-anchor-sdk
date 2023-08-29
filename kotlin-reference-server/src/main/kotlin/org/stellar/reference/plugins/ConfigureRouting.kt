@@ -7,6 +7,7 @@ import org.stellar.reference.callbacks.customer.CustomerService
 import org.stellar.reference.callbacks.customer.customer
 import org.stellar.reference.callbacks.fee.FeeService
 import org.stellar.reference.callbacks.fee.fee
+import org.stellar.reference.callbacks.interactive.sep24Interactive
 import org.stellar.reference.callbacks.rate.RateService
 import org.stellar.reference.callbacks.rate.rate
 import org.stellar.reference.callbacks.uniqueaddress.UniqueAddressService
@@ -47,6 +48,7 @@ fun Application.configureRouting(cfg: Config) = routing {
   fee(feeService)
   rate(rateService)
   uniqueAddress(uniqueAddressService)
+  sep24Interactive()
 
   if (cfg.sep24.enableTest) {
     testSep24(helper, depositService, withdrawalService, cfg.sep24.interactiveJwtKey)
