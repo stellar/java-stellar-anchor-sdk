@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.config;
 
+import static org.stellar.anchor.config.Sep24Config.DepositInfoGeneratorType.*;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
 
@@ -85,6 +86,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
       validateInteractiveUrlConfig(errors);
       validateMoreInfoUrlConfig(errors);
       validateFeaturesConfig(errors);
+      validateDepositInfoGeneratorType(errors);
     }
   }
 
@@ -184,6 +186,23 @@ public class PropertySep24Config implements Sep24Config, Validator {
             "sep24-features-claimable_balances-not-supported",
             "Custody service doesn't support sending deposit funds as claimable balances");
       }
+    }
+  }
+
+  void validateDepositInfoGeneratorType(Errors errors) {
+    if (custodyConfig.isCustodyIntegrationEnabled() && CUSTODY != depositInfoGeneratorType) {
+      errors.rejectValue(
+          "depositInfoGeneratorType",
+          "sep24-deposit-info-generator-type",
+          String.format(
+              "[%s] deposit info generator type is not supported when custody integration is enabled",
+              depositInfoGeneratorType.toString().toLowerCase()));
+    } else if (!custodyConfig.isCustodyIntegrationEnabled()
+        && CUSTODY == depositInfoGeneratorType) {
+      errors.rejectValue(
+          "depositInfoGeneratorType",
+          "sep24-deposit-info-generator-type",
+          "[custody] deposit info generator type is not supported when custody integration is disabled");
     }
   }
 }
