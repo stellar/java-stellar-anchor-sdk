@@ -11,6 +11,7 @@ import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateResponse
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.sep.sep38.RateFeeDetail
+import org.stellar.reference.callbacks.BadRequestException
 import org.stellar.reference.callbacks.NotFoundException
 import org.stellar.reference.dao.QuoteRepository
 import org.stellar.reference.model.Quote
@@ -136,26 +137,26 @@ class RateService(private val quoteRepository: QuoteRepository) {
 
   private fun validateRequest(request: GetRateRequest) {
     if (request.type == null) {
-      throw RuntimeException("Type must be provided")
+      throw BadRequestException("Type must be provided")
     }
 
     if (!listOf(GetRateRequest.Type.INDICATIVE, GetRateRequest.Type.FIRM).contains(request.type)) {
-      throw RuntimeException("Type must be either indicative or firm")
+      throw BadRequestException("Type must be either indicative or firm")
     }
 
     if (request.sellAsset == null) {
-      throw RuntimeException("Sell asset must be provided")
+      throw BadRequestException("Sell asset must be provided")
     }
 
     if (request.buyAsset == null) {
-      throw RuntimeException("Buy asset must be provided")
+      throw BadRequestException("Buy asset must be provided")
     }
 
     if (
       (request.sellAmount == null && request.buyAmount == null) ||
         (request.sellAmount != null && request.buyAmount != null)
     ) {
-      throw RuntimeException("Either sell amount or buy amount must be provided but not both")
+      throw BadRequestException("Either sell amount or buy amount must be provided but not both")
     }
   }
 
