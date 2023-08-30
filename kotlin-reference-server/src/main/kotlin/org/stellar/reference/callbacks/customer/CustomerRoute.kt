@@ -45,13 +45,5 @@ fun Route.customer(customerService: CustomerService) {
         call.respond(HttpStatusCode.NoContent)
       }
     }
-    route("/invalidate_clabe") {
-      // TODO: Consider to enable this endpoint only when testing
-      get("{id}") {
-        val id = call.parameters["id"]!!
-        customerService.invalidateClabe(id)
-        call.respond(HttpStatusCode.OK)
-      }
-    }
   }
 }
