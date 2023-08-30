@@ -23,7 +23,7 @@
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <envs>
-      <env name="TEST_PROFILE_NAME" value="sep24-custody-rpc" />
+      <env name="TEST_PROFILE_NAME" value="default-custody-rpc" />
       <env name="run_all_servers" value="true" />
       <env name="run_docker" value="true" />
       <env name="CUSTODY_TYPE" value="fireblocks" />

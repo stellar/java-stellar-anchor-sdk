@@ -5,16 +5,6 @@ plugins {
   alias(libs.plugins.kotlin.jvm)
 }
 
-tasks {
-  processResources {
-    doFirst {
-      val existingFile = file("$buildDir/resources/main/metadata.properties")
-      existingFile.delete()
-    }
-    filter { line -> line.replace("%APP_VERSION_TOKEN%", rootProject.version.toString()) }
-  }
-}
-
 dependencies {
   api(libs.lombok)
 

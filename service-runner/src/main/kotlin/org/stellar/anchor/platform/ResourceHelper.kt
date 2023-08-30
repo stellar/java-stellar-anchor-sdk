@@ -36,7 +36,9 @@ fun getResourceFile(resourceName: String): File {
   return if (resourceTempDir != null) {
     File(resourceTempDir, resourceName)
   } else {
-    val resourceUrl: URL? = {}::class.java.classLoader.getResource(fixedResourcePath)
+    val resourceUrl: URL =
+      {}::class.java.classLoader.getResource(fixedResourcePath)
+        ?: throw RuntimeException("Resource $resourceName not found")
     File(resourceUrl!!.toURI())
   }
 }
