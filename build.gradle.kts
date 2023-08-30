@@ -152,3 +152,7 @@ allprojects {
     }
   }
 }
+
+tasks.register("printVersionName") {
+  println(rootProject.version.toString())
+}
