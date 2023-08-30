@@ -22,7 +22,7 @@ class RateService(private val quoteRepository: QuoteRepository) {
     val rate =
       when {
         request.id != null -> getRate(request.id)
-        request.sellAmount != null || request.buyAmount != null -> {
+        else -> {
           validateRequest(request)
           val price =
             getPrice(request.sellAsset!!, request.buyAsset!!)?.let { getDecimal(it, scale) }
@@ -108,9 +108,6 @@ class RateService(private val quoteRepository: QuoteRepository) {
               .build()
           return GetRateResponse(rate)
         }
-        else -> {
-          throw BadRequestException("Either id or sell and buy assets must be provided")
-        }
       }
 
     return GetRateResponse(rate)
@@ -140,26 +137,26 @@ class RateService(private val quoteRepository: QuoteRepository) {
 
   private fun validateRequest(request: GetRateRequest) {
     if (request.type == null) {
-      throw RuntimeException("Type must be provided")
+      throw BadRequestException("Type must be provided")
     }
 
     if (!listOf(GetRateRequest.Type.INDICATIVE, GetRateRequest.Type.FIRM).contains(request.type)) {
-      throw RuntimeException("Type must be either indicative or firm")
+      throw BadRequestException("Type must be either indicative or firm")
     }
 
     if (request.sellAsset == null) {
-      throw RuntimeException("Sell asset must be provided")
+      throw BadRequestException("Sell asset must be provided")
     }
 
     if (request.buyAsset == null) {
-      throw RuntimeException("Buy asset must be provided")
+      throw BadRequestException("Buy asset must be provided")
     }
 
     if (
       (request.sellAmount == null && request.buyAmount == null) ||
         (request.sellAmount != null && request.buyAmount != null)
     ) {
-      throw RuntimeException("Either sell amount or buy amount must be provided but not both")
+      throw BadRequestException("Either sell amount or buy amount must be provided but not both")
     }
   }
 
