@@ -7,10 +7,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.reference.callbacks.BadRequestException
-import org.stellar.reference.callbacks.NotFoundException
-import org.stellar.reference.callbacks.UnprocessableEntityException
-import org.stellar.reference.log
 import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
 
 /**
@@ -36,19 +32,8 @@ fun Route.rate(rateService: RateService) {
           .clientId(call.parameters["client_id"])
           .id(call.parameters["id"])
           .build()
-      try {
-        val response = GsonUtils.getInstance().toJson(rateService.getRate(request))
-        call.respond(response)
-      } catch (e: BadRequestException) {
-        call.respond(HttpStatusCode.BadRequest, e)
-      } catch (e: NotFoundException) {
-        call.respond(HttpStatusCode.NotFound, e)
-      } catch (e: UnprocessableEntityException) {
-        call.respond(HttpStatusCode.UnprocessableEntity, e)
-      } catch (e: Exception) {
-        log.error("Unexpected exception", e)
-        call.respond(HttpStatusCode.InternalServerError)
-      }
+      val response = GsonUtils.getInstance().toJson(rateService.getRate(request))
+      call.respond(response)
     }
   }
 }

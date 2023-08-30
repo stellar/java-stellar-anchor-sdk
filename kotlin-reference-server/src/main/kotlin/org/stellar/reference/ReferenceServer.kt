@@ -41,6 +41,7 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
           allowHeader(HttpHeaders.ContentType)
         }
         install(RequestLoggerPlugin)
+        install(RequestExceptionHandlerPlugin)
       }
       .start(wait)
 }
