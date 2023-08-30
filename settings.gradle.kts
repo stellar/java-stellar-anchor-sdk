@@ -9,9 +9,9 @@ include("core")
 /** Anchor Platform */
 include("platform")
 
-/** Anchor Reference Server */
-include("anchor-reference-server")
+/** Reference Server */
 include("kotlin-reference-server")
+include("wallet-reference-server")
 
 /** Integration tests */
 include("integration-tests")

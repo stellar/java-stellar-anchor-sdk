@@ -42,6 +42,11 @@ public abstract class ConfigManager
     return configMap;
   }
 
+  /**
+   * Check if any of the security sensitive configuration values are present in the configuration.
+   *
+   * @param configMap the configuration map
+   */
   void sanitize(ConfigMap configMap) {
     SecretManager.getInstance()
         .secretVars
@@ -82,7 +87,7 @@ public abstract class ConfigManager
             icex.getMessage(),
             System.lineSeparator());
         // We should not continue.
-        System.exit(1);
+        throw new RuntimeException(icex);
       }
       adapter.updateSpringEnv(applicationContext, config);
     }

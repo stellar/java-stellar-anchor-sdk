@@ -27,7 +27,6 @@ import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_TOML
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
-import org.stellar.anchor.TestConstants.Companion.TEST_NETWORK_PASS_PHRASE
 import org.stellar.anchor.TestConstants.Companion.TEST_SIGNING_SEED
 import org.stellar.anchor.TestConstants.Companion.TEST_WEB_AUTH_DOMAIN
 import org.stellar.anchor.api.exception.SepException
@@ -45,6 +44,7 @@ import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil
 import org.stellar.sdk.*
+import org.stellar.sdk.Network.TESTNET
 import org.stellar.sdk.requests.ErrorResponse
 import org.stellar.sdk.responses.AccountResponse
 import shadow.com.google.gson.annotations.SerializedName
@@ -95,13 +95,11 @@ internal class Sep10ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { sep10Config.webAuthDomain } returns TEST_WEB_AUTH_DOMAIN
-    every { sep10Config.clientAttributionDenyList } returns listOf("")
-    every { sep10Config.clientAttributionAllowList } returns listOf(TEST_CLIENT_DOMAIN)
     every { sep10Config.authTimeout } returns 900
     every { sep10Config.jwtTimeout } returns 900
     every { sep10Config.homeDomain } returns TEST_HOME_DOMAIN
 
-    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
 
     every { secretConfig.sep10SigningSeed } returns TEST_SIGNING_SEED
     every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
@@ -170,7 +168,7 @@ internal class Sep10ServiceTest {
         .build()
 
     val transaction =
-      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, TESTNET)
         .addPreconditions(
           TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
         )
@@ -188,7 +186,7 @@ internal class Sep10ServiceTest {
     // 2 ------ Create Services
     every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
     every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
-    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     val horizon = Horizon(appConfig)
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
 
@@ -204,7 +202,7 @@ internal class Sep10ServiceTest {
 
     val clientAccount = horizon.server.accounts().account(clientMasterKP.accountId)
     val multisigTx =
-      TransactionBuilder(AccountConverter.enableMuxed(), clientAccount, Network.TESTNET)
+      TransactionBuilder(AccountConverter.enableMuxed(), clientAccount, TESTNET)
         .addPreconditions(
           TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
         )
@@ -264,7 +262,7 @@ internal class Sep10ServiceTest {
         .build()
 
     val transaction =
-      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, TESTNET)
         .addPreconditions(
           TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
         )
@@ -281,7 +279,7 @@ internal class Sep10ServiceTest {
     // 2 ------ Create Services
     every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
     every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
-    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     val horizon = Horizon(appConfig)
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
 
@@ -340,7 +338,7 @@ internal class Sep10ServiceTest {
         .build()
 
     val transaction =
-      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, TESTNET)
         .addPreconditions(
           TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
         )
@@ -357,7 +355,7 @@ internal class Sep10ServiceTest {
     // 2 ------ Create Services
     every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
     every { appConfig.horizonUrl } returns mockHorizonUrl
-    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     val horizon = Horizon(appConfig)
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
 
@@ -372,6 +370,7 @@ internal class Sep10ServiceTest {
   )
   fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
     every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
+    every { sep10Config.clientAttributionAllowList } returns listOf(TEST_CLIENT_DOMAIN)
     val cr =
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
@@ -383,11 +382,11 @@ internal class Sep10ServiceTest {
 
     val challengeResponse = sep10Service.createChallenge(cr)
 
-    assertEquals(challengeResponse.networkPassphrase, TEST_NETWORK_PASS_PHRASE)
+    assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
     verify(exactly = 1) {
       Sep10Challenge.newChallenge(
         any(),
-        Network(TEST_NETWORK_PASS_PHRASE),
+        Network(TESTNET.networkPassphrase),
         TEST_ACCOUNT,
         TEST_HOME_DOMAIN,
         TEST_WEB_AUTH_DOMAIN,
@@ -406,7 +405,7 @@ internal class Sep10ServiceTest {
     val txn =
       Sep10Challenge.newChallenge(
         signer,
-        Network(TEST_NETWORK_PASS_PHRASE),
+        Network(TESTNET.networkPassphrase),
         clientKeyPair.accountId,
         TEST_HOME_DOMAIN,
         TEST_WEB_AUTH_DOMAIN,
@@ -533,12 +532,6 @@ internal class Sep10ServiceTest {
 
     // Test client domain rejection
     cr.clientDomain = TEST_CLIENT_DOMAIN
-    every { sep10Config.clientAttributionDenyList } returns listOf(TEST_CLIENT_DOMAIN, "")
-    assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
-
-    every { sep10Config.clientAttributionDenyList } returns listOf("")
-    every { sep10Config.clientAttributionAllowList } returns listOf("")
-    // Test client domain not allowed
     assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
   }
 
@@ -581,14 +574,14 @@ internal class Sep10ServiceTest {
       "       NETWORK_PASSPHRASE=\"Public Global Stellar Network ; September 2015\"\n"
     mockkStatic(KeyPair::class)
 
-    assertThrows<SepException> { sep10Service.getClientAccountId(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
 
     every { NetUtil.fetch(any()) } answers { throw IOException("Cannot connect") }
-    assertThrows<SepException> { sep10Service.getClientAccountId(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
 
     every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
     every { KeyPair.fromAccountId(any()) } answers { throw FormatException("Bad Format") }
-    assertThrows<SepException> { sep10Service.getClientAccountId(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
   }
 
   @Test
@@ -610,9 +603,9 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `test createChallenge() ok when isRequireKnownOmnibusAccount is enabled`() {
-    every { sep10Config.isRequireKnownOmnibusAccount } returns true
-    every { sep10Config.omnibusAccountList } returns listOf(TEST_ACCOUNT)
+  fun `test createChallenge() ok when knownCustodialAccountRequired is enabled`() {
+    every { sep10Config.isKnownCustodialAccountRequired } returns true
+    every { sep10Config.knownCustodialAccountList } returns listOf(TEST_ACCOUNT)
     val cr =
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
@@ -622,14 +615,14 @@ internal class Sep10ServiceTest {
         .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
-    verify(exactly = 2) { sep10Config.omnibusAccountList }
+    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
+    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
   }
 
   @Test
-  fun `Test createChallenge() when isRequireKnownOmnibusAccount is not enabled`() {
-    every { sep10Config.isRequireKnownOmnibusAccount } returns false
-    every { sep10Config.omnibusAccountList } returns
+  fun `Test createChallenge() when isKnownCustodialAccountRequired is not enabled`() {
+    every { sep10Config.isKnownCustodialAccountRequired } returns false
+    every { sep10Config.knownCustodialAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr =
       ChallengeRequest.builder()
@@ -640,14 +633,14 @@ internal class Sep10ServiceTest {
         .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
-    verify(exactly = 2) { sep10Config.omnibusAccountList }
+    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
+    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
   }
 
   @Test
   fun `test createChallenge() failure when isRequireKnownOmnibusAccount is enabled and account mis-match`() {
-    every { sep10Config.isRequireKnownOmnibusAccount } returns true
-    every { sep10Config.omnibusAccountList } returns
+    every { sep10Config.isKnownCustodialAccountRequired } returns true
+    every { sep10Config.knownCustodialAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr =
       ChallengeRequest.builder()
@@ -658,8 +651,8 @@ internal class Sep10ServiceTest {
         .build()
 
     val ex = assertThrows<SepException> { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
-    verify(exactly = 2) { sep10Config.omnibusAccountList }
+    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
+    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
     assertInstanceOf(SepNotAuthorizedException::class.java, ex)
     assertEquals("unable to process", ex.message)
   }

@@ -5,6 +5,7 @@ NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
 
 WEB_AUTH_ENDPOINT = "http://localhost:8080/auth"
 KYC_SERVER = "http://localhost:8080/sep12"
+TRANSFER_SERVER = "http://localhost:8080/sep6"
 TRANSFER_SERVER_SEP0024 = "http://localhost:8080/sep24"
 DIRECT_PAYMENT_SERVER = "http://localhost:8080/sep31"
 ANCHOR_QUOTE_SERVER = "http://localhost:8080/sep38"

@@ -1,0 +1,12 @@
+languages: tw, en, fr
+
+clients:
+  - name: vibrant
+    type: noncustodial
+    domain: vibrant.co
+    callback_url: https://callback.vibrant.com/api/v2/anchor/callback
+    signing_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
+  - name: lobstr
+    type: noncustodial
+    domain: lobstr.co
+    callback_url: https://callback.lobstr.co/api/v2/anchor/callback

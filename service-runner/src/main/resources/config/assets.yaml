@@ -7,9 +7,15 @@ assets:
     deposit:
       enabled: true
       min_amount: 1
+      methods:
+        - SEPA
+        - SWIFT
     withdraw:
       enabled: true
       max_amount: 1000000
+      methods:
+        - bank_account
+        - cash
     send:
       fee_fixed: 0
       fee_percent: 0
@@ -48,6 +54,7 @@ assets:
     sep38:
       exchangeable_assets:
         - iso4217:USD
+    sep6_enabled: true
     sep24_enabled: true
     sep31_enabled: true
     sep38_enabled: true
@@ -97,6 +104,7 @@ assets:
     sep38:
       exchangeable_assets:
         - iso4217:USD
+    sep6_enabled: false
     sep24_enabled: true
     sep31_enabled: true
     sep38_enabled: true
@@ -129,6 +137,7 @@ assets:
       buy_delivery_methods:
         - name: WIRE
           description: Have USD sent directly to your bank account.
+    sep6_enabled: false
     sep24_enabled: false
     sep31_enabled: false
     sep38_enabled: true
@@ -182,6 +191,7 @@ assets:
       exchangeable_assets:
         - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
       decimals: 7
+    sep6_enabled: false
     sep31_enabled: false
     sep38_enabled: false
     sep24_enabled: true

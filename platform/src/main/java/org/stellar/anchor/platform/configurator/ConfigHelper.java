@@ -1,13 +1,15 @@
 package org.stellar.anchor.platform.configurator;
 
 import static org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.*;
-import static org.stellar.anchor.util.StringHelper.camelToSnake;
-import static org.stellar.anchor.util.StringHelper.isNotEmpty;
+import static org.stellar.anchor.util.StringHelper.*;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import lombok.AllArgsConstructor;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
@@ -71,15 +73,54 @@ public class ConfigHelper {
       posixFormToNormalizedName.put(StringHelper.toPosixForm(name), name);
     }
 
-    for (String name : ConfigEnvironment.names()) {
-      if (isNotEmpty(name)
-          && configSchema.has(posixFormToNormalizedName.get(name))
-          && !name.equals("VERSION")) {
-        // the envarg is defined in this version
-        config.put(posixFormToNormalizedName.get(name), ConfigEnvironment.getenv(name), ENV);
+    for (String envName : ConfigEnvironment.names()) {
+      if (isNotEmpty(envName) && !envName.equals("VERSION")) {
+        ListNameExtractResult listName = extractListNameIfAny(envName);
+        if (listName == null) {
+          if (configSchema.has(posixFormToNormalizedName.get(envName)))
+            config.put(
+                posixFormToNormalizedName.get(envName), ConfigEnvironment.getenv(envName), ENV);
+        } else {
+          // envName is an element of a list. Return the list name.
+          config.put(
+              (listName.listName + listName.index + "." + listName.elementName).toLowerCase(),
+              ConfigEnvironment.getenv(envName),
+              ENV);
+        }
       }
     }
     return config;
+  }
+
+  @AllArgsConstructor
+  static class ListNameExtractResult {
+    String originalName;
+    String listName;
+    String index;
+    String elementName;
+  }
+
+  // regex to extract the list name, index, and elementName if envName is an element of a list.
+  static String regexPattern = "(.*)(\\[\\d+\\])_(.*)";
+  static Pattern pattern = Pattern.compile(regexPattern);
+
+  /**
+   * Extract the list name, index, and elementName if envName is an element of a list.
+   *
+   * @param envName
+   * @return null if envName is not an element of a list in the config schema. Otherwise, return the
+   *     list name extraction result.
+   */
+  static ListNameExtractResult extractListNameIfAny(String envName) {
+    Matcher matcher = pattern.matcher(envName);
+    if (matcher.find()) {
+      // envName is an element of a list. Return the list name.
+      return new ListNameExtractResult(
+          matcher.group(0), matcher.group(1), matcher.group(2), matcher.group(3));
+    } else {
+      // no match
+      return null;
+    }
   }
 
   public static String normalize(String name) {

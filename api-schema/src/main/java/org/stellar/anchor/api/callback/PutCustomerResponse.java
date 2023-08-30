@@ -1,17 +1,21 @@
 package org.stellar.anchor.api.callback;
 
 import com.google.gson.Gson;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 
 /**
  * The response body of the PUT /customer endpoint.
  *
  * @see <a
- *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/ap/Callbacks%20API.yml">Callback
+ *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/anchor-platform/Callbacks%20API.yml">Callback
  *     API</a>
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PutCustomerResponse {
   String id;
 

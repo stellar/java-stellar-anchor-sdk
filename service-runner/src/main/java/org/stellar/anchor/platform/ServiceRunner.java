@@ -5,8 +5,8 @@ import static org.stellar.anchor.util.Log.info;
 import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.stellar.anchor.reference.AnchorReferenceServer;
-import org.stellar.reference.RefenreceServerStartKt;
+import org.stellar.reference.ReferenceServerStartKt;
+import org.stellar.reference.wallet.WalletServerStartKt;
 
 public class ServiceRunner {
   public static final int DEFAULT_ANCHOR_REFERENCE_SERVER_PORT = 8081;
@@ -22,6 +22,7 @@ public class ServiceRunner {
     options.addOption("e", "event-processor", false, "Start the event processor.");
     options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.");
     options.addOption("k", "kotlin-reference-server", false, "Start Kotlin reference server.");
+    options.addOption("w", "wallet-reference-server", false, "Start wallet reference server.");
     options.addOption("t", "test-profile-runner", false, "Run the stack with test profile.");
 
     CommandLineParser parser = new DefaultParser();
@@ -45,17 +46,17 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("event-processor") || cmd.hasOption("all")) {
-        startEventProcessor(null);
-        anyServerStarted = true;
-      }
-
-      if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
-        startAnchorReferenceServer(null);
+        startEventProcessingServer(null);
         anyServerStarted = true;
       }
 
       if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
-        startKotlinReferenceServer(null, true);
+        startKotlinReferenceServer(null, false);
+        anyServerStarted = true;
+      }
+
+      if (cmd.hasOption("wallet-reference-server") || cmd.hasOption("all")) {
+        startWalletServer(null, false);
         anyServerStarted = true;
       }
 
@@ -84,24 +85,16 @@ public class ServiceRunner {
     return new StellarObservingServer().start(env);
   }
 
-  public static ConfigurableApplicationContext startEventProcessor(Map<String, String> env) {
+  public static ConfigurableApplicationContext startEventProcessingServer(Map<String, String> env) {
     return new EventProcessingServer().start(env);
   }
 
-  public static ConfigurableApplicationContext startAnchorReferenceServer(Map<String, String> env) {
-    String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
-
-    int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
-
-    if (strPort != null) {
-      port = Integer.parseInt(strPort);
-    }
-
-    return AnchorReferenceServer.start(env, port, "/");
+  public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {
+    ReferenceServerStartKt.start(envMap, wait);
   }
 
-  public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {
-    RefenreceServerStartKt.start(envMap, wait);
+  public static void startWalletServer(Map<String, String> envMap, boolean wait) {
+    WalletServerStartKt.start(envMap, wait);
   }
 
   public static void startTestProfileRunner() {

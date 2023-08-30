@@ -142,7 +142,7 @@ internal class NetUtilTest {
       ]
   )
   fun `test valid server port with isServerPortValid`(testValue: String) {
-    assertTrue(isServerPortValid(testValue))
+    assertTrue(isServerPortValid(testValue, false))
   }
 
   @ParameterizedTest
@@ -160,7 +160,7 @@ internal class NetUtilTest {
       ]
   )
   fun `test bad server port with isServerPortValid`(testValue: String?) {
-    assertFalse(isServerPortValid(testValue))
+    assertFalse(isServerPortValid(testValue, true))
   }
 
   @ParameterizedTest

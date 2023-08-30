@@ -65,15 +65,13 @@ subprojects {
   }
 
   dependencies {
-    // This is to fix the missing implementation in JSR305 that causes "unknown enum constant
-    // When.MAYBE" warning.
+    // `rootProject` is required here if we want to use the libs object in the root project.
     implementation(rootProject.libs.findbugs.jsr305)
     implementation(rootProject.libs.aws.sqs)
     implementation(rootProject.libs.postgresql)
-    implementation(
-      rootProject.libs.scala.library
-    ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a
-      // safer one.
+    // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
+    // one.
+    implementation(rootProject.libs.scala.library)
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
     implementation(rootProject.libs.log4j.template.json)
@@ -122,6 +120,15 @@ subprojects {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
       }
     }
+
+    processResources {
+      doFirst {
+        val existingFile = file("$buildDir/resources/main/metadata.properties")
+        existingFile.delete()
+      }
+      // This is to replace the %APP_VERSION_TOKEN% in the  metadata.properties file.
+      filter { line -> line.replace("%APP_VERSION_TOKEN%", rootProject.version.toString()) }
+    }
   }
 
   configurations {
@@ -135,7 +142,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.1.3"
+  version = "2.2.0"
 
   tasks.jar {
     manifest {
@@ -144,8 +151,4 @@ allprojects {
       )
     }
   }
-}
-
-tasks.register("printVersionName") {
-  println(rootProject.version.toString())
 }

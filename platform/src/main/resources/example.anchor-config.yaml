@@ -83,7 +83,6 @@ sep12:
 sep24:
   enabled: true
   interactive_url:
-#    base_url: http://localhost:8091/sep24/interactive
     base_url: http://localhost:3000
 
 sep31:

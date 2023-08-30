@@ -3,20 +3,13 @@ package org.stellar.anchor.sep31;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.SepTransaction;
+import org.stellar.anchor.api.sep.operation.Sep31Operation;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.shared.*;
 
 @SuppressWarnings("unused")
-public interface Sep31Transaction {
-  String getId();
-
-  void setId(String id);
-
-  String getStatus();
-
-  void setStatus(String status);
-
+public interface Sep31Transaction extends SepTransaction {
   Long getStatusEta();
 
   void setStatusEta(Long statusEta);
@@ -61,27 +54,9 @@ public interface Sep31Transaction {
 
   void setStellarMemoType(String stellarMemoType);
 
-  Instant getStartedAt();
-
-  void setStartedAt(Instant startedAt);
-
-  Instant getUpdatedAt();
-
-  void setUpdatedAt(Instant updatedAt);
-
   Instant getTransferReceivedAt();
 
   void setTransferReceivedAt(Instant transferReceivedAt);
-
-  Instant getCompletedAt();
-
-  void setCompletedAt(Instant completedAt);
-
-  String getStellarTransactionId();
-
-  void setStellarTransactionId(String stellarTransactionId);
-
-  List<StellarTransaction> getStellarTransactions();
 
   void setStellarTransactions(List<StellarTransaction> stellarTransactions);
 
@@ -105,9 +80,9 @@ public interface Sep31Transaction {
 
   void setFields(Map<String, String> fields);
 
-  AssetInfo.Sep31TxnFieldSpecs getRequiredInfoUpdates();
+  Sep31Operation.Fields getRequiredInfoUpdates();
 
-  void setRequiredInfoUpdates(AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates);
+  void setRequiredInfoUpdates(Sep31Operation.Fields requiredInfoUpdates);
 
   String getQuoteId();
 

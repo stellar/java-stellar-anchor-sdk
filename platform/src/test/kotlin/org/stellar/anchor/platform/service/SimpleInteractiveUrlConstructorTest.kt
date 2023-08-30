@@ -11,6 +11,7 @@ import java.util.stream.Stream
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -18,9 +19,11 @@ import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerResponse
+import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.SecretConfig
+import org.stellar.anchor.platform.config.ClientsConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor.FORWARD_KYC_CUSTOMER_TYPE
@@ -36,6 +39,7 @@ class SimpleInteractiveUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
+  @MockK(relaxed = true) private lateinit var clientsConfig: ClientsConfig
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   private lateinit var jwtService: JwtService
   private lateinit var sep24Config: PropertySep24Config
@@ -46,6 +50,32 @@ class SimpleInteractiveUrlConstructorTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "sep24_jwt_secret"
+
+    val clientConfig =
+      ClientsConfig.ClientConfig(
+        "lobstr",
+        ClientsConfig.ClientType.NONCUSTODIAL,
+        "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+        "lobstr.co",
+        "https://callback.lobstr.co/api/v2/anchor/callback"
+      )
+    every { clientsConfig.getClientConfigByDomain(any()) } returns null
+    every { clientsConfig.getClientConfigByDomain(clientConfig.domain) } returns clientConfig
+    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKey) } returns
+      clientConfig
+    every {
+      clientsConfig.getClientConfigBySigningKey(
+        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      )
+    } returns
+      ClientsConfig.ClientConfig(
+        "some-wallet",
+        ClientsConfig.ClientType.CUSTODIAL,
+        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+        null,
+        null
+      )
+
     jwtService = JwtService(secretConfig)
     sep24Config = gson.fromJson(SEP24_CONFIG_JSON_1, PropertySep24Config::class.java)
     request = gson.fromJson(REQUEST_JSON_1, HashMap::class.java) as HashMap<String, String>
@@ -59,17 +89,52 @@ class SimpleInteractiveUrlConstructorTest {
     val testRequest = gson.fromJson(requestJson, HashMap::class.java)
     val testTxn = gson.fromJson(txnJson, JdbcSep24Transaction::class.java)
 
-    val constructor = SimpleInteractiveUrlConstructor(testConfig, customerIntegration, jwtService)
+    val constructor =
+      SimpleInteractiveUrlConstructor(clientsConfig, testConfig, customerIntegration, jwtService)
 
     var jwt =
       parseJwtFromUrl(constructor.construct(testTxn, testRequest as HashMap<String, String>?))
     testJwt(jwt)
+    var claims = jwt.claims
     assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO:1234", jwt.sub)
+    assertEquals("lobstr.co", claims["client_domain"] as String)
+    assertEquals("lobstr", claims["client_name"] as String)
 
+    // Unknown client domain
     testTxn.sep10AccountMemo = null
+    testTxn.clientDomain = "unknown.com"
     jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest))
+    claims = jwt.claims
     testJwt(jwt)
     assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO", jwt.sub)
+    assertEquals("unknown.com", claims["client_domain"] as String)
+    assertNull(claims["client_name"])
+
+    // Custodial wallet
+    testTxn.sep10Account = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    testTxn.sep10AccountMemo = "1234"
+    testTxn.clientDomain = null
+    jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest))
+    claims = jwt.claims
+    testJwt(jwt)
+    assertEquals("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP:1234", jwt.sub)
+    assertNull(claims["client_domain"])
+    assertEquals("some-wallet", claims["client_name"] as String)
+  }
+
+  @Test
+  fun `test non-custodial wallet with missing client domain`() {
+    val testConfig = gson.fromJson(SEP24_CONFIG_JSON_1, PropertySep24Config::class.java)
+    val testRequest = gson.fromJson(REQUEST_JSON_1, HashMap::class.java)
+    val testTxn = gson.fromJson(TXN_JSON_1, JdbcSep24Transaction::class.java)
+
+    val constructor =
+      SimpleInteractiveUrlConstructor(clientsConfig, testConfig, customerIntegration, jwtService)
+
+    testTxn.clientDomain = null
+    assertThrows<SepValidationException> {
+      constructor.construct(testTxn, testRequest as HashMap<String, String>?)
+    }
   }
 
   @Test
@@ -78,7 +143,8 @@ class SimpleInteractiveUrlConstructorTest {
     val capturedPutCustomerRequest = slot<PutCustomerRequest>()
     every { customerIntegration.putCustomer(capture(capturedPutCustomerRequest)) } returns
       PutCustomerResponse()
-    val constructor = SimpleInteractiveUrlConstructor(sep24Config, customerIntegration, jwtService)
+    val constructor =
+      SimpleInteractiveUrlConstructor(clientsConfig, sep24Config, customerIntegration, jwtService)
     sep24Config.kycFieldsForwarding.isEnabled = true
     constructor.construct(txn, request as HashMap<String, String>?)
     assertEquals(capturedPutCustomerRequest.captured.type, FORWARD_KYC_CUSTOMER_TYPE)
@@ -90,7 +156,8 @@ class SimpleInteractiveUrlConstructorTest {
   @Test
   fun `when kycFieldsForwarding is disabled, the customerIntegration should not receive the kyc fields`() {
     val customerIntegration: CustomerIntegration = mockk()
-    val constructor = SimpleInteractiveUrlConstructor(sep24Config, customerIntegration, jwtService)
+    val constructor =
+      SimpleInteractiveUrlConstructor(clientsConfig, sep24Config, customerIntegration, jwtService)
     sep24Config.kycFieldsForwarding.isEnabled = false
     constructor.construct(txn, request as HashMap<String, String>?)
     verify(exactly = 0) { customerIntegration.putCustomer(any()) }
@@ -106,6 +173,8 @@ class SimpleInteractiveUrlConstructorTest {
     val claims = jwt.claims()
     assertEquals("txn_123", jwt.jti as String)
     assertTrue(Instant.ofEpochSecond(jwt.exp).isAfter(Instant.now()))
+
+    // Transaction data
     val data = claims["data"] as Map<String, String>
     assertEquals("deposit", data["kind"] as String)
     assertEquals("100", data["amount"] as String)
@@ -164,6 +233,7 @@ private const val TXN_JSON_1 =
   "sep10_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
   "sep10_account_memo": "1234",
   "amount_in": "100",
-  "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+  "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+  "client_domain": "lobstr.co"
 }  
 """

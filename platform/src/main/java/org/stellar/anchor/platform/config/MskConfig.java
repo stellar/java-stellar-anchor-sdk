@@ -16,8 +16,9 @@ public class MskConfig extends KafkaConfig {
       String clientId,
       int retires,
       int lingerMs,
-      int batchSize) {
-    super(bootstrapServer, clientId, retires, lingerMs, batchSize);
+      int batchSize,
+      int pollTimeoutSeconds) {
+    super(bootstrapServer, clientId, retires, lingerMs, batchSize, pollTimeoutSeconds);
     this.useIAM = useIAM;
   }
 }

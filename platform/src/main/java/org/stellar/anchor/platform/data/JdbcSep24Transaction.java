@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.BeanUtils;
+import org.stellar.anchor.SepTransaction;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24Transaction;
@@ -31,10 +32,6 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @SerializedName("status_eta")
   @Column(name = "status_eta")
   String statusEta;
-
-  @SerializedName("more_info_url")
-  @Column(name = "more_info_url")
-  String moreInfoUrl;
 
   @SerializedName("transaction_id")
   @Column(name = "transaction_id")

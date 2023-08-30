@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.Builder;
 import lombok.Data;
@@ -26,24 +27,37 @@ import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.reference.config.KafkaListenerSettings;
+import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
 public class KafkaListener extends AbstractEventListener implements HealthCheckable {
   private final KafkaListenerSettings kafkaListenerSettings;
   private final AnchorEventProcessor processor;
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
-  private Consumer<String, AnchorEvent> consumer;
+  private Consumer<String, String> consumer;
 
   public KafkaListener(
       KafkaListenerSettings kafkaListenerSettings, AnchorEventProcessor processor) {
     this.kafkaListenerSettings = kafkaListenerSettings;
     this.processor = processor;
+  }
+
+  @PostConstruct
+  public void start() {
     if (kafkaListenerSettings.getEnabled()) {
       this.executor.submit(this::listen);
     }
   }
 
-  Consumer<String, AnchorEvent> createKafkaConsumer() {
+  @PreDestroy
+  public void stop() {
+    if (consumer != null) {
+      consumer.close();
+    }
+    executor.shutdown();
+  }
+
+  Consumer<String, String> createKafkaConsumer() {
     Properties props = new Properties();
 
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaListenerSettings.getBootStrapServer());
@@ -53,7 +67,7 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     if (kafkaListenerSettings.isUseIAM()) {
       props.put("security.protocol", "SASL_SSL");
       props.put("sasl.mechanism", "AWS_MSK_IAM");
@@ -69,7 +83,7 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
   public void listen() {
     Log.info("Kafka event consumer server started ");
 
-    Consumer<String, AnchorEvent> consumer = createKafkaConsumer();
+    Consumer<String, String> consumer = createKafkaConsumer();
 
     KafkaListenerSettings.Queues q = kafkaListenerSettings.getEventTypeToQueue();
     consumer.subscribe(
@@ -83,28 +97,18 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
 
     while (!Thread.interrupted()) {
       try {
-        ConsumerRecords<String, AnchorEvent> consumerRecords =
-            consumer.poll(Duration.ofSeconds(10));
+        ConsumerRecords<String, String> consumerRecords = consumer.poll(Duration.ofSeconds(10));
         Log.info(String.format("Messages received: %s", consumerRecords.count()));
         consumerRecords.forEach(
             record -> {
-              AnchorEvent event = record.value();
+              AnchorEvent event =
+                  GsonUtils.getInstance().fromJson(record.value(), AnchorEvent.class);
               processor.handleEvent(event);
             });
       } catch (Exception ex) {
         Log.errorEx(ex);
       }
     }
-  }
-
-  public void stop() {
-    executor.shutdownNow();
-  }
-
-  @PreDestroy
-  public void destroy() {
-    consumer.close();
-    stop();
   }
 
   @Override
@@ -146,7 +150,7 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
   }
 
   boolean validateKafka() {
-    try (Consumer<String, AnchorEvent> csm = createKafkaConsumer()) {
+    try (Consumer<String, String> csm = createKafkaConsumer()) {
       csm.listTopics();
       return true;
     } catch (Throwable throwable) {
