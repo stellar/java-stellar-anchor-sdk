@@ -14,6 +14,7 @@ commons-validator = "1.7"
 commons-text = "1.10.0"
 docker-compose-rule = "1.9.0"
 dotenv = "2.3.2"
+exposed = "0.41.1"
 findbugs-jsr305 = "3.0.2"
 flyway-core = "8.5.13"
 google-gson = "2.8.9"
@@ -34,7 +35,7 @@ kafka-json-schema = "7.0.1"
 kotlin = "1.8.20"
 kotlin-logging = "3.0.2"
 kotlinx-json = "1.5.0"
-ktor = "2.3.0"
+ktor = "2.3.3"
 log4j = "2.19.0"
 log4j-template-json = "2.19.0"
 lombok = "1.18.22"
@@ -76,6 +77,8 @@ commons-validator = { module = "commons-validator:commons-validator", version.re
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 docker-compose-rule = { module = "com.palantir.docker.compose:docker-compose-junit-jupiter", version.ref = "docker-compose-rule" }
 dotenv = { module = "io.github.cdimascio:dotenv-java", version.ref = "dotenv" }
+exposed = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 findbugs-jsr305 = { module = "com.google.code.findbugs:jsr305", version.ref = "findbugs-jsr305" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core" }
 google-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
@@ -110,6 +113,8 @@ ktor-client-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
 log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
@@ -143,8 +148,9 @@ aws-java-sdk-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws
 slf4j = ["slf4j-api", "slf4j-log4j12"]
 junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine", "kotlin-stdlib", "kotlin-junit", "mockk"]
 kafka = ["kafka-clients", "kafka-connect", "kafka-json-schema"]
-ktor = ["ktor-core", "ktor-content-negotiation", "ktor-netty", "ktor-yaml", "ktor-cors"]
+ktor = ["ktor-core", "ktor-content-negotiation", "ktor-netty", "ktor-yaml", "ktor-cors", "ktor-server-auth", "ktor-server-auth-jwt"]
 ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-client-json", "ktor-client-okhttp"]
+exposed = ["exposed", "exposed-jdbc"]
 
 [plugins]
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

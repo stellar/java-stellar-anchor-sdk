@@ -232,8 +232,7 @@ public class StellarPaymentObserver implements HealthCheckable {
             infoF(
                 "The streamer needs restart. Start backoff timer: {} seconds",
                 streamBackoffTimer.currentTimer());
-            streamBackoffTimer.sleep();
-            streamBackoffTimer.increase();
+            streamBackoffTimer.backoff();
             restartStream();
           } catch (InterruptedException e) {
             // if this thread is interrupted, we are shutting down the status watcher.
@@ -263,8 +262,7 @@ public class StellarPaymentObserver implements HealthCheckable {
           infoF(
               "Start the publishing backoff timer: {} seconds",
               publishingBackoffTimer.currentTimer());
-          publishingBackoffTimer.sleep();
-          publishingBackoffTimer.increase();
+          publishingBackoffTimer.backoff();
           restartStream();
         } catch (InterruptedException e) {
           // if this thread is interrupted, we are shutting down the status watcher.
@@ -280,8 +278,7 @@ public class StellarPaymentObserver implements HealthCheckable {
             infoF(
                 "Start the database backoff timer: {} seconds",
                 databaseBackoffTimer.currentTimer());
-            databaseBackoffTimer.sleep();
-            databaseBackoffTimer.increase();
+            databaseBackoffTimer.backoff();
             // now try to connect to database
             restartStream();
           }

@@ -1,1 +1,1 @@
-./docs/00 - Stellar Anchor Platform.md
+./docs/README.md

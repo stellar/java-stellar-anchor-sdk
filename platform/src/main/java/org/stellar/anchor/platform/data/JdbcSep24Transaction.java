@@ -33,10 +33,6 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @Column(name = "status_eta")
   String statusEta;
 
-  @SerializedName("more_info_url")
-  @Column(name = "more_info_url")
-  String moreInfoUrl;
-
   @SerializedName("transaction_id")
   @Column(name = "transaction_id")
   String transactionId;
