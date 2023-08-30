@@ -9,6 +9,7 @@ import io.ktor.server.routing.*
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.reference.callbacks.BadRequestException
 import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
 
 /**
@@ -40,9 +41,13 @@ fun Route.customer(customerService: CustomerService) {
         call.respond(response)
       }
       delete("{id}") {
-        val id = call.parameters["id"]!!
-        customerService.deleteCustomer(id)
-        call.respond(HttpStatusCode.NoContent)
+        try {
+          val id = call.parameters["id"]!!
+          customerService.deleteCustomer(id)
+          call.respond(HttpStatusCode.NoContent)
+        } catch (e: NullPointerException) {
+          throw BadRequestException("id must be provided")
+        }
       }
     }
   }
