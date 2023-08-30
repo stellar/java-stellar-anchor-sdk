@@ -1,6 +1,5 @@
 package org.stellar.reference.dao
 
-import java.io.Closeable
 import java.time.Instant
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -11,7 +10,7 @@ import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.model.Quote
 import org.stellar.reference.model.RateFee
 
-interface QuoteRepository : Closeable {
+interface QuoteRepository {
   fun get(id: String): Quote?
   fun create(quote: Quote): String?
 }
@@ -70,6 +69,4 @@ class JdbcQuoteRepository(private val db: Database) : QuoteRepository {
       .resultedValues
       ?.firstOrNull()
       ?.get(Quotes.id)
-
-  override fun close() {}
 }

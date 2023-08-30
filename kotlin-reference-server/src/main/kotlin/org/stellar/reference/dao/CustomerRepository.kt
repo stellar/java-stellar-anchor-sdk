@@ -1,12 +1,12 @@
 package org.stellar.reference.dao
 
-import java.io.Closeable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.stellar.reference.model.Customer
 
-interface CustomerRepository : Closeable {
+interface CustomerRepository {
   fun get(id: String): Customer?
   fun get(stellarAccount: String, memo: String?, memoType: String?): Customer?
   fun create(customer: Customer): String?
@@ -43,7 +43,11 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
   override fun get(stellarAccount: String, memo: String?, memoType: String?): Customer? {
     val query =
       when {
-        memo == null && memoType == null -> Customers.stellarAccount.eq(stellarAccount)
+        memo == null && memoType == null -> {
+          Customers.stellarAccount.eq(stellarAccount) and
+            Customers.memo.isNull() and
+            Customers.memoType.isNull()
+        }
         else -> {
           Customers.stellarAccount.eq(stellarAccount) and
             Customers.memo.eq(memo!!) and
@@ -109,6 +113,4 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
 
   override fun delete(id: String): Unit =
     transaction(db) { Customers.deleteWhere { Customers.id.eq(id) } }
-
-  override fun close() {}
 }

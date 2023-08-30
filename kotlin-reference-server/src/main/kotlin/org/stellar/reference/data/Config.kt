@@ -17,6 +17,7 @@ data class Sep24(val enableTest: Boolean, val secret: String, val interactiveJwt
 
 data class AppSettings(
   val version: String,
+  val isTest: Boolean,
   val port: Int,
   val horizonEndpoint: String,
   val platformApiEndpoint: String,
