@@ -12,6 +12,8 @@ app:
   distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
   distributionWalletMemo:
   distributionWalletMemoType:
+  # When true, enables test endpoints
+  enableTest: true
   # Indicates, that custody integration is enabled
   custodyEnabled: false
   # Indicates, that RPC requests should be used instead of PATCH /transactions endpoint
@@ -42,7 +44,5 @@ sep24:
   # Secret key used to send funds to user accounts.
   # Public key: GABCKCYPAGDDQMSCTMSBO7C2L34NU3XXCW7LR4VVSWCCXMAJY3B4YCZP
   secret: "SAJW2O2NH5QMMVWYAN352OEXS2RUY675A2HPK5HEG2FRR2NXPYA4OLYN"
-  # When true, enables test endpoints
-  enableTest: true
   # Encryption key for interactive JWT
   interactiveJwtKey: "secret_sep24_interactive_url_jwt_secret"

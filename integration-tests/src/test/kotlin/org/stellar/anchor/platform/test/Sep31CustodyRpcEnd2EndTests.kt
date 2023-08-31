@@ -125,8 +125,6 @@ class Sep31CustodyRpcEnd2EndTests(
         }
       }
     }
-    info("callback ---------------------------------------------")
-    info(json(actualCallbacks))
     JSONAssert.assertEquals(json(expectedCallbacks), json(actualCallbacks), true)
   }
 
