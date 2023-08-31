@@ -34,16 +34,15 @@ contribute to this project.
 
 ## Directory Layout
 - __docs__: Contains the documentation for the Anchor Platform.
-- __api_schema__: Contains the Java classes and interfaces that represent the API schema.
+- __api-schema__: Contains the Java classes and interfaces that represent the API schema.
 - __core__: Contains the core Anchor Platform implementation. Most of the SEP business logics are implemented here. No
   infrastructures, such as database, configuration, queue, or logging implementations are assumed in this sub-project.
 - __platform__: Contains the Anchor Platform implementation that uses Spring Boot as the underlying framework. This
   sub-project is responsible for providing the infrastructure implementations, such as database, configuration, queue,
   and logging. The `sep-server`, `platform-server`, `event-processor` and `stellar-observer` services are also implemented here.
-- __kotlin_reference_server__: Contains the anchor's reference server implementation in Kotlin.
-- __anchor_reference_server__: Contains the anchor's reference server implementation in Java. This will be deprecated soon.
-- __wallet_reference_server__: Contains the wallet's reference server implementation in Kotlin.
-- __service_runner__: Contains the service runner implementation that runs services, such as SEP, platform, payment
+- __kotlin-reference-server__: Contains the anchor's reference server implementation in Kotlin.
+- __wallet-reference-server__: Contains the wallet's reference server implementation in Kotlin.
+- __service-runner__: Contains the service runner implementation that runs services, such as SEP, platform, payment
   observer, and reference servers, etc. It also contains the main entry point of the Anchor Platform.
 - __integration-tests__: Contains the integration tests and end-2-end tests for the Anchor Platform.
 
