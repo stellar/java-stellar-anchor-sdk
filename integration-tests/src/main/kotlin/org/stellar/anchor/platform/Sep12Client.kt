@@ -93,7 +93,7 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
    * change to NEEDS_INFO if it's a receiving customer.
    */
   fun invalidateCustomerClabe(id: String) {
-    val url = String.format("http://localhost:8081/invalidate_clabe/%s", id)
+    val url = String.format("http://localhost:8091/invalidate_clabe/%s", id)
     httpGet(url, jwt)
   }
 }
