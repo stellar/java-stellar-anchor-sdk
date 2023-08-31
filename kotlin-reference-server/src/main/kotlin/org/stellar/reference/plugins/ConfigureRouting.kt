@@ -60,4 +60,7 @@ fun Application.configureRouting(cfg: Config) = routing {
   if (cfg.appSettings.isTest) {
     testCustomer(customerService)
   }
+  if (cfg.appSettings.isTest) {
+    testCustomer(customerService)
+  }
 }

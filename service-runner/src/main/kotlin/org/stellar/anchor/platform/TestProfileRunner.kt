@@ -106,7 +106,7 @@ class TestProfileExecutor(val config: TestConfig) {
         info("Starting wallet server...")
         jobs += scope.launch { ServiceRunner.startWalletServer(envMap, wait) }
       }
-      if (shouldStartAllServers || shouldStartObserver) {
+      if ((shouldStartAllServers || shouldStartObserver) && !custodyEnabled) {
         info("Starting observer...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
       }
