@@ -14,7 +14,6 @@ import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.SepTransaction;
 import org.stellar.anchor.api.sep.operation.Sep31Operation;
 import org.stellar.anchor.api.shared.StellarId;
-import org.stellar.anchor.reference.model.StellarIdConverter;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 

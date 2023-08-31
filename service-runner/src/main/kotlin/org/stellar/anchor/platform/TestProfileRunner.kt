@@ -21,7 +21,6 @@ const val RUN_EVENT_PROCESSING_SERVER = "run_event_processing_server"
 const val RUN_PAYMENT_OBSERVER = "run_observer"
 const val RUN_CUSTODY_SERVER = "run_custody_server"
 const val RUN_KOTLIN_REFERENCE_SERVER = "run_kotlin_reference_server"
-const val RUN_REFERENCE_SERVER = "run_reference_server"
 const val RUN_WALLET_SERVER = "run_wallet_server"
 
 lateinit var testProfileExecutor: TestProfileExecutor
@@ -51,7 +50,6 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartAllServers: Boolean = false
   private var shouldStartSepServer: Boolean = false
   private var shouldStartPlatformServer: Boolean = false
-  private var shouldStartReferenceServer: Boolean = false
   private var shouldStartWalletServer: Boolean = false
   private var shouldStartObserver: Boolean = false
   private var shouldStartCustodyServer: Boolean = false
@@ -73,7 +71,6 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartCustodyServer = config.env[RUN_CUSTODY_SERVER].toBoolean()
     shouldStartEventProcessingServer = config.env[RUN_EVENT_PROCESSING_SERVER].toBoolean()
     shouldStartKotlinReferenceServer = config.env[RUN_KOTLIN_REFERENCE_SERVER].toBoolean()
-    shouldStartReferenceServer = config.env[RUN_REFERENCE_SERVER].toBoolean()
     shouldStartWalletServer = config.env[RUN_WALLET_SERVER].toBoolean()
 
     custodyEnabled = "none" != config.env["custody.type"]
@@ -108,11 +105,6 @@ class TestProfileExecutor(val config: TestConfig) {
       if (shouldStartAllServers || shouldStartWalletServer) {
         info("Starting wallet server...")
         jobs += scope.launch { ServiceRunner.startWalletServer(envMap, wait) }
-      }
-      if (shouldStartAllServers || shouldStartReferenceServer) {
-        info("Starting Java reference server...")
-        jobs +=
-          scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer(envMap)) }
       }
       if ((shouldStartAllServers || shouldStartObserver) && !custodyEnabled) {
         info("Starting observer...")

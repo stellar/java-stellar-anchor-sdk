@@ -3,7 +3,10 @@ package org.stellar.anchor.api.callback;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.shared.CustomerField;
 import org.stellar.anchor.api.shared.ProvidedCustomerField;
@@ -16,6 +19,9 @@ import org.stellar.anchor.api.shared.ProvidedCustomerField;
  *     API</a>
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class GetCustomerResponse {
   String id;
   String status;

@@ -10,13 +10,10 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.stellar.anchor.reference.AnchorReferenceServer;
-import org.stellar.reference.RefenreceServerStartKt;
+import org.stellar.reference.ReferenceServerStartKt;
 import org.stellar.reference.wallet.WalletServerStartKt;
 
 public class ServiceRunner {
-
-  public static final int DEFAULT_ANCHOR_REFERENCE_SERVER_PORT = 8081;
 
   public static void main(String[] args) {
     Options options = new Options();
@@ -63,11 +60,6 @@ public class ServiceRunner {
         anyServerStarted = true;
       }
 
-      if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
-        startAnchorReferenceServer(null);
-        anyServerStarted = true;
-      }
-
       if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
         startKotlinReferenceServer(null, true);
         anyServerStarted = true;
@@ -111,20 +103,8 @@ public class ServiceRunner {
     return new EventProcessingServer().start(env);
   }
 
-  public static ConfigurableApplicationContext startAnchorReferenceServer(Map<String, String> env) {
-    String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
-
-    int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
-
-    if (strPort != null) {
-      port = Integer.parseInt(strPort);
-    }
-
-    return AnchorReferenceServer.start(env, port, "/");
-  }
-
   public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {
-    RefenreceServerStartKt.start(envMap, wait);
+    ReferenceServerStartKt.start(envMap, wait);
   }
 
   public static void startWalletServer(Map<String, String> envMap, boolean wait) {
