@@ -11,12 +11,13 @@ data class Config(
   val sep24: Sep24
 )
 
-data class Sep24(val enableTest: Boolean, val secret: String, val interactiveJwtKey: String) {
+data class Sep24(val secret: String, val interactiveJwtKey: String) {
   val keyPair = KeyPair.fromSecretSeed(secret)
 }
 
 data class AppSettings(
   val version: String,
+  val isTest: Boolean,
   val port: Int,
   val horizonEndpoint: String,
   val platformApiEndpoint: String,
@@ -24,7 +25,8 @@ data class AppSettings(
   val distributionWalletMemo: String,
   val distributionWalletMemoType: String,
   val custodyEnabled: Boolean,
-  val rpcEnabled: Boolean
+  val rpcEnabled: Boolean,
+  val enableTest: Boolean
 )
 
 data class AuthSettings(

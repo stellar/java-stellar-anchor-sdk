@@ -94,7 +94,7 @@ jobs:
 
       - name: Run Stellar validation tool
         run: |
-          docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.5.12 --home-domain http://host.docker.internal:8080 --seps 1 10 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json
+          docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.5.12 --home-domain http://host.docker.internal:8080 --seps 1 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
 
   analyze:
     name: CodeQL Analysis

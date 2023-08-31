@@ -4,11 +4,12 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import mu.KotlinLogging
 import org.stellar.reference.data.*
+import org.stellar.reference.service.SepHelper
 
 private val log = KotlinLogging.logger {}
 
 class WithdrawalService(private val cfg: Config) {
-  private val sep24 = Sep24Helper(cfg)
+  private val sep24 = SepHelper(cfg)
 
   suspend fun processWithdrawal(
     transactionId: String,

@@ -11,15 +11,16 @@ import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.stellar.reference.ClientException
 import org.stellar.reference.data.DepositRequest
-import org.stellar.reference.data.ErrorResponse
+import org.stellar.reference.data.MessageResponse
 import org.stellar.reference.data.Success
 import org.stellar.reference.data.WithdrawalRequest
 import org.stellar.reference.jwt.JwtDecoder
+import org.stellar.reference.service.SepHelper
 
 private val log = KotlinLogging.logger {}
 
 fun Route.sep24(
-  sep24: Sep24Helper,
+  sep24: SepHelper,
   depositService: DepositService,
   withdrawalService: WithdrawalService,
   jwtKey: String
@@ -49,11 +50,11 @@ fun Route.sep24(
         call.respond(Success(transactionId))
       } catch (e: ClientException) {
         log.error(e)
-        call.respond(ErrorResponse(e.message!!))
+        call.respond(MessageResponse(e.message!!))
       } catch (e: Exception) {
         log.error(e)
         call.respond(
-          ErrorResponse("Error occurred: ${e.message}"),
+          MessageResponse("Error occurred: ${e.message}"),
         )
       }
     }
@@ -133,16 +134,16 @@ fun Route.sep24(
           }
           else ->
             call.respond(
-              ErrorResponse("The only supported operations are \"deposit\" or \"withdrawal\""),
+              MessageResponse("The only supported operations are \"deposit\" or \"withdrawal\""),
             )
         }
       } catch (e: ClientException) {
         log.error(e)
-        call.respond(ErrorResponse(e.message!!))
+        call.respond(MessageResponse(e.message!!))
       } catch (e: Exception) {
         log.error(e)
         call.respond(
-          ErrorResponse("Error occurred: ${e.message}"),
+          MessageResponse("Error occurred: ${e.message}"),
         )
       }
     }
@@ -167,11 +168,11 @@ fun Route.sep24(
         call.respond(transaction)
       } catch (e: ClientException) {
         log.error(e)
-        call.respond(ErrorResponse(e.message!!))
+        call.respond(MessageResponse(e.message!!))
       } catch (e: Exception) {
         log.error(e)
         call.respond(
-          ErrorResponse("Error occurred: ${e.message}"),
+          MessageResponse("Error occurred: ${e.message}"),
         )
       }
     }

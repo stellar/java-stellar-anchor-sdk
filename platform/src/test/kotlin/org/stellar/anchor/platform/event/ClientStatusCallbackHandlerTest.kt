@@ -20,6 +20,7 @@ import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.sep24.Sep24Helper
 import org.stellar.anchor.sep24.Sep24Helper.fromTxn
 import org.stellar.anchor.sep24.Sep24TransactionStore
+import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.StringHelper.json
 import org.stellar.sdk.KeyPair
 
@@ -32,6 +33,7 @@ class ClientStatusCallbackHandlerTest {
   private lateinit var event: AnchorEvent
 
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
+  @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
 
@@ -43,6 +45,7 @@ class ClientStatusCallbackHandlerTest {
     clientConfig.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
 
     sep24TransactionStore = mockk<Sep24TransactionStore>()
+    sep31TransactionStore = mockk<Sep31TransactionStore>()
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
     mockkStatic(Sep24Helper::class)
     every { fromTxn(any(), any(), any()) } returns mockk<TransactionResponse>()
@@ -65,6 +68,7 @@ class ClientStatusCallbackHandlerTest {
         secretConfig,
         clientConfig,
         sep24TransactionStore,
+        sep31TransactionStore,
         assetService,
         moreInfoUrlConstructor
       )

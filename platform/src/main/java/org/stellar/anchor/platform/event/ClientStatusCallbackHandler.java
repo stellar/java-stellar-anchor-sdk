@@ -16,6 +16,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.stellar.anchor.api.event.AnchorEvent;
+import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
 import org.stellar.anchor.asset.AssetService;
@@ -24,6 +25,8 @@ import org.stellar.anchor.platform.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
+import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.sdk.KeyPair;
 
 public class ClientStatusCallbackHandler extends EventHandler {
@@ -37,6 +40,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
   private final SecretConfig secretConfig;
   private final ClientConfig clientConfig;
   private final Sep24TransactionStore sep24TransactionStore;
+  private final Sep31TransactionStore sep31TransactionStore;
   private final AssetService assetService;
   private final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
@@ -44,12 +48,14 @@ public class ClientStatusCallbackHandler extends EventHandler {
       SecretConfig secretConfig,
       ClientConfig clientConfig,
       Sep24TransactionStore sep24TransactionStore,
+      Sep31TransactionStore sep31TransactionStore,
       AssetService assetService,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
     super();
     this.secretConfig = secretConfig;
     this.clientConfig = clientConfig;
     this.sep24TransactionStore = sep24TransactionStore;
+    this.sep31TransactionStore = sep31TransactionStore;
     this.assetService = assetService;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
@@ -95,16 +101,20 @@ public class ClientStatusCallbackHandler extends EventHandler {
   }
 
   private String getPayload(AnchorEvent event)
-      throws SepException, MalformedURLException, URISyntaxException {
+      throws AnchorException, MalformedURLException, URISyntaxException {
     switch (event.getTransaction().getSep()) {
       case SEP_24:
         Sep24Transaction sep24Txn =
             sep24TransactionStore.findByTransactionId(event.getTransaction().getId());
-        Sep24GetTransactionResponse txnResponse =
+        Sep24GetTransactionResponse txn24Response =
             Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, sep24Txn));
-        return json(txnResponse);
+        return json(txn24Response);
+      case SEP_31:
+        Sep31Transaction sep31Txn =
+            sep31TransactionStore.findByTransactionId(event.getTransaction().getId());
+        return json(sep31Txn.toSep31GetTransactionResponse());
       default:
-        throw new SepException("Only SEP-24 is supported");
+        throw new SepException("Only SEP-24 and SEP-31 are supported");
     }
   }
 }

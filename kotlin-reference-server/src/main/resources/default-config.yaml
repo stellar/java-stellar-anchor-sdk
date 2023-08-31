@@ -1,5 +1,7 @@
 app:
   version: 0.0.1
+  # Enables test endpoints.
+  isTest: true
   # The port on which the server will listen for requests.
   port: 8091
   # The URL of the Stellar network to which the Anchor will connect.
