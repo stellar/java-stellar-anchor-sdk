@@ -7,7 +7,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.stellar.anchor.api.callback.GetUniqueAddressRequest
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.reference.log
 import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
 
 /**
@@ -20,14 +19,8 @@ fun Route.uniqueAddress(uniqueAddressService: UniqueAddressService) {
   authenticate(AUTH_CONFIG_ENDPOINT) {
     get("/unique_address") {
       val request = GetUniqueAddressRequest(call.parameters["transaction_id"]!!)
-      try {
-        val response =
-          GsonUtils.getInstance().toJson(uniqueAddressService.getUniqueAddress(request))
-        call.respond(response)
-      } catch (e: Exception) {
-        log.error("Unexpected exception", e)
-        call.respond(HttpStatusCode.InternalServerError)
-      }
+      val response = GsonUtils.getInstance().toJson(uniqueAddressService.getUniqueAddress(request))
+      call.respond(response)
     }
   }
 }

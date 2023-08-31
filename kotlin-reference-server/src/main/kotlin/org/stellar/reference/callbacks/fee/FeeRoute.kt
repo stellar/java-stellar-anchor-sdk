@@ -7,9 +7,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.reference.callbacks.BadRequestException
-import org.stellar.reference.callbacks.UnprocessableEntityException
-import org.stellar.reference.log
 import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
 
 /**
@@ -31,17 +28,8 @@ fun Route.fee(feeService: FeeService) {
           .senderId(call.parameters["sender_id"])
           .receiverId(call.parameters["receiver_id"])
           .build()
-      try {
-        val response = GsonUtils.getInstance().toJson(feeService.getFee(request))
-        call.respond(response)
-      } catch (e: BadRequestException) {
-        call.respond(HttpStatusCode.BadRequest, e)
-      } catch (e: UnprocessableEntityException) {
-        call.respond(HttpStatusCode.UnprocessableEntity, e)
-      } catch (e: Exception) {
-        log.error("Unexpected exception", e)
-        call.respond(HttpStatusCode.InternalServerError)
-      }
+      val response = GsonUtils.getInstance().toJson(feeService.getFee(request))
+      call.respond(response)
     }
   }
 }
