@@ -28,21 +28,15 @@ class Sep24Helper(private val cfg: Config) {
     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
   }
 
-  val baseUrl = cfg.sep24.anchorPlatformUrl
+  val baseUrl = cfg.appSettings.platformApiEndpoint
 
-  val server = Server(cfg.sep24.horizonUrl)
+  val server = Server(cfg.appSettings.horizonEndpoint)
 
-  internal suspend fun patchTransaction(
-    patchRecord: org.stellar.reference.data.PatchTransactionTransaction
-  ) {
+  internal suspend fun patchTransaction(patchRecord: PatchTransactionTransaction) {
     val resp =
       client.patch("$baseUrl/transactions") {
         contentType(ContentType.Application.Json)
-        setBody(
-          org.stellar.reference.data.PatchTransactionsRequest(
-            listOf(org.stellar.reference.data.PatchTransactionRecord(patchRecord))
-          )
-        )
+        setBody(PatchTransactionsRequest(listOf(PatchTransactionRecord(patchRecord))))
       }
 
     if (resp.status != HttpStatusCode.OK) {
@@ -78,9 +72,7 @@ class Sep24Helper(private val cfg: Config) {
     newStatus: String,
     message: String? = null
   ) {
-    patchTransaction(
-      org.stellar.reference.data.PatchTransactionTransaction(transactionId, newStatus, message)
-    )
+    patchTransaction(PatchTransactionTransaction(transactionId, newStatus, message))
   }
 
   internal suspend fun getTransaction(transactionId: String): Transaction {
