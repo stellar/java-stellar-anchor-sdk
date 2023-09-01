@@ -9,6 +9,9 @@ jobs:
   gradle_test_and_build:
     name: Gradle Test and Build
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       # Checkout the code
       - uses: actions/checkout@v3
