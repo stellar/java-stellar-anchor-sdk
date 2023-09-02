@@ -9,6 +9,7 @@ jobs:
   gradle_test_and_build:
     name: Gradle Test and Build
     runs-on: ubuntu-22.04
+    # write to PR  permission is required for jacocoTestReport Action to update comment
     permissions:
       contents: read
       pull-requests: write

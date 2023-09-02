@@ -38,7 +38,6 @@ subprojects {
 
   /** Specifies JDK-11 */
   java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
-  jacoco { toolVersion = "0.8.10" }
 
   spotless {
     val javaVersion = System.getProperty("java.version")
@@ -71,7 +70,7 @@ subprojects {
       reports {
         xml.required.set(true)
         csv.required.set(false)
-        html.required.set(false)
+        html.required.set(true)
       }
     }
   }
