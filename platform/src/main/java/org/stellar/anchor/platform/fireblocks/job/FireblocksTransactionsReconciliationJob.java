@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.job;
+package org.stellar.anchor.platform.fireblocks.job;
 
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;

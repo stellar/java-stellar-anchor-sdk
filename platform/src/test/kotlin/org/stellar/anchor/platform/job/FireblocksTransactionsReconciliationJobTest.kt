@@ -27,6 +27,7 @@ import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService
 import org.stellar.anchor.platform.data.CustodyTransactionStatus
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
+import org.stellar.anchor.platform.fireblocks.job.FireblocksTransactionsReconciliationJob
 
 class FireblocksTransactionsReconciliationJobTest {
 

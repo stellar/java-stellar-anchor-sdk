@@ -1,9 +1,7 @@
 package org.stellar.anchor.horizon
 
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
-import java.lang.reflect.Field
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -24,8 +22,6 @@ internal class HorizonTest {
     const val TEST_HORIZON_URI = "https://horizon-testnet.stellar.org/"
     const val TEST_HORIZON_PASSPHRASE = "Test SDF Network ; September 2015"
   }
-
-  @MockK(relaxed = true) private lateinit var server: Server
 
   @Test
   fun `test the correctness of Horizon creation`() {
@@ -66,7 +62,7 @@ internal class HorizonTest {
     every { server.accounts() } throws RuntimeException("Horizon error")
 
     val horizon = Horizon(appConfig)
-    replaceServer(horizon, server)
+    every { horizon.getServer() } returns server
 
     assertFalse(horizon.isTrustlineConfigured(account, asset))
   }
@@ -99,7 +95,7 @@ internal class HorizonTest {
     every { accountResponse.getBalances() } returns arrayOf(balance1, balance2)
 
     val horizon = Horizon(appConfig)
-    replaceServer(horizon, server)
+    every { horizon.getServer() } returns server
 
     assertTrue(horizon.isTrustlineConfigured(account, asset))
   }
@@ -138,14 +134,8 @@ internal class HorizonTest {
     every { appConfig.stellarNetworkPassphrase } returns TEST_HORIZON_PASSPHRASE
 
     val horizon = Horizon(appConfig)
-    replaceServer(horizon, server)
+    every { horizon.getServer() } returns server
 
     assertFalse(horizon.isTrustlineConfigured(account, asset))
-  }
-
-  private fun replaceServer(horizon: Horizon, server: Server) {
-    val field: Field = horizon::class.java.getDeclaredField("horizonServer")
-    field.isAccessible = true
-    field.set(horizon, server)
   }
 }

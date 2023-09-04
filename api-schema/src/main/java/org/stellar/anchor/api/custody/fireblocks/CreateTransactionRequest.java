@@ -23,9 +23,6 @@ public class CreateTransactionRequest {
   private Boolean failOnLowFee;
   private Boolean forceSweep;
   private String note;
-  @Deprecated private Boolean autoStaking;
-  @Deprecated private String networkStaking;
-  @Deprecated private String cpuStaking;
   private OperationType operation;
   private String customerRefId;
   private String replaceTxByHash;

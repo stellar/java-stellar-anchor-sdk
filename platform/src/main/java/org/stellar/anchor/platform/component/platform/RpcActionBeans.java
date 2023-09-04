@@ -31,7 +31,7 @@ import org.stellar.anchor.platform.rpc.NotifyTrustSetHandler;
 import org.stellar.anchor.platform.rpc.RequestCustomerInfoUpdateHandler;
 import org.stellar.anchor.platform.rpc.RequestOffchainFundsHandler;
 import org.stellar.anchor.platform.rpc.RequestOnchainFundsHandler;
-import org.stellar.anchor.platform.rpc.RequestTrustHandler;
+import org.stellar.anchor.platform.rpc.RequestTrustlineHandler;
 import org.stellar.anchor.platform.rpc.RpcMethodHandler;
 import org.stellar.anchor.platform.service.RpcService;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -40,7 +40,7 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 @Configuration
-public class ActionBeans {
+public class RpcActionBeans {
 
   @Bean
   RpcService rpcService(List<RpcMethodHandler<?>> rpcMethodHandlers, RpcConfig rpcConfig) {
@@ -328,14 +328,14 @@ public class ActionBeans {
   }
 
   @Bean
-  RequestTrustHandler requestTrustHandler(
+  RequestTrustlineHandler requestTrustHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
       CustodyConfig custodyConfig,
       EventService eventService) {
-    return new RequestTrustHandler(
+    return new RequestTrustlineHandler(
         txn24Store, txn31Store, requestValidator, assetService, custodyConfig, eventService);
   }
 }

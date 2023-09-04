@@ -35,7 +35,7 @@ import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
-class RequestTrustHandlerTest {
+class RequestTrustlineHandlerTest {
 
   companion object {
     private val gson = GsonUtils.getInstance()
@@ -59,14 +59,14 @@ class RequestTrustHandlerTest {
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
-  private lateinit var handler: RequestTrustHandler
+  private lateinit var handler: RequestTrustlineHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.handler =
-      RequestTrustHandler(
+      RequestTrustlineHandler(
         txn24Store,
         txn31Store,
         requestValidator,

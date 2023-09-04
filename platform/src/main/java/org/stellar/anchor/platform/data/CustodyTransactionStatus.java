@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 public enum CustodyTransactionStatus {
   @SerializedName("created")
   CREATED("created"),
-  @SerializedName("sent")
+  @SerializedName("submitted")
   SUBMITTED("submitted"),
   @SerializedName("completed")
   COMPLETED("completed"),
