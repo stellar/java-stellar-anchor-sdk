@@ -37,7 +37,7 @@ public class Horizon {
     }
     String assetIssuer = AssetHelper.getAssetIssuer(asset);
 
-    AccountResponse accountResponse = horizonServer.accounts().account(account);
+    AccountResponse accountResponse = getServer().accounts().account(account);
     return Arrays.stream(accountResponse.getBalances())
         .anyMatch(
             balance -> {

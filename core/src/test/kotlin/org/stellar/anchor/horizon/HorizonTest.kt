@@ -8,6 +8,7 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.config.AppConfig
 import org.stellar.sdk.AssetTypeCreditAlphaNum
 import org.stellar.sdk.Server
@@ -61,10 +62,11 @@ internal class HorizonTest {
     every { appConfig.stellarNetworkPassphrase } returns TEST_HORIZON_PASSPHRASE
     every { server.accounts() } throws RuntimeException("Horizon error")
 
-    val horizon = Horizon(appConfig)
-    every { horizon.getServer() } returns server
+    val horizon = mockk<Horizon>()
+    every { horizon.server } returns server
+    every { horizon.isTrustlineConfigured(account, asset) } answers { callOriginal() }
 
-    assertFalse(horizon.isTrustlineConfigured(account, asset))
+    assertThrows<RuntimeException> { horizon.isTrustlineConfigured(account, asset) }
   }
 
   @Test
@@ -94,8 +96,9 @@ internal class HorizonTest {
     every { asset2.getIssuer() } returns "issuerAccount2"
     every { accountResponse.getBalances() } returns arrayOf(balance1, balance2)
 
-    val horizon = Horizon(appConfig)
-    every { horizon.getServer() } returns server
+    val horizon = mockk<Horizon>()
+    every { horizon.server } returns server
+    every { horizon.isTrustlineConfigured(account, asset) } answers { callOriginal() }
 
     assertTrue(horizon.isTrustlineConfigured(account, asset))
   }
@@ -133,8 +136,9 @@ internal class HorizonTest {
     every { appConfig.horizonUrl } returns TEST_HORIZON_URI
     every { appConfig.stellarNetworkPassphrase } returns TEST_HORIZON_PASSPHRASE
 
-    val horizon = Horizon(appConfig)
-    every { horizon.getServer() } returns server
+    val horizon = mockk<Horizon>()
+    every { horizon.server } returns server
+    every { horizon.isTrustlineConfigured(account, asset) } answers { callOriginal() }
 
     assertFalse(horizon.isTrustlineConfigured(account, asset))
   }
