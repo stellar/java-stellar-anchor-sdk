@@ -78,27 +78,19 @@ class Sep31CustodyRpcEnd2EndTests(
         actualEvent.transaction.amountIn?.let {
           expectedEvent.transaction.amountIn.amount = actualEvent.transaction.amountIn.amount
           expectedEvent.transaction.amountIn.asset = asset.sep38
-          //          expectedEvent.transaction.amountIn.asset =
-          // actualEvent.transaction.amountIn.asset
         }
         actualEvent.transaction.amountOut?.let {
           expectedEvent.transaction.amountOut.amount = actualEvent.transaction.amountOut.amount
           expectedEvent.transaction.amountOut.asset = FIAT_USD
-          //          expectedEvent.transaction.amountOut.asset =
-          // actualEvent.transaction.amountOut.asset
         }
         actualEvent.transaction.amountFee?.let {
           expectedEvent.transaction.amountFee.amount = actualEvent.transaction.amountFee.amount
           expectedEvent.transaction.amountFee.asset = asset.sep38
-          //          expectedEvent.transaction.amountFee.asset =
-          // actualEvent.transaction.amountFee.asset
         }
         actualEvent.transaction.amountExpected?.let {
           expectedEvent.transaction.amountExpected.amount =
             actualEvent.transaction.amountExpected.amount
           expectedEvent.transaction.amountExpected.asset = asset.sep38
-          //          expectedEvent.transaction.amountExpected.asset =
-          actualEvent.transaction.amountExpected.asset
         }
       }
     }

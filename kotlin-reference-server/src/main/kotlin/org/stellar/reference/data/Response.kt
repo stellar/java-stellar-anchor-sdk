@@ -2,8 +2,6 @@ package org.stellar.reference.data
 
 import kotlinx.serialization.Serializable
 
-@Serializable data class MessageResponse(val msg: String)
-
-@Serializable data class ErrorResponse(val error: String)
+@Serializable data class ErrorResponse(val msg: String)
 
 @Serializable data class Success(val sessionId: String)
