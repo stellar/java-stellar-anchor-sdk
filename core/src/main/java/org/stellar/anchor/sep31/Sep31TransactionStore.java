@@ -33,14 +33,14 @@ public interface Sep31TransactionStore {
       throws AnchorException;
 
   /**
-   * Find the transactions by the transaction memo.
-   *
+   * Find the transaction by the destination account, memo, and status.
+   * 
+   * @param accountId destination account.
    * @param memo transaction memo.
-   * @return The matching transaction.
-   * @throws AnchorException if error happens.
+   * @param status transaction status.
+   * @return matching transaction
+   * @throws AnchorException
    */
-  Sep31Transaction findByStellarMemo(@NonNull String memo) throws AnchorException;
-
   Sep31Transaction findByStellarAccountIdAndMemoAndStatus(
       String accountId, String memo, String status) throws AnchorException;
 

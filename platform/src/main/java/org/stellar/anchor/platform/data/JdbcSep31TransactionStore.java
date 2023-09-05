@@ -47,11 +47,6 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
-  public Sep31Transaction findByStellarMemo(@NonNull String memo) throws AnchorException {
-    return transactionRepo.findByStellarMemo(memo).orElse(null);
-  }
-
-  @Override
   public Sep31Transaction findByStellarAccountIdAndMemoAndStatus(
       String accountId, String memo, String status) throws AnchorException {
     return transactionRepo

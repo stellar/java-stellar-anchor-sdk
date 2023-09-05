@@ -17,8 +17,6 @@ public interface JdbcSep31TransactionRepo extends CrudRepository<JdbcSep31Transa
 
   Optional<JdbcSep31Transaction> findByStellarAccountId(@NonNull String stellarAccountId);
 
-  Optional<Sep31Transaction> findByStellarMemo(String stellarMemo);
-
   Optional<Sep31Transaction> findByStellarAccountIdAndMemoAndStatus(
       String stellarAccountId, String stellarMemo, String status);
 
