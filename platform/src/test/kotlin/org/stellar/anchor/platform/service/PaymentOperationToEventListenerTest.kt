@@ -98,12 +98,12 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
         "my_memo_2",
-        "PENDING_SENDER"
+        "pending_sender"
       )
     }
     assertEquals("my_memo_2", slotMemo.captured)
     assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
-    assertEquals("PENDING_SENDER", slotStatus.captured)
+    assertEquals("pending_sender", slotStatus.captured)
 
     // If findByStellarAccountIdAndMemoAndStatus throws an exception, we shouldn't trigger an event
     slotMemo = slot()
@@ -120,12 +120,12 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
         "my_memo_3",
-        "PENDING_SENDER"
+        "pending_sender"
       )
     }
     assertEquals("my_memo_3", slotMemo.captured)
     assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
-    assertEquals("PENDING_SENDER", slotStatus.captured)
+    assertEquals("pending_sender", slotStatus.captured)
 
     // If asset code from the fetched tx is different, don't trigger event
     slotMemo = slot()
@@ -145,12 +145,12 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
         "my_memo_4",
-        "PENDING_SENDER"
+        "pending_sender"
       )
     }
     assertEquals("my_memo_4", slotMemo.captured)
     assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
-    assertEquals("PENDING_SENDER", slotStatus.captured)
+    assertEquals("pending_sender", slotStatus.captured)
   }
 
   @ParameterizedTest
@@ -217,7 +217,7 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.transferReceivedAt = null // the event should have a valid `transferReceivedAt`
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
     sep31TxMock.stellarMemoType = "hash"
-    sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.status
+    sep31TxMock.status = SepTransactionStatus.pending_sender.status
     sep31TxMock.senderId = senderId
     sep31TxMock.receiverId = receiverId
     sep31TxMock.creator =
@@ -267,7 +267,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "PENDING_SENDER"
+        "pending_sender"
       )
     }
 
@@ -331,7 +331,7 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.transferReceivedAt = null // the event should have a valid `transferReceivedAt`
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
     sep31TxMock.stellarMemoType = "hash"
-    sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.name
+    sep31TxMock.status = SepTransactionStatus.pending_sender.name
     sep31TxMock.senderId = senderId
     sep31TxMock.receiverId = receiverId
     sep31TxMock.creator =
@@ -383,7 +383,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "PENDING_SENDER"
+        "pending_sender"
       )
     }
 
@@ -493,7 +493,7 @@ class PaymentOperationToEventListenerTest {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "PENDING_SENDER"
+        "pending_sender"
       )
     }
 
