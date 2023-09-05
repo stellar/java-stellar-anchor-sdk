@@ -83,6 +83,7 @@ class PaymentOperationToEventListenerTest {
     p.transactionMemo = "my_memo_2"
     p.assetType = "credit_alphanum4"
     p.sourceAccount = "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5"
+    p.to = "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     var slotMemo = slot<String>()
     val slotAccount = slot<String>()
     val slotStatus = slot<String>()
@@ -96,13 +97,13 @@ class PaymentOperationToEventListenerTest {
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
-        "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "my_memo_2",
         "pending_sender"
       )
     }
     assertEquals("my_memo_2", slotMemo.captured)
-    assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
+    assertEquals("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364", slotAccount.captured)
     assertEquals("pending_sender", slotStatus.captured)
 
     // If findByStellarAccountIdAndMemoAndStatus throws an exception, we shouldn't trigger an event
@@ -118,13 +119,13 @@ class PaymentOperationToEventListenerTest {
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
-        "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "my_memo_3",
         "pending_sender"
       )
     }
     assertEquals("my_memo_3", slotMemo.captured)
-    assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
+    assertEquals("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364", slotAccount.captured)
     assertEquals("pending_sender", slotStatus.captured)
 
     // If asset code from the fetched tx is different, don't trigger event
@@ -143,13 +144,13 @@ class PaymentOperationToEventListenerTest {
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
-        "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "my_memo_4",
         "pending_sender"
       )
     }
     assertEquals("my_memo_4", slotMemo.captured)
-    assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
+    assertEquals("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364", slotAccount.captured)
     assertEquals("pending_sender", slotStatus.captured)
   }
 
@@ -265,7 +266,7 @@ class PaymentOperationToEventListenerTest {
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
-        "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
         "pending_sender"
       )
@@ -342,7 +343,7 @@ class PaymentOperationToEventListenerTest {
     val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
     every {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
-        "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         capture(slotMemo),
         capture(slotStatus)
       )
@@ -381,7 +382,7 @@ class PaymentOperationToEventListenerTest {
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
-        "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
         "pending_sender"
       )
@@ -454,7 +455,7 @@ class PaymentOperationToEventListenerTest {
     val sep24TxnCopy = gson.fromJson(gson.toJson(sep24TxMock), JdbcSep24Transaction::class.java)
     every {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
-        "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         capture(slotMemo),
         capture(slotStatus)
       )
@@ -491,7 +492,7 @@ class PaymentOperationToEventListenerTest {
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
-        "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
         "pending_sender"
       )
