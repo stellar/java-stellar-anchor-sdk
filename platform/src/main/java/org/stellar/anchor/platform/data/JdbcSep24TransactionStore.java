@@ -53,9 +53,10 @@ public class JdbcSep24TransactionStore implements Sep24TransactionStore {
     return txnRepo.findOneByExternalTransactionId(externalTransactionId);
   }
 
-  public JdbcSep24Transaction findByStellarAccountIdAndMemo(String accountId, String memo) {
+  public JdbcSep24Transaction findOneByToAccountAndMemoAndStatus(
+      String toAccount, String memo, String status) {
     Optional<JdbcSep24Transaction> optTxn =
-        Optional.ofNullable(txnRepo.findOneBySep10AccountAndMemo(accountId, memo));
+        Optional.ofNullable(txnRepo.findOneByToAccountAndMemoAndStatus(toAccount, memo, status));
     return optTxn.orElse(null);
   }
 
