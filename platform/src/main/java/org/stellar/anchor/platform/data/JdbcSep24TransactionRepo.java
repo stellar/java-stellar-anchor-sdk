@@ -25,4 +25,7 @@ public interface JdbcSep24TransactionRepo
       String stellarAccount, String assetCode);
 
   Page<JdbcSep24Transaction> findByStatusIn(List<String> allowedStatuses, Pageable pageable);
+
+  JdbcSep24Transaction findOneBySep10AccountAndMemoAndStatus(
+      String sourceAccount, String memo, String status);
 }

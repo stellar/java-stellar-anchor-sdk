@@ -78,7 +78,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     JdbcSep31Transaction sep31Txn = null;
     try {
       sep31Txn =
-          sep31TransactionStore.findByStellarAccountIdAndMemo(payment.getSourceAccount(), memo);
+          sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+              payment.getSourceAccount(), memo, SepTransactionStatus.PENDING_SENDER.toString());
     } catch (Exception ex) {
       errorEx(ex);
     }
@@ -97,7 +98,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
     JdbcSep24Transaction sep24Txn;
     try {
       sep24Txn =
-          sep24TransactionStore.findByStellarAccountIdAndMemo(payment.getSourceAccount(), memo);
+          sep24TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+              payment.getSourceAccount(),
+              memo,
+              SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
     } catch (Exception ex) {
       errorEx(ex);
       return;

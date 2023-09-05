@@ -27,4 +27,7 @@ public interface JdbcSep31TransactionRepo
   Optional<JdbcSep31Transaction> findByStellarAccountIdAndStellarMemo(
       @Param("stellar_account_id") String stellarAccountId,
       @Param("stellar_memo") String stellarMemo);
+
+  Optional<JdbcSep31Transaction> findByStellarAccountIdAndStellarMemoAndStatus(
+      String accountId, String memo, String status);
 }
