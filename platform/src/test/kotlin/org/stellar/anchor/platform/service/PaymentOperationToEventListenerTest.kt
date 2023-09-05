@@ -380,7 +380,7 @@ class PaymentOperationToEventListenerTest {
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep31TransactionStore.findByStellarAccountIdAndMemo(
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
         "PENDING_SENDER"
@@ -453,7 +453,7 @@ class PaymentOperationToEventListenerTest {
 
     val sep24TxnCopy = gson.fromJson(gson.toJson(sep24TxMock), JdbcSep24Transaction::class.java)
     every {
-      sep24TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
         capture(slotMemo),
         capture(slotStatus)
@@ -490,7 +490,7 @@ class PaymentOperationToEventListenerTest {
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep24TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
         "PENDING_SENDER"
