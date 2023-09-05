@@ -34,7 +34,7 @@ public interface Sep31TransactionStore {
 
   /**
    * Find the transaction by the destination account, memo, and status.
-   * 
+   *
    * @param accountId destination account.
    * @param memo transaction memo.
    * @param status transaction status.
