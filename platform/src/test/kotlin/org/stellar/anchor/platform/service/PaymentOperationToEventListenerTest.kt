@@ -217,7 +217,7 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.transferReceivedAt = null // the event should have a valid `transferReceivedAt`
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
     sep31TxMock.stellarMemoType = "hash"
-    sep31TxMock.status = SepTransactionStatus.pending_sender.status
+    sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.status
     sep31TxMock.senderId = senderId
     sep31TxMock.receiverId = receiverId
     sep31TxMock.creator =
@@ -331,7 +331,7 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.transferReceivedAt = null // the event should have a valid `transferReceivedAt`
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
     sep31TxMock.stellarMemoType = "hash"
-    sep31TxMock.status = SepTransactionStatus.pending_sender.name
+    sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.name
     sep31TxMock.senderId = senderId
     sep31TxMock.receiverId = receiverId
     sep31TxMock.creator =
