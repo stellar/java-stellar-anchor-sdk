@@ -27,7 +27,6 @@ import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.reference.config.KafkaListenerSettings;
-import org.stellar.anchor.reference.event.processor.AnchorEventProcessor;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
@@ -63,7 +62,7 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
 
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaListenerSettings.getBootStrapServer());
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "group_one1");
-    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    // props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     // start reading from the earliest available message
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
@@ -106,9 +105,6 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
                   GsonUtils.getInstance().fromJson(record.value(), AnchorEvent.class);
               processor.handleEvent(event);
             });
-      } catch (IllegalStateException ex) {
-        Log.error("Kafka consumer is closed");
-        break;
       } catch (Exception ex) {
         Log.errorEx(ex);
       }

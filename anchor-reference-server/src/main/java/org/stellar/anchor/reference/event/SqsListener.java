@@ -16,7 +16,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.reference.config.SqsListenerSettings;
-import org.stellar.anchor.reference.event.processor.AnchorEventProcessor;
 import org.stellar.anchor.util.Log;
 
 public class SqsListener extends AbstractEventListener {

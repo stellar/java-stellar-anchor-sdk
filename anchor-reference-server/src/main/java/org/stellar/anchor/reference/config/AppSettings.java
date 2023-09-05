@@ -14,5 +14,4 @@ public class AppSettings {
   String distributionWallet;
   String distributionWalletMemo;
   String distributionWalletMemoType;
-  String secret;
 }
