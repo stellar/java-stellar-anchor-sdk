@@ -24,10 +24,8 @@ public interface JdbcSep31TransactionRepo
   @Query(value = "SELECT COUNT(t) FROM JdbcSep31Transaction t WHERE t.status = :status")
   Integer findByStatusCount(@Param("status") String status);
 
-  Optional<JdbcSep31Transaction> findByStellarAccountIdAndStellarMemo(
-      @Param("stellar_account_id") String stellarAccountId,
-      @Param("stellar_memo") String stellarMemo);
-
   Optional<JdbcSep31Transaction> findByStellarAccountIdAndStellarMemoAndStatus(
-      String accountId, String memo, String status);
+      @Param("stellar_account_id") String accountId,
+      @Param("stellar_memo") String memo,
+      String status);
 }
