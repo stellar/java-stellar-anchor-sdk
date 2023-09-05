@@ -494,7 +494,7 @@ class PaymentOperationToEventListenerTest {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "pending_sender"
+        "pending_user_transfer_start"
       )
     }
 
