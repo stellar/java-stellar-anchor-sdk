@@ -4,6 +4,7 @@ import com.sksamuel.hoplite.*
 import io.ktor.server.netty.*
 import mu.KotlinLogging
 import org.stellar.reference.di.ConfigContainer
+import org.stellar.reference.di.EventConsumerContainer
 import org.stellar.reference.di.ReferenceServerContainer
 
 val log = KotlinLogging.logger {}
@@ -14,11 +15,17 @@ fun main(args: Array<String>) {
 }
 
 fun startServer(envMap: Map<String, String>?, wait: Boolean) {
-  log.info { "Starting Kotlin reference server" }
   // read config
   ConfigContainer.init(envMap)
 
+  Thread {
+      log.info("Starting event consumer")
+      EventConsumerContainer.eventConsumer.start()
+    }
+    .start()
+
   // start server
+  log.info { "Starting Kotlin reference server" }
   referenceKotlinServer = ReferenceServerContainer.server.start(wait)
 }
 

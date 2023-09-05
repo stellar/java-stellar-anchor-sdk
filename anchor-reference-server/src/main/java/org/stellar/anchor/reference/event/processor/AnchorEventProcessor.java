@@ -20,27 +20,6 @@ public class AnchorEventProcessor {
    */
   public void handleEvent(AnchorEvent event) {
     SepAnchorEventProcessor processor = getProcessor(event);
-
-    switch (event.getType()) {
-      case TRANSACTION_CREATED:
-        processor.onTransactionCreated(event);
-        break;
-      case TRANSACTION_STATUS_CHANGED:
-        processor.onTransactionStatusChanged(event);
-        break;
-      case TRANSACTION_ERROR:
-        processor.onTransactionError(event);
-        break;
-      case QUOTE_CREATED:
-        processor.onQuoteCreatedEvent(event);
-        break;
-      case CUSTOMER_UPDATED:
-        // Only SEP-6 listens to this event
-        sep6EventProcessor.onCustomerUpdated(event);
-        break;
-      default:
-        Log.warn("Invalid event type: " + event.getType());
-    }
   }
 
   private SepAnchorEventProcessor getProcessor(AnchorEvent anchorEvent) {

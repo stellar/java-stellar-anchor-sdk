@@ -18,9 +18,6 @@ anchor.settings:
   distributionWalletMemo:
   distributionWalletMemoType:
 
-  # The Stellar account that will be used to send the Stellar assets to the customer.
-  secret: SAJW2O2NH5QMMVWYAN352OEXS2RUY675A2HPK5HEG2FRR2NXPYA4OLYN
-
 # These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
 # and `Anchor->Platform`, specially when they are in different clusters.
 #
@@ -51,17 +48,17 @@ event:
 
 # NOTE: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables need to be set if using AWS MSK
 kafka.listener:
-  enabled: true
+  enabled: false
   bootstrapServer: localhost:29092
   #bootstrapServer: b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198   # AWS MSK broker example
   useSingleQueue: false
   useIAM: false   # IAM authentication for AWS MSK
   eventTypeToQueue:
-    all: TRANSACTION
-    quoteCreated: TRANSACTION
-    transactionCreated: TRANSACTION
-    transactionStatusChanged: TRANSACTION
-    transactionError: TRANSACTION
+    all: ap_event_single_queue
+    quoteCreated: ap_event_quote_created
+    transactionCreated: ap_event_transaction_created
+    transactionStatusChanged: ap_event_transaction_status_changed
+    transactionError: ap_event_transaction_error
 
 sqs.listener:
   region: us-east-1

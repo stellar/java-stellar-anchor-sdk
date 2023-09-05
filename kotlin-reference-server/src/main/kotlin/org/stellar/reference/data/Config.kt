@@ -24,6 +24,7 @@ data class AppSettings(
   val distributionWallet: String,
   val distributionWalletMemo: String,
   val distributionWalletMemoType: String,
+  val secret: String
 )
 
 data class AuthSettings(
