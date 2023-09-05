@@ -10,9 +10,10 @@ import org.stellar.reference.event.processor.NoOpEventProcessor
 import org.stellar.reference.event.processor.Sep6EventProcessor
 
 object EventConsumerContainer {
+  val config = ConfigContainer.getInstance().config
   private val consumerConfig =
     mapOf(
-      ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to "kafka:29092",
+      ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to config.eventSettings.bootstrapServer,
       ConsumerConfig.GROUP_ID_CONFIG to "anchor-event-consumer",
       ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
       ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
@@ -20,11 +21,13 @@ object EventConsumerContainer {
       ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
     )
   private val kafkaConsumer =
-    KafkaConsumer<String, String>(consumerConfig).also { it.subscribe(listOf("TRANSACTION")) }
+    KafkaConsumer<String, String>(consumerConfig).also {
+      it.subscribe(listOf(config.eventSettings.topic))
+    }
   private val activeTransactionStore = InMemoryTransactionStore()
   private val sep6EventProcessor =
     Sep6EventProcessor(
-      ConfigContainer.getInstance().config,
+      config,
       ServiceContainer.horizon,
       ServiceContainer.platform,
       ServiceContainer.customerService,

@@ -29,7 +29,7 @@ import org.stellar.reference.sep24.testSep24
 const val AUTH_CONFIG_ENDPOINT = "endpoint-auth"
 
 object ReferenceServerContainer {
-  val config = ConfigContainer.getInstance().config
+  private val config = ConfigContainer.getInstance().config
   val server =
     embeddedServer(Netty, port = config.appSettings.port) {
       install(ContentNegotiation) { json() }
@@ -46,7 +46,7 @@ object ReferenceServerContainer {
 
   private fun Application.configureRouting() = routing {
     sep24(
-      ServiceContainer.helper,
+      ServiceContainer.sep24Helper,
       ServiceContainer.depositService,
       ServiceContainer.withdrawalService,
       config.sep24.interactiveJwtKey
@@ -60,7 +60,7 @@ object ReferenceServerContainer {
 
     if (config.sep24.enableTest) {
       testSep24(
-        ServiceContainer.helper,
+        ServiceContainer.sep24Helper,
         ServiceContainer.depositService,
         ServiceContainer.withdrawalService,
         config.sep24.interactiveJwtKey

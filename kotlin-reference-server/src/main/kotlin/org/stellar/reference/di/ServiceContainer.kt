@@ -17,10 +17,11 @@ import org.stellar.reference.sep24.WithdrawalService
 import org.stellar.sdk.Server
 
 object ServiceContainer {
+  private val config = ConfigContainer.getInstance().config
   val eventService = EventService()
-  val helper = Sep24Helper(ConfigContainer.getInstance().config)
-  val depositService = DepositService(ConfigContainer.getInstance().config)
-  val withdrawalService = WithdrawalService(ConfigContainer.getInstance().config)
+  val sep24Helper = Sep24Helper(config)
+  val depositService = DepositService(config)
+  val withdrawalService = WithdrawalService(config)
 
   private val database =
     Database.connect(
@@ -34,17 +35,17 @@ object ServiceContainer {
   val customerService = CustomerService(customerRepo)
   val feeService = FeeService(customerRepo)
   val rateService = RateService(quotesRepo)
-  val uniqueAddressService = UniqueAddressService(ConfigContainer.getInstance().config.appSettings)
-  val horizon = Server(ConfigContainer.getInstance().config.appSettings.horizonEndpoint)
+  val uniqueAddressService = UniqueAddressService(config.appSettings)
+  val horizon = Server(config.appSettings.horizonEndpoint)
   val platform =
     PlatformClient(
       HttpClient {
         install(HttpTimeout) {
-          requestTimeoutMillis = 300000
-          connectTimeoutMillis = 300000
-          socketTimeoutMillis = 300000
+          requestTimeoutMillis = 5000
+          connectTimeoutMillis = 5000
+          socketTimeoutMillis = 5000
         }
       },
-      ConfigContainer.getInstance().config.appSettings.platformApiEndpoint
+      config.appSettings.platformApiEndpoint
     )
 }

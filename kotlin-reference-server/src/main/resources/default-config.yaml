@@ -34,6 +34,15 @@ auth:
   # Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
   expirationMilliseconds: 30000
 
+event:
+  # Enables the Kafka event processor.
+  enabled: true
+  # The Kafka boostrap server.
+  bootstrapServer: localhost:29092
+  # The AnchorEvent topic to subscribe to.
+  topic: TRANSACTION
+
+
 sep24:
   # Secret key used to send funds to user accounts.
   # Public key: GABCKCYPAGDDQMSCTMSBO7C2L34NU3XXCW7LR4VVSWCCXMAJY3B4YCZP
