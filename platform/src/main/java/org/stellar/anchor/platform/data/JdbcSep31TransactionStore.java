@@ -52,6 +52,14 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
+  public Sep31Transaction findByStellarAccountIdAndMemoAndStatus(
+      String accountId, String memo, String status) throws AnchorException {
+    return transactionRepo
+        .findByStellarAccountIdAndMemoAndStatus(accountId, memo, status)
+        .orElse(null);
+  }
+
+  @Override
   public Sep31Transaction save(Sep31Transaction transaction) throws SepException {
     if (!(transaction instanceof JdbcSep31Transaction)) {
       throw new SepException(

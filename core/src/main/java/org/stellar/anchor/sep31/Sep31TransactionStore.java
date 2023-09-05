@@ -41,6 +41,9 @@ public interface Sep31TransactionStore {
    */
   Sep31Transaction findByStellarMemo(@NonNull String memo) throws AnchorException;
 
+  Sep31Transaction findByStellarAccountIdAndMemoAndStatus(
+      String accountId, String memo, String status) throws AnchorException;
+
   /**
    * Save a transaction.
    *
