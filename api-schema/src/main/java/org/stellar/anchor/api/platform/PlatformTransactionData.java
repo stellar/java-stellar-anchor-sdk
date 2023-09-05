@@ -80,13 +80,19 @@ public class PlatformTransactionData {
   Customers customers;
   StellarId creator;
 
-  String how;
-
   @SerializedName("required_info_message")
   String requiredInfoMessage;
 
   @SerializedName("required_info_updates")
   String requiredInfoUpdates;
+
+  @SerializedName("required_customer_info_message")
+  String requiredCustomerInfoMessage;
+
+  @SerializedName("required_customer_info_updates")
+  String requiredCustomerInfoUpdates;
+
+  String instructions;
 
   public enum Sep {
     @SerializedName("6")

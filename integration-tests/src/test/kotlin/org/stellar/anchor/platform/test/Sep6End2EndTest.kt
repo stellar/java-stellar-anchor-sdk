@@ -62,7 +62,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     waitStatus(deposit.id, "completed", sep6Client)
 
     val completedDepositTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))
-    assertNotNull(completedDepositTxn.transaction.how)
+    assertNotNull(completedDepositTxn.transaction.instructions)
     val transactionByStellarId: GetTransactionResponse =
       sep6Client.getTransaction(
         mapOf("stellar_transaction_id" to completedDepositTxn.transaction.stellarTransactionId)

@@ -77,7 +77,6 @@ class Sep6EventProcessor(
     val transaction = event.transaction
     when (val status = transaction.status) {
       SepTransactionStatus.PENDING_ANCHOR -> {
-        // TODO: should be suspend
         runBlocking {
           patchTransaction(
             PlatformTransactionData.builder()
@@ -130,7 +129,9 @@ class Sep6EventProcessor(
               .completedAt(Instant.now())
               .requiredInfoMessage(null)
               .requiredInfoUpdates(null)
-              .how("Placeholder deposit instructions")
+              .requiredCustomerInfoUpdates(null)
+              .requiredCustomerInfoUpdates(null)
+              .instructions("{}")
               .stellarTransactions(listOf(stellarTxn))
               .build()
           )

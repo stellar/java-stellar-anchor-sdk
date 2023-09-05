@@ -54,7 +54,6 @@ public class TransactionHelper {
         .sep(PlatformTransactionData.Sep.SEP_6)
         .kind(PlatformTransactionData.Kind.from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
-        // TODO: check if these asset codes are in the correct format
         .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
         .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
         .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
@@ -70,9 +69,11 @@ public class TransactionHelper {
         .externalTransactionId(txn.getExternalTransactionId())
         .memo(txn.getMemo())
         .memoType(txn.getMemoType())
-        .how(txn.getHow())
         .requiredInfoMessage(txn.getRequiredInfoMessage())
         .requiredInfoUpdates(txn.getRequiredInfoUpdates())
+        .requiredCustomerInfoMessage(txn.getRequiredCustomerInfoMessage())
+        .requiredCustomerInfoUpdates(txn.getRequiredCustomerInfoUpdates())
+        .instructions(txn.getInstructions())
         .build();
   }
 

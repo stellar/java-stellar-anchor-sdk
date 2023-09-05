@@ -230,9 +230,13 @@ public class TransactionService {
       case "6":
         // TODO: this needs major refactoring
         JdbcSep6Transaction sep6Transaction = (JdbcSep6Transaction) txn;
-        sep6Transaction.setHow(patch.getTransaction().getHow());
         sep6Transaction.setRequiredInfoMessage(patch.getTransaction().getRequiredInfoMessage());
         sep6Transaction.setRequiredInfoUpdates(patch.getTransaction().getRequiredInfoUpdates());
+        sep6Transaction.setRequiredCustomerInfoMessage(
+            patch.getTransaction().getRequiredCustomerInfoMessage());
+        sep6Transaction.setRequiredCustomerInfoUpdates(
+            patch.getTransaction().getRequiredCustomerInfoUpdates());
+        sep6Transaction.setInstructions(patch.getTransaction().getInstructions());
         Log.infoF(
             "Updating SEP-6 transaction: {}", GsonUtils.getInstance().toJson(sep6Transaction));
         txn6Store.save(sep6Transaction);
@@ -321,7 +325,9 @@ public class TransactionService {
     switch (txn.getProtocol()) {
       case "6":
         JdbcSep6Transaction sep6Txn = (JdbcSep6Transaction) txn;
-        txnUpdated = updateField(patch, sep6Txn, "how", txnUpdated);
+        txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoMessage", txnUpdated);
+        txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoUpdates", txnUpdated);
+        txnUpdated = updateField(patch, sep6Txn, "instructions", txnUpdated);
         break;
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;

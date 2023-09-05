@@ -77,9 +77,14 @@ public class Sep6Transaction {
   @SerializedName("required_info_message")
   String requiredInfoMessage;
 
-  // TODO: use a more structured type
   @SerializedName("required_info_updates")
   String requiredInfoUpdates;
 
-  String how;
+  @SerializedName("required_customer_info_message")
+  String requiredCustomerInfoMessage;
+
+  @SerializedName("required_customer_info_updates")
+  String requiredCustomerInfoUpdates;
+
+  String instructions;
 }

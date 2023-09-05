@@ -217,7 +217,9 @@ public class Sep6Service {
             .refunds(refunds)
             .requiredInfoMessage(txn.getRequiredInfoMessage())
             .requiredInfoUpdates(txn.getRequiredInfoUpdates())
-            .how(txn.getHow());
+            .requiredCustomerInfoMessage(txn.getRequiredCustomerInfoMessage())
+            .requiredCustomerInfoUpdates(txn.getRequiredCustomerInfoUpdates())
+            .instructions(txn.getInstructions());
 
     if (org.stellar.anchor.sep6.Sep6Transaction.Kind.DEPOSIT.toString().equals(txn.getKind())) {
       return builder.depositMemo(txn.getMemo()).depositMemoType(txn.getMemoType()).build();

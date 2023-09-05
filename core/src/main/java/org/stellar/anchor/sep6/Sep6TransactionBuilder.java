@@ -180,8 +180,18 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  public Sep6TransactionBuilder how(String how) {
-    txn.setHow(how);
+  public Sep6TransactionBuilder requiredCustomerInfoMessage(String requiredCustomerInfoMessage) {
+    txn.setRequiredCustomerInfoMessage(requiredCustomerInfoMessage);
+    return this;
+  }
+
+  public Sep6TransactionBuilder requiredCustomerInfoUpdates(String requiredCustomerInfoUpdates) {
+    txn.setRequiredCustomerInfoUpdates(requiredCustomerInfoUpdates);
+    return this;
+  }
+
+  public Sep6TransactionBuilder instructions(String instructions) {
+    txn.setInstructions(instructions);
     return this;
   }
 

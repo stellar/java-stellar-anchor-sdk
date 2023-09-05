@@ -15,7 +15,6 @@ class PlatformClient(private val httpClient: HttpClient, private val endpoint: S
     if (response.status != HttpStatusCode.OK) {
       throw Exception("Error getting transaction: ${response.status}")
     }
-    // TODO: use ContentNegotiation plugin
     return GsonUtils.getInstance()
       .fromJson(response.body<String>(), GetTransactionResponse::class.java)
   }
