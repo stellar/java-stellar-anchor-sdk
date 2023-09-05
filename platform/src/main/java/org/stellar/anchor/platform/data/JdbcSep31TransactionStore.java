@@ -50,7 +50,7 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   public Sep31Transaction findByStellarAccountIdAndMemoAndStatus(
       String accountId, String memo, String status) throws AnchorException {
     return transactionRepo
-        .findByStellarAccountIdAndMemoAndStatus(accountId, memo, status)
+        .findByStellarAccountIdAndStellarMemoAndStatus(accountId, memo, status)
         .orElse(null);
   }
 
