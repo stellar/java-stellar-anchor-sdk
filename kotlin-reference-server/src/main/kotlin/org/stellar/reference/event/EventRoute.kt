@@ -1,4 +1,4 @@
-package org.stellar.reference.plugins
+package org.stellar.reference.event
 
 import com.google.gson.Gson
 import io.ktor.http.*
@@ -10,7 +10,6 @@ import org.apache.http.HttpStatus
 import org.stellar.anchor.api.callback.SendEventResponse
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.data.SendEventRequest
-import org.stellar.reference.event.EventService
 
 fun Route.event(eventService: EventService) {
   val gson: Gson = GsonUtils.getInstance()
