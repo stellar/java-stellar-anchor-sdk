@@ -6,6 +6,7 @@ plugins {
   java
   alias(libs.plugins.spotless)
   alias(libs.plugins.kotlin.jvm) apply false
+  jacoco
 }
 
 tasks {
@@ -25,6 +26,7 @@ tasks {
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
+  apply(plugin = "jacoco")
 
   repositories {
     mavenLocal()
@@ -62,6 +64,15 @@ subprojects {
     }
 
     kotlin { ktfmt("0.42").googleStyle() }
+
+    tasks.jacocoTestReport {
+      dependsOn(tasks.test) // tests are required to run before generating the report
+      reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.required.set(true)
+      }
+    }
   }
 
   dependencies {
