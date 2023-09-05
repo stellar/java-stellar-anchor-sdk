@@ -77,6 +77,12 @@ public class PlatformTransactionData {
   @SerializedName("memo_type")
   String memoType;
 
+  @SerializedName("refund_memo")
+  String refundMemo;
+
+  @SerializedName("refund_memo_type")
+  String refundMemoType;
+
   Customers customers;
   StellarId creator;
 
