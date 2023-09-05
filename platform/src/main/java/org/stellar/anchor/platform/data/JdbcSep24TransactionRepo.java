@@ -19,13 +19,11 @@ public interface JdbcSep24TransactionRepo
 
   JdbcSep24Transaction findOneByStellarTransactionId(String stellarTransactionId);
 
-  JdbcSep24Transaction findOneBySep10AccountAndMemo(String accountId, String memo);
+  JdbcSep24Transaction findOneByToAccountAndMemoAndStatus(
+      String toAccount, String memo, String status);
 
   List<Sep24Transaction> findBySep10AccountAndRequestAssetCodeOrderByStartedAtDesc(
       String stellarAccount, String assetCode);
 
   Page<JdbcSep24Transaction> findByStatusIn(List<String> allowedStatuses, Pageable pageable);
-
-  JdbcSep24Transaction findOneBySep10AccountAndMemoAndStatus(
-      String sourceAccount, String memo, String status);
 }
