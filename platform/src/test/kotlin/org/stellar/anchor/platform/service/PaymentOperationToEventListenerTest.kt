@@ -85,34 +85,47 @@ class PaymentOperationToEventListenerTest {
     p.sourceAccount = "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5"
     var slotMemo = slot<String>()
     val slotAccount = slot<String>()
+    val slotStatus = slot<String>()
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemo(capture(slotAccount), capture(slotMemo))
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+        capture(slotAccount),
+        capture(slotMemo),
+        capture(slotStatus)
+      )
     } returns null
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep31TransactionStore.findByStellarAccountIdAndMemo(
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
-        "my_memo_2"
+        "my_memo_2",
+        "PENDING_SENDER"
       )
     }
     assertEquals("my_memo_2", slotMemo.captured)
     assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
+    assertEquals("PENDING_SENDER", slotStatus.captured)
 
-    // If findByStellarAccountIdAndMemo throws an exception, we shouldn't trigger an event
+    // If findByStellarAccountIdAndMemoAndStatus throws an exception, we shouldn't trigger an event
     slotMemo = slot()
     p.transactionMemo = "my_memo_3"
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemo(capture(slotAccount), capture(slotMemo))
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+        capture(slotAccount),
+        capture(slotMemo),
+        capture(slotStatus)
+      )
     } throws SepException("Something went wrong")
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep31TransactionStore.findByStellarAccountIdAndMemo(
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
-        "my_memo_3"
+        "my_memo_3",
+        "PENDING_SENDER"
       )
     }
     assertEquals("my_memo_3", slotMemo.captured)
     assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
+    assertEquals("PENDING_SENDER", slotStatus.captured)
 
     // If asset code from the fetched tx is different, don't trigger event
     slotMemo = slot()
@@ -121,17 +134,23 @@ class PaymentOperationToEventListenerTest {
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.amountInAsset = "BAR"
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemo(capture(slotAccount), capture(slotMemo))
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+        capture(slotAccount),
+        capture(slotMemo),
+        capture(slotStatus)
+      )
     } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep31TransactionStore.findByStellarAccountIdAndMemo(
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
-        "my_memo_4"
+        "my_memo_4",
+        "PENDING_SENDER"
       )
     }
     assertEquals("my_memo_4", slotMemo.captured)
     assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
+    assertEquals("PENDING_SENDER", slotStatus.captured)
   }
 
   @ParameterizedTest
@@ -182,6 +201,7 @@ class PaymentOperationToEventListenerTest {
 
     val slotAccountId = slot<String>()
     val slotMemo = slot<String>()
+    val slotStatus = slot<String>()
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep31TxMock.amountExpected = "10"
@@ -207,7 +227,11 @@ class PaymentOperationToEventListenerTest {
 
     val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemo(capture(slotAccountId), capture(slotMemo))
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+        capture(slotAccountId),
+        capture(slotMemo),
+        capture(slotStatus)
+      )
     } returns sep31TxCopy
 
     val patchTxnRequestSlot = slot<PatchTransactionsRequest>()
@@ -240,9 +264,10 @@ class PaymentOperationToEventListenerTest {
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep31TransactionStore.findByStellarAccountIdAndMemo(
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
-        "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
+        "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
+        "PENDING_SENDER"
       )
     }
 
@@ -290,6 +315,7 @@ class PaymentOperationToEventListenerTest {
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
 
     val slotMemo = slot<String>()
+    val slotStatus = slot<String>()
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep31TxMock.amountExpected = "10"
@@ -315,9 +341,10 @@ class PaymentOperationToEventListenerTest {
 
     val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemo(
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
-        capture(slotMemo)
+        capture(slotMemo),
+        capture(slotStatus)
       )
     } returns sep31TxCopy
 
@@ -355,7 +382,8 @@ class PaymentOperationToEventListenerTest {
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemo(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
-        "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
+        "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
+        "PENDING_SENDER"
       )
     }
 
@@ -409,6 +437,7 @@ class PaymentOperationToEventListenerTest {
         .build()
 
     val slotMemo = slot<String>()
+    val slotStatus = slot<String>()
     val sep24TxMock = JdbcSep24Transaction()
     sep24TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep24TxMock.requestAssetCode = assetCode
@@ -418,13 +447,16 @@ class PaymentOperationToEventListenerTest {
     sep24TxMock.memoType = "hash"
 
     // TODO: this shouldn't be necessary
-    every { sep31TransactionStore.findByStellarAccountIdAndMemo(any(), any()) } returns null
+    every {
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
+    } returns null
 
     val sep24TxnCopy = gson.fromJson(gson.toJson(sep24TxMock), JdbcSep24Transaction::class.java)
     every {
-      sep24TransactionStore.findByStellarAccountIdAndMemo(
+      sep24TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
-        capture(slotMemo)
+        capture(slotMemo),
+        capture(slotStatus)
       )
     } returns sep24TxnCopy
 
@@ -458,9 +490,10 @@ class PaymentOperationToEventListenerTest {
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep24TransactionStore.findByStellarAccountIdAndMemo(
+      sep24TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4",
-        "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
+        "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
+        "PENDING_SENDER"
       )
     }
 
