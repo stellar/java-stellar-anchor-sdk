@@ -38,44 +38,9 @@ jobs:
         echo "\n\n*** Anchor reference server test report ***\n"
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
 
-  sep_validation_suite:
-    needs: [build_and_test]
-    runs-on: ubuntu-latest
-    name: Validate SEPs (1, 10, 12, 31, 38)
-    env:
-      PR_NUMBER: ${{github.event.pull_request.number}}
-    steps:
-      - uses: actions/checkout@v3
-
-      # Find the server endpoint home domain to run the SEP tests.
-      - name: Find Home Domain (Preview or Dev)
-        id: endpoint-finder
-        run: |
-          echo ${{github.event.pull_request.number}}
-          echo $PR_NUMBER
-          export HOME_DOMAIN=https://anchor-sep-server-dev.stellar.org
-          if [ ! -z "$PR_NUMBER" ]
-          then
-            export HOME_DOMAIN=https://anchor-sep-pr$PR_NUMBER.previews.kube001.services.stellar-ops.com
-          fi
-          echo HOME_DOMAIN=$HOME_DOMAIN
-          echo "::set-output name=HOME_DOMAIN::$HOME_DOMAIN"
-
-      - name: Install Node
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14
-
-      - name: Run Validation Tool
-        env:
-          HOME_DOMAIN: ${{ steps.endpoint-finder.outputs.HOME_DOMAIN }}
-        run: |
-          npm install -g @stellar/anchor-tests
-          stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 38 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
-
   complete:
     if: always()
-    needs: [build_and_test, sep_validation_suite]
+    needs: [build_and_test]
     runs-on: ubuntu-latest
     steps:
     - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')

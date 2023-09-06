@@ -17,6 +17,7 @@ change is, and why it is being made, with enough context for anyone to understan
 ### Thoroughness
 
 * [ ] This PR adds tests for the most critical parts of the new functionality or fixes.
+* [ ] All tests from the anchor test suite pass against this branch locally
 </details>
 
 ### What
