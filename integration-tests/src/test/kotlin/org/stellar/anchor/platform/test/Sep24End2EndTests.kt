@@ -109,9 +109,9 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
       compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
 
       // Check the callbacks sent to the wallet reference server are recorded correctly
-      val actualCallbacks = waitForWalletServerCallbacks(response.id, 4)
+      val actualCallbacks = waitForWalletServerCallbacks(response.id, 5)
       actualCallbacks?.let {
-        assertEquals(4, it.size)
+        assertEquals(5, it.size)
         val expectedCallbacks: List<Sep24GetTransactionResponse> =
           gson.fromJson(
             expectedDepositCallbacksJson,
@@ -271,16 +271,19 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
     count: Int
   ): List<Sep24GetTransactionResponse>? {
     var retries = 5
+    var callbacks: List<Sep24GetTransactionResponse>? = null
     while (retries > 0) {
-      val callbacks =
-        walletServerClient.getCallbackHistory(txnId, Sep24GetTransactionResponse::class.java)
+      callbacks =
+        walletServerClient
+          .getCallbackHistory(txnId, Sep24GetTransactionResponse::class.java)
+          .distinctBy { it.transaction.status }
       if (callbacks.size == count) {
         return callbacks
       }
       delay(1.seconds)
       retries--
     }
-    return null
+    return callbacks
   }
 
   private suspend fun waitForBusinessServerEvents(txnId: String, count: Int): List<AnchorEvent>? {
@@ -696,7 +699,7 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
       "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
       "started_at": "2023-08-03T09:20:44.557598Z",
       "stellar_transaction_id": "a2d31bbed336393dda0e00c09e37cd141cf5d17b7bb780c19a204bd3976e3aa7",
-      "message": "waiting on the user to transfer funds",
+      "message": "Received an incoming payment",
       "refunded": false,
       "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
       "to": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
@@ -791,6 +794,24 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
       "amount_fee": "0.5",
       "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
       "started_at": "2023-08-03T09:20:06.732254Z",
+      "message": "funds received, transaction is being processed",
+      "refunded": false,
+      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    }
+  },
+  {
+    "transaction": {
+      "id": "40781ad0-71e2-4c9d-8179-556e210bf037",
+      "kind": "deposit",
+      "status": "pending_stellar",
+      "more_info_url": "http://localhost:8091/sep24/transaction/more_info?transaction_id=40781ad0-71e2-4c9d-8179-556e210bf037&token=eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI0MDc4MWFkMC03MWUyLTRjOWQtODE3OS01NTZlMjEwYmYwMzciLCJleHAiOjE2OTQwMTg5NjgsImRhdGEiOnt9fQ.69romZWZruIWKWqlm_QYcoL8B6QgAH5iWhmcZC0A17c",
+      "amount_in": "1.1",
+      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_out": "1.0",
+      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_fee": "0.1",
+      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "started_at": "2023-09-06T16:39:23.645200Z",
       "message": "funds received, transaction is being processed",
       "refunded": false,
       "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
