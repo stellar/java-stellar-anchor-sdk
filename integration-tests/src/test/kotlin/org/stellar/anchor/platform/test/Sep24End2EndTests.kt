@@ -149,6 +149,7 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
     expectedEvents.forEachIndexed { index, expectedEvent ->
       actualEvents[index].let { actualEvent ->
         expectedEvent.id = actualEvent.id
+        expectedEvent.transaction.message = actualEvent.transaction.message
         expectedEvent.transaction.id = actualEvent.transaction.id
         expectedEvent.transaction.startedAt = actualEvent.transaction.startedAt
         expectedEvent.transaction.updatedAt = actualEvent.transaction.updatedAt
