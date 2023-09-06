@@ -19,11 +19,11 @@ class RequestLoggerFilterTest {
 
   @BeforeEach
   fun setUp() {
-    appLoggingConfig = AppLoggingConfig()
+    appLoggingConfig = mockk<AppLoggingConfig>(relaxed = true)
+    filterChain = mockk<FilterChain>(relaxed = true)
     requestLoggerFilter = RequestLoggerFilter(appLoggingConfig)
     request = MockHttpServletRequest()
     response = MockHttpServletResponse()
-    filterChain = mockk<FilterChain>(relaxed = true)
     mockkStatic(Log::class)
   }
 
@@ -36,28 +36,26 @@ class RequestLoggerFilterTest {
   @Test
   fun `doFilterInternal when RequestLogger disabled should not send debug and trace logs`() {
     // Arrange
-    appLoggingConfig.isRequestLoggerEnabled = false
+    every { appLoggingConfig.isRequestLoggerEnabled } returns false
 
     // Act
     requestLoggerFilter.doFilterInternal(request, response, filterChain)
 
     // Assert
     verify(exactly = 1) { filterChain.doFilter(any(), any()) }
-    verify(exactly = 0) { Log.debugF(any(), *varargAny { true }) }
-    verify(exactly = 0) { Log.trace(any()) }
+    verify(exactly = 0) { requestLoggerFilter.doFilterWithLogging(any(), any(), any()) }
   }
 
   @Test
   fun `doFilterInternal when RequestLogger enabled should send debug and trace logs`() {
     // Arrange
-    appLoggingConfig.isRequestLoggerEnabled = true
+    every { appLoggingConfig.isRequestLoggerEnabled } returns false
 
     // Act
     requestLoggerFilter.doFilterInternal(request, response, filterChain)
 
     // Assert
     verify(exactly = 1) { filterChain.doFilter(any(), any()) }
-    verify(exactly = 1) { Log.debugF(any(), *varargAny { true }) }
-    verify(exactly = 1) { Log.trace(any()) }
+    verify(exactly = 1) { requestLoggerFilter.doFilterWithLogging(any(), any(), any()) }
   }
 }

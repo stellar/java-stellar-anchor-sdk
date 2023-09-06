@@ -26,16 +26,9 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
     this.appLoggingConfig = appLoggingConfig;
   }
 
-  @Override
-  protected void doFilterInternal(
+  protected void doFilterWithLogging(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-
-    if (!appLoggingConfig.isRequestLoggerEnabled()) {
-      filterChain.doFilter(request, response);
-      return;
-    }
-
     long startTime = System.currentTimeMillis();
 
     // ========= Log request and response payload ("body") ========
@@ -75,6 +68,19 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
 
     // IMPORTANT: copy content of response back into original response:
     wrappedResponse.copyBodyToResponse();
+  }
+
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
+
+    if (!appLoggingConfig.isRequestLoggerEnabled()) {
+      filterChain.doFilter(request, response);
+      return;
+    }
+
+    doFilterWithLogging(request, response, filterChain);
   }
 
   /**
