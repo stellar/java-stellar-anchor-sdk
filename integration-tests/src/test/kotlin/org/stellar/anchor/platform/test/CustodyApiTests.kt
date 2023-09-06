@@ -600,7 +600,9 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
   "source_account": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
   "destination_account": "testAddress",
   "memo": "testTag",
-  "memo_type": "id"
+  "memo_type": "id",
+  "refund_memo": "12345",
+  "refund_memo_type" : "id"
 }
 """
 

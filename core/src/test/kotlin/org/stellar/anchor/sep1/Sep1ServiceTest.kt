@@ -2,11 +2,10 @@
 
 package org.stellar.anchor.sep1
 
-import io.mockk.MockKAnnotations
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import io.mockk.mockkStatic
 import java.nio.file.Files
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,6 +22,12 @@ internal class Sep1ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
+  }
+
+  @AfterEach
+  fun tearDown() {
+    clearAllMocks()
+    unmockkAll()
   }
 
   @Test

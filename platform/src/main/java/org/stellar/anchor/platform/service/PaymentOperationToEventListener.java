@@ -76,7 +76,9 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Find a transaction matching the memo, assumes transactions are unique to account+memo
     JdbcSep31Transaction sep31Txn = null;
     try {
-      sep31Txn = sep31TransactionStore.findByStellarAccountIdAndMemo(payment.getTo(), memo);
+      sep31Txn =
+          sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+              payment.getTo(), memo, SepTransactionStatus.PENDING_SENDER.toString());
     } catch (Exception ex) {
       errorEx(ex);
     }
@@ -94,7 +96,9 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Find a transaction matching the memo, assumes transactions are unique to account+memo
     JdbcSep24Transaction sep24Txn;
     try {
-      sep24Txn = sep24TransactionStore.findByToAccountAndMemo(payment.getTo(), memo);
+      sep24Txn =
+          sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
+              payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
     } catch (Exception ex) {
       errorEx(ex);
       return;
