@@ -7,6 +7,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -26,9 +27,9 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
     this.appLoggingConfig = appLoggingConfig;
   }
 
-  protected void doFilterWithLogging(
+  public void doFilterWithLogging(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-      throws ServletException, IOException {
+      throws IOException, ServletException {
     long startTime = System.currentTimeMillis();
 
     // ========= Log request and response payload ("body") ========
@@ -72,7 +73,9 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      @NotNull HttpServletRequest request,
+      @NotNull HttpServletResponse response,
+      @NotNull FilterChain filterChain)
       throws ServletException, IOException {
 
     if (!appLoggingConfig.isRequestLoggerEnabled()) {
@@ -80,7 +83,7 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
       return;
     }
 
-    doFilterWithLogging(request, response, filterChain);
+    this.doFilterWithLogging(request, response, filterChain);
   }
 
   /**
@@ -105,7 +108,7 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
     }
   }
 
-  public static String getClientIpAddress(HttpServletRequest request) {
+  private static String getClientIpAddress(HttpServletRequest request) {
     final String[] IP_HEADER_CANDIDATES = {
       "X-Forwarded-For",
       "X-Real-IP",

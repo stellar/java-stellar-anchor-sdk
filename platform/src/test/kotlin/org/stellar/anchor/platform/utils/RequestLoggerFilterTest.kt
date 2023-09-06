@@ -8,23 +8,19 @@ import org.junit.jupiter.api.Test
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.stellar.anchor.platform.config.AppLoggingConfig
-import org.stellar.anchor.util.Log
 
 class RequestLoggerFilterTest {
-  private lateinit var appLoggingConfig: AppLoggingConfig
-  private lateinit var requestLoggerFilter: RequestLoggerFilter
+  private lateinit var mockConfig: AppLoggingConfig
   private lateinit var request: MockHttpServletRequest
   private lateinit var response: MockHttpServletResponse
   private lateinit var filterChain: FilterChain
 
   @BeforeEach
   fun setUp() {
-    appLoggingConfig = mockk<AppLoggingConfig>(relaxed = true)
-    filterChain = mockk<FilterChain>(relaxed = true)
-    requestLoggerFilter = RequestLoggerFilter(appLoggingConfig)
+    mockConfig = mockk<AppLoggingConfig>(relaxed = true)
     request = MockHttpServletRequest()
     response = MockHttpServletResponse()
-    mockkStatic(Log::class)
+    filterChain = mockk<FilterChain>(relaxed = true)
   }
 
   @AfterEach
@@ -34,28 +30,30 @@ class RequestLoggerFilterTest {
   }
 
   @Test
-  fun `doFilterInternal when RequestLogger disabled should not send debug and trace logs`() {
-    // Arrange
-    every { appLoggingConfig.isRequestLoggerEnabled } returns false
+  fun `test when disabled the doFilterWithLogging() is not called`() {
+    // arrange
+    every { mockConfig.isRequestLoggerEnabled } returns false
+    val a = spyk(RequestLoggerFilter(mockConfig))
 
-    // Act
-    requestLoggerFilter.doFilterInternal(request, response, filterChain)
+    // act
+    a.doFilterInternal(request, response, filterChain)
 
-    // Assert
+    // assert
     verify(exactly = 1) { filterChain.doFilter(any(), any()) }
-    verify(exactly = 0) { requestLoggerFilter.doFilterWithLogging(any(), any(), any()) }
+    verify(exactly = 0) { a.doFilterWithLogging(any(), any(), any()) }
   }
 
   @Test
-  fun `doFilterInternal when RequestLogger enabled should send debug and trace logs`() {
-    // Arrange
-    every { appLoggingConfig.isRequestLoggerEnabled } returns false
+  fun `test when enabled the doFilterWithLogging() is called`() {
+    // arrange
+    every { mockConfig.isRequestLoggerEnabled } returns true
+    val a = spyk(RequestLoggerFilter(mockConfig))
 
-    // Act
-    requestLoggerFilter.doFilterInternal(request, response, filterChain)
+    // act
+    a.doFilterInternal(request, response, filterChain)
 
-    // Assert
+    // assert
     verify(exactly = 1) { filterChain.doFilter(any(), any()) }
-    verify(exactly = 1) { requestLoggerFilter.doFilterWithLogging(any(), any(), any()) }
+    verify(exactly = 1) { a.doFilterWithLogging(any(), any(), any()) }
   }
 }
