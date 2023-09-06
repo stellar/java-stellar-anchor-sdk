@@ -277,7 +277,6 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
     while (retries > 0) {
       callbacks =
         walletServerClient.getCallbackHistory(txnId, Sep24GetTransactionResponse::class.java)
-      info(callbacks)
       if (callbacks.size == count) {
         return callbacks
       }

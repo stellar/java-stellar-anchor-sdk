@@ -204,7 +204,6 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
         walletServerClient
           .getCallbackHistory(txnId, Sep31GetTransactionResponse::class.java)
           .distinctBy { it.transaction.status }
-      info(callbacks)
       if (callbacks.size == count) {
         return callbacks
       }

@@ -280,7 +280,6 @@ class Sep24RpcEnd2EndTests(config: TestConfig, val jwt: String) {
         walletServerClient
           .getCallbackHistory(txnId, Sep24GetTransactionResponse::class.java)
           .distinctBy { it.transaction.status }
-      info(callbacks)
       if (callbacks.size == count) {
         return callbacks
       }

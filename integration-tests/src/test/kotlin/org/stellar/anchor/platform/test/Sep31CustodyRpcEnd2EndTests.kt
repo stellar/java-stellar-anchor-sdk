@@ -204,7 +204,6 @@ class Sep31CustodyRpcEnd2EndTests(
     while (retries > 0) {
       callbacks =
         walletServerClient.getCallbackHistory(txnId, Sep31GetTransactionResponse::class.java)
-      info(callbacks)
       if (callbacks.size == count) {
         return callbacks
       }
