@@ -149,7 +149,6 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
     expectedEvents.forEachIndexed { index, expectedEvent ->
       actualEvents[index].let { actualEvent ->
         expectedEvent.id = actualEvent.id
-        expectedEvent.transaction.message = actualEvent.transaction.message
         expectedEvent.transaction.id = actualEvent.transaction.id
         expectedEvent.transaction.startedAt = actualEvent.transaction.startedAt
         expectedEvent.transaction.updatedAt = actualEvent.transaction.updatedAt
@@ -701,7 +700,7 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
       "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
       "started_at": "2023-08-03T09:20:44.557598Z",
       "stellar_transaction_id": "a2d31bbed336393dda0e00c09e37cd141cf5d17b7bb780c19a204bd3976e3aa7",
-      "message": "waiting on the user to transfer funds",
+      "message": "Received an incoming payment",
       "refunded": false,
       "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
       "to": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
