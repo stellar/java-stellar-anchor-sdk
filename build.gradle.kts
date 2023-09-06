@@ -6,6 +6,7 @@ plugins {
   java
   alias(libs.plugins.spotless)
   alias(libs.plugins.kotlin.jvm) apply false
+  jacoco
 }
 
 tasks {
@@ -25,12 +26,13 @@ tasks {
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
+  apply(plugin = "jacoco")
 
   repositories {
     mavenLocal()
     mavenCentral()
     maven { url = uri("https://packages.confluent.io/maven") }
-    maven { url = uri("https://reposdeitory.mulesoft.org/nexus/content/repositories/public/") }
+    maven { url = uri("https://repository.mulesoft.org/nexus/content/repositories/public/") }
     maven { url = uri("https://jitpack.io") }
   }
 
@@ -62,6 +64,15 @@ subprojects {
     }
 
     kotlin { ktfmt("0.42").googleStyle() }
+
+    tasks.jacocoTestReport {
+      dependsOn(tasks.test) // tests are required to run before generating the report
+      reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.required.set(true)
+      }
+    }
   }
 
   dependencies {
@@ -159,7 +170,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.2.0"
+  version = "2.2.1"
 
   tasks.jar {
     manifest {
@@ -168,4 +179,8 @@ allprojects {
       )
     }
   }
+}
+
+tasks.register("printVersionName") {
+  println(rootProject.version.toString())
 }

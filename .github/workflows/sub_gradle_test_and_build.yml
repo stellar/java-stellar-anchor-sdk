@@ -9,6 +9,10 @@ jobs:
   gradle_test_and_build:
     name: Gradle Test and Build
     runs-on: ubuntu-22.04
+    # write to PR  permission is required for jacocoTestReport Action to update comment
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       # Checkout the code
       - uses: actions/checkout@v3
@@ -52,7 +56,18 @@ jobs:
       - name: Gradle test and build. (unit tests, integration tests, end-2-end tests and build)
         env:
           run_docker: false
-        run: ./gradlew clean build --no-daemon --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
+        run: ./gradlew clean build jacocoTestReport --no-daemon --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
+
+      - name: Add coverage to PR
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.6.1
+        with:
+          paths: ${{ github.workspace }}/**/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 40
+          min-coverage-changed-files: 60
+          title: Code Coverage
+          update-comment: true
 
       - name: Stop docker containers
         env:
