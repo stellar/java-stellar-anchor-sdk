@@ -114,12 +114,7 @@ public class EventProcessorManager {
                 processorName,
                 EventQueue.TRANSACTION,
                 new ClientStatusCallbackHandler(
-                    secretConfig,
-                    clientConfig,
-                    sep24TransactionStore,
-                    sep31TransactionStore,
-                    assetService,
-                    moreInfoUrlConstructor),
+                    secretConfig, clientConfig, assetService, moreInfoUrlConstructor),
                 eventService));
       }
     }

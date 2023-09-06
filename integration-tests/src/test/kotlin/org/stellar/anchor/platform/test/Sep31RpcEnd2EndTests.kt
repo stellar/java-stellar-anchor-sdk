@@ -106,10 +106,12 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
           amountIn = actualCallback.transaction.amountIn
           amountInAsset?.let { amountInAsset = asset.sep38 }
           amountOut = actualCallback.transaction.amountOut
-          amountOutAsset?.let { amountOutAsset = asset.sep38 }
+          amountOutAsset?.let { amountOutAsset = actualCallback.transaction.amountOutAsset }
           amountFee = actualCallback.transaction.amountFee
           amountFeeAsset?.let { amountFeeAsset = asset.sep38 }
           stellarTransactionId = actualCallback.transaction.stellarTransactionId
+          stellarMemo?.let { stellarMemo = actualCallback.transaction.stellarMemo }
+          completedAt?.let { completedAt = actualCallback.transaction.completedAt }
         }
       }
     }
@@ -118,6 +120,7 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
 
   private fun `test typical receive end-to-end flow`(asset: StellarAssetId, amount: String) =
     runBlocking {
+      walletServerClient.clearCallbacks()
       val senderCustomerRequest =
         gson.fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
       val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
@@ -177,18 +180,17 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
         gson.fromJson(expectedReceiveEventJson, object : TypeToken<List<AnchorEvent>>() {}.type)
       compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
 
-      // TODO: Investigate why sometimes there are duplicates and different amount of callbacks
       // Check the callbacks sent to the wallet reference server are recorded correctly
-      //      val actualCallbacks = waitForWalletServerCallbacks(postTxResponse.id, 3)
-      //      actualCallbacks?.let {
-      //        assertEquals(3, it.size)
-      //        val expectedCallbacks: List<Sep31GetTransactionResponse> =
-      //          gson.fromJson(
-      //            expectedReceiveCallbacksJson,
-      //            object : TypeToken<List<Sep31GetTransactionResponse>>() {}.type
-      //          )
-      //        compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
-      //      }
+      val actualCallbacks = waitForWalletServerCallbacks(postTxResponse.id, 3)
+      actualCallbacks?.let {
+        assertEquals(3, it.size)
+        val expectedCallbacks: List<Sep31GetTransactionResponse> =
+          gson.fromJson(
+            expectedReceiveCallbacksJson,
+            object : TypeToken<List<Sep31GetTransactionResponse>>() {}.type
+          )
+        compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
+      }
     }
 
   private suspend fun waitForWalletServerCallbacks(
@@ -199,7 +201,9 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
     var callbacks: List<Sep31GetTransactionResponse>? = null
     while (retries > 0) {
       callbacks =
-        walletServerClient.getCallbackHistory(txnId, Sep31GetTransactionResponse::class.java)
+        walletServerClient
+          .getCallbackHistory(txnId, Sep31GetTransactionResponse::class.java)
+          .distinctBy { it.transaction.status }
       info(callbacks)
       if (callbacks.size == count) {
         return callbacks
@@ -454,6 +458,48 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
   private val expectedReceiveCallbacksJson =
     """
 [
+  {
+    "transaction": {
+      "id": "e9683b7f-c1c2-4565-acf6-57aa9830dc24",
+      "status": "pending_sender",
+      "amount_in": "5",
+      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_out": "3.8095",
+      "amount_out_asset": "iso4217:USD",
+      "amount_fee": "1.00",
+      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "started_at": "2023-09-06T16:00:32.267425500Z"
+    }
+  },
+  {
+    "transaction": {
+      "id": "e9683b7f-c1c2-4565-acf6-57aa9830dc24",
+      "status": "pending_receiver",
+      "amount_in": "5.0000000",
+      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_out": "3.8095",
+      "amount_out_asset": "iso4217:USD",
+      "amount_fee": "1.00",
+      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "started_at": "2023-09-06T16:00:32.267426Z",
+      "required_info_message": "Received an incoming payment"
+    }
+  },
+  {
+    "transaction": {
+      "id": "e9683b7f-c1c2-4565-acf6-57aa9830dc24",
+      "status": "completed",
+      "amount_in": "5.0000000",
+      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "amount_out": "3.8095",
+      "amount_out_asset": "iso4217:USD",
+      "amount_fee": "1.00",
+      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "started_at": "2023-09-06T16:00:32.267426Z",
+      "completed_at": "2023-09-06T16:00:43.479958600Z",
+      "required_info_message": "external transfer sent"
+    }
+  }
 ]
   """
       .trimIndent()

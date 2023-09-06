@@ -108,18 +108,17 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
         gson.fromJson(expectedDepositEventsJson, object : TypeToken<List<AnchorEvent>>() {}.type)
       compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
 
-      // TODO: Investigate why sometimes there are duplicates and different amount of callbacks
       // Check the callbacks sent to the wallet reference server are recorded correctly
-      //      val actualCallbacks = waitForWalletServerCallbacks(response.id, 5)
-      //      actualCallbacks?.let {
-      //        assertEquals(5, it.size)
-      //        val expectedCallbacks: List<Sep24GetTransactionResponse> =
-      //          gson.fromJson(
-      //            expectedDepositCallbacksJson,
-      //            object : TypeToken<List<Sep24GetTransactionResponse>>() {}.type
-      //          )
-      //        compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
-      //      }
+      val actualCallbacks = waitForWalletServerCallbacks(response.id, 5)
+      actualCallbacks?.let {
+        assertEquals(5, it.size)
+        val expectedCallbacks: List<Sep24GetTransactionResponse> =
+          gson.fromJson(
+            expectedDepositCallbacksJson,
+            object : TypeToken<List<Sep24GetTransactionResponse>>() {}.type
+          )
+        compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
+      }
     }
 
   private suspend fun makeDeposit(
@@ -256,18 +255,17 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
       compareAndAssertEvents(asset, expectedEvents, actualEvents)
     }
 
-    // TODO: Investigate why sometimes there are duplicates and different amount of callbacks
     // Check the callbacks sent to the wallet reference server are recorded correctly
-    //        val actualCallbacks = waitForWalletServerCallbacks(withdrawTxn.id, 5)
-    //        actualCallbacks?.let {
-    //            assertEquals(5, it.size)
-    //            val expectedCallbacks: List<Sep24GetTransactionResponse> =
-    //                    gson.fromJson(
-    //                            expectedWithdrawalCallbacksJson,
-    //                            object : TypeToken<List<Sep24GetTransactionResponse>>() {}.type
-    //                    )
-    //            compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
-    //        }
+    val actualCallbacks = waitForWalletServerCallbacks(withdrawTxn.id, 5)
+    actualCallbacks?.let {
+      assertEquals(5, it.size)
+      val expectedCallbacks: List<Sep24GetTransactionResponse> =
+        gson.fromJson(
+          expectedWithdrawalCallbacksJson,
+          object : TypeToken<List<Sep24GetTransactionResponse>>() {}.type
+        )
+      compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
+    }
   }
 
   private suspend fun waitForWalletServerCallbacks(
@@ -275,16 +273,18 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
     count: Int
   ): List<Sep24GetTransactionResponse>? {
     var retries = 5
+    var callbacks: List<Sep24GetTransactionResponse>? = null
     while (retries > 0) {
-      val callbacks =
+      callbacks =
         walletServerClient.getCallbackHistory(txnId, Sep24GetTransactionResponse::class.java)
+      info(callbacks)
       if (callbacks.size == count) {
         return callbacks
       }
       delay(1.seconds)
       retries--
     }
-    return null
+    return callbacks
   }
 
   private suspend fun waitForBusinessServerEvents(txnId: String, count: Int): List<AnchorEvent>? {
