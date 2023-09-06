@@ -73,7 +73,9 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Find a transaction matching the memo
     Sep31Transaction txn;
     try {
-      txn = transactionStore.findByStellarMemo(memo);
+      txn =
+          transactionStore.findByStellarAccountIdAndMemoAndStatus(
+              payment.getTo(), memo, TransactionEvent.Status.PENDING_SENDER.toString());
       if (txn == null) {
         Log.infoF("Not expecting any transaction with the memo {}.", payment.getTransactionMemo());
         return;

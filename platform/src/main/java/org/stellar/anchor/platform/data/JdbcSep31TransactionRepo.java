@@ -17,7 +17,8 @@ public interface JdbcSep31TransactionRepo extends CrudRepository<JdbcSep31Transa
 
   Optional<JdbcSep31Transaction> findByStellarAccountId(@NonNull String stellarAccountId);
 
-  Optional<Sep31Transaction> findByStellarMemo(String stellarMemo);
+  Optional<Sep31Transaction> findByStellarAccountIdAndStellarMemoAndStatus(
+      String stellarAccountId, String stellarMemo, String status);
 
   @Query(value = "SELECT COUNT(t) FROM JdbcSep31Transaction t WHERE t.status = :status")
   Integer findByStatusCount(@Param("status") String status);

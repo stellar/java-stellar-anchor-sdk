@@ -71,25 +71,55 @@ class PaymentOperationToEventListenerTest {
     verify { transactionStore wasNot Called }
 
     // Payment whose memo is not in the DB shouldn't trigger event
+    p.to = "GCIZBIBPYIOSND7KRYMTSM25POVLOGGCKGIQLLUNSQJ5MAVRBD66KF6B"
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     p.transactionMemo = "my_memo_2"
     p.assetType = "credit_alphanum4"
+    var slotAccount = slot<String>()
     var slotMemo = slot<String>()
-    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns null
+    var slotStatus = slot<String>()
+    every {
+      transactionStore.findByStellarAccountIdAndMemoAndStatus(
+        capture(slotAccount),
+        capture(slotMemo),
+        capture(slotStatus)
+      )
+    } returns null
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
-    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_2") }
+    verify(exactly = 1) {
+      transactionStore.findByStellarAccountIdAndMemoAndStatus(
+        slotAccount.captured,
+        slotMemo.captured,
+        slotStatus.captured
+      )
+    }
+    assertEquals("GCIZBIBPYIOSND7KRYMTSM25POVLOGGCKGIQLLUNSQJ5MAVRBD66KF6B", slotAccount.captured)
     assertEquals("my_memo_2", slotMemo.captured)
+    assertEquals("pending_sender", slotStatus.captured)
 
     // If findByStellarMemo throws an exception, we shouldn't trigger an event
     slotMemo = slot()
     p.transactionMemo = "my_memo_3"
-    every { transactionStore.findByStellarMemo(capture(slotMemo)) } throws
-      SepException("Something went wrong")
+    every {
+      transactionStore.findByStellarAccountIdAndMemoAndStatus(
+        capture(slotAccount),
+        capture(slotMemo),
+        capture(slotStatus)
+      )
+    } throws SepException("Something went wrong")
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
-    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_3") }
+    verify(exactly = 1) {
+      transactionStore.findByStellarAccountIdAndMemoAndStatus(
+        slotAccount.captured,
+        slotMemo.captured,
+        slotStatus.captured
+      )
+    }
+    assertEquals("GCIZBIBPYIOSND7KRYMTSM25POVLOGGCKGIQLLUNSQJ5MAVRBD66KF6B", slotAccount.captured)
     assertEquals("my_memo_3", slotMemo.captured)
+    assertEquals("pending_sender", slotStatus.captured)
 
     // If asset code from the fetched tx is different, don't trigger event
     slotMemo = slot()
@@ -97,11 +127,25 @@ class PaymentOperationToEventListenerTest {
     p.assetCode = "FOO"
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.amountInAsset = "BAR"
-    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
+    every {
+      transactionStore.findByStellarAccountIdAndMemoAndStatus(
+        capture(slotAccount),
+        capture(slotMemo),
+        capture(slotStatus)
+      )
+    } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
-    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_4") }
+    verify(exactly = 1) {
+      transactionStore.findByStellarAccountIdAndMemoAndStatus(
+        slotAccount.captured,
+        slotMemo.captured,
+        slotStatus.captured
+      )
+    }
+    assertEquals("GCIZBIBPYIOSND7KRYMTSM25POVLOGGCKGIQLLUNSQJ5MAVRBD66KF6B", slotAccount.captured)
     assertEquals("my_memo_4", slotMemo.captured)
+    assertEquals("pending_sender", slotStatus.captured)
   }
 
   @Test
@@ -133,7 +177,9 @@ class PaymentOperationToEventListenerTest {
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
 
+    val slotAccount = slot<String>()
     val slotMemo = slot<String>()
+    val slotStatus = slot<String>()
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep31TxMock.amountExpected = "10"
@@ -158,7 +204,13 @@ class PaymentOperationToEventListenerTest {
         .build()
 
     val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
-    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxCopy
+    every {
+      transactionStore.findByStellarAccountIdAndMemoAndStatus(
+        capture(slotAccount),
+        capture(slotMemo),
+        capture(slotStatus)
+      )
+    } returns sep31TxCopy
 
     val slotTx = slot<Sep31Transaction>()
     every { transactionStore.save(capture(slotTx)) } returns sep31TxMock
@@ -230,7 +282,11 @@ class PaymentOperationToEventListenerTest {
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      transactionStore.findByStellarMemo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
+      transactionStore.findByStellarAccountIdAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
+        "pending_sender"
+      )
     }
     verify(exactly = 1) { eventPublishService.publish(any()) }
 
@@ -278,7 +334,9 @@ class PaymentOperationToEventListenerTest {
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
 
+    val slotAccount = slot<String>()
     val slotMemo = slot<String>()
+    val slotStatus = slot<String>()
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep31TxMock.amountExpected = "10"
@@ -303,7 +361,13 @@ class PaymentOperationToEventListenerTest {
         .build()
 
     val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
-    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxCopy
+    every {
+      transactionStore.findByStellarAccountIdAndMemoAndStatus(
+        capture(slotAccount),
+        capture(slotMemo),
+        capture(slotStatus)
+      )
+    } returns sep31TxCopy
 
     val slotTx = slot<Sep31Transaction>()
     every { transactionStore.save(capture(slotTx)) } returns sep31TxMock
@@ -375,7 +439,11 @@ class PaymentOperationToEventListenerTest {
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      transactionStore.findByStellarMemo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
+      transactionStore.findByStellarAccountIdAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
+        "pending_sender"
+      )
     }
     verify(exactly = 1) { eventPublishService.publish(any()) }
 
