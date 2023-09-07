@@ -372,6 +372,8 @@ class DoStellarRefundHandlerTest {
     expectedResponse.amountOut = Amount("1", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.refundMemo = MEMO
+    expectedResponse.refundMemoType = MEMO_TYPE
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

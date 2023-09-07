@@ -84,6 +84,8 @@ class PaymentOperationToEventListenerTest {
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     p.transactionMemo = "my_memo_2"
     p.assetType = "credit_alphanum4"
+    p.amount = "1"
+    p.assetName = "FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     p.sourceAccount = "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5"
     p.to = "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     var slotMemo = slot<String>()
@@ -96,6 +98,8 @@ class PaymentOperationToEventListenerTest {
         capture(slotStatus)
       )
     } returns null
+    every { sep24TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      null
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
