@@ -73,7 +73,10 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartKotlinReferenceServer = config.env[RUN_KOTLIN_REFERENCE_SERVER].toBoolean()
     shouldStartWalletServer = config.env[RUN_WALLET_SERVER].toBoolean()
 
-    custodyEnabled = "none" != config.env["custody.type"]
+    val custodyType = config.env["custody.type"]
+    if (custodyType != null) {
+      custodyEnabled = "none" != custodyType
+    }
 
     startDocker()
     // TODO: Check server readiness instead of wait for 5 seconds
