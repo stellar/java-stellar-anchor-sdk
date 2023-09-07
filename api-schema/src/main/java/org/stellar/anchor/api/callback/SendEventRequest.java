@@ -11,10 +11,14 @@ import org.stellar.anchor.api.event.AnchorEvent;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SendEventRequest {
-  /** The seconds since the Unix epoch, UTC. */
-  Long timestamp;
+  /** The ID of the event */
+  String id;
+  /** The ISO 8601 UTC datetime string */
+  String timestamp;
+  /** The type of event */
+  String type;
   /** The event payload. */
-  AnchorEvent payload;
+  SendEventRequestPayload payload;
 
   /**
    * Creates a SendEventRequest from an AnchorEvent.
@@ -24,8 +28,10 @@ public class SendEventRequest {
    */
   public static SendEventRequest from(AnchorEvent event) {
     SendEventRequest request = new SendEventRequest();
-    request.setTimestamp(Instant.now().getEpochSecond());
-    request.setPayload(event);
+    request.setId(event.getId());
+    request.setType(event.getType().toString().toLowerCase());
+    request.setTimestamp(Instant.now().toString());
+    request.setPayload(SendEventRequestPayload.from(event));
     return request;
   }
 }

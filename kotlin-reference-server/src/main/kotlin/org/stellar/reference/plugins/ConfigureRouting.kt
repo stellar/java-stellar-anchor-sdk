@@ -10,6 +10,7 @@ import org.stellar.reference.callbacks.fee.fee
 import org.stellar.reference.callbacks.interactive.sep24Interactive
 import org.stellar.reference.callbacks.rate.RateService
 import org.stellar.reference.callbacks.rate.rate
+import org.stellar.reference.callbacks.test.testCustomer
 import org.stellar.reference.callbacks.uniqueaddress.UniqueAddressService
 import org.stellar.reference.callbacks.uniqueaddress.uniqueAddress
 import org.stellar.reference.dao.JdbcCustomerRepository
@@ -52,5 +53,8 @@ fun Application.configureRouting(cfg: Config) = routing {
 
   if (cfg.sep24.enableTest) {
     testSep24(helper, depositService, withdrawalService, cfg.sep24.interactiveJwtKey)
+  }
+  if (cfg.appSettings.isTest) {
+    testCustomer(customerService)
   }
 }
