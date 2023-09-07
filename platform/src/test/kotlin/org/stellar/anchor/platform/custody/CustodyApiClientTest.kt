@@ -24,7 +24,6 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.apiclient.CustodyApiClient
 import org.stellar.anchor.platform.config.CustodyApiConfig
 import org.stellar.anchor.util.AuthHeader
-import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 import org.stellar.anchor.util.GsonUtils
 
 class CustodyApiClientTest {
@@ -59,15 +58,11 @@ class CustodyApiClientTest {
 
   @Test
   fun test_createTransaction_success() {
-    val response =
-      getMockResponse(
-        200,
-        getResourceFileAsString("custody/api/client/create_transaction_response.json")
-      )
+    val response = getMockResponse(200, createTransactionResponse)
     val requestCapture = slot<Request>()
     val call = mockk<Call>()
-    val requestJson = getResourceFileAsString("custody/api/client/create_transaction_request.json")
-    val request = gson.fromJson(requestJson, CreateCustodyTransactionRequest::class.java)
+    val request =
+      gson.fromJson(createTransactionRequest, CreateCustodyTransactionRequest::class.java)
 
     every { httpClient.newCall(capture(requestCapture)) } returns call
     every { call.execute() } returns response
@@ -80,7 +75,7 @@ class CustodyApiClientTest {
     )
     Assertions.assertEquals("testApiKeyValue", requestCapture.captured.header("testApiKeyName"))
     JSONAssert.assertEquals(
-      requestJson,
+      createTransactionRequest,
       requestBodyToString(requestCapture.captured.body),
       JSONCompareMode.STRICT
     )
@@ -89,8 +84,8 @@ class CustodyApiClientTest {
   @Test
   fun test_createTransaction_fail_IOException() {
     val call = mockk<Call>()
-    val requestJson = getResourceFileAsString("custody/api/client/create_transaction_request.json")
-    val request = gson.fromJson(requestJson, CreateCustodyTransactionRequest::class.java)
+    val request =
+      gson.fromJson(createTransactionRequest, CreateCustodyTransactionRequest::class.java)
 
     every { httpClient.newCall(any()) } returns call
     every { call.execute() } throws IOException("Custody IO exception")
@@ -102,12 +97,11 @@ class CustodyApiClientTest {
 
   @Test
   fun test_createTransaction_fail_errorStatusCode() {
-    val response =
-      getMockResponse(400, getResourceFileAsString("custody/api/client/error_response_body.json"))
+    val response = getMockResponse(400, errorResponseBody)
     val requestCapture = slot<Request>()
     val call = mockk<Call>()
-    val requestJson = getResourceFileAsString("custody/api/client/create_transaction_request.json")
-    val request = gson.fromJson(requestJson, CreateCustodyTransactionRequest::class.java)
+    val request =
+      gson.fromJson(createTransactionRequest, CreateCustodyTransactionRequest::class.java)
 
     every { httpClient.newCall(capture(requestCapture)) } returns call
     every { call.execute() } returns response
@@ -122,9 +116,7 @@ class CustodyApiClientTest {
 
   @Test
   fun test_generateDepositAddress_success() {
-    val responseJson =
-      getResourceFileAsString("custody/api/client/generate_deposit_address_response.json")
-    val response = getMockResponse(200, responseJson)
+    val response = getMockResponse(200, createTransactionResponse)
     val requestCapture = slot<Request>()
     val call = mockk<Call>()
 
@@ -139,7 +131,11 @@ class CustodyApiClientTest {
     )
     Assertions.assertEquals("testApiKeyValue", requestCapture.captured.header("testApiKeyName"))
 
-    JSONAssert.assertEquals(responseJson, gson.toJson(responseAddress), JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(
+      createTransactionResponse,
+      gson.toJson(responseAddress),
+      JSONCompareMode.STRICT
+    )
   }
 
   @Test
@@ -208,4 +204,39 @@ class CustodyApiClientTest {
       .body(responseJson.toResponseBody("application/json".toMediaTypeOrNull()))
       .build()
   }
+
+  private val createTransactionRequest =
+    """
+{
+  "id" : "testId",
+  "memo":  "testMemo",
+  "memoType": "testMemoType",
+  "protocol": "testProtocol",
+  "fromAccount": "testFromAccount",
+  "toAccount": "testToAccount",
+  "amount": "testAmount",
+  "asset": "testAmountAsset",
+  "kind": "testKind"
+}  
+"""
+
+  private val createTransactionResponse = """
+{
+}  
+"""
+
+  private val errorResponseBody = """
+{
+  "rawErrorMessage": "Custody error"
+} 
+"""
+
+  private val generateDepositAddressResponse =
+    """
+{
+  "address": "testAddress",
+  "memo": "testMemo",
+  "memoType": "hash"
+}
+"""
 }

@@ -12,7 +12,6 @@ import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.platform.config.RpcConfig
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
-import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 
 class Sep24CustodyPaymentHandlerTest {
@@ -42,18 +41,10 @@ class Sep24CustodyPaymentHandlerTest {
   fun test_handleEvent_onReceived_payment_success() {
     val txn =
       gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_transaction_input_sep24_withdrawal_payment.json"
-        ),
+        custodyTransactionInputSep24WithdrawalPayment,
         JdbcCustodyTransaction::class.java
       )
-    val payment =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_payment_with_id.json"
-        ),
-        CustodyPayment::class.java
-      )
+    val payment = gson.fromJson(custodyPaymentWithId, CustodyPayment::class.java)
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
     mockkStatic(Metrics::class)
@@ -76,9 +67,7 @@ class Sep24CustodyPaymentHandlerTest {
     }
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "custody/fireblocks/webhook/handler/custody_transaction_db_sep24_withdrawal_payment.json"
-      ),
+      custodyTransactionDbSep24WithdrawalPayment,
       gson.toJson(custodyTxCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -88,18 +77,10 @@ class Sep24CustodyPaymentHandlerTest {
   fun test_handleEvent_onReceived_refund_success() {
     val txn =
       gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_transaction_input_sep24_withdrawal_refund.json"
-        ),
+        custodyTransactionInputSep24WithdrawalRefund,
         JdbcCustodyTransaction::class.java
       )
-    val payment =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_payment_with_id.json"
-        ),
-        CustodyPayment::class.java
-      )
+    val payment = gson.fromJson(custodyPaymentWithId, CustodyPayment::class.java)
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
     mockkStatic(Metrics::class)
@@ -121,9 +102,7 @@ class Sep24CustodyPaymentHandlerTest {
     }
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "custody/fireblocks/webhook/handler/custody_transaction_db_sep24_withdrawal_refund.json"
-      ),
+      custodyTransactionDbSep24WithdrawalRefund,
       gson.toJson(custodyTxCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -133,18 +112,10 @@ class Sep24CustodyPaymentHandlerTest {
   fun test_handleEvent_onReceived_payment_error() {
     val txn =
       gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_transaction_input_sep24_withdrawal_payment.json"
-        ),
+        custodyTransactionInputSep24WithdrawalPayment,
         JdbcCustodyTransaction::class.java
       )
-    val payment =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_payment_with_id_error.json"
-        ),
-        CustodyPayment::class.java
-      )
+    val payment = gson.fromJson(custodyPaymentWithIdError, CustodyPayment::class.java)
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
     mockkStatic(Metrics::class)
@@ -158,9 +129,7 @@ class Sep24CustodyPaymentHandlerTest {
     verify(exactly = 1) { platformApiClient.notifyTransactionError(txn.id, "payment failed") }
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "custody/fireblocks/webhook/handler/custody_transaction_db_sep24_withdrawal_payment_error.json"
-      ),
+      custodyTransactionDbSep24WithdrawalPaymentError,
       gson.toJson(custodyTxCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -169,19 +138,8 @@ class Sep24CustodyPaymentHandlerTest {
   @Test
   fun test_handleEvent_onSent_success() {
     val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_transaction_input_sep24_deposit_payment.json"
-        ),
-        JdbcCustodyTransaction::class.java
-      )
-    val payment =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_payment_with_id.json"
-        ),
-        CustodyPayment::class.java
-      )
+      gson.fromJson(custodyTransactionInputSep24DepositPayment, JdbcCustodyTransaction::class.java)
+    val payment = gson.fromJson(custodyPaymentWithId, CustodyPayment::class.java)
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
     mockkStatic(Metrics::class)
@@ -199,9 +157,7 @@ class Sep24CustodyPaymentHandlerTest {
     }
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "custody/fireblocks/webhook/handler/custody_transaction_db_sep24_deposit_payment.json"
-      ),
+      custodyTransactionDbSep24DepositPayment,
       gson.toJson(custodyTxCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -210,19 +166,8 @@ class Sep24CustodyPaymentHandlerTest {
   @Test
   fun test_handleEvent_onSent_payment_error() {
     val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_transaction_input_sep24_deposit_payment.json"
-        ),
-        JdbcCustodyTransaction::class.java
-      )
-    val payment =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_payment_with_id_error.json"
-        ),
-        CustodyPayment::class.java
-      )
+      gson.fromJson(custodyTransactionInputSep24DepositPayment, JdbcCustodyTransaction::class.java)
+    val payment = gson.fromJson(custodyPaymentWithIdError, CustodyPayment::class.java)
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
     mockkStatic(Metrics::class)
@@ -236,11 +181,208 @@ class Sep24CustodyPaymentHandlerTest {
     verify(exactly = 1) { platformApiClient.notifyTransactionError(txn.id, "payment failed") }
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "custody/fireblocks/webhook/handler/custody_transaction_db_sep24_deposit_payment_error.json"
-      ),
+      custodyTransactionDbSep24DepositPaymentError,
       gson.toJson(custodyTxCapture.captured),
       JSONCompareMode.STRICT
     )
   }
+
+  private val custodyPaymentWithId =
+    """
+{
+  "id": "12345",
+  "externalTxId": "testEventId",
+  "type": "payment",
+  "from": "testFrom",
+  "to": "testTo",
+  "amount": "1.0000000",
+  "assetType": "credit_alphanum4",
+  "assetName": "testAmountInAsset",
+  "updatedAt": "2023-05-10T10:18:25.778Z",
+  "status": "SUCCESS",
+  "transactionHash": "testTxHash",
+  "transactionMemoType": "none",
+  "transactionEnvelope": "testEnvelopeXdr"
+}  
+"""
+
+  private val custodyPaymentWithIdError =
+    """
+  {
+  "id": "12345",
+  "externalTxId": "testEventId",
+  "type": "payment",
+  "from": "testFrom",
+  "to": "testTo",
+  "amount": "1.0000000",
+  "assetType": "credit_alphanum4",
+  "assetName": "testAmountInAsset",
+  "updatedAt": "2023-05-10T10:18:25.778Z",
+  "status": "ERROR",
+  "transactionHash": "testTxHash",
+  "transactionMemoType": "none",
+  "transactionEnvelope": "testEnvelopeXdr"
+}
+"""
+
+  private val custodyTransactionDbSep24DepositPayment =
+    """
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "external_tx_id": "testEventId",
+  "status": "completed",
+  "amount": "1",
+  "asset": "stellar:testAmountInAsset",
+  "updated_at": "2023-05-10T10:18:25.778Z",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFrom",
+  "to_account": "testToAccount",
+  "kind": "deposit",
+  "reconciliation_attempt_count": 0,
+  "type": "payment"
+}  
+"""
+
+  private val custodyTransactionDbSep24DepositPaymentError =
+    """
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "external_tx_id": "testEventId",
+  "status": "failed",
+  "amount": "1",
+  "asset": "stellar:testAmountInAsset",
+  "updated_at": "2023-05-10T10:18:25.778Z",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFrom",
+  "to_account": "testToAccount",
+  "kind": "deposit",
+  "reconciliation_attempt_count": 0,
+  "type": "payment"
+}  
+"""
+
+  private val custodyTransactionDbSep24WithdrawalPayment =
+    """
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "external_tx_id": "testEventId",
+  "status": "completed",
+  "amount": "1",
+  "asset": "stellar:testAmountInAsset",
+  "updated_at": "2023-05-10T10:18:25.778Z",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFrom",
+  "to_account": "testToAccount",
+  "kind": "withdrawal",
+  "reconciliation_attempt_count": 0,
+  "type": "payment"
+}
+"""
+
+  private val custodyTransactionDbSep24WithdrawalPaymentError =
+    """
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "external_tx_id": "testEventId",
+  "status": "failed",
+  "amount": "1",
+  "asset": "stellar:testAmountInAsset",
+  "updated_at": "2023-05-10T10:18:25.778Z",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFrom",
+  "to_account": "testToAccount",
+  "kind": "withdrawal",
+  "reconciliation_attempt_count": 0,
+  "type": "payment"
+}  
+"""
+
+  private val custodyTransactionDbSep24WithdrawalRefund =
+    """
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "external_tx_id": "testEventId",
+  "status": "completed",
+  "amount": "1",
+  "amount_fee": "0.1",
+  "asset": "stellar:testAmountInAsset",
+  "updated_at": "2023-05-10T10:18:25.778Z",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFrom",
+  "to_account": "testToAccount",
+  "kind": "withdrawal",
+  "reconciliation_attempt_count": 0,
+  "type": "refund"
+}  
+"""
+
+  private val custodyTransactionInputSep24DepositPayment =
+    """
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "status": "submitted",
+  "amount": "1",
+  "asset": "stellar:testAmountInAsset",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFromAccount1",
+  "to_account": "testToAccount",
+  "kind": "deposit",
+  "type": "payment"
+}
+"""
+
+  private val custodyTransactionInputSep24WithdrawalPayment =
+    """
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "status": "submitted",
+  "amount": "1",
+  "asset": "stellar:testAmountInAsset",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFromAccount1",
+  "to_account": "testToAccount",
+  "kind": "withdrawal",
+  "type": "payment"
+}  
+"""
+
+  private val custodyTransactionInputSep24WithdrawalRefund =
+    """
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "status": "submitted",
+  "amount": "1",
+  "amount_fee": "0.1",
+  "asset": "stellar:testAmountInAsset",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFromAccount1",
+  "to_account": "testToAccount",
+  "kind": "withdrawal",
+  "type": "refund"
+}
+"""
 }

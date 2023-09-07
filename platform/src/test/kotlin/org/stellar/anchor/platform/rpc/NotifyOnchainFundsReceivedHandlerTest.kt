@@ -41,7 +41,6 @@ import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
-import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.responses.operations.OperationResponse
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
@@ -57,8 +56,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     private const val FIAT_USD_CODE = "USD"
     private const val STELLAR_TX_ID = "stellarTxId"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
-    private const val PAYMENT_OPERATION_RECORD_FILE_PATH = "action/payment_operation_record.json"
-    private const val STELLAR_TRANSACTIONS_FILE_PATH = "action/stellar_transactions.json"
     private const val STELLAR_PAYMENT_DATE = "2023-05-10T10:18:20Z"
   }
 
@@ -202,16 +199,14 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    val operationRecordsJson = FileUtil.getResourceFileAsString(PAYMENT_OPERATION_RECORD_FILE_PATH)
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
-      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+      gson.fromJson(paymentOperationRecord, operationRecordsTypeToken)
 
-    val stellarTransactionsJson = FileUtil.getResourceFileAsString(STELLAR_TRANSACTIONS_FILE_PATH)
     val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
     val stellarTransactions: List<StellarTransaction> =
-      gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
+      gson.fromJson(stellarTransactions, stellarTransactionsToken)
 
     mockkStatic(Metrics::class)
 
@@ -302,16 +297,14 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    val operationRecordsJson = FileUtil.getResourceFileAsString(PAYMENT_OPERATION_RECORD_FILE_PATH)
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
-      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+      gson.fromJson(paymentOperationRecord, operationRecordsTypeToken)
 
-    val stellarTransactionsJson = FileUtil.getResourceFileAsString(STELLAR_TRANSACTIONS_FILE_PATH)
     val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
     val stellarTransactions: List<StellarTransaction> =
-      gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
+      gson.fromJson(stellarTransactions, stellarTransactionsToken)
 
     mockkStatic(Metrics::class)
 
@@ -394,16 +387,14 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    val operationRecordsJson = FileUtil.getResourceFileAsString(PAYMENT_OPERATION_RECORD_FILE_PATH)
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
-      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+      gson.fromJson(paymentOperationRecord, operationRecordsTypeToken)
 
-    val stellarTransactionsJson = FileUtil.getResourceFileAsString(STELLAR_TRANSACTIONS_FILE_PATH)
     val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
     val stellarTransactions: List<StellarTransaction> =
-      gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
+      gson.fromJson(stellarTransactions, stellarTransactionsToken)
 
     mockkStatic(Metrics::class)
 
@@ -481,16 +472,14 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    val operationRecordsJson = FileUtil.getResourceFileAsString(PAYMENT_OPERATION_RECORD_FILE_PATH)
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
-      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+      gson.fromJson(paymentOperationRecord, operationRecordsTypeToken)
 
-    val stellarTransactionsJson = FileUtil.getResourceFileAsString(STELLAR_TRANSACTIONS_FILE_PATH)
     val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
     val stellarTransactions: List<StellarTransaction> =
-      gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
+      gson.fromJson(stellarTransactions, stellarTransactionsToken)
 
     mockkStatic(Metrics::class)
 
@@ -655,4 +644,131 @@ class NotifyOnchainFundsReceivedHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
   }
+
+  private val paymentOperationRecord =
+    """
+[
+  {
+    "amount": "15.0000000",
+    "assetType": "native",
+    "from": "testFrom",
+    "to": "testTo",
+    "id": 12345,
+    "sourceAccount": "testSourceAccount",
+    "pagingToken": "testPagingToken",
+    "createdAt": "2023-05-10T10:18:20Z",
+    "transactionHash": "testTxHash",
+    "transactionSuccessful": true,
+    "type": "payment",
+    "links": {
+      "effects": {
+        "href": "https://horizon-testnet.stellar.org/operations/12345/effects",
+        "templated": false
+      },
+      "precedes": {
+        "href": "https://horizon-testnet.stellar.org/effects?order\u003dasc\u0026cursor\u003d12345",
+        "templated": false
+      },
+      "self": {
+        "href": "https://horizon-testnet.stellar.org/operations/12345",
+        "templated": false
+      },
+      "succeeds": {
+        "href": "https://horizon-testnet.stellar.org/effects?order\u003ddesc\u0026cursor\u003d12345",
+        "templated": false
+      },
+      "transaction": {
+        "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
+        "templated": false
+      }
+    },
+    "transaction": {
+      "hash": "testTxHash",
+      "ledger": 1234,
+      "createdAt": "2023-05-10T10:18:20Z",
+      "sourceAccount": "testSourceAccount",
+      "feeAccount": "testFeeAccount",
+      "successful": true,
+      "pagingToken": "1234",
+      "sourceAccountSequence": 12345,
+      "maxFee": 100,
+      "feeCharged": 100,
+      "operationCount": 1,
+      "envelopeXdr": "testEnvelopeXdr",
+      "resultXdr": "testResultXdr",
+      "resultMetaXdr": "resultMetaXdr",
+      "signatures": [
+        "testSignature1"
+      ],
+      "preconditions": {
+        "timeBounds": {
+          "minTime": 0,
+          "maxTime": 1683713997
+        },
+        "minAccountSequenceAge": 0,
+        "minAccountSequenceLedgerGap": 0
+      },
+      "links": {
+        "account": {
+          "href": "https://horizon-testnet.stellar.org/accounts/testAccount",
+          "templated": false
+        },
+        "effects": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/effects{?cursor,limit,order}",
+          "templated": true
+        },
+        "ledger": {
+          "href": "https://horizon-testnet.stellar.org/ledgers/1234",
+          "templated": false
+        },
+        "operations": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/operations{?cursor,limit,order}",
+          "templated": true
+        },
+        "precedes": {
+          "href": "https://horizon-testnet.stellar.org/transactions?order\u003dasc\u0026cursor\u003d12345",
+          "templated": false
+        },
+        "self": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
+          "templated": false
+        },
+        "succeeds": {
+          "href": "https://horizon-testnet.stellar.org/transactions?order\u003ddesc\u0026cursor\u003d12345",
+          "templated": false
+        }
+      },
+      "rateLimitLimit": 0,
+      "rateLimitRemaining": 0,
+      "rateLimitReset": 0
+    },
+    "rateLimitLimit": 0,
+    "rateLimitRemaining": 0,
+    "rateLimitReset": 0
+  }
+]  
+"""
+
+  private val stellarTransactions =
+    """
+[
+  {
+    "id": "stellarTxId",
+    "created_at": "2023-05-10T10:18:20Z",
+    "envelope": "testEnvelopeXdr",
+    "payments": [
+      {
+        "id": "12345",
+        "amount": {
+          "amount": "15.0000000",
+          "asset": "native"
+        },
+        "payment_type": "payment",
+        "source_account": "testFrom",
+        "destination_account": "testTo"
+      }
+    ]
+  }
+]  
+"""
 }

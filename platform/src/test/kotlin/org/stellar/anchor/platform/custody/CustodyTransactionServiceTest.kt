@@ -26,7 +26,6 @@ import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType.PAYMENT
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
-import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 import org.stellar.anchor.util.GsonUtils
 
 class CustodyTransactionServiceTest {
@@ -54,12 +53,7 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_create_success() {
     val request =
-      gson.fromJson(
-        getResourceFileAsString("custody/api/transaction/create_custody_transaction_request.json"),
-        CreateCustodyTransactionRequest::class.java
-      )
-    val entityJson =
-      getResourceFileAsString("custody/api/transaction/create_custody_transaction_entity.json")
+      gson.fromJson(createCustodyTransactionRequest, CreateCustodyTransactionRequest::class.java)
     val entityCapture = slot<JdbcCustodyTransaction>()
 
     every { custodyTransactionRepo.save(capture(entityCapture)) } returns null
@@ -70,7 +64,7 @@ class CustodyTransactionServiceTest {
     assertTrue(!Instant.now().isBefore(actualCustodyTransaction.createdAt))
     actualCustodyTransaction.createdAt = null
     JSONAssert.assertEquals(
-      entityJson,
+      createCustodyTransactionEntity,
       gson.toJson(entityCapture.captured),
       CustomComparator(JSONCompareMode.STRICT, Customization("id") { _, _ -> true })
     )
@@ -194,11 +188,7 @@ class CustodyTransactionServiceTest {
 
   @Test
   fun test_createRefund_transaction_does_not_exist() {
-    val request =
-      gson.fromJson(
-        getResourceFileAsString("service/custodyTransaction/refund_request.json"),
-        CreateTransactionRefundRequest::class.java
-      )
+    val request = gson.fromJson(refundRequest, CreateTransactionRefundRequest::class.java)
 
     every {
       custodyTransactionRepo.findFirstBySepTxIdAndTypeOrderByCreatedAtAsc(any(), any())
@@ -216,16 +206,8 @@ class CustodyTransactionServiceTest {
 
   @Test
   fun test_createRefund_transaction_exists() {
-    val request =
-      gson.fromJson(
-        getResourceFileAsString("service/custodyTransaction/refund_request.json"),
-        CreateTransactionRefundRequest::class.java
-      )
-    val transaction =
-      gson.fromJson(
-        getResourceFileAsString("service/custodyTransaction/custody_transaction_payment.json"),
-        JdbcCustodyTransaction::class.java
-      )
+    val request = gson.fromJson(refundRequest, CreateTransactionRefundRequest::class.java)
+    val transaction = gson.fromJson(custodyTransactionPayment, JdbcCustodyTransaction::class.java)
     val refundTransaction = JdbcCustodyTransaction()
     refundTransaction.id = REFUND_TRANSACTION_ID
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
@@ -245,11 +227,7 @@ class CustodyTransactionServiceTest {
 
   @Test
   fun test_createRefund_bad_request() {
-    val request =
-      gson.fromJson(
-        getResourceFileAsString("service/custodyTransaction/refund_request.json"),
-        CreateTransactionRefundRequest::class.java
-      )
+    val request = gson.fromJson(refundRequest, CreateTransactionRefundRequest::class.java)
     val transaction = JdbcCustodyTransaction()
     val refundTransaction = JdbcCustodyTransaction()
     refundTransaction.id = REFUND_TRANSACTION_ID
@@ -275,11 +253,7 @@ class CustodyTransactionServiceTest {
 
   @Test
   fun test_createRefund_too_many_requests() {
-    val request =
-      gson.fromJson(
-        getResourceFileAsString("service/custodyTransaction/refund_request.json"),
-        CreateTransactionRefundRequest::class.java
-      )
+    val request = gson.fromJson(refundRequest, CreateTransactionRefundRequest::class.java)
     val transaction = JdbcCustodyTransaction()
     val refundTransaction = JdbcCustodyTransaction()
     refundTransaction.id = REFUND_TRANSACTION_ID
@@ -305,11 +279,7 @@ class CustodyTransactionServiceTest {
 
   @Test
   fun test_createRefund_service_unavailable() {
-    val request =
-      gson.fromJson(
-        getResourceFileAsString("service/custodyTransaction/refund_request.json"),
-        CreateTransactionRefundRequest::class.java
-      )
+    val request = gson.fromJson(refundRequest, CreateTransactionRefundRequest::class.java)
     val transaction = JdbcCustodyTransaction()
     val refundTransaction = JdbcCustodyTransaction()
     refundTransaction.id = REFUND_TRANSACTION_ID
@@ -335,11 +305,7 @@ class CustodyTransactionServiceTest {
 
   @Test
   fun test_createRefund_unexpected_status_code() {
-    val request =
-      gson.fromJson(
-        getResourceFileAsString("service/custodyTransaction/refund_request.json"),
-        CreateTransactionRefundRequest::class.java
-      )
+    val request = gson.fromJson(refundRequest, CreateTransactionRefundRequest::class.java)
     val transaction = JdbcCustodyTransaction()
     val refundTransaction = JdbcCustodyTransaction()
     refundTransaction.id = REFUND_TRANSACTION_ID
@@ -365,4 +331,72 @@ class CustodyTransactionServiceTest {
 
     verify(exactly = 1) { custodyTransactionRepo.deleteById(REFUND_TRANSACTION_ID) }
   }
+
+  private val createCustodyTransactionEntity =
+    """
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "status": "created",
+  "amount": "testAmount",
+  "asset": "testAmountAsset",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "testProtocol",
+  "from_account": "testFromAccount",
+  "to_account": "testToAccount",
+  "kind": "testKind",
+  "reconciliation_attempt_count": 0,
+  "type":"payment"
+}            
+"""
+
+  private val createCustodyTransactionRequest =
+    """
+{
+  "id" : "testId",
+  "memo":  "testMemo",
+  "memoType": "testMemoType",
+  "protocol": "testProtocol",
+  "fromAccount": "testFromAccount",
+  "toAccount": "testToAccount",
+  "amount": "testAmount",
+  "asset": "testAmountAsset",
+  "kind": "testKind",
+  "requestAssetCode": "testRequestAssetCode",
+  "requestAssetIssuer": "testRequestAssetIssuer",
+  "type":"payment"
+}          
+"""
+
+  private val custodyTransactionPayment =
+    """
+{
+  "id": "testId",
+  "sep_tx_id": "testId",
+  "external_tx_id": "testEventId",
+  "status": "completed",
+  "amount": "1",
+  "asset": "stellar:testAmountInAsset",
+  "updated_at": "2023-05-10T10:18:25.778Z",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFrom",
+  "to_account": "testToAccount",
+  "kind": "withdrawal",
+  "reconciliation_attempt_count": 0,
+  "type": "payment"
+}  
+"""
+
+  private val refundRequest =
+    """
+{
+  "memo": "testMemo",
+  "memoType": "testMemoType",
+  "amount": "testAmount",
+  "amountFee": "testAmountFee"
+}  
+"""
 }

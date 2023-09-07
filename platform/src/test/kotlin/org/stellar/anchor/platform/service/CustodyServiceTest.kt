@@ -26,7 +26,6 @@ import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.platform.apiclient.CustodyApiClient
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
-import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 
 class CustodyServiceTest {
@@ -48,11 +47,7 @@ class CustodyServiceTest {
 
   @Test
   fun test_createTransaction_sep24Deposit() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString("service/custodyTransaction/sep24_deposit_entity.json"),
-        JdbcSep24Transaction::class.java
-      )
+    val txn = gson.fromJson(sep24DepositEntity, JdbcSep24Transaction::class.java)
     val requestCapture = slot<CreateCustodyTransactionRequest>()
 
     every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs
@@ -60,7 +55,7 @@ class CustodyServiceTest {
     custodyService.createTransaction(txn)
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString("service/custodyTransaction/sep24_deposit_request.json"),
+      sep24DepositRequest,
       gson.toJson(requestCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -68,11 +63,7 @@ class CustodyServiceTest {
 
   @Test
   fun test_createTransaction_sep24Withdrawal() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString("service/custodyTransaction/sep24_withdrawal_entity.json"),
-        JdbcSep24Transaction::class.java
-      )
+    val txn = gson.fromJson(sep24WithdrawalEntity, JdbcSep24Transaction::class.java)
     val requestCapture = slot<CreateCustodyTransactionRequest>()
 
     every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs
@@ -80,7 +71,7 @@ class CustodyServiceTest {
     custodyService.createTransaction(txn)
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString("service/custodyTransaction/sep24_withdrawal_request.json"),
+      sep24WithdrawalRequest,
       gson.toJson(requestCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -88,11 +79,7 @@ class CustodyServiceTest {
 
   @Test
   fun test_createTransaction_sep31() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString("service/custodyTransaction/sep31_entity.json"),
-        JdbcSep31Transaction::class.java
-      )
+    val txn = gson.fromJson(sep31Entity, JdbcSep31Transaction::class.java)
     val requestCapture = slot<CreateCustodyTransactionRequest>()
 
     every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs
@@ -100,7 +87,7 @@ class CustodyServiceTest {
     custodyService.createTransaction(txn)
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString("service/custodyTransaction/sep31_request.json"),
+      sep31Request,
       gson.toJson(requestCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -200,4 +187,161 @@ class CustodyServiceTest {
       }
     Assertions.assertEquals("Forbidden", exception.rawMessage)
   }
+
+  private val sep24DepositEntity =
+    """
+{
+  "id" : "testId",
+  "status": "pending_anchor",
+  "updated_at": "2022-04-18T14:00:00.000Z",
+  "amount_in": "testAmountIn",
+  "amount_in_asset": "testAmountInAsset",
+  "amount_out": "testAmountOut",
+  "amount_out_asset": "testAmountOutAsset",
+  "amount_fee": "testAmountFee",
+  "amount_fee_asset": "testAmountFeeAsset",
+  "started_at": "2022-04-18T14:00:00.000Z",
+  "completed_at": "2022-04-18T14:00:00.000Z",
+  "transfer_received_at": "2022-04-18T14:00:00.000Z",
+  "stellar_transaction_id": "testStellarTransactionId",
+  "external_transaction_id": "testExternalTransactionId",
+  "kind": "deposit",
+  "status_eta":  "1",
+  "kyc_verified": "true",
+  "more_info_url": "/testMoreInfoUrl",
+  "transaction_id": "testTxId",
+  "message": "testMessage",
+  "refunded": "true",
+  "withdraw_anchor_account": "testWithdrawAnchorAccount",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "from_account": "testFromAccount",
+  "to_account": "testToAccount",
+  "request_asset_code": "testRequestAssetCode",
+  "request_asset_issuer": "testRequestAssetIssuer",
+  "sep10_account": "testSep10Account",
+  "sep10_account_memo": "testSep10AccountMemo",
+  "client_domain": "testClientDomain",
+  "claimable_balance_supported": "true",
+  "amount_expected": "testAmountExpected",
+  "refund_memo": "testRefundMemo",
+  "refund_memo_type": "testRefundMemoType"
+}
+"""
+
+  private val sep24DepositRequest =
+    """
+  {
+  "id": "testId",
+  "memo": "testMemo",
+  "memoType": "testMemoType",
+  "protocol": "24",
+  "toAccount": "testToAccount",
+  "amount": "testAmountOut",
+  "asset": "testAmountOutAsset",
+  "kind": "deposit"
+}
+"""
+
+  private val sep24WithdrawalEntity =
+    """
+{
+  "id" : "testId",
+  "status": "pending_user_transfer_start",
+  "updated_at": "2022-04-18T14:00:00.000Z",
+  "amount_in": "testAmountIn",
+  "amount_in_asset": "testAmountInAsset",
+  "amount_out": "testAmountOut",
+  "amount_out_asset": "testAmountOutAsset",
+  "amount_fee": "testAmountFee",
+  "amount_fee_asset": "testAmountFeeAsset",
+  "started_at": "2022-04-18T14:00:00.000Z",
+  "completed_at": "2022-04-18T14:00:00.000Z",
+  "transfer_received_at": "2022-04-18T14:00:00.000Z",
+  "stellar_transaction_id": "testStellarTransactionId",
+  "external_transaction_id": "testExternalTransactionId",
+  "kind": "withdrawal",
+  "status_eta":  "1",
+  "kyc_verified": "true",
+  "more_info_url": "/testMoreInfoUrl",
+  "transaction_id": "testTxId",
+  "message": "testMessage",
+  "refunded": "true",
+  "withdraw_anchor_account": "testWithdrawAnchorAccount",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "from_account": "testFromAccount",
+  "to_account": "testToAccount",
+  "request_asset_code": "testRequestAssetCode",
+  "request_asset_issuer": "testRequestAssetIssuer",
+  "sep10_account": "testSep10Account",
+  "sep10_account_memo": "testSep10AccountMemo",
+  "client_domain": "testClientDomain",
+  "claimable_balance_supported": "true",
+  "amount_expected": "testAmountExpected",
+  "refund_memo": "testRefundMemo",
+  "refund_memo_type": "testRefundMemoType"
+}  
+"""
+
+  private val sep24WithdrawalRequest =
+    """
+{
+  "id": "testId",
+  "memo": "testMemo",
+  "memoType": "testMemoType",
+  "protocol": "24",
+  "fromAccount": "testFromAccount",
+  "toAccount": "testWithdrawAnchorAccount",
+  "amount": "testAmountExpected",
+  "asset": "testAmountInAsset",
+  "kind": "withdrawal"
+}  
+"""
+
+  private val sep31Entity =
+    """
+  {
+  "id" : "testId",
+  "status": "pending_sender",
+  "updated_at": "2022-04-18T14:00:00.000Z",
+  "amount_in": "testAmountIn",
+  "amount_in_asset": "testAmountInAsset",
+  "amount_out": "testAmountOut",
+  "amount_out_asset": "testAmountOutAsset",
+  "amount_fee": "testAmountFee",
+  "amount_fee_asset": "testAmountFeeAsset",
+  "started_at": "2022-04-18T14:00:00.000Z",
+  "completed_at": "2022-04-18T14:00:00.000Z",
+  "transfer_received_at": "2022-04-18T14:00:00.000Z",
+  "stellar_transaction_id": "testStellarTransactionId",
+  "external_transaction_id": "testExternalTransactionId",
+  "kind": "receive",
+  "status_eta":  "1",
+  "stellar_account_id": "testStellarAccountId",
+  "stellar_memo": "testStellarMemo",
+  "stellar_memo_type": "testStellarMemoType",
+  "quote_id": "testQuoteId",
+  "client_domain": "testClientDomain",
+  "sender_id": "testSenderId",
+  "receiver_id": "testReceiverId",
+  "required_info_message": "testRequiredInfoMessage",
+  "refunded": "true",
+  "amount_expected": "testAmountExpected"
+}
+"""
+
+  private val sep31Request =
+    """
+  {
+  "id": "testId",
+  "memo": "testStellarMemo",
+  "memoType": "testStellarMemoType",
+  "protocol": "31",
+  "toAccount": "testStellarAccountId",
+  "amount": "testAmountIn",
+  "asset": "testAmountInAsset",
+  "kind": "receive"
+}
+"""
 }
