@@ -111,6 +111,8 @@ public class TransactionHelper {
         .externalTransactionId(txn.getExternalTransactionId())
         .memo(txn.getMemo())
         .memoType(txn.getMemoType())
+        .refundMemo(txn.getRefundMemo())
+        .refundMemoType(txn.getRefundMemoType())
         .build();
   }
 
