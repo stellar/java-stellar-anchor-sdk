@@ -4,12 +4,13 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import mu.KotlinLogging
 import org.stellar.reference.data.*
+import org.stellar.reference.service.SepHelper
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
 
 private val log = KotlinLogging.logger {}
 
 class DepositService(private val cfg: Config) {
-  val sep24 = Sep24Helper(cfg)
+  val sep24 = SepHelper(cfg)
 
   suspend fun processDeposit(
     transactionId: String,

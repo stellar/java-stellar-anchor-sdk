@@ -1,4 +1,4 @@
-package org.stellar.reference.sep24
+package org.stellar.reference.service
 
 import com.google.gson.reflect.TypeToken
 import io.ktor.client.*
@@ -20,7 +20,7 @@ import org.stellar.reference.data.*
 import org.stellar.reference.data.Transaction
 import org.stellar.sdk.*
 
-class Sep24Helper(private val cfg: Config) {
+class SepHelper(private val cfg: Config) {
   private val log = KotlinLogging.logger {}
   private val gson = GsonUtils.getInstance()
 

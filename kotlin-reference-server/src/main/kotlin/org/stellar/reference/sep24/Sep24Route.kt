@@ -15,11 +15,12 @@ import org.stellar.reference.data.ErrorResponse
 import org.stellar.reference.data.Success
 import org.stellar.reference.data.WithdrawalRequest
 import org.stellar.reference.jwt.JwtDecoder
+import org.stellar.reference.service.SepHelper
 
 private val log = KotlinLogging.logger {}
 
 fun Route.sep24(
-  sep24: Sep24Helper,
+  sep24: SepHelper,
   depositService: DepositService,
   withdrawalService: WithdrawalService,
   jwtKey: String

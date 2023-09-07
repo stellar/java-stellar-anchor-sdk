@@ -30,7 +30,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
     return gson.fromJson(response.body<String>(), SendEventResponse::class.java)
   }
 
-  suspend fun getCallbackHistory(txnId: String? = null): List<Sep24GetTransactionResponse> {
+  suspend fun <T> getCallbackHistory(txnId: String? = null, responseType: Class<T>): List<T> {
     val response =
       client.get {
         url {
@@ -45,7 +45,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
     // Parse the JSON string into a list of Person objects
     return gson.fromJson(
       response.body<String>(),
-      object : TypeToken<List<Sep24GetTransactionResponse>>() {}.type
+      TypeToken.getParameterized(List::class.java, responseType).type
     )
   }
 
