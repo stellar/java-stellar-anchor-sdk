@@ -1,7 +1,10 @@
 package org.stellar.anchor.sep6;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import org.stellar.anchor.SepTransaction;
+import org.stellar.anchor.api.shared.InstructionField;
 import org.stellar.anchor.api.shared.Refunds;
 
 public interface Sep6Transaction extends SepTransaction {
@@ -326,9 +329,9 @@ public interface Sep6Transaction extends SepTransaction {
    *
    * @return the required info updates.
    */
-  String getRequiredInfoUpdates();
+  List<String> getRequiredInfoUpdates();
 
-  void setRequiredInfoUpdates(String requiredInfoUpdates);
+  void setRequiredInfoUpdates(List<String> requiredInfoUpdates);
 
   /**
    * A human-readable message indicating why the SEP-12 information provided by the user is not
@@ -346,18 +349,18 @@ public interface Sep6Transaction extends SepTransaction {
    *
    * @return the required customer info updates.
    */
-  String getRequiredCustomerInfoUpdates();
+  List<String> getRequiredCustomerInfoUpdates();
 
-  void setRequiredCustomerInfoUpdates(String requiredCustomerInfoUpdates);
+  void setRequiredCustomerInfoUpdates(List<String> requiredCustomerInfoUpdates);
 
   /**
    * Describes how to complete the off-chain deposit.
    *
    * @return the deposit instructions.
    */
-  String getInstructions();
+  Map<String, InstructionField> getInstructions();
 
-  void setInstructions(String instructions);
+  void setInstructions(Map<String, InstructionField> instructions);
 
   enum Kind {
     DEPOSIT("deposit"),

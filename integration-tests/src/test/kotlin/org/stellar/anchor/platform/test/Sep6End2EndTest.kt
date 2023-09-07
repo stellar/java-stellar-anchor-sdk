@@ -4,11 +4,11 @@ import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlin.test.DefaultAsserter.fail
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.stellar.anchor.api.sep.sep6.GetTransactionResponse
+import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.Sep6Client
 import org.stellar.anchor.platform.TestConfig
@@ -62,7 +62,21 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     waitStatus(deposit.id, "completed", sep6Client)
 
     val completedDepositTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))
-    assertNotNull(completedDepositTxn.transaction.instructions)
+    assertEquals(
+      mapOf(
+        "organization.bank_number" to
+          InstructionField.builder()
+            .value("121122676")
+            .description("US Bank routing number")
+            .build(),
+        "organization.bank_account_number" to
+          InstructionField.builder()
+            .value("13719713158835300")
+            .description("US Bank account number")
+            .build()
+      ),
+      completedDepositTxn.transaction.instructions
+    )
     val transactionByStellarId: GetTransactionResponse =
       sep6Client.getTransaction(
         mapOf("stellar_transaction_id" to completedDepositTxn.transaction.stellarTransactionId)

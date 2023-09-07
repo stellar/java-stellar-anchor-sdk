@@ -10,6 +10,7 @@ import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.api.shared.StellarPayment
 import org.stellar.anchor.api.shared.StellarTransaction
 import org.stellar.reference.callbacks.customer.CustomerService
@@ -131,7 +132,20 @@ class Sep6EventProcessor(
               .requiredInfoUpdates(null)
               .requiredCustomerInfoUpdates(null)
               .requiredCustomerInfoUpdates(null)
-              .instructions("{}")
+              .instructions(
+                mapOf(
+                  "organization.bank_number" to
+                    InstructionField.builder()
+                      .value("121122676")
+                      .description("US Bank routing number")
+                      .build(),
+                  "organization.bank_account_number" to
+                    InstructionField.builder()
+                      .value("13719713158835300")
+                      .description("US Bank account number")
+                      .build(),
+                )
+              )
               .stellarTransactions(listOf(stellarTxn))
               .build()
           )

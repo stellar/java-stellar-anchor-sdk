@@ -1,8 +1,11 @@
 package org.stellar.anchor.api.sep.sep6;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
+import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.anchor.api.shared.InstructionField;
 import org.stellar.anchor.api.shared.Refunds;
 
 @Data
@@ -78,13 +81,13 @@ public class Sep6Transaction {
   String requiredInfoMessage;
 
   @SerializedName("required_info_updates")
-  String requiredInfoUpdates;
+  List<String> requiredInfoUpdates;
 
   @SerializedName("required_customer_info_message")
   String requiredCustomerInfoMessage;
 
   @SerializedName("required_customer_info_updates")
-  String requiredCustomerInfoUpdates;
+  List<String> requiredCustomerInfoUpdates;
 
-  String instructions;
+  Map<String, InstructionField> instructions;
 }

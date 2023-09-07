@@ -16,7 +16,7 @@ public class GetDepositRequest {
   /** The asset code of the asset to deposit. */
   @NonNull
   @SerializedName("asset_code")
-  private String assetCode;
+  String assetCode;
 
   /** The Stellar account ID of the user to deposit to. */
   @NonNull String account;

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -84,15 +85,15 @@ public class PlatformTransactionData {
   String requiredInfoMessage;
 
   @SerializedName("required_info_updates")
-  String requiredInfoUpdates;
+  List<String> requiredInfoUpdates;
 
   @SerializedName("required_customer_info_message")
   String requiredCustomerInfoMessage;
 
   @SerializedName("required_customer_info_updates")
-  String requiredCustomerInfoUpdates;
+  List<String> requiredCustomerInfoUpdates;
 
-  String instructions;
+  Map<String, InstructionField> instructions;
 
   public enum Sep {
     @SerializedName("6")
