@@ -10,7 +10,7 @@ data class SendEventRequest(
   val payload: SendEventRequestPayload
 )
 
-data class SendEventRequestPayload(
+public data class SendEventRequestPayload(
   val transaction: GetTransactionResponse,
   val quote: GetQuoteResponse
 )
