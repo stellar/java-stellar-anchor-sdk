@@ -1,4 +1,7 @@
 # Changelog
+## 1.2.17
+* Add status filter and use destination accounts for matching transactions in observer [#1090](https://github.com/stellar/java-stellar-anchor-sdk/pull/1090)
+
 ## 1.2.16
 * Fix AnchorEvent field serialization in Kafka publisher [#1011](https://github.com/stellar/java-stellar-anchor-sdk/pull/1011)
 
