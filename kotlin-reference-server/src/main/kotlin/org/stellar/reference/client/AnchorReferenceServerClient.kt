@@ -7,8 +7,8 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventResponse
-import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.reference.data.SendEventRequestPayload
 
 class AnchorReferenceServerClient(val endpoint: Url) {
   val gson = GsonUtils.getInstance()
@@ -28,7 +28,7 @@ class AnchorReferenceServerClient(val endpoint: Url) {
 
     return gson.fromJson(response.body<String>(), SendEventResponse::class.java)
   }
-  suspend fun getEvents(txnId: String? = null): List<AnchorEvent> {
+  suspend fun getEvents(txnId: String? = null): List<SendEventRequestPayload> {
     val response =
       client.get {
         url {
@@ -41,10 +41,13 @@ class AnchorReferenceServerClient(val endpoint: Url) {
       }
 
     // Parse the JSON string into a list of Person objects
-    return gson.fromJson(response.body<String>(), object : TypeToken<List<AnchorEvent>>() {}.type)
+    return gson.fromJson(
+      response.body<String>(),
+      object : TypeToken<List<SendEventRequestPayload>>() {}.type
+    )
   }
 
-  suspend fun getLatestEvent(): AnchorEvent? {
+  suspend fun getLatestEvent(): SendEventRequestPayload? {
     val response =
       client.get {
         url {
@@ -54,7 +57,7 @@ class AnchorReferenceServerClient(val endpoint: Url) {
           encodedPath = "/events/latest"
         }
       }
-    return gson.fromJson(response.body<String>(), AnchorEvent::class.java)
+    return gson.fromJson(response.body<String>(), SendEventRequestPayload::class.java)
   }
 
   suspend fun clearEvents() {

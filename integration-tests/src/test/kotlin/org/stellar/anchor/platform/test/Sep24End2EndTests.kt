@@ -14,7 +14,6 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.web.util.UriComponentsBuilder
-import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
@@ -24,6 +23,7 @@ import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log.info
 import org.stellar.anchor.util.StringHelper.json
 import org.stellar.reference.client.AnchorReferenceServerClient
+import org.stellar.reference.data.SendEventRequestPayload
 import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.InteractiveFlowResponse
@@ -103,8 +103,11 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       val actualEvents = waitForBusinessServerEvents(response.id, 4)
       assertNotNull(actualEvents)
       actualEvents?.let { assertEquals(4, it.size) }
-      val expectedEvents: List<AnchorEvent> =
-        gson.fromJson(expectedDepositEventsJson, object : TypeToken<List<AnchorEvent>>() {}.type)
+      val expectedEvents: List<SendEventRequestPayload> =
+        gson.fromJson(
+          expectedDepositEventsJson,
+          object : TypeToken<List<SendEventRequestPayload>>() {}.type
+        )
       compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
 
       // Check the callbacks sent to the wallet reference server are recorded correctly
@@ -142,8 +145,8 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
 
   private fun compareAndAssertEvents(
     asset: StellarAssetId,
-    expectedEvents: List<AnchorEvent>,
-    actualEvents: List<AnchorEvent>
+    expectedEvents: List<SendEventRequestPayload>,
+    actualEvents: List<SendEventRequestPayload>
   ) {
     expectedEvents.forEachIndexed { index, expectedEvent ->
       actualEvents[index].let { actualEvent ->
@@ -248,8 +251,11 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     assertNotNull(actualEvents)
     actualEvents?.let {
       assertEquals(5, it.size)
-      val expectedEvents: List<AnchorEvent> =
-        gson.fromJson(expectedWithdrawEventJson, object : TypeToken<List<AnchorEvent>>() {}.type)
+      val expectedEvents: List<SendEventRequestPayload> =
+        gson.fromJson(
+          expectedWithdrawEventJson,
+          object : TypeToken<List<SendEventRequestPayload>>() {}.type
+        )
       compareAndAssertEvents(asset, expectedEvents, actualEvents)
     }
 
@@ -282,7 +288,10 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     return null
   }
 
-  private suspend fun waitForBusinessServerEvents(txnId: String, count: Int): List<AnchorEvent>? {
+  private suspend fun waitForBusinessServerEvents(
+    txnId: String,
+    count: Int
+  ): List<SendEventRequestPayload>? {
     var retries = 5
     while (retries > 0) {
       val events = anchorReferenceServerClient.getEvents(txnId)
