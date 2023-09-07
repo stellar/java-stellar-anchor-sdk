@@ -38,9 +38,6 @@ services:
 
   custody-server:
     image: stellar/anchor-platform:edge
-    build:
-      context: ../../../../../integration-tests/src/test
-      dockerfile: integration-tests/docker-compose-configs/Dockerfile
     command: "--custody-server"
     volumes:
       # add mounts for the new config directory

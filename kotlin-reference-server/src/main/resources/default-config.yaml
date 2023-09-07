@@ -12,6 +12,10 @@ app:
   distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
   distributionWalletMemo:
   distributionWalletMemoType:
+  # Indicates, that custody integration is enabled
+  custodyEnabled: false
+  # Indicates, that RPC requests should be used instead of PATCH /transactions endpoint
+  rpcEnabled: false
 
 # These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
 # and `Anchor->Platform`, especially when they are in different clusters.
@@ -41,7 +45,3 @@ sep24:
   enableTest: true
   # Encryption key for interactive JWT
   interactiveJwtKey: "secret_sep24_interactive_url_jwt_secret"
-  # Indicates, that custody integration is enabled
-  custodyEnabled: false
-  # Indicates, that RPC requests should be used instead of PATCH /transactions endpoint
-  rpcEnabled: true
