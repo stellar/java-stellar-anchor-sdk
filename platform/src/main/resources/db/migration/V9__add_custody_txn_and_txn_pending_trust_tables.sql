@@ -18,3 +18,11 @@ CREATE TABLE custody_transaction (
    type VARCHAR(255),
    CONSTRAINT pk_custody_transaction PRIMARY KEY (id)
 );
+
+CREATE TABLE transaction_pending_trust (
+   id VARCHAR(255),
+   asset VARCHAR(255),
+   account VARCHAR(255),
+   created_at TIMESTAMP WITHOUT TIME ZONE,
+   CONSTRAINT pk_transaction_pending_trust PRIMARY KEY (id)
+);

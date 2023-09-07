@@ -25,11 +25,11 @@ import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
-public class RequestTrustHandler extends RpcMethodHandler<RequestTrustRequest> {
+public class RequestTrustlineHandler extends RpcMethodHandler<RequestTrustRequest> {
 
   private final CustodyConfig custodyConfig;
 
-  public RequestTrustHandler(
+  public RequestTrustlineHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,

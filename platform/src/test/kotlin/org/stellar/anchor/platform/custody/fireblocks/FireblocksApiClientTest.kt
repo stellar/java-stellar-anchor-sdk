@@ -85,11 +85,7 @@ class FireblocksApiClientTest {
     )
     Assertions.assertEquals("testApiKey", requestCapture.captured.header("X-API-Key"))
     Assertions.assertTrue(requestCapture.captured.header("Authorization")!!.startsWith("Bearer "))
-    JSONAssert.assertEquals(
-      getResourceFileAsString("custody/fireblocks/client/success_response_body.json"),
-      result,
-      JSONCompareMode.STRICT
-    )
+    JSONAssert.assertEquals(successResponseBody, result, JSONCompareMode.STRICT)
 
     validateToken(
       requestCapture.captured.header("Authorization")!!,
@@ -145,11 +141,7 @@ class FireblocksApiClientTest {
     every { client.newCall(capture(requestCapture)) } returns call
     every { call.execute() } returns response
 
-    val result =
-      fireblocksApiClient.post(
-        "/postPath",
-        getResourceFileAsString("custody/fireblocks/client/request_body.json")?.trimIndent()
-      )
+    val result = fireblocksApiClient.post("/postPath", requestBody.trimIndent())
 
     Assertions.assertEquals(
       "https://testbaseurl.com/postPath",
@@ -161,16 +153,8 @@ class FireblocksApiClientTest {
       "application/json; charset=utf-8",
       requestCapture.captured.body!!.contentType().toString()
     )
-    JSONAssert.assertEquals(
-      getResourceFileAsString("custody/fireblocks/client/request_body.json"),
-      requestBodyToString(requestCapture.captured.body),
-      true
-    )
-    JSONAssert.assertEquals(
-      getResourceFileAsString("custody/fireblocks/client/success_response_body.json"),
-      result,
-      JSONCompareMode.STRICT
-    )
+    JSONAssert.assertEquals(requestBody, requestBodyToString(requestCapture.captured.body), true)
+    JSONAssert.assertEquals(successResponseBody, result, JSONCompareMode.STRICT)
 
     validateToken(
       requestCapture.captured.header("Authorization")!!,
@@ -228,10 +212,7 @@ class FireblocksApiClientTest {
       .protocol(Protocol.HTTP_1_1)
       .code(200)
       .message("OK")
-      .body(
-        getResourceFileAsString("custody/fireblocks/client/success_response_body.json")
-          .toResponseBody("application/json".toMediaTypeOrNull())
-      )
+      .body(successResponseBody.toResponseBody("application/json".toMediaTypeOrNull()))
       .build()
   }
 
@@ -241,10 +222,7 @@ class FireblocksApiClientTest {
       .protocol(Protocol.HTTP_1_1)
       .code(400)
       .message("ERROR")
-      .body(
-        getResourceFileAsString("custody/fireblocks/client/error_response_body.json")
-          .toResponseBody("application/json".toMediaTypeOrNull())
-      )
+      .body(errorResponseBody.toResponseBody("application/json".toMediaTypeOrNull()))
       .build()
   }
 
@@ -295,4 +273,21 @@ class FireblocksApiClientTest {
       false
     }
   }
+
+  private val errorResponseBody = """{
+  "error_code": "12345",
+  "message": "Fireblocks error"
+}"""
+
+  private val requestBody = """{
+  "key3": "value3",
+  "key4": "value4"
+}"""
+
+  private val successResponseBody = """
+{
+  "key3": "value3",
+  "key4": "value4"
+} 
+"""
 }

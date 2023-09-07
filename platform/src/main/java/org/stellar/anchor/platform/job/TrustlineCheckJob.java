@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.job;
 
 import static org.stellar.anchor.util.Log.info;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,7 +47,13 @@ public class TrustlineCheckJob {
 
         transactionPendingTrustRepo.delete(t);
       } else {
-        boolean trustlineConfigured = horizon.isTrustlineConfigured(t.getAccount(), t.getAsset());
+        boolean trustlineConfigured;
+        try {
+          trustlineConfigured = horizon.isTrustlineConfigured(t.getAccount(), t.getAsset());
+        } catch (IOException ex) {
+          trustlineConfigured = false;
+        }
+
         if (trustlineConfigured) {
           notifyTrustSetHandler.handle(
               NotifyTrustSetRequest.builder().transactionId(t.getId()).success(true).build());

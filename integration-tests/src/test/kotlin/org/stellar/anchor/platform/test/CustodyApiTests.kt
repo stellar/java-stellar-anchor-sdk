@@ -602,7 +602,7 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
   "memo": "testTag",
   "memo_type": "id",
   "refund_memo": "12345",
-  "refund_memo_type" : "id"
+  "refund_memo_type": "id"
 }
 """
 

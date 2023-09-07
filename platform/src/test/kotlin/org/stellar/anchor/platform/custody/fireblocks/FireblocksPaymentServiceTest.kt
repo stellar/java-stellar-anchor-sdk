@@ -18,7 +18,6 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.FireblocksException
 import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
-import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 import org.stellar.anchor.util.GsonUtils
 
 class FireblocksPaymentServiceTest {
@@ -49,23 +48,11 @@ class FireblocksPaymentServiceTest {
 
   @Test
   fun test_generateDepositAddress_success() {
-    val responseJson =
-      getResourceFileAsString(
-        "custody/api/address/fireblocks/create_new_deposit_address_response.json"
-      )
-    val expectedResponseJson =
-      getResourceFileAsString(
-        "custody/api/address/fireblocks/generated_deposit_address_response.json"
-      )
     val requestCapture = slot<String>()
     val urlCapture = slot<String>()
-    val requestJson =
-      getResourceFileAsString(
-        "custody/api/address/fireblocks/create_new_deposit_address_request.json"
-      )
 
     every { fireblocksClient.post(capture(urlCapture), capture(requestCapture)) } returns
-      responseJson
+      createNewDepositAddressResponse
     every { fireblocksConfig.getFireblocksAssetCode(ASSET_ID) } returns ASSET_ID
 
     val response = fireblocksPaymentService.generateDepositAddress(ASSET_ID)
@@ -74,26 +61,26 @@ class FireblocksPaymentServiceTest {
       "/v1/vault/accounts/testVaultAccountId/TEST_ASSET_ID/addresses",
       urlCapture.captured
     )
-    JSONAssert.assertEquals(requestJson, requestCapture.captured, JSONCompareMode.STRICT)
-    JSONAssert.assertEquals(expectedResponseJson, gson.toJson(response), JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(
+      createNewDepositAddressRequest,
+      requestCapture.captured,
+      JSONCompareMode.STRICT
+    )
+    JSONAssert.assertEquals(
+      generatedDepositAddressResponse,
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
   }
 
   @Test
   fun test_createTransactionPayment_success() {
-    val requestJson =
-      getResourceFileAsString(
-        "custody/api/payment/fireblocks/create_new_transaction_payment_request.json"
-      )
-    val responseJson =
-      getResourceFileAsString(
-        "custody/api/payment/fireblocks/created_new_transaction_payment_response.json"
-      )
     val expectedResponse = "{\"id\":\"1\"}"
     val requestCapture = slot<String>()
     val urlCapture = slot<String>()
 
     every { fireblocksClient.post(capture(urlCapture), capture(requestCapture)) } returns
-      responseJson
+      createNewTransactionPaymentResponse
     every { fireblocksConfig.getFireblocksAssetCode(ASSET_ID) } returns ASSET_ID
 
     val transaction =
@@ -107,16 +94,19 @@ class FireblocksPaymentServiceTest {
 
     Assertions.assertEquals("/v1/transactions", urlCapture.captured)
 
-    JSONAssert.assertEquals(requestJson, requestCapture.captured, JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(
+      createNewTransactionPaymentRequest,
+      requestCapture.captured,
+      JSONCompareMode.STRICT
+    )
     JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
   }
 
   @Test
   fun test_createTransactionPayment_failure() {
-    val responseJson = getResourceFileAsString("custody/api/payment/fireblocks/error_response.json")
     val expectedResponse = "{\"id\":\"\"}"
 
-    every { fireblocksClient.post(any(), any()) } returns responseJson
+    every { fireblocksClient.post(any(), any()) } returns errorResponse
 
     val transaction = JdbcCustodyTransaction()
     val response = fireblocksPaymentService.createTransactionPayment(transaction, StringUtils.EMPTY)
@@ -143,11 +133,9 @@ class FireblocksPaymentServiceTest {
 
   @Test
   fun test_getTransactionById_success() {
-    val responseJson =
-      getResourceFileAsString("custody/api/payment/fireblocks/get_transaction_response.json")
     val urlCapture = slot<String>()
 
-    every { fireblocksClient.get(capture(urlCapture)) } returns responseJson
+    every { fireblocksClient.get(capture(urlCapture)) } returns getTransactionResponse
 
     val response = fireblocksPaymentService.getTransactionById(EXTERNAL_TXN_ID)
 
@@ -156,18 +144,16 @@ class FireblocksPaymentServiceTest {
       urlCapture.captured
     )
 
-    JSONAssert.assertEquals(responseJson, gson.toJson(response), JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(getTransactionResponse, gson.toJson(response), JSONCompareMode.STRICT)
   }
 
   @Test
   fun test_getTransactionsByTimeRange_success() {
-    val responseJson =
-      getResourceFileAsString("custody/api/payment/fireblocks/two_transactions_response.json")
     val urlCapture = slot<String>()
     val queryParamsCapture = slot<Map<String, String>>()
 
     every { fireblocksClient.get(capture(urlCapture), capture(queryParamsCapture)) } returns
-      responseJson
+      twoTransactionsResponse
 
     val startTime = Instant.now().minusSeconds(5)
     val endTime = Instant.now()
@@ -182,14 +168,11 @@ class FireblocksPaymentServiceTest {
     assertThat(queryParamsCapture.captured, hasEntry("orderBy", "createdAt"))
     assertThat(queryParamsCapture.captured, hasEntry("sort", "ASC"))
 
-    JSONAssert.assertEquals(responseJson, gson.toJson(response), JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(twoTransactionsResponse, gson.toJson(response), JSONCompareMode.STRICT)
   }
 
   @Test
   fun `getTransactionsByTimeRange select number of items equal to limit`() {
-    val responseJson =
-      getResourceFileAsString("custody/api/payment/fireblocks/two_transactions_response.json")
-
     FireblocksPaymentService.TRANSACTIONS_LIMIT = 2
     val startTime = Instant.now().minusSeconds(5)
     val endTime = Instant.now()
@@ -202,7 +185,7 @@ class FireblocksPaymentServiceTest {
         "orderBy" to "createdAt",
         "sort" to "ASC"
       )
-    every { fireblocksClient.get(any(), queryParams) } returns responseJson
+    every { fireblocksClient.get(any(), queryParams) } returns twoTransactionsResponse
 
     val maxCreatedTime = 1684856015569L
     val secondQueryParams =
@@ -217,17 +200,12 @@ class FireblocksPaymentServiceTest {
 
     val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
 
-    JSONAssert.assertEquals(responseJson, gson.toJson(response), JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(twoTransactionsResponse, gson.toJson(response), JSONCompareMode.STRICT)
     FireblocksPaymentService.TRANSACTIONS_LIMIT = 500
   }
 
   @Test
   fun `getTransactionsByTimeRange select more than limit`() {
-    val twoTransactionsResponseJson =
-      getResourceFileAsString("custody/api/payment/fireblocks/two_transactions_response.json")
-    val oneTransactionResponseJson =
-      getResourceFileAsString("custody/api/payment/fireblocks/one_transaction_response.json")
-
     FireblocksPaymentService.TRANSACTIONS_LIMIT = 2
     val startTime = Instant.now().minusSeconds(5)
     val endTime = Instant.now()
@@ -240,7 +218,7 @@ class FireblocksPaymentServiceTest {
         "orderBy" to "createdAt",
         "sort" to "ASC"
       )
-    every { fireblocksClient.get(any(), queryParams) } returns twoTransactionsResponseJson
+    every { fireblocksClient.get(any(), queryParams) } returns twoTransactionsResponse
 
     val maxCreatedTime = 1684856015569L
     val secondQueryParams =
@@ -251,7 +229,7 @@ class FireblocksPaymentServiceTest {
         "orderBy" to "createdAt",
         "sort" to "ASC"
       )
-    every { fireblocksClient.get(any(), secondQueryParams) } returns oneTransactionResponseJson
+    every { fireblocksClient.get(any(), secondQueryParams) } returns oneTransactionResponse
 
     val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
     assertEquals(3, response.size)
@@ -270,4 +248,312 @@ class FireblocksPaymentServiceTest {
       }
     assertEquals("End time can't be before start time", ex.message)
   }
+
+  private val createNewDepositAddressRequest = """
+{
+}
+"""
+
+  private val createNewDepositAddressResponse =
+    """
+{
+  "address": "testAddress",
+  "legacyAddress": "testLegacyAddress",
+  "enterpriseAddress": "testEnterpriseAddress",
+  "tag": "testTag",
+  "bip44AddressIndex": "12345"
+}
+"""
+
+  private val generatedDepositAddressResponse =
+    """
+{
+  "address": "testAddress",
+  "memo": "testTag",
+  "memoType": "id"
+}
+"""
+
+  private val createNewTransactionPaymentRequest =
+    """
+{
+  "assetId": "TEST_ASSET_ID",
+  "source": {
+    "type": "VAULT_ACCOUNT",
+    "id": "testVaultAccountId"
+  },
+  "destination": {
+    "type": "ONE_TIME_ADDRESS",
+    "oneTimeAddress": {
+      "address": "toVaultAccountId"
+    }
+  },
+  "amount": "10"
+}
+"""
+
+  private val createNewTransactionPaymentResponse = """
+{
+  "id": "1",
+  "status": "SUBMITTED"
+}
+"""
+
+  private val errorResponse =
+    """
+{
+  "id": "",
+  "status": "FAILED",
+  "systemMessages": [
+    {
+      "type": "WARN",
+      "message": "message1"
+    },
+    {
+      "type": "BLOCK",
+      "message": "message2"
+    }
+  ]
+}
+"""
+
+  private val getTransactionResponse =
+    """
+{
+  "id": "2db60d66-163f-4caf-9cf4-538ce895f32f",
+  "createdAt": 1683906114688,
+  "lastUpdated": 1683906114958,
+  "assetId": "XLM_USDC_T_CEKS",
+  "source": {
+    "id": "",
+    "type": "UNKNOWN",
+    "name": "External",
+    "subType": ""
+  },
+  "destination": {
+    "id": "1",
+    "type": "VAULT_ACCOUNT",
+    "name": "TestAnchor",
+    "subType": ""
+  },
+  "amount": 0.2,
+  "fee": 0.00001,
+  "networkFee": 0.00001,
+  "netAmount": 0.2,
+  "sourceAddress": "GD3ZMOHJXZCFGZZSTFD7ZXFVSYEJUBFV4RQXJOQSLNSSQ46WNSESU2PS",
+  "destinationAddress": "GB4LDT5G6GC26QUDS3YQ3XCIRSIYTIIWA3PLKFP4B7PRZC5DRZKSZHSK",
+  "destinationAddressDescription": "",
+  "destinationTag": "1222977634",
+  "status": "COMPLETED",
+  "txHash": "fc0023db2ddcedf1d9ee0c7b8da68eef043b8e6928d1ec74347c05038a2e584c",
+  "subStatus": "CONFIRMED",
+  "signedBy": [],
+  "createdBy": "",
+  "rejectedBy": "",
+  "amountUSD": 0.2,
+  "addressType": "",
+  "note": "",
+  "exchangeTxId": "",
+  "requestedAmount": 0.2,
+  "feeCurrency": "XLM_TEST",
+  "operation": "TRANSFER",
+  "numOfConfirmations": 1,
+  "amountInfo": {
+    "amount": "0.2",
+    "requestedAmount": "0.2",
+    "netAmount": "0.2",
+    "amountUSD": "0.20"
+  },
+  "feeInfo": {
+    "networkFee": "0.00001"
+  },
+  "destinations": [],
+  "blockInfo": {
+    "blockHeight": "957916",
+    "blockHash": "09337b0c320b753bab7e884e660892990f73d5eed3e4ec07dbf85880d34eccb7"
+  },
+  "signedMessages": [],
+  "index": 0
+}
+"""
+
+  private val oneTransactionResponse =
+    """
+[
+  {
+    "id": "c12775b1-ed62-4998-9061-cfa7c6e38bbc",
+    "createdAt": 1684856015023,
+    "lastUpdated": 1684856424529,
+    "assetId": "XLM_USDC_T_CEKS",
+    "source": {
+      "id": "1",
+      "type": "VAULT_ACCOUNT",
+      "name": "TestAnchor",
+      "subType": ""
+    },
+    "destination": {
+      "type": "ONE_TIME_ADDRESS",
+      "name": "N/A",
+      "subType": ""
+    },
+    "amount": 0.28,
+    "fee": 0.00001,
+    "networkFee": 0.00001,
+    "netAmount": 0.28,
+    "sourceAddress": "GB4LDT5G6GC26QUDS3YQ3XCIRSIYTIIWA3PLKFP4B7PRZC5DRZKSZHSK",
+    "destinationAddress": "GBX3C62RHF6C7EVG4QXJ4PORIRSQLPBBOIDSKYRLK4H2JBTPTJZM4V6E",
+    "destinationAddressDescription": "",
+    "destinationTag": "",
+    "status": "COMPLETED",
+    "txHash": "916a7f9dd6e09b86256771b5df7be5f8f4ac09e1ddc6eb4423f0b500151e9367",
+    "subStatus": "CONFIRMED",
+    "signedBy": [
+      "1444ed36-5bc0-4e3b-9b17-5df29fc0590f"
+    ],
+    "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
+    "rejectedBy": "",
+    "amountUSD": 0.28112,
+    "addressType": "",
+    "note": "",
+    "exchangeTxId": "",
+    "requestedAmount": 0.28,
+    "feeCurrency": "XLM_TEST",
+    "operation": "TRANSFER",
+    "numOfConfirmations": 1,
+    "amountInfo": {
+      "amount": "0.28",
+      "requestedAmount": "0.28",
+      "netAmount": "0.28",
+      "amountUSD": "0.28112"
+    },
+    "feeInfo": {
+      "networkFee": "0.00001"
+    },
+    "destinations": [],
+    "blockInfo": {
+      "blockHeight": "1138780",
+      "blockHash": "5252168d088561d5b1ac6dedfa4d078384f2aff4d123add1cc58225770c2815d"
+    },
+    "signedMessages": []
+  }
+]
+"""
+
+  private val twoTransactionsResponse =
+    """
+[
+  {
+    "id": "83f2f9f1-e30f-4bd5-8db1-b51f0323870e",
+    "createdAt": 1684856015569,
+    "lastUpdated": 1684856489313,
+    "assetId": "XLM_USDC_T_CEKS",
+    "source": {
+      "id": "1",
+      "type": "VAULT_ACCOUNT",
+      "name": "TestAnchor",
+      "subType": ""
+    },
+    "destination": {
+      "type": "ONE_TIME_ADDRESS",
+      "name": "N/A",
+      "subType": ""
+    },
+    "amount": 0.6,
+    "fee": 0.0005,
+    "networkFee": 0.0005,
+    "netAmount": 0.6,
+    "sourceAddress": "GB4LDT5G6GC26QUDS3YQ3XCIRSIYTIIWA3PLKFP4B7PRZC5DRZKSZHSK",
+    "destinationAddress": "GBX3C62RHF6C7EVG4QXJ4PORIRSQLPBBOIDSKYRLK4H2JBTPTJZM4V6E",
+    "destinationAddressDescription": "",
+    "destinationTag": "",
+    "status": "COMPLETED",
+    "txHash": "d0bae55aba646131ce7fa4991a1a5fb467e8afc9f84836fa7e0994ae864f2cea",
+    "subStatus": "CONFIRMED",
+    "signedBy": [
+      "1444ed36-5bc0-4e3b-9b17-5df29fc0590f"
+    ],
+    "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
+    "rejectedBy": "",
+    "amountUSD": 0.6024,
+    "addressType": "",
+    "note": "",
+    "exchangeTxId": "",
+    "requestedAmount": 0.6,
+    "feeCurrency": "XLM_TEST",
+    "operation": "TRANSFER",
+    "numOfConfirmations": 1,
+    "amountInfo": {
+      "amount": "0.6",
+      "requestedAmount": "0.6",
+      "netAmount": "0.6",
+      "amountUSD": "0.6024"
+    },
+    "feeInfo": {
+      "networkFee": "0.0005"
+    },
+    "destinations": [],
+    "blockInfo": {
+      "blockHeight": "1138792",
+      "blockHash": "d73713270ad506554f1aadfd29d054a2d35ef16399a99230c5d1d4201c3169bd"
+    },
+    "signedMessages": []
+  },
+  {
+    "id": "c12775b1-ed62-4998-9061-cfa7c6e38bbc",
+    "createdAt": 1684856015023,
+    "lastUpdated": 1684856424529,
+    "assetId": "XLM_USDC_T_CEKS",
+    "source": {
+      "id": "1",
+      "type": "VAULT_ACCOUNT",
+      "name": "TestAnchor",
+      "subType": ""
+    },
+    "destination": {
+      "type": "ONE_TIME_ADDRESS",
+      "name": "N/A",
+      "subType": ""
+    },
+    "amount": 0.28,
+    "fee": 0.00001,
+    "networkFee": 0.00001,
+    "netAmount": 0.28,
+    "sourceAddress": "GB4LDT5G6GC26QUDS3YQ3XCIRSIYTIIWA3PLKFP4B7PRZC5DRZKSZHSK",
+    "destinationAddress": "GBX3C62RHF6C7EVG4QXJ4PORIRSQLPBBOIDSKYRLK4H2JBTPTJZM4V6E",
+    "destinationAddressDescription": "",
+    "destinationTag": "",
+    "status": "COMPLETED",
+    "txHash": "916a7f9dd6e09b86256771b5df7be5f8f4ac09e1ddc6eb4423f0b500151e9367",
+    "subStatus": "CONFIRMED",
+    "signedBy": [
+      "1444ed36-5bc0-4e3b-9b17-5df29fc0590f"
+    ],
+    "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
+    "rejectedBy": "",
+    "amountUSD": 0.28112,
+    "addressType": "",
+    "note": "",
+    "exchangeTxId": "",
+    "requestedAmount": 0.28,
+    "feeCurrency": "XLM_TEST",
+    "operation": "TRANSFER",
+    "numOfConfirmations": 1,
+    "amountInfo": {
+      "amount": "0.28",
+      "requestedAmount": "0.28",
+      "netAmount": "0.28",
+      "amountUSD": "0.28112"
+    },
+    "feeInfo": {
+      "networkFee": "0.00001"
+    },
+    "destinations": [],
+    "blockInfo": {
+      "blockHeight": "1138780",
+      "blockHash": "5252168d088561d5b1ac6dedfa4d078384f2aff4d123add1cc58225770c2815d"
+    },
+    "signedMessages": []
+  }
+]
+"""
 }

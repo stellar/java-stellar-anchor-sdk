@@ -1,7 +1,6 @@
 package org.stellar.anchor.horizon;
 
 import static org.stellar.anchor.api.sep.AssetInfo.NATIVE_ASSET_CODE;
-import static org.stellar.anchor.util.Log.errorEx;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,32 +30,26 @@ public class Horizon {
     return this.horizonServer;
   }
 
-  public boolean isTrustlineConfigured(String account, String asset) {
-    try {
-      String assetCode = AssetHelper.getAssetCode(asset);
-      if (NATIVE_ASSET_CODE.equals(assetCode)) {
-        return true;
-      }
-      String assetIssuer = AssetHelper.getAssetIssuer(asset);
-
-      AccountResponse accountResponse = horizonServer.accounts().account(account);
-      return Arrays.stream(accountResponse.getBalances())
-          .anyMatch(
-              balance -> {
-                if (balance.getAssetType().equals("credit_alphanum4")
-                    || balance.getAssetType().equals("credit_alphanum12")) {
-                  AssetTypeCreditAlphaNum creditAsset =
-                      (AssetTypeCreditAlphaNum) balance.getAsset().get();
-                  return creditAsset.getCode().equals(assetCode)
-                      && creditAsset.getIssuer().equals(assetIssuer);
-                }
-                return false;
-              });
-    } catch (Exception e) {
-      errorEx(
-          String.format("Unable to check trust for account[%s] and asset[%s]", account, asset), e);
-      return false;
+  public boolean isTrustlineConfigured(String account, String asset) throws IOException {
+    String assetCode = AssetHelper.getAssetCode(asset);
+    if (NATIVE_ASSET_CODE.equals(assetCode)) {
+      return true;
     }
+    String assetIssuer = AssetHelper.getAssetIssuer(asset);
+
+    AccountResponse accountResponse = getServer().accounts().account(account);
+    return Arrays.stream(accountResponse.getBalances())
+        .anyMatch(
+            balance -> {
+              if (balance.getAssetType().equals("credit_alphanum4")
+                  || balance.getAssetType().equals("credit_alphanum12")) {
+                AssetTypeCreditAlphaNum creditAsset =
+                    (AssetTypeCreditAlphaNum) balance.getAsset().get();
+                return creditAsset.getCode().equals(assetCode)
+                    && creditAsset.getIssuer().equals(assetIssuer);
+              }
+              return false;
+            });
   }
 
   public List<OperationResponse> getStellarTxnOperations(String stellarTxnId) throws IOException {

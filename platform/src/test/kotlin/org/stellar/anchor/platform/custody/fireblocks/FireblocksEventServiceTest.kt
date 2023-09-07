@@ -104,15 +104,9 @@ class FireblocksEventServiceTest {
         horizon,
         config
       )
-    val custodyTxn =
-      gson.fromJson(
-        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
-        JdbcCustodyTransaction::class.java
-      )
+    val custodyTxn = gson.fromJson(custodyTransaction, JdbcCustodyTransaction::class.java)
 
-    val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/confirming_event_request.json")
-        .trimIndent()
+    val eventObject: String = confirmingEventRequest.trimIndent()
     val signature: String = generateSignature(eventObject)
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
@@ -128,9 +122,7 @@ class FireblocksEventServiceTest {
     eventsService.handleEvent(eventObject, httpHeaders)
 
     JSONAssert.assertEquals(
-      getResourceFileAsString(
-        "custody/fireblocks/webhook/completed_event_no_stellar_txn_payment.json"
-      ),
+      completedEventNotStellarTxnPayment,
       gson.toJson(paymentCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -148,17 +140,11 @@ class FireblocksEventServiceTest {
         horizon,
         config
       )
-    val custodyTxn =
-      gson.fromJson(
-        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
-        JdbcCustodyTransaction::class.java
-      )
+    val custodyTxn = gson.fromJson(custodyTransaction, JdbcCustodyTransaction::class.java)
 
-    val signature: String =
-      getResourceFileAsString("custody/fireblocks/webhook/failed_event_signature.txt")
-    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
-    val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/failed_event_request.json").trimIndent()
+    val httpHeaders: Map<String, String> =
+      mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to failedEventSignature)
+    val eventObject: String = failedEventRequest.trimIndent()
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -172,9 +158,7 @@ class FireblocksEventServiceTest {
     eventsService.handleEvent(eventObject, httpHeaders)
 
     JSONAssert.assertEquals(
-      getResourceFileAsString(
-        "custody/fireblocks/webhook/failed_event_no_stellar_txn_payment.json"
-      ),
+      failedEventNoStellarTxnPayment,
       gson.toJson(paymentCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -192,20 +176,13 @@ class FireblocksEventServiceTest {
         horizon,
         config
       )
-    val custodyTxn =
-      gson.fromJson(
-        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
-        JdbcCustodyTransaction::class.java
-      )
-    val operationRecordsJson =
-      getResourceFileAsString("custody/fireblocks/webhook/payment_operation_record.json")
+    val custodyTxn = gson.fromJson(custodyTransaction, JdbcCustodyTransaction::class.java)
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<SetTrustLineFlagsOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
-      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+      gson.fromJson(paymentOperationRecord, operationRecordsTypeToken)
 
-    val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/confirming_event_request.json")
+    val eventObject: String = confirmingEventRequest.trimIndent()
     val signature: String = generateSignature(eventObject)
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
@@ -240,21 +217,13 @@ class FireblocksEventServiceTest {
         horizon,
         config
       )
-    val custodyTxn =
-      gson.fromJson(
-        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
-        JdbcCustodyTransaction::class.java
-      )
-    val operationRecordsJson =
-      getResourceFileAsString("custody/fireblocks/webhook/payment_operation_record.json")
+    val custodyTxn = gson.fromJson(custodyTransaction, JdbcCustodyTransaction::class.java)
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
-      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+      gson.fromJson(paymentOperationRecord, operationRecordsTypeToken)
 
-    val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/confirming_event_request.json")
-        .trimIndent()
+    val eventObject: String = confirmingEventRequest.trimIndent()
     val signature: String = generateSignature(eventObject)
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
@@ -275,7 +244,7 @@ class FireblocksEventServiceTest {
     eventsService.handleEvent(eventObject, httpHeaders)
 
     JSONAssert.assertEquals(
-      getResourceFileAsString("custody/fireblocks/webhook/stellar_txn_payment.json"),
+      stellarTxnPayment,
       gson.toJson(paymentCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -293,21 +262,13 @@ class FireblocksEventServiceTest {
         horizon,
         config
       )
-    val custodyTxn =
-      gson.fromJson(
-        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
-        JdbcCustodyTransaction::class.java
-      )
-    val operationRecordsJson =
-      getResourceFileAsString("custody/fireblocks/webhook/path_payment_operation_record.json")
+    val custodyTxn = gson.fromJson(custodyTransaction, JdbcCustodyTransaction::class.java)
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PathPaymentStrictReceiveOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
-      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+      gson.fromJson(pathPaymentOperationRecord, operationRecordsTypeToken)
 
-    val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/confirming_event_request.json")
-        .trimIndent()
+    val eventObject: String = confirmingEventRequest.trimIndent()
     val signature: String = generateSignature(eventObject)
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
@@ -328,7 +289,7 @@ class FireblocksEventServiceTest {
     eventsService.handleEvent(eventObject, httpHeaders)
 
     JSONAssert.assertEquals(
-      getResourceFileAsString("custody/fireblocks/webhook/stellar_txn_path_payment.json"),
+      stellarTxnPathPayment,
       gson.toJson(paymentCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -494,15 +455,9 @@ class FireblocksEventServiceTest {
         horizon,
         config
       )
-    val custodyTxn =
-      gson.fromJson(
-        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
-        JdbcCustodyTransaction::class.java
-      )
+    val custodyTxn = gson.fromJson(custodyTransaction, JdbcCustodyTransaction::class.java)
 
-    val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/confirming_event_request.json")
-        .trimIndent()
+    val eventObject: String = confirmingEventRequest.trimIndent()
     val signature: String = generateSignature(eventObject)
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
@@ -543,4 +498,426 @@ class FireblocksEventServiceTest {
 
     return String(Base64.getEncoder().encode(signatureBytes))
   }
+
+  private val completedEventNotStellarTxnPayment =
+    """
+{
+  "externalTxId": "testEventId",
+  "type": "payment",
+  "updatedAt": "2023-05-10T10:18:26.130Z",
+  "status": "SUCCESS",
+  "transactionHash": "testTxHash"
+}  
+"""
+
+  private val confirmingEventRequest =
+    """
+{
+  "type": "TRANSACTION_STATUS_UPDATED",
+  "tenantId": "testTenantId",
+  "timestamp": 1683713916523,
+  "data": {
+    "id": "testEventId",
+    "createdAt": 1683713905778,
+    "lastUpdated": 1683713906130,
+    "assetId": "XLM_TEST",
+    "source": {
+      "id": "",
+      "type": "UNKNOWN",
+      "name": "External",
+      "subType": ""
+    },
+    "destination": {
+      "id": "1",
+      "type": "VAULT_ACCOUNT",
+      "name": "TestAnchor",
+      "subType": ""
+    },
+    "amount": 15,
+    "networkFee": 0.00001,
+    "netAmount": 15,
+    "sourceAddress": "testSourceAddress",
+    "destinationAddress": "testDestinationAddress",
+    "destinationAddressDescription": "",
+    "destinationTag": "",
+    "status": "CONFIRMING",
+    "txHash": "testTxHash",
+    "subStatus": "CONFIRMED",
+    "signedBy": [],
+    "createdBy": "",
+    "rejectedBy": "",
+    "amountUSD": 1.33,
+    "addressType": "",
+    "note": "",
+    "exchangeTxId": "",
+    "requestedAmount": 15,
+    "feeCurrency": "XLM_TEST",
+    "operation": "TRANSFER",
+    "customerRefId": null,
+    "numOfConfirmations": 1,
+    "amountInfo": {
+      "amount": "15",
+      "requestedAmount": "15",
+      "netAmount": "15",
+      "amountUSD": "1.33"
+    },
+    "feeInfo": {
+      "networkFee": "0.00001"
+    },
+    "destinations": [],
+    "externalTxId": null,
+    "blockInfo": {
+      "blockHeight": "921353",
+      "blockHash": "testBlockHash"
+    },
+    "signedMessages": [],
+    "index": 0,
+    "assetType": "BASE_ASSET"
+  }
+}
+"""
+
+  private val custodyTransaction =
+    """
+{
+  "id": "testId",
+  "status": "created",
+  "amount_": "testAmount",
+  "amount_asset": "testAmountAsset",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFromAccount",
+  "to_account": "testToAccount",
+  "kind": "deposit"
+}  
+"""
+
+  private val failedEventNoStellarTxnPayment =
+    """
+{
+  "externalTxId": "testEventId",
+  "type": "payment",
+  "updatedAt": "2023-05-10T10:18:26.130Z",
+  "status": "ERROR",
+  "transactionHash": "testTxHash",
+  "message": "THIRD_PARTY_FAILED"
+}
+"""
+
+  private val failedEventRequest =
+    """{
+  "type": "TRANSACTION_STATUS_UPDATED",
+  "tenantId": "testTenantId",
+  "timestamp": 1683713916523,
+  "data": {
+    "id": "testEventId",
+    "createdAt": 1683713905778,
+    "lastUpdated": 1683713906130,
+    "assetId": "XLM_TEST",
+    "source": {
+      "id": "",
+      "type": "UNKNOWN",
+      "name": "External",
+      "subType": ""
+    },
+    "destination": {
+      "id": "1",
+      "type": "VAULT_ACCOUNT",
+      "name": "TestAnchor",
+      "subType": ""
+    },
+    "amount": 15,
+    "networkFee": 0.00001,
+    "netAmount": 15,
+    "sourceAddress": "testSourceAddress",
+    "destinationAddress": "testDestinationAddress",
+    "destinationAddressDescription": "",
+    "destinationTag": "",
+    "status": "FAILED",
+    "txHash": "testTxHash",
+    "subStatus": "3RD_PARTY_FAILED",
+    "signedBy": [],
+    "createdBy": "",
+    "rejectedBy": "",
+    "amountUSD": 1.33,
+    "addressType": "",
+    "note": "",
+    "exchangeTxId": "",
+    "requestedAmount": 15,
+    "feeCurrency": "XLM_TEST",
+    "operation": "TRANSFER",
+    "customerRefId": null,
+    "numOfConfirmations": 1,
+    "amountInfo": {
+      "amount": "15",
+      "requestedAmount": "15",
+      "netAmount": "15",
+      "amountUSD": "1.33"
+    },
+    "feeInfo": {
+      "networkFee": "0.00001"
+    },
+    "destinations": [],
+    "externalTxId": null,
+    "blockInfo": {
+      "blockHeight": "921353",
+      "blockHash": "testBlockHash"
+    },
+    "signedMessages": [],
+    "index": 0,
+    "assetType": "BASE_ASSET"
+  }
+}"""
+
+  private val failedEventSignature =
+    "WgGX+S1rfljuehHaFmHMhkCs/OxURLSOwDvrCl3IhpqilJclx/hLwDxu7fB49WD+5Reh8DSk+DREbCgjJE4OyPQWyLeiqGfk1W1PuKmn23ZnUq98CYhPn3rlZoggC9op4JR5F5dC8xVf2QrP7lRS5V32pKaoFGQPAqY/mQxRFbA="
+
+  private val pathPaymentOperationRecord =
+    """
+[
+  {
+    "amount": "15.0000000",
+    "assetType": "native",
+    "from": "testFrom",
+    "to": "testTo",
+    "id": 12345,
+    "sourceAccount": "testSourceAccount",
+    "pagingToken": "testPagingToken",
+    "createdAt": "2023-05-10T10:18:20Z",
+    "transactionHash": "testTxHash",
+    "transactionSuccessful": true,
+    "type": "path_payment",
+    "links": {
+      "effects": {
+        "href": "https://horizon-testnet.stellar.org/operations/12345/effects",
+        "templated": false
+      },
+      "precedes": {
+        "href": "https://horizon-testnet.stellar.org/effects?order\u003dasc\u0026cursor\u003d12345",
+        "templated": false
+      },
+      "self": {
+        "href": "https://horizon-testnet.stellar.org/operations/12345",
+        "templated": false
+      },
+      "succeeds": {
+        "href": "https://horizon-testnet.stellar.org/effects?order\u003ddesc\u0026cursor\u003d12345",
+        "templated": false
+      },
+      "transaction": {
+        "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
+        "templated": false
+      }
+    },
+    "transaction": {
+      "hash": "testTxHash",
+      "ledger": 1234,
+      "createdAt": "2023-05-10T10:18:20Z",
+      "sourceAccount": "testSourceAccount",
+      "feeAccount": "testFeeAccount",
+      "successful": true,
+      "pagingToken": "1234",
+      "sourceAccountSequence": 12345,
+      "maxFee": 100,
+      "feeCharged": 100,
+      "operationCount": 1,
+      "envelopeXdr": "testEnvelopeXdr",
+      "resultXdr": "testResultXdr",
+      "resultMetaXdr": "resultMetaXdr",
+      "signatures": [
+        "testSignature1"
+      ],
+      "preconditions": {
+        "timeBounds": {
+          "minTime": 0,
+          "maxTime": 1683713997
+        },
+        "minAccountSequenceAge": 0,
+        "minAccountSequenceLedgerGap": 0
+      },
+      "links": {
+        "account": {
+          "href": "https://horizon-testnet.stellar.org/accounts/testAccount",
+          "templated": false
+        },
+        "effects": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/effects{?cursor,limit,order}",
+          "templated": true
+        },
+        "ledger": {
+          "href": "https://horizon-testnet.stellar.org/ledgers/1234",
+          "templated": false
+        },
+        "operations": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/operations{?cursor,limit,order}",
+          "templated": true
+        },
+        "precedes": {
+          "href": "https://horizon-testnet.stellar.org/transactions?order\u003dasc\u0026cursor\u003d12345",
+          "templated": false
+        },
+        "self": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
+          "templated": false
+        },
+        "succeeds": {
+          "href": "https://horizon-testnet.stellar.org/transactions?order\u003ddesc\u0026cursor\u003d12345",
+          "templated": false
+        }
+      },
+      "rateLimitLimit": 0,
+      "rateLimitRemaining": 0,
+      "rateLimitReset": 0
+    },
+    "rateLimitLimit": 0,
+    "rateLimitRemaining": 0,
+    "rateLimitReset": 0
+  }
+]  
+"""
+
+  private val paymentOperationRecord =
+    """
+[
+  {
+    "amount": "15.0000000",
+    "assetType": "native",
+    "from": "testFrom",
+    "to": "testTo",
+    "id": 12345,
+    "sourceAccount": "testSourceAccount",
+    "pagingToken": "testPagingToken",
+    "createdAt": "2023-05-10T10:18:20Z",
+    "transactionHash": "testTxHash",
+    "transactionSuccessful": true,
+    "type": "payment",
+    "links": {
+      "effects": {
+        "href": "https://horizon-testnet.stellar.org/operations/12345/effects",
+        "templated": false
+      },
+      "precedes": {
+        "href": "https://horizon-testnet.stellar.org/effects?order\u003dasc\u0026cursor\u003d12345",
+        "templated": false
+      },
+      "self": {
+        "href": "https://horizon-testnet.stellar.org/operations/12345",
+        "templated": false
+      },
+      "succeeds": {
+        "href": "https://horizon-testnet.stellar.org/effects?order\u003ddesc\u0026cursor\u003d12345",
+        "templated": false
+      },
+      "transaction": {
+        "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
+        "templated": false
+      }
+    },
+    "transaction": {
+      "hash": "testTxHash",
+      "ledger": 1234,
+      "createdAt": "2023-05-10T10:18:20Z",
+      "sourceAccount": "testSourceAccount",
+      "feeAccount": "testFeeAccount",
+      "successful": true,
+      "pagingToken": "1234",
+      "sourceAccountSequence": 12345,
+      "maxFee": 100,
+      "feeCharged": 100,
+      "operationCount": 1,
+      "envelopeXdr": "testEnvelopeXdr",
+      "resultXdr": "testResultXdr",
+      "resultMetaXdr": "resultMetaXdr",
+      "signatures": [
+        "testSignature1"
+      ],
+      "preconditions": {
+        "timeBounds": {
+          "minTime": 0,
+          "maxTime": 1683713997
+        },
+        "minAccountSequenceAge": 0,
+        "minAccountSequenceLedgerGap": 0
+      },
+      "links": {
+        "account": {
+          "href": "https://horizon-testnet.stellar.org/accounts/testAccount",
+          "templated": false
+        },
+        "effects": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/effects{?cursor,limit,order}",
+          "templated": true
+        },
+        "ledger": {
+          "href": "https://horizon-testnet.stellar.org/ledgers/1234",
+          "templated": false
+        },
+        "operations": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/operations{?cursor,limit,order}",
+          "templated": true
+        },
+        "precedes": {
+          "href": "https://horizon-testnet.stellar.org/transactions?order\u003dasc\u0026cursor\u003d12345",
+          "templated": false
+        },
+        "self": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
+          "templated": false
+        },
+        "succeeds": {
+          "href": "https://horizon-testnet.stellar.org/transactions?order\u003ddesc\u0026cursor\u003d12345",
+          "templated": false
+        }
+      },
+      "rateLimitLimit": 0,
+      "rateLimitRemaining": 0,
+      "rateLimitReset": 0
+    },
+    "rateLimitLimit": 0,
+    "rateLimitRemaining": 0,
+    "rateLimitReset": 0
+  }
+]  
+"""
+
+  private val stellarTxnPathPayment =
+    """
+{
+  "id": "12345",
+  "externalTxId": "testEventId",
+  "type": "path_payment",
+  "from": "testFrom",
+  "to": "testTo",
+  "amount": "15.0000000",
+  "assetType": "native",
+  "assetCode": "native",
+  "assetName": "native",
+  "updatedAt": "2023-05-10T10:18:26.130Z",
+  "status": "SUCCESS",
+  "transactionHash": "testTxHash",
+  "transactionMemoType": "none",
+  "transactionEnvelope": "testEnvelopeXdr"
+}  
+"""
+
+  private val stellarTxnPayment =
+    """
+{
+  "id": "12345",
+  "externalTxId": "testEventId",
+  "type": "payment",
+  "from": "testFrom",
+  "to": "testTo",
+  "amount": "15.0000000",
+  "assetType": "native",
+  "assetCode": "native",
+  "assetName": "native",
+  "updatedAt": "2023-05-10T10:18:26.130Z",
+  "status": "SUCCESS",
+  "transactionHash": "testTxHash",
+  "transactionMemoType": "none",
+  "transactionEnvelope": "testEnvelopeXdr"
+}  
+"""
 }

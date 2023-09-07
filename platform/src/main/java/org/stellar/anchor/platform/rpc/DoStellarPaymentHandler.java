@@ -8,6 +8,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Set;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -82,7 +83,16 @@ public class DoStellarPaymentHandler extends RpcMethodHandler<DoStellarPaymentRe
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, DoStellarPaymentRequest request) {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (horizon.isTrustlineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
+
+    boolean trustlineConfigured;
+    try {
+      trustlineConfigured =
+          horizon.isTrustlineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset());
+    } catch (IOException ex) {
+      trustlineConfigured = false;
+    }
+
+    if (trustlineConfigured) {
       return PENDING_STELLAR;
     } else {
       return PENDING_TRUST;
@@ -106,7 +116,16 @@ public class DoStellarPaymentHandler extends RpcMethodHandler<DoStellarPaymentRe
   protected void updateTransactionWithRpcRequest(
       JdbcSepTransaction txn, DoStellarPaymentRequest request) throws AnchorException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (horizon.isTrustlineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
+
+    boolean trustlineConfigured;
+    try {
+      trustlineConfigured =
+          horizon.isTrustlineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset());
+    } catch (IOException ex) {
+      trustlineConfigured = false;
+    }
+
+    if (trustlineConfigured) {
       custodyService.createTransactionPayment(txn24.getId(), null);
     } else {
       transactionPendingTrustRepo.save(

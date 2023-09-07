@@ -19,7 +19,7 @@ import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksPaymentService;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
-import org.stellar.anchor.platform.job.FireblocksTransactionsReconciliationJob;
+import org.stellar.anchor.platform.fireblocks.job.FireblocksTransactionsReconciliationJob;
 
 @Configuration
 @ConditionalOnProperty(value = "custody.type", havingValue = "fireblocks")
