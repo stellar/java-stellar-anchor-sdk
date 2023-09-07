@@ -7,6 +7,7 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -26,16 +27,9 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
     this.appLoggingConfig = appLoggingConfig;
   }
 
-  @Override
-  protected void doFilterInternal(
+  public void doFilterWithLogging(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-      throws ServletException, IOException {
-
-    if (!appLoggingConfig.isRequestLoggerEnabled()) {
-      filterChain.doFilter(request, response);
-      return;
-    }
-
+      throws IOException, ServletException {
     long startTime = System.currentTimeMillis();
 
     // ========= Log request and response payload ("body") ========
@@ -77,6 +71,21 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
     wrappedResponse.copyBodyToResponse();
   }
 
+  @Override
+  protected void doFilterInternal(
+      @NotNull HttpServletRequest request,
+      @NotNull HttpServletResponse response,
+      @NotNull FilterChain filterChain)
+      throws ServletException, IOException {
+
+    if (!appLoggingConfig.isRequestLoggerEnabled()) {
+      filterChain.doFilter(request, response);
+      return;
+    }
+
+    this.doFilterWithLogging(request, response, filterChain);
+  }
+
   /**
    * getBody will get the response body (if it's an error) or omit it if it's not an error.
    *
@@ -99,7 +108,7 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
     }
   }
 
-  public static String getClientIpAddress(HttpServletRequest request) {
+  private static String getClientIpAddress(HttpServletRequest request) {
     final String[] IP_HEADER_CANDIDATES = {
       "X-Forwarded-For",
       "X-Real-IP",
