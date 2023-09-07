@@ -29,7 +29,7 @@ public class SendEventRequest {
   public static SendEventRequest from(AnchorEvent event) {
     SendEventRequest request = new SendEventRequest();
     request.setId(event.getId());
-    request.setType(event.getType().toString());
+    request.setType(event.getType().toString().toLowerCase());
     request.setTimestamp(Instant.now().toString());
     request.setPayload(SendEventRequestPayload.from(event));
     return request;

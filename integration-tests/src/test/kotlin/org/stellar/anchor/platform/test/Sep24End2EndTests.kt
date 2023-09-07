@@ -388,9 +388,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       """
 [
   {
-    "id": "f664ed78-6321-4726-b2fb-efc2c36429ff",
     "type": "transaction_created",
-    "timestamp": "2023-07-19T20:21:01Z",
     "payload": {
       "transaction": {
         "sep": "24",
@@ -403,9 +401,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     }
   },
   {
-    "id": "f664ed78-6321-4726-b2fb-efc2c36429ff",
     "type": "transaction_status_changed",
-    "timestamp": "2023-07-19T20:21:01Z",
     "payload": {
       "transaction": {
         "sep": "24",
@@ -426,9 +422,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     }
   },
   {
-    "id": "f664ed78-6321-4726-b2fb-efc2c36429ff",
     "type": "transaction_status_changed",
-    "timestamp": "2023-07-19T20:21:01Z",
     "payload": {
       "transaction": {
         "sep": "24",
@@ -449,9 +443,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     }
   },
   {
-    "id": "f664ed78-6321-4726-b2fb-efc2c36429ff",
     "type": "transaction_status_changed",
-    "timestamp": "2023-07-19T20:21:01Z",
     "payload": {
       "transaction": {
         "sep": "24",
@@ -492,9 +484,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     """
     [
       {
-        "id": "f664ed78-6321-4726-b2fb-efc2c36429ff",
         "type": "transaction_created",
-        "timestamp": "2023-07-19T20:21:01Z",
         "payload": {
           "transaction": {
             "sep": "24",
@@ -509,9 +499,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       },
       {
-        "id": "f664ed78-6321-4726-b2fb-efc2c36429ff",
         "type": "transaction_status_changed",
-        "timestamp": "2023-07-19T20:21:01Z",
         "payload": {
           "transaction": {
             "sep": "24",
@@ -533,9 +521,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       },
       {
-        "id": "f664ed78-6321-4726-b2fb-efc2c36429ff",
         "type": "transaction_status_changed",
-        "timestamp": "2023-07-19T20:21:01Z",
         "payload": {
           "transaction": {
             "id": "14882409-757c-4c66-9da1-3dddef11953a",
@@ -578,8 +564,6 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       },
       {
         "type": "transaction_status_changed",
-        "id": "b44d90ec-2d9a-4768-a952-085026f5b3da",
-        "timestamp": "2023-07-19T20:21:01Z",
         "payload": {
           "transaction": {
             "id": "14882409-757c-4c66-9da1-3dddef11953a",
@@ -622,8 +606,6 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       },
       {
         "type": "transaction_status_changed",
-        "id": "0556b75c-b054-49a0-b778-654050a6cba4",
-        "timestamp": "2023-07-19T20:21:01Z",
         "payload": {
           "transaction": {
             "id": "14882409-757c-4c66-9da1-3dddef11953a",
