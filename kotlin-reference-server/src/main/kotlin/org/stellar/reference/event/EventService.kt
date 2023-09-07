@@ -4,16 +4,16 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.reference.data.SendEventRequest
+import org.stellar.reference.data.SendEventRequestPayload
 import org.stellar.reference.log
 
 class EventService {
   private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-  private val receivedEvents: MutableList<AnchorEvent> = mutableListOf()
+  private val receivedEvents: MutableList<SendEventRequestPayload> = mutableListOf()
 
   fun processEvent(receivedEvent: SendEventRequest) {
-    val instant = Instant.ofEpochSecond(receivedEvent.timestamp)
+    val instant = Instant.parse(receivedEvent.timestamp)
     val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
 
     log.trace("Received event created on ${dateTime.format(formatter)}")
@@ -22,7 +22,7 @@ class EventService {
 
   // Get all events. This is for testing purpose.
   // If txnId is not null, the events are filtered.
-  fun getEvents(txnId: String?): List<AnchorEvent> {
+  fun getEvents(txnId: String?): List<SendEventRequestPayload> {
     if (txnId != null) {
       // filter events with txnId
       return receivedEvents.filter { it.transaction.id == txnId }
@@ -32,7 +32,7 @@ class EventService {
   }
 
   // Get the latest event recevied. This is for testing purpose
-  fun getLatestEvent(): AnchorEvent? {
+  fun getLatestEvent(): SendEventRequestPayload? {
     return receivedEvents.lastOrNull()
   }
 
