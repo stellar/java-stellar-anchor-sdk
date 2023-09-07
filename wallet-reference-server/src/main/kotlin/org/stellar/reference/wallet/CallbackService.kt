@@ -1,31 +1,33 @@
 package org.stellar.reference.wallet
 
+import com.google.gson.JsonObject
 import java.time.Duration
 import java.time.Instant
 import java.util.*
-import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.sdk.KeyPair
 
 class CallbackService {
-  private val receivedCallbacks: MutableList<Sep24GetTransactionResponse> = mutableListOf()
+  private val receivedCallbacks: MutableList<JsonObject> = mutableListOf()
 
-  fun processCallback(receivedCallback: Sep24GetTransactionResponse) {
+  fun processCallback(receivedCallback: JsonObject) {
     receivedCallbacks.add(receivedCallback)
   }
 
   // Get all events. This is for testing purpose.
   // If txnId is not null, the events are filtered.
-  fun getCallbacks(txnId: String?): List<Sep24GetTransactionResponse> {
+  fun getCallbacks(txnId: String?): List<JsonObject> {
     if (txnId != null) {
       // filter events with txnId
-      return receivedCallbacks.filter { it.transaction.id == txnId }
+      return receivedCallbacks.filter {
+        it.getAsJsonObject("transaction")?.get("id")?.asString == txnId
+      }
     }
     // return all events
     return receivedCallbacks
   }
 
   // Get the latest event received. This is for testing purpose
-  fun getLatestCallback(): Sep24GetTransactionResponse? {
+  fun getLatestCallback(): JsonObject? {
     return receivedCallbacks.lastOrNull()
   }
 

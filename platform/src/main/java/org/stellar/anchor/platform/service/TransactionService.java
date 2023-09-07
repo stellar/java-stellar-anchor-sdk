@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
@@ -287,7 +286,7 @@ public class TransactionService {
         eventSession.publish(
             AnchorEvent.builder()
                 .id(UUID.randomUUID().toString())
-                .sep("24")
+                .sep("31")
                 .type(TRANSACTION_STATUS_CHANGED)
                 .transaction(TransactionHelper.toGetTransactionResponse(sep31Txn))
                 .build());

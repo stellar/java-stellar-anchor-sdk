@@ -25,7 +25,7 @@ class EventService {
   fun getEvents(txnId: String?): List<AnchorEvent> {
     if (txnId != null) {
       // filter events with txnId
-      return receivedEvents.filter { it.transaction.id == txnId }
+      return receivedEvents.filter { it?.transaction?.id == txnId }
     }
     // return all events
     return receivedEvents
