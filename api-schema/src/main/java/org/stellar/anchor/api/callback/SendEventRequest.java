@@ -13,7 +13,7 @@ import org.stellar.anchor.api.event.AnchorEvent;
 public class SendEventRequest {
   /** The ID of the event */
   String id;
-  /** The seconds since the Unix epoch, UTC. */
+  /** The ISO 8601 UTC datetime string */
   String timestamp;
   /** The type of event */
   String type;

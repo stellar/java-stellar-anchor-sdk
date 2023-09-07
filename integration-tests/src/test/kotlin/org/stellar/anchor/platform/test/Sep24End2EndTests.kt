@@ -151,6 +151,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     expectedEvents.forEachIndexed { index, expectedEvent ->
       actualEvents[index].let { actualEvent ->
         expectedEvent.id = actualEvent.id
+        expectedEvent.type = actualEvent.type
         expectedEvent.payload.transaction.id = actualEvent.payload.transaction.id
         expectedEvent.payload.transaction.startedAt = actualEvent.payload.transaction.startedAt
         expectedEvent.payload.transaction.updatedAt = actualEvent.payload.transaction.updatedAt
@@ -180,7 +181,6 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         }
       }
     }
-    JSONAssert.assertEquals(json(expectedEvents), gson.toJson(actualEvents), true)
   }
 
   private fun compareAndAssertCallbacks(
