@@ -185,7 +185,7 @@ class Sep6ServiceTest {
                       ]
                   },
                   "required_info_message": "some info message",
-                  "required_info_updates": "some info updates"
+                  "required_info_updates": ["first_name", "last_name"]
               }
           ]
       }
@@ -506,7 +506,7 @@ class Sep6ServiceTest {
     txn.message = "some message"
     txn.refunds = refunds
     txn.requiredInfoMessage = "some info message"
-    txn.requiredInfoUpdates = "some info updates"
+    txn.requiredInfoUpdates = listOf("first_name", "last_name")
 
     return txn
   }
