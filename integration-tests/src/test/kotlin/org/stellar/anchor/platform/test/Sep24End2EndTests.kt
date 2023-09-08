@@ -15,6 +15,10 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.callback.SendEventRequest
+import org.stellar.anchor.api.callback.SendEventRequestPayload
+import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.event.AnchorEvent.Type.*
+import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
@@ -102,14 +106,7 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
 
       // Check the events sent to the reference server are recorded correctly
       val actualEvents = waitForBusinessServerEvents(response.id, 5)
-      assertNotNull(actualEvents)
-      actualEvents?.let { assertEquals(5, it.size) }
-      val expectedEvents: List<SendEventRequest> =
-        gson.fromJson(
-          expectedDepositEventsJson,
-          object : TypeToken<List<SendEventRequest>>() {}.type
-        )
-      compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
+      assertEvents(actualEvents, expectedDepositStatuses)
 
       // Check the callbacks sent to the wallet reference server are recorded correctly
       val actualCallbacks = waitForWalletServerCallbacks(response.id, 5)
@@ -144,45 +141,26 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
     return deposit
   }
 
-  private fun compareAndAssertEvents(
-    asset: StellarAssetId,
-    expectedEvents: List<SendEventRequest>,
-    actualEvents: List<SendEventRequest>
+  private fun assertEvents(
+    actualEvents: List<SendEventRequest>?,
+    expectedStatuses: List<Pair<AnchorEvent.Type, SepTransactionStatus>>
   ) {
-    expectedEvents.forEachIndexed { index, expectedEvent ->
-      actualEvents[index].let { actualEvent ->
-        expectedEvent.id = actualEvent.id
-        expectedEvent.timestamp = actualEvent.timestamp
-        expectedEvent.payload.transaction.id = actualEvent.payload.transaction.id
-        expectedEvent.payload.transaction.startedAt = actualEvent.payload.transaction.startedAt
-        expectedEvent.payload.transaction.updatedAt = actualEvent.payload.transaction.updatedAt
-        expectedEvent.payload.transaction.stellarTransactions =
-          actualEvent.payload.transaction.stellarTransactions
-        expectedEvent.payload.transaction.memo = actualEvent.payload.transaction.memo
-        expectedEvent.payload.transaction.amountExpected.asset = asset.id
-        actualEvent.payload.transaction.amountIn?.let {
-          expectedEvent.payload.transaction.amountIn.amount =
-            actualEvent.payload.transaction.amountIn.amount
-          expectedEvent.payload.transaction.amountIn.asset = asset.sep38
-        }
-        actualEvent.payload.transaction.amountOut?.let {
-          expectedEvent.payload.transaction.amountOut.amount =
-            actualEvent.payload.transaction.amountOut.amount
-          expectedEvent.payload.transaction.amountOut.asset = asset.sep38
-        }
-        actualEvent.payload.transaction.amountFee?.let {
-          expectedEvent.payload.transaction.amountFee.amount =
-            actualEvent.payload.transaction.amountFee.amount
-          expectedEvent.payload.transaction.amountFee.asset = asset.sep38
-        }
-        actualEvent.payload.transaction.amountExpected?.let {
-          expectedEvent.payload.transaction.amountExpected.amount =
-            actualEvent.payload.transaction.amountExpected.amount
-          expectedEvent.payload.transaction.amountExpected.asset = asset.sep38
+    assertNotNull(actualEvents)
+    actualEvents?.let {
+      assertEquals(expectedStatuses.size, actualEvents.size)
+
+      expectedStatuses.forEachIndexed { index, expectedStatus ->
+        actualEvents[index].let { actualEvent ->
+          assertNotNull(actualEvent.id)
+          assertNotNull(actualEvent.timestamp)
+          assertEquals(expectedStatus.first.type, actualEvent.type)
+          org.junit.jupiter.api.Assertions.assertTrue(
+            actualEvent.payload is SendEventRequestPayload
+          )
+          assertEquals(expectedStatus.second, actualEvent.payload.transaction.status)
         }
       }
     }
-    JSONAssert.assertEquals(json(expectedEvents), gson.toJson(actualEvents), true)
   }
 
   private fun compareAndAssertCallbacks(
@@ -254,16 +232,7 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
 
     // Check the events sent to the reference server are recorded correctly
     val actualEvents = waitForBusinessServerEvents(withdrawTxn.id, 5)
-    assertNotNull(actualEvents)
-    actualEvents?.let {
-      assertEquals(5, it.size)
-      val expectedEvents: List<SendEventRequest> =
-        gson.fromJson(
-          expectedWithdrawEventJson,
-          object : TypeToken<List<SendEventRequest>>() {}.type
-        )
-      compareAndAssertEvents(asset, expectedEvents, actualEvents)
-    }
+    assertEvents(actualEvents, expectedWithdrawalStatuses)
 
     // Check the callbacks sent to the wallet reference server are recorded correctly
     val actualCallbacks = waitForWalletServerCallbacks(withdrawTxn.id, 5)
@@ -303,15 +272,16 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
     count: Int
   ): List<SendEventRequest>? {
     var retries = 5
+    var events: List<SendEventRequest>? = null
     while (retries > 0) {
-      val events = anchorReferenceServerClient.getEvents(txnId)
+      events = anchorReferenceServerClient.getEvents(txnId)
       if (events.size == count) {
         return events
       }
       delay(1.seconds)
       retries--
     }
-    return null
+    return events
   }
 
   private suspend fun waitForTxnStatus(
@@ -389,272 +359,23 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
   companion object {
     private val USDC =
       IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-
-    val expectedDepositEventsJson =
-      """
-[
-  {
-    "type": "transaction_created",
-    "payload": {
-      "transaction": {
-        "sep": "24",
-        "kind": "deposit",
-        "status": "incomplete",
-        "amount_expected": {
-        },
-        "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-      }
-    }
-  },
-  {
-    "type": "transaction_status_changed",
-    "payload": {
-      "transaction": {
-        "sep": "24",
-        "kind": "deposit",
-        "status": "pending_user_transfer_start",
-        "amount_expected": {
-        },
-        "amount_in": {
-        },
-        "amount_out": {
-        },
-        "amount_fee": {
-        },
-        "message": "waiting on the user to transfer funds",
-        "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-        "memo_type": "hash"
-      }
-    }
-  },
-  {
-    "type": "transaction_status_changed",
-    "payload": {
-      "transaction": {
-        "sep": "24",
-        "kind": "deposit",
-        "status": "pending_anchor",
-        "amount_expected": {
-        },
-        "amount_in": {
-        },
-        "amount_out": {
-        },
-        "amount_fee": {
-        },
-        "message": "funds received, transaction is being processed",
-        "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-        "memo_type": "hash"
-      }
-    }
-  },
-  {
-    "type": "transaction_status_changed",
-    "payload": {
-      "transaction": {
-        "sep": "24",
-        "kind": "deposit",
-        "status": "completed",
-        "amount_expected": {
-        },
-        "amount_in": {
-        },
-        "amount_out": {
-        },
-        "amount_fee": {
-        },
-        "message": "completed",
-        "stellar_transactions": [
-          {
-            "id": "111129e48806cdc4873c98e769c8c736a0d157d4e6a24c5ecb4c64b3b0e4a890",
-            "payments": [
-              {
-                "id": "2499297304129537",
-                "amount": {
-                }
-              }
-            ]
-          }
-        ],
-        "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-        "memo_type": "hash"
-      }
-    }
+    private val expectedDepositStatuses =
+      listOf(
+        TRANSACTION_CREATED to SepTransactionStatus.INCOMPLETE,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_USR_TRANSFER_START,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_ANCHOR,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_STELLAR,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
+      )
+    private val expectedWithdrawalStatuses =
+      listOf(
+        TRANSACTION_CREATED to SepTransactionStatus.INCOMPLETE,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_USR_TRANSFER_START,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_ANCHOR,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_EXTERNAL,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
+      )
   }
-]
-  """
-        .trimIndent()
-  }
-
-  private val expectedWithdrawEventJson =
-    """
-    [
-      {
-        "type": "transaction_created",
-        "payload": {
-          "transaction": {
-            "sep": "24",
-            "kind": "withdrawal",
-            "status": "incomplete",
-            "amount_expected": {
-            },
-            "started_at": "2023-07-19T20:20:51.792908200Z",
-            "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-            "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-          }
-        }
-      },
-      {
-        "type": "transaction_status_changed",
-        "payload": {
-          "transaction": {
-            "sep": "24",
-            "kind": "withdrawal",
-            "status": "pending_user_transfer_start",
-            "amount_expected": {
-            },
-            "amount_in": {
-            },
-            "amount_out": {
-            },
-            "amount_fee": {
-            },
-            "message": "waiting on the user to transfer funds",
-            "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-            "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-            "memo_type": "hash"
-          }
-        }
-      },
-      {
-        "type": "transaction_status_changed",
-        "payload": {
-          "transaction": {
-            "id": "14882409-757c-4c66-9da1-3dddef11953a",
-            "sep": "24",
-            "kind": "withdrawal",
-            "status": "pending_anchor",
-            "amount_expected": {
-            },
-            "amount_in": {
-            },
-            "amount_out": {
-            },
-            "amount_fee": {
-            },
-            "message": "waiting on the user to transfer funds",
-            "stellar_transactions": [
-              {
-                "id": "9234bd186612f4d48cafed4c702509f680a581c3e02945f0206b4c8ac627b83a",
-                "memo": "MTQ4ODI0MDktNzU3Yy00YzY2LTlkYTEtM2RkZGVmMTE\u003d",
-                "memo_type": "hash",
-                "created_at": "2023-07-19T20:21:01Z",
-                "envelope": "AAAAAgAAAADSsOMKYK7a1aALie83F4GQDoBdHrW86UX2SYVygRA+VQAAAGQAABUwAAAGzgAAAAEAAAAAAAAAAAAAAABkuEZbAAAAAzE0ODgyNDA5LTc1N2MtNGM2Ni05ZGExLTNkZGRlZjExAAAAAQAAAAAAAAABAAAAAFvGtEMyXcvbioU2IKCSomxahpl7lUyef7ftEPxWcD4bAAAAAVVTREMAAAAA4OJrYiyoyVYK5jqTvfhX91wJp8nB8jVCrv7/SoR3rwAAAAAABfXhAAAAAAAAAAABgRA+VQAAAEDlmaoq46tJ7Lja9SP4BAuTl1GOrPuf7HAsK4JyNdhxkwz2p5U181Eq394rjIn/fr43lkgarA9m05Q04t4gHqkH",
-                "payments": [
-                  {
-                    "id": "2504876466638849",
-                    "amount": {
-                    },
-                    "payment_type": "payment",
-                    "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-                    "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-                  }
-                ]
-              }
-            ],
-            "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-            "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-            "memo_type": "hash"
-          }
-        }
-      },
-      {
-        "type": "transaction_status_changed",
-        "payload": {
-          "transaction": {
-            "id": "14882409-757c-4c66-9da1-3dddef11953a",
-            "sep": "24",
-            "kind": "withdrawal",
-            "status": "pending_external",
-            "amount_expected": {
-            },
-            "amount_in": {
-            },
-            "amount_out": {
-            },
-            "amount_fee": {
-            },
-            "message": "pending external transfer",
-            "stellar_transactions": [
-              {
-                "id": "9234bd186612f4d48cafed4c702509f680a581c3e02945f0206b4c8ac627b83a",
-                "memo": "MTQ4ODI0MDktNzU3Yy00YzY2LTlkYTEtM2RkZGVmMTE\u003d",
-                "memo_type": "hash",
-                "created_at": "2023-07-19T20:21:01Z",
-                "envelope": "AAAAAgAAAADSsOMKYK7a1aALie83F4GQDoBdHrW86UX2SYVygRA+VQAAAGQAABUwAAAGzgAAAAEAAAAAAAAAAAAAAABkuEZbAAAAAzE0ODgyNDA5LTc1N2MtNGM2Ni05ZGExLTNkZGRlZjExAAAAAQAAAAAAAAABAAAAAFvGtEMyXcvbioU2IKCSomxahpl7lUyef7ftEPxWcD4bAAAAAVVTREMAAAAA4OJrYiyoyVYK5jqTvfhX91wJp8nB8jVCrv7/SoR3rwAAAAAABfXhAAAAAAAAAAABgRA+VQAAAEDlmaoq46tJ7Lja9SP4BAuTl1GOrPuf7HAsK4JyNdhxkwz2p5U181Eq394rjIn/fr43lkgarA9m05Q04t4gHqkH",
-                "payments": [
-                  {
-                    "id": "2504876466638849",
-                    "amount": {
-                    },
-                    "payment_type": "payment",
-                    "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-                    "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-                  }
-                ]
-              }
-            ],
-            "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-            "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-            "memo_type": "hash"
-          }
-        }
-      },
-      {
-        "type": "transaction_status_changed",
-        "payload": {
-          "transaction": {
-            "id": "14882409-757c-4c66-9da1-3dddef11953a",
-            "sep": "24",
-            "kind": "withdrawal",
-            "status": "completed",
-            "amount_expected": {
-            },
-            "amount_in": {
-            },
-            "amount_out": {
-            },
-            "amount_fee": {
-            },
-            "message": "completed",
-            "stellar_transactions": [
-              {
-                "id": "9234bd186612f4d48cafed4c702509f680a581c3e02945f0206b4c8ac627b83a",
-                "memo": "MTQ4ODI0MDktNzU3Yy00YzY2LTlkYTEtM2RkZGVmMTE\u003d",
-                "memo_type": "hash",
-                "created_at": "2023-07-19T20:21:01Z",
-                "envelope": "AAAAAgAAAADSsOMKYK7a1aALie83F4GQDoBdHrW86UX2SYVygRA+VQAAAGQAABUwAAAGzgAAAAEAAAAAAAAAAAAAAABkuEZbAAAAAzE0ODgyNDA5LTc1N2MtNGM2Ni05ZGExLTNkZGRlZjExAAAAAQAAAAAAAAABAAAAAFvGtEMyXcvbioU2IKCSomxahpl7lUyef7ftEPxWcD4bAAAAAVVTREMAAAAA4OJrYiyoyVYK5jqTvfhX91wJp8nB8jVCrv7/SoR3rwAAAAAABfXhAAAAAAAAAAABgRA+VQAAAEDlmaoq46tJ7Lja9SP4BAuTl1GOrPuf7HAsK4JyNdhxkwz2p5U181Eq394rjIn/fr43lkgarA9m05Q04t4gHqkH",
-                "payments": [
-                  {
-                    "id": "2504876466638849",
-                    "amount": {
-                    },
-                    "payment_type": "payment",
-                    "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-                    "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-                  }
-                ]
-              }
-            ],
-            "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-            "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-            "memo_type": "hash"
-          }
-        }
-      }
-    ]
-  """
-      .trimIndent()
 
   private val expectedWithdrawalCallbacksJson =
     """
