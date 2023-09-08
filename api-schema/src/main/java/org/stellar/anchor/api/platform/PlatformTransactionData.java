@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -86,7 +87,23 @@ public class PlatformTransactionData {
   Customers customers;
   StellarId creator;
 
+  @SerializedName("required_info_message")
+  String requiredInfoMessage;
+
+  @SerializedName("required_info_updates")
+  List<String> requiredInfoUpdates;
+
+  @SerializedName("required_customer_info_message")
+  String requiredCustomerInfoMessage;
+
+  @SerializedName("required_customer_info_updates")
+  List<String> requiredCustomerInfoUpdates;
+
+  Map<String, InstructionField> instructions;
+
   public enum Sep {
+    @SerializedName("6")
+    SEP_6(6),
     @SuppressWarnings("unused")
     @SerializedName("24")
     SEP_24(24),

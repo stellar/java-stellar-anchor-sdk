@@ -1,6 +1,9 @@
 package org.stellar.anchor.sep6;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import org.stellar.anchor.api.shared.InstructionField;
 import org.stellar.anchor.api.shared.Refunds;
 
 public class Sep6TransactionBuilder {
@@ -8,6 +11,11 @@ public class Sep6TransactionBuilder {
 
   public Sep6TransactionBuilder(Sep6TransactionStore factory) {
     txn = factory.newInstance();
+  }
+
+  public Sep6TransactionBuilder id(String id) {
+    txn.setId(id);
+    return this;
   }
 
   public Sep6TransactionBuilder transactionId(String txnId) {
@@ -170,8 +178,24 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  public Sep6TransactionBuilder requiredInfoUpdates(String requiredInfoUpdates) {
+  public Sep6TransactionBuilder requiredInfoUpdates(List<String> requiredInfoUpdates) {
     txn.setRequiredInfoUpdates(requiredInfoUpdates);
+    return this;
+  }
+
+  public Sep6TransactionBuilder requiredCustomerInfoMessage(String requiredCustomerInfoMessage) {
+    txn.setRequiredCustomerInfoMessage(requiredCustomerInfoMessage);
+    return this;
+  }
+
+  public Sep6TransactionBuilder requiredCustomerInfoUpdates(
+      List<String> requiredCustomerInfoUpdates) {
+    txn.setRequiredCustomerInfoUpdates(requiredCustomerInfoUpdates);
+    return this;
+  }
+
+  public Sep6TransactionBuilder instructions(Map<String, InstructionField> instructions) {
+    txn.setInstructions(instructions);
     return this;
   }
 

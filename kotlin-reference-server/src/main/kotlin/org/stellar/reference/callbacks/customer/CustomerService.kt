@@ -10,6 +10,7 @@ import org.stellar.anchor.api.shared.ProvidedCustomerField
 import org.stellar.reference.callbacks.BadRequestException
 import org.stellar.reference.callbacks.NotFoundException
 import org.stellar.reference.dao.CustomerRepository
+import org.stellar.reference.log
 import org.stellar.reference.model.Customer
 import org.stellar.reference.model.Status
 
@@ -37,6 +38,7 @@ class CustomerService(private val customerRepository: CustomerRepository) {
   }
 
   fun upsertCustomer(request: PutCustomerRequest): PutCustomerResponse {
+    log.info("Upserting customer: $request")
     val customer =
       when {
         request.id != null -> customerRepository.get(request.id)

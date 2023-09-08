@@ -8,14 +8,18 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.callback.*;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
+import org.stellar.anchor.api.platform.CustomerUpdatedResponse;
 import org.stellar.anchor.api.sep.sep12.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
@@ -31,7 +35,12 @@ public class Sep12Service {
 
   private final Set<String> knownTypes;
 
-  public Sep12Service(CustomerIntegration customerIntegration, AssetService assetService) {
+  private final EventService.Session eventSession;
+
+  public Sep12Service(
+      CustomerIntegration customerIntegration,
+      AssetService assetService,
+      EventService eventService) {
     this.customerIntegration = customerIntegration;
     Stream<String> receiverTypes =
         assetService.listAllAssets().stream()
@@ -41,7 +50,9 @@ public class Sep12Service {
         assetService.listAllAssets().stream()
             .filter(x -> x.getSep31() != null)
             .flatMap(x -> x.getSep31().getSep12().getSender().getTypes().keySet().stream());
-    knownTypes = Stream.concat(receiverTypes, senderTypes).collect(Collectors.toSet());
+    this.knownTypes = Stream.concat(receiverTypes, senderTypes).collect(Collectors.toSet());
+    this.eventSession =
+        eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
 
     Log.info("Sep12Service initialized.");
   }
@@ -69,11 +80,22 @@ public class Sep12Service {
     if (request.getAccount() == null && token.getAccount() != null) {
       request.setAccount(token.getAccount());
     }
-    Sep12PutCustomerResponse response =
-        PutCustomerResponse.to(customerIntegration.putCustomer(PutCustomerRequest.from(request)));
+
+    PutCustomerResponse response =
+        customerIntegration.putCustomer(PutCustomerRequest.from(request));
+
+    // Only publish event if the customer was updated.
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("12")
+            .type(AnchorEvent.Type.CUSTOMER_UPDATED)
+            .customer(CustomerUpdatedResponse.builder().id(response.getId()).build())
+            .build());
+
     // increment counter
     sep12PutCustomerCounter.increment();
-    return response;
+    return PutCustomerResponse.to(response);
   }
 
   public void deleteCustomer(Sep10Jwt sep10Jwt, String account, String memo, String memoType)

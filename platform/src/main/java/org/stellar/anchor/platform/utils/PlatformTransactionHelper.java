@@ -7,6 +7,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.sep6.Sep6Transaction;
 import org.stellar.anchor.util.TransactionHelper;
 
 public class PlatformTransactionHelper {
@@ -14,6 +15,8 @@ public class PlatformTransactionHelper {
   public static GetTransactionResponse toGetTransactionResponse(
       JdbcSepTransaction txn, AssetService assetService) {
     switch (txn.getProtocol()) {
+      case "6":
+        return TransactionHelper.toGetTransactionResponse((Sep6Transaction) txn, assetService);
       case "24":
         return TransactionHelper.toGetTransactionResponse((Sep24Transaction) txn, assetService);
       case "31":

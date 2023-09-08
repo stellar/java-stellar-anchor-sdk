@@ -6,26 +6,28 @@ import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestHelper
+import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepValidationException
-import org.stellar.anchor.api.sep.sep6.GetTransactionRequest
-import org.stellar.anchor.api.sep.sep6.GetTransactionsRequest
-import org.stellar.anchor.api.sep.sep6.InfoResponse
+import org.stellar.anchor.api.sep.sep6.*
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.Sep6Config
+import org.stellar.anchor.event.EventService
 import org.stellar.anchor.util.GsonUtils
 
 class Sep6ServiceTest {
@@ -37,6 +39,8 @@ class Sep6ServiceTest {
 
   @MockK(relaxed = true) lateinit var sep6Config: Sep6Config
   @MockK(relaxed = true) lateinit var txnStore: Sep6TransactionStore
+  @MockK(relaxed = true) lateinit var eventService: EventService
+  @MockK(relaxed = true) lateinit var eventSession: EventService.Session
 
   private lateinit var sep6Service: Sep6Service
 
@@ -45,7 +49,9 @@ class Sep6ServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { sep6Config.features.isAccountCreation } returns false
     every { sep6Config.features.isClaimableBalances } returns false
-    sep6Service = Sep6Service(sep6Config, assetService, txnStore)
+    every { txnStore.newInstance() } returns PojoSep6Transaction()
+    every { eventService.createSession(any(), any()) } returns eventSession
+    sep6Service = Sep6Service(sep6Config, assetService, txnStore, eventService)
   }
 
   @AfterEach
@@ -179,9 +185,43 @@ class Sep6ServiceTest {
                       ]
                   },
                   "required_info_message": "some info message",
-                  "required_info_updates": "some info updates"
+                  "required_info_updates": ["first_name", "last_name"]
               }
           ]
+      }
+    """
+      .trimIndent()
+
+  val depositTxnJson =
+    """
+      {
+          "status": "incomplete",
+          "kind": "deposit",
+          "type": "bank_account",
+          "requestAssetCode": "USDC",
+          "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountExpected": "100",
+          "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+      }
+    """
+      .trimIndent()
+
+  val depositTxnEventJson =
+    """
+      {
+          "type": "transaction_created",
+          "sep": "6",
+          "transaction": {
+              "sep": "6",
+              "kind": "deposit",
+              "status": "incomplete",
+              "amount_expected": {
+                  "amount": "100",
+                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          }
       }
     """
       .trimIndent()
@@ -190,6 +230,84 @@ class Sep6ServiceTest {
   fun `test INFO response`() {
     val infoResponse = sep6Service.info
     assertEquals(gson.fromJson(infoJson, InfoResponse::class.java), infoResponse)
+  }
+
+  @Test
+  fun `test deposit`() {
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val request =
+      GetDepositRequest.builder()
+        .assetCode(TEST_ASSET)
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .amount("100")
+        .build()
+    val response = sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+
+    // Verify effects
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+
+    JSONAssert.assertEquals(depositTxnJson, gson.toJson(slotTxn.captured), JSONCompareMode.LENIENT)
+    assert(slotTxn.captured.id.isNotEmpty())
+    assertNotNull(slotTxn.captured.startedAt)
+
+    JSONAssert.assertEquals(
+      depositTxnEventJson,
+      gson.toJson(slotEvent.captured),
+      JSONCompareMode.LENIENT
+    )
+    assert(slotEvent.captured.id.isNotEmpty())
+    assert(slotEvent.captured.transaction.id.isNotEmpty())
+    assertNotNull(slotEvent.captured.transaction.startedAt)
+
+    // Verify response
+    assertEquals(slotTxn.captured.id, response.id)
+  }
+
+  @Test
+  fun `test deposit with unsupported asset`() {
+    val request =
+      GetDepositRequest.builder()
+        .assetCode("??")
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .amount("100")
+        .build()
+
+    assertThrows<SepValidationException> {
+      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test deposit does not send event if transaction fails to save`() {
+    every { txnStore.save(any()) } throws RuntimeException("unexpected failure")
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val request =
+      GetDepositRequest.builder()
+        .assetCode(TEST_ASSET)
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .amount("100")
+        .build()
+    assertThrows<java.lang.RuntimeException> {
+      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+
+    // Verify effects
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify { eventSession wasNot called }
   }
 
   @Test
@@ -385,7 +503,7 @@ class Sep6ServiceTest {
     txn.message = "some message"
     txn.refunds = refunds
     txn.requiredInfoMessage = "some info message"
-    txn.requiredInfoUpdates = "some info updates"
+    txn.requiredInfoUpdates = listOf("first_name", "last_name")
 
     return txn
   }

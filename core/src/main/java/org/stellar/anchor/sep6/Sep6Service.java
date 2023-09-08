@@ -1,11 +1,14 @@
 package org.stellar.anchor.sep6;
 
 import com.google.common.collect.ImmutableMap;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.NotImplementedException;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep6.*;
 import org.stellar.anchor.api.sep.sep6.InfoResponse.*;
 import org.stellar.anchor.api.shared.RefundPayment;
@@ -13,24 +16,97 @@ import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep6Config;
+import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.util.MemoHelper;
+import org.stellar.anchor.util.SepHelper;
+import org.stellar.anchor.util.TransactionHelper;
+import org.stellar.sdk.KeyPair;
+import org.stellar.sdk.Memo;
 
 public class Sep6Service {
   private final Sep6Config sep6Config;
   private final AssetService assetService;
   private final Sep6TransactionStore txnStore;
+  private final EventService.Session eventSession;
 
   private final InfoResponse infoResponse;
 
   public Sep6Service(
-      Sep6Config sep6Config, AssetService assetService, Sep6TransactionStore txnStore) {
+      Sep6Config sep6Config,
+      AssetService assetService,
+      Sep6TransactionStore txnStore,
+      EventService eventService) {
     this.sep6Config = sep6Config;
     this.assetService = assetService;
     this.txnStore = txnStore;
+    this.eventSession =
+        eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
     this.infoResponse = buildInfoResponse();
   }
 
   public InfoResponse getInfo() {
     return infoResponse;
+  }
+
+  public GetDepositResponse deposit(Sep10Jwt token, GetDepositRequest request)
+      throws AnchorException {
+    // Pre-validation
+    if (token == null) {
+      throw new SepNotAuthorizedException("missing token");
+    }
+    if (request == null) {
+      throw new SepValidationException("missing request");
+    }
+
+    AssetInfo asset = assetService.getAsset(request.getAssetCode());
+    if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep6Enabled()) {
+      throw new SepValidationException(
+          String.format("invalid operation for asset %s", request.getAssetCode()));
+    }
+
+    try {
+      KeyPair.fromAccountId(request.getAccount());
+    } catch (RuntimeException ex) {
+      throw new SepValidationException(String.format("invalid account %s", request.getAccount()));
+    }
+    Memo memo = MemoHelper.makeMemo(request.getMemo(), request.getMemoType());
+    String id = SepHelper.generateSepTransactionId();
+
+    Sep6TransactionBuilder builder =
+        new Sep6TransactionBuilder(txnStore)
+            .id(id)
+            .transactionId(id)
+            .status(SepTransactionStatus.INCOMPLETE.toString())
+            .kind(Sep6Transaction.Kind.DEPOSIT.toString())
+            .type(request.getType())
+            .assetCode(request.getAssetCode())
+            .assetIssuer(asset.getIssuer())
+            .amountExpected(request.getAmount())
+            .startedAt(Instant.now())
+            .sep10Account(token.getAccount())
+            .sep10AccountMemo(token.getAccountMemo())
+            .toAccount(request.getAccount());
+
+    if (memo != null) {
+      builder.memo(memo.toString());
+      builder.memoType(SepHelper.memoTypeString(MemoHelper.memoType(memo)));
+    }
+
+    Sep6Transaction txn = builder.build();
+    txnStore.save(txn);
+
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("6")
+            .type(AnchorEvent.Type.TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .build());
+
+    return GetDepositResponse.builder()
+        .how("Check the transaction for more information about how to deposit.")
+        .id(txn.getId())
+        .build();
   }
 
   public GetTransactionsResponse findTransactions(Sep10Jwt token, GetTransactionsRequest request)
@@ -131,16 +207,18 @@ public class Sep6Service {
             .amountFeeAsset(txn.getAmountFeeAsset())
             .startedAt(txn.getStartedAt().toString())
             .updatedAt(txn.getUpdatedAt().toString())
-            .completedAt(txn.getCompletedAt().toString())
+            .completedAt(txn.getCompletedAt() != null ? txn.getCompletedAt().toString() : null)
             .stellarTransactionId(txn.getStellarTransactionId())
             .externalTransactionId(txn.getExternalTransactionId())
             .from(txn.getFromAccount())
             .to(txn.getToAccount())
-            .completedAt(txn.getCompletedAt().toString())
             .message(txn.getMessage())
             .refunds(refunds)
             .requiredInfoMessage(txn.getRequiredInfoMessage())
-            .requiredInfoUpdates(txn.getRequiredInfoUpdates());
+            .requiredInfoUpdates(txn.getRequiredInfoUpdates())
+            .requiredCustomerInfoMessage(txn.getRequiredCustomerInfoMessage())
+            .requiredCustomerInfoUpdates(txn.getRequiredCustomerInfoUpdates())
+            .instructions(txn.getInstructions());
 
     if (org.stellar.anchor.sep6.Sep6Transaction.Kind.DEPOSIT.toString().equals(txn.getKind())) {
       return builder.depositMemo(txn.getMemo()).depositMemoType(txn.getMemoType()).build();

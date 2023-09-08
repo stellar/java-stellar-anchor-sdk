@@ -34,6 +34,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.Session;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
+import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -42,6 +43,7 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.Sep6Transaction;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.*;
 import org.stellar.anchor.util.Log;
@@ -177,6 +179,10 @@ public class TransactionService {
     if (txn31 != null) {
       return (JdbcSep31Transaction) txn31;
     }
+    Sep6Transaction txn6 = txn6Store.findByTransactionId(txnId);
+    if (txn6 != null) {
+      return (JdbcSep6Transaction) txn6;
+    }
 
     return (JdbcSep24Transaction) txn24Store.findByTransactionId(txnId);
   }
@@ -221,6 +227,28 @@ public class TransactionService {
 
     updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
+      case "6":
+        // TODO: this needs major refactoring
+        JdbcSep6Transaction sep6Transaction = (JdbcSep6Transaction) txn;
+        sep6Transaction.setRequiredInfoMessage(patch.getTransaction().getRequiredInfoMessage());
+        sep6Transaction.setRequiredInfoUpdates(patch.getTransaction().getRequiredInfoUpdates());
+        sep6Transaction.setRequiredCustomerInfoMessage(
+            patch.getTransaction().getRequiredCustomerInfoMessage());
+        sep6Transaction.setRequiredCustomerInfoUpdates(
+            patch.getTransaction().getRequiredCustomerInfoUpdates());
+        sep6Transaction.setInstructions(patch.getTransaction().getInstructions());
+        Log.infoF(
+            "Updating SEP-6 transaction: {}", GsonUtils.getInstance().toJson(sep6Transaction));
+        txn6Store.save(sep6Transaction);
+        eventSession.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("6")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(
+                    TransactionHelper.toGetTransactionResponse(sep6Transaction, assetService))
+                .build());
+        break;
       case "24":
         JdbcSep24Transaction sep24Transaction = (JdbcSep24Transaction) txn;
         // add a memo for the transaction if the transaction is ready for user to send funds
@@ -296,6 +324,12 @@ public class TransactionService {
     }
 
     switch (txn.getProtocol()) {
+      case "6":
+        JdbcSep6Transaction sep6Txn = (JdbcSep6Transaction) txn;
+        txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoMessage", txnUpdated);
+        txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoUpdates", txnUpdated);
+        txnUpdated = updateField(patch, sep6Txn, "instructions", txnUpdated);
+        break;
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
 
