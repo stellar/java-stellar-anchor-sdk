@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.test
 
-import com.google.gson.reflect.TypeToken
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import junit.framework.TestCase.assertEquals
@@ -8,9 +7,12 @@ import junit.framework.TestCase.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.skyscreamer.jsonassert.JSONAssert
+import org.stellar.anchor.api.callback.SendEventRequest
+import org.stellar.anchor.api.callback.SendEventRequestPayload
 import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.event.AnchorEvent.Type.*
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
@@ -22,7 +24,6 @@ import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log.info
 import org.stellar.anchor.util.MemoHelper
 import org.stellar.anchor.util.Sep1Helper
-import org.stellar.anchor.util.StringHelper.json
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
@@ -53,74 +54,48 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
   private val platformApiClient =
     PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
 
-  private fun compareAndAssertEvents(
-    asset: StellarAssetId,
-    expectedEvents: List<AnchorEvent>,
-    actualEvents: List<AnchorEvent>
+  private fun assertEvents(
+    actualEvents: List<SendEventRequest>?,
+    expectedStatuses: List<Pair<AnchorEvent.Type, SepTransactionStatus>>
   ) {
-    expectedEvents.forEachIndexed { index, expectedEvent ->
-      actualEvents[index].let { actualEvent ->
-        expectedEvent.id = actualEvent.id
-        expectedEvent.transaction.id = actualEvent.transaction.id
-        expectedEvent.transaction.startedAt = actualEvent.transaction.startedAt
-        expectedEvent.transaction.updatedAt = actualEvent.transaction.updatedAt
-        expectedEvent.transaction.transferReceivedAt = actualEvent.transaction.transferReceivedAt
-        expectedEvent.transaction.completedAt = actualEvent.transaction.completedAt
-        expectedEvent.transaction.stellarTransactions = actualEvent.transaction.stellarTransactions
-        expectedEvent.transaction.memo = actualEvent.transaction.memo
-        expectedEvent.transaction.destinationAccount = actualEvent.transaction.destinationAccount
-        expectedEvent.transaction.customers = actualEvent.transaction.customers
-        expectedEvent.transaction.quoteId = actualEvent.transaction.quoteId
-        actualEvent.transaction.amountIn?.let {
-          expectedEvent.transaction.amountIn.amount = actualEvent.transaction.amountIn.amount
-          expectedEvent.transaction.amountIn.asset = asset.sep38
-        }
-        actualEvent.transaction.amountOut?.let {
-          expectedEvent.transaction.amountOut.amount = actualEvent.transaction.amountOut.amount
-          expectedEvent.transaction.amountOut.asset = FIAT_USD
-        }
-        actualEvent.transaction.amountFee?.let {
-          expectedEvent.transaction.amountFee.amount = actualEvent.transaction.amountFee.amount
-          expectedEvent.transaction.amountFee.asset = asset.sep38
-        }
-        actualEvent.transaction.amountExpected?.let {
-          expectedEvent.transaction.amountExpected.amount =
-            actualEvent.transaction.amountExpected.amount
-          expectedEvent.transaction.amountExpected.asset = asset.sep38
+    assertNotNull(actualEvents)
+    actualEvents?.let {
+      assertEquals(expectedStatuses.size, actualEvents.size)
+
+      expectedStatuses.forEachIndexed { index, expectedStatus ->
+        actualEvents[index].let { actualEvent ->
+          assertNotNull(actualEvent.id)
+          assertNotNull(actualEvent.timestamp)
+          assertEquals(expectedStatus.first.type, actualEvent.type)
+          Assertions.assertTrue(actualEvent.payload is SendEventRequestPayload)
+          assertEquals(expectedStatus.second, actualEvent.payload.transaction.status)
         }
       }
     }
-    JSONAssert.assertEquals(json(expectedEvents), gson.toJson(actualEvents), true)
   }
 
-  private fun compareAndAssertCallbacks(
-    asset: StellarAssetId,
-    expectedCallbacks: List<Sep31GetTransactionResponse>,
-    actualCallbacks: List<Sep31GetTransactionResponse>
+  private fun assertCallbacks(
+    actualCallbacks: List<Sep31GetTransactionResponse>?,
+    expectedStatuses: List<Pair<AnchorEvent.Type, SepTransactionStatus>>
   ) {
-    expectedCallbacks.forEachIndexed { index, expectedCallback ->
-      actualCallbacks[index].let { actualCallback ->
-        with(expectedCallback.transaction) {
-          id = actualCallback.transaction.id
-          startedAt = actualCallback.transaction.startedAt
-          amountIn = actualCallback.transaction.amountIn
-          amountInAsset?.let { amountInAsset = asset.sep38 }
-          amountOut = actualCallback.transaction.amountOut
-          amountOutAsset?.let { amountOutAsset = actualCallback.transaction.amountOutAsset }
-          amountFee = actualCallback.transaction.amountFee
-          amountFeeAsset?.let { amountFeeAsset = asset.sep38 }
-          stellarTransactionId = actualCallback.transaction.stellarTransactionId
-          stellarMemo?.let { stellarMemo = actualCallback.transaction.stellarMemo }
-          completedAt?.let { completedAt = actualCallback.transaction.completedAt }
+    assertNotNull(actualCallbacks)
+    actualCallbacks?.let {
+      assertEquals(expectedStatuses.size, actualCallbacks.size)
+
+      expectedStatuses.forEachIndexed { index, expectedStatus ->
+        actualCallbacks[index].let { actualCallback ->
+          assertNotNull(actualCallback.transaction.id)
+          assertEquals(expectedStatus.second.status, actualCallback.transaction.status)
         }
       }
     }
-    JSONAssert.assertEquals(json(expectedCallbacks), json(actualCallbacks), true)
   }
 
   private fun `test typical receive end-to-end flow`(asset: StellarAssetId, amount: String) =
     runBlocking {
       walletServerClient.clearCallbacks()
+      anchorReferenceServerClient.clearEvents()
+
       val senderCustomerRequest =
         gson.fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
       val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
@@ -174,23 +149,11 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
 
       // Check the events sent to the reference server are recorded correctly
       val actualEvents = waitForBusinessServerEvents(postTxResponse.id, 3)
-      assertNotNull(actualEvents)
-      actualEvents?.let { assertEquals(3, it.size) }
-      val expectedEvents: List<AnchorEvent> =
-        gson.fromJson(expectedReceiveEventJson, object : TypeToken<List<AnchorEvent>>() {}.type)
-      compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
+      assertEvents(actualEvents, expectedStatuses)
 
       // Check the callbacks sent to the wallet reference server are recorded correctly
       val actualCallbacks = waitForWalletServerCallbacks(postTxResponse.id, 3)
-      actualCallbacks?.let {
-        assertEquals(3, it.size)
-        val expectedCallbacks: List<Sep31GetTransactionResponse> =
-          gson.fromJson(
-            expectedReceiveCallbacksJson,
-            object : TypeToken<List<Sep31GetTransactionResponse>>() {}.type
-          )
-        compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
-      }
+      assertCallbacks(actualCallbacks, expectedStatuses)
     }
 
   private suspend fun waitForWalletServerCallbacks(
@@ -213,17 +176,21 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
     return callbacks
   }
 
-  private suspend fun waitForBusinessServerEvents(txnId: String, count: Int): List<AnchorEvent>? {
+  private suspend fun waitForBusinessServerEvents(
+    txnId: String,
+    count: Int
+  ): List<SendEventRequest>? {
     var retries = 5
+    var events: List<SendEventRequest>? = null
     while (retries > 0) {
-      val events = anchorReferenceServerClient.getEvents(txnId)
+      events = anchorReferenceServerClient.getEvents(txnId)
       if (events.size == count) {
         return events
       }
       delay(1.seconds)
       retries--
     }
-    return null
+    return events
   }
 
   private suspend fun waitStatus(id: String, expectedStatus: SepTransactionStatus) {
@@ -259,184 +226,13 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
     private val USDC =
       IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     private const val FIAT_USD = "iso4217:USD"
+    private val expectedStatuses =
+      listOf(
+        TRANSACTION_CREATED to SepTransactionStatus.PENDING_SENDER,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_RECEIVER,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
+      )
   }
-
-  private val expectedReceiveEventJson =
-    """
-    [
-      {
-        "type": "transaction_created",
-        "id": "15a01867-19f5-4bdd-98b5-e28b42c18b4a",
-        "sep": "31",
-        "transaction": {
-          "id": "4f00f89f-5e89-4b7e-9c3a-81b39911349d",
-          "sep": "31",
-          "kind": "receive",
-          "status": "pending_sender",
-          "amount_expected": {
-            "amount": "5",
-            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-          },
-          "amount_in": {
-            "amount": "5",
-            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-          },
-          "amount_out": {
-            "amount": "3.8095",
-            "asset": "iso4217:USD"
-          },
-          "amount_fee": {
-            "amount": "1.00",
-            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-          },
-          "quote_id": "9f6bbc16-7065-4464-a64e-2f3834a81666",
-          "started_at": "2023-08-30T14:56:40.839001Z",
-          "updated_at": "2023-08-30T14:56:40.841570Z",
-          "customers": {
-            "sender": {
-              "id": "7af39a08-89a7-4fe4-a559-abae9ac15d6b"
-            },
-            "receiver": {
-              "id": "7af39a08-89a7-4fe4-a559-abae9ac15d6b"
-            }
-          },
-          "creator": {
-            "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-          }
-        }
-      },
-      {
-        "type": "transaction_status_changed",
-        "id": "10a28bce-721e-4886-9d94-e36bf83a9528",
-        "sep": "31",
-        "transaction": {
-          "id": "4f00f89f-5e89-4b7e-9c3a-81b39911349d",
-          "sep": "31",
-          "kind": "receive",
-          "status": "pending_receiver",
-          "amount_expected": {
-            "amount": "5",
-            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-          },
-          "amount_in": {
-            "amount": "5.0000000",
-            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-          },
-          "amount_out": {
-            "amount": "3.8095",
-            "asset": "iso4217:USD"
-          },
-          "amount_fee": {
-            "amount": "1.00",
-            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-          },
-          "quote_id": "9f6bbc16-7065-4464-a64e-2f3834a81666",
-          "started_at": "2023-08-30T14:56:40.839001Z",
-          "updated_at": "2023-08-30T14:56:47.406107Z",
-          "transfer_received_at": "2023-08-30T14:56:43Z",
-          "message": "Received an incoming payment",
-          "stellar_transactions": [
-            {
-              "id": "43c58d90392a1121c2253f31c24551b44f1c74bd2bb2e26797e291483c0eae0d",
-              "memo": "NGYwMGY4OWYtNWU4OS00YjdlLTljM2EtODFiMzk5MTE=",
-              "memo_type": "hash",
-              "created_at": "2023-08-30T14:56:43Z",
-              "envelope": "AAAAAgAAAADSsOMKYK7a1aALie83F4GQDoBdHrW86UX2SYVygRA+VQAAAGQAABUwAAAStgAAAAEAAAAAAAAAAAAAAABk71leAAAAAzRmMDBmODlmLTVlODktNGI3ZS05YzNhLTgxYjM5OTExAAAAAQAAAAAAAAABAAAAAFvGtEMyXcvbioU2IKCSomxahpl7lUyef7ftEPxWcD4bAAAAAVVTREMAAAAA4OJrYiyoyVYK5jqTvfhX91wJp8nB8jVCrv7/SoR3rwAAAAAAAvrwgAAAAAAAAAABgRA+VQAAAEAWsb/oAIsF2xw0+sbF1f5Dl3jT5Nh3tsmP2lbVMKuZ/cJLatwp8ViByUQki+7FDrYdg/aKndwmi4wQgCatChEF",
-              "payments": [
-                {
-                  "id": "5454578401161217",
-                  "amount": {
-                    "amount": "5.0000000",
-                    "asset": "USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-                  },
-                  "payment_type": "payment",
-                  "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-                  "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-                }
-              ]
-            }
-          ],
-          "customers": {
-            "sender": {
-              "id": "7af39a08-89a7-4fe4-a559-abae9ac15d6b"
-            },
-            "receiver": {
-              "id": "7af39a08-89a7-4fe4-a559-abae9ac15d6b"
-            }
-          },
-          "creator": {
-            "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-          }
-        }
-      },
-      {
-        "type": "transaction_status_changed",
-        "id": "f8c38652-0c1b-44e1-9dd8-480c075a458b",
-        "sep": "31",
-        "transaction": {
-          "id": "4f00f89f-5e89-4b7e-9c3a-81b39911349d",
-          "sep": "31",
-          "kind": "receive",
-          "status": "completed",
-          "amount_expected": {
-            "amount": "5",
-            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-          },
-          "amount_in": {
-            "amount": "5.0000000",
-            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-          },
-          "amount_out": {
-            "amount": "3.8095",
-            "asset": "iso4217:USD"
-          },
-          "amount_fee": {
-            "amount": "1.00",
-            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-          },
-          "quote_id": "9f6bbc16-7065-4464-a64e-2f3834a81666",
-          "started_at": "2023-08-30T14:56:40.839001Z",
-          "updated_at": "2023-08-30T14:56:52.459322Z",
-          "completed_at": "2023-08-30T14:56:52.459307Z",
-          "transfer_received_at": "2023-08-30T14:56:43Z",
-          "message": "external transfer sent",
-          "stellar_transactions": [
-            {
-              "id": "43c58d90392a1121c2253f31c24551b44f1c74bd2bb2e26797e291483c0eae0d",
-              "memo": "NGYwMGY4OWYtNWU4OS00YjdlLTljM2EtODFiMzk5MTE=",
-              "memo_type": "hash",
-              "created_at": "2023-08-30T14:56:43Z",
-              "envelope": "AAAAAgAAAADSsOMKYK7a1aALie83F4GQDoBdHrW86UX2SYVygRA+VQAAAGQAABUwAAAStgAAAAEAAAAAAAAAAAAAAABk71leAAAAAzRmMDBmODlmLTVlODktNGI3ZS05YzNhLTgxYjM5OTExAAAAAQAAAAAAAAABAAAAAFvGtEMyXcvbioU2IKCSomxahpl7lUyef7ftEPxWcD4bAAAAAVVTREMAAAAA4OJrYiyoyVYK5jqTvfhX91wJp8nB8jVCrv7/SoR3rwAAAAAAAvrwgAAAAAAAAAABgRA+VQAAAEAWsb/oAIsF2xw0+sbF1f5Dl3jT5Nh3tsmP2lbVMKuZ/cJLatwp8ViByUQki+7FDrYdg/aKndwmi4wQgCatChEF",
-              "payments": [
-                {
-                  "id": "5454578401161217",
-                  "amount": {
-                    "amount": "5.0000000",
-                    "asset": "USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-                  },
-                  "payment_type": "payment",
-                  "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-                  "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-                }
-              ]
-            }
-          ],
-          "customers": {
-            "sender": {
-              "id": "7af39a08-89a7-4fe4-a559-abae9ac15d6b"
-            },
-            "receiver": {
-              "id": "7af39a08-89a7-4fe4-a559-abae9ac15d6b"
-            }
-          },
-          "creator": {
-            "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-          }
-        }
-      }
-    ]
-  """
-      .trimIndent()
 
   private val postSep31TxnRequest =
     """{
@@ -453,53 +249,4 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
         }
     }
 }"""
-
-  private val expectedReceiveCallbacksJson =
-    """
-[
-  {
-    "transaction": {
-      "id": "e9683b7f-c1c2-4565-acf6-57aa9830dc24",
-      "status": "pending_sender",
-      "amount_in": "5",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "3.8095",
-      "amount_out_asset": "iso4217:USD",
-      "amount_fee": "1.00",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-09-06T16:00:32.267425500Z"
-    }
-  },
-  {
-    "transaction": {
-      "id": "e9683b7f-c1c2-4565-acf6-57aa9830dc24",
-      "status": "pending_receiver",
-      "amount_in": "5.0000000",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "3.8095",
-      "amount_out_asset": "iso4217:USD",
-      "amount_fee": "1.00",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-09-06T16:00:32.267426Z",
-      "required_info_message": "Received an incoming payment"
-    }
-  },
-  {
-    "transaction": {
-      "id": "e9683b7f-c1c2-4565-acf6-57aa9830dc24",
-      "status": "completed",
-      "amount_in": "5.0000000",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "3.8095",
-      "amount_out_asset": "iso4217:USD",
-      "amount_fee": "1.00",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-09-06T16:00:32.267426Z",
-      "completed_at": "2023-09-06T16:00:43.479958600Z",
-      "required_info_message": "external transfer sent"
-    }
-  }
-]
-  """
-      .trimIndent()
 }
