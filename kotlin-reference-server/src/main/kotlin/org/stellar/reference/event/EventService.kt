@@ -27,7 +27,7 @@ class EventService {
     if (txnId != null) {
       // filter events with txnId
       return receivedEvents.filter {
-        "quote_created" != it.type  && it.payload.transaction.id == txnId
+        "quote_created" != it.type && it.payload.transaction.id == txnId
       }
     }
     // return all events
