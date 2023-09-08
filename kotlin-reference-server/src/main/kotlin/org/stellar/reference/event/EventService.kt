@@ -4,6 +4,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.reference.data.SendEventRequest
 import org.stellar.reference.log
 
