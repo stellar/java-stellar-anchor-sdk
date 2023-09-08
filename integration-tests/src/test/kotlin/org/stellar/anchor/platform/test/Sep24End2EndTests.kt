@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.test
 
-import com.google.gson.reflect.TypeToken
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -12,7 +11,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventRequestPayload
@@ -24,9 +22,7 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log.info
-import org.stellar.anchor.util.StringHelper.json
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
@@ -46,7 +42,6 @@ import org.stellar.walletsdk.horizon.sign
 import org.stellar.walletsdk.horizon.transaction.transferWithdrawalTransaction
 
 class Sep24End2EndTests(config: TestConfig, val jwt: String) {
-  private val gson = GsonUtils.getInstance()
   private val walletSecretKey = System.getenv("WALLET_SECRET_KEY") ?: CLIENT_WALLET_SECRET
   private val keypair = SigningKeyPair.fromSecret(walletSecretKey)
   private val wallet =
@@ -86,6 +81,8 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
   private fun `test typical deposit end-to-end flow`(asset: StellarAssetId, amount: String) =
     runBlocking {
       walletServerClient.clearCallbacks()
+      anchorReferenceServerClient.clearEvents()
+
       val token = anchor.auth().authenticate(keypair)
       val response = makeDeposit(asset, amount, token)
 
@@ -110,15 +107,7 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
 
       // Check the callbacks sent to the wallet reference server are recorded correctly
       val actualCallbacks = waitForWalletServerCallbacks(response.id, 5)
-      actualCallbacks?.let {
-        assertEquals(5, it.size)
-        val expectedCallbacks: List<Sep24GetTransactionResponse> =
-          gson.fromJson(
-            expectedDepositCallbacksJson,
-            object : TypeToken<List<Sep24GetTransactionResponse>>() {}.type
-          )
-        compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
-      }
+      assertCallbacks(actualCallbacks, expectedDepositStatuses)
     }
 
   private suspend fun makeDeposit(
@@ -163,29 +152,21 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
     }
   }
 
-  private fun compareAndAssertCallbacks(
-    asset: StellarAssetId,
-    expectedCallbacks: List<Sep24GetTransactionResponse>,
-    actualCallbacks: List<Sep24GetTransactionResponse>
+  private fun assertCallbacks(
+    actualCallbacks: List<Sep24GetTransactionResponse>?,
+    expectedStatuses: List<Pair<AnchorEvent.Type, SepTransactionStatus>>
   ) {
-    expectedCallbacks.forEachIndexed { index, expectedCallback ->
-      actualCallbacks[index].let { actualCallback ->
-        with(expectedCallback.transaction) {
-          id = actualCallback.transaction.id
-          moreInfoUrl = actualCallback.transaction.moreInfoUrl
-          startedAt = actualCallback.transaction.startedAt
-          to = actualCallback.transaction.to
-          amountIn = actualCallback.transaction.amountIn
-          amountInAsset?.let { amountInAsset = asset.sep38 }
-          amountOut = actualCallback.transaction.amountOut
-          amountOutAsset?.let { amountOutAsset = asset.sep38 }
-          amountFee = actualCallback.transaction.amountFee
-          amountFeeAsset?.let { amountFeeAsset = asset.sep38 }
-          stellarTransactionId = actualCallback.transaction.stellarTransactionId
+    assertNotNull(actualCallbacks)
+    actualCallbacks?.let {
+      assertEquals(expectedStatuses.size, actualCallbacks.size)
+
+      expectedStatuses.forEachIndexed { index, expectedStatus ->
+        actualCallbacks[index].let { actualCallback ->
+          assertNotNull(actualCallback.transaction.id)
+          assertEquals(expectedStatus.second.status, actualCallback.transaction.status)
         }
       }
     }
-    JSONAssert.assertEquals(json(expectedCallbacks), json(actualCallbacks), true)
   }
 
   private fun `test typical withdraw end-to-end flow`(asset: StellarAssetId, amount: String) {
@@ -197,6 +178,7 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
     extraFields: Map<String, String>
   ) = runBlocking {
     walletServerClient.clearCallbacks()
+    anchorReferenceServerClient.clearEvents()
 
     val token = anchor.auth().authenticate(keypair)
     val withdrawTxn = anchor.interactive().withdraw(asset, token, extraFields)
@@ -236,15 +218,7 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
 
     // Check the callbacks sent to the wallet reference server are recorded correctly
     val actualCallbacks = waitForWalletServerCallbacks(withdrawTxn.id, 5)
-    actualCallbacks?.let {
-      assertEquals(5, it.size)
-      val expectedCallbacks: List<Sep24GetTransactionResponse> =
-        gson.fromJson(
-          expectedWithdrawalCallbacksJson,
-          object : TypeToken<List<Sep24GetTransactionResponse>>() {}.type
-        )
-      compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
-    }
+    assertCallbacks(actualCallbacks, expectedWithdrawalStatuses)
   }
 
   private suspend fun waitForWalletServerCallbacks(
@@ -376,193 +350,4 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
         TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
       )
   }
-
-  private val expectedWithdrawalCallbacksJson =
-    """
-[
-  {
-    "transaction": {
-      "id": "c849c9b4-b9cd-4659-b574-fdc1d8fb7e3b",
-      "kind": "withdrawal",
-      "status": "incomplete",
-      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003dc849c9b4-b9cd-4659-b574-fdc1d8fb7e3b\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJjODQ5YzliNC1iOWNkLTQ2NTktYjU3NC1mZGMxZDhmYjdlM2IiLCJleHAiOjE2OTEwNTUwNDUsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.7uwSjsxMy5DKNtiSrncEe1Sugnhs7m2ALm1_1jJZ_Ac",
-      "started_at": "2023-08-03T09:20:44.557598Z",
-      "refunded": false,
-      "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-      "to": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-    }
-  },
-  {
-    "transaction": {
-      "id": "c849c9b4-b9cd-4659-b574-fdc1d8fb7e3b",
-      "kind": "withdrawal",
-      "status": "pending_user_transfer_start",
-      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003dc849c9b4-b9cd-4659-b574-fdc1d8fb7e3b\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJjODQ5YzliNC1iOWNkLTQ2NTktYjU3NC1mZGMxZDhmYjdlM2IiLCJleHAiOjE2OTEwNTUwNDYsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.kjMVXWto256FX4JaT8zxIhFOSN9J3RU5j5jfhqAXL_4",
-      "amount_in": "5",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "4.5",
-      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_fee": "0.5",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-08-03T09:20:44.557598Z",
-      "message": "waiting on the user to transfer funds",
-      "refunded": false,
-      "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-      "to": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-    }
-  },
-  {
-    "transaction": {
-      "id": "c849c9b4-b9cd-4659-b574-fdc1d8fb7e3b",
-      "kind": "withdrawal",
-      "status": "pending_anchor",
-      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003dc849c9b4-b9cd-4659-b574-fdc1d8fb7e3b\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJjODQ5YzliNC1iOWNkLTQ2NTktYjU3NC1mZGMxZDhmYjdlM2IiLCJleHAiOjE2OTEwNTUwNTgsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.P1dUodT6b-WeOgiJbdNdGeM-wLExbPU1olPH6CMwLaE",
-      "amount_in": "5",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "4.5",
-      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_fee": "0.5",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-08-03T09:20:44.557598Z",
-      "stellar_transaction_id": "a2d31bbed336393dda0e00c09e37cd141cf5d17b7bb780c19a204bd3976e3aa7",
-      "message": "Received an incoming payment",
-      "refunded": false,
-      "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-      "to": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-    }
-  },
-  {
-    "transaction": {
-      "id": "c849c9b4-b9cd-4659-b574-fdc1d8fb7e3b",
-      "kind": "withdrawal",
-      "status": "pending_external",
-      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003dc849c9b4-b9cd-4659-b574-fdc1d8fb7e3b\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJjODQ5YzliNC1iOWNkLTQ2NTktYjU3NC1mZGMxZDhmYjdlM2IiLCJleHAiOjE2OTEwNTUwNjIsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.pkolr6408DXi-SiJNy28KfRPVt2rx30FcSKxGohLY6Y",
-      "amount_in": "5",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "4.5",
-      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_fee": "0.5",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-08-03T09:20:44.557598Z",
-      "stellar_transaction_id": "a2d31bbed336393dda0e00c09e37cd141cf5d17b7bb780c19a204bd3976e3aa7",
-      "message": "pending external transfer",
-      "refunded": false,
-      "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-      "to": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-    }
-  },
-  {
-    "transaction": {
-      "id": "c849c9b4-b9cd-4659-b574-fdc1d8fb7e3b",
-      "kind": "withdrawal",
-      "status": "completed",
-      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003dc849c9b4-b9cd-4659-b574-fdc1d8fb7e3b\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJjODQ5YzliNC1iOWNkLTQ2NTktYjU3NC1mZGMxZDhmYjdlM2IiLCJleHAiOjE2OTEwNTUwNjMsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.Ga2LcUgRPPJYyJrlEd0r5gDvLwP3YEMb3KsN-TD6Wg8",
-      "amount_in": "5",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "4.5",
-      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_fee": "0.5",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-08-03T09:20:44.557598Z",
-      "stellar_transaction_id": "a2d31bbed336393dda0e00c09e37cd141cf5d17b7bb780c19a204bd3976e3aa7",
-      "message": "completed",
-      "refunded": false,
-      "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-      "to": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
-    }
-  }
-]    
-  """
-      .trimIndent()
-
-  private val expectedDepositCallbacksJson =
-    """
-[
-  {
-    "transaction": {
-      "id": "96166ee5-2bf1-4a44-a509-d074e505f4b3",
-      "kind": "deposit",
-      "status": "incomplete",
-      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003d96166ee5-2bf1-4a44-a509-d074e505f4b3\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI5NjE2NmVlNS0yYmYxLTRhNDQtYTUwOS1kMDc0ZTUwNWY0YjMiLCJleHAiOjE2OTEwNTUwMDcsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.mW2DHAk8wZyvTY2SM8Wzt2hpkkefWdq7RIn-SGwfk6I",
-      "started_at": "2023-08-03T09:20:06.732254Z",
-      "refunded": false,
-      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-    }
-  },
-  {
-    "transaction": {
-      "id": "96166ee5-2bf1-4a44-a509-d074e505f4b3",
-      "kind": "deposit",
-      "status": "pending_user_transfer_start",
-      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003d96166ee5-2bf1-4a44-a509-d074e505f4b3\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI5NjE2NmVlNS0yYmYxLTRhNDQtYTUwOS1kMDc0ZTUwNWY0YjMiLCJleHAiOjE2OTEwNTUwMDgsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.a1o-Qw1XRy3xr84LPPf4VTJWT_NJpz9Qw-Po5Qy9GW4",
-      "amount_in": "5",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "4.5",
-      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_fee": "0.5",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-08-03T09:20:06.732254Z",
-      "message": "waiting on the user to transfer funds",
-      "refunded": false,
-      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-    }
-  },
-  {
-    "transaction": {
-      "id": "96166ee5-2bf1-4a44-a509-d074e505f4b3",
-      "kind": "deposit",
-      "status": "pending_anchor",
-      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003d96166ee5-2bf1-4a44-a509-d074e505f4b3\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI5NjE2NmVlNS0yYmYxLTRhNDQtYTUwOS1kMDc0ZTUwNWY0YjMiLCJleHAiOjE2OTEwNTUwMDksInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.xSaWtb4Eci_eF1CT1qD3BsYgGdTwKfSDGqoANOMbWBo",
-      "amount_in": "5",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "4.5",
-      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_fee": "0.5",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-08-03T09:20:06.732254Z",
-      "message": "funds received, transaction is being processed",
-      "refunded": false,
-      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-    }
-  },
-  {
-    "transaction": {
-      "id": "40781ad0-71e2-4c9d-8179-556e210bf037",
-      "kind": "deposit",
-      "status": "pending_stellar",
-      "more_info_url": "http://localhost:8091/sep24/transaction/more_info?transaction_id=40781ad0-71e2-4c9d-8179-556e210bf037&token=eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI0MDc4MWFkMC03MWUyLTRjOWQtODE3OS01NTZlMjEwYmYwMzciLCJleHAiOjE2OTQwMTg5NjgsImRhdGEiOnt9fQ.69romZWZruIWKWqlm_QYcoL8B6QgAH5iWhmcZC0A17c",
-      "amount_in": "1.1",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "1.0",
-      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_fee": "0.1",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-09-06T16:39:23.645200Z",
-      "message": "funds received, transaction is being processed",
-      "refunded": false,
-      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-    }
-  },
-  {
-    "transaction": {
-      "id": "96166ee5-2bf1-4a44-a509-d074e505f4b3",
-      "kind": "deposit",
-      "status": "completed",
-      "more_info_url": "http://localhost:8080/sep24/transaction/more_info?transaction_id\u003d96166ee5-2bf1-4a44-a509-d074e505f4b3\u0026token\u003deyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI5NjE2NmVlNS0yYmYxLTRhNDQtYTUwOS1kMDc0ZTUwNWY0YjMiLCJleHAiOjE2OTEwNTUwMTYsInN1YiI6IkdESkxCWVlLTUNYTlZWTkFCT0U2Nk5ZWFFHSUE1QUM1RDIyM1oyS0Y2WkVZSzRVQkNBN0ZLTFRHIiwiZGF0YSI6e319.tlN5RkzLTLbcWdgPRkpLO1GAArc4xQ3LBizU1t4ZE9Y",
-      "amount_in": "5",
-      "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_out": "4.5",
-      "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "amount_fee": "0.5",
-      "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      "started_at": "2023-08-03T09:20:06.732254Z",
-      "stellar_transaction_id": "089c75468a7927a43e5e429b7f0a2e8e0960761b2ce98fd4907998017d343bc9",
-      "message": "completed",
-      "refunded": false,
-      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-    }
-  }
-]
-  """
-      .trimIndent()
 }

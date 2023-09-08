@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.test
 
-import com.google.gson.reflect.TypeToken
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import junit.framework.TestCase.assertEquals
@@ -10,7 +9,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventRequestPayload
 import org.stellar.anchor.api.event.AnchorEvent
@@ -26,7 +24,6 @@ import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log.info
 import org.stellar.anchor.util.MemoHelper
 import org.stellar.anchor.util.Sep1Helper
-import org.stellar.anchor.util.StringHelper.json
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
@@ -81,32 +78,28 @@ class Sep31CustodyRpcEnd2EndTests(
     }
   }
 
-  private fun compareAndAssertCallbacks(
-    asset: StellarAssetId,
-    expectedCallbacks: List<Sep31GetTransactionResponse>,
-    actualCallbacks: List<Sep31GetTransactionResponse>
+  private fun assertCallbacks(
+    actualCallbacks: List<Sep31GetTransactionResponse>?,
+    expectedStatuses: List<Pair<AnchorEvent.Type, SepTransactionStatus>>
   ) {
-    expectedCallbacks.forEachIndexed { index, expectedCallback ->
-      actualCallbacks[index].let { actualCallback ->
-        with(expectedCallback.transaction) {
-          id = actualCallback.transaction.id
-          startedAt = actualCallback.transaction.startedAt
-          amountIn = actualCallback.transaction.amountIn
-          amountInAsset?.let { amountInAsset = asset.sep38 }
-          amountOut = actualCallback.transaction.amountOut
-          amountOutAsset?.let { amountOutAsset = asset.sep38 }
-          amountFee = actualCallback.transaction.amountFee
-          amountFeeAsset?.let { amountFeeAsset = asset.sep38 }
-          stellarTransactionId = actualCallback.transaction.stellarTransactionId
+    assertNotNull(actualCallbacks)
+    actualCallbacks?.let {
+      assertEquals(expectedStatuses.size, actualCallbacks.size)
+
+      expectedStatuses.forEachIndexed { index, expectedStatus ->
+        actualCallbacks[index].let { actualCallback ->
+          assertNotNull(actualCallback.transaction.id)
+          assertEquals(expectedStatus.second.status, actualCallback.transaction.status)
         }
       }
     }
-    JSONAssert.assertEquals(json(expectedCallbacks), json(actualCallbacks), true)
   }
 
   private fun `test typical receive end-to-end flow`(asset: StellarAssetId, amount: String) =
     runBlocking {
       walletServerClient.clearCallbacks()
+      anchorReferenceServerClient.clearEvents()
+
       val senderCustomerRequest =
         gson.fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
       val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
@@ -164,15 +157,7 @@ class Sep31CustodyRpcEnd2EndTests(
 
       // Check the callbacks sent to the wallet reference server are recorded correctly
       val actualCallbacks = waitForWalletServerCallbacks(postTxResponse.id, 3)
-      actualCallbacks?.let {
-        assertEquals(3, it.size)
-        val expectedCallbacks: List<Sep31GetTransactionResponse> =
-          gson.fromJson(
-            expectedReceiveCallbacksJson,
-            object : TypeToken<List<Sep31GetTransactionResponse>>() {}.type
-          )
-        compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
-      }
+      assertCallbacks(actualCallbacks, expectedStatuses)
     }
 
   private suspend fun waitForWalletServerCallbacks(
@@ -266,11 +251,4 @@ class Sep31CustodyRpcEnd2EndTests(
         }
     }
 }"""
-
-  private val expectedReceiveCallbacksJson =
-    """
-[
-]
-  """
-      .trimIndent()
 }

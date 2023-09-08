@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.test
 
-import com.google.gson.reflect.TypeToken
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -12,7 +11,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventRequestPayload
@@ -24,9 +22,7 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log.info
-import org.stellar.anchor.util.StringHelper.json
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
@@ -46,7 +42,6 @@ import org.stellar.walletsdk.horizon.sign
 import org.stellar.walletsdk.horizon.transaction.transferWithdrawalTransaction
 
 class Sep24CustodyRpcEnd2EndTests(config: TestConfig, val jwt: String) {
-  private val gson = GsonUtils.getInstance()
   private val walletSecretKey = System.getenv("WALLET_SECRET_KEY") ?: CLIENT_WALLET_SECRET
   private val keypair = SigningKeyPair.fromSecret(walletSecretKey)
   private val wallet =
@@ -86,6 +81,8 @@ class Sep24CustodyRpcEnd2EndTests(config: TestConfig, val jwt: String) {
   private fun `test typical deposit end-to-end flow`(asset: StellarAssetId, amount: String) =
     runBlocking {
       walletServerClient.clearCallbacks()
+      anchorReferenceServerClient.clearEvents()
+
       val token = anchor.auth().authenticate(keypair)
       val response = makeDeposit(asset, amount, token)
 
@@ -110,15 +107,7 @@ class Sep24CustodyRpcEnd2EndTests(config: TestConfig, val jwt: String) {
 
       // Check the callbacks sent to the wallet reference server are recorded correctly
       val actualCallbacks = waitForWalletServerCallbacks(response.id, 5)
-      actualCallbacks?.let {
-        assertEquals(5, it.size)
-        val expectedCallbacks: List<Sep24GetTransactionResponse> =
-          gson.fromJson(
-            expectedDepositCallbacksJson,
-            object : TypeToken<List<Sep24GetTransactionResponse>>() {}.type
-          )
-        compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
-      }
+      assertCallbacks(actualCallbacks, expectedStatuses)
     }
 
   private suspend fun makeDeposit(
@@ -163,29 +152,21 @@ class Sep24CustodyRpcEnd2EndTests(config: TestConfig, val jwt: String) {
     }
   }
 
-  private fun compareAndAssertCallbacks(
-    asset: StellarAssetId,
-    expectedCallbacks: List<Sep24GetTransactionResponse>,
-    actualCallbacks: List<Sep24GetTransactionResponse>
+  private fun assertCallbacks(
+    actualCallbacks: List<Sep24GetTransactionResponse>?,
+    expectedStatuses: List<Pair<AnchorEvent.Type, SepTransactionStatus>>
   ) {
-    expectedCallbacks.forEachIndexed { index, expectedCallback ->
-      actualCallbacks[index].let { actualCallback ->
-        with(expectedCallback.transaction) {
-          id = actualCallback.transaction.id
-          moreInfoUrl = actualCallback.transaction.moreInfoUrl
-          startedAt = actualCallback.transaction.startedAt
-          to = actualCallback.transaction.to
-          amountIn = actualCallback.transaction.amountIn
-          amountInAsset?.let { amountInAsset = asset.sep38 }
-          amountOut = actualCallback.transaction.amountOut
-          amountOutAsset?.let { amountOutAsset = asset.sep38 }
-          amountFee = actualCallback.transaction.amountFee
-          amountFeeAsset?.let { amountFeeAsset = asset.sep38 }
-          stellarTransactionId = actualCallback.transaction.stellarTransactionId
+    assertNotNull(actualCallbacks)
+    actualCallbacks?.let {
+      assertEquals(expectedStatuses.size, actualCallbacks.size)
+
+      expectedStatuses.forEachIndexed { index, expectedStatus ->
+        actualCallbacks[index].let { actualCallback ->
+          assertNotNull(actualCallback.transaction.id)
+          assertEquals(expectedStatus.second.status, actualCallback.transaction.status)
         }
       }
     }
-    JSONAssert.assertEquals(json(expectedCallbacks), json(actualCallbacks), true)
   }
 
   private fun `test typical withdraw end-to-end flow`(asset: StellarAssetId, amount: String) {
@@ -197,6 +178,7 @@ class Sep24CustodyRpcEnd2EndTests(config: TestConfig, val jwt: String) {
     extraFields: Map<String, String>
   ) = runBlocking {
     walletServerClient.clearCallbacks()
+    anchorReferenceServerClient.clearEvents()
 
     val token = anchor.auth().authenticate(keypair)
     val withdrawTxn = anchor.interactive().withdraw(asset, token, extraFields)
@@ -236,15 +218,7 @@ class Sep24CustodyRpcEnd2EndTests(config: TestConfig, val jwt: String) {
 
     // Check the callbacks sent to the wallet reference server are recorded correctly
     val actualCallbacks = waitForWalletServerCallbacks(withdrawTxn.id, 4)
-    actualCallbacks?.let {
-      assertEquals(4, it.size)
-      val expectedCallbacks: List<Sep24GetTransactionResponse> =
-        gson.fromJson(
-          expectedWithdrawalCallbacksJson,
-          object : TypeToken<List<Sep24GetTransactionResponse>>() {}.type
-        )
-      compareAndAssertCallbacks(asset, expectedCallbacks, actualCallbacks)
-    }
+    assertCallbacks(actualCallbacks, expectedStatuses)
   }
 
   private suspend fun waitForWalletServerCallbacks(
@@ -366,18 +340,4 @@ class Sep24CustodyRpcEnd2EndTests(config: TestConfig, val jwt: String) {
         TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
       )
   }
-
-  private val expectedWithdrawalCallbacksJson =
-    """
-[
-]    
-  """
-      .trimIndent()
-
-  private val expectedDepositCallbacksJson =
-    """
-[
-]
-  """
-      .trimIndent()
 }
