@@ -16,7 +16,7 @@ public class PlatformTransactionHelper {
       JdbcSepTransaction txn, AssetService assetService) {
     switch (txn.getProtocol()) {
       case "6":
-        return TransactionHelper.toGetTransactionResponse((Sep6Transaction) txn);
+        return TransactionHelper.toGetTransactionResponse((Sep6Transaction) txn, assetService);
       case "24":
         return TransactionHelper.toGetTransactionResponse((Sep24Transaction) txn, assetService);
       case "31":

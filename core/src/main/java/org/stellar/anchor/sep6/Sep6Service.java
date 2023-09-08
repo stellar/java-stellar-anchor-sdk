@@ -81,8 +81,7 @@ public class Sep6Service {
             .type(request.getType())
             .assetCode(request.getAssetCode())
             .assetIssuer(asset.getIssuer())
-            .amountOut(request.getAmount())
-            .amountOutAsset(asset.getAssetName())
+            .amountExpected(request.getAmount())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
@@ -101,7 +100,7 @@ public class Sep6Service {
             .id(UUID.randomUUID().toString())
             .sep("6")
             .type(AnchorEvent.Type.TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn))
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
     return GetDepositResponse.builder()

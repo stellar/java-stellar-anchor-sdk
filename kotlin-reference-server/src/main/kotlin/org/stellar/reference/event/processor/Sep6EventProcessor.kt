@@ -114,10 +114,10 @@ class Sep6EventProcessor(
       val transaction = runBlocking { platformClient.getTransaction(id) }
       if (transaction.status == SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE) {
         val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
-        val assetCode = toStandardFormat(transaction.amountOut.asset)
+        val assetCode = transaction.amountExpected.asset.toAssetId()
 
         val asset = Asset.create(assetCode)
-        val amount = transaction.amountOut.amount
+        val amount = transaction.amountExpected.amount
         val destination = transaction.destinationAccount
 
         val stellarTxn = submitStellarTransaction(keypair.accountId, destination, asset, amount)
@@ -154,12 +154,12 @@ class Sep6EventProcessor(
     }
   }
 
-  private fun toStandardFormat(asset: String): String {
-    val parts = asset.split(":")
+  private fun String.toAssetId(): String {
+    val parts = this.split(":")
     return when (parts.size) {
       3 -> "${parts[1]}:${parts[2]}"
       2 -> parts[1]
-      else -> throw RuntimeException("Invalid asset format: $asset")
+      else -> throw RuntimeException("Invalid asset format: $this")
     }
   }
 
@@ -169,6 +169,7 @@ class Sep6EventProcessor(
     asset: Asset,
     amount: String
   ): StellarTransaction {
+    // TODO: use Kotlin wallet SDK
     val account = server.accounts().account(source)
     val transaction =
       TransactionBuilder(account, Network.TESTNET)

@@ -245,7 +245,8 @@ public class TransactionService {
                 .id(UUID.randomUUID().toString())
                 .sep("6")
                 .type(TRANSACTION_STATUS_CHANGED)
-                .transaction(TransactionHelper.toGetTransactionResponse(sep6Transaction))
+                .transaction(
+                    TransactionHelper.toGetTransactionResponse(sep6Transaction, assetService))
                 .build());
         break;
       case "24":

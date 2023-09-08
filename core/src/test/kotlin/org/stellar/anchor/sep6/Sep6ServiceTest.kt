@@ -200,8 +200,7 @@ class Sep6ServiceTest {
           "type": "bank_account",
           "requestAssetCode": "USDC",
           "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amountOut": "100",
-          "amountOutAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
       }
@@ -217,12 +216,10 @@ class Sep6ServiceTest {
               "sep": "6",
               "kind": "deposit",
               "status": "incomplete",
-              "amount_in": {},
-              "amount_out": {
+              "amount_expected": {
                   "amount": "100",
                   "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
               },
-              "amount_fee": {},
               "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
           }
       }
