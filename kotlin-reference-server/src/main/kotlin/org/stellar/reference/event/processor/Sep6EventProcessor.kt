@@ -32,7 +32,7 @@ class Sep6EventProcessor(
   override fun onTransactionCreated(event: AnchorEvent) {
     when (val kind = event.transaction.kind) {
       PlatformTransactionData.Kind.DEPOSIT -> onDepositTransactionCreated(event)
-      PlatformTransactionData.Kind.WITHDRAWAL -> TODO("Withdrawals not yet supported")
+      PlatformTransactionData.Kind.WITHDRAWAL -> onWithdrawTransactionCreated(event)
       else -> {
         log.warn("Received transaction created event with unsupported kind: $kind")
       }
@@ -56,11 +56,38 @@ class Sep6EventProcessor(
     }
   }
 
+  private fun onWithdrawTransactionCreated(event: AnchorEvent) {
+    if (event.transaction.status != SepTransactionStatus.INCOMPLETE) {
+      log.warn(
+        "Received withdraw transaction created event with unsupported status: ${event.transaction.status}"
+      )
+      return
+    }
+    runBlocking {
+      patchTransaction(
+        PlatformTransactionData.builder()
+          .id(event.transaction.id)
+          .status(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE)
+          .build()
+      )
+    }
+  }
+
   override fun onTransactionError(event: AnchorEvent) {
     log.warn("Received transaction error event: $event")
   }
 
   override fun onTransactionStatusChanged(event: AnchorEvent) {
+    when (val kind = event.transaction.kind) {
+      PlatformTransactionData.Kind.DEPOSIT -> onDepositTransactionStatusChanged(event)
+      PlatformTransactionData.Kind.WITHDRAWAL -> onWithdrawTransactionStatusChanged(event)
+      else -> {
+        log.warn("Received transaction created event with unsupported kind: $kind")
+      }
+    }
+  }
+
+  private fun onDepositTransactionStatusChanged(event: AnchorEvent) {
     val transaction = event.transaction
     when (val status = transaction.status) {
       SepTransactionStatus.PENDING_ANCHOR -> {
@@ -83,60 +110,109 @@ class Sep6EventProcessor(
     }
   }
 
-  override fun onCustomerUpdated(event: AnchorEvent) {
-    val transactionIds = runBlocking {
-      platformClient
-        .getTransactions(
-          GetTransactionsRequest.builder()
-            .sep(TransactionsSeps.SEP_6)
-            .orderBy(TransactionsOrderBy.CREATED_AT)
-            .order(TransactionsOrder.ASC)
-            .statuses(listOf(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE))
-            .build()
-        )
-        .records
-        .map { it.id }
-    }
-    log.info("Found ${transactionIds.size} transactions pending customer info update")
-    transactionIds.forEach { id ->
-      val transaction = runBlocking { platformClient.getTransaction(id) }
-      val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
-      val assetCode = transaction.amountExpected.asset.toAssetId()
-
-      val asset = Asset.create(assetCode)
-      val amount = transaction.amountExpected.amount
-      val destination = transaction.destinationAccount
-
-      val stellarTxn = submitStellarTransaction(keypair.accountId, destination, asset, amount)
-      runBlocking {
-        patchTransaction(
-          PlatformTransactionData.builder()
-            .id(transaction.id)
-            .status(SepTransactionStatus.COMPLETED)
-            .updatedAt(Instant.now())
-            .completedAt(Instant.now())
-            .requiredInfoMessage(null)
-            .requiredInfoUpdates(null)
-            .requiredCustomerInfoUpdates(null)
-            .requiredCustomerInfoUpdates(null)
-            .instructions(
-              mapOf(
-                "organization.bank_number" to
-                  InstructionField.builder()
-                    .value("121122676")
-                    .description("US Bank routing number")
-                    .build(),
-                "organization.bank_account_number" to
-                  InstructionField.builder()
-                    .value("13719713158835300")
-                    .description("US Bank account number")
-                    .build(),
-              )
-            )
-            .stellarTransactions(listOf(stellarTxn))
-            .build()
-        )
+  private fun onWithdrawTransactionStatusChanged(event: AnchorEvent) {
+    val transaction = event.transaction
+    when (val status = transaction.status) {
+      SepTransactionStatus.PENDING_ANCHOR -> {
+        runBlocking {
+          patchTransaction(
+            PlatformTransactionData.builder()
+              .id(transaction.id)
+              .updatedAt(Instant.now())
+              .status(SepTransactionStatus.COMPLETED)
+              .build()
+          )
+        }
       }
+      SepTransactionStatus.COMPLETED -> {
+        log.info("Transaction ${transaction.id} completed")
+      }
+      else -> {
+        log.warn("Received transaction status changed event with unsupported status: $status")
+      }
+    }
+  }
+
+  override fun onCustomerUpdated(event: AnchorEvent) {
+    runBlocking {
+        platformClient
+          .getTransactions(
+            GetTransactionsRequest.builder()
+              .sep(TransactionsSeps.SEP_6)
+              .orderBy(TransactionsOrderBy.CREATED_AT)
+              .order(TransactionsOrder.ASC)
+              .statuses(listOf(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE))
+              .build()
+          )
+          .records
+      }
+      .forEach { transaction ->
+        when (transaction.kind) {
+          PlatformTransactionData.Kind.DEPOSIT -> handleDepositTransaction(transaction)
+          PlatformTransactionData.Kind.WITHDRAWAL -> handleWithdrawTransaction(transaction)
+          else -> {
+            log.warn(
+              "Received transaction created event with unsupported kind: ${transaction.kind}"
+            )
+          }
+        }
+      }
+  }
+
+  private fun handleDepositTransaction(transaction: GetTransactionResponse) {
+    val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
+    val assetCode = transaction.amountExpected.asset.toAssetId()
+
+    val asset = Asset.create(assetCode)
+    val amount = transaction.amountExpected.amount
+    val destination = transaction.destinationAccount
+
+    val stellarTxn = submitStellarTransaction(keypair.accountId, destination, asset, amount)
+    runBlocking {
+      patchTransaction(
+        PlatformTransactionData.builder()
+          .id(transaction.id)
+          .status(SepTransactionStatus.COMPLETED)
+          .updatedAt(Instant.now())
+          .completedAt(Instant.now())
+          .requiredInfoMessage(null)
+          .requiredInfoUpdates(null)
+          .requiredCustomerInfoUpdates(null)
+          .requiredCustomerInfoUpdates(null)
+          .instructions(
+            mapOf(
+              "organization.bank_number" to
+                InstructionField.builder()
+                  .value("121122676")
+                  .description("US Bank routing number")
+                  .build(),
+              "organization.bank_account_number" to
+                InstructionField.builder()
+                  .value("13719713158835300")
+                  .description("US Bank account number")
+                  .build(),
+            )
+          )
+          .stellarTransactions(listOf(stellarTxn))
+          .build()
+      )
+    }
+  }
+
+  private fun handleWithdrawTransaction(transaction: GetTransactionResponse) {
+    runBlocking {
+      patchTransaction(
+        PlatformTransactionData.builder()
+          .id(transaction.id)
+          .status(SepTransactionStatus.PENDING_USR_TRANSFER_START)
+          .updatedAt(Instant.now())
+          .completedAt(Instant.now())
+          .requiredInfoMessage(null)
+          .requiredInfoUpdates(null)
+          .requiredCustomerInfoUpdates(null)
+          .requiredCustomerInfoUpdates(null)
+          .build()
+      )
     }
   }
 

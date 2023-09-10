@@ -22,6 +22,7 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep24TransactionStore
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
+import org.stellar.anchor.platform.data.JdbcSep6TransactionStore
 import org.stellar.anchor.platform.observer.ObservedPayment
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Asset
@@ -31,6 +32,7 @@ import org.stellar.sdk.AssetTypeNative
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: JdbcSep31TransactionStore
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: JdbcSep24TransactionStore
+  @MockK(relaxed = true) private lateinit var sep6TransactionStore: JdbcSep6TransactionStore
   @MockK(relaxed = true) private lateinit var platformApiClient: PlatformApiClient
 
   private lateinit var paymentOperationToEventListener: PaymentOperationToEventListener
@@ -44,6 +46,7 @@ class PaymentOperationToEventListenerTest {
       PaymentOperationToEventListener(
         sep31TransactionStore,
         sep24TransactionStore,
+        sep6TransactionStore,
         platformApiClient
       )
   }
@@ -509,6 +512,8 @@ class PaymentOperationToEventListenerTest {
     assertEquals(listOf(stellarTransaction), capturedRequest.transaction.stellarTransactions)
     assertEquals(sep24TxMock.id, capturedRequest.transaction.id)
   }
+
+  // TODO: sep6 test
 
   private fun createAsset(assetType: String, assetCode: String, assetIssuer: String?): Asset {
     return if (assetType == "native") {

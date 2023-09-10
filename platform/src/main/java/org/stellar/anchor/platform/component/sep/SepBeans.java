@@ -92,6 +92,8 @@ public class SepBeans {
     registrationBean.setFilter(new Sep10JwtFilter(jwtService));
     registrationBean.addUrlPatterns("/sep6/deposit*");
     registrationBean.addUrlPatterns("/sep6/deposit/*");
+    registrationBean.addUrlPatterns("/sep6/withdraw*");
+    registrationBean.addUrlPatterns("/sep6/withdraw/*");
     registrationBean.addUrlPatterns("/sep6/transaction");
     registrationBean.addUrlPatterns("/sep6/transactions*");
     registrationBean.addUrlPatterns("/sep6/transactions/*");

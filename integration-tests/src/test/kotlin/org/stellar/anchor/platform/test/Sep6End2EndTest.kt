@@ -16,9 +16,12 @@ import org.stellar.anchor.util.Log
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.StellarConfiguration
 import org.stellar.walletsdk.Wallet
+import org.stellar.walletsdk.anchor.MemoType
 import org.stellar.walletsdk.anchor.auth
 import org.stellar.walletsdk.anchor.customer
+import org.stellar.walletsdk.asset.IssuedAssetId
 import org.stellar.walletsdk.horizon.SigningKeyPair
+import org.stellar.walletsdk.horizon.sign
 
 class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
   private val walletSecretKey = System.getenv("WALLET_SECRET_KEY") ?: CLIENT_WALLET_SECRET
@@ -84,6 +87,47 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     assertEquals(completedDepositTxn.transaction.id, transactionByStellarId.transaction.id)
   }
 
+  private fun `test typical withdraw end-to-end flow`() = runBlocking {
+    val token = anchor.auth().authenticate(keypair)
+    // TODO: migrate this to wallet-sdk when it's available
+    val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
+
+    // Create a customer before starting the transaction
+    anchor.customer(token).add(mapOf("first_name" to "John", "last_name" to "Doe"))
+
+    val withdraw =
+      sep6Client.withdraw(
+        mapOf("asset_code" to "USDC", "amount" to "0.01", "type" to "bank_account")
+      )
+    waitStatus(withdraw.id, "pending_customer_info_update", sep6Client)
+    val withdrawTxn = sep6Client.getTransaction(mapOf("id" to withdraw.id))
+
+    anchor
+      .customer(token)
+      .add(
+        mapOf(
+          "bank_account_type" to "checking",
+          "bank_account_number" to "121122676",
+          "bank_number" to "13719713158835300",
+        )
+      )
+    waitStatus(withdraw.id, "pending_user_transfer_start", sep6Client)
+    val transfer =
+      wallet
+        .stellar()
+        .transaction(keypair, memo = Pair(MemoType.HASH, withdraw.memo))
+        .transfer(
+          withdraw.accountId,
+          IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
+          "0.01"
+        )
+        .build()
+    transfer.sign(keypair)
+    wallet.stellar().submitTransaction(transfer)
+
+    waitStatus(withdraw.id, "completed", sep6Client)
+  }
+
   private suspend fun waitStatus(id: String, expectedStatus: String, sep6Client: Sep6Client) {
     for (i in 0..maxTries) {
       val transaction = sep6Client.getTransaction(mapOf("id" to id))
@@ -102,5 +146,6 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
 
   fun testAll() {
     `test typical deposit end-to-end flow`()
+    `test typical withdraw end-to-end flow`()
   }
 }

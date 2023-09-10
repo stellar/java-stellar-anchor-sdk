@@ -11,6 +11,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
@@ -152,8 +154,8 @@ class Sep6ServiceTest {
                   "amount_fee": "2",
                   "from": "GABCD",
                   "to": "GABCD",
-                  "depositMemo": "some memo",
-                  "depositMemoType": "text",
+                  "deposit_memo": "some memo",
+                  "deposit_memo_type": "text",
                   "started_at": "2023-08-01T16:53:20Z",
                   "updated_at": "2023-08-01T16:53:20Z",
                   "completed_at": "2023-08-01T16:53:20Z",
@@ -221,6 +223,54 @@ class Sep6ServiceTest {
                   "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
               },
               "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          }
+      }
+    """
+      .trimIndent()
+
+  val withdrawResJson =
+    """
+      {
+          "account_id": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
+          "memo_type": "hash"
+      }
+    """
+      .trimIndent()
+
+  val withdrawTxnJson =
+    """
+      {
+          "status": "incomplete",
+          "kind": "withdrawal",
+          "type": "bank_account",
+          "requestAssetCode": "USDC",
+          "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountExpected": "100",
+          "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "withdrawAnchorAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
+          "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "toAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
+          "memoType": "hash"
+      }
+    """
+      .trimIndent()
+
+  val withdrawTxnEventJson =
+    """
+      {
+          "type": "transaction_created",
+          "sep": "6",
+          "transaction": {
+              "sep": "6",
+              "kind": "withdrawal",
+              "status": "incomplete",
+              "amount_expected": {
+                  "amount": "100",
+                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+              "destination_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
+              "memo_type": "hash"
           }
       }
     """
@@ -303,6 +353,105 @@ class Sep6ServiceTest {
         .build()
     assertThrows<java.lang.RuntimeException> {
       sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+
+    // Verify effects
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify { eventSession wasNot called }
+  }
+
+  @Test
+  fun `test withdraw`() {
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val request =
+      GetWithdrawRequest.builder().assetCode(TEST_ASSET).type("bank_account").amount("100").build()
+
+    val response = sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+
+    // Verify effects
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+
+    JSONAssert.assertEquals(withdrawTxnJson, gson.toJson(slotTxn.captured), JSONCompareMode.LENIENT)
+    assert(slotTxn.captured.id.isNotEmpty())
+    assert(slotTxn.captured.memo.isNotEmpty())
+    assertEquals(slotTxn.captured.memoType, "hash")
+    assertNotNull(slotTxn.captured.startedAt)
+
+    JSONAssert.assertEquals(
+      withdrawTxnEventJson,
+      gson.toJson(slotEvent.captured),
+      JSONCompareMode.LENIENT
+    )
+    assert(slotEvent.captured.id.isNotEmpty())
+    assert(slotEvent.captured.transaction.id.isNotEmpty())
+    assert(slotEvent.captured.transaction.memo.isNotEmpty())
+    assertEquals(slotEvent.captured.transaction.memoType, "hash")
+    assertNotNull(slotEvent.captured.transaction.startedAt)
+
+    // Verify response
+    assertEquals(slotTxn.captured.id, response.id)
+    assertEquals(slotTxn.captured.memo, response.memo)
+    JSONAssert.assertEquals(withdrawResJson, gson.toJson(response), JSONCompareMode.LENIENT)
+  }
+
+  @Test
+  fun `test withdraw with unsupported asset`() {
+    val request =
+      GetWithdrawRequest.builder().assetCode("??").type("bank_account").amount("100").build()
+
+    assertThrows<SepValidationException> {
+      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test withdraw with unsupported type`() {
+    val request =
+      GetWithdrawRequest.builder()
+        .assetCode(TEST_ASSET)
+        .type("unsupported_Type")
+        .amount("100")
+        .build()
+
+    assertThrows<SepValidationException> {
+      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @ValueSource(strings = ["0", "-1", "0.0", "0.0000000001"])
+  @ParameterizedTest
+  fun `test withdraw with bad amount`(amount: String) {
+    val request =
+      GetWithdrawRequest.builder().assetCode(TEST_ASSET).type("bank_account").amount(amount).build()
+
+    assertThrows<SepValidationException> {
+      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test withdraw does not send event if transaction fails to save`() {
+    every { txnStore.save(any()) } throws RuntimeException("unexpected failure")
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val request =
+      GetWithdrawRequest.builder().assetCode(TEST_ASSET).type("bank_account").amount("100").build()
+    assertThrows<java.lang.RuntimeException> {
+      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
     }
 
     // Verify effects

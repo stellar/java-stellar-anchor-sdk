@@ -34,14 +34,17 @@ public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore sep31TransactionStore;
 
   final JdbcSep24TransactionStore sep24TransactionStore;
+  final JdbcSep6TransactionStore sep6TransactionStore;
   private final PlatformApiClient platformApiClient;
 
   public PaymentOperationToEventListener(
       JdbcSep31TransactionStore sep31TransactionStore,
       JdbcSep24TransactionStore sep24TransactionStore,
+      JdbcSep6TransactionStore sep6TransactionStore,
       PlatformApiClient platformApiClient) {
     this.sep31TransactionStore = sep31TransactionStore;
     this.sep24TransactionStore = sep24TransactionStore;
+    this.sep6TransactionStore = sep6TransactionStore;
     this.platformApiClient = platformApiClient;
   }
 
@@ -109,6 +112,24 @@ public class PaymentOperationToEventListener implements PaymentListener {
         handleSep24Transaction(payment, sep24Txn);
       } catch (AnchorException aex) {
         warnF("Error handling the SEP24 transaction id={}.", sep24Txn.getId());
+        errorEx(aex);
+      }
+    }
+
+    JdbcSep6Transaction sep6Txn;
+    try {
+      sep6Txn =
+          sep6TransactionStore.findOneByToAccountAndMemoAndStatus(
+              payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
+    } catch (Exception ex) {
+      errorEx(ex);
+      return;
+    }
+    if (sep6Txn != null) {
+      try {
+        handleSep6Transaction(payment, sep6Txn);
+      } catch (AnchorException aex) {
+        warnF("Error handling the SEP6 transaction id={}.", sep6Txn.getId());
         errorEx(aex);
       }
     }
@@ -210,6 +231,59 @@ public class PaymentOperationToEventListener implements PaymentListener {
     debugF("Patching transaction {}.", txn.getId());
     traceF("Patching transaction {} with request {}.", txn.getId(), patchTransactionsRequest);
     platformApiClient.patchTransaction(patchTransactionsRequest);
+  }
+
+  void handleSep6Transaction(ObservedPayment payment, JdbcSep6Transaction txn)
+      throws AnchorException, IOException {
+    if (!payment.getAssetName().equals(txn.getRequestAssetName())) {
+      warnF(
+          "Payment asset {} does not match the expected asset {}.",
+          payment.getAssetCode(),
+          txn.getRequestAssetName());
+      return;
+    }
+
+    Instant paymentTime = parsePaymentTime(payment.getCreatedAt());
+    StellarTransaction stellarTransaction =
+        StellarTransaction.builder()
+            .id(payment.getTransactionHash())
+            .memo(txn.getMemo())
+            .memoType(txn.getMemoType())
+            .createdAt(paymentTime)
+            .envelope(payment.getTransactionEnvelope())
+            .payments(
+                List.of(
+                    StellarPayment.builder()
+                        .id(payment.getId())
+                        .paymentType(
+                            payment.getType() == ObservedPayment.Type.PAYMENT
+                                ? StellarPayment.Type.PAYMENT
+                                : StellarPayment.Type.PATH_PAYMENT)
+                        .sourceAccount(payment.getFrom())
+                        .destinationAccount(payment.getTo())
+                        .amount(new Amount(payment.getAmount(), payment.getAssetName()))
+                        .build()))
+            .build();
+
+    SepTransactionStatus newStatus = SepTransactionStatus.PENDING_ANCHOR;
+
+    // Check if the payment contains the expected amount (or greater)
+    BigDecimal amountExpected = decimal(txn.getAmountExpected());
+    BigDecimal gotAmount = decimal(payment.getAmount());
+    String message = "Incoming payment for SEP-6 transaction";
+    if (gotAmount.compareTo(amountExpected) == 0) {
+      Log.info(message);
+      txn.setTransferReceivedAt(paymentTime);
+    } else {
+      message =
+          String.format(
+              "The incoming payment amount was insufficient! Expected: \"%s\", Received: \"%s\"",
+              formatAmount(amountExpected), formatAmount(gotAmount));
+      Log.warn(message);
+    }
+
+    // Patch transaction
+    patchTransaction(txn, stellarTransaction, paymentTime, newStatus);
   }
 
   void handleSep24Transaction(ObservedPayment payment, JdbcSep24Transaction txn)
