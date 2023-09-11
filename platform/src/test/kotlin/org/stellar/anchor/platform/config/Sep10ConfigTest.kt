@@ -12,15 +12,16 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.platform.config.ClientsConfig.ClientType.CUSTODIAL
-import org.stellar.anchor.platform.config.ClientsConfig.ClientType.NONCUSTODIAL
+import org.stellar.anchor.config.ClientsConfig.ClientConfig
+import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
+import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
 
 class Sep10ConfigTest {
   lateinit var config: PropertySep10Config
   lateinit var errors: Errors
   private lateinit var secretConfig: PropertySecretConfig
   private lateinit var appConfig: AppConfig
-  private var clientsConfig = ClientsConfig()
+  private var clientsConfig = PropertyClientsConfig()
 
   @BeforeEach
   fun setUp() {
@@ -28,7 +29,7 @@ class Sep10ConfigTest {
     appConfig = mockk()
 
     clientsConfig.clients.add(
-      ClientsConfig.ClientConfig(
+      ClientConfig(
         "unknown",
         CUSTODIAL,
         "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
@@ -38,7 +39,7 @@ class Sep10ConfigTest {
     )
 
     clientsConfig.clients.add(
-      ClientsConfig.ClientConfig(
+      ClientConfig(
         "lobstr",
         NONCUSTODIAL,
         "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ",
@@ -48,7 +49,7 @@ class Sep10ConfigTest {
     )
 
     clientsConfig.clients.add(
-      ClientsConfig.ClientConfig(
+      ClientConfig(
         "circle",
         NONCUSTODIAL,
         "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE",
@@ -81,7 +82,7 @@ class Sep10ConfigTest {
 
   @Test
   fun `test validation of empty client allow list when client attribution is required`() {
-    val config = PropertySep10Config(appConfig, ClientsConfig(), secretConfig)
+    val config = PropertySep10Config(appConfig, PropertyClientsConfig(), secretConfig)
     config.isClientAttributionRequired = true
     config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-attribution-lists-empty")

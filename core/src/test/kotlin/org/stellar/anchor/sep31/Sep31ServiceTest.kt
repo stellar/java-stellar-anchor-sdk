@@ -31,9 +31,7 @@ import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.config.SecretConfig
-import org.stellar.anchor.config.Sep31Config
+import org.stellar.anchor.config.*
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.event.EventService
@@ -273,6 +271,8 @@ class Sep31ServiceTest {
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
+  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig
+  @MockK(relaxed = true) lateinit var sep10Config: Sep10Config
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
@@ -300,15 +300,22 @@ class Sep31ServiceTest {
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
+    every { sep10Config.isClientAttributionRequired } returns false
+    every { sep10Config.clientAttributionAllowList } returns listOf()
+    every { clientsConfig.getClientConfigByDomain(any()) } returns null
+    every { clientsConfig.getClientConfigBySigningKey(any()) } returns null
+
     jwtService = spyk(JwtService(secretConfig))
 
     sep31Service =
       Sep31Service(
         appConfig,
+        sep10Config,
         sep31Config,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
+        clientsConfig,
         assetService,
         feeIntegration,
         customerIntegration,
@@ -360,10 +367,12 @@ class Sep31ServiceTest {
     val ex: AnchorException = assertThrows {
       Sep31Service(
         appConfig,
+        sep10Config,
         sep31Config,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
+        clientsConfig,
         assetServiceQuotesNotSupported,
         feeIntegration,
         customerIntegration,
@@ -877,10 +886,12 @@ class Sep31ServiceTest {
     sep31Service =
       Sep31Service(
         appConfig,
+        sep10Config,
         sep31Config,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
+        clientsConfig,
         assetServiceQuotesNotSupported,
         feeIntegration,
         customerIntegration,

@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.config;
 
 import static java.lang.String.format;
-import static org.stellar.anchor.platform.config.ClientsConfig.ClientType.CUSTODIAL;
-import static org.stellar.anchor.platform.config.ClientsConfig.ClientType.NONCUSTODIAL;
+import static org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL;
+import static org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
-import org.stellar.anchor.platform.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.util.ListHelper;
 import org.stellar.anchor.util.NetUtil;
 import org.stellar.anchor.util.StringHelper;
@@ -34,11 +34,11 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private Integer jwtTimeout = 86400;
   private List<String> knownCustodialAccountList;
   private AppConfig appConfig;
-  private final ClientsConfig clientsConfig;
+  private final PropertyClientsConfig clientsConfig;
   private SecretConfig secretConfig;
 
   public PropertySep10Config(
-      AppConfig appConfig, ClientsConfig clientsConfig, SecretConfig secretConfig) {
+      AppConfig appConfig, PropertyClientsConfig clientsConfig, SecretConfig secretConfig) {
     this.appConfig = appConfig;
     this.clientsConfig = clientsConfig;
     this.secretConfig = secretConfig;

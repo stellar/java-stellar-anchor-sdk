@@ -22,8 +22,11 @@ import org.stellar.anchor.api.callback.PutCustomerResponse
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
+import org.stellar.anchor.config.ClientsConfig.ClientConfig
+import org.stellar.anchor.config.ClientsConfig.ClientType
+import org.stellar.anchor.config.ClientsConfig.ClientType.*
 import org.stellar.anchor.config.SecretConfig
-import org.stellar.anchor.platform.config.ClientsConfig
+import org.stellar.anchor.platform.config.PropertyClientsConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor.FORWARD_KYC_CUSTOMER_TYPE
@@ -39,7 +42,7 @@ class SimpleInteractiveUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
-  @MockK(relaxed = true) private lateinit var clientsConfig: ClientsConfig
+  @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   private lateinit var jwtService: JwtService
   private lateinit var sep24Config: PropertySep24Config
@@ -52,9 +55,9 @@ class SimpleInteractiveUrlConstructorTest {
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "sep24_jwt_secret"
 
     val clientConfig =
-      ClientsConfig.ClientConfig(
+      ClientConfig(
         "lobstr",
-        ClientsConfig.ClientType.NONCUSTODIAL,
+        NONCUSTODIAL,
         "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
         "lobstr.co",
         "https://callback.lobstr.co/api/v2/anchor/callback"
@@ -68,9 +71,9 @@ class SimpleInteractiveUrlConstructorTest {
         "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       )
     } returns
-      ClientsConfig.ClientConfig(
+      ClientConfig(
         "some-wallet",
-        ClientsConfig.ClientType.CUSTODIAL,
+        ClientType.CUSTODIAL,
         "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         null,
         null

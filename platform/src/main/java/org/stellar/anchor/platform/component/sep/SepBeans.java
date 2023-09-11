@@ -59,7 +59,7 @@ public class SepBeans {
   @Bean
   @ConfigurationProperties(prefix = "sep10")
   Sep10Config sep10Config(
-      AppConfig appConfig, SecretConfig secretConfig, ClientsConfig clientsConfig) {
+      AppConfig appConfig, SecretConfig secretConfig, PropertyClientsConfig clientsConfig) {
     return new PropertySep10Config(appConfig, clientsConfig, secretConfig);
   }
 
@@ -158,7 +158,7 @@ public class SepBeans {
 
   @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
-      ClientsConfig clientsConfig,
+      PropertyClientsConfig clientsConfig,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
@@ -186,20 +186,24 @@ public class SepBeans {
   @ConditionalOnAllSepsEnabled(seps = {"sep31"})
   Sep31Service sep31Service(
       AppConfig appConfig,
+      Sep10Config sep10Config,
       Sep31Config sep31Config,
       Sep31TransactionStore sep31TransactionStore,
       Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
+      ClientsConfig clientsConfig,
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
       EventService eventService) {
     return new Sep31Service(
         appConfig,
+        sep10Config,
         sep31Config,
         sep31TransactionStore,
         sep31DepositInfoGenerator,
         sep38QuoteStore,
+        clientsConfig,
         assetService,
         feeIntegration,
         customerIntegration,

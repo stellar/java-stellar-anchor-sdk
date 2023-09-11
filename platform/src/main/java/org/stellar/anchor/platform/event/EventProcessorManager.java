@@ -26,8 +26,8 @@ import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
-import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
+import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.platform.utils.DaemonExecutors;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -41,7 +41,7 @@ public class EventProcessorManager {
   private final SecretConfig secretConfig;
   private final EventProcessorConfig eventProcessorConfig;
   private final CallbackApiConfig callbackApiConfig;
-  private final ClientsConfig clientsConfig;
+  private final PropertyClientsConfig clientsConfig;
   private final EventService eventService;
   private final AssetService assetService;
   private final Sep24TransactionStore sep24TransactionStore;
@@ -53,7 +53,7 @@ public class EventProcessorManager {
       SecretConfig secretConfig,
       EventProcessorConfig eventProcessorConfig,
       CallbackApiConfig callbackApiConfig,
-      ClientsConfig clientsConfig,
+      PropertyClientsConfig clientsConfig,
       EventService eventService,
       AssetService assetService,
       Sep24TransactionStore sep24TransactionStore,
@@ -83,7 +83,7 @@ public class EventProcessorManager {
     // Create a processor of the client status callback handler for each client defined in the
     // clientsConfig
     if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
-      for (ClientsConfig.ClientConfig clientConfig : clientsConfig.getClients()) {
+      for (PropertyClientsConfig.ClientConfig clientConfig : clientsConfig.getClients()) {
         if (clientConfig.getCallbackUrl().isEmpty()) {
 
           Log.info(String.format("Client status callback skipped: %s", json(clientConfig)));
