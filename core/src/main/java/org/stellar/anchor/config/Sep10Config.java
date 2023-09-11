@@ -74,17 +74,6 @@ public interface Sep10Config {
   List<String> getClientAttributionAllowList();
 
   /**
-   * Whether to require authenticating clients to be in the list of known custodial accounts. # # If
-   * the flag is set to true, the client must be one of the custodial clients defined in the clients
-   * section # of this configuration file.
-   *
-   * <p>The flag is only relevant for custodial wallets.
-   *
-   * @return true if known custodial account is required.
-   */
-  boolean isKnownCustodialAccountRequired();
-
-  /**
    * Set the list of known custodial accounts.
    *
    * @return the list of known custodial accounts.

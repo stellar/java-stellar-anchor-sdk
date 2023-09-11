@@ -141,17 +141,8 @@ class Sep10ConfigTest {
 
   @Test
   fun `test required known custodial account`() {
-    config.isKnownCustodialAccountRequired = true
     config.validateCustodialAccounts(errors)
     assertFalse(errors.hasErrors())
-  }
-
-  @Test
-  fun `test known custodial account required but no custodial clients not defined`() {
-    config = PropertySep10Config(appConfig, ClientsConfig(), secretConfig)
-    config.isKnownCustodialAccountRequired = true
-    config.validateCustodialAccounts(errors)
-    assertErrorCode(errors, "sep10-custodial-account-list-empty")
   }
 
   @ParameterizedTest

@@ -6,7 +6,6 @@ import static org.stellar.anchor.platform.config.ClientsConfig.ClientType.NONCUS
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -33,8 +32,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private List<String> clientAllowList = null;
   private Integer authTimeout = 900;
   private Integer jwtTimeout = 86400;
-  private boolean knownCustodialAccountRequired = false;
-  private List<String> knownCustodialAccountList = new ArrayList<>();
+  private List<String> knownCustodialAccountList;
   private AppConfig appConfig;
   private final ClientsConfig clientsConfig;
   private SecretConfig secretConfig;
@@ -202,12 +200,6 @@ public class PropertySep10Config implements Sep10Config, Validator {
             "sep10-custodial-account-not-valid",
             format("Invalid custodial account:%s in clients:", account));
       }
-    }
-
-    if (knownCustodialAccountRequired && ListHelper.isEmpty(getKnownCustodialAccountList())) {
-      errors.reject(
-          "sep10-custodial-account-list-empty",
-          "No custodial clients custodial while sep10.known_custodial_account_required is set to true");
     }
   }
 
