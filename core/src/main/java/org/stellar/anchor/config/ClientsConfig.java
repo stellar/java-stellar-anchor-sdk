@@ -100,7 +100,7 @@ public class ClientsConfig implements Validator {
     }
   }
 
-  void validateCustodialClient(ClientConfig clientConfig, Errors errors) {
+  public void validateCustodialClient(ClientConfig clientConfig, Errors errors) {
     if (isEmpty(clientConfig.signingKey)) {
       errors.reject(
           "empty-client-signing-key", "The client.signingKey cannot be empty and must be defined");
@@ -114,7 +114,7 @@ public class ClientsConfig implements Validator {
     }
   }
 
-  void validateNonCustodialClient(ClientConfig clientConfig, Errors errors) {
+  public void validateNonCustodialClient(ClientConfig clientConfig, Errors errors) {
     if (isEmpty(clientConfig.domain)) {
       errors.reject("empty-client-domain", "The client.domain cannot be empty and must be defined");
     }
