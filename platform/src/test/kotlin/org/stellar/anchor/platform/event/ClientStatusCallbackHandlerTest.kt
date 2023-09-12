@@ -14,7 +14,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.sep24.TransactionResponse
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.platform.config.ClientsConfig
+import org.stellar.anchor.config.ClientsConfig
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.sep24.Sep24Helper

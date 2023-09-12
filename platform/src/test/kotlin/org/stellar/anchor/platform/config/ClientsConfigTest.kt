@@ -5,7 +5,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
-import org.stellar.anchor.platform.config.ClientsConfig.ClientConfig
+import org.stellar.anchor.config.ClientsConfig
+import org.stellar.anchor.config.ClientsConfig.ClientConfig
 
 class ClientsConfigTest {
   private lateinit var configs: ClientsConfig

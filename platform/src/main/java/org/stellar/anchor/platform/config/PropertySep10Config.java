@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.config;
 
 import static java.lang.String.format;
-import static org.stellar.anchor.platform.config.ClientsConfig.ClientType.CUSTODIAL;
-import static org.stellar.anchor.platform.config.ClientsConfig.ClientType.NONCUSTODIAL;
+import static org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL;
+import static org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
@@ -15,9 +15,10 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.ClientsConfig;
+import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
-import org.stellar.anchor.platform.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.util.ListHelper;
 import org.stellar.anchor.util.NetUtil;
 import org.stellar.anchor.util.StringHelper;

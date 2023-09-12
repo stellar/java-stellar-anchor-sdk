@@ -18,10 +18,11 @@ import org.stellar.anchor.api.callback.PutCustomerRequest;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt;
-import org.stellar.anchor.platform.config.ClientsConfig;
+import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
+import org.stellar.anchor.util.ConfigHelper;
 import org.stellar.anchor.util.GsonUtils;
 
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
@@ -71,8 +72,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
 
   @SneakyThrows
   String constructToken(Sep24Transaction txn, Map<String, String> request) {
-    ClientsConfig.ClientConfig clientConfig =
-        UrlConstructorHelper.getClientConfig(clientsConfig, txn);
+    ClientsConfig.ClientConfig clientConfig = ConfigHelper.getClientConfig(clientsConfig, txn);
 
     debugF(
         "Resolving configs for token construct. Got config: {}, all configs: {}",

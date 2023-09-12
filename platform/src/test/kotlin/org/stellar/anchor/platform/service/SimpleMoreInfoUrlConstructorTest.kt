@@ -13,8 +13,8 @@ import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
+import org.stellar.anchor.config.ClientsConfig
 import org.stellar.anchor.config.SecretConfig
-import org.stellar.anchor.platform.config.ClientsConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.util.GsonUtils

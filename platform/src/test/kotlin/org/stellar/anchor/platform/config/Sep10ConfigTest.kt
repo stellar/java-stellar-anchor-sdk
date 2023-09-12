@@ -12,8 +12,9 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.platform.config.ClientsConfig.ClientType.CUSTODIAL
-import org.stellar.anchor.platform.config.ClientsConfig.ClientType.NONCUSTODIAL
+import org.stellar.anchor.config.ClientsConfig
+import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
+import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
 
 class Sep10ConfigTest {
   lateinit var config: PropertySep10Config

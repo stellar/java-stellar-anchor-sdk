@@ -139,6 +139,7 @@ public class SepBeans {
   Sep24Service sep24Service(
       AppConfig appConfig,
       Sep24Config sep24Config,
+      ClientsConfig clientsConfig,
       AssetService assetService,
       JwtService jwtService,
       Sep24TransactionStore sep24TransactionStore,
@@ -148,6 +149,7 @@ public class SepBeans {
     return new Sep24Service(
         appConfig,
         sep24Config,
+        clientsConfig,
         assetService,
         jwtService,
         sep24TransactionStore,

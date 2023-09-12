@@ -184,6 +184,8 @@ event_processor:
 #                  is the same as the `signing_key`, the callback will be activated.
 #   - callback_url: (optional) the URL of the client's callback API endpoint. Optional due to some wallets may opt to
 #                  poll instead, or may use polling first before implementing callbacks at a later stage.
+#   - destination_accounts: (optional) list of accounts allowed to be used for the deposit. By default, only SEP-10
+#                  authenticated account can be used to deposit funds into.
 #   If the type is `noncustodial`,
 #   - domain: (required) the domain of the client. If the `client_domain` field of the transaction is the same as this
 #             domain, the callback will be activated.

@@ -10,9 +10,10 @@ import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt;
-import org.stellar.anchor.platform.config.ClientsConfig;
+import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
+import org.stellar.anchor.util.ConfigHelper;
 
 public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
   private final ClientsConfig clientsConfig;
@@ -29,8 +30,7 @@ public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
   @Override
   @SneakyThrows
   public String construct(Sep24Transaction txn) {
-    ClientsConfig.ClientConfig clientConfig =
-        UrlConstructorHelper.getClientConfig(clientsConfig, txn);
+    ClientsConfig.ClientConfig clientConfig = ConfigHelper.getClientConfig(clientsConfig, txn);
 
     Sep24MoreInfoUrlJwt token =
         new Sep24MoreInfoUrlJwt(

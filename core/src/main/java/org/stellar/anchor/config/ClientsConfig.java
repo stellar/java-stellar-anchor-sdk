@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.config;
+package org.stellar.anchor.config;
 
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,6 +35,7 @@ public class ClientsConfig implements Validator {
     String signingKey;
     String domain;
     String callbackUrl;
+    Set<String> destinationAccounts;
   }
 
   public enum ClientType {
@@ -138,6 +140,12 @@ public class ClientsConfig implements Validator {
       } catch (MalformedURLException e) {
         errors.reject("client-invalid-callback_url", "The client.callbackUrl is invalid");
       }
+    }
+
+    if (clientConfig.destinationAccounts != null) {
+      errors.reject(
+          "destination-accounts-noncustodial",
+          "Destination accounts list is not a valid configuration option for a non-custodial client");
     }
   }
 }
