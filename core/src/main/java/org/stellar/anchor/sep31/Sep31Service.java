@@ -524,19 +524,23 @@ public class Sep31Service {
     Context.get().setFee(fee);
   }
 
-  String getClientName() throws SepException {
-    Sep10Jwt token = Context.get().getSep10Jwt();
-    ClientConfig client = clientsConfig.getClientConfigBySigningKey(token.getAccount());
+  String getClientName() throws BadRequestException {
+    return getClientName(Context.get().getSep10Jwt().getAccount());
+  }
+
+  String getClientName(String account) throws BadRequestException {
+    ClientConfig client = clientsConfig.getClientConfigBySigningKey(account);
     if (!sep10Config.getClientAttributionAllowList().isEmpty()) {
       // check if the client is not in the allow list, client should be denied
-      if (!sep10Config.getClientAttributionAllowList().contains(client.getName())) {
+      if (client != null
+          && !sep10Config.getClientAttributionAllowList().contains(client.getName())) {
         client = null;
       }
     }
 
     if (sep10Config.isClientAttributionRequired()) {
       if (client == null) {
-        throw new SepException("Client not found");
+        throw new BadRequestException("Client not found");
       }
     } else {
       // client attribution not required

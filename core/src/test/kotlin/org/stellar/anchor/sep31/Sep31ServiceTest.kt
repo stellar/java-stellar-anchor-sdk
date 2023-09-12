@@ -265,6 +265,15 @@ class Sep31ServiceTest {
   """
   }
 
+  private val lobstrClientConfig =
+    ClientsConfig.ClientConfig(
+      "lobstr",
+      ClientsConfig.ClientType.NONCUSTODIAL,
+      "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+      "lobstr.co",
+      "https://callback.lobstr.co/api/v2/anchor/callback"
+    )
+
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
@@ -1042,5 +1051,58 @@ class Sep31ServiceTest {
     quote.fee = null
     val ex = assertThrows<SepValidationException> { sep31Service.updateFee() }
     assertEquals("Quote is missing the 'fee' field", ex.message)
+  }
+
+  @Test
+  fun `test getClientName when ClientAttributionAllowList is empty and ClientAttribution is not required`() {
+    every { sep10Config.isClientAttributionRequired } returns false
+    every { sep10Config.clientAttributionAllowList } returns listOf()
+
+    val clientName =
+      sep31Service.getClientName("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG")
+    assertNull(clientName)
+  }
+
+  @Test
+  fun `test getClientName when ClientAttributionAllowList is empty and ClientAttribution is required`() {
+    every { sep10Config.isClientAttributionRequired } returns true
+    every { sep10Config.clientAttributionAllowList } returns listOf()
+    every { clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKey) } returns
+      lobstrClientConfig
+
+    val clientName = sep31Service.getClientName(lobstrClientConfig.signingKey)
+    assertEquals(lobstrClientConfig.name, clientName)
+
+    every { clientsConfig.getClientConfigBySigningKey("Invalid Public Key") } returns null
+    assertThrows<BadRequestException> { sep31Service.getClientName("Invalid Public Key") }
+  }
+
+  @Test
+  fun `test getClientName when ClientAttributionAllowList is not empty and ClientAttribution is not required`() {
+    every { sep10Config.isClientAttributionRequired } returns false
+    every { sep10Config.clientAttributionAllowList } returns listOf(lobstrClientConfig.name)
+
+    every { clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKey) } returns
+      lobstrClientConfig
+    val clientName = sep31Service.getClientName(lobstrClientConfig.signingKey)
+    assertEquals(lobstrClientConfig.name, clientName)
+
+    every { clientsConfig.getClientConfigBySigningKey("Invalid Public Key") } returns null
+    val clientNameNotFound = sep31Service.getClientName("Invalid Public Key")
+    assertNull(clientNameNotFound)
+  }
+
+  @Test
+  fun `test getClientName when ClientAttributionAllowList is not empty and ClientAttribution is required`() {
+    every { sep10Config.isClientAttributionRequired } returns true
+    every { sep10Config.clientAttributionAllowList } returns listOf(lobstrClientConfig.name)
+
+    every { clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKey) } returns
+      lobstrClientConfig
+    val clientName = sep31Service.getClientName(lobstrClientConfig.signingKey)
+    assertEquals(lobstrClientConfig.name, clientName)
+
+    every { clientsConfig.getClientConfigBySigningKey("Invalid Public Key") } returns null
+    assertThrows<BadRequestException> { sep31Service.getClientName("Invalid Public Key") }
   }
 }
