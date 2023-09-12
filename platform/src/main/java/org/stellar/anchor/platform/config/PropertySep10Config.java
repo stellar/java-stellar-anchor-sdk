@@ -46,13 +46,13 @@ public class PropertySep10Config implements Sep10Config, Validator {
     this.clientsConfig = clientsConfig;
     this.secretConfig = secretConfig;
     this.defaultAllowClientDomain =
-        clientsConfig.clients.stream()
+        clientsConfig.getClients().stream()
             .filter(
                 cfg -> cfg.getType() == NONCUSTODIAL && StringHelper.isNotEmpty(cfg.getDomain()))
             .map(ClientConfig::getDomain)
             .collect(Collectors.toList());
     this.knownCustodialAccountList =
-        clientsConfig.clients.stream()
+        clientsConfig.getClients().stream()
             .filter(
                 cfg -> cfg.getType() == CUSTODIAL && StringHelper.isNotEmpty(cfg.getSigningKey()))
             .map(ClientConfig::getSigningKey)
