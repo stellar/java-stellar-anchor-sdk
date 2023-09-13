@@ -19,7 +19,8 @@ import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep38.*
-import org.stellar.anchor.api.sep.sep38.Sep38Context.*
+import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
+import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
@@ -41,10 +42,10 @@ class Sep38ServiceTest {
   companion object {
     private const val PUBLIC_KEY = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
     private const val stellarUSDC =
-      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private const val fiatUSD = "iso4217:USD"
     private const val stellarJPYC =
-      "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   }
 
   private lateinit var sep38Service: Sep38Service
@@ -57,6 +58,9 @@ class Sep38ServiceTest {
 
   // sep10 related:
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
+
+  private val sep10Token =
+      createJwtToken("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG")
 
   @BeforeEach
   fun setUp() {
@@ -96,12 +100,12 @@ class Sep38ServiceTest {
     assertNull(usdcAsset.sellDeliveryMethods)
     assertNull(usdcAsset.buyDeliveryMethods)
     var wantAssets =
-      listOf(fiatUSD, "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+        listOf(fiatUSD, "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
     assertTrue(usdcAsset.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(usdcAsset.exchangeableAssetNames))
 
     val stellarJPYC =
-      assetMap["stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"]
+        assetMap["stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"]
     assertNotNull(stellarJPYC)
     assertNull(stellarJPYC!!.countryCodes)
     assertNull(stellarJPYC.sellDeliveryMethods)
@@ -115,19 +119,15 @@ class Sep38ServiceTest {
     assertNotNull(fiatUSD)
     assertEquals(listOf("USA"), fiatUSD!!.countryCodes)
     val wantSellDeliveryMethod =
-      AssetInfo.Sep38Operation.DeliveryMethod(
-        "WIRE",
-        "Send USD directly to the Anchor's bank account."
-      )
+        AssetInfo.Sep38Operation.DeliveryMethod(
+            "WIRE", "Send USD directly to the Anchor's bank account.")
     assertEquals(listOf(wantSellDeliveryMethod), fiatUSD.sellDeliveryMethods)
     val wantBuyDeliveryMethod =
-      AssetInfo.Sep38Operation.DeliveryMethod(
-        "WIRE",
-        "Have USD sent directly to your bank account."
-      )
+        AssetInfo.Sep38Operation.DeliveryMethod(
+            "WIRE", "Have USD sent directly to your bank account.")
     assertEquals(listOf(wantBuyDeliveryMethod), fiatUSD.buyDeliveryMethods)
     wantAssets =
-      listOf("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5", stellarUSDC)
+        listOf("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5", stellarUSDC)
     assertTrue(fiatUSD.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(fiatUSD.exchangeableAssetNames))
   }
@@ -135,58 +135,57 @@ class Sep38ServiceTest {
   @Test
   fun `Test GET prices failure`() {
     // empty rateIntegration should throw an error
-    var ex: AnchorException = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
+    var ex: AnchorException = assertThrows {
+      sep38Service.getPrices(null, null, null, null, null, null)
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("internal server error", ex.message)
 
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null, null)
+
+    val token = createJwtToken("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG")
 
     // empty sell_asset
-    ex = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(null, null, null, null, null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_asset cannot be empty", ex.message)
 
     // nonexistent sell_asset
-    ex = assertThrows { sep38Service.getPrices("foo:bar", null, null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, "foo:bar", null, null, null, null) }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("sell_asset not found", ex.message)
 
     // empty sell_amount
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, null, null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, null, null, null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount cannot be empty", ex.message)
 
     // invalid (not a number) sell_amount
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, "foo", null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, "foo", null, null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount is invalid", ex.message)
 
     // sell_amount should be positive
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, "-0.01", null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, "-0.01", null, null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // sell_amount should be positive
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, "0", null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, "0", null, null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // unsupported sell_delivery_method
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, "1.23", "FOO", null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, "1.23", "FOO", null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported sell delivery method", ex.message)
 
     // unsupported country_code
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, "1.23", "WIRE", null, "FOO") }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, "1.23", "WIRE", null, "FOO") }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported country code", ex.message)
   }
@@ -196,36 +195,35 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
-      GetRateRequest.builder()
-        .type(INDICATIVE_PRICES)
-        .sellAsset(fiatUSD)
-        .buyAsset("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-        .sellAmount("100")
-        .build()
+        GetRateRequest.builder()
+            .type(INDICATIVE_PRICES)
+            .sellAsset(fiatUSD)
+            .buyAsset("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+            .sellAmount("100")
+            .clientId(sep10Token.account)
+            .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
-      GetRateResponse.indicativePrices("1", "100", "100")
+        GetRateResponse.indicativePrices("1", "100", "100")
 
     val getRateReq2 =
-      GetRateRequest.builder()
-        .type(INDICATIVE_PRICES)
-        .sellAsset(fiatUSD)
-        .buyAsset(stellarUSDC)
-        .sellAmount("100")
-        .build()
+        GetRateRequest.builder()
+            .type(INDICATIVE_PRICES)
+            .sellAsset(fiatUSD)
+            .buyAsset(stellarUSDC)
+            .sellAmount("100")
+            .clientId(sep10Token.account)
+            .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns
-      GetRateResponse.indicativePrices("2", "100", "200")
+        GetRateResponse.indicativePrices("2", "100", "200")
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null, null)
 
     // test happy path with the minimum parameters
     var gotResponse: GetPricesResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrices(fiatUSD, "100", null, null, null) }
+    assertDoesNotThrow {
+      gotResponse = sep38Service.getPrices(sep10Token, fiatUSD, "100", null, null, null)
+    }
     val wantResponse = GetPricesResponse()
     wantResponse.addAsset(stellarJPYC, 7, "1")
     wantResponse.addAsset(stellarUSDC, 7, "2")
@@ -237,40 +235,40 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
-      GetRateRequest.builder()
-        .type(INDICATIVE_PRICES)
-        .sellAsset(fiatUSD)
-        .buyAsset("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-        .sellAmount("100")
-        .countryCode("USA")
-        .sellDeliveryMethod("WIRE")
-        .build()
+        GetRateRequest.builder()
+            .type(INDICATIVE_PRICES)
+            .sellAsset(fiatUSD)
+            .buyAsset("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+            .sellAmount("100")
+            .countryCode("USA")
+            .sellDeliveryMethod("WIRE")
+            .clientId(sep10Token.account)
+            .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
-      GetRateResponse.indicativePrices("1.1", "100", "110")
+        GetRateResponse.indicativePrices("1.1", "100", "110")
 
     val getRateReq2 =
-      GetRateRequest.builder()
-        .type(INDICATIVE_PRICES)
-        .sellAsset(fiatUSD)
-        .buyAsset(stellarUSDC)
-        .sellAmount("100")
-        .countryCode("USA")
-        .sellDeliveryMethod("WIRE")
-        .build()
+        GetRateRequest.builder()
+            .type(INDICATIVE_PRICES)
+            .sellAsset(fiatUSD)
+            .buyAsset(stellarUSDC)
+            .sellAmount("100")
+            .countryCode("USA")
+            .sellDeliveryMethod("WIRE")
+            .clientId(sep10Token.account)
+            .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns
-      GetRateResponse.indicativePrices("2.1", "100", "210")
+        GetRateResponse.indicativePrices("2.1", "100", "210")
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null, null)
 
     // test happy path with all the parameters
+
     var gotResponse: GetPricesResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrices(fiatUSD, "100", "WIRE", null, "USA") }
+    assertDoesNotThrow {
+      gotResponse = sep38Service.getPrices(sep10Token, fiatUSD, "100", "WIRE", null, "USA")
+    }
     val wantResponse = GetPricesResponse()
     wantResponse.addAsset(stellarJPYC, 7, "1.1")
     wantResponse.addAsset(stellarUSDC, 7, "2.1")
@@ -282,28 +280,24 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
-      GetRateRequest.builder()
-        .type(INDICATIVE_PRICES)
-        .sellAsset(stellarUSDC)
-        .buyAsset(fiatUSD)
-        .sellAmount("100")
-        .buyDeliveryMethod("WIRE")
-        .build()
+        GetRateRequest.builder()
+            .type(INDICATIVE_PRICES)
+            .sellAsset(stellarUSDC)
+            .buyAsset(fiatUSD)
+            .sellAmount("100")
+            .buyDeliveryMethod("WIRE")
+            .clientId(sep10Token.account)
+            .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
-      GetRateResponse.indicativePrices("1", "100", "100")
+        GetRateResponse.indicativePrices("1", "100", "100")
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null, null)
 
     // test happy path with the minimum parameters and specify buy_delivery_method
     var gotResponse: GetPricesResponse? = null
     assertDoesNotThrow {
-      gotResponse = sep38Service.getPrices(stellarUSDC, "100", null, "WIRE", null)
+      gotResponse = sep38Service.getPrices(sep10Token, stellarUSDC, "100", null, "WIRE", null)
     }
     val wantResponse = GetPricesResponse()
     wantResponse.addAsset(fiatUSD, 4, "1")
@@ -315,128 +309,125 @@ class Sep38ServiceTest {
     var getPriceRequestBuilder = Sep38GetPriceRequest.builder()
 
     // empty rateIntegration should throw an error
-    var ex: AnchorException = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    var ex: AnchorException = assertThrows {
+      sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build())
+    }
     var wantException: AnchorException = ServerErrorException("internal server error")
     assertEquals(wantException, ex)
 
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null, null)
 
     // empty sell_asset
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     wantException = BadRequestException("sell_asset cannot be empty")
     assertEquals(wantException, ex)
 
     // nonexistent sell_asset
     getPriceRequestBuilder = getPriceRequestBuilder.sellAssetName("foo:bar")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("sell_asset not found", ex.message)
 
     // empty buy_asset
     getPriceRequestBuilder = getPriceRequestBuilder.sellAssetName(fiatUSD)
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     wantException = BadRequestException("buy_asset cannot be empty")
     assertEquals(wantException, ex)
 
     // nonexistent buy_asset
     getPriceRequestBuilder = getPriceRequestBuilder.buyAssetName("foo:bar")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("buy_asset not found", ex.message)
 
     // both sell_amount & buy_amount are empty
     getPriceRequestBuilder = getPriceRequestBuilder.buyAssetName(stellarUSDC)
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Please provide either sell_amount or buy_amount", ex.message)
 
     // both sell_amount & buy_amount are filled
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount("100").buyAmount("100")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Please provide either sell_amount or buy_amount", ex.message)
 
     // invalid (not a number) sell_amount
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount("foo").buyAmount(null)
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount is invalid", ex.message)
 
     // sell_amount should be positive
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount("-0.01")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // sell_amount should be positive
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount("0")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // invalid (not a number) buy_amount
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount(null).buyAmount("bar")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount is invalid", ex.message)
 
     // buy_amount should be positive
     getPriceRequestBuilder = getPriceRequestBuilder.buyAmount("-0.02")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount should be positive", ex.message)
 
     // buy_amount should be positive
     getPriceRequestBuilder = getPriceRequestBuilder.buyAmount("0")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount should be positive", ex.message)
 
     // unsupported sell_delivery_method
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount("1.23").buyAmount(null)
     getPriceRequestBuilder = getPriceRequestBuilder.sellDeliveryMethod("FOO")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported sell delivery method", ex.message)
 
     // unsupported buy_delivery_method
     getPriceRequestBuilder = getPriceRequestBuilder.sellDeliveryMethod("WIRE")
     getPriceRequestBuilder = getPriceRequestBuilder.buyDeliveryMethod("BAR")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported buy delivery method", ex.message)
 
     // unsupported country_code
     getPriceRequestBuilder = getPriceRequestBuilder.buyDeliveryMethod(null)
     getPriceRequestBuilder = getPriceRequestBuilder.countryCode("BRA")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported country code", ex.message)
 
     // unsupported (null) context
     getPriceRequestBuilder = getPriceRequestBuilder.countryCode("USA")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
 
     // sell_amount should be within limit
     getPriceRequestBuilder = getPriceRequestBuilder.context(SEP31).sellAmount("100000000")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
 
     // sell_amount should be positive
     getPriceRequestBuilder = getPriceRequestBuilder.context(SEP31).sellAmount("0.5")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount less than min limit", ex.message)
 
@@ -444,14 +435,9 @@ class Sep38ServiceTest {
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount(null)
     getPriceRequestBuilder = getPriceRequestBuilder.buyAssetName(stellarUSDC).buyAmount("100000000")
     every { mockRateIntegration.getRate(any()) } returns
-      GetRateResponse.indicativePrice(
-        "1.02",
-        "1.03",
-        "102000000",
-        "100000000",
-        mockSellAssetFee(fiatUSD)
-      )
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+        GetRateResponse.indicativePrice(
+            "1.02", "1.03", "102000000", "100000000", mockSellAssetFee(fiatUSD))
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
   }
@@ -471,42 +457,38 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
-      GetRateRequest.builder()
-        .type(INDICATIVE_PRICE)
-        .context(SEP31)
-        .sellAsset(fiatUSD)
-        .sellAmount("100")
-        .buyAsset(stellarUSDC)
-        .build()
+        GetRateRequest.builder()
+            .type(INDICATIVE_PRICE)
+            .context(SEP31)
+            .sellAsset(fiatUSD)
+            .sellAmount("100")
+            .buyAsset(stellarUSDC)
+            .clientId(sep10Token.account)
+            .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse.indicativePrice("1.02", "1.03", "100", "97.0874", mockFee)
+        GetRateResponse.indicativePrice("1.02", "1.03", "100", "97.0874", mockFee)
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null, null)
 
     // test happy path with the minimum parameters using sellAmount
     val getPriceRequest =
-      Sep38GetPriceRequest.builder()
-        .sellAssetName(fiatUSD)
-        .sellAmount("100")
-        .buyAssetName(stellarUSDC)
-        .context(SEP31)
-        .build()
+        Sep38GetPriceRequest.builder()
+            .sellAssetName(fiatUSD)
+            .sellAmount("100")
+            .buyAssetName(stellarUSDC)
+            .context(SEP31)
+            .build()
     var gotResponse: GetPriceResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrice(getPriceRequest) }
+    assertDoesNotThrow { gotResponse = sep38Service.getPrice(sep10Token, getPriceRequest) }
     val wantResponse =
-      GetPriceResponse.builder()
-        .price("1.02")
-        .totalPrice("1.03")
-        .sellAmount("100")
-        .buyAmount("97.0874")
-        .fee(mockFee)
-        .build()
+        GetPriceResponse.builder()
+            .price("1.02")
+            .totalPrice("1.03")
+            .sellAmount("100")
+            .buyAmount("97.0874")
+            .fee(mockFee)
+            .build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -517,42 +499,38 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
-      GetRateRequest.builder()
-        .type(INDICATIVE_PRICE)
-        .context(SEP31)
-        .sellAsset(fiatUSD)
-        .buyAmount("100")
-        .buyAsset(stellarUSDC)
-        .build()
+        GetRateRequest.builder()
+            .type(INDICATIVE_PRICE)
+            .context(SEP31)
+            .sellAsset(fiatUSD)
+            .buyAmount("100")
+            .buyAsset(stellarUSDC)
+            .clientId(sep10Token.account)
+            .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse.indicativePrice("1.02", "1.03", "103", "100", mockFee)
+        GetRateResponse.indicativePrice("1.02", "1.03", "103", "100", mockFee)
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null, null)
 
     // test happy path with the minimum parameters using buyAmount
     val getPriceRequest =
-      Sep38GetPriceRequest.builder()
-        .sellAssetName(fiatUSD)
-        .buyAssetName(stellarUSDC)
-        .buyAmount("100")
-        .context(SEP31)
-        .build()
+        Sep38GetPriceRequest.builder()
+            .sellAssetName(fiatUSD)
+            .buyAssetName(stellarUSDC)
+            .buyAmount("100")
+            .context(SEP31)
+            .build()
     var gotResponse: GetPriceResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrice(getPriceRequest) }
+    assertDoesNotThrow { gotResponse = sep38Service.getPrice(sep10Token, getPriceRequest) }
     val wantResponse =
-      GetPriceResponse.builder()
-        .price("1.02")
-        .totalPrice("1.03")
-        .sellAmount("103")
-        .buyAmount("100")
-        .fee(mockFee)
-        .build()
+        GetPriceResponse.builder()
+            .price("1.02")
+            .totalPrice("1.03")
+            .sellAmount("103")
+            .buyAmount("100")
+            .fee(mockFee)
+            .build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -563,46 +541,42 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
-      GetRateRequest.builder()
-        .type(INDICATIVE_PRICE)
-        .context(SEP6)
-        .sellAsset(fiatUSD)
-        .buyAsset(stellarUSDC)
-        .sellAmount("100")
-        .countryCode("USA")
-        .sellDeliveryMethod("WIRE")
-        .build()
+        GetRateRequest.builder()
+            .type(INDICATIVE_PRICE)
+            .context(SEP6)
+            .sellAsset(fiatUSD)
+            .buyAsset(stellarUSDC)
+            .sellAmount("100")
+            .countryCode("USA")
+            .sellDeliveryMethod("WIRE")
+            .clientId(sep10Token.account)
+            .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse.indicativePrice("1.02", "1.03", "100", "97.0873786", mockFee)
+        GetRateResponse.indicativePrice("1.02", "1.03", "100", "97.0873786", mockFee)
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null, null)
 
     // test happy path with all the parameters using sellAmount
     val getPriceRequest =
-      Sep38GetPriceRequest.builder()
-        .sellAssetName(fiatUSD)
-        .sellAmount("100")
-        .sellDeliveryMethod("WIRE")
-        .buyAssetName(stellarUSDC)
-        .countryCode("USA")
-        .context(SEP6)
-        .build()
+        Sep38GetPriceRequest.builder()
+            .sellAssetName(fiatUSD)
+            .sellAmount("100")
+            .sellDeliveryMethod("WIRE")
+            .buyAssetName(stellarUSDC)
+            .countryCode("USA")
+            .context(SEP6)
+            .build()
     var gotResponse: GetPriceResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrice(getPriceRequest) }
+    assertDoesNotThrow { gotResponse = sep38Service.getPrice(sep10Token, getPriceRequest) }
     val wantResponse =
-      GetPriceResponse.builder()
-        .price("1.02")
-        .totalPrice("1.03")
-        .sellAmount("100")
-        .buyAmount("97.0873786")
-        .fee(mockFee)
-        .build()
+        GetPriceResponse.builder()
+            .price("1.02")
+            .totalPrice("1.03")
+            .sellAmount("100")
+            .buyAmount("97.0873786")
+            .fee(mockFee)
+            .build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -613,47 +587,44 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
-      GetRateRequest.builder()
-        .type(INDICATIVE_PRICE)
-        .context(SEP31)
-        .sellAsset(fiatUSD)
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .countryCode("USA")
-        .sellDeliveryMethod("WIRE")
-        .build()
+        GetRateRequest.builder()
+            .type(INDICATIVE_PRICE)
+            .context(SEP31)
+            .sellAsset(fiatUSD)
+            .buyAsset(stellarUSDC)
+            .buyAmount("100")
+            .countryCode("USA")
+            .sellDeliveryMethod("WIRE")
+            .clientId(sep10Token.account)
+            .build()
 
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse.indicativePrice("1.02345678901", "1.03345679", "103.3456789", "100", mockFee)
+        GetRateResponse.indicativePrice(
+            "1.02345678901", "1.03345679", "103.3456789", "100", mockFee)
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null, null)
 
     // test happy path with all the parameters using buyAmount
     val getPriceRequest =
-      Sep38GetPriceRequest.builder()
-        .sellAssetName(fiatUSD)
-        .sellDeliveryMethod("WIRE")
-        .buyAssetName(stellarUSDC)
-        .buyAmount("100")
-        .countryCode("USA")
-        .context(SEP31)
-        .build()
+        Sep38GetPriceRequest.builder()
+            .sellAssetName(fiatUSD)
+            .sellDeliveryMethod("WIRE")
+            .buyAssetName(stellarUSDC)
+            .buyAmount("100")
+            .countryCode("USA")
+            .context(SEP31)
+            .build()
     var gotResponse: GetPriceResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrice(getPriceRequest) }
+    assertDoesNotThrow { gotResponse = sep38Service.getPrice(sep10Token, getPriceRequest) }
     val wantResponse =
-      GetPriceResponse.builder()
-        .price("1.02345678901")
-        .totalPrice("1.03345679")
-        .sellAmount("103.3456789")
-        .buyAmount("100")
-        .fee(mockFee)
-        .build()
+        GetPriceResponse.builder()
+            .price("1.02345678901")
+            .totalPrice("1.03345679")
+            .sellAmount("103.3456789")
+            .buyAmount("100")
+            .fee(mockFee)
+            .build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -669,13 +640,8 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        null,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null, null)
 
     // empty sep38QuoteStore should throw an error
     ex = assertThrows { sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build()) }
@@ -684,13 +650,12 @@ class Sep38ServiceTest {
 
     // mocked quote store
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        quoteStore,
-        null
-      )
+        Sep38Service(
+            sep38Service.sep38Config,
+            sep38Service.assetService,
+            mockRateIntegration,
+            quoteStore,
+            null)
 
     // empty token
     ex = assertThrows { sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build()) }
@@ -710,282 +675,238 @@ class Sep38ServiceTest {
     assertEquals("sell_asset cannot be empty", ex.message)
 
     // nonexistent sell_asset
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder().sellAssetName("foo:bar").build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+          token, Sep38PostQuoteRequest.builder().sellAssetName("foo:bar").build())
+    }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("sell_asset not found", ex.message)
 
     // empty buy_asset
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(token, Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_asset cannot be empty", ex.message)
 
     // nonexistent buy_asset
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
-          Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).buyAssetName("foo:bar").build()
-        )
-      }
+          Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).buyAssetName("foo:bar").build())
+    }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("buy_asset not found", ex.message)
 
     // both sell_amount & buy_amount are empty
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
-          Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).buyAssetName(stellarUSDC).build()
-        )
-      }
+          Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).buyAssetName(stellarUSDC).build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Please provide either sell_amount or buy_amount", ex.message)
 
     // both sell_amount & buy_amount are filled
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("100")
-            .buyAssetName(stellarUSDC)
-            .buyAmount("100")
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellAmount("100")
+              .buyAssetName(stellarUSDC)
+              .buyAmount("100")
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Please provide either sell_amount or buy_amount", ex.message)
 
     // invalid (not a number) sell_amount
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("foo")
-            .buyAssetName(stellarUSDC)
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellAmount("foo")
+              .buyAssetName(stellarUSDC)
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount is invalid", ex.message)
 
     // sell_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("-0.01")
-            .buyAssetName(stellarUSDC)
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellAmount("-0.01")
+              .buyAssetName(stellarUSDC)
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // sell_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("0")
-            .buyAssetName(stellarUSDC)
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellAmount("0")
+              .buyAssetName(stellarUSDC)
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // invalid (not a number) buy_amount
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .buyAssetName(stellarUSDC)
-            .buyAmount("bar")
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .buyAssetName(stellarUSDC)
+              .buyAmount("bar")
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount is invalid", ex.message)
 
     // buy_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .buyAssetName(stellarUSDC)
-            .buyAmount("-0.02")
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .buyAssetName(stellarUSDC)
+              .buyAmount("-0.02")
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount should be positive", ex.message)
 
     // buy_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .buyAssetName(stellarUSDC)
-            .buyAmount("0")
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .buyAssetName(stellarUSDC)
+              .buyAmount("0")
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount should be positive", ex.message)
 
     // unsupported sell_delivery_method
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("1.23")
-            .sellDeliveryMethod("FOO")
-            .buyAssetName(stellarUSDC)
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellAmount("1.23")
+              .sellDeliveryMethod("FOO")
+              .buyAssetName(stellarUSDC)
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported sell delivery method", ex.message)
 
     // unsupported buy_delivery_method
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("1.23")
-            .sellDeliveryMethod("WIRE")
-            .buyAssetName(stellarUSDC)
-            .buyDeliveryMethod("BAR")
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellAmount("1.23")
+              .sellDeliveryMethod("WIRE")
+              .buyAssetName(stellarUSDC)
+              .buyDeliveryMethod("BAR")
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported buy delivery method", ex.message)
 
     // unsupported country_code
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("1.23")
-            .sellDeliveryMethod("WIRE")
-            .buyAssetName(stellarUSDC)
-            .countryCode("BRA")
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellAmount("1.23")
+              .sellDeliveryMethod("WIRE")
+              .buyAssetName(stellarUSDC)
+              .countryCode("BRA")
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported country code", ex.message)
 
     // unsupported expire_after
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("1.23")
-            .sellDeliveryMethod("WIRE")
-            .buyAssetName(stellarUSDC)
-            .countryCode("USA")
-            .expireAfter("2022-04-18T23:33:24.629719Z")
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellAmount("1.23")
+              .sellDeliveryMethod("WIRE")
+              .buyAssetName(stellarUSDC)
+              .countryCode("USA")
+              .expireAfter("2022-04-18T23:33:24.629719Z")
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
 
     // sell_amount should be within limit
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("100000000")
-            .sellDeliveryMethod("WIRE")
-            .context(SEP31)
-            .buyAssetName(stellarUSDC)
-            .countryCode("USA")
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellAmount("100000000")
+              .sellDeliveryMethod("WIRE")
+              .context(SEP31)
+              .buyAssetName(stellarUSDC)
+              .countryCode("USA")
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
 
     // sell_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("0.5")
-            .sellDeliveryMethod("WIRE")
-            .context(SEP31)
-            .buyAssetName(stellarUSDC)
-            .countryCode("USA")
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellAmount("0.5")
+              .sellDeliveryMethod("WIRE")
+              .context(SEP31)
+              .buyAssetName(stellarUSDC)
+              .countryCode("USA")
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount less than min limit", ex.message)
 
     // buy_amount specified, but resulting sell_amount should be within limit
     every { mockRateIntegration.getRate(any()) } returns
-      GetRateResponse.indicativePrice(
-        "1.02",
-        "1.03",
-        "102000000",
-        "100000000",
-        mockSellAssetFee(fiatUSD)
-      )
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
+        GetRateResponse.indicativePrice(
+            "1.02", "1.03", "102000000", "100000000", mockSellAssetFee(fiatUSD))
+    ex = assertThrows {
+      sep38Service.postQuote(
           token,
           Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellDeliveryMethod("WIRE")
-            .context(SEP31)
-            .buyAssetName(stellarUSDC)
-            .buyAmount("100000000")
-            .countryCode("USA")
-            .build()
-        )
-      }
+              .sellAssetName(fiatUSD)
+              .sellDeliveryMethod("WIRE")
+              .context(SEP31)
+              .buyAssetName(stellarUSDC)
+              .buyAmount("100000000")
+              .countryCode("USA")
+              .build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
   }
@@ -997,36 +918,35 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
-      GetRateRequest.builder()
-        .type(FIRM)
-        .context(SEP31)
-        .sellAsset(fiatUSD)
-        .sellAmount("103")
-        .buyAsset(stellarUSDC)
-        .clientId(PUBLIC_KEY)
-        .build()
+        GetRateRequest.builder()
+            .type(FIRM)
+            .context(SEP31)
+            .sellAsset(fiatUSD)
+            .sellAmount("103")
+            .buyAsset(stellarUSDC)
+            .clientId(PUBLIC_KEY)
+            .build()
     val tomorrow = Instant.now().plus(1, ChronoUnit.DAYS)
 
     val rate =
-      GetRateResponse.Rate.builder()
-        .id("123")
-        .totalPrice("1.03")
-        .price("1.02")
-        .sellAmount("103")
-        .buyAmount("100")
-        .expiresAt(tomorrow)
-        .fee(mockFee)
-        .build()
+        GetRateResponse.Rate.builder()
+            .id("123")
+            .totalPrice("1.03")
+            .price("1.02")
+            .sellAmount("103")
+            .buyAmount("100")
+            .expiresAt(tomorrow)
+            .fee(mockFee)
+            .build()
     val wantRateResponse = GetRateResponse(rate)
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        quoteStore,
-        eventService
-      )
+        Sep38Service(
+            sep38Service.sep38Config,
+            sep38Service.assetService,
+            mockRateIntegration,
+            quoteStore,
+            eventService)
 
     val slotQuote = slot<Sep38Quote>()
     every { quoteStore.save(capture(slotQuote)) } returns null
@@ -1040,28 +960,27 @@ class Sep38ServiceTest {
     var gotResponse: Sep38QuoteResponse? = null
     assertDoesNotThrow {
       gotResponse =
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .context(SEP31)
-            .sellAssetName(fiatUSD)
-            .sellAmount("103")
-            .buyAssetName(stellarUSDC)
-            .build()
-        )
+          sep38Service.postQuote(
+              token,
+              Sep38PostQuoteRequest.builder()
+                  .context(SEP31)
+                  .sellAssetName(fiatUSD)
+                  .sellAmount("103")
+                  .buyAssetName(stellarUSDC)
+                  .build())
     }
     val wantResponse =
-      Sep38QuoteResponse.builder()
-        .id("123")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .sellAsset(fiatUSD)
-        .sellAmount("103")
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .fee(mockFee)
-        .build()
+        Sep38QuoteResponse.builder()
+            .id("123")
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .sellAsset(fiatUSD)
+            .sellAmount("103")
+            .buyAsset(stellarUSDC)
+            .buyAmount("100")
+            .fee(mockFee)
+            .build()
     assertEquals(wantResponse, gotResponse)
 
     // verify the saved quote
@@ -1082,22 +1001,22 @@ class Sep38ServiceTest {
     // verify the published event
     verify(exactly = 1) { eventService.publish(any()) }
     val wantEvent =
-      QuoteEvent.builder()
-        .eventId(slotEvent.captured.eventId)
-        .type(QuoteEvent.Type.QUOTE_CREATED)
-        .id("123")
-        .sellAsset(fiatUSD)
-        .sellAmount("103")
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).build())
-        .transactionId(null)
-        .createdAt(savedQuote.createdAt)
-        .fee(mockFee)
-        .build()
+        QuoteEvent.builder()
+            .eventId(slotEvent.captured.eventId)
+            .type(QuoteEvent.Type.QUOTE_CREATED)
+            .id("123")
+            .sellAsset(fiatUSD)
+            .sellAmount("103")
+            .buyAsset(stellarUSDC)
+            .buyAmount("100")
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .creator(StellarId.builder().account(PUBLIC_KEY).build())
+            .transactionId(null)
+            .createdAt(savedQuote.createdAt)
+            .fee(mockFee)
+            .build()
     assertEquals(wantEvent, slotEvent.captured)
   }
 
@@ -1108,36 +1027,36 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
-      GetRateRequest.builder()
-        .type(FIRM)
-        .context(SEP6)
-        .sellAsset(fiatUSD)
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .clientId(PUBLIC_KEY)
-        .build()
+        GetRateRequest.builder()
+            .type(FIRM)
+            .context(SEP6)
+            .sellAsset(fiatUSD)
+            .buyAsset(stellarUSDC)
+            .buyAmount("100")
+            .clientId(PUBLIC_KEY)
+            .build()
 
     val tomorrow = Instant.now().plus(1, ChronoUnit.DAYS)
     val rate =
-      GetRateResponse.Rate.builder()
-        .id("456")
-        .totalPrice("1.03")
-        .price("1.02")
-        .sellAmount("103")
-        .buyAmount("100")
-        .expiresAt(tomorrow)
-        .fee(mockFee)
-        .build()
+        GetRateResponse.Rate.builder()
+            .id("456")
+            .totalPrice("1.03")
+            .price("1.02")
+            .sellAmount("103")
+            .buyAmount("100")
+            .expiresAt(tomorrow)
+            .fee(mockFee)
+            .build()
     val wantRateResponse = GetRateResponse(rate)
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        quoteStore,
-        eventService,
-      )
+        Sep38Service(
+            sep38Service.sep38Config,
+            sep38Service.assetService,
+            mockRateIntegration,
+            quoteStore,
+            eventService,
+        )
 
     val slotQuote = slot<Sep38Quote>()
     every { quoteStore.save(capture(slotQuote)) } returns null
@@ -1151,28 +1070,27 @@ class Sep38ServiceTest {
     var gotResponse: Sep38QuoteResponse? = null
     assertDoesNotThrow {
       gotResponse =
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .context(SEP6)
-            .sellAssetName(fiatUSD)
-            .buyAssetName(stellarUSDC)
-            .buyAmount("100")
-            .build()
-        )
+          sep38Service.postQuote(
+              token,
+              Sep38PostQuoteRequest.builder()
+                  .context(SEP6)
+                  .sellAssetName(fiatUSD)
+                  .buyAssetName(stellarUSDC)
+                  .buyAmount("100")
+                  .build())
     }
     val wantResponse =
-      Sep38QuoteResponse.builder()
-        .id("456")
-        .expiresAt(tomorrow)
-        .totalPrice("1.03")
-        .price("1.02")
-        .sellAsset(fiatUSD)
-        .sellAmount("103")
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .fee(mockFee)
-        .build()
+        Sep38QuoteResponse.builder()
+            .id("456")
+            .expiresAt(tomorrow)
+            .totalPrice("1.03")
+            .price("1.02")
+            .sellAsset(fiatUSD)
+            .sellAmount("103")
+            .buyAsset(stellarUSDC)
+            .buyAmount("100")
+            .fee(mockFee)
+            .build()
     assertEquals(wantResponse, gotResponse)
 
     // verify the saved quote
@@ -1192,22 +1110,22 @@ class Sep38ServiceTest {
     // verify the published event
     verify(exactly = 1) { eventService.publish(any()) }
     val wantEvent =
-      QuoteEvent.builder()
-        .eventId(slotEvent.captured.eventId)
-        .type(QuoteEvent.Type.QUOTE_CREATED)
-        .id("456")
-        .sellAsset(fiatUSD)
-        .sellAmount("103")
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).build())
-        .transactionId(null)
-        .createdAt(savedQuote.createdAt)
-        .fee(mockFee)
-        .build()
+        QuoteEvent.builder()
+            .eventId(slotEvent.captured.eventId)
+            .type(QuoteEvent.Type.QUOTE_CREATED)
+            .id("456")
+            .sellAsset(fiatUSD)
+            .sellAmount("103")
+            .buyAsset(stellarUSDC)
+            .buyAmount("100")
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .creator(StellarId.builder().account(PUBLIC_KEY).build())
+            .transactionId(null)
+            .createdAt(savedQuote.createdAt)
+            .fee(mockFee)
+            .build()
     assertEquals(wantEvent, slotEvent.captured)
   }
 
@@ -1220,38 +1138,37 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
-      GetRateRequest.builder()
-        .type(FIRM)
-        .context(SEP31)
-        .sellAsset(fiatUSD)
-        .sellAmount("100")
-        .sellDeliveryMethod("WIRE")
-        .buyAsset(stellarUSDC)
-        .countryCode("USA")
-        .clientId(PUBLIC_KEY)
-        .expireAfter(now.toString())
-        .build()
+        GetRateRequest.builder()
+            .type(FIRM)
+            .context(SEP31)
+            .sellAsset(fiatUSD)
+            .sellAmount("100")
+            .sellDeliveryMethod("WIRE")
+            .buyAsset(stellarUSDC)
+            .countryCode("USA")
+            .clientId(PUBLIC_KEY)
+            .expireAfter(now.toString())
+            .build()
 
     val rate =
-      GetRateResponse.Rate.builder()
-        .id("123")
-        .totalPrice("1.03")
-        .price("1.02")
-        .sellAmount("100")
-        .buyAmount("97.0873786")
-        .expiresAt(tomorrow)
-        .fee(mockFee)
-        .build()
+        GetRateResponse.Rate.builder()
+            .id("123")
+            .totalPrice("1.03")
+            .price("1.02")
+            .sellAmount("100")
+            .buyAmount("97.0873786")
+            .expiresAt(tomorrow)
+            .fee(mockFee)
+            .build()
     val wantRateResponse = GetRateResponse(rate)
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        quoteStore,
-        eventService
-      )
+        Sep38Service(
+            sep38Service.sep38Config,
+            sep38Service.assetService,
+            mockRateIntegration,
+            quoteStore,
+            eventService)
 
     val slotQuote = slot<Sep38Quote>()
     every { quoteStore.save(capture(slotQuote)) } returns null
@@ -1265,31 +1182,30 @@ class Sep38ServiceTest {
     var gotResponse: Sep38QuoteResponse? = null
     assertDoesNotThrow {
       gotResponse =
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .context(SEP31)
-            .sellAssetName(fiatUSD)
-            .sellAmount("100")
-            .sellDeliveryMethod("WIRE")
-            .buyAssetName(stellarUSDC)
-            .countryCode("USA")
-            .expireAfter(now.toString())
-            .build()
-        )
+          sep38Service.postQuote(
+              token,
+              Sep38PostQuoteRequest.builder()
+                  .context(SEP31)
+                  .sellAssetName(fiatUSD)
+                  .sellAmount("100")
+                  .sellDeliveryMethod("WIRE")
+                  .buyAssetName(stellarUSDC)
+                  .countryCode("USA")
+                  .expireAfter(now.toString())
+                  .build())
     }
     val wantResponse =
-      Sep38QuoteResponse.builder()
-        .id("123")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .sellAsset(fiatUSD)
-        .sellAmount("100")
-        .buyAsset(stellarUSDC)
-        .buyAmount("97.0873786")
-        .fee(mockFee)
-        .build()
+        Sep38QuoteResponse.builder()
+            .id("123")
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .sellAsset(fiatUSD)
+            .sellAmount("100")
+            .buyAsset(stellarUSDC)
+            .buyAmount("97.0873786")
+            .fee(mockFee)
+            .build()
     assertEquals(wantResponse, gotResponse)
 
     // verify the saved quote
@@ -1311,22 +1227,22 @@ class Sep38ServiceTest {
     // verify the published event
     verify(exactly = 1) { eventService.publish(any()) }
     val wantEvent =
-      QuoteEvent.builder()
-        .eventId(slotEvent.captured.eventId)
-        .type(QuoteEvent.Type.QUOTE_CREATED)
-        .id("123")
-        .sellAsset(fiatUSD)
-        .sellAmount("100")
-        .buyAsset(stellarUSDC)
-        .buyAmount("97.0873786")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).build())
-        .transactionId(null)
-        .createdAt(savedQuote.createdAt)
-        .fee(mockFee)
-        .build()
+        QuoteEvent.builder()
+            .eventId(slotEvent.captured.eventId)
+            .type(QuoteEvent.Type.QUOTE_CREATED)
+            .id("123")
+            .sellAsset(fiatUSD)
+            .sellAmount("100")
+            .buyAsset(stellarUSDC)
+            .buyAmount("97.0873786")
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .creator(StellarId.builder().account(PUBLIC_KEY).build())
+            .transactionId(null)
+            .createdAt(savedQuote.createdAt)
+            .fee(mockFee)
+            .build()
     assertEquals(wantEvent, slotEvent.captured)
   }
 
@@ -1339,38 +1255,37 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
-      GetRateRequest.builder()
-        .type(FIRM)
-        .context(SEP31)
-        .sellAsset(fiatUSD)
-        .sellDeliveryMethod("WIRE")
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .countryCode("USA")
-        .clientId(PUBLIC_KEY)
-        .expireAfter(now.toString())
-        .build()
+        GetRateRequest.builder()
+            .type(FIRM)
+            .context(SEP31)
+            .sellAsset(fiatUSD)
+            .sellDeliveryMethod("WIRE")
+            .buyAsset(stellarUSDC)
+            .buyAmount("100")
+            .countryCode("USA")
+            .clientId(PUBLIC_KEY)
+            .expireAfter(now.toString())
+            .build()
 
     val rate =
-      GetRateResponse.Rate.builder()
-        .id("456")
-        .totalPrice("1.03")
-        .price("1.02")
-        .sellAmount("103")
-        .buyAmount("100")
-        .expiresAt(tomorrow)
-        .fee(mockFee)
-        .build()
+        GetRateResponse.Rate.builder()
+            .id("456")
+            .totalPrice("1.03")
+            .price("1.02")
+            .sellAmount("103")
+            .buyAmount("100")
+            .expiresAt(tomorrow)
+            .fee(mockFee)
+            .build()
     val wantRateResponse = GetRateResponse(rate)
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        quoteStore,
-        eventService
-      )
+        Sep38Service(
+            sep38Service.sep38Config,
+            sep38Service.assetService,
+            mockRateIntegration,
+            quoteStore,
+            eventService)
 
     val slotQuote = slot<Sep38Quote>()
     every { quoteStore.save(capture(slotQuote)) } returns null
@@ -1384,31 +1299,30 @@ class Sep38ServiceTest {
     var gotResponse: Sep38QuoteResponse? = null
     assertDoesNotThrow {
       gotResponse =
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .context(SEP31)
-            .sellAssetName(fiatUSD)
-            .sellDeliveryMethod("WIRE")
-            .buyAssetName(stellarUSDC)
-            .buyAmount("100")
-            .countryCode("USA")
-            .expireAfter(now.toString())
-            .build()
-        )
+          sep38Service.postQuote(
+              token,
+              Sep38PostQuoteRequest.builder()
+                  .context(SEP31)
+                  .sellAssetName(fiatUSD)
+                  .sellDeliveryMethod("WIRE")
+                  .buyAssetName(stellarUSDC)
+                  .buyAmount("100")
+                  .countryCode("USA")
+                  .expireAfter(now.toString())
+                  .build())
     }
     val wantResponse =
-      Sep38QuoteResponse.builder()
-        .id("456")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .sellAsset(fiatUSD)
-        .sellAmount("103")
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .fee(mockFee)
-        .build()
+        Sep38QuoteResponse.builder()
+            .id("456")
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .sellAsset(fiatUSD)
+            .sellAmount("103")
+            .buyAsset(stellarUSDC)
+            .buyAmount("100")
+            .fee(mockFee)
+            .build()
     assertEquals(wantResponse, gotResponse)
 
     // verify the saved quote
@@ -1430,22 +1344,22 @@ class Sep38ServiceTest {
     // verify the published event
     verify(exactly = 1) { eventService.publish(any()) }
     val wantEvent =
-      QuoteEvent.builder()
-        .eventId(slotEvent.captured.eventId)
-        .type(QuoteEvent.Type.QUOTE_CREATED)
-        .id("456")
-        .sellAsset(fiatUSD)
-        .sellAmount("103")
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).build())
-        .transactionId(null)
-        .createdAt(savedQuote.createdAt)
-        .fee(mockFee)
-        .build()
+        QuoteEvent.builder()
+            .eventId(slotEvent.captured.eventId)
+            .type(QuoteEvent.Type.QUOTE_CREATED)
+            .id("456")
+            .sellAsset(fiatUSD)
+            .sellAmount("103")
+            .buyAsset(stellarUSDC)
+            .buyAmount("100")
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .creator(StellarId.builder().account(PUBLIC_KEY).build())
+            .transactionId(null)
+            .createdAt(savedQuote.createdAt)
+            .fee(mockFee)
+            .build()
     assertEquals(wantEvent, slotEvent.captured)
   }
 
@@ -1464,38 +1378,37 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
-      GetRateRequest.builder()
-        .type(FIRM)
-        .context(SEP31)
-        .sellAsset(fiatUSD)
-        .sellDeliveryMethod("WIRE")
-        .buyAsset(stellarUSDC)
-        .buyAmount(requestBuyAmount)
-        .countryCode("USA")
-        .clientId(PUBLIC_KEY)
-        .expireAfter(now.toString())
-        .build()
+        GetRateRequest.builder()
+            .type(FIRM)
+            .context(SEP31)
+            .sellAsset(fiatUSD)
+            .sellDeliveryMethod("WIRE")
+            .buyAsset(stellarUSDC)
+            .buyAmount(requestBuyAmount)
+            .countryCode("USA")
+            .clientId(PUBLIC_KEY)
+            .expireAfter(now.toString())
+            .build()
 
     val rate =
-      GetRateResponse.Rate.builder()
-        .id("456")
-        .totalPrice("1.03")
-        .price("1.02")
-        .sellAmount(anchorCalculatedSellAmount)
-        .buyAmount(anchorCalculatedBuyAmount)
-        .expiresAt(tomorrow)
-        .fee(mockFee)
-        .build()
+        GetRateResponse.Rate.builder()
+            .id("456")
+            .totalPrice("1.03")
+            .price("1.02")
+            .sellAmount(anchorCalculatedSellAmount)
+            .buyAmount(anchorCalculatedBuyAmount)
+            .expiresAt(tomorrow)
+            .fee(mockFee)
+            .build()
     val wantRateResponse = GetRateResponse(rate)
     every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
     sep38Service =
-      Sep38Service(
-        sep38Service.sep38Config,
-        sep38Service.assetService,
-        mockRateIntegration,
-        quoteStore,
-        eventService
-      )
+        Sep38Service(
+            sep38Service.sep38Config,
+            sep38Service.assetService,
+            mockRateIntegration,
+            quoteStore,
+            eventService)
 
     val slotQuote = slot<Sep38Quote>()
     every { quoteStore.save(capture(slotQuote)) } returns null
@@ -1509,31 +1422,30 @@ class Sep38ServiceTest {
     var gotResponse: Sep38QuoteResponse? = null
     assertDoesNotThrow {
       gotResponse =
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .context(SEP31)
-            .sellAssetName(fiatUSD)
-            .sellDeliveryMethod("WIRE")
-            .buyAssetName(stellarUSDC)
-            .buyAmount(requestBuyAmount)
-            .countryCode("USA")
-            .expireAfter(now.toString())
-            .build()
-        )
+          sep38Service.postQuote(
+              token,
+              Sep38PostQuoteRequest.builder()
+                  .context(SEP31)
+                  .sellAssetName(fiatUSD)
+                  .sellDeliveryMethod("WIRE")
+                  .buyAssetName(stellarUSDC)
+                  .buyAmount(requestBuyAmount)
+                  .countryCode("USA")
+                  .expireAfter(now.toString())
+                  .build())
     }
     val wantResponse =
-      Sep38QuoteResponse.builder()
-        .id("456")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .sellAsset(fiatUSD)
-        .sellAmount(anchorCalculatedSellAmount)
-        .buyAsset(stellarUSDC)
-        .buyAmount(anchorCalculatedBuyAmount)
-        .fee(mockFee)
-        .build()
+        Sep38QuoteResponse.builder()
+            .id("456")
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .sellAsset(fiatUSD)
+            .sellAmount(anchorCalculatedSellAmount)
+            .buyAsset(stellarUSDC)
+            .buyAmount(anchorCalculatedBuyAmount)
+            .fee(mockFee)
+            .build()
     assertEquals(wantResponse, gotResponse)
 
     // verify the saved quote
@@ -1555,22 +1467,22 @@ class Sep38ServiceTest {
     // verify the published event
     verify(exactly = 1) { eventService.publish(any()) }
     val wantEvent =
-      QuoteEvent.builder()
-        .eventId(slotEvent.captured.eventId)
-        .type(QuoteEvent.Type.QUOTE_CREATED)
-        .id("456")
-        .sellAsset(fiatUSD)
-        .sellAmount(anchorCalculatedSellAmount)
-        .buyAsset(stellarUSDC)
-        .buyAmount(anchorCalculatedBuyAmount)
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).build())
-        .transactionId(null)
-        .createdAt(savedQuote.createdAt)
-        .fee(mockFee)
-        .build()
+        QuoteEvent.builder()
+            .eventId(slotEvent.captured.eventId)
+            .type(QuoteEvent.Type.QUOTE_CREATED)
+            .id("456")
+            .sellAsset(fiatUSD)
+            .sellAmount(anchorCalculatedSellAmount)
+            .buyAsset(stellarUSDC)
+            .buyAmount(anchorCalculatedBuyAmount)
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .creator(StellarId.builder().account(PUBLIC_KEY).build())
+            .transactionId(null)
+            .createdAt(savedQuote.createdAt)
+            .fee(mockFee)
+            .build()
     assertEquals(wantEvent, slotEvent.captured)
   }
 
@@ -1583,7 +1495,7 @@ class Sep38ServiceTest {
 
     // mocked quote store
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, null, quoteStore, null)
+        Sep38Service(sep38Service.sep38Config, sep38Service.assetService, null, quoteStore, null)
 
     // empty token
     ex = assertThrows { sep38Service.getQuote(null, null) }
@@ -1607,15 +1519,15 @@ class Sep38ServiceTest {
     val tomorrow = now.plus(1, ChronoUnit.DAYS)
     val mockQuoteBuilder: () -> Sep38QuoteBuilder = {
       Sep38QuoteBuilder(quoteStore)
-        .id("123")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .sellAsset(fiatUSD)
-        .sellAmount("100")
-        .sellDeliveryMethod("WIRE")
-        .buyAsset(stellarUSDC)
-        .buyAmount("98.0392157")
-        .createdAt(now)
+          .id("123")
+          .expiresAt(tomorrow)
+          .price("1.02")
+          .sellAsset(fiatUSD)
+          .sellAmount("100")
+          .sellDeliveryMethod("WIRE")
+          .buyAsset(stellarUSDC)
+          .buyAmount("98.0392157")
+          .createdAt(now)
     }
 
     // jwt token account is different from quote account
@@ -1641,7 +1553,7 @@ class Sep38ServiceTest {
 
     // jwt token memo is different from quote memo
     mockQuote =
-      mockQuoteBuilder().creatorAccountId(PUBLIC_KEY).creatorMemoType("wrong memoType!").build()
+        mockQuoteBuilder().creatorAccountId(PUBLIC_KEY).creatorMemoType("wrong memoType!").build()
     slotQuoteId = slot()
     every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns mockQuote
     ex = assertThrows { sep38Service.getQuote(token, "123") }
@@ -1665,26 +1577,26 @@ class Sep38ServiceTest {
 
     // mocked quote store
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, null, quoteStore, null)
+        Sep38Service(sep38Service.sep38Config, sep38Service.assetService, null, quoteStore, null)
 
     // mock quote store response
     val now = Instant.now()
     val tomorrow = now.plus(1, ChronoUnit.DAYS)
     val mockQuote =
-      Sep38QuoteBuilder(quoteStore)
-        .id("123")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .sellAsset(fiatUSD)
-        .sellAmount("100")
-        .sellDeliveryMethod("WIRE")
-        .buyAsset(stellarUSDC)
-        .buyAmount("97.0873786")
-        .createdAt(now)
-        .creatorAccountId(PUBLIC_KEY)
-        .fee(mockFee)
-        .build()
+        Sep38QuoteBuilder(quoteStore)
+            .id("123")
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .sellAsset(fiatUSD)
+            .sellAmount("100")
+            .sellDeliveryMethod("WIRE")
+            .buyAsset(stellarUSDC)
+            .buyAmount("97.0873786")
+            .createdAt(now)
+            .creatorAccountId(PUBLIC_KEY)
+            .fee(mockFee)
+            .build()
     val slotQuoteId = slot<String>()
     every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns mockQuote
 
@@ -1699,17 +1611,17 @@ class Sep38ServiceTest {
 
     // verify results
     val wantQuoteResponse =
-      Sep38QuoteResponse.builder()
-        .id("123")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .sellAsset(fiatUSD)
-        .sellAmount("100")
-        .buyAsset(stellarUSDC)
-        .buyAmount("97.0873786")
-        .fee(mockFee)
-        .build()
+        Sep38QuoteResponse.builder()
+            .id("123")
+            .expiresAt(tomorrow)
+            .price("1.02")
+            .totalPrice("1.03")
+            .sellAsset(fiatUSD)
+            .sellAmount("100")
+            .buyAsset(stellarUSDC)
+            .buyAmount("97.0873786")
+            .fee(mockFee)
+            .build()
     assertEquals(wantQuoteResponse, gotQuoteResponse)
   }
 }
