@@ -27,6 +27,7 @@ import org.stellar.anchor.api.sep.sep38.GetPriceResponse
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.sep.sep38.Sep38Context
 import org.stellar.anchor.api.sep.sep38.Sep38GetPriceRequest
+import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.sep38.Sep38Service
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
@@ -59,6 +60,26 @@ class ApiKeyAuthIntegrationTest {
       .readTimeout(10, TimeUnit.MINUTES)
       .writeTimeout(10, TimeUnit.MINUTES)
       .build()
+
+  private val sep10Token =
+    createJwtToken("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG")
+
+  private fun createJwtToken(
+    account: String,
+    accountMemo: String? = null,
+    hostUrl: String = "",
+    clientDomain: String = "vibrant.stellar.org"
+  ): JwtToken {
+    val issuedAt: Long = System.currentTimeMillis() / 1000L
+    return JwtToken.of(
+      "$hostUrl/auth",
+      if (accountMemo == null) account else "$account:$accountMemo",
+      issuedAt,
+      issuedAt + 60,
+      "",
+      clientDomain
+    )
+  }
 
   private fun getDummyRequestBody(method: String): RequestBody? {
     return if (method != "PATCH") null
@@ -174,7 +195,7 @@ class ApiKeyAuthIntegrationTest {
         .buyAssetName("stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
         .context(Sep38Context.SEP31)
         .build()
-    val gotResponse = sep38Service.getPrice(getPriceRequest)
+    val gotResponse = sep38Service.getPrice(sep10Token, getPriceRequest)
 
     val wantResponse =
       GetPriceResponse.builder()
