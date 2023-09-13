@@ -19,7 +19,8 @@ import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep38.*
-import org.stellar.anchor.api.sep.sep38.Sep38Context.*
+import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
+import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
@@ -57,6 +58,9 @@ class Sep38ServiceTest {
 
   // sep10 related:
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
+
+  private val sep10Token =
+    createJwtToken("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG")
 
   @BeforeEach
   fun setUp() {
@@ -135,7 +139,9 @@ class Sep38ServiceTest {
   @Test
   fun `Test GET prices failure`() {
     // empty rateIntegration should throw an error
-    var ex: AnchorException = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
+    var ex: AnchorException = assertThrows {
+      sep38Service.getPrices(null, null, null, null, null, null)
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("internal server error", ex.message)
 
@@ -150,43 +156,45 @@ class Sep38ServiceTest {
         null
       )
 
+    val token = createJwtToken("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG")
+
     // empty sell_asset
-    ex = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(null, null, null, null, null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_asset cannot be empty", ex.message)
 
     // nonexistent sell_asset
-    ex = assertThrows { sep38Service.getPrices("foo:bar", null, null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, "foo:bar", null, null, null, null) }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("sell_asset not found", ex.message)
 
     // empty sell_amount
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, null, null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, null, null, null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount cannot be empty", ex.message)
 
     // invalid (not a number) sell_amount
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, "foo", null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, "foo", null, null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount is invalid", ex.message)
 
     // sell_amount should be positive
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, "-0.01", null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, "-0.01", null, null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // sell_amount should be positive
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, "0", null, null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, "0", null, null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // unsupported sell_delivery_method
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, "1.23", "FOO", null, null) }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, "1.23", "FOO", null, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported sell delivery method", ex.message)
 
     // unsupported country_code
-    ex = assertThrows { sep38Service.getPrices(fiatUSD, "1.23", "WIRE", null, "FOO") }
+    ex = assertThrows { sep38Service.getPrices(token, fiatUSD, "1.23", "WIRE", null, "FOO") }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported country code", ex.message)
   }
@@ -201,6 +209,7 @@ class Sep38ServiceTest {
         .sellAsset(fiatUSD)
         .buyAsset("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
         .sellAmount("100")
+        .clientId(sep10Token.account)
         .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
       GetRateResponse.indicativePrices("1", "100", "100")
@@ -211,6 +220,7 @@ class Sep38ServiceTest {
         .sellAsset(fiatUSD)
         .buyAsset(stellarUSDC)
         .sellAmount("100")
+        .clientId(sep10Token.account)
         .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns
       GetRateResponse.indicativePrices("2", "100", "200")
@@ -225,7 +235,9 @@ class Sep38ServiceTest {
 
     // test happy path with the minimum parameters
     var gotResponse: GetPricesResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrices(fiatUSD, "100", null, null, null) }
+    assertDoesNotThrow {
+      gotResponse = sep38Service.getPrices(sep10Token, fiatUSD, "100", null, null, null)
+    }
     val wantResponse = GetPricesResponse()
     wantResponse.addAsset(stellarJPYC, 7, "1")
     wantResponse.addAsset(stellarUSDC, 7, "2")
@@ -244,6 +256,7 @@ class Sep38ServiceTest {
         .sellAmount("100")
         .countryCode("USA")
         .sellDeliveryMethod("WIRE")
+        .clientId(sep10Token.account)
         .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
       GetRateResponse.indicativePrices("1.1", "100", "110")
@@ -256,6 +269,7 @@ class Sep38ServiceTest {
         .sellAmount("100")
         .countryCode("USA")
         .sellDeliveryMethod("WIRE")
+        .clientId(sep10Token.account)
         .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns
       GetRateResponse.indicativePrices("2.1", "100", "210")
@@ -269,8 +283,11 @@ class Sep38ServiceTest {
       )
 
     // test happy path with all the parameters
+
     var gotResponse: GetPricesResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrices(fiatUSD, "100", "WIRE", null, "USA") }
+    assertDoesNotThrow {
+      gotResponse = sep38Service.getPrices(sep10Token, fiatUSD, "100", "WIRE", null, "USA")
+    }
     val wantResponse = GetPricesResponse()
     wantResponse.addAsset(stellarJPYC, 7, "1.1")
     wantResponse.addAsset(stellarUSDC, 7, "2.1")
@@ -288,6 +305,7 @@ class Sep38ServiceTest {
         .buyAsset(fiatUSD)
         .sellAmount("100")
         .buyDeliveryMethod("WIRE")
+        .clientId(sep10Token.account)
         .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
       GetRateResponse.indicativePrices("1", "100", "100")
@@ -303,7 +321,7 @@ class Sep38ServiceTest {
     // test happy path with the minimum parameters and specify buy_delivery_method
     var gotResponse: GetPricesResponse? = null
     assertDoesNotThrow {
-      gotResponse = sep38Service.getPrices(stellarUSDC, "100", null, "WIRE", null)
+      gotResponse = sep38Service.getPrices(sep10Token, stellarUSDC, "100", null, "WIRE", null)
     }
     val wantResponse = GetPricesResponse()
     wantResponse.addAsset(fiatUSD, 4, "1")
@@ -315,7 +333,9 @@ class Sep38ServiceTest {
     var getPriceRequestBuilder = Sep38GetPriceRequest.builder()
 
     // empty rateIntegration should throw an error
-    var ex: AnchorException = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    var ex: AnchorException = assertThrows {
+      sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build())
+    }
     var wantException: AnchorException = ServerErrorException("internal server error")
     assertEquals(wantException, ex)
 
@@ -331,112 +351,112 @@ class Sep38ServiceTest {
       )
 
     // empty sell_asset
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     wantException = BadRequestException("sell_asset cannot be empty")
     assertEquals(wantException, ex)
 
     // nonexistent sell_asset
     getPriceRequestBuilder = getPriceRequestBuilder.sellAssetName("foo:bar")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("sell_asset not found", ex.message)
 
     // empty buy_asset
     getPriceRequestBuilder = getPriceRequestBuilder.sellAssetName(fiatUSD)
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     wantException = BadRequestException("buy_asset cannot be empty")
     assertEquals(wantException, ex)
 
     // nonexistent buy_asset
     getPriceRequestBuilder = getPriceRequestBuilder.buyAssetName("foo:bar")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("buy_asset not found", ex.message)
 
     // both sell_amount & buy_amount are empty
     getPriceRequestBuilder = getPriceRequestBuilder.buyAssetName(stellarUSDC)
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Please provide either sell_amount or buy_amount", ex.message)
 
     // both sell_amount & buy_amount are filled
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount("100").buyAmount("100")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Please provide either sell_amount or buy_amount", ex.message)
 
     // invalid (not a number) sell_amount
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount("foo").buyAmount(null)
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount is invalid", ex.message)
 
     // sell_amount should be positive
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount("-0.01")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // sell_amount should be positive
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount("0")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // invalid (not a number) buy_amount
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount(null).buyAmount("bar")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount is invalid", ex.message)
 
     // buy_amount should be positive
     getPriceRequestBuilder = getPriceRequestBuilder.buyAmount("-0.02")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount should be positive", ex.message)
 
     // buy_amount should be positive
     getPriceRequestBuilder = getPriceRequestBuilder.buyAmount("0")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount should be positive", ex.message)
 
     // unsupported sell_delivery_method
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount("1.23").buyAmount(null)
     getPriceRequestBuilder = getPriceRequestBuilder.sellDeliveryMethod("FOO")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported sell delivery method", ex.message)
 
     // unsupported buy_delivery_method
     getPriceRequestBuilder = getPriceRequestBuilder.sellDeliveryMethod("WIRE")
     getPriceRequestBuilder = getPriceRequestBuilder.buyDeliveryMethod("BAR")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported buy delivery method", ex.message)
 
     // unsupported country_code
     getPriceRequestBuilder = getPriceRequestBuilder.buyDeliveryMethod(null)
     getPriceRequestBuilder = getPriceRequestBuilder.countryCode("BRA")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported country code", ex.message)
 
     // unsupported (null) context
     getPriceRequestBuilder = getPriceRequestBuilder.countryCode("USA")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
 
     // sell_amount should be within limit
     getPriceRequestBuilder = getPriceRequestBuilder.context(SEP31).sellAmount("100000000")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
 
     // sell_amount should be positive
     getPriceRequestBuilder = getPriceRequestBuilder.context(SEP31).sellAmount("0.5")
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount less than min limit", ex.message)
 
@@ -451,7 +471,7 @@ class Sep38ServiceTest {
         "100000000",
         mockSellAssetFee(fiatUSD)
       )
-    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    ex = assertThrows { sep38Service.getPrice(sep10Token, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
   }
@@ -477,6 +497,7 @@ class Sep38ServiceTest {
         .sellAsset(fiatUSD)
         .sellAmount("100")
         .buyAsset(stellarUSDC)
+        .clientId(sep10Token.account)
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse.indicativePrice("1.02", "1.03", "100", "97.0874", mockFee)
@@ -498,7 +519,7 @@ class Sep38ServiceTest {
         .context(SEP31)
         .build()
     var gotResponse: GetPriceResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrice(getPriceRequest) }
+    assertDoesNotThrow { gotResponse = sep38Service.getPrice(sep10Token, getPriceRequest) }
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.02")
@@ -523,6 +544,7 @@ class Sep38ServiceTest {
         .sellAsset(fiatUSD)
         .buyAmount("100")
         .buyAsset(stellarUSDC)
+        .clientId(sep10Token.account)
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse.indicativePrice("1.02", "1.03", "103", "100", mockFee)
@@ -544,7 +566,7 @@ class Sep38ServiceTest {
         .context(SEP31)
         .build()
     var gotResponse: GetPriceResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrice(getPriceRequest) }
+    assertDoesNotThrow { gotResponse = sep38Service.getPrice(sep10Token, getPriceRequest) }
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.02")
@@ -571,6 +593,7 @@ class Sep38ServiceTest {
         .sellAmount("100")
         .countryCode("USA")
         .sellDeliveryMethod("WIRE")
+        .clientId(sep10Token.account)
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse.indicativePrice("1.02", "1.03", "100", "97.0873786", mockFee)
@@ -594,7 +617,7 @@ class Sep38ServiceTest {
         .context(SEP6)
         .build()
     var gotResponse: GetPriceResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrice(getPriceRequest) }
+    assertDoesNotThrow { gotResponse = sep38Service.getPrice(sep10Token, getPriceRequest) }
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.02")
@@ -621,6 +644,7 @@ class Sep38ServiceTest {
         .buyAmount("100")
         .countryCode("USA")
         .sellDeliveryMethod("WIRE")
+        .clientId(sep10Token.account)
         .build()
 
     every { mockRateIntegration.getRate(getRateReq) } returns
@@ -645,7 +669,7 @@ class Sep38ServiceTest {
         .context(SEP31)
         .build()
     var gotResponse: GetPriceResponse? = null
-    assertDoesNotThrow { gotResponse = sep38Service.getPrice(getPriceRequest) }
+    assertDoesNotThrow { gotResponse = sep38Service.getPrice(sep10Token, getPriceRequest) }
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.02345678901")
