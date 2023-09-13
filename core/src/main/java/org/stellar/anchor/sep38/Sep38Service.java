@@ -62,7 +62,6 @@ public class Sep38Service {
   }
 
   public GetPricesResponse getPrices(
-      JwtToken token,
       String sellAssetName,
       String sellAmount,
       String sellDeliveryMethod,
@@ -98,7 +97,6 @@ public class Sep38Service {
             .sellAsset(sellAssetName)
             .sellAmount(sellAmount)
             .countryCode(countryCode)
-            .clientId(token.getAccount())
             .sellDeliveryMethod(sellDeliveryMethod)
             .buyDeliveryMethod(buyDeliveryMethod);
     GetPricesResponse response = new GetPricesResponse();
@@ -129,8 +127,7 @@ public class Sep38Service {
     }
   }
 
-  public GetPriceResponse getPrice(JwtToken token, Sep38GetPriceRequest getPriceRequest)
-      throws AnchorException {
+  public GetPriceResponse getPrice(Sep38GetPriceRequest getPriceRequest) throws AnchorException {
     String sellAssetName = getPriceRequest.getSellAssetName();
     String sellAmount = getPriceRequest.getSellAmount();
     String sellDeliveryMethod = getPriceRequest.getSellDeliveryMethod();
@@ -217,7 +214,6 @@ public class Sep38Service {
             .buyAmount(buyAmount)
             .buyDeliveryMethod(buyDeliveryMethod)
             .countryCode(countryCode)
-            .clientId(token.getAccount())
             .build();
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
     GetRateResponse.Rate rate = rateResponse.getRate();
