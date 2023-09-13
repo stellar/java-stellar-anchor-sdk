@@ -17,7 +17,7 @@ public final class ConfigHelper {
         throw new SepValidationException("Non-custodial clients must specify a client_domain");
       }
     } else {
-      clientConfig = clientsConfig.getClientConfigByDomain(sep10Account);
+      clientConfig = clientsConfig.getClientConfigByDomain(clientDomain);
     }
     return clientConfig;
   }
