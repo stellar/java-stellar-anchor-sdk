@@ -219,6 +219,7 @@ class ApiKeyAuthIntegrationTest {
         &sell_asset=iso4217%3AUSD
         &sell_amount=100
         &buy_asset=stellar%3AUSDC%3AGDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+        &client_id=GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG
         """.replace(
         "\n        ",
         ""

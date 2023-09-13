@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.controller;
 
+import static org.stellar.anchor.filter.JwtTokenFilter.JWT_TOKEN;
 import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.errorEx;
@@ -63,13 +64,9 @@ public class Sep38Controller {
         sellDeliveryMethod,
         buyDeliveryMethod,
         countryCode);
+    JwtToken token = (JwtToken) servletRequest.getAttribute(JWT_TOKEN);
     return sep38Service.getPrices(
-        getSep10Token(servletRequest),
-        sellAssetName,
-        sellAmount,
-        sellDeliveryMethod,
-        buyDeliveryMethod,
-        countryCode);
+        token, sellAssetName, sellAmount, sellDeliveryMethod, buyDeliveryMethod, countryCode);
   }
 
   @SneakyThrows
@@ -83,7 +80,8 @@ public class Sep38Controller {
     debugF("GET /price params={}", params);
     Sep38GetPriceRequest getPriceRequest =
         gson.fromJson(gson.toJson(params), Sep38GetPriceRequest.class);
-    return sep38Service.getPrice(getSep10Token(servletRequest), getPriceRequest);
+    JwtToken token = (JwtToken) servletRequest.getAttribute(JWT_TOKEN);
+    return sep38Service.getPrice(token, getPriceRequest);
   }
 
   @SneakyThrows

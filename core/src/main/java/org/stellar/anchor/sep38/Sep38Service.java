@@ -98,7 +98,7 @@ public class Sep38Service {
             .sellAsset(sellAssetName)
             .sellAmount(sellAmount)
             .countryCode(countryCode)
-            .clientId(token.getAccount())
+            .clientId((token == null) ? null : token.getAccount())
             .sellDeliveryMethod(sellDeliveryMethod)
             .buyDeliveryMethod(buyDeliveryMethod);
     GetPricesResponse response = new GetPricesResponse();
@@ -217,7 +217,7 @@ public class Sep38Service {
             .buyAmount(buyAmount)
             .buyDeliveryMethod(buyDeliveryMethod)
             .countryCode(countryCode)
-            .clientId(token.getAccount())
+            .clientId((token == null) ? null : token.getAccount())
             .build();
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
     GetRateResponse.Rate rate = rateResponse.getRate();
@@ -348,7 +348,7 @@ public class Sep38Service {
             .buyDeliveryMethod(request.getBuyDeliveryMethod())
             .countryCode(request.getCountryCode())
             .expireAfter(request.getExpireAfter())
-            .clientId(account)
+            .clientId((token == null) ? null : token.getAccount())
             .build();
     GetRateResponse.Rate rate = this.rateIntegration.getRate(getRateRequest).getRate();
 
