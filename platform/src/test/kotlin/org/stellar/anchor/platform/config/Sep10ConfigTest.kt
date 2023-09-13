@@ -122,22 +122,22 @@ class Sep10ConfigTest {
   @Test
   fun `test when clientAllowList is not defined, clientAttributionAllowList equals to the list of all clients`() {
     val config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
-    assertEquals(config.clientAttributionAllowList, listOf("lobstr.co", "circle.com"))
+    assertEquals(config.allowedClientDomains, listOf("lobstr.co", "circle.com"))
   }
 
   @Test
   fun `test when clientAllowList is defined, clientAttributionAllowList returns correct values`() {
     val config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
     config.clientAllowList = listOf("lobstr")
-    assertEquals(config.clientAttributionAllowList, listOf("lobstr.co"))
+    assertEquals(config.allowedClientDomains, listOf("lobstr.co"))
 
     config.clientAllowList = listOf("circle")
-    assertEquals(config.clientAttributionAllowList, listOf("circle.com"))
+    assertEquals(config.allowedClientDomains, listOf("circle.com"))
 
     config.clientAllowList = listOf("invalid")
     config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-allow-list-invalid")
-    assertTrue(config.clientAttributionAllowList.isEmpty())
+    assertTrue(config.allowedClientDomains.isEmpty())
   }
 
   @Test

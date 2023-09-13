@@ -87,7 +87,7 @@ public class Sep10Service {
         throw new SepValidationException("client_domain is required");
       }
 
-      List<String> allowList = sep10Config.getClientAttributionAllowList();
+      List<String> allowList = sep10Config.getAllowedClientDomains();
       if (!allowList.contains(challengeRequest.getClientDomain())) {
         infoF(
             "client_domain provided ({}) is not in the configured allow list",

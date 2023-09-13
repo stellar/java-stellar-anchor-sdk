@@ -67,11 +67,18 @@ public interface Sep10Config {
   boolean isClientAttributionRequired();
 
   /**
-   * Get the list of allowed client names if the client attribution is required.
+   * Get the list of allowed client domains.
+   *
+   * @return the list of allowed client domains.
+   */
+  List<String> getAllowedClientDomains();
+
+  /**
+   * Get the list of allowed client names.
    *
    * @return the list of allowed client names.
    */
-  List<String> getClientAttributionAllowList();
+  List<String> getAllowedClientNames();
 
   /**
    * Set the list of known custodial accounts.

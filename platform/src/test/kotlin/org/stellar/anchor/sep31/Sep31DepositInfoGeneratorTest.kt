@@ -68,7 +68,7 @@ class Sep31DepositInfoGeneratorTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { sep10Config.clientAttributionAllowList } returns listOf()
+    every { sep10Config.allowedClientDomains } returns listOf()
     every { sep10Config.isClientAttributionRequired } returns false
     every { clientsConfig.getClientConfigByDomain(any()) } returns null
     every { clientsConfig.getClientConfigBySigningKey(any()) } returns null

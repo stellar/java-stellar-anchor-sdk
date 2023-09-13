@@ -310,7 +310,7 @@ class Sep31ServiceTest {
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     every { sep10Config.isClientAttributionRequired } returns false
-    every { sep10Config.clientAttributionAllowList } returns listOf()
+    every { sep10Config.allowedClientDomains } returns listOf()
     every { clientsConfig.getClientConfigByDomain(any()) } returns null
     every { clientsConfig.getClientConfigBySigningKey(any()) } returns null
 
@@ -1056,7 +1056,7 @@ class Sep31ServiceTest {
   @Test
   fun `test getClientName when ClientAttributionAllowList is empty and ClientAttribution is not required`() {
     every { sep10Config.isClientAttributionRequired } returns false
-    every { sep10Config.clientAttributionAllowList } returns listOf()
+    every { sep10Config.allowedClientDomains } returns listOf()
 
     val clientName =
       sep31Service.getClientName("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG")
@@ -1066,7 +1066,7 @@ class Sep31ServiceTest {
   @Test
   fun `test getClientName when ClientAttributionAllowList is empty and ClientAttribution is required`() {
     every { sep10Config.isClientAttributionRequired } returns true
-    every { sep10Config.clientAttributionAllowList } returns listOf()
+    every { sep10Config.allowedClientDomains } returns listOf()
     every { clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKey) } returns
       lobstrClientConfig
 
@@ -1080,7 +1080,7 @@ class Sep31ServiceTest {
   @Test
   fun `test getClientName when ClientAttributionAllowList is not empty and ClientAttribution is not required`() {
     every { sep10Config.isClientAttributionRequired } returns false
-    every { sep10Config.clientAttributionAllowList } returns listOf(lobstrClientConfig.name)
+    every { sep10Config.allowedClientDomains } returns listOf(lobstrClientConfig.name)
 
     every { clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKey) } returns
       lobstrClientConfig
@@ -1095,7 +1095,7 @@ class Sep31ServiceTest {
   @Test
   fun `test getClientName when ClientAttributionAllowList is not empty and ClientAttribution is required`() {
     every { sep10Config.isClientAttributionRequired } returns true
-    every { sep10Config.clientAttributionAllowList } returns listOf(lobstrClientConfig.name)
+    every { sep10Config.allowedClientDomains } returns listOf(lobstrClientConfig.name)
 
     every { clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKey) } returns
       lobstrClientConfig
