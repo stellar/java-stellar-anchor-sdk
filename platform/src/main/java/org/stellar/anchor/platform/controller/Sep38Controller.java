@@ -49,7 +49,7 @@ public class Sep38Controller {
       value = "/prices",
       method = {RequestMethod.GET})
   public GetPricesResponse getPrices(
-          HttpServletRequest servletRequest,
+      HttpServletRequest servletRequest,
       @RequestParam(name = "sell_asset") String sellAssetName,
       @RequestParam(name = "sell_amount") String sellAmount,
       @RequestParam(name = "sell_delivery_method", required = false) String sellDeliveryMethod,
@@ -77,7 +77,6 @@ public class Sep38Controller {
   @RequestMapping(
       value = "/price",
       method = {RequestMethod.GET})
-
   public GetPriceResponse getPrice(
       HttpServletRequest servletRequest, @RequestParam Map<String, String> params) {
 
