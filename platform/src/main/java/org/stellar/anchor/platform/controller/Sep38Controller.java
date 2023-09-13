@@ -83,7 +83,7 @@ public class Sep38Controller {
     debugF("GET /price params={}", params);
     Sep38GetPriceRequest getPriceRequest =
         gson.fromJson(gson.toJson(params), Sep38GetPriceRequest.class);
-    return sep38Service.getPrice(getPriceRequest);
+    return sep38Service.getPrice(getSep10Token(servletRequest), getPriceRequest);
   }
 
   @SneakyThrows
