@@ -49,7 +49,6 @@ public class Sep38Controller {
       value = "/prices",
       method = {RequestMethod.GET})
   public GetPricesResponse getPrices(
-      HttpServletRequest servletRequest,
       @RequestParam(name = "sell_asset") String sellAssetName,
       @RequestParam(name = "sell_amount") String sellAmount,
       @RequestParam(name = "sell_delivery_method", required = false) String sellDeliveryMethod,
@@ -63,7 +62,7 @@ public class Sep38Controller {
         sellDeliveryMethod,
         buyDeliveryMethod,
         countryCode);
-    return sep38Service.getPrices(getSep10Token(servletRequest),
+    return sep38Service.getPrices(
         sellAssetName, sellAmount, sellDeliveryMethod, buyDeliveryMethod, countryCode);
   }
 
@@ -72,11 +71,11 @@ public class Sep38Controller {
   @RequestMapping(
       value = "/price",
       method = {RequestMethod.GET})
-  public GetPriceResponse getPrice(HttpServletRequest servletRequest, @RequestParam Map<String, String> params) {
+  public GetPriceResponse getPrice(@RequestParam Map<String, String> params) {
     debugF("GET /price params={}", params);
     Sep38GetPriceRequest getPriceRequest =
         gson.fromJson(gson.toJson(params), Sep38GetPriceRequest.class);
-    return sep38Service.getPrice(getSep10Token(servletRequest), getPriceRequest);
+    return sep38Service.getPrice(getPriceRequest);
   }
 
   @SneakyThrows
