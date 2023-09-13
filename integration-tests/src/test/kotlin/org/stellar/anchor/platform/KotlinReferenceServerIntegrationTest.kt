@@ -41,16 +41,16 @@ internal class KotlinReferenceServerIntegrationTest {
       client.sendEvent(sendEventRequest1)
       var latestEvent = client.getLatestEvent()
       Assertions.assertNotNull(latestEvent)
-      JSONAssert.assertEquals(json(latestEvent), json(sendEventRequest1.payload), true)
+      JSONAssert.assertEquals(json(latestEvent), json(sendEventRequest1), true)
       // send event2
       client.sendEvent(sendEventRequest2)
       latestEvent = client.getLatestEvent()
       Assertions.assertNotNull(latestEvent)
-      JSONAssert.assertEquals(json(latestEvent), json(sendEventRequest2.payload), true)
+      JSONAssert.assertEquals(json(latestEvent), json(sendEventRequest2), true)
       // check if there are totally two events recorded
       assertEquals(client.getEvents().size, 2)
-      JSONAssert.assertEquals(json(client.getEvents()[0]), json(sendEventRequest1.payload), true)
-      JSONAssert.assertEquals(json(client.getEvents()[1]), json(sendEventRequest2.payload), true)
+      JSONAssert.assertEquals(json(client.getEvents()[0]), json(sendEventRequest1), true)
+      JSONAssert.assertEquals(json(client.getEvents()[1]), json(sendEventRequest2), true)
     }
   }
 
@@ -58,17 +58,16 @@ internal class KotlinReferenceServerIntegrationTest {
     val sendEventRequestJson =
       """
       {
-          "timestamp": 1000000,
+          "timestamp": "2011-10-05T14:48:00.000Z",
+          "id": "2a419880-0dde-4821-90cb-f3bfcb671ea3",
+          "type": "transaction_created",
           "payload": {
-              "type": "TRANSACTION_CREATED",
-              "id": 100,
-              "sep": 24,
-              "transaction": {
-                "amount_in": {
-                  "amount": "10.0",
-                  "asset": "USDC"
-                }
+            "transaction": {
+              "amount_in": {
+                "amount": "10.0",
+                "asset": "USDC"
               }
+            }
           }
       }
     """
@@ -77,11 +76,10 @@ internal class KotlinReferenceServerIntegrationTest {
     val sendEventRequestJson2 =
       """
 {
-  "timestamp": 1000000,
+  "id": "2a419880-0dde-4821-90cb-f3bfcb671ea3",
+  "timestamp": "2011-10-05T14:48:00.000Z",
+  "type": "quote_created",
   "payload": {
-    "type": "TRANSACTION_CREATED",
-    "id": 100,
-    "sep": 24,
     "quote": {
       "sell_amount": "10.0",
       "buy_amount": "1"
