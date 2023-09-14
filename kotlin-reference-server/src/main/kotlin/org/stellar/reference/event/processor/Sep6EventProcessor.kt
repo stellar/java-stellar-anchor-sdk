@@ -3,17 +3,13 @@ package org.stellar.reference.event.processor
 import java.lang.RuntimeException
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
-import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.event.AnchorEvent
-import org.stellar.anchor.api.platform.PatchTransactionRequest
-import org.stellar.anchor.api.platform.PatchTransactionsRequest
-import org.stellar.anchor.api.platform.PlatformTransactionData
+import org.stellar.anchor.api.platform.*
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.api.shared.StellarPayment
 import org.stellar.anchor.api.shared.StellarTransaction
-import org.stellar.reference.callbacks.customer.CustomerService
 import org.stellar.reference.client.PlatformClient
 import org.stellar.reference.data.Config
 import org.stellar.reference.log
@@ -28,8 +24,6 @@ class Sep6EventProcessor(
   private val config: Config,
   private val server: Server,
   private val platformClient: PlatformClient,
-  private val customerService: CustomerService,
-  private val activeTransactionStore: ActiveTransactionStore
 ) : SepAnchorEventProcessor {
   override fun onQuoteCreated(event: AnchorEvent) {
     TODO("Not yet implemented")
@@ -52,10 +46,6 @@ class Sep6EventProcessor(
       )
       return
     }
-    val customer =
-      customerService.getCustomer(
-        GetCustomerRequest.builder().account(event.transaction.destinationAccount).build()
-      )
     runBlocking {
       patchTransaction(
         PlatformTransactionData.builder()
@@ -64,10 +54,6 @@ class Sep6EventProcessor(
           .build()
       )
     }
-    activeTransactionStore.addTransaction(customer.id, event.transaction.id)
-    log.info(
-      "Added transaction ${event.transaction.id} to active transaction store for customer ${customer.id}"
-    )
   }
 
   override fun onTransactionError(event: AnchorEvent) {
@@ -89,14 +75,7 @@ class Sep6EventProcessor(
         }
       }
       SepTransactionStatus.COMPLETED -> {
-        val customer =
-          customerService.getCustomer(
-            GetCustomerRequest.builder().account(transaction.destinationAccount).build()
-          )
-        activeTransactionStore.removeTransaction(customer.id, transaction.id)
-        log.info(
-          "Removed transaction ${transaction.id} from active transaction store for customer ${customer.id}"
-        )
+        log.info("Transaction ${transaction.id} completed")
       }
       else -> {
         log.warn("Received transaction status changed event with unsupported status: $status")
@@ -105,51 +84,58 @@ class Sep6EventProcessor(
   }
 
   override fun onCustomerUpdated(event: AnchorEvent) {
-    val observedAccount = event.customer.id
-    val transactionIds = activeTransactionStore.getTransactions(observedAccount)
-    log.info(
-      "Found ${transactionIds.size} transactions for customer $observedAccount in active transaction store"
-    )
+    val transactionIds = runBlocking {
+      platformClient
+        .getTransactions(
+          GetTransactionsRequest.builder()
+            .sep(TransactionsSeps.SEP_6)
+            .orderBy(TransactionsOrderBy.CREATED_AT)
+            .order(TransactionsOrder.ASC)
+            .statuses(listOf(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE))
+            .build()
+        )
+        .records
+        .map { it.id }
+    }
+    log.info("Found ${transactionIds.size} transactions pending customer info update")
     transactionIds.forEach { id ->
       val transaction = runBlocking { platformClient.getTransaction(id) }
-      if (transaction.status == SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE) {
-        val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
-        val assetCode = transaction.amountExpected.asset.toAssetId()
+      val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
+      val assetCode = transaction.amountExpected.asset.toAssetId()
 
-        val asset = Asset.create(assetCode)
-        val amount = transaction.amountExpected.amount
-        val destination = transaction.destinationAccount
+      val asset = Asset.create(assetCode)
+      val amount = transaction.amountExpected.amount
+      val destination = transaction.destinationAccount
 
-        val stellarTxn = submitStellarTransaction(keypair.accountId, destination, asset, amount)
-        runBlocking {
-          patchTransaction(
-            PlatformTransactionData.builder()
-              .id(transaction.id)
-              .status(SepTransactionStatus.COMPLETED)
-              .updatedAt(Instant.now())
-              .completedAt(Instant.now())
-              .requiredInfoMessage(null)
-              .requiredInfoUpdates(null)
-              .requiredCustomerInfoUpdates(null)
-              .requiredCustomerInfoUpdates(null)
-              .instructions(
-                mapOf(
-                  "organization.bank_number" to
-                    InstructionField.builder()
-                      .value("121122676")
-                      .description("US Bank routing number")
-                      .build(),
-                  "organization.bank_account_number" to
-                    InstructionField.builder()
-                      .value("13719713158835300")
-                      .description("US Bank account number")
-                      .build(),
-                )
+      val stellarTxn = submitStellarTransaction(keypair.accountId, destination, asset, amount)
+      runBlocking {
+        patchTransaction(
+          PlatformTransactionData.builder()
+            .id(transaction.id)
+            .status(SepTransactionStatus.COMPLETED)
+            .updatedAt(Instant.now())
+            .completedAt(Instant.now())
+            .requiredInfoMessage(null)
+            .requiredInfoUpdates(null)
+            .requiredCustomerInfoUpdates(null)
+            .requiredCustomerInfoUpdates(null)
+            .instructions(
+              mapOf(
+                "organization.bank_number" to
+                  InstructionField.builder()
+                    .value("121122676")
+                    .description("US Bank routing number")
+                    .build(),
+                "organization.bank_account_number" to
+                  InstructionField.builder()
+                    .value("13719713158835300")
+                    .description("US Bank account number")
+                    .build(),
               )
-              .stellarTransactions(listOf(stellarTxn))
-              .build()
-          )
-        }
+            )
+            .stellarTransactions(listOf(stellarTxn))
+            .build()
+        )
       }
     }
   }

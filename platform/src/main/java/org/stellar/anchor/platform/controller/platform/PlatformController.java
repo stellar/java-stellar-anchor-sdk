@@ -7,9 +7,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.*;
+import org.stellar.anchor.api.platform.TransactionsOrderBy;
+import org.stellar.anchor.api.platform.TransactionsSeps;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.apiclient.TransactionsOrderBy;
-import org.stellar.anchor.apiclient.TransactionsSeps;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.util.TransactionsParams;
 

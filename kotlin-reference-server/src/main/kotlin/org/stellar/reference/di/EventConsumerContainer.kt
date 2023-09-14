@@ -5,7 +5,6 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.stellar.reference.event.EventConsumer
 import org.stellar.reference.event.processor.AnchorEventProcessor
-import org.stellar.reference.event.processor.InMemoryTransactionStore
 import org.stellar.reference.event.processor.NoOpEventProcessor
 import org.stellar.reference.event.processor.Sep6EventProcessor
 
@@ -24,15 +23,8 @@ object EventConsumerContainer {
     KafkaConsumer<String, String>(consumerConfig).also {
       it.subscribe(listOf(config.eventSettings.topic))
     }
-  private val activeTransactionStore = InMemoryTransactionStore()
   private val sep6EventProcessor =
-    Sep6EventProcessor(
-      config,
-      ServiceContainer.horizon,
-      ServiceContainer.platform,
-      ServiceContainer.customerService,
-      activeTransactionStore
-    )
+    Sep6EventProcessor(config, ServiceContainer.horizon, ServiceContainer.platform)
   private val noOpEventProcessor = NoOpEventProcessor()
   private val processor = AnchorEventProcessor(sep6EventProcessor, noOpEventProcessor)
   val eventConsumer = EventConsumer(kafkaConsumer, processor)

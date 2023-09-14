@@ -5,8 +5,8 @@ import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.domain.Sort;
+import org.stellar.anchor.api.platform.TransactionsOrderBy;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.apiclient.TransactionsOrderBy;
 
 @Data
 @AllArgsConstructor
