@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run - Kotlin Reference Server - no Docker" type="JetRunConfigurationType">
     <envs>
-      <env name="sep24.enableTest" value="true" />
+      <env name="app.enableTest" value="true" />
       <env name="TEST_PROFILE_NAME" value="default" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunKotlinReferenceServer" />

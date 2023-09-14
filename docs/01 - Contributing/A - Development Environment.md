@@ -164,16 +164,27 @@ Several IntelliJ run configurations are provided to make it easier to run the pr
 - `Run - Platform Server - no Docker`: runs the Platform server locally, without running `docker-compose`.
 - `Run - Event Processing Server - no Docker`: runs the Event Processing server locally, without
   running `docker-compose`.
+- `Run - Custody Server - no Docker`: runs the Custody server locally, without running `docker-compose`.
 - `Run - Java Reference Server - no Docker`: runs the Java Reference server locally, without running `docker-compose`.
 - `Run - Kotlin Reference Server - no Docker`: runs the Kotlin Reference server locally, without
   running `docker-compose`.
 
 The following run configurations are provided to run integration and end-2-end tests
 
-- `Test - Kotlin Reference Server - no Docker`: runs the Kotlin Reference server locally, without
-  running `docker-compose`.
 - `Test - End2End Test - no fullstack`: runs the end-2-end tests locally, without running `docker-compose`.
 - `Test - End2End Test - with fullstack`: runs the end-2-end tests locally, with running `docker-compose`.
+- `Test - End2End with RPC Test - no fullstack`: runs the end-2-end tests with RPC locally, 
+  without running `docker-compose`.
+- `Test - End2End with RPC Test - with fullstack`: runs the end-2-end tests with RPC locally, 
+  with running `docker-compose`.
+- `Test - Fireblocks End2End Test - no fullstack`: runs the end-2-end tests with Fireblocks locally, 
+  without running `docker-compose`.
+- `Test - Fireblocks End2End Test - with fullstack`: runs the end-2-end tests with Fireblocks locally, 
+  with running `docker-compose`. 
+- `Test - Fireblocks End2End with RPC Test - no fullstack`: runs the end-2-end tests with Fireblocks and RPC locally,
+  without running `docker-compose`.
+- `Test - Fireblocks End2End with RPC Test - with fullstack`: runs the end-2-end tests with Fireblocks and RPC locally,
+  with running `docker-compose`.
 - `Test - Integration Test - no fullstack`: runs the integration tests locally, without running `docker-compose`.
 - `Test - Integration Test - with fullstack`: runs the integration tests locally, with running `docker-compose`.
 

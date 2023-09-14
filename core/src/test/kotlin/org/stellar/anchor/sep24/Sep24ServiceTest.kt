@@ -40,6 +40,8 @@ import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.CustodyConfig
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config
 import org.stellar.anchor.event.EventService
@@ -61,6 +63,7 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
 
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
+  @MockK(relaxed = true) lateinit var custodySecretConfig: CustodySecretConfig
 
   @MockK(relaxed = true) lateinit var sep24Config: Sep24Config
 
@@ -73,6 +76,8 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var interactiveUrlConstructor: InteractiveUrlConstructor
 
   @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
+
+  @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
 
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
@@ -91,7 +96,7 @@ internal class Sep24ServiceTest {
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns TEST_JWT_SECRET
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
-    jwtService = spyk(JwtService(secretConfig))
+    jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
     testInteractiveUrlJwt = createTestInteractiveJwt(TEST_ACCOUNT, null)
     val strToken = jwtService.encode(testInteractiveUrlJwt)
     every { interactiveUrlConstructor.construct(any(), any()) } returns
@@ -108,7 +113,8 @@ internal class Sep24ServiceTest {
         txnStore,
         eventService,
         interactiveUrlConstructor,
-        moreInfoUrlConstructor
+        moreInfoUrlConstructor,
+        custodyConfig
       )
   }
 

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt
+import org.stellar.anchor.auth.ApiAuthJwt.CustodyAuthJwt
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.util.AuthHeader
@@ -48,8 +49,13 @@ class AuthHelperTest {
             currentTimeMilliseconds / 1000L,
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
+        val wantCustodyJwt =
+          CustodyAuthJwt(
+            currentTimeMilliseconds / 1000L,
+            (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
+          )
 
-        val jwtService = JwtService(null, null, null, "secret", "secret")
+        val jwtService = JwtService(null, null, null, "secret", "secret", "secret")
         val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
         val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()
         val wantPlatformAuthHeader =
@@ -59,6 +65,10 @@ class AuthHelperTest {
         val wantCallbackAuthHeader =
           AuthHeader("Authorization", "Bearer ${jwtService.encode(wantCallbackJwt)}")
         assertEquals(wantCallbackAuthHeader, gotCallbackAuthHeader)
+        val gotCustodyAuthHeader = authHelper.createCustodyAuthHeader()
+        val wantCustodyAuthHeader =
+          AuthHeader("Authorization", "Bearer ${jwtService.encode(wantCustodyJwt)}")
+        assertEquals(wantCustodyAuthHeader, gotCustodyAuthHeader)
       }
       API_KEY -> {
         val authHelper = AuthHelper.forApiKey("secret")
@@ -68,6 +78,9 @@ class AuthHelperTest {
         val gotCallbackAuthHeader = authHelper.createCallbackAuthHeader()
         val wantCallbackAuthHeader = AuthHeader("X-Api-Key", "secret")
         assertEquals(wantCallbackAuthHeader, gotCallbackAuthHeader)
+        val gotCustodyAuthHeader = authHelper.createCustodyAuthHeader()
+        val wantCustodyAuthHeader = AuthHeader("X-Api-Key", "secret")
+        assertEquals(wantCustodyAuthHeader, gotCustodyAuthHeader)
       }
       NONE -> {
         val authHelper = AuthHelper.forNone()
@@ -75,6 +88,8 @@ class AuthHelperTest {
         assertNull(platformAuthHeader)
         val callbackAuthHeader = authHelper.createCallbackAuthHeader()
         assertNull(callbackAuthHeader)
+        val custodyAuthHeader = authHelper.createCustodyAuthHeader()
+        assertNull(custodyAuthHeader)
       }
       else -> {
         throw Exception("Unsupported new AuthType!!!")

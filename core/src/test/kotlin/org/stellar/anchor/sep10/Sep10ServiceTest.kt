@@ -36,6 +36,7 @@ import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.horizon.Horizon
@@ -78,6 +79,7 @@ internal class Sep10ServiceTest {
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
+  @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
 
   @MockK(relaxed = true) private lateinit var sep10Config: Sep10Config
 
@@ -108,7 +110,7 @@ internal class Sep10ServiceTest {
 
     every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
 
-    this.jwtService = spyk(JwtService(secretConfig))
+    this.jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
     this.httpClient = `create httpClient`()
   }
