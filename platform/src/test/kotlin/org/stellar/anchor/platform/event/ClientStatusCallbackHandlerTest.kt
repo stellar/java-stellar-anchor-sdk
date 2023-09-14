@@ -65,13 +65,7 @@ class ClientStatusCallbackHandlerTest {
     event.transaction.sep = PlatformTransactionData.Sep.SEP_24
 
     handler =
-      ClientStatusCallbackHandler(
-        secretConfig,
-        clientConfig,
-        sep24TransactionStore,
-        assetService,
-        moreInfoUrlConstructor
-      )
+      ClientStatusCallbackHandler(secretConfig, clientConfig, assetService, moreInfoUrlConstructor)
   }
 
   @Test
