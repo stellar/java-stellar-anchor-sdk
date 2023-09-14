@@ -1,6 +1,7 @@
 package org.stellar.reference.data
 
 import io.ktor.server.application.*
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -37,6 +38,90 @@ data class PatchTransactionTransaction(
   val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
 )
+
+@Serializable
+data class RpcResponse(
+  val id: String,
+  val jsonrpc: String,
+  @Contextual val result: Any?,
+  @Contextual val error: Any?
+)
+
+@Serializable
+data class RpcRequest(
+  val id: String,
+  val jsonrpc: String,
+  val method: String,
+  val params: RpcActionParamsRequest
+)
+
+@Serializable
+sealed class RpcActionParamsRequest {
+  @SerialName("transaction_id") abstract val transactionId: String
+  abstract val message: String?
+}
+
+@Serializable
+data class RequestOffchainFundsRequest(
+  @SerialName("transaction_id") override val transactionId: String,
+  override val message: String,
+  @SerialName("amount_in") val amountIn: AmountAssetRequest,
+  @SerialName("amount_out") val amountOut: AmountAssetRequest,
+  @SerialName("amount_fee") val amountFee: AmountAssetRequest,
+  @SerialName("amount_expected") val amountExpected: AmountRequest? = null
+) : RpcActionParamsRequest()
+
+@Serializable
+data class RequestOnchainFundsRequest(
+  @SerialName("transaction_id") override val transactionId: String,
+  override val message: String,
+  @SerialName("amount_in") val amountIn: AmountAssetRequest,
+  @SerialName("amount_out") val amountOut: AmountAssetRequest,
+  @SerialName("amount_fee") val amountFee: AmountAssetRequest,
+  @SerialName("amount_expected") val amountExpected: AmountRequest? = null
+) : RpcActionParamsRequest()
+
+@Serializable
+data class NotifyOnchainFundsSentRequest(
+  @SerialName("transaction_id") override val transactionId: String,
+  override val message: String? = null,
+  @SerialName("stellar_transaction_id") val stellarTransactionId: String? = null
+) : RpcActionParamsRequest()
+
+@Serializable
+data class NotifyOffchainFundsReceivedRequest(
+  @SerialName("transaction_id") override val transactionId: String,
+  override val message: String,
+  @SerialName("funds_received_at") val fundsReceivedAt: String? = null,
+  @SerialName("external_transaction_id") val externalTransactionId: String? = null,
+  @SerialName("amount_in") val amountIn: AmountAssetRequest? = null,
+  @SerialName("amount_out") val amountOut: AmountAssetRequest? = null,
+  @SerialName("amount_fee") val amountFee: AmountAssetRequest? = null
+) : RpcActionParamsRequest()
+
+@Serializable
+data class NotifyOffchainFundsSentRequest(
+  @SerialName("transaction_id") override val transactionId: String,
+  override val message: String,
+  @SerialName("funds_sent_at") val fundsReceivedAt: String? = null,
+  @SerialName("external_transaction_id") val externalTransactionId: String? = null
+) : RpcActionParamsRequest()
+
+@Serializable
+data class DoStellarPaymentRequest(
+  @SerialName("transaction_id") override val transactionId: String,
+  override val message: String? = null,
+) : RpcActionParamsRequest()
+
+@Serializable
+data class NotifyTransactionErrorRequest(
+  @SerialName("transaction_id") override val transactionId: String,
+  override val message: String? = null,
+) : RpcActionParamsRequest()
+
+@Serializable data class AmountAssetRequest(val asset: String, val amount: String)
+
+@Serializable data class AmountRequest(val amount: String)
 
 @Serializable data class Amount(val amount: String? = null, val asset: String? = null)
 

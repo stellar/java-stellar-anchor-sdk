@@ -1,9 +1,16 @@
 package org.stellar.anchor.sep31;
 
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.formatAmount;
+import static org.stellar.anchor.util.MathHelper.sum;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.shared.Refunds;
 
@@ -20,6 +27,22 @@ public interface Sep31Refunds {
   List<RefundPayment> getRefundPayments();
 
   void setRefundPayments(List<RefundPayment> refundPayments);
+
+  default void recalculateAmounts(AssetInfo assetInfo) {
+    String amountFee = calculateAmount(assetInfo, RefundPayment::getFee);
+    setAmountFee(amountFee);
+    setAmountRefunded(
+        formatAmount(
+            sum(assetInfo, amountFee, calculateAmount(assetInfo, RefundPayment::getAmount))));
+  }
+
+  private String calculateAmount(AssetInfo assetInfo, Function<RefundPayment, String> func) {
+    return formatAmount(
+        getRefundPayments().stream()
+            .map(func)
+            .map(amount -> decimal(amount, assetInfo))
+            .reduce(BigDecimal.ZERO, BigDecimal::add));
+  }
 
   /**
    * Will create a Sep31GetTransactionResponse.Sep31Refunds object out of this SEP-31 Sep31Refunds

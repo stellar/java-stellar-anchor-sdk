@@ -13,6 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.ClientsConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
@@ -25,7 +26,11 @@ class SimpleMoreInfoUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
+
+  @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
+
   @MockK(relaxed = true) private lateinit var clientsConfig: ClientsConfig
+
   private lateinit var jwtService: JwtService
 
   @BeforeEach
@@ -58,7 +63,7 @@ class SimpleMoreInfoUrlConstructorTest {
         null
       )
 
-    jwtService = JwtService(secretConfig)
+    jwtService = JwtService(secretConfig, custodySecretConfig)
   }
 
   @Test

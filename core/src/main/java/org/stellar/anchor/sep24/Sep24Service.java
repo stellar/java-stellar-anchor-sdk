@@ -3,11 +3,16 @@ package org.stellar.anchor.sep24;
 import static io.micrometer.core.instrument.Metrics.counter;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
-import static org.stellar.anchor.api.sep.sep24.InfoResponse.*;
+import static org.stellar.anchor.api.sep.sep24.InfoResponse.FeatureFlagResponse;
+import static org.stellar.anchor.api.sep.sep24.InfoResponse.FeeResponse;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
-import static org.stellar.anchor.sep24.Sep24Helper.*;
+import static org.stellar.anchor.sep24.Sep24Helper.fromTxn;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
-import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.Log.debug;
+import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.Log.info;
+import static org.stellar.anchor.util.Log.infoF;
+import static org.stellar.anchor.util.Log.shorter;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.MemoHelper.memoType;
@@ -22,23 +27,41 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 import org.stellar.anchor.api.event.AnchorEvent;
-import org.stellar.anchor.api.exception.*;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepNotAuthorizedException;
+import org.stellar.anchor.api.exception.SepNotFoundException;
+import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.sep24.*;
+import org.stellar.anchor.api.sep.sep24.GetTransactionRequest;
+import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
+import org.stellar.anchor.api.sep.sep24.GetTransactionsResponse;
+import org.stellar.anchor.api.sep.sep24.InfoResponse;
+import org.stellar.anchor.api.sep.sep24.InteractiveTransactionResponse;
+import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
+import org.stellar.anchor.api.sep.sep24.TransactionResponse;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.MetricConstants;
 import org.stellar.anchor.util.TransactionHelper;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
 public class Sep24Service {
+
   final AppConfig appConfig;
   final Sep24Config sep24Config;
   final AssetService assetService;
@@ -47,6 +70,7 @@ public class Sep24Service {
   final EventService.Session eventSession;
   final InteractiveUrlConstructor interactiveUrlConstructor;
   final MoreInfoUrlConstructor moreInfoUrlConstructor;
+  final CustodyConfig custodyConfig;
 
   final Counter sep24TransactionRequestedCounter =
       counter(MetricConstants.SEP24_TRANSACTION_REQUESTED);
@@ -73,7 +97,8 @@ public class Sep24Service {
       Sep24TransactionStore txnStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
-      MoreInfoUrlConstructor moreInfoUrlConstructor) {
+      MoreInfoUrlConstructor moreInfoUrlConstructor,
+      CustodyConfig custodyConfig) {
     debug("appConfig:", appConfig);
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
@@ -84,6 +109,7 @@ public class Sep24Service {
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.interactiveUrlConstructor = interactiveUrlConstructor;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
+    this.custodyConfig = custodyConfig;
     info("Sep24Service initialized.");
   }
 
@@ -187,12 +213,30 @@ public class Sep24Service {
     // TODO - jamie to look into memo vs withdrawal_memo
     if (memo != null) {
       debug("transaction memo detected.", memo);
+
+      if (!CustodyUtils.isMemoTypeSupported(
+          custodyConfig.getType(), memoTypeString(memoType(memo)))) {
+        throw new SepValidationException(
+            String.format(
+                "Memo type[%s] is not supported for custody type[%s]",
+                memoTypeString(memoType(memo)), custodyConfig.getType()));
+      }
+
       builder.memo(memo.toString());
       builder.memoType(memoTypeString(memoType(memo)));
     }
 
     if (refundMemo != null) {
       debug("refund memo detected.", refundMemo);
+
+      if (!CustodyUtils.isMemoTypeSupported(
+          custodyConfig.getType(), memoTypeString(memoType(refundMemo)))) {
+        throw new SepValidationException(
+            String.format(
+                "Refund memo type[%s] is not supported for custody type[%s]",
+                memoTypeString(memoType(refundMemo)), custodyConfig.getType()));
+      }
+
       builder.refundMemo(refundMemo.toString());
       builder.refundMemoType(memoTypeString(memoType(refundMemo)));
     }
@@ -330,6 +374,15 @@ public class Sep24Service {
 
     if (memo != null) {
       debug("transaction memo detected.", memo);
+
+      if (!CustodyUtils.isMemoTypeSupported(
+          custodyConfig.getType(), memoTypeString(memoType(memo)))) {
+        throw new SepValidationException(
+            String.format(
+                "Memo type[%s] is not supported for custody type[%s]",
+                memoTypeString(memoType(memo)), custodyConfig.getType()));
+      }
+
       builder.memo(memo.toString());
       builder.memoType(memoTypeString(memoType(memo)));
     }
