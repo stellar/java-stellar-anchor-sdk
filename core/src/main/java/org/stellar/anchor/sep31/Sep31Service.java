@@ -530,25 +530,10 @@ public class Sep31Service {
 
   String getClientName(String account) throws BadRequestException {
     ClientConfig client = clientsConfig.getClientConfigBySigningKey(account);
-    //    if (!sep10Config.getAllowedClientDomains().isEmpty()) {
-    //      // check if the client is not in the allow list, client should be denied
-    //      if (client != null
-    //          && !sep10Config.getAllowedClientNames().contains(client.getName())) {
-    //        client = null;
-    //      }
-    //    }
-
-    if (sep10Config.isClientAttributionRequired()) {
-      if (client == null) {
-        throw new BadRequestException("Client not found");
-      }
-    } else {
-      // client attribution not required
-      if (client == null) {
-        return null;
-      }
+    if (sep10Config.isClientAttributionRequired() && client == null) {
+      throw new BadRequestException("Client not found");
     }
-    return client.getName();
+    return client == null ? null : client.getName();
   }
 
   /**

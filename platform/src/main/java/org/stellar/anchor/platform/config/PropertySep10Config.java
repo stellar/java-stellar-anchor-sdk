@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.config;
 import static java.lang.String.format;
 import static org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL;
 import static org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL;
-import static org.stellar.anchor.util.ListHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
@@ -154,14 +153,14 @@ public class PropertySep10Config implements Sep10Config, Validator {
   }
 
   void validateClientAttribution(Errors errors) {
-    List<String> nonCustodialClietNames =
-        clientsConfig.clients.stream()
-            .filter(cfg -> cfg.getType() == NONCUSTODIAL && isNotEmpty(cfg.getDomain()))
-            .map(ClientConfig::getName)
-            .collect(Collectors.toList());
-
     if (clientAttributionRequired) {
-      if (nonCustodialClietNames.isEmpty()) {
+      List<String> nonCustodialClientNames =
+          clientsConfig.clients.stream()
+              .filter(cfg -> cfg.getType() == NONCUSTODIAL && isNotEmpty(cfg.getDomain()))
+              .map(ClientConfig::getName)
+              .collect(Collectors.toList());
+
+      if (nonCustodialClientNames.isEmpty()) {
         errors.reject(
             "sep10-client-attribution-lists-empty",
             "sep10.client_attribution_required is set to true but no NONCUSTODIAL clients are defined in the clients: section of the configuration.");
@@ -222,7 +221,6 @@ public class PropertySep10Config implements Sep10Config, Validator {
           .filter(StringHelper::isNotEmpty)
           .collect(Collectors.toList());
     }
-
     return clientAllowList;
   }
 
