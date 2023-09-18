@@ -11,13 +11,13 @@ import org.apache.http.HttpStatus
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.filter.Sep10JwtFilter.APPLICATION_JSON_VALUE
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Execution(ExecutionMode.SAME_THREAD)
+@Execution(SAME_THREAD)
 internal class ApiKeyFilterTest {
   companion object {
     private const val API_KEY = "MY_API_KEY"

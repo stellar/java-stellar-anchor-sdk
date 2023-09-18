@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.TestHelper.Companion.createSep10Jwt
@@ -40,7 +40,7 @@ import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.util.StringHelper.json
 
-@Execution(ExecutionMode.SAME_THREAD)
+@Execution(SAME_THREAD)
 class Sep38ServiceTest {
   class PropertySep38Config : Sep38Config {
     override fun isEnabled(): Boolean {

@@ -22,7 +22,7 @@ dependencies {
   implementation(
     libs.scala.library
   ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
-    // one.
+  // one.
   implementation(libs.bundles.kafka)
 
   // TODO: Consider to simplify
@@ -51,6 +51,7 @@ dependencies {
 }
 
 tasks.test {
+  // Enable parallel test execution
   systemProperty("junit.jupiter.execution.parallel.enabled", true)
   systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
 }

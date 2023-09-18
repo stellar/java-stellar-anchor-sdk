@@ -13,7 +13,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.stellar.anchor.api.sep.AssetInfo.Field
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.operation.Sep31Operation
@@ -24,7 +24,7 @@ import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.api.shared.StellarPayment
 import org.stellar.anchor.api.shared.StellarTransaction
 
-@Execution(ExecutionMode.SAME_THREAD)
+@Execution(SAME_THREAD)
 class Sep31TransactionTest {
   companion object {
     private const val fiatUSD = "iso4217:USD"

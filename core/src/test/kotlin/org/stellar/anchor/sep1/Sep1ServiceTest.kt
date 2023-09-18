@@ -11,13 +11,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.stellar.anchor.config.Sep1Config
 import org.stellar.anchor.config.Sep1Config.TomlType.*
 import org.stellar.anchor.util.NetUtil
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Execution(ExecutionMode.SAME_THREAD)
+@Execution(SAME_THREAD)
 internal class Sep1ServiceTest {
 
   @MockK(relaxed = true) lateinit var sep1Config: Sep1Config

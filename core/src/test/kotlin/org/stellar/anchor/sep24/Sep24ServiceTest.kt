@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
@@ -41,11 +41,7 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
-import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.config.CustodyConfig
-import org.stellar.anchor.config.CustodySecretConfig
-import org.stellar.anchor.config.SecretConfig
-import org.stellar.anchor.config.Sep24Config
+import org.stellar.anchor.config.*
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo
@@ -54,7 +50,7 @@ import org.stellar.sdk.MemoId
 import org.stellar.sdk.MemoText
 import org.stellar.sdk.Network.TESTNET
 
-@Execution(ExecutionMode.SAME_THREAD)
+@Execution(SAME_THREAD)
 internal class Sep24ServiceTest {
   companion object {
     const val TEST_SEP24_INTERACTIVE_URL = "https://test-anchor.stellar.org"

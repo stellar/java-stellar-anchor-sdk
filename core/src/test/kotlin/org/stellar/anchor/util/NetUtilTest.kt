@@ -10,18 +10,17 @@ import okhttp3.Response
 import okhttp3.ResponseBody
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.util.NetUtil.*
 
-@Execution(ExecutionMode.SAME_THREAD)
+@Execution(SAME_THREAD)
 internal class NetUtilTest {
   @MockK private lateinit var mockCall: okhttp3.Call
 

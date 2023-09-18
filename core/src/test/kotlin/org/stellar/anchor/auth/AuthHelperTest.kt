@@ -7,16 +7,14 @@ import kotlin.test.assertNull
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt
-import org.stellar.anchor.auth.ApiAuthJwt.CustodyAuthJwt
-import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
+import org.stellar.anchor.auth.ApiAuthJwt.*
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.util.AuthHeader
 
-@Execution(ExecutionMode.SAME_THREAD)
+@Execution(SAME_THREAD)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AuthHelperTest {
   companion object {
@@ -31,7 +29,7 @@ class AuthHelperTest {
 
   @ParameterizedTest
   @EnumSource(AuthType::class)
-  @Execution(ExecutionMode.SAME_THREAD)
+  @Execution(SAME_THREAD)
   fun `test AuthHeader creation based on the AuthType`(authType: AuthType) {
     when (authType) {
       JWT -> {
