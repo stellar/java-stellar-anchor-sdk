@@ -21,8 +21,10 @@ public class AssetInfo {
   public static String makeAssetName(String assetCode, String assetIssuer) {
     if (AssetInfo.NATIVE_ASSET_CODE.equals(assetCode)) {
       return AssetInfo.NATIVE_ASSET_CODE;
-    } else {
+    } else if (assetIssuer != null) {
       return assetCode + ":" + assetIssuer;
+    } else {
+      return assetCode;
     }
   }
 
