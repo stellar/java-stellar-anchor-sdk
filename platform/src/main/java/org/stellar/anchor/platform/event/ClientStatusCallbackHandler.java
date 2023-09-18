@@ -31,7 +31,6 @@ import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.sep24.*;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
-import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.RefundPayment;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -47,20 +46,17 @@ public class ClientStatusCallbackHandler extends EventHandler {
           .build();
   private final SecretConfig secretConfig;
   private final ClientConfig clientConfig;
-  private final Sep24TransactionStore sep24TransactionStore;
   private final AssetService assetService;
   private final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
   public ClientStatusCallbackHandler(
       SecretConfig secretConfig,
       ClientConfig clientConfig,
-      Sep24TransactionStore sep24TransactionStore,
       AssetService assetService,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
     super();
     this.secretConfig = secretConfig;
     this.clientConfig = clientConfig;
-    this.sep24TransactionStore = sep24TransactionStore;
     this.assetService = assetService;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }

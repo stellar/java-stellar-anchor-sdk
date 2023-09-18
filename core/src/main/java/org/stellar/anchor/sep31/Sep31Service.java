@@ -78,7 +78,6 @@ import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.TransactionHelper;
 
 public class Sep31Service {
-
   private final AppConfig appConfig;
   private final Sep10Config sep10Config;
   private final Sep31Config sep31Config;
@@ -725,7 +724,6 @@ public class Sep31Service {
 
   @Data
   public static class Context {
-
     private Sep31Transaction transaction;
     private Sep31PostTransactionRequest request;
     private Sep38Quote quote;
