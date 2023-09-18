@@ -439,6 +439,8 @@ class PaymentOperationToEventListenerTest {
     every {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
     } returns null
+    every { sep6TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      null
 
     val sep24TxnCopy = gson.fromJson(gson.toJson(sep24TxMock), JdbcSep24Transaction::class.java)
     every {
