@@ -19,13 +19,14 @@ import org.stellar.reference.data.Config
 import org.stellar.reference.event.EventService
 import org.stellar.reference.event.event
 import org.stellar.reference.sep24.DepositService
-import org.stellar.reference.sep24.Sep24Helper
 import org.stellar.reference.sep24.WithdrawalService
 import org.stellar.reference.sep24.sep24
 import org.stellar.reference.sep24.testSep24
+import org.stellar.reference.service.SepHelper
+import org.stellar.reference.service.sep31.ReceiveService
 
 fun Application.configureRouting(cfg: Config) = routing {
-  val helper = Sep24Helper(cfg)
+  val helper = SepHelper(cfg)
   val depositService = DepositService(cfg)
   val withdrawalService = WithdrawalService(cfg)
   val eventService = EventService()
@@ -42,6 +43,7 @@ fun Application.configureRouting(cfg: Config) = routing {
   val feeService = FeeService(customerRepo)
   val rateService = RateService(quotesRepo)
   val uniqueAddressService = UniqueAddressService(cfg.appSettings)
+  val receiveService = ReceiveService(cfg)
 
   sep24(helper, depositService, withdrawalService, cfg.sep24.interactiveJwtKey)
   event(eventService)
@@ -51,8 +53,12 @@ fun Application.configureRouting(cfg: Config) = routing {
   uniqueAddress(uniqueAddressService)
   sep24Interactive()
 
-  if (cfg.sep24.enableTest) {
+  if (cfg.appSettings.enableTest) {
     testSep24(helper, depositService, withdrawalService, cfg.sep24.interactiveJwtKey)
+    testSep31(receiveService)
+  }
+  if (cfg.appSettings.isTest) {
+    testCustomer(customerService)
   }
   if (cfg.appSettings.isTest) {
     testCustomer(customerService)

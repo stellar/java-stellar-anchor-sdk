@@ -34,6 +34,7 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.util.StringHelper.json
 
@@ -79,8 +80,7 @@ class Sep38ServiceTest {
     // store/db related:
     every { quoteStore.newInstance() } returns PojoSep38Quote()
     // events related:
-    every { eventService.createSession(any(), EventService.EventQueue.TRANSACTION) } returns
-      eventSession
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
   }
 
   @AfterEach

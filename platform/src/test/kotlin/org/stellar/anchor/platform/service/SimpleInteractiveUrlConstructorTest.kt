@@ -23,6 +23,7 @@ import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.ClientsConfig
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
@@ -39,8 +40,13 @@ class SimpleInteractiveUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
+
+  @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
+
   @MockK(relaxed = true) private lateinit var clientsConfig: ClientsConfig
+
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
+
   private lateinit var jwtService: JwtService
   private lateinit var sep24Config: PropertySep24Config
   private lateinit var request: HashMap<String, String>
@@ -78,7 +84,7 @@ class SimpleInteractiveUrlConstructorTest {
         null
       )
 
-    jwtService = JwtService(secretConfig)
+    jwtService = JwtService(secretConfig, custodySecretConfig)
     sep24Config = gson.fromJson(SEP24_CONFIG_JSON_1, PropertySep24Config::class.java)
     request = gson.fromJson(REQUEST_JSON_1, HashMap::class.java) as HashMap<String, String>
     txn = gson.fromJson(TXN_JSON_1, JdbcSep24Transaction::class.java)
