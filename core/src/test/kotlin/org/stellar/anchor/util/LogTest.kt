@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.slf4j.Logger
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.PII
@@ -16,6 +18,7 @@ import org.stellar.anchor.util.Log.shorter
 import org.stellar.sdk.Network.TESTNET
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Execution(ExecutionMode.SAME_THREAD)
 internal class LogTest {
   @MockK(relaxed = true) private lateinit var logger: Logger
 

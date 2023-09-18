@@ -8,6 +8,8 @@ import java.time.Instant
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
@@ -19,6 +21,7 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.util.StringHelper.json
 
+@Execution(ExecutionMode.SAME_THREAD)
 class Sep12ServiceTest {
   companion object {
     private const val TEST_ACCOUNT = "GBFZNZTFSI6TWLVAID7VOLCIFX2PMUOS2X7U6H4TNK4PAPSHPWMMUIZG"

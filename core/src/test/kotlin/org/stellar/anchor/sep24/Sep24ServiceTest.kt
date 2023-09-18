@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
@@ -52,6 +54,7 @@ import org.stellar.sdk.MemoId
 import org.stellar.sdk.MemoText
 import org.stellar.sdk.Network.TESTNET
 
+@Execution(ExecutionMode.SAME_THREAD)
 internal class Sep24ServiceTest {
   companion object {
     const val TEST_SEP24_INTERACTIVE_URL = "https://test-anchor.stellar.org"

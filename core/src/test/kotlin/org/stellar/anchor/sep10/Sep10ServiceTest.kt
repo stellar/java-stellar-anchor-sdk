@@ -17,6 +17,8 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
@@ -51,6 +53,7 @@ import org.stellar.sdk.responses.AccountResponse
 import shadow.com.google.gson.annotations.SerializedName
 
 @Suppress("unused")
+@Execution(ExecutionMode.SAME_THREAD)
 internal class TestSigner(
   @SerializedName("key") val key: String,
   @SerializedName("type") val type: String,
@@ -66,6 +69,7 @@ internal class TestSigner(
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(OrderAnnotation::class)
+@Execution(ExecutionMode.SAME_THREAD)
 internal class Sep10ServiceTest {
   companion object {
     @JvmStatic

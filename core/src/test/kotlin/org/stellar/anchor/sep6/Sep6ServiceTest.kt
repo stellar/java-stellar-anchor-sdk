@@ -10,6 +10,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
@@ -28,6 +30,7 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.Sep6Config
 import org.stellar.anchor.util.GsonUtils
 
+@Execution(ExecutionMode.SAME_THREAD)
 class Sep6ServiceTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()

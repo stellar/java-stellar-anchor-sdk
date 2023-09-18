@@ -9,12 +9,15 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.stellar.anchor.config.Sep1Config.TomlType.*
 import org.stellar.anchor.platform.config.PropertySep1Config
 import org.stellar.anchor.platform.config.PropertySep1Config.TomlConfig
 import org.stellar.anchor.platform.config.Sep1ConfigTest
 import org.stellar.anchor.sep1.Sep1Service
 
+@Execution(ExecutionMode.SAME_THREAD)
 class Sep1ServiceTest {
 
   lateinit var sep1: Sep1Service
