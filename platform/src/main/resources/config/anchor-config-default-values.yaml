@@ -213,6 +213,8 @@ clients:
 #       type: custodial
 #       signing_key:
 #       callback_url:
+#       allow_any_destination:
+#       destination_accounts:
 #     - name:
 #       type: noncustodial
 #       domain:

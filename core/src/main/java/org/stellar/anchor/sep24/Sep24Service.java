@@ -327,11 +327,13 @@ public class Sep24Service {
           throw new SepValidationException("Provided 'account' is not allowed");
         }
       } else {
-        infoF(
-            "The request account:{} does not match the one in the token:{}",
-            destinationAccount,
-            token.getAccount());
-        throw new SepValidationException(ERR_TOKEN_ACCOUNT_MISMATCH);
+        if (clientConfig == null || !clientConfig.isAllowAnyDestination()) {
+          infoF(
+              "The request account:{} does not match the one in the token:{}",
+              destinationAccount,
+              token.getAccount());
+          throw new SepValidationException(ERR_TOKEN_ACCOUNT_MISMATCH);
+        }
       }
     }
 

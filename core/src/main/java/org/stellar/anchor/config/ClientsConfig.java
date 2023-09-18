@@ -35,6 +35,7 @@ public class ClientsConfig implements Validator {
     String signingKey;
     String domain;
     String callbackUrl;
+    boolean allowAnyDestination = false;
     Set<String> destinationAccounts;
   }
 
