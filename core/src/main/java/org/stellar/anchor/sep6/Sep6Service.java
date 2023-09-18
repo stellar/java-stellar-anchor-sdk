@@ -170,7 +170,9 @@ public class Sep6Service {
             .memoType(MemoHelper.memoTypeAsString(MEMO_HASH))
             .fromAccount(token.getAccount())
             .withdrawAnchorAccount(asset.getDistributionAccount())
-            .toAccount(asset.getDistributionAccount());
+            .toAccount(asset.getDistributionAccount())
+            .refundMemo(request.getRefundMemo())
+            .refundMemoType(request.getRefundMemoType());
 
     Sep6Transaction txn = builder.build();
     txnStore.save(txn);
@@ -303,7 +305,6 @@ public class Sep6Service {
             .instructions(txn.getInstructions());
 
     if (org.stellar.anchor.sep6.Sep6Transaction.Kind.DEPOSIT.toString().equals(txn.getKind())) {
-      // TOOD: check if this is the correct memo
       return builder.depositMemo(txn.getMemo()).depositMemoType(txn.getMemoType()).build();
     } else {
       return builder

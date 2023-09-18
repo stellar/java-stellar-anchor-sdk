@@ -56,7 +56,6 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
   @Column(name = "request_asset_issuer")
   String requestAssetIssuer;
 
-  // TODO: get rid of this
   public String getRequestAssetName() {
     if (AssetInfo.NATIVE_ASSET_CODE.equals(requestAssetCode)) {
       return AssetInfo.NATIVE_ASSET_CODE;

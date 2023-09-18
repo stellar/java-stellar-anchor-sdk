@@ -41,6 +41,11 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     }
   private val maxTries = 30
 
+  companion object {
+    private val USDC =
+      IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
+  }
+
   private fun `test typical deposit end-to-end flow`() = runBlocking {
     val token = anchor.auth().authenticate(keypair)
     // TODO: migrate this to wallet-sdk when it's available
@@ -52,7 +57,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     val deposit =
       sep6Client.deposit(
         mapOf(
-          "asset_code" to "USDC",
+          "asset_code" to USDC.code,
           "account" to keypair.address,
           "amount" to "0.01",
           "type" to "bank_account"
@@ -97,11 +102,11 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
 
     val withdraw =
       sep6Client.withdraw(
-        mapOf("asset_code" to "USDC", "amount" to "0.01", "type" to "bank_account")
+        mapOf("asset_code" to USDC.code, "amount" to "0.01", "type" to "bank_account")
       )
     waitStatus(withdraw.id, "pending_customer_info_update", sep6Client)
-    val withdrawTxn = sep6Client.getTransaction(mapOf("id" to withdraw.id))
 
+    // Supply missing financial account info to continue with the transaction
     anchor
       .customer(token)
       .add(
@@ -112,15 +117,13 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
         )
       )
     waitStatus(withdraw.id, "pending_user_transfer_start", sep6Client)
+
+    // Transfer the withdrawal amount to the Anchor
     val transfer =
       wallet
         .stellar()
         .transaction(keypair, memo = Pair(MemoType.HASH, withdraw.memo))
-        .transfer(
-          withdraw.accountId,
-          IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
-          "0.01"
-        )
+        .transfer(withdraw.accountId, USDC, "0.01")
         .build()
     transfer.sign(keypair)
     wallet.stellar().submitTransaction(transfer)

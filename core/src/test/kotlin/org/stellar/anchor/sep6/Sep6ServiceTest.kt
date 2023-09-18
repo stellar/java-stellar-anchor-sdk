@@ -250,7 +250,9 @@ class Sep6ServiceTest {
           "withdrawAnchorAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "toAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-          "memoType": "hash"
+          "memoType": "hash",
+          "refundMemo": "some text",
+          "refundMemoType": "text"
       }
     """
       .trimIndent()
@@ -270,7 +272,9 @@ class Sep6ServiceTest {
               },
               "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
               "destination_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-              "memo_type": "hash"
+              "memo_type": "hash",
+              "refund_memo": "some text",
+              "refund_memo_type": "text"
           }
       }
     """
@@ -369,7 +373,13 @@ class Sep6ServiceTest {
     every { eventSession.publish(capture(slotEvent)) } returns Unit
 
     val request =
-      GetWithdrawRequest.builder().assetCode(TEST_ASSET).type("bank_account").amount("100").build()
+      GetWithdrawRequest.builder()
+        .assetCode(TEST_ASSET)
+        .type("bank_account")
+        .amount("100")
+        .refundMemo("some text")
+        .refundMemoType("text")
+        .build()
 
     val response = sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
 
