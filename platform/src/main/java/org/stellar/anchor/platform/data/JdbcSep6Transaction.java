@@ -11,7 +11,6 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.BeanUtils;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.InstructionField;
 import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.sep6.Sep6Transaction;
@@ -55,14 +54,6 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
   @SerializedName("request_asset_issuer")
   @Column(name = "request_asset_issuer")
   String requestAssetIssuer;
-
-  public String getRequestAssetName() {
-    if (AssetInfo.NATIVE_ASSET_CODE.equals(requestAssetCode)) {
-      return AssetInfo.NATIVE_ASSET_CODE;
-    } else {
-      return requestAssetCode + ":" + requestAssetIssuer;
-    }
-  }
 
   @SerializedName("amount_expected")
   @Column(name = "amount_expected")

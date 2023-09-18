@@ -18,6 +18,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.PatchTransactionRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
@@ -188,13 +189,12 @@ public class PaymentOperationToEventListener implements PaymentListener {
   void handleSep24Transaction(ObservedPayment payment, JdbcSep24Transaction txn)
       throws AnchorException, IOException {
     // Compare asset code
-    String paymentAssetName = "stellar:" + payment.getAssetName();
-    String txnAssetName = "stellar:" + txn.getRequestAssetName();
-    if (!txnAssetName.equals(paymentAssetName)) {
+    String assetName = AssetInfo.makeAssetName(payment.getAssetCode(), payment.getAssetIssuer());
+    if (!payment.getAssetName().equals(assetName)) {
       warnF(
           "Payment asset {} does not match the expected asset {}.",
           payment.getAssetCode(),
-          txn.getAmountInAsset());
+          assetName);
       return;
     }
 
@@ -222,11 +222,12 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   void handleSep6Transaction(ObservedPayment payment, JdbcSep6Transaction txn)
       throws AnchorException, IOException {
-    if (!payment.getAssetName().equals(txn.getRequestAssetName())) {
+    String assetName = AssetInfo.makeAssetName(payment.getAssetCode(), payment.getAssetIssuer());
+    if (!payment.getAssetName().equals(assetName)) {
       warnF(
           "Payment asset {} does not match the expected asset {}.",
           payment.getAssetCode(),
-          txn.getRequestAssetName());
+          assetName);
       return;
     }
 

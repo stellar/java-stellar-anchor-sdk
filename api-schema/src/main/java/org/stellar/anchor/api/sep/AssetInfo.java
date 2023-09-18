@@ -15,10 +15,15 @@ public class AssetInfo {
   String issuer;
 
   public String getAssetName() {
-    if (issuer != null) {
-      return schema + ":" + code + ":" + issuer;
+    return schema + ":" + makeAssetName(code, issuer);
+  }
+
+  public static String makeAssetName(String assetCode, String assetIssuer) {
+    if (AssetInfo.NATIVE_ASSET_CODE.equals(assetCode)) {
+      return AssetInfo.NATIVE_ASSET_CODE;
+    } else {
+      return assetCode + ":" + assetIssuer;
     }
-    return schema + ":" + code;
   }
 
   @SerializedName("distribution_account")
