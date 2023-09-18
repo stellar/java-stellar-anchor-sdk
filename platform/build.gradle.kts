@@ -55,6 +55,9 @@ dependencies {
 }
 
 tasks.test {
+  // Enable parallel test execution
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+//  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
   testLogging {
     exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     events = setOf(org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED)
