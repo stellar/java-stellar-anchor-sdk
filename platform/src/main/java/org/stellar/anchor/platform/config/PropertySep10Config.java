@@ -204,10 +204,10 @@ public class PropertySep10Config implements Sep10Config, Validator {
     // If clientAllowList is defined, only the clients in the allow list are allowed.
     return clientAllowList.stream()
         .map(
-            clientName ->
-                (clientsConfig.getClientConfigByName(clientName) == null)
+            domain ->
+                (clientsConfig.getClientConfigByName(domain) == null)
                     ? null
-                    : clientsConfig.getClientConfigByName(clientName).getDomain())
+                    : clientsConfig.getClientConfigByName(domain).getDomain())
         .filter(StringHelper::isNotEmpty)
         .collect(Collectors.toList());
   }

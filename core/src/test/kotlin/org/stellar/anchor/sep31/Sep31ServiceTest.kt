@@ -283,10 +283,10 @@ class Sep31ServiceTest {
     @JvmStatic
     fun generateGetClientNameTestConfig(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of(listOf<String>(), false, false),
-        Arguments.of(listOf<String>(), true, true),
-        Arguments.of(listOf(lobstrClientConfig.name), false, false),
-        Arguments.of(listOf(lobstrClientConfig.name), true, true),
+        Arguments.of(listOf<String>(), false, null, false),
+        Arguments.of(listOf<String>(), true, null, true),
+        Arguments.of(listOf(lobstrClientConfig.domain), false, lobstrClientConfig.name, false),
+        Arguments.of(listOf(lobstrClientConfig.domain), true, lobstrClientConfig.name, true),
       )
     }
   }
@@ -312,7 +312,6 @@ class Sep31ServiceTest {
 
   private lateinit var jwtService: JwtService
   private lateinit var sep31Service: Sep31Service
-
   private lateinit var request: Sep31PostTransactionRequest
   private lateinit var txn: Sep31Transaction
   private lateinit var fee: Amount
@@ -330,10 +329,6 @@ class Sep31ServiceTest {
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
     every { custodyConfig.type } returns NONE
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
-    every { sep10Config.isClientAttributionRequired } returns false
-    every { sep10Config.allowedClientDomains } returns listOf()
-    every { clientsConfig.getClientConfigByDomain(any()) } returns null
-    every { clientsConfig.getClientConfigBySigningKey(any()) } returns null
 
     jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
 
@@ -1087,6 +1082,7 @@ class Sep31ServiceTest {
   fun `test getClientName when`(
     allowedClientDomains: List<String>,
     isClientAttributionRequired: Boolean,
+    expectedClientName: String?,
     shouldThrowExceptionWithInvalidInput: Boolean,
   ) {
     every { sep10Config.allowedClientDomains } returns allowedClientDomains
@@ -1096,7 +1092,7 @@ class Sep31ServiceTest {
 
     // client name should be returned for valid input
     val clientName = sep31Service.getClientName(lobstrClientConfig.signingKey)
-    assertEquals(lobstrClientConfig.name, clientName)
+    assertEquals(expectedClientName, clientName)
 
     // exception maybe thrown for invalid input
     every { clientsConfig.getClientConfigBySigningKey("Invalid Public Key") } returns null

@@ -13,7 +13,6 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_CREATED;
 import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_PATCHED;
-import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.anchor.util.SepHelper.amountEquals;
 import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
@@ -580,6 +579,9 @@ public class Sep31Service {
     ClientConfig client = clientsConfig.getClientConfigBySigningKey(account);
     if (sep10Config.isClientAttributionRequired() && client == null) {
       throw new BadRequestException("Client not found");
+    }
+    if (client != null && !sep10Config.getAllowedClientDomains().contains(client.getDomain())) {
+      client = null;
     }
     return client == null ? null : client.getName();
   }
