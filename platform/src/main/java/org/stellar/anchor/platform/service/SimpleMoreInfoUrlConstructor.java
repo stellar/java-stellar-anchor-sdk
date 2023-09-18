@@ -10,17 +10,17 @@ import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt;
-import org.stellar.anchor.platform.config.ClientsConfig;
+import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
 
 public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
-  private final ClientsConfig clientsConfig;
+  private final PropertyClientsConfig clientsConfig;
   private final MoreInfoUrlConfig config;
   private final JwtService jwtService;
 
   public SimpleMoreInfoUrlConstructor(
-      ClientsConfig clientsConfig, MoreInfoUrlConfig config, JwtService jwtService) {
+      PropertyClientsConfig clientsConfig, MoreInfoUrlConfig config, JwtService jwtService) {
     this.clientsConfig = clientsConfig;
     this.config = config;
     this.jwtService = jwtService;
@@ -29,7 +29,7 @@ public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
   @Override
   @SneakyThrows
   public String construct(Sep24Transaction txn) {
-    ClientsConfig.ClientConfig clientConfig =
+    PropertyClientsConfig.ClientConfig clientConfig =
         UrlConstructorHelper.getClientConfig(clientsConfig, txn);
 
     Sep24MoreInfoUrlJwt token =
