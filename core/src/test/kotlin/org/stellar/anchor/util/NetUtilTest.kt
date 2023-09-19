@@ -8,7 +8,6 @@ import java.io.IOException
 import java.net.MalformedURLException
 import okhttp3.Response
 import okhttp3.ResponseBody
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -33,12 +32,6 @@ internal class NetUtilTest {
     MockKAnnotations.init(this, relaxed = true)
   }
 
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
-  }
-
   @Test
   fun `test fetch successful response`() {
     mockkStatic(NetUtil::class)
@@ -55,6 +48,8 @@ internal class NetUtilTest {
       NetUtil.getCall(any())
       mockCall.execute()
     }
+
+    unmockkStatic(NetUtil::class)
   }
 
   @Test
@@ -65,6 +60,7 @@ internal class NetUtilTest {
     every { mockResponse.isSuccessful } returns false
 
     assertThrows(IOException::class.java) { NetUtil.fetch("http://hello") }
+    unmockkStatic(NetUtil::class)
   }
 
   @Test
@@ -76,6 +72,7 @@ internal class NetUtilTest {
     every { mockResponse.body } returns null
 
     assertThrows(IOException::class.java) { NetUtil.fetch("http://hello") }
+    unmockkStatic(NetUtil::class)
   }
 
   @Test

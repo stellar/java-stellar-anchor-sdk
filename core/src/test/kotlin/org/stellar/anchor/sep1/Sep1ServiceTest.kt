@@ -5,7 +5,6 @@ package org.stellar.anchor.sep1
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.nio.file.Files
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,12 +24,6 @@ internal class Sep1ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test
@@ -59,6 +52,8 @@ internal class Sep1ServiceTest {
 
     val sep1Service = Sep1Service(sep1Config)
     assertEquals("toml content", sep1Service.stellarToml)
+
+    unmockkStatic(Files::class)
   }
 
   @Test
@@ -71,5 +66,7 @@ internal class Sep1ServiceTest {
 
     val sep1Service = Sep1Service(sep1Config)
     assertEquals("toml content", sep1Service.stellarToml)
+
+    unmockkStatic(NetUtil::class)
   }
 }

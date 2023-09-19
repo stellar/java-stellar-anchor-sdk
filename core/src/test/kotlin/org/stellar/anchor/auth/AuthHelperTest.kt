@@ -4,7 +4,6 @@ import io.mockk.*
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
@@ -21,12 +20,6 @@ class AuthHelperTest {
     const val JWT_EXPIRATION_MILLISECONDS: Long = 90000
   }
 
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
-  }
-
   @ParameterizedTest
   @EnumSource(AuthType::class)
   @Execution(SAME_THREAD)
@@ -34,12 +27,12 @@ class AuthHelperTest {
     when (authType) {
       JWT -> {
         // Mock calendar to guarantee the jwt token format
+        mockkStatic(Calendar::class)
         val calendarSingleton = Calendar.getInstance()
         val currentTimeMilliseconds = calendarSingleton.timeInMillis
         mockkObject(calendarSingleton)
         every { calendarSingleton.timeInMillis } returns currentTimeMilliseconds
         every { calendarSingleton.timeInMillis = any() } answers { callOriginal() }
-        mockkStatic(Calendar::class)
         every { Calendar.getInstance() } returns calendarSingleton
 
         // mock jwt token based on the mocked calendar
@@ -73,6 +66,7 @@ class AuthHelperTest {
         val wantCustodyAuthHeader =
           AuthHeader("Authorization", "Bearer ${jwtService.encode(wantCustodyJwt)}")
         assertEquals(wantCustodyAuthHeader, gotCustodyAuthHeader)
+        unmockkStatic(Calendar::class)
       }
       API_KEY -> {
         val authHelper = AuthHelper.forApiKey("secret")
