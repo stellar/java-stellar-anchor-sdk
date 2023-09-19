@@ -31,6 +31,7 @@ dependencies {
 
   implementation(libs.commons.beanutils)
   implementation(libs.commons.text)
+  implementation(libs.commons.io)
   implementation(libs.apache.commons.lang3)
   implementation(libs.log4j2.core)
   implementation(libs.httpclient)

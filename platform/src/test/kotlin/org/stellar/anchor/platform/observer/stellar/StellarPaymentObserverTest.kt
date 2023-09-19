@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
+import java.util.*
 import javax.net.ssl.SSLProtocolException
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -20,7 +21,6 @@ import org.stellar.sdk.requests.SSEStream
 import org.stellar.sdk.responses.GsonSingleton
 import org.stellar.sdk.responses.Page
 import org.stellar.sdk.responses.operations.OperationResponse
-import shadow.com.google.common.base.Optional
 
 class StellarPaymentObserverTest {
   companion object {
