@@ -322,7 +322,7 @@ public class Sep10Service {
             sep10Config.getHomeDomain(),
             getDomainFromURI(appConfig.getHostUrl()));
     debug("challenge:", challenge);
-    long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
+    long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime().longValue();
     Memo memo = challenge.getTransaction().getMemo();
     JwtToken jwtToken =
         JwtToken.of(

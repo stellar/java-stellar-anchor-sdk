@@ -1,6 +1,7 @@
 package org.stellar.anchor.sep10
 
 import com.google.common.io.BaseEncoding
+import com.google.gson.annotations.SerializedName
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
@@ -47,7 +48,6 @@ import org.stellar.anchor.util.NetUtil
 import org.stellar.sdk.*
 import org.stellar.sdk.requests.ErrorResponse
 import org.stellar.sdk.responses.AccountResponse
-import shadow.com.google.gson.annotations.SerializedName
 
 @Suppress("unused")
 internal class TestSigner(

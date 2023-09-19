@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.payment.observer.circle;
 
 import static org.stellar.anchor.util.StellarNetworkHelper.toStellarNetwork;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import java.lang.reflect.Type;
@@ -26,7 +27,6 @@ import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
-import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentService
     implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {

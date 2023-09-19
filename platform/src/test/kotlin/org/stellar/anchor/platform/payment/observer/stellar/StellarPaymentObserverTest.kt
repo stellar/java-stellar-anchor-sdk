@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.payment.observer.stellar
 
+import com.google.common.base.Optional
 import com.google.gson.reflect.TypeToken
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -17,7 +18,6 @@ import org.stellar.sdk.requests.SSEStream
 import org.stellar.sdk.responses.GsonSingleton
 import org.stellar.sdk.responses.Page
 import org.stellar.sdk.responses.operations.OperationResponse
-import shadow.com.google.common.base.Optional
 
 class StellarPaymentObserverTest {
   companion object {
