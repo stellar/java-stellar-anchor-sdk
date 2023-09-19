@@ -1,10 +1,10 @@
 package org.stellar.anchor.platform.payment.observer.stellar
 
-import com.google.common.base.Optional
 import com.google.gson.reflect.TypeToken
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
+import java.util.*
 import javax.net.ssl.SSLProtocolException
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
