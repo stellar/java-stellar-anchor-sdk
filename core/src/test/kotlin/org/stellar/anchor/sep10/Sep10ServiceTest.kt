@@ -51,7 +51,6 @@ import org.stellar.sdk.responses.AccountResponse
 import shadow.com.google.gson.annotations.SerializedName
 
 @Suppress("unused")
-@Execution(SAME_THREAD)
 internal class TestSigner(
   @SerializedName("key") val key: String,
   @SerializedName("type") val type: String,
@@ -104,9 +103,16 @@ open class Sep10ServiceTest {
     every { sep10Config.authTimeout } returns 900
     every { sep10Config.jwtTimeout } returns 900
     every { sep10Config.homeDomain } returns TEST_HOME_DOMAIN
+
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
+
     every { secretConfig.sep10SigningSeed } returns TEST_SIGNING_SEED
     every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
+
+    mockkStatic(NetUtil::class)
+    mockkStatic(Sep10Challenge::class)
+
+    every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
 
     this.jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
@@ -280,6 +286,117 @@ class Sep10ServiceTestPart1 : Sep10ServiceTest() {
     assertDoesNotThrow { sep10Service.validateChallenge(validationRequest) }
   }
 
+  @ParameterizedTest
+  @CsvSource(
+    value = ["true,test.client.stellar.org", "false,test.client.stellar.org", "false,null"]
+  )
+  fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
+    every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
+    every { sep10Config.allowedClientDomains } returns listOf(TEST_CLIENT_DOMAIN)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
+    cr.clientDomain = if (clientDomain == "null") null else clientDomain
+
+    val challengeResponse = sep10Service.createChallenge(cr)
+
+    assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
+    verify(exactly = 1) {
+      Sep10Challenge.newChallenge(
+        any(),
+        Network(TESTNET.networkPassphrase),
+        TEST_ACCOUNT,
+        TEST_HOME_DOMAIN,
+        TEST_WEB_AUTH_DOMAIN,
+        any(),
+        any(),
+        any(),
+        any()
+      )
+    }
+  }
+
+  private fun createTestChallenge(clientDomain: String, signWithClientDomain: Boolean): String {
+    val now = System.currentTimeMillis() / 1000L
+    val signer = KeyPair.fromSecretSeed(TEST_SIGNING_SEED)
+    val memo = MemoId(TEST_MEMO.toLong())
+    val txn =
+      Sep10Challenge.newChallenge(
+        signer,
+        Network(TESTNET.networkPassphrase),
+        clientKeyPair.accountId,
+        TEST_HOME_DOMAIN,
+        TEST_WEB_AUTH_DOMAIN,
+        TimeBounds(now, now + 900),
+        clientDomain,
+        if (clientDomain.isEmpty()) "" else clientDomainKeyPair.accountId,
+        memo
+      )
+    txn.sign(clientKeyPair)
+    if (clientDomain.isNotEmpty() && signWithClientDomain) {
+      txn.sign(clientDomainKeyPair)
+    }
+    return txn.toEnvelopeXdrBase64()
+  }
+
+  @Test
+  fun `test validate challenge when client account is on Stellar network`() {
+    val vr = ValidationRequest()
+    vr.transaction = createTestChallenge("", false)
+
+    val accountResponse = spyk(AccountResponse(clientKeyPair.accountId, 1))
+    val signers =
+      arrayOf(TestSigner(clientKeyPair.accountId, "ed25519_public_key", 1, "").toSigner())
+
+    every { accountResponse.signers } returns signers
+    every { accountResponse.thresholds.medThreshold } returns 1
+    every { horizon.server.accounts().account(ofType(String::class)) } returns accountResponse
+
+    val response = sep10Service.validateChallenge(vr)
+    val jwt = jwtService.decode(response.token, Sep10Jwt::class.java)
+    assertEquals("${clientKeyPair.accountId}:$TEST_MEMO", jwt.sub)
+  }
+
+  @Test
+  fun `test validate challenge with client domain`() {
+    val accountResponse = spyk(AccountResponse(clientKeyPair.accountId, 1))
+    val signers =
+      arrayOf(
+        TestSigner(clientKeyPair.accountId, "ed25519_public_key", 1, "").toSigner(),
+        TestSigner(clientDomainKeyPair.accountId, "ed25519_public_key", 1, "").toSigner()
+      )
+
+    every { accountResponse.signers } returns signers
+    every { accountResponse.thresholds.medThreshold } returns 1
+    every { horizon.server.accounts().account(ofType(String::class)) } returns accountResponse
+
+    val vr = ValidationRequest()
+    vr.transaction = createTestChallenge(TEST_CLIENT_DOMAIN, true)
+
+    val validationResponse = sep10Service.validateChallenge(vr)
+
+    val token = jwtService.decode(validationResponse.token, Sep10Jwt::class.java)
+    assertEquals(token.clientDomain, TEST_CLIENT_DOMAIN)
+
+    // Test when the transaction was not signed by the client domain and the client account exists
+    vr.transaction = createTestChallenge(TEST_CLIENT_DOMAIN, false)
+    assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+
+    // Test when the transaction was not signed by the client domain and the client account not
+    // exists
+    every { horizon.server.accounts().account(ofType(String::class)) } answers
+      {
+        throw ErrorResponse(0, "mock error")
+      }
+    vr.transaction = createTestChallenge(TEST_CLIENT_DOMAIN, false)
+
+    assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+  }
+
   @Test
   fun `test validate challenge when client account is not on network`() {
     val vr = ValidationRequest()
@@ -423,6 +540,21 @@ internal class Sep10ServiceTestPart2 : Sep10ServiceTest() {
     } answers { throw InvalidSep10ChallengeException("mock exception") }
 
     assertThrows<SepException> { sep10Service.createChallenge(cr) }
+  }
+
+  @Test
+  fun `test createChallenge() ok`() {
+    every { sep10Config.knownCustodialAccountList } returns listOf(TEST_ACCOUNT)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(null)
+        .build()
+
+    assertDoesNotThrow { sep10Service.createChallenge(cr) }
+    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
   }
 
   @Test

@@ -288,7 +288,6 @@ class Sep31ServiceTest {
 
   private lateinit var jwtService: JwtService
   private lateinit var sep31Service: Sep31Service
-
   private lateinit var request: Sep31PostTransactionRequest
   private lateinit var txn: Sep31Transaction
   private lateinit var fee: Amount
@@ -354,6 +353,36 @@ class Sep31ServiceTest {
     sep31Service.updateTxAmountsWhenNoQuoteWasUsed()
     assertEquals("102", txn.amountIn)
     assertEquals("100", txn.amountOut)
+  }
+
+  @Test
+  fun `test quotes supported and required validation`() {
+    val assetServiceQuotesNotSupported: AssetService =
+      DefaultAssetService.fromJsonResource(
+        "test_assets.json.quotes_required_but_not_supported",
+      )
+    val ex: AnchorException = assertThrows {
+      Sep31Service(
+        appConfig,
+        sep10Config,
+        sep31Config,
+        txnStore,
+        sep31DepositInfoGenerator,
+        quoteStore,
+        clientsConfig,
+        assetServiceQuotesNotSupported,
+        feeIntegration,
+        customerIntegration,
+        eventService,
+        custodyService,
+        custodyConfig
+      )
+    }
+    assertInstanceOf(SepValidationException::class.java, ex)
+    assertEquals(
+      "if quotes_required is true, quotes_supported must also be true",
+      ex.message,
+    )
   }
 
   @Test
@@ -992,7 +1021,6 @@ class Sep31ServiceTest {
     // No quote
     every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount("10", "USDC"))
     Context.get().quote = null
-    Context.get().asset = asset
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
     fee = Context.get().fee
