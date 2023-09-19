@@ -12,6 +12,7 @@ import java.util.*
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.parallel.Execution
@@ -48,6 +49,7 @@ import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Network.TESTNET
 
 @Execution(SAME_THREAD)
+@Order(13)
 class Sep31ServiceTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()

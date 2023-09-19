@@ -52,9 +52,30 @@ dependencies {
 
 tasks.test {
   // Enable parallel test execution
-  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  systemProperty("junit.jupiter.execution.parallel.enabled", false)
+  systemProperty("junit.jupiter.execution.parallel.config.strategy", "dynamic")
   systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+  systemProperty(
+    "junit.jupiter.testclass.order.default",
+    "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation"
+  )
+  maxParallelForks =
+    (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1).also {
+      println("junit5 ... setting maxParallelForks to $it")
+    }
 }
+
+// tasks.withType<Test> {
+//  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+//  systemProperty("junit.jupiter.execution.parallel.config.strategy", "dynamic")
+//  systemProperty("junit.jupiter.execution.parallel.mode.default", "same_thread")
+//  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+//
+//  maxParallelForks =
+//    (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1).also {
+//      println("Setting maxParallelForks to $it")
+//    }
+// }
 
 publishing {
   apply<MavenPublishPlugin>()

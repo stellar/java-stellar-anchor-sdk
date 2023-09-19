@@ -145,6 +145,7 @@ open class Sep10ServiceTest {
   }
 }
 
+@Order(63)
 @Execution(SAME_THREAD)
 class Sep10ServiceTestPart1 : Sep10ServiceTest() {
   @Test
@@ -467,6 +468,7 @@ class Sep10ServiceTestPart1 : Sep10ServiceTest() {
   }
 }
 
+@Order(85)
 @Execution(SAME_THREAD)
 internal class Sep10ServiceTestPart2 : Sep10ServiceTest() {
   @Test

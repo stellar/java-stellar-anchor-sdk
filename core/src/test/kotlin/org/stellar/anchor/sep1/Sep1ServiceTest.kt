@@ -7,18 +7,14 @@ import io.mockk.impl.annotations.MockK
 import java.nio.file.Files
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.stellar.anchor.config.Sep1Config
 import org.stellar.anchor.config.Sep1Config.TomlType.*
 import org.stellar.anchor.util.NetUtil
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Execution(SAME_THREAD)
+@Order(89)
 internal class Sep1ServiceTest {
-
   @MockK(relaxed = true) lateinit var sep1Config: Sep1Config
 
   @BeforeEach
