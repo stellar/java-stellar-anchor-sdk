@@ -4,8 +4,10 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import java.util.*
 import java.util.concurrent.TimeUnit
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -14,7 +16,8 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.sep24.TransactionResponse
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.platform.config.ClientsConfig
+import org.stellar.anchor.config.ClientsConfig.*
+import org.stellar.anchor.config.ClientsConfig.ClientType.*
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.sep24.Sep24Helper
@@ -27,7 +30,7 @@ import org.stellar.sdk.KeyPair
 class ClientStatusCallbackHandlerTest {
   private lateinit var handler: ClientStatusCallbackHandler
   private lateinit var secretConfig: PropertySecretConfig
-  private lateinit var clientConfig: ClientsConfig.ClientConfig
+  private lateinit var clientConfig: ClientConfig
   private lateinit var signer: KeyPair
   private lateinit var ts: String
   private lateinit var event: AnchorEvent
@@ -39,8 +42,8 @@ class ClientStatusCallbackHandlerTest {
 
   @BeforeEach
   fun setUp() {
-    clientConfig = ClientsConfig.ClientConfig()
-    clientConfig.type = ClientsConfig.ClientType.CUSTODIAL
+    clientConfig = ClientConfig()
+    clientConfig.type = CUSTODIAL
     clientConfig.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
     clientConfig.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
 
@@ -65,6 +68,11 @@ class ClientStatusCallbackHandlerTest {
 
     handler =
       ClientStatusCallbackHandler(secretConfig, clientConfig, assetService, moreInfoUrlConstructor)
+  }
+
+  @AfterEach
+  fun teardown() {
+    unmockkStatic(Sep24Helper::class)
   }
 
   @Test

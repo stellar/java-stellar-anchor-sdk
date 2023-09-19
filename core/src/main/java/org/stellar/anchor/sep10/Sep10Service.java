@@ -78,17 +78,9 @@ public class Sep10Service {
           sep10Config.getKnownCustodialAccountList().contains(challengeRequest.getAccount().trim());
     }
 
-    if (sep10Config.isKnownCustodialAccountRequired() && !custodialWallet) {
-      // validate that requesting account is allowed access
-      infoF("requesting account: {} is not in allow list", challengeRequest.getAccount().trim());
-      throw new SepNotAuthorizedException("unable to process");
-    }
-
-    if (custodialWallet) {
-      if (challengeRequest.getClientDomain() != null) {
-        throw new SepValidationException(
-            "client_domain must not be specified if the account is an custodial-wallet account");
-      }
+    if (custodialWallet && challengeRequest.getClientDomain() != null) {
+      throw new SepValidationException(
+          "client_domain must not be specified if the account is an custodial-wallet account");
     }
 
     if (!custodialWallet && sep10Config.isClientAttributionRequired()) {
@@ -97,7 +89,7 @@ public class Sep10Service {
         throw new SepValidationException("client_domain is required");
       }
 
-      List<String> allowList = sep10Config.getClientAttributionAllowList();
+      List<String> allowList = sep10Config.getAllowedClientDomains();
       if (!allowList.contains(challengeRequest.getClientDomain())) {
         infoF(
             "client_domain provided ({}) is not in the configured allow list",

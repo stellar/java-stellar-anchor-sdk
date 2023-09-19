@@ -10,13 +10,10 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
 import org.apache.commons.lang3.StringUtils
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestHelper
@@ -48,7 +45,6 @@ import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Network.TESTNET
 
-@Execution(SAME_THREAD)
 class Sep31ServiceTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
@@ -278,6 +274,8 @@ class Sep31ServiceTest {
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) lateinit var custodySecretConfig: CustodySecretConfig
+  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig
+  @MockK(relaxed = true) lateinit var sep10Config: Sep10Config
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
@@ -308,15 +306,18 @@ class Sep31ServiceTest {
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
     every { custodyConfig.type } returns NONE
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
+
     jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
 
     sep31Service =
       Sep31Service(
         appConfig,
+        sep10Config,
         sep31Config,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
+        clientsConfig,
         assetService,
         feeIntegration,
         customerIntegration,
@@ -331,12 +332,6 @@ class Sep31ServiceTest {
     asset = gson.fromJson(assetJson, AssetInfo::class.java)
     quote = gson.fromJson(quoteJson, PojoSep38Quote::class.java)
     patchRequest = gson.fromJson(patchTxnRequestJson, Sep31PatchTransactionRequest::class.java)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test
@@ -359,34 +354,6 @@ class Sep31ServiceTest {
     sep31Service.updateTxAmountsWhenNoQuoteWasUsed()
     assertEquals("102", txn.amountIn)
     assertEquals("100", txn.amountOut)
-  }
-
-  @Test
-  fun `test quotes supported and required validation`() {
-    val assetServiceQuotesNotSupported: AssetService =
-      DefaultAssetService.fromJsonResource(
-        "test_assets.json.quotes_required_but_not_supported",
-      )
-    val ex: AnchorException = assertThrows {
-      Sep31Service(
-        appConfig,
-        sep31Config,
-        txnStore,
-        sep31DepositInfoGenerator,
-        quoteStore,
-        assetServiceQuotesNotSupported,
-        feeIntegration,
-        customerIntegration,
-        eventService,
-        custodyService,
-        custodyConfig
-      )
-    }
-    assertInstanceOf(SepValidationException::class.java, ex)
-    assertEquals(
-      "if quotes_required is true, quotes_supported must also be true",
-      ex.message,
-    )
   }
 
   @Test
@@ -891,10 +858,12 @@ class Sep31ServiceTest {
     sep31Service =
       Sep31Service(
         appConfig,
+        sep10Config,
         sep31Config,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
+        clientsConfig,
         assetServiceQuotesNotSupported,
         feeIntegration,
         customerIntegration,
@@ -1023,6 +992,7 @@ class Sep31ServiceTest {
     // No quote
     every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount("10", "USDC"))
     Context.get().quote = null
+    Context.get().asset = asset
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
     fee = Context.get().fee

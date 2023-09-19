@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
+import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.api.sep.sep38.*;
 import org.stellar.anchor.auth.Sep10Jwt;
@@ -69,11 +70,18 @@ public class Sep38Controller {
   @RequestMapping(
       value = "/price",
       method = {RequestMethod.GET})
-  public GetPriceResponse getPrice(@RequestParam Map<String, String> params) {
+  public GetPriceResponse getPrice(
+      HttpServletRequest request, @RequestParam Map<String, String> params) {
     debugF("GET /price params={}", params);
     Sep38GetPriceRequest getPriceRequest =
         gson.fromJson(gson.toJson(params), Sep38GetPriceRequest.class);
-    return sep38Service.getPrice(getPriceRequest);
+    Sep10Jwt sep10Jwt;
+    try {
+      sep10Jwt = getSep10Token(request);
+    } catch (SepValidationException svex) {
+      sep10Jwt = null;
+    }
+    return sep38Service.getPrice(sep10Jwt, getPriceRequest);
   }
 
   @SneakyThrows

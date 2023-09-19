@@ -18,7 +18,7 @@ import org.stellar.anchor.api.callback.PutCustomerRequest;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt;
-import org.stellar.anchor.platform.config.ClientsConfig;
+import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
@@ -27,13 +27,13 @@ import org.stellar.anchor.util.GsonUtils;
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   public static final String FORWARD_KYC_CUSTOMER_TYPE = "sep24-customer";
 
-  private final ClientsConfig clientsConfig;
+  private final PropertyClientsConfig clientsConfig;
   private final PropertySep24Config sep24Config;
   private final CustomerIntegration customerIntegration;
   private final JwtService jwtService;
 
   public SimpleInteractiveUrlConstructor(
-      ClientsConfig clientsConfig,
+      PropertyClientsConfig clientsConfig,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
@@ -71,7 +71,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
 
   @SneakyThrows
   String constructToken(Sep24Transaction txn, Map<String, String> request) {
-    ClientsConfig.ClientConfig clientConfig =
+    PropertyClientsConfig.ClientConfig clientConfig =
         UrlConstructorHelper.getClientConfig(clientsConfig, txn);
 
     debugF(

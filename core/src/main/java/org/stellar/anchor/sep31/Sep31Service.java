@@ -13,7 +13,6 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_CREATED;
 import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_PATCHED;
-import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.anchor.util.SepHelper.amountEquals;
 import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
@@ -64,7 +63,10 @@ import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.ClientsConfig;
+import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.CustodyConfig;
+import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
@@ -75,12 +77,13 @@ import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.TransactionHelper;
 
 public class Sep31Service {
-
   private final AppConfig appConfig;
+  private final Sep10Config sep10Config;
   private final Sep31Config sep31Config;
   private final Sep31TransactionStore sep31TransactionStore;
   private final Sep31DepositInfoGenerator sep31DepositInfoGenerator;
   private final Sep38QuoteStore sep38QuoteStore;
+  private final ClientsConfig clientsConfig;
   private final AssetService assetService;
   private final FeeIntegration feeIntegration;
   private final CustomerIntegration customerIntegration;
@@ -93,10 +96,12 @@ public class Sep31Service {
 
   public Sep31Service(
       AppConfig appConfig,
+      Sep10Config sep10Config,
       Sep31Config sep31Config,
       Sep31TransactionStore sep31TransactionStore,
       Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
+      ClientsConfig clientsConfig,
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
@@ -106,10 +111,12 @@ public class Sep31Service {
     debug("appConfig:", appConfig);
     debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
+    this.sep10Config = sep10Config;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;
     this.sep31DepositInfoGenerator = sep31DepositInfoGenerator;
     this.sep38QuoteStore = sep38QuoteStore;
+    this.clientsConfig = clientsConfig;
     this.assetService = assetService;
     this.feeIntegration = feeIntegration;
     this.customerIntegration = customerIntegration;
@@ -557,11 +564,26 @@ public class Sep31Service {
                     .receiveAmount(null)
                     .senderId(request.getSenderId())
                     .receiverId(request.getReceiverId())
-                    .clientId(token.getAccount())
+                    .clientId(getClientName())
                     .build())
             .getFee();
     infoF("Fee for request ({}) is ({})", request, fee);
     Context.get().setFee(fee);
+  }
+
+  String getClientName() throws BadRequestException {
+    return getClientName(Context.get().getSep10Jwt().getAccount());
+  }
+
+  String getClientName(String account) throws BadRequestException {
+    ClientConfig client = clientsConfig.getClientConfigBySigningKey(account);
+    if (sep10Config.isClientAttributionRequired() && client == null) {
+      throw new BadRequestException("Client not found");
+    }
+    if (client != null && !sep10Config.getAllowedClientDomains().contains(client.getDomain())) {
+      client = null;
+    }
+    return client == null ? null : client.getName();
   }
 
   /**
@@ -704,7 +726,6 @@ public class Sep31Service {
 
   @Data
   public static class Context {
-
     private Sep31Transaction transaction;
     private Sep31PostTransactionRequest request;
     private Sep38Quote quote;

@@ -15,9 +15,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -65,6 +63,15 @@ internal class TestSigner(
     val json = gson.toJson(this)
     return gson.fromJson(json, AccountResponse.Signer::class.java)
   }
+}
+
+fun `create httpClient`(): OkHttpClient {
+  return OkHttpClient.Builder()
+    .connectTimeout(10, TimeUnit.MINUTES)
+    .readTimeout(10, TimeUnit.MINUTES)
+    .writeTimeout(10, TimeUnit.MINUTES)
+    .hostnameVerifier { _, _ -> true }
+    .build()
 }
 
 open class Sep10ServiceTest {
@@ -132,9 +139,8 @@ open class Sep10ServiceTest {
   }
 }
 
-@Execution(CONCURRENT)
-class Sep10ServiceTestConcurrent : Sep10ServiceTest() {
-
+@Execution(SAME_THREAD)
+class Sep10ServiceTestPart1 : Sep10ServiceTest() {
   @Test
   fun `test challenge with non existent account and client domain`() {
     // 1 ------ Create Test Transaction
@@ -274,41 +280,6 @@ class Sep10ServiceTestConcurrent : Sep10ServiceTest() {
     assertDoesNotThrow { sep10Service.validateChallenge(validationRequest) }
   }
 
-  @ParameterizedTest
-  @CsvSource(
-    value = ["true,test.client.stellar.org", "false,test.client.stellar.org", "false,null"]
-  )
-  @Disabled
-  fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
-    every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
-    every { sep10Config.clientAttributionAllowList } returns listOf(TEST_CLIENT_DOMAIN)
-    val cr =
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(TEST_CLIENT_DOMAIN)
-        .build()
-    cr.clientDomain = if (clientDomain == "null") null else clientDomain
-
-    val challengeResponse = sep10Service.createChallenge(cr)
-
-    assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
-    //    verify(exactly = 1) {
-    //      Sep10Challenge.newChallenge(
-    //        any(),
-    //        Network(TESTNET.networkPassphrase),
-    //        TEST_ACCOUNT,
-    //        TEST_HOME_DOMAIN,
-    //        TEST_WEB_AUTH_DOMAIN,
-    //        any(),
-    //        any(),
-    //        any(),
-    //        any()
-    //      )
-    //    }
-  }
-
   @Test
   fun `test validate challenge when client account is not on network`() {
     val vr = ValidationRequest()
@@ -400,30 +371,10 @@ class Sep10ServiceTestConcurrent : Sep10ServiceTest() {
 
     assertThrows<SepValidationException> { sep10Service.createChallenge(cr) }
   }
-
-  @Test
-  fun `test createChallenge() failure when isRequireKnownOmnibusAccount is enabled and account mis-match`() {
-    every { sep10Config.isKnownCustodialAccountRequired } returns true
-    every { sep10Config.knownCustodialAccountList } returns
-      listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-    val cr =
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(null)
-        .build()
-
-    val ex = assertThrows<SepException> { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
-    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
-    assertInstanceOf(SepNotAuthorizedException::class.java, ex)
-    assertEquals("unable to process", ex.message)
-  }
 }
 
 @Execution(SAME_THREAD)
-internal class Sep10ServiceTestSequential : Sep10ServiceTest() {
+internal class Sep10ServiceTestPart2 : Sep10ServiceTest() {
   @Test
   fun `test getClientAccountId failure`() {
     mockkStatic(NetUtil::class)
@@ -476,7 +427,6 @@ internal class Sep10ServiceTestSequential : Sep10ServiceTest() {
 
   @Test
   fun `Test createChallenge() when isKnownCustodialAccountRequired is not enabled`() {
-    every { sep10Config.isKnownCustodialAccountRequired } returns false
     every { sep10Config.knownCustodialAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr =
@@ -488,24 +438,6 @@ internal class Sep10ServiceTestSequential : Sep10ServiceTest() {
         .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
-    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
-  }
-
-  @Test
-  fun `test createChallenge() ok when knownCustodialAccountRequired is enabled`() {
-    every { sep10Config.isKnownCustodialAccountRequired } returns true
-    every { sep10Config.knownCustodialAccountList } returns listOf(TEST_ACCOUNT)
-    val cr =
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(null)
-        .build()
-
-    assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
     verify(exactly = 2) { sep10Config.knownCustodialAccountList }
   }
 
@@ -644,7 +576,8 @@ internal class Sep10ServiceTestSequential : Sep10ServiceTest() {
     val token = jwtService.decode(validationResponse.token, Sep10Jwt::class.java)
     assertEquals(token.clientDomain, TEST_CLIENT_DOMAIN)
 
-    // Test when the transaction was not signed by the client domain and the client account   exists
+    // Test when the transaction was not signed by the client domain and the client account
+    // exists
     vr.transaction = createTestChallenge(TEST_CLIENT_DOMAIN, false)
     assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
 
@@ -658,13 +591,48 @@ internal class Sep10ServiceTestSequential : Sep10ServiceTest() {
 
     assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
   }
-}
 
-fun `create httpClient`(): OkHttpClient {
-  return OkHttpClient.Builder()
-    .connectTimeout(10, TimeUnit.MINUTES)
-    .readTimeout(10, TimeUnit.MINUTES)
-    .writeTimeout(10, TimeUnit.MINUTES)
-    .hostnameVerifier { _, _ -> true }
-    .build()
+  @ParameterizedTest
+  @CsvSource(
+    value = ["true,test.client.stellar.org", "false,test.client.stellar.org", "false,null"]
+  )
+  @Disabled
+  fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
+    mockkStatic(Sep10Helper::class)
+    mockkStatic(Sep10Challenge::class)
+
+    every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
+    every { sep10Config.allowedClientDomains } returns listOf(TEST_CLIENT_DOMAIN)
+    every { Sep10Helper.fetchSigningKeyFromClientDomain(eq("test.client.stellar.org")) } returns
+      TEST_ACCOUNT
+
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
+    cr.clientDomain = if (clientDomain == "null") null else clientDomain
+
+    val challengeResponse = sep10Service.createChallenge(cr)
+
+    assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
+    verify(exactly = 1) {
+      Sep10Challenge.newChallenge(
+        any(),
+        Network(TESTNET.networkPassphrase),
+        TEST_ACCOUNT,
+        TEST_HOME_DOMAIN,
+        TEST_WEB_AUTH_DOMAIN,
+        any(),
+        any(),
+        any(),
+        any()
+      )
+    }
+    unmockkStatic(Sep10Challenge::class)
+    unmockkStatic(Sep10Helper::class)
+    unmockkAll()
+  }
 }
