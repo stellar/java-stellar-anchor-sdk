@@ -1021,6 +1021,7 @@ class Sep31ServiceTest {
     // No quote
     every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount("10", "USDC"))
     Context.get().quote = null
+    Context.get().asset = asset
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
     fee = Context.get().fee

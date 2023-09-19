@@ -320,29 +320,6 @@ class Sep10ServiceTestPart1 : Sep10ServiceTest() {
     }
   }
 
-  private fun createTestChallenge(clientDomain: String, signWithClientDomain: Boolean): String {
-    val now = System.currentTimeMillis() / 1000L
-    val signer = KeyPair.fromSecretSeed(TEST_SIGNING_SEED)
-    val memo = MemoId(TEST_MEMO.toLong())
-    val txn =
-      Sep10Challenge.newChallenge(
-        signer,
-        Network(TESTNET.networkPassphrase),
-        clientKeyPair.accountId,
-        TEST_HOME_DOMAIN,
-        TEST_WEB_AUTH_DOMAIN,
-        TimeBounds(now, now + 900),
-        clientDomain,
-        if (clientDomain.isEmpty()) "" else clientDomainKeyPair.accountId,
-        memo
-      )
-    txn.sign(clientKeyPair)
-    if (clientDomain.isNotEmpty() && signWithClientDomain) {
-      txn.sign(clientDomainKeyPair)
-    }
-    return txn.toEnvelopeXdrBase64()
-  }
-
   @Test
   fun `test validate challenge when client account is on Stellar network`() {
     val vr = ValidationRequest()
@@ -515,31 +492,24 @@ internal class Sep10ServiceTestPart2 : Sep10ServiceTest() {
 
   @Test
   fun `test createChallenge signing error`() {
+    mockkStatic(Sep10Challenge::class)
     every { sep10Config.isClientAttributionRequired } returns false
-    val cr =
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(TEST_CLIENT_DOMAIN)
-        .build()
-
-    val sep10ChallengeWrapper = spyk(Sep10ChallengeWrapper.instance())
     every {
-      sep10ChallengeWrapper.newChallenge(
-        any(),
-        any(),
-        any(),
-        any(),
-        any(),
-        any(),
-        any(),
-        any(),
-        any()
-      )
+      Sep10Challenge.newChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
     } answers { throw InvalidSep10ChallengeException("mock exception") }
 
-    assertThrows<SepException> { sep10Service.createChallenge(cr) }
+    assertThrows<SepException> {
+      sep10Service.createChallenge(
+        ChallengeRequest.builder()
+          .account(TEST_ACCOUNT)
+          .memo(TEST_MEMO)
+          .homeDomain(TEST_HOME_DOMAIN)
+          .clientDomain(TEST_CLIENT_DOMAIN)
+          .build()
+      )
+    }
+
+    unmockkStatic(Sep10Challenge::class)
   }
 
   @Test
