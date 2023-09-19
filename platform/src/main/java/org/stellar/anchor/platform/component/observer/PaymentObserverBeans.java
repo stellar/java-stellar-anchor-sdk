@@ -13,6 +13,7 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.platform.config.PaymentObserverConfig;
 import org.stellar.anchor.platform.data.JdbcSep24TransactionStore;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
+import org.stellar.anchor.platform.data.JdbcSep6TransactionStore;
 import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.observer.stellar.StellarPaymentObserver;
@@ -87,8 +88,9 @@ public class PaymentObserverBeans {
   public PaymentOperationToEventListener paymentOperationToEventListener(
       JdbcSep31TransactionStore sep31TransactionStore,
       JdbcSep24TransactionStore sep24TransactionStore,
+      JdbcSep6TransactionStore sep6TransactionStore,
       PlatformApiClient platformApiClient) {
     return new PaymentOperationToEventListener(
-        sep31TransactionStore, sep24TransactionStore, platformApiClient);
+        sep31TransactionStore, sep24TransactionStore, sep6TransactionStore, platformApiClient);
   }
 }

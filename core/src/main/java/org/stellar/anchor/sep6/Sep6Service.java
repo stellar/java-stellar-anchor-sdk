@@ -1,10 +1,13 @@
 package org.stellar.anchor.sep6;
 
+import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
+
 import com.google.common.collect.ImmutableMap;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -106,6 +109,87 @@ public class Sep6Service {
     return GetDepositResponse.builder()
         .how("Check the transaction for more information about how to deposit.")
         .id(txn.getId())
+        .build();
+  }
+
+  public GetWithdrawResponse withdraw(Sep10Jwt token, GetWithdrawRequest request)
+      throws AnchorException {
+    // Pre-validation
+    if (token == null) {
+      throw new SepNotAuthorizedException("missing token");
+    }
+    if (request == null) {
+      throw new SepValidationException("missing request");
+    }
+
+    AssetInfo asset = assetService.getAsset(request.getAssetCode());
+    if (asset == null || !asset.getWithdraw().getEnabled() || !asset.getSep6Enabled()) {
+      throw new SepValidationException(
+          String.format("invalid operation for asset %s", request.getAssetCode()));
+    }
+    if (!asset.getWithdraw().getMethods().contains(request.getType())) {
+      throw new SepValidationException(
+          String.format(
+              "invalid type %s for asset %s, supported types are %s",
+              request.getType(), request.getAssetCode(), asset.getWithdraw().getMethods()));
+    }
+    BigDecimal amount = new BigDecimal(request.getAmount());
+    if (amount.scale() > asset.getSignificantDecimals()) {
+      throw new SepValidationException(
+          String.format(
+              "invalid amount %s for asset %s, significant decimals is %s",
+              request.getAmount(), request.getAssetCode(), asset.getSignificantDecimals()));
+    }
+    if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+      throw new SepValidationException(
+          String.format(
+              "invalid amount %s for asset %s", request.getAmount(), request.getAssetCode()));
+    }
+
+    String id = SepHelper.generateSepTransactionId();
+
+    // Make a unique memo from the transaction ID
+    String memo = StringUtils.truncate(id, 32);
+    memo = StringUtils.leftPad(memo, 32, '0');
+    memo = new String(Base64.getEncoder().encode(memo.getBytes()));
+
+    Sep6TransactionBuilder builder =
+        new Sep6TransactionBuilder(txnStore)
+            .id(id)
+            .transactionId(id)
+            .status(SepTransactionStatus.INCOMPLETE.toString())
+            .kind(Sep6Transaction.Kind.WITHDRAWAL.toString())
+            .type(request.getType())
+            .assetCode(request.getAssetCode())
+            .assetIssuer(asset.getIssuer())
+            .amountExpected(request.getAmount())
+            .startedAt(Instant.now())
+            .sep10Account(token.getAccount())
+            .sep10AccountMemo(token.getAccountMemo())
+            .memo(memo)
+            .memoType(MemoHelper.memoTypeAsString(MEMO_HASH))
+            .fromAccount(token.getAccount())
+            .withdrawAnchorAccount(asset.getDistributionAccount())
+            .toAccount(asset.getDistributionAccount())
+            .refundMemo(request.getRefundMemo())
+            .refundMemoType(request.getRefundMemoType());
+
+    Sep6Transaction txn = builder.build();
+    txnStore.save(txn);
+
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("6")
+            .type(AnchorEvent.Type.TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .build());
+
+    return GetWithdrawResponse.builder()
+        .accountId(asset.getDistributionAccount())
+        .id(txn.getId())
+        .memo(memo)
+        .memoType(MemoHelper.memoTypeAsString(MEMO_HASH))
         .build();
   }
 
@@ -223,7 +307,11 @@ public class Sep6Service {
     if (org.stellar.anchor.sep6.Sep6Transaction.Kind.DEPOSIT.toString().equals(txn.getKind())) {
       return builder.depositMemo(txn.getMemo()).depositMemoType(txn.getMemoType()).build();
     } else {
-      throw new NotImplementedException(String.format("kind %s not implemented", txn.getKind()));
+      return builder
+          .withdrawAnchorAccount(txn.getWithdrawAnchorAccount())
+          .withdrawMemo(txn.getMemo())
+          .withdrawMemoType(txn.getMemoType())
+          .build();
     }
   }
 

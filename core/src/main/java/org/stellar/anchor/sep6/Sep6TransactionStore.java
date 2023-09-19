@@ -26,4 +26,6 @@ public interface Sep6TransactionStore {
   Sep6Transaction save(Sep6Transaction sep6Transaction) throws SepException;
 
   List<? extends Sep6Transaction> findTransactions(TransactionsParams params) throws SepException;
+
+  Sep6Transaction findOneByToAccountAndMemoAndStatus(String toAccount, String memo, String status);
 }

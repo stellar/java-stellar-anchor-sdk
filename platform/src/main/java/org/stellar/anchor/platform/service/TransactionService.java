@@ -425,14 +425,14 @@ public class TransactionService {
 
     // asset name needs to be supported
     if (assets.stream()
-        .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
+        .noneMatch(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))) {
       throw new BadRequestException(
           String.format("'%s' is not a supported asset.", amount.getAsset()));
     }
 
     List<AssetInfo> allAssets =
         assets.stream()
-            .filter(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))
+            .filter(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))
             .collect(Collectors.toList());
 
     if (allAssets.size() == 1) {

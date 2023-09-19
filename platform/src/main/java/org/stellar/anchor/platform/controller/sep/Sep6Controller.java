@@ -74,6 +74,33 @@ public class Sep6Controller {
 
   @CrossOrigin(origins = "*")
   @RequestMapping(
+      value = "/withdraw",
+      method = {RequestMethod.GET})
+  public GetWithdrawResponse withdraw(
+      HttpServletRequest request,
+      @RequestParam(value = "asset_code") String assetCode,
+      @RequestParam(value = "type") String type,
+      @RequestParam(value = "amount") String amount,
+      @RequestParam(value = "country_code", required = false) String countryCode,
+      @RequestParam(value = "refundMemo", required = false) String refundMemo,
+      @RequestParam(value = "refundMemoType", required = false) String refundMemoType)
+      throws AnchorException {
+    debugF("GET /withdraw");
+    Sep10Jwt token = getSep10Token(request);
+    GetWithdrawRequest getWithdrawRequest =
+        GetWithdrawRequest.builder()
+            .assetCode(assetCode)
+            .type(type)
+            .amount(amount)
+            .countryCode(countryCode)
+            .refundMemo(refundMemo)
+            .refundMemoType(refundMemoType)
+            .build();
+    return sep6Service.withdraw(token, getWithdrawRequest);
+  }
+
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
       value = "/transactions",
       method = {RequestMethod.GET})
   public GetTransactionsResponse getTransactions(
