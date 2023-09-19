@@ -61,39 +61,39 @@ class PaymentOperationToEventListenerTest {
   @Test
   fun test_onReceiver_failValidation() {
     // Payment missing txHash shouldn't trigger an event nor reach the DB
-    val p = ObservedPayment.builder().build()
-    p.transactionHash = null
-    p.transactionMemoType = "text"
-    p.transactionMemo = "my_memo_1"
-    paymentOperationToEventListener.onReceived(p)
+    val payment = ObservedPayment.builder().build()
+    payment.transactionHash = null
+    payment.transactionMemoType = "text"
+    payment.transactionMemo = "my_memo_1"
+    paymentOperationToEventListener.onReceived(payment)
     verify { sep31TransactionStore wasNot Called }
     verify { sep24TransactionStore wasNot Called }
     verify { sep6TransactionStore wasNot Called }
 
     // Payment missing txMemo shouldn't trigger an event nor reach the DB
-    p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
-    p.transactionMemo = null
-    paymentOperationToEventListener.onReceived(p)
+    payment.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
+    payment.transactionMemo = null
+    paymentOperationToEventListener.onReceived(payment)
     verify { sep31TransactionStore wasNot Called }
     verify { sep24TransactionStore wasNot Called }
     verify { sep6TransactionStore wasNot Called }
 
     // Asset types different from "native", "credit_alphanum4" and "credit_alphanum12" shouldn't
     // trigger an event nor reach the DB
-    p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
-    p.transactionMemo = "my_memo_1"
-    p.assetType = "liquidity_pool_shares"
-    paymentOperationToEventListener.onReceived(p)
+    payment.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
+    payment.transactionMemo = "my_memo_1"
+    payment.assetType = "liquidity_pool_shares"
+    paymentOperationToEventListener.onReceived(payment)
     verify { sep31TransactionStore wasNot Called }
     verify { sep24TransactionStore wasNot Called }
     verify { sep6TransactionStore wasNot Called }
 
     // Payment whose memo is not in the DB shouldn't trigger event
-    p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
-    p.transactionMemo = "my_memo_2"
-    p.assetType = "credit_alphanum4"
-    p.sourceAccount = "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5"
-    p.to = "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
+    payment.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
+    payment.transactionMemo = "my_memo_2"
+    payment.assetType = "credit_alphanum4"
+    payment.sourceAccount = "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5"
+    payment.to = "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     every {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
     } returns null
@@ -101,7 +101,7 @@ class PaymentOperationToEventListenerTest {
       null
     every { sep6TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
       null
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -111,11 +111,11 @@ class PaymentOperationToEventListenerTest {
     }
 
     // If findByStellarAccountIdAndMemoAndStatus throws an exception, we shouldn't trigger an event
-    p.transactionMemo = "my_memo_3"
+    payment.transactionMemo = "my_memo_3"
     every {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
     } throws SepException("Something went wrong")
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -125,14 +125,14 @@ class PaymentOperationToEventListenerTest {
     }
 
     // If asset code from the fetched tx is different, don't trigger event
-    p.transactionMemo = "my_memo_4"
-    p.assetCode = "FOO"
+    payment.transactionMemo = "my_memo_4"
+    payment.assetCode = "FOO"
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.amountInAsset = "BAR"
     every {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
     } returns sep31TxMock
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -164,7 +164,7 @@ class PaymentOperationToEventListenerTest {
     val inAsset = createAsset(inAssetType, inAssetCode, inAssetIssuer)
     val outAsset = createAsset(outAssetType, outAssetCode, outAssetIssuer)
 
-    val p =
+    val payment =
       ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
@@ -251,7 +251,7 @@ class PaymentOperationToEventListenerTest {
         )
         .build()
 
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -279,7 +279,7 @@ class PaymentOperationToEventListenerTest {
     val fooAsset = "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     val barAsset = "stellar:BAR:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
 
-    val p =
+    val payment =
       ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
@@ -367,7 +367,7 @@ class PaymentOperationToEventListenerTest {
         )
         .build()
 
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -404,7 +404,7 @@ class PaymentOperationToEventListenerTest {
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
     val asset = createAsset(assetType, assetCode, assetIssuer)
 
-    val p =
+    val payment =
       ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
@@ -479,7 +479,7 @@ class PaymentOperationToEventListenerTest {
         )
         .build()
 
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -517,7 +517,7 @@ class PaymentOperationToEventListenerTest {
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
     val asset = createAsset(assetType, assetCode, assetIssuer)
 
-    val p =
+    val payment =
       ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
@@ -591,7 +591,7 @@ class PaymentOperationToEventListenerTest {
         )
         .build()
 
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",

@@ -135,7 +135,7 @@ public class TransactionHelper {
     AssetInfo info = service.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
 
     // Already validated in the interactive flow
-    return info.getAssetName();
+    return info.getSep38AssetName();
   }
 
   private static String makeAsset(
@@ -146,7 +146,7 @@ public class TransactionHelper {
 
     AssetInfo info = service.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
 
-    return info.getAssetName();
+    return info.getSep38AssetName();
   }
 
   static RefundPayment toRefundPayment(Sep24RefundPayment refundPayment, String assetName) {

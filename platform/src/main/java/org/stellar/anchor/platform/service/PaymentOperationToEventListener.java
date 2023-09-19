@@ -189,7 +189,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
   void handleSep24Transaction(ObservedPayment payment, JdbcSep24Transaction txn)
       throws AnchorException, IOException {
     // Compare asset code
-    String assetName = AssetInfo.makeAssetName(payment.getAssetCode(), payment.getAssetIssuer());
+    String assetName =
+        AssetInfo.makeSep11AssetName(payment.getAssetCode(), payment.getAssetIssuer());
     if (!payment.getAssetName().equals(assetName)) {
       warnF(
           "Payment asset {} does not match the expected asset {}.",
@@ -222,7 +223,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   void handleSep6Transaction(ObservedPayment payment, JdbcSep6Transaction txn)
       throws AnchorException, IOException {
-    String assetName = AssetInfo.makeAssetName(payment.getAssetCode(), payment.getAssetIssuer());
+    String assetName =
+        AssetInfo.makeSep11AssetName(payment.getAssetCode(), payment.getAssetIssuer());
     if (!payment.getAssetName().equals(assetName)) {
       warnF(
           "Payment asset {} does not match the expected asset {}.",
