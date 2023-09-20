@@ -213,7 +213,9 @@ internal class Sep10ServiceTest {
     val clientAccount = horizon.server.accounts().account(clientMasterKP.accountId)
     val multisigTx =
       TransactionBuilder(AccountConverter.enableMuxed(), clientAccount, Network.TESTNET)
-        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .addPreconditions(
+          TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
+        )
         .setBaseFee(300)
         .addOperation(
           SetOptionsOperation.Builder()
