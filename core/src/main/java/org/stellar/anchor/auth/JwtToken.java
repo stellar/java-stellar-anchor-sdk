@@ -15,6 +15,7 @@ public class JwtToken {
   long iat; // Issued At
   long exp; // Expiration Time
   String jti; // JWT ID           // Stellar Transaction ID
+
   // String aud;   // Audience
   // long nbf;     // Not Before
 
@@ -81,7 +82,7 @@ public class JwtToken {
           token.muxedAccount = sub;
           byte[] pubKeyBytes = muxedAccount.getEd25519().getUint256();
           token.account = KeyPair.fromPublicKey(pubKeyBytes).getAccountId();
-          token.muxedAccountId = muxedAccount.getId().getUint64();
+          token.muxedAccountId = muxedAccount.getId().getUint64().getNumber().longValue();
         } catch (Exception ignored) {
         }
       }

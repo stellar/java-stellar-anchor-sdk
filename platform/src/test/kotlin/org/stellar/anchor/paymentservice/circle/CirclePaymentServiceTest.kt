@@ -1,5 +1,6 @@
 package org.stellar.anchor.paymentservice.circle
 
+import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import io.mockk.every
 import io.mockk.mockk
@@ -44,7 +45,6 @@ import org.stellar.sdk.Server
 import org.stellar.sdk.responses.Page
 import org.stellar.sdk.responses.operations.OperationResponse
 import reactor.core.publisher.Mono
-import shadow.com.google.common.reflect.TypeToken
 
 class CirclePaymentServiceTest {
   companion object {

@@ -43,20 +43,23 @@ import org.stellar.sdk.responses.Page;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
-import shadow.com.google.common.base.Optional;
 
 public class StellarPaymentObserver implements HealthCheckable {
   /** The maximum number of results the Stellar Blockchain can return. */
   private static final int MAX_RESULTS = 200;
+
   /** The minimum number of results the Stellar Blockchain can return. */
   private static final int MIN_RESULTS = 1;
+
   /**
    * If the observer had been silent for longer than SILENC_TIMEOUT, a SilenceTimeoutException will
    * be thrown to trigger reconnections.
    */
   private static final long SILENCE_TIMEOUT = 90;
+
   /** If the observer has more than 2 SILENCE_TIMEOUT_RETRIES, it will be marked unhealthy */
   private static final long SILENCE_TIMEOUT_RETRIES = 2;
+
   /** The time interval between silence checks */
   private static final long SILENCE_CHECK_INTERVAL = 5;
 
@@ -165,14 +168,15 @@ public class StellarPaymentObserver implements HealthCheckable {
           }
 
           @Override
-          public void onFailure(Optional<Throwable> exception, Optional<Integer> statusCode) {
-            handleFailure(exception);
+          public void onFailure(
+              java.util.Optional<Throwable> error, java.util.Optional<Integer> responseCode) {
+            handleFailure(error);
           }
         });
   }
 
   private void updateReceivedMetrics(OperationResponse operationResponse) {
-    if (metricLatestBlockReceived == null) {
+    if (metricLatestBlockReceived == null && operationResponse.getTransaction().isPresent()) {
       metricLatestBlockReceived =
           new AtomicLong(operationResponse.getTransaction().get().getLedger());
       Metrics.gauge(
@@ -189,7 +193,7 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   private void updateProcessedMetrics(OperationResponse operationResponse) {
-    if (metricLatestBlockProcessed == null) {
+    if (metricLatestBlockProcessed == null && operationResponse.getTransaction().isPresent()) {
       metricLatestBlockProcessed =
           new AtomicLong(operationResponse.getTransaction().get().getLedger());
       Metrics.gauge(
@@ -379,11 +383,13 @@ public class StellarPaymentObserver implements HealthCheckable {
         observedPayment = ObservedPayment.fromPathPaymentOperationResponse(pathPayment);
       }
     } catch (SepException ex) {
-      Log.warn(
-          String.format(
-              "Payment of id %s contains unsupported memo %s.",
-              operationResponse.getId(),
-              operationResponse.getTransaction().get().getMemo().toString()));
+      if (operationResponse.getTransaction().isPresent()) {
+        Log.warn(
+            String.format(
+                "Payment of id %s contains unsupported memo %s.",
+                operationResponse.getId(),
+                operationResponse.getTransaction().get().getMemo().toString()));
+      }
       Log.warnEx(ex);
     }
 
@@ -422,10 +428,8 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   void handleFailure(Optional<Throwable> exception) {
     // The SSEStreamer has internal errors. We will give up and let the container
-    // manager to
-    // restart.
-    errorEx("stellar payment observer stream error: ", exception.get());
-
+    // manager to restart.
+    exception.ifPresent(throwable -> errorEx("stellar payment observer stream error: ", throwable));
     // Mark the observer unhealthy
     setStatus(STREAM_ERROR);
   }

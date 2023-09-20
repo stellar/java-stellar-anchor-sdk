@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.payment.observer.circle.model;
 
+import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import java.lang.reflect.Type;
@@ -10,7 +11,6 @@ import org.stellar.anchor.platform.payment.common.Account;
 import org.stellar.anchor.platform.payment.common.Payment;
 import org.stellar.anchor.platform.payment.common.PaymentNetwork;
 import org.stellar.anchor.util.GsonUtils;
-import shadow.com.google.common.reflect.TypeToken;
 
 @Data
 public class CirclePayout {

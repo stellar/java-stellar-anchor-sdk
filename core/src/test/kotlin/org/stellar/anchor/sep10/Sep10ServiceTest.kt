@@ -1,6 +1,7 @@
 package org.stellar.anchor.sep10
 
 import com.google.common.io.BaseEncoding
+import com.google.gson.annotations.SerializedName
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
@@ -47,7 +48,6 @@ import org.stellar.anchor.util.NetUtil
 import org.stellar.sdk.*
 import org.stellar.sdk.requests.ErrorResponse
 import org.stellar.sdk.responses.AccountResponse
-import shadow.com.google.gson.annotations.SerializedName
 
 @Suppress("unused")
 internal class TestSigner(
@@ -213,7 +213,9 @@ internal class Sep10ServiceTest {
     val clientAccount = horizon.server.accounts().account(clientMasterKP.accountId)
     val multisigTx =
       TransactionBuilder(AccountConverter.enableMuxed(), clientAccount, Network.TESTNET)
-        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .addPreconditions(
+          TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
+        )
         .setBaseFee(300)
         .addOperation(
           SetOptionsOperation.Builder()
