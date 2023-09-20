@@ -54,7 +54,7 @@ aws-java-sdk-s3 = "1.12.342"
 sqlite-jdbc = "3.34.0"
 slf4j = "1.7.35"
 slf4j2 = "2.0.5"
-stellar-wallet-sdk = "0.8.1"
+stellar-wallet-sdk = "0.11.0"
 toml4j = "0.7.2"
 
 # Plugin versions
