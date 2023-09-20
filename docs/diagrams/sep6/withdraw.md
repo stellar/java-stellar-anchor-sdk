@@ -14,7 +14,7 @@ sequenceDiagram
   participant Bank
 
   Wallet->>+Platform: GET /withdraw
-  Platform-->>Platform: Creates withdraw transaction with id abcd-1234 with status incomplete
+  Platform->>Platform: Creates withdraw transaction with id abcd-1234 with status incomplete
   Platform-->>-Wallet: Returns withdraw response with id abcd-1234
   Platform-)Anchor: Sends an AnchorEvent with type transaction_created and transaction id abcd-1234
   loop until status is pending_user_transfer_start
