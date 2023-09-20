@@ -375,8 +375,8 @@ public class StellarPaymentObserver implements HealthCheckable {
                 "Payment of id %s contains unsupported memo %s.",
                 operationResponse.getId(),
                 operationResponse.getTransaction().get().getMemo().toString()));
-        warnEx(ex);
       }
+      warnEx(ex);
     }
 
     if (observedPayment == null) {
