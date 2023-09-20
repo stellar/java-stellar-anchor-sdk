@@ -48,14 +48,19 @@ public class Sep6Transaction {
 
   String to;
 
+  @SerializedName("deposit_memo")
   String depositMemo;
 
+  @SerializedName("deposit_memo_type")
   String depositMemoType;
 
-  String withdrawMemoAccount;
+  @SerializedName("withdraw_anchor_account")
+  String withdrawAnchorAccount;
 
+  @SerializedName("withdraw_memo")
   String withdrawMemo;
 
+  @SerializedName("withdraw_memo_type")
   String withdrawMemoType;
 
   @SerializedName("started_at")

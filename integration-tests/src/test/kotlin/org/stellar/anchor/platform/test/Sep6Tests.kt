@@ -97,6 +97,20 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
   """
       .trimIndent()
 
+  private val expectedSep6WithdrawResponse =
+    """
+      {
+          "transaction": {
+              "kind": "withdrawal",
+              "status": "incomplete",
+              "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "to": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+              "withdraw_memo_type": "hash"
+          }
+      }
+    """
+      .trimIndent()
+
   private fun `test Sep6 info endpoint`() {
     val info = sep6Client.getInfo()
     JSONAssert.assertEquals(expectedSep6Info, gson.toJson(info), JSONCompareMode.LENIENT)
@@ -122,9 +136,24 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
     )
   }
 
+  private fun `test sep6 withdraw`() {
+    val request = mapOf("asset_code" to "USDC", "type" to "bank_account", "amount" to "0.01")
+    val response = sep6Client.withdraw(request)
+    Log.info("GET /withdraw response: $response")
+    assert(!response.id.isNullOrEmpty())
+
+    val savedWithdrawTxn = sep6Client.getTransaction(mapOf("id" to response.id!!))
+    JSONAssert.assertEquals(
+      expectedSep6WithdrawResponse,
+      gson.toJson(savedWithdrawTxn),
+      JSONCompareMode.LENIENT
+    )
+  }
+
   fun testAll() {
     Log.info("Performing SEP6 tests")
     `test Sep6 info endpoint`()
     `test sep6 deposit`()
+    `test sep6 withdraw`()
   }
 }

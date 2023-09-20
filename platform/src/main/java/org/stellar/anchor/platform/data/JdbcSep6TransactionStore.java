@@ -114,4 +114,10 @@ public class JdbcSep6TransactionStore implements Sep6TransactionStore {
   public List<? extends Sep6Transaction> findTransactions(TransactionsParams params) {
     return transactionRepo.findAllTransactions(params, JdbcSep6Transaction.class);
   }
+
+  @Override
+  public JdbcSep6Transaction findOneByToAccountAndMemoAndStatus(
+      String toAccount, String memo, String status) {
+    return transactionRepo.findOneByToAccountAndMemoAndStatus(toAccount, memo, status);
+  }
 }

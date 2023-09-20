@@ -14,11 +14,14 @@ public interface JdbcSep6TransactionRepo
   @NotNull
   Optional<JdbcSep6Transaction> findById(@NonNull String id);
 
-  Sep6Transaction findOneByTransactionId(String transactionId);
+  JdbcSep6Transaction findOneByTransactionId(String transactionId);
 
-  Sep6Transaction findOneByStellarTransactionId(String stellarTransactionId);
+  JdbcSep6Transaction findOneByStellarTransactionId(String stellarTransactionId);
 
-  Sep6Transaction findOneByExternalTransactionId(String externalTransactionId);
+  JdbcSep6Transaction findOneByExternalTransactionId(String externalTransactionId);
+
+  JdbcSep6Transaction findOneByToAccountAndMemoAndStatus(
+      String toAccount, String memo, String status);
 
   List<Sep6Transaction> findBySep10AccountAndRequestAssetCodeOrderByStartedAtDesc(
       String stellarAccount, String assetCode);

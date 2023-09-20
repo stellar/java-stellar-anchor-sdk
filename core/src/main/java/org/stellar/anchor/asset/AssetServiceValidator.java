@@ -26,9 +26,9 @@ public class AssetServiceValidator {
     // Check for duplicate assets
     Set<String> existingAssetNames = new HashSet<>();
     for (AssetInfo asset : assetService.listAllAssets()) {
-      if (asset != null && !existingAssetNames.add(asset.getAssetName())) {
+      if (asset != null && !existingAssetNames.add(asset.getSep38AssetName())) {
         throw new InvalidConfigException(
-            "Duplicate assets defined in configuration. Asset = " + asset.getAssetName());
+            "Duplicate assets defined in configuration. Asset = " + asset.getSep38AssetName());
       }
     }
 
@@ -48,7 +48,7 @@ public class AssetServiceValidator {
         // Check for missing SEP-6 withdrawal types
         if (isEmpty(assetInfo.getWithdraw().getMethods())) {
           throw new InvalidConfigException(
-              "Withdraw types not defined for asset " + assetInfo.getAssetName());
+              "Withdraw types not defined for asset " + assetInfo.getSep38AssetName());
         }
 
         // Check for duplicate SEP-6 withdrawal types
@@ -57,7 +57,7 @@ public class AssetServiceValidator {
           if (!existingWithdrawTypes.add(type)) {
             throw new InvalidConfigException(
                 "Duplicate withdraw types defined for asset "
-                    + assetInfo.getAssetName()
+                    + assetInfo.getSep38AssetName()
                     + ". Type = "
                     + type);
           }
@@ -74,7 +74,7 @@ public class AssetServiceValidator {
         // Check for missing SEP-6 deposit types
         if (isEmpty(assetInfo.getDeposit().getMethods())) {
           throw new InvalidConfigException(
-              "Deposit types not defined for asset " + assetInfo.getAssetName());
+              "Deposit types not defined for asset " + assetInfo.getSep38AssetName());
         }
 
         // Check for duplicate SEP-6 deposit types
@@ -83,7 +83,7 @@ public class AssetServiceValidator {
           if (!existingDepositTypes.add(type)) {
             throw new InvalidConfigException(
                 "Duplicate deposit types defined for asset "
-                    + assetInfo.getAssetName()
+                    + assetInfo.getSep38AssetName()
                     + ". Type = "
                     + type);
           }

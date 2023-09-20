@@ -18,6 +18,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.PatchTransactionRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
@@ -34,14 +35,17 @@ public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore sep31TransactionStore;
 
   final JdbcSep24TransactionStore sep24TransactionStore;
+  final JdbcSep6TransactionStore sep6TransactionStore;
   private final PlatformApiClient platformApiClient;
 
   public PaymentOperationToEventListener(
       JdbcSep31TransactionStore sep31TransactionStore,
       JdbcSep24TransactionStore sep24TransactionStore,
+      JdbcSep6TransactionStore sep6TransactionStore,
       PlatformApiClient platformApiClient) {
     this.sep31TransactionStore = sep31TransactionStore;
     this.sep24TransactionStore = sep24TransactionStore;
+    this.sep6TransactionStore = sep6TransactionStore;
     this.platformApiClient = platformApiClient;
   }
 
@@ -112,6 +116,25 @@ public class PaymentOperationToEventListener implements PaymentListener {
         errorEx(aex);
       }
     }
+
+    // Find a transaction matching the memo, assumes transactions are unique to account+memo
+    JdbcSep6Transaction sep6Txn;
+    try {
+      sep6Txn =
+          sep6TransactionStore.findOneByToAccountAndMemoAndStatus(
+              payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
+    } catch (Exception ex) {
+      errorEx(ex);
+      return;
+    }
+    if (sep6Txn != null) {
+      try {
+        handleSep6Transaction(payment, sep6Txn);
+      } catch (AnchorException aex) {
+        warnF("Error handling the SEP6 transaction id={}.", sep6Txn.getId());
+        errorEx(aex);
+      }
+    }
   }
 
   @Override
@@ -132,32 +155,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // parse payment creation time
-    Instant paymentTime = parsePaymentTime(payment.getCreatedAt());
-    // Build Stellar Transaction object
-    debugF("Building StellarTransaction object for payment {}.", payment.getId());
     StellarTransaction stellarTransaction =
-        StellarTransaction.builder()
-            .id(payment.getTransactionHash())
-            .memo(txn.getStellarMemo())
-            .memoType(txn.getStellarMemoType())
-            .createdAt(paymentTime)
-            .envelope(payment.getTransactionEnvelope())
-            .payments(
-                List.of(
-                    StellarPayment.builder()
-                        .id(payment.getId())
-                        .paymentType(
-                            payment.getType() == ObservedPayment.Type.PAYMENT
-                                ? StellarPayment.Type.PAYMENT
-                                : StellarPayment.Type.PATH_PAYMENT)
-                        .sourceAccount(payment.getFrom())
-                        .destinationAccount(payment.getTo())
-                        .amount(new Amount(payment.getAmount(), payment.getAssetName()))
-                        .build()))
-            .build();
-
-    // TODO: this should be taken care of by the RPC actions.
-    SepTransactionStatus newStatus = SepTransactionStatus.PENDING_RECEIVER;
+        buildStellarTransaction(payment, txn.getStellarMemo(), txn.getStellarMemoType());
 
     // Check if the payment contains the expected amount (or greater)
     BigDecimal expectedAmount = decimal(txn.getAmountIn());
@@ -165,7 +164,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     String message = "Incoming payment for SEP-31 transaction";
     if (gotAmount.compareTo(expectedAmount) >= 0) {
       Log.info(message);
-      txn.setTransferReceivedAt(paymentTime);
+      txn.setTransferReceivedAt(stellarTransaction.getCreatedAt());
     } else {
       message =
           String.format(
@@ -174,21 +173,88 @@ public class PaymentOperationToEventListener implements PaymentListener {
       Log.warn(message);
     }
 
-    // Patch transaction
-    patchTransaction(txn, stellarTransaction, paymentTime, newStatus);
+    // TODO: this should be taken care of by the RPC actions.
+    patchTransaction(txn, stellarTransaction, SepTransactionStatus.PENDING_RECEIVER);
 
     // Update metrics
-    Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", newStatus.toString())
+    Metrics.counter(
+            AnchorMetrics.SEP31_TRANSACTION.toString(),
+            "status",
+            SepTransactionStatus.PENDING_RECEIVER.toString())
         .increment();
     Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
         .increment(Double.parseDouble(payment.getAmount()));
   }
 
+  void handleSep24Transaction(ObservedPayment payment, JdbcSep24Transaction txn)
+      throws AnchorException, IOException {
+    // Compare asset code
+    String assetName =
+        AssetInfo.makeSep11AssetName(payment.getAssetCode(), payment.getAssetIssuer());
+    if (!payment.getAssetName().equals(assetName)) {
+      warnF(
+          "Payment asset {} does not match the expected asset {}.",
+          payment.getAssetCode(),
+          assetName);
+      return;
+    }
+
+    StellarTransaction stellarTransaction =
+        buildStellarTransaction(payment, txn.getMemo(), txn.getMemoType());
+
+    // Check if the payment contains the expected amount (or greater)
+    BigDecimal amountIn = decimal(txn.getAmountIn());
+    BigDecimal gotAmount = decimal(payment.getAmount());
+    String message = "Incoming payment for SEP-24 transaction";
+    if (gotAmount.compareTo(amountIn) == 0) {
+      Log.info(message);
+      txn.setTransferReceivedAt(stellarTransaction.getCreatedAt());
+    } else {
+      message =
+          String.format(
+              "The incoming payment amount was insufficient! Expected: \"%s\", Received: \"%s\"",
+              formatAmount(amountIn), formatAmount(gotAmount));
+      Log.warn(message);
+    }
+
+    // TODO: this should be taken care of by the RPC actions.
+    patchTransaction(txn, stellarTransaction, SepTransactionStatus.PENDING_ANCHOR);
+  }
+
+  void handleSep6Transaction(ObservedPayment payment, JdbcSep6Transaction txn)
+      throws AnchorException, IOException {
+    String assetName =
+        AssetInfo.makeSep11AssetName(payment.getAssetCode(), payment.getAssetIssuer());
+    if (!payment.getAssetName().equals(assetName)) {
+      warnF(
+          "Payment asset {} does not match the expected asset {}.",
+          payment.getAssetCode(),
+          assetName);
+      return;
+    }
+
+    StellarTransaction stellarTransaction =
+        buildStellarTransaction(payment, txn.getMemo(), txn.getMemoType());
+
+    BigDecimal amountExpected = decimal(txn.getAmountExpected());
+    BigDecimal gotAmount = decimal(payment.getAmount());
+    if (gotAmount.compareTo(amountExpected) >= 0) {
+      Log.infoF("Incoming payment for SEP-6 transaction {}.", txn.getId());
+      txn.setTransferReceivedAt(stellarTransaction.getCreatedAt());
+    } else {
+      Log.warnF(
+          "The incoming payment amount for SEP-6 transaction {} was insufficient! Expected: \"{}\", Received: \"{}\"",
+          txn.getId(),
+          formatAmount(amountExpected),
+          formatAmount(gotAmount));
+    }
+
+    // TODO: this should be taken care of by the RPC actions.
+    patchTransaction(txn, stellarTransaction, SepTransactionStatus.PENDING_ANCHOR);
+  }
+
   private void patchTransaction(
-      JdbcSepTransaction txn,
-      StellarTransaction stellarTransaction,
-      Instant paymentTime,
-      SepTransactionStatus newStatus)
+      JdbcSepTransaction txn, StellarTransaction stellarTransaction, SepTransactionStatus newStatus)
       throws IOException, AnchorException {
     PatchTransactionsRequest patchTransactionsRequest =
         PatchTransactionsRequest.builder()
@@ -197,7 +263,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
                     PatchTransactionRequest.builder()
                         .transaction(
                             PlatformTransactionData.builder()
-                                .updatedAt(paymentTime)
+                                .updatedAt(stellarTransaction.getCreatedAt())
                                 .transferReceivedAt(txn.getTransferReceivedAt())
                                 .status(newStatus)
                                 .stellarTransactions(
@@ -212,63 +278,28 @@ public class PaymentOperationToEventListener implements PaymentListener {
     platformApiClient.patchTransaction(patchTransactionsRequest);
   }
 
-  void handleSep24Transaction(ObservedPayment payment, JdbcSep24Transaction txn)
-      throws AnchorException, IOException {
-    // Compare asset code
-    String paymentAssetName = "stellar:" + payment.getAssetName();
-    String txnAssetName = "stellar:" + txn.getRequestAssetName();
-    if (!txnAssetName.equals(paymentAssetName)) {
-      warnF(
-          "Payment asset {} does not match the expected asset {}.",
-          payment.getAssetCode(),
-          txn.getAmountInAsset());
-      return;
-    }
-
-    // parse payment creation time
+  StellarTransaction buildStellarTransaction(
+      ObservedPayment payment, String memo, String memoType) {
     Instant paymentTime = parsePaymentTime(payment.getCreatedAt());
-    // Build Stellar Transaction object
-    debugF("Building StellarTransaction for payment {}.", payment.getId());
-    StellarTransaction stellarTransaction =
-        StellarTransaction.builder()
-            .id(payment.getTransactionHash())
-            .memo(txn.getMemo())
-            .memoType(txn.getMemoType())
-            .createdAt(paymentTime)
-            .envelope(payment.getTransactionEnvelope())
-            .payments(
-                List.of(
-                    StellarPayment.builder()
-                        .id(payment.getId())
-                        .paymentType(
-                            payment.getType() == ObservedPayment.Type.PAYMENT
-                                ? StellarPayment.Type.PAYMENT
-                                : StellarPayment.Type.PATH_PAYMENT)
-                        .sourceAccount(payment.getFrom())
-                        .destinationAccount(payment.getTo())
-                        .amount(new Amount(payment.getAmount(), payment.getAssetName()))
-                        .build()))
-            .build();
-
-    SepTransactionStatus newStatus = SepTransactionStatus.PENDING_ANCHOR;
-
-    // Check if the payment contains the expected amount (or greater)
-    BigDecimal amountIn = decimal(txn.getAmountIn());
-    BigDecimal gotAmount = decimal(payment.getAmount());
-    String message = "Incoming payment for SEP-24 transaction";
-    if (gotAmount.compareTo(amountIn) == 0) {
-      Log.info(message);
-      txn.setTransferReceivedAt(paymentTime);
-    } else {
-      message =
-          String.format(
-              "The incoming payment amount was insufficient! Expected: \"%s\", Received: \"%s\"",
-              formatAmount(amountIn), formatAmount(gotAmount));
-      Log.warn(message);
-    }
-
-    // Patch transaction
-    patchTransaction(txn, stellarTransaction, paymentTime, newStatus);
+    return StellarTransaction.builder()
+        .id(payment.getTransactionHash())
+        .memo(memo)
+        .memoType(memoType)
+        .createdAt(paymentTime)
+        .envelope(payment.getTransactionEnvelope())
+        .payments(
+            List.of(
+                StellarPayment.builder()
+                    .id(payment.getId())
+                    .paymentType(
+                        payment.getType() == ObservedPayment.Type.PAYMENT
+                            ? StellarPayment.Type.PAYMENT
+                            : StellarPayment.Type.PATH_PAYMENT)
+                    .sourceAccount(payment.getFrom())
+                    .destinationAccount(payment.getTo())
+                    .amount(new Amount(payment.getAmount(), payment.getAssetName()))
+                    .build()))
+        .build();
   }
 
   Instant parsePaymentTime(String paymentTimeStr) {
