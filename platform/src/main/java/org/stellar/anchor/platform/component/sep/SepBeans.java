@@ -35,6 +35,7 @@ import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
+import org.stellar.anchor.sep6.ExchangeAmountsCalculator;
 import org.stellar.anchor.sep6.Sep6Service;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
@@ -90,10 +91,9 @@ public class SepBeans {
   public FilterRegistrationBean<Filter> sep10TokenFilter(JwtService jwtService) {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10JwtFilter(jwtService));
-    registrationBean.addUrlPatterns("/sep6/deposit*");
     registrationBean.addUrlPatterns("/sep6/deposit/*");
-    registrationBean.addUrlPatterns("/sep6/withdraw*");
     registrationBean.addUrlPatterns("/sep6/withdraw/*");
+    registrationBean.addUrlPatterns("/sep6/withdraw-exchange/*");
     registrationBean.addUrlPatterns("/sep6/transaction");
     registrationBean.addUrlPatterns("/sep6/transactions*");
     registrationBean.addUrlPatterns("/sep6/transactions/*");
@@ -120,8 +120,17 @@ public class SepBeans {
       Sep6Config sep6Config,
       AssetService assetService,
       Sep6TransactionStore txnStore,
+      ExchangeAmountsCalculator exchangeAmountsCalculator,
       EventService eventService) {
-    return new Sep6Service(sep6Config, assetService, txnStore, eventService);
+    return new Sep6Service(
+        sep6Config, assetService, txnStore, exchangeAmountsCalculator, eventService);
+  }
+
+  @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep6"})
+  ExchangeAmountsCalculator exchangeAmountsCalculator(
+      FeeIntegration feeIntegration, Sep38QuoteStore sep38QuoteStore, AssetService assetService) {
+    return new ExchangeAmountsCalculator(feeIntegration, sep38QuoteStore, assetService);
   }
 
   @Bean

@@ -28,4 +28,12 @@ public interface AssetService {
    * @return an asset with the given code and issuer.
    */
   AssetInfo getAsset(String code, String issuer);
+
+  /**
+   * Get the asset by the SEP-38 asset identifier.
+   *
+   * @param asset the SEP-38 asset identifier
+   * @return an asset with the given SEP-38 asset identifier.
+   */
+  AssetInfo getAssetBySep38Name(String asset);
 }

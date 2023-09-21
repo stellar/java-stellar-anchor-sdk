@@ -133,7 +133,10 @@ public class PlatformTransactionData {
     @SerializedName("deposit")
     DEPOSIT("deposit"),
     @SerializedName("withdrawal")
-    WITHDRAWAL("withdrawal");
+    WITHDRAWAL("withdrawal"),
+
+    @SerializedName("withdrawal-exchange")
+    WITHDRAWAL_EXCHANGE("withdrawal-exchange");
 
     public final String kind;
 

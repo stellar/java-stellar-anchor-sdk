@@ -13,8 +13,10 @@ class TestConstants {
     const val TEST_ASSET = "USDC"
     const val TEST_ASSET_ISSUER_ACCOUNT_ID =
       "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    const val TEST_ASSET_SEP38_FORMAT = "stellar:$TEST_ASSET:$TEST_ASSET_ISSUER_ACCOUNT_ID"
     const val TEST_TRANSACTION_ID_0 = "c60c62da-bcd6-4423-87b8-0cbd19005422"
     const val TEST_TRANSACTION_ID_1 = "b60c62da-bcd6-4423-87b8-0cbd19005422"
+    const val TEST_QUOTE_ID = "test-quote-id"
 
     const val TEST_CLIENT_TOML =
       "" +
