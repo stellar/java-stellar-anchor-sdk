@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.config;
 
+import static org.stellar.anchor.config.Sep24Config.DepositInfoGeneratorType.*;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
 
@@ -7,10 +8,14 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
@@ -19,6 +24,7 @@ import org.stellar.anchor.util.NetUtil;
 @Getter
 @Setter
 public class PropertySep24Config implements Sep24Config, Validator {
+
   static List<String> validFields =
       Arrays.stream(JdbcSep24Transaction.class.getDeclaredFields())
           .sequential()
@@ -29,10 +35,13 @@ public class PropertySep24Config implements Sep24Config, Validator {
   MoreInfoUrlConfig moreInfoUrl;
   SecretConfig secretConfig;
   Features features;
+  DepositInfoGeneratorType depositInfoGeneratorType;
+  CustodyConfig custodyConfig;
   KycFieldsForwarding kycFieldsForwarding;
 
-  public PropertySep24Config(SecretConfig secretConfig) {
+  public PropertySep24Config(SecretConfig secretConfig, CustodyConfig custodyConfig) {
     this.secretConfig = secretConfig;
+    this.custodyConfig = custodyConfig;
   }
 
   @Getter
@@ -40,6 +49,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class InteractiveUrlConfig {
+
     String baseUrl;
     long jwtExpiration;
     List<String> txnFields;
@@ -50,6 +60,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class MoreInfoUrlConfig {
+
     String baseUrl;
     long jwtExpiration;
     List<String> txnFields;
@@ -60,6 +71,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class KycFieldsForwarding {
+
     boolean enabled;
   }
 
@@ -73,6 +85,8 @@ public class PropertySep24Config implements Sep24Config, Validator {
     if (enabled) {
       validateInteractiveUrlConfig(errors);
       validateMoreInfoUrlConfig(errors);
+      validateFeaturesConfig(errors);
+      validateDepositInfoGeneratorType(errors);
     }
   }
 
@@ -155,6 +169,40 @@ public class PropertySep24Config implements Sep24Config, Validator {
             "sep24-more-info-url-jwt-secret-not-defined",
             "Please set the secret.sep24.more_info_url.jwt_secret or SECRET_SEP24_MORE_INFO_URL_JWT_SECRET environment variable");
       }
+    }
+  }
+
+  void validateFeaturesConfig(Errors errors) {
+    if (custodyConfig.isCustodyIntegrationEnabled()) {
+      if (features.getAccountCreation()) {
+        errors.rejectValue(
+            "features.accountCreation",
+            "sep24-features-account_creation-not-supported",
+            "Custody service doesn't support creating accounts for users requesting deposits");
+      }
+      if (features.getClaimableBalances()) {
+        errors.rejectValue(
+            "features.claimableBalances",
+            "sep24-features-claimable_balances-not-supported",
+            "Custody service doesn't support sending deposit funds as claimable balances");
+      }
+    }
+  }
+
+  void validateDepositInfoGeneratorType(Errors errors) {
+    if (custodyConfig.isCustodyIntegrationEnabled() && CUSTODY != depositInfoGeneratorType) {
+      errors.rejectValue(
+          "depositInfoGeneratorType",
+          "sep24-deposit-info-generator-type",
+          String.format(
+              "[%s] deposit info generator type is not supported when custody integration is enabled",
+              depositInfoGeneratorType.toString().toLowerCase()));
+    } else if (!custodyConfig.isCustodyIntegrationEnabled()
+        && CUSTODY == depositInfoGeneratorType) {
+      errors.rejectValue(
+          "depositInfoGeneratorType",
+          "sep24-deposit-info-generator-type",
+          "[custody] deposit info generator type is not supported when custody integration is disabled");
     }
   }
 }
