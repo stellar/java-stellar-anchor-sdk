@@ -16,6 +16,7 @@ dependencies {
   implementation(libs.java.stellar.sdk)
   implementation(libs.kotlin.logging)
   implementation(libs.slf4j.simple)
+  implementation(libs.toml4j)
   implementation(project(mapOf("path" to ":api-schema")))
 }
 
