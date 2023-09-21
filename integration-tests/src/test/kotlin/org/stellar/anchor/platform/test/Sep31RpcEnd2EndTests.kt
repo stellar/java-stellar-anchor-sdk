@@ -139,7 +139,7 @@ class Sep31RpcEnd2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent,
           .stellar()
           .transaction(keypair)
           .transfer(postTxResponse.stellarAccountId, asset, amount)
-          .addMemo(Pair(memoType, postTxResponse.stellarMemo))
+          .setMemo(Pair(memoType, postTxResponse.stellarMemo))
           .build()
       transfer.sign(keypair)
       wallet.stellar().submitTransaction(transfer)
