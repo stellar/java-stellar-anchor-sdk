@@ -30,7 +30,7 @@ dependencies {
   implementation(libs.flyway.core)
   implementation(libs.hibernate.types)
   implementation(libs.google.gson)
-  implementation(libs.java.stellar.sdk)
+  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(libs.sqlite.jdbc)
   implementation(libs.okhttp3)
