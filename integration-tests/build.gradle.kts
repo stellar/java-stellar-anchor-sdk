@@ -14,7 +14,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
 
   implementation(libs.commons.cli)
-  implementation(libs.java.stellar.sdk)
+  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
   implementation(libs.google.gson)
   implementation(libs.okhttp3)
   implementation(libs.log4j2.core)

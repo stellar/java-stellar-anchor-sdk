@@ -20,7 +20,7 @@ dependencies {
   implementation(libs.h2database)
   implementation(libs.sqlite.jdbc)
   implementation(libs.google.gson)
-  implementation(libs.java.stellar.sdk)
+  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
   implementation(libs.okhttp3)
 
   implementation(project(":api-schema"))
