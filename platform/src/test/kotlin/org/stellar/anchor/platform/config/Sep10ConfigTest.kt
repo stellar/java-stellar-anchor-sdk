@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.config.ClientsConfig
+import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
 
@@ -21,7 +21,7 @@ class Sep10ConfigTest {
   lateinit var errors: Errors
   private lateinit var secretConfig: PropertySecretConfig
   private lateinit var appConfig: AppConfig
-  private var clientsConfig = ClientsConfig()
+  private var clientsConfig = PropertyClientsConfig()
 
   @BeforeEach
   fun setUp() {
@@ -29,34 +29,37 @@ class Sep10ConfigTest {
     appConfig = mockk()
 
     clientsConfig.clients.add(
-      ClientsConfig.ClientConfig(
+      ClientConfig(
         "unknown",
         CUSTODIAL,
         "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
         null,
         null,
+        false,
         null
       )
     )
 
     clientsConfig.clients.add(
-      ClientsConfig.ClientConfig(
+      ClientConfig(
         "lobstr",
         NONCUSTODIAL,
         "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ",
         "lobstr.co",
         "https://callback.lobstr.co/api/v2/anchor/callback",
+        false,
         null
       )
     )
 
     clientsConfig.clients.add(
-      ClientsConfig.ClientConfig(
+      ClientConfig(
         "circle",
         NONCUSTODIAL,
         "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE",
         "circle.com",
         "https://callback.circle.com/api/v2/anchor/callback",
+        false,
         null
       )
     )
@@ -85,7 +88,7 @@ class Sep10ConfigTest {
 
   @Test
   fun `test validation of empty client allow list when client attribution is required`() {
-    val config = PropertySep10Config(appConfig, ClientsConfig(), secretConfig)
+    val config = PropertySep10Config(appConfig, PropertyClientsConfig(), secretConfig)
     config.isClientAttributionRequired = true
     config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-attribution-lists-empty")
@@ -125,37 +128,28 @@ class Sep10ConfigTest {
   @Test
   fun `test when clientAllowList is not defined, clientAttributionAllowList equals to the list of all clients`() {
     val config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
-    assertEquals(config.clientAttributionAllowList, listOf("lobstr.co", "circle.com"))
+    assertEquals(config.allowedClientDomains, listOf("lobstr.co", "circle.com"))
   }
 
   @Test
   fun `test when clientAllowList is defined, clientAttributionAllowList returns correct values`() {
     val config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
     config.clientAllowList = listOf("lobstr")
-    assertEquals(config.clientAttributionAllowList, listOf("lobstr.co"))
+    assertEquals(config.allowedClientDomains, listOf("lobstr.co"))
 
     config.clientAllowList = listOf("circle")
-    assertEquals(config.clientAttributionAllowList, listOf("circle.com"))
+    assertEquals(config.allowedClientDomains, listOf("circle.com"))
 
     config.clientAllowList = listOf("invalid")
     config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-allow-list-invalid")
-    assertTrue(config.clientAttributionAllowList.isEmpty())
+    assertTrue(config.allowedClientDomains.isEmpty())
   }
 
   @Test
   fun `test required known custodial account`() {
-    config.isKnownCustodialAccountRequired = true
     config.validateCustodialAccounts(errors)
     assertFalse(errors.hasErrors())
-  }
-
-  @Test
-  fun `test known custodial account required but no custodial clients not defined`() {
-    config = PropertySep10Config(appConfig, ClientsConfig(), secretConfig)
-    config.isKnownCustodialAccountRequired = true
-    config.validateCustodialAccounts(errors)
-    assertErrorCode(errors, "sep10-custodial-account-list-empty")
   }
 
   @ParameterizedTest

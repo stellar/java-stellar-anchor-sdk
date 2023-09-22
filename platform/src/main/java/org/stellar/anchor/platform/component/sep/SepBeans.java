@@ -21,14 +21,7 @@ import org.stellar.anchor.filter.Sep10JwtFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
-import org.stellar.anchor.platform.config.CallbackApiConfig;
-import org.stellar.anchor.platform.config.PropertySep10Config;
-import org.stellar.anchor.platform.config.PropertySep12Config;
-import org.stellar.anchor.platform.config.PropertySep1Config;
-import org.stellar.anchor.platform.config.PropertySep24Config;
-import org.stellar.anchor.platform.config.PropertySep31Config;
-import org.stellar.anchor.platform.config.PropertySep38Config;
-import org.stellar.anchor.platform.config.PropertySep6Config;
+import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator;
 import org.stellar.anchor.platform.service.Sep31DepositInfoCustodyGenerator;
@@ -71,7 +64,7 @@ public class SepBeans {
   @Bean
   @ConfigurationProperties(prefix = "sep10")
   Sep10Config sep10Config(
-      AppConfig appConfig, SecretConfig secretConfig, ClientsConfig clientsConfig) {
+      AppConfig appConfig, SecretConfig secretConfig, PropertyClientsConfig clientsConfig) {
     return new PropertySep10Config(appConfig, clientsConfig, secretConfig);
   }
 
@@ -174,7 +167,7 @@ public class SepBeans {
 
   @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
-      ClientsConfig clientsConfig,
+      PropertyClientsConfig clientsConfig,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
@@ -209,10 +202,12 @@ public class SepBeans {
   @ConditionalOnAllSepsEnabled(seps = {"sep31"})
   Sep31Service sep31Service(
       AppConfig appConfig,
+      Sep10Config sep10Config,
       Sep31Config sep31Config,
       Sep31TransactionStore sep31TransactionStore,
       Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
+      PropertyClientsConfig clientsConfig,
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
@@ -221,10 +216,12 @@ public class SepBeans {
       CustodyConfig custodyConfig) {
     return new Sep31Service(
         appConfig,
+        sep10Config,
         sep31Config,
         sep31TransactionStore,
         sep31DepositInfoGenerator,
         sep38QuoteStore,
+        clientsConfig,
         assetService,
         feeIntegration,
         customerIntegration,

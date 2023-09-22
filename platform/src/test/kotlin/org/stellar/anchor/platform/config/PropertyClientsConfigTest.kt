@@ -5,23 +5,24 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
-import org.stellar.anchor.config.ClientsConfig
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
+import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
+import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
 
-class ClientsConfigTest {
-  private lateinit var configs: ClientsConfig
+class PropertyClientsConfigTest {
+  private lateinit var configs: PropertyClientsConfig
   private lateinit var errors: Errors
 
   @BeforeEach
   fun setUp() {
-    configs = ClientsConfig()
+    configs = PropertyClientsConfig()
     errors = BindException(configs, "config")
   }
   @Test
   fun `test valid custodial client`() {
     val config = ClientConfig()
     config.name = "circle"
-    config.type = ClientsConfig.ClientType.CUSTODIAL
+    config.type = CUSTODIAL
     config.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
     config.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
     configs.clients.add(config)
@@ -45,7 +46,7 @@ class ClientsConfigTest {
   fun `test valid non-custodial client`() {
     val config = ClientConfig()
     config.name = "lobstr"
-    config.type = ClientsConfig.ClientType.NONCUSTODIAL
+    config.type = NONCUSTODIAL
     config.domain = "lobstr.co"
     config.callbackUrl = "https://callback.lobstr.co/api/v2/anchor/callback"
     config.signingKey = "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"

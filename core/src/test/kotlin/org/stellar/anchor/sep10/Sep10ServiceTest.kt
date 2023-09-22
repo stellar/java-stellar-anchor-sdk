@@ -15,7 +15,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -372,7 +371,7 @@ internal class Sep10ServiceTest {
   )
   fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
     every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
-    every { sep10Config.clientAttributionAllowList } returns listOf(TEST_CLIENT_DOMAIN)
+    every { sep10Config.allowedClientDomains } returns listOf(TEST_CLIENT_DOMAIN)
     val cr =
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
@@ -605,8 +604,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `test createChallenge() ok when knownCustodialAccountRequired is enabled`() {
-    every { sep10Config.isKnownCustodialAccountRequired } returns true
+  fun `test createChallenge() ok`() {
     every { sep10Config.knownCustodialAccountList } returns listOf(TEST_ACCOUNT)
     val cr =
       ChallengeRequest.builder()
@@ -617,13 +615,11 @@ internal class Sep10ServiceTest {
         .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
     verify(exactly = 2) { sep10Config.knownCustodialAccountList }
   }
 
   @Test
   fun `Test createChallenge() when isKnownCustodialAccountRequired is not enabled`() {
-    every { sep10Config.isKnownCustodialAccountRequired } returns false
     every { sep10Config.knownCustodialAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr =
@@ -635,27 +631,6 @@ internal class Sep10ServiceTest {
         .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
     verify(exactly = 2) { sep10Config.knownCustodialAccountList }
-  }
-
-  @Test
-  fun `test createChallenge() failure when isRequireKnownOmnibusAccount is enabled and account mis-match`() {
-    every { sep10Config.isKnownCustodialAccountRequired } returns true
-    every { sep10Config.knownCustodialAccountList } returns
-      listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-    val cr =
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(null)
-        .build()
-
-    val ex = assertThrows<SepException> { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
-    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
-    assertInstanceOf(SepNotAuthorizedException::class.java, ex)
-    assertEquals("unable to process", ex.message)
   }
 }

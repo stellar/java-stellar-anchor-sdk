@@ -10,13 +10,13 @@ import org.springframework.context.annotation.DependsOn;
 import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.config.PropertyAppConfig;
+import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.platform.config.PropertySecretConfig;
 import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.platform.service.HealthCheckService;
@@ -46,7 +46,7 @@ public class UtilityBeans {
 
   @Bean
   MoreInfoUrlConstructor moreInfoUrlConstructor(
-      ClientsConfig clientsConfig, PropertySep24Config sep24Config, JwtService jwtService) {
+      PropertyClientsConfig clientsConfig, PropertySep24Config sep24Config, JwtService jwtService) {
     return new SimpleMoreInfoUrlConstructor(
         clientsConfig, sep24Config.getMoreInfoUrl(), jwtService);
   }

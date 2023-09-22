@@ -29,6 +29,8 @@ import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.sep24.*;
+import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
+import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.RefundPayment;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
