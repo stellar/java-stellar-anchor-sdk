@@ -2,6 +2,7 @@ package org.stellar.anchor.horizon
 
 import io.mockk.every
 import io.mockk.mockk
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -15,7 +16,6 @@ import org.stellar.sdk.Server
 import org.stellar.sdk.requests.AccountsRequestBuilder
 import org.stellar.sdk.responses.AccountResponse
 import org.stellar.sdk.responses.AccountResponse.Balance
-import shadow.com.google.common.base.Optional
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class HorizonTest {
