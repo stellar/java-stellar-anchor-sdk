@@ -451,6 +451,8 @@ sep38:
   # Whether to enable SEP-38
   #
   enabled: false
+  # Whether to require SEP-10 authentication for SEP-38 requests.
+  requires_sep10: true
 
 ######################
 ## Custody Server configuration

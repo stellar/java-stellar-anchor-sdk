@@ -92,7 +92,8 @@ public class SepBeans {
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<Filter> sep10TokenFilter(JwtService jwtService) {
+  public FilterRegistrationBean<Filter> sep10TokenFilter(
+      JwtService jwtService, Sep38Config sep38Config) {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10JwtFilter(jwtService));
     registrationBean.addUrlPatterns("/sep6/transaction");
@@ -106,6 +107,11 @@ public class SepBeans {
     registrationBean.addUrlPatterns("/sep31/transactions/*");
     registrationBean.addUrlPatterns("/sep38/quote");
     registrationBean.addUrlPatterns("/sep38/quote/*");
+    if (sep38Config.isRequiresSep10()) {
+      registrationBean.addUrlPatterns("/sep38/info");
+      registrationBean.addUrlPatterns("/sep38/price");
+      registrationBean.addUrlPatterns("/sep38/prices");
+    }
     return registrationBean;
   }
 
