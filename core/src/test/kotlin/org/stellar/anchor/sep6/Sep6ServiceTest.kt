@@ -628,9 +628,6 @@ class Sep6ServiceTest {
 
     val response = sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
 
-    println(GsonUtils.getInstance().toJson(slotTxn.captured))
-    println(GsonUtils.getInstance().toJson(slotEvent.captured))
-
     // Verify effects
     verify(exactly = 1) {
       exchangeAmountsCalculator.calculateFromQuote(TEST_QUOTE_ID, any(), "100")
@@ -697,9 +694,6 @@ class Sep6ServiceTest {
         .build()
 
     val response = sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
-
-    println(GsonUtils.getInstance().toJson(slotTxn.captured))
-    println(GsonUtils.getInstance().toJson(slotEvent.captured))
 
     // Verify effects
     verify(exactly = 1) { exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_ACCOUNT) }
