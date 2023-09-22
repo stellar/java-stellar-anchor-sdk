@@ -313,15 +313,15 @@ class NotifyOnchainFundsSentHandlerTest {
 [
   {
     "amount": "15.0000000",
-    "assetType": "native",
+    "asset_type": "native",
     "from": "testFrom",
     "to": "testTo",
     "id": 12345,
-    "sourceAccount": "testSourceAccount",
-    "pagingToken": "testPagingToken",
-    "createdAt": "2023-05-10T10:18:20Z",
-    "transactionHash": "testTxHash",
-    "transactionSuccessful": true,
+    "source_account": "testSourceAccount",
+    "paging_token": "testPagingToken",
+    "created_at": "2023-05-10T10:18:20Z",
+    "transaction_hash": "testTxHash",
+    "transaction_successful": true,
     "type": "payment",
     "links": {
       "effects": {
@@ -348,18 +348,18 @@ class NotifyOnchainFundsSentHandlerTest {
     "transaction": {
       "hash": "testTxHash",
       "ledger": 1234,
-      "createdAt": "2023-05-10T10:18:20Z",
-      "sourceAccount": "testSourceAccount",
-      "feeAccount": "testFeeAccount",
+      "created_at": "2023-05-10T10:18:20Z",
+      "source_account": "testSourceAccount",
+      "fee_account": "testFeeAccount",
       "successful": true,
-      "pagingToken": "1234",
-      "sourceAccountSequence": 12345,
-      "maxFee": 100,
-      "feeCharged": 100,
-      "operationCount": 1,
-      "envelopeXdr": "testEnvelopeXdr",
-      "resultXdr": "testResultXdr",
-      "resultMetaXdr": "resultMetaXdr",
+      "paging_token": "1234",
+      "source_account_sequence": 12345,
+      "max_fee": 100,
+      "fee_charged": 100,
+      "operation_count": 1,
+      "envelope_xdr": "testEnvelopeXdr",
+      "result_xdr": "testResultXdr",
+      "result_meta_xdr": "resultMetaXdr",
       "signatures": [
         "testSignature1"
       ],
@@ -368,8 +368,8 @@ class NotifyOnchainFundsSentHandlerTest {
           "minTime": 0,
           "maxTime": 1683713997
         },
-        "minAccountSequenceAge": 0,
-        "minAccountSequenceLedgerGap": 0
+        "min_account_sequence_age": 0,
+        "min_account_sequence_ledger_gap": 0
       },
       "links": {
         "account": {
@@ -401,13 +401,13 @@ class NotifyOnchainFundsSentHandlerTest {
           "templated": false
         }
       },
-      "rateLimitLimit": 0,
-      "rateLimitRemaining": 0,
-      "rateLimitReset": 0
+      "rate_limit_limit": 0,
+      "rate_limit_remaining": 0,
+      "rate_limit_reset": 0
     },
-    "rateLimitLimit": 0,
-    "rateLimitRemaining": 0,
-    "rateLimitReset": 0
+    "rate_limit_limit": 0,
+    "rate_limit_remaining": 0,
+    "rate_limit_reset": 0
   }
 ]  
 """
@@ -421,6 +421,7 @@ class NotifyOnchainFundsSentHandlerTest {
     "envelope": "testEnvelopeXdr",
     "payments": [
       {
+        "asset_type": "native",
         "id": "12345",
         "amount": {
           "amount": "15.0000000",
