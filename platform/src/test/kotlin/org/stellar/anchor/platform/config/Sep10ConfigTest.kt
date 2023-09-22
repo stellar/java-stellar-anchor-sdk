@@ -34,6 +34,8 @@ class Sep10ConfigTest {
         CUSTODIAL,
         "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
         null,
+        null,
+        false,
         null
       )
     )
@@ -44,7 +46,9 @@ class Sep10ConfigTest {
         NONCUSTODIAL,
         "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ",
         "lobstr.co",
-        "https://callback.lobstr.co/api/v2/anchor/callback"
+        "https://callback.lobstr.co/api/v2/anchor/callback",
+        false,
+        null
       )
     )
 
@@ -54,7 +58,9 @@ class Sep10ConfigTest {
         NONCUSTODIAL,
         "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE",
         "circle.com",
-        "https://callback.circle.com/api/v2/anchor/callback"
+        "https://callback.circle.com/api/v2/anchor/callback",
+        false,
+        null
       )
     )
 

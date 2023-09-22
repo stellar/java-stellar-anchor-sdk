@@ -51,9 +51,11 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.util.ConfigHelper;
 import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.MetricConstants;
 import org.stellar.anchor.util.TransactionHelper;
@@ -64,6 +66,7 @@ public class Sep24Service {
 
   final AppConfig appConfig;
   final Sep24Config sep24Config;
+  final ClientsConfig clientsConfig;
   final AssetService assetService;
   final JwtService jwtService;
   final Sep24TransactionStore txnStore;
@@ -88,10 +91,12 @@ public class Sep24Service {
 
   public static final List<String> INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST =
       List.of("amount", "client_domain", "lang");
+  public static String ERR_TOKEN_ACCOUNT_MISMATCH = "'account' does not match the one in the token";
 
   public Sep24Service(
       AppConfig appConfig,
       Sep24Config sep24Config,
+      ClientsConfig clientsConfig,
       AssetService assetService,
       JwtService jwtService,
       Sep24TransactionStore txnStore,
@@ -103,6 +108,7 @@ public class Sep24Service {
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
     this.sep24Config = sep24Config;
+    this.clientsConfig = clientsConfig;
     this.assetService = assetService;
     this.jwtService = jwtService;
     this.txnStore = txnStore;
@@ -310,11 +316,25 @@ public class Sep24Service {
     }
 
     if (!destinationAccount.equals(token.getAccount())) {
-      infoF(
-          "The request account:{} does not match the one in the token:{}",
-          destinationAccount,
-          token.getAccount());
-      throw new SepValidationException("'account' does not match the one in the token");
+      ClientsConfig.ClientConfig clientConfig =
+          ConfigHelper.getClientConfig(clientsConfig, token.getClientDomain(), token.getAccount());
+      if (clientConfig != null && clientConfig.getDestinationAccounts() != null) {
+        if (!clientConfig.getDestinationAccounts().contains(destinationAccount)) {
+          infoF(
+              "The request account:{} for wallet:{} is not in the allowed destination accounts list",
+              destinationAccount,
+              clientConfig.getName());
+          throw new SepValidationException("Provided 'account' is not allowed");
+        }
+      } else {
+        if (clientConfig == null || !clientConfig.isAllowAnyDestination()) {
+          infoF(
+              "The request account:{} does not match the one in the token:{}",
+              destinationAccount,
+              token.getAccount());
+          throw new SepValidationException(ERR_TOKEN_ACCOUNT_MISMATCH);
+        }
+      }
     }
 
     // Verify that the asset code exists in our database, with withdraw enabled.
