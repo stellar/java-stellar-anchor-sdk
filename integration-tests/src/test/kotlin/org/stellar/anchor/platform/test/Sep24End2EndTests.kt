@@ -100,7 +100,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       assertEquals(fetchedTxn.id, transactionByStellarId.id)
 
       // Check the events sent to the reference server are recorded correctly
-      val actualEvents = waitForBusinessServerEvents(response.id, 4)
+      val actualEvents = anchorReferenceServerClient.pollEvents(response.id, 4)
       assertNotNull(actualEvents)
       actualEvents?.let { assertEquals(4, it.size) }
       val expectedEvents: List<SendEventRequest> =
@@ -256,7 +256,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     assertEquals(fetchTxn.id, transactionByStellarId.id)
 
     // Check the events sent to the reference server are recorded correctly
-    val actualEvents = waitForBusinessServerEvents(withdrawTxn.id, 5)
+    val actualEvents = anchorReferenceServerClient.pollEvents(withdrawTxn.id, 5)
     assertNotNull(actualEvents)
     actualEvents?.let {
       assertEquals(5, it.size)
@@ -290,22 +290,6 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
       val callbacks = walletServerClient.getCallbackHistory(txnId)
       if (callbacks.size == count) {
         return callbacks
-      }
-      delay(5.seconds)
-      retries--
-    }
-    return null
-  }
-
-  private suspend fun waitForBusinessServerEvents(
-    txnId: String,
-    count: Int
-  ): List<SendEventRequest>? {
-    var retries = 5
-    while (retries > 0) {
-      val events = anchorReferenceServerClient.getEvents(txnId)
-      if (events.size == count) {
-        return events
       }
       delay(5.seconds)
       retries--

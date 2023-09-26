@@ -379,5 +379,13 @@ public interface Sep6Transaction extends SepTransaction {
     public String toString() {
       return name;
     }
+
+    public boolean isDeposit() {
+      return this.equals(DEPOSIT) || this.equals(DEPOSIT_EXCHANGE);
+    }
+
+    public boolean isWithdrawal() {
+      return this.equals(WITHDRAWAL) || this.equals(WITHDRAWAL_EXCHANGE);
+    }
   }
 }
