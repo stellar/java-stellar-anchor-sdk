@@ -13,6 +13,7 @@ import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.Sep6Client
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
@@ -97,10 +98,10 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       )
     assertEquals(completedDepositTxn.transaction.id, transactionByStellarId.transaction.id)
 
-    assertAnchorReceivedStatuses(
-      deposit.id,
+    val expectedStatuses =
       listOf("incomplete", "pending_anchor", "pending_customer_info_update", "completed")
-    )
+    assertAnchorReceivedStatuses(deposit.id, expectedStatuses)
+    assertWalletReceivedStatuses(deposit.id, expectedStatuses)
   }
 
   private fun `test typical withdraw end-to-end flow`() = runBlocking {
@@ -141,8 +142,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
 
     waitStatus(withdraw.id, "completed", sep6Client)
 
-    assertAnchorReceivedStatuses(
-      withdraw.id,
+    val expectedStatuses =
       listOf(
         "incomplete",
         "pending_customer_info_update",
@@ -150,12 +150,22 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
         "pending_anchor",
         "completed"
       )
-    )
+    assertAnchorReceivedStatuses(withdraw.id, expectedStatuses)
+    assertWalletReceivedStatuses(withdraw.id, expectedStatuses)
   }
 
   private suspend fun assertAnchorReceivedStatuses(txnId: String, expected: List<String>) {
     val events = anchorReferenceServerClient.pollEvents(txnId, expected.size)
-    val statuses = events?.map { it.payload.transaction?.status.toString() }
+    val statuses = events.map { it.payload.transaction?.status.toString() }
+    assertContentEquals(expected, statuses)
+  }
+
+  private suspend fun assertWalletReceivedStatuses(txnId: String, expected: List<String>) {
+    val callbacks = walletServerClient.pollCallbacks(txnId, expected.size)
+    val statuses =
+      callbacks.map {
+        GsonUtils.getInstance().fromJson(it, GetTransactionResponse::class.java).transaction.status
+      }
     assertContentEquals(expected, statuses)
   }
 

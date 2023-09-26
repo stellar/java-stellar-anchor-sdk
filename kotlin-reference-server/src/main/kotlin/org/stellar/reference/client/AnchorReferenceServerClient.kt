@@ -50,17 +50,18 @@ class AnchorReferenceServerClient(val endpoint: Url) {
     )
   }
 
-  suspend fun pollEvents(txnId: String? = null, expected: Int): List<SendEventRequest>? {
+  suspend fun pollEvents(txnId: String? = null, expected: Int): List<SendEventRequest> {
     var retries = 5
+    var events: List<SendEventRequest> = listOf()
     while (retries > 0) {
-      val events = getEvents(txnId)
-      if (events.size == expected) {
+      events = getEvents(txnId)
+      if (events.size >= expected) {
         return events
       }
       delay(5.seconds)
       retries--
     }
-    return null
+    return events
   }
 
   suspend fun getLatestEvent(): SendEventRequest? {
