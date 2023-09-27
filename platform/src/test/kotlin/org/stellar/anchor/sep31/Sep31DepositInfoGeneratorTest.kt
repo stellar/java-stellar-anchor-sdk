@@ -19,7 +19,9 @@ import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.ClientsConfig
 import org.stellar.anchor.config.CustodyConfig
+import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
@@ -53,9 +55,11 @@ class Sep31DepositInfoGeneratorTest {
 
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
+  @MockK(relaxed = true) private lateinit var sep10Config: Sep10Config
   @MockK(relaxed = true) private lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) private lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) private lateinit var quoteStore: Sep38QuoteStore
+  @MockK(relaxed = true) private lateinit var clientsConfig: ClientsConfig
   @MockK(relaxed = true) private lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var eventPublishService: EventService
@@ -68,13 +72,19 @@ class Sep31DepositInfoGeneratorTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
+    every { sep10Config.allowedClientDomains } returns listOf()
+    every { sep10Config.isClientAttributionRequired } returns false
+    every { clientsConfig.getClientConfigByDomain(any()) } returns null
+    every { clientsConfig.getClientConfigBySigningKey(any()) } returns null
     sep31Service =
       Sep31Service(
         appConfig,
+        sep10Config,
         sep31Config,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
+        clientsConfig,
         assetService,
         feeIntegration,
         customerIntegration,
@@ -97,10 +107,12 @@ class Sep31DepositInfoGeneratorTest {
     sep31Service =
       Sep31Service(
         appConfig,
+        sep10Config,
         sep31Config,
         txnStore,
         Sep31DepositInfoSelfGenerator(), // set deposit info generator
         quoteStore,
+        clientsConfig,
         assetService,
         feeIntegration,
         customerIntegration,

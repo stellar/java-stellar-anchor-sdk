@@ -2,6 +2,7 @@ package org.stellar.anchor.asset
 
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
+import org.apache.commons.io.FilenameUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -13,7 +14,6 @@ import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.util.GsonUtils
-import shadow.org.apache.commons.io.FilenameUtils
 
 internal class DefaultAssetServiceTest {
   private val gson: Gson = GsonUtils.getInstance()

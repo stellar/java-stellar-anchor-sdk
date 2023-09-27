@@ -184,6 +184,10 @@ event_processor:
 #                  is the same as the `signing_key`, the callback will be activated.
 #   - callback_url: (optional) the URL of the client's callback API endpoint. Optional due to some wallets may opt to
 #                  poll instead, or may use polling first before implementing callbacks at a later stage.
+#   - allow_any_destination: (optional) default to false. If set to true, allows any destination for deposits.
+#   - destination_accounts: (optional) list of accounts allowed to be used for the deposit. By default, only SEP-10
+#                  authenticated account can be used to deposit funds into. If allows_any_destinations set to true,
+#                  this configuration option is ignored.
 #   If the type is `noncustodial`,
 #   - domain: (required) the domain of the client. If the `client_domain` field of the transaction is the same as this
 #             domain, the callback will be activated.
@@ -211,6 +215,8 @@ clients:
 #       type: custodial
 #       signing_key:
 #       callback_url:
+#       allow_any_destination:
+#       destination_accounts:
 #     - name:
 #       type: noncustodial
 #       domain:
