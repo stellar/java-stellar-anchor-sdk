@@ -54,7 +54,7 @@ public class AnchorReferenceConfig {
     String authSecret = integrationAuthSettings.getPlatformToAnchorSecret();
     switch (integrationAuthSettings.getAuthType()) {
       case JWT:
-        JwtService jwtService = new JwtService(null, null, null, authSecret, null);
+        JwtService jwtService = new JwtService(null, null, null, authSecret, null, null);
         platformToAnchorFilter = new CallbackAuthJwtFilter(jwtService);
         break;
 
@@ -78,7 +78,7 @@ public class AnchorReferenceConfig {
     switch (integrationAuthSettings.getAuthType()) {
       case JWT:
         return AuthHelper.forJwtToken(
-            new JwtService(null, null, null, null, authSecret),
+            new JwtService(null, null, null, null, authSecret, null),
             integrationAuthSettings.getExpirationMilliseconds());
       case API_KEY:
         return AuthHelper.forApiKey(authSecret);

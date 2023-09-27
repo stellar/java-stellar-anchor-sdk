@@ -1,11 +1,11 @@
 package org.stellar.reference.wallet
 
+import com.google.gson.JsonObject
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.wallet.CallbackService.Companion.verifySignature
 import org.stellar.sdk.KeyPair
@@ -29,7 +29,7 @@ fun Route.callback(config: Config, callbackEventService: CallbackService) {
         return@post
       }
 
-      val event = gson.fromJson(body, Sep24GetTransactionResponse::class.java)
+      val event: JsonObject = gson.fromJson(body, JsonObject::class.java)
       callbackEventService.processCallback(event)
       call.respond("POST /callback received")
     }
