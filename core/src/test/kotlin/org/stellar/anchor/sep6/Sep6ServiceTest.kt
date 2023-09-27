@@ -199,6 +199,14 @@ class Sep6ServiceTest {
     """
       .trimIndent()
 
+  val depositResJson =
+    """
+      {
+          "how": "Check the transaction for more information about how to deposit."
+      }
+    """
+      .trimIndent()
+
   val depositTxnJson =
     """
       {
@@ -225,6 +233,112 @@ class Sep6ServiceTest {
               "status": "incomplete",
               "amount_expected": {
                   "amount": "100",
+                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          }
+      }
+    """
+      .trimIndent()
+
+  val depositExchangeTxnJson =
+    """
+      {
+          "status": "incomplete",
+          "kind": "deposit-exchange",
+          "type": "bank_account",
+          "requestAssetCode": "USDC",
+          "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountIn": "100",
+          "amountInAsset": "iso4217:USD",
+          "amountOut": "98",
+          "amountOutAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountFee": "2",
+          "amountFeeAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountExpected": "100",
+          "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "quoteId": "test-quote-id"
+      }
+    """
+      .trimIndent()
+
+  val depositExchangeTxnEventJson =
+    """
+      {
+          "type": "transaction_created",
+          "sep": "6",
+          "transaction": {
+              "sep": "6",
+              "kind": "deposit-exchange",
+              "status": "incomplete",
+              "amount_expected": {
+                  "amount": "100",
+                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": {
+                  "amount": "100",
+                  "asset": "iso4217:USD"
+              },
+              "amount_out": {
+                  "amount": "98",
+                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_fee": {
+                  "amount": "2",
+                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "quote_id": "test-quote-id",
+              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          }
+      }
+    """
+      .trimIndent()
+
+  val depositExchangeTxnWithoutQuoteJson =
+    """
+      {
+          "status": "incomplete",
+          "kind": "deposit-exchange",
+          "type": "bank_account",
+          "requestAssetCode": "USDC",
+          "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountIn": "100",
+          "amountInAsset": "iso4217:USD",
+          "amountOut": "98",
+          "amountOutAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountFee": "2",
+          "amountFeeAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountExpected": "100",
+          "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+      }
+    """
+      .trimIndent()
+
+  val depositExchangeTxnEventWithoutQuoteJson =
+    """
+      {
+          "type": "transaction_created",
+          "sep": "6",
+          "transaction": {
+              "sep": "6",
+              "kind": "deposit-exchange",
+              "status": "incomplete",
+              "amount_expected": {
+                  "amount": "100",
+                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": {
+                  "amount": "100",
+                  "asset": "iso4217:USD"
+              },
+              "amount_out": {
+                  "amount": "98",
+                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_fee": {
+                  "amount": "2",
                   "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
               },
               "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
@@ -486,6 +600,231 @@ class Sep6ServiceTest {
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
+    verify { eventSession wasNot called }
+  }
+
+  @Test
+  fun `test deposit-exchange with quote`() {
+    val sourceAsset = "iso4217:USD"
+    val destinationAsset = TEST_ASSET
+    val amount = "100"
+
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    every { exchangeAmountsCalculator.calculateFromQuote(TEST_QUOTE_ID, any(), any()) } returns
+      Amounts.builder()
+        .amountIn("100")
+        .amountInAsset(sourceAsset)
+        .amountOut("98")
+        .amountOutAsset(TEST_ASSET_SEP38_FORMAT)
+        .amountFee("2")
+        .amountFeeAsset(TEST_ASSET_SEP38_FORMAT)
+        .build()
+
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(destinationAsset)
+        .sourceAsset(sourceAsset)
+        .quoteId(TEST_QUOTE_ID)
+        .amount(amount)
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .build()
+    val response = sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+
+    // Verify effects
+    verify(exactly = 1) {
+      exchangeAmountsCalculator.calculateFromQuote(TEST_QUOTE_ID, any(), "100")
+    }
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+
+    JSONAssert.assertEquals(
+      depositExchangeTxnJson,
+      gson.toJson(slotTxn.captured),
+      JSONCompareMode.LENIENT
+    )
+    assert(slotTxn.captured.id.isNotEmpty())
+    assertNotNull(slotTxn.captured.startedAt)
+
+    JSONAssert.assertEquals(
+      depositExchangeTxnEventJson,
+      gson.toJson(slotEvent.captured),
+      JSONCompareMode.LENIENT
+    )
+    assert(slotEvent.captured.id.isNotEmpty())
+    assert(slotEvent.captured.transaction.id.isNotEmpty())
+    assertNotNull(slotEvent.captured.transaction.startedAt)
+
+    // Verify response
+    assertEquals(slotTxn.captured.id, response.id)
+    JSONAssert.assertEquals(depositResJson, gson.toJson(response), JSONCompareMode.LENIENT)
+  }
+
+  @Test
+  fun `test deposit-exchange without quote`() {
+    val sourceAsset = "iso4217:USD"
+    val destinationAsset = TEST_ASSET
+    val amount = "100"
+
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    every { exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_ACCOUNT) } returns
+      Amounts.builder()
+        .amountIn("100")
+        .amountInAsset(sourceAsset)
+        .amountOut("98")
+        .amountOutAsset(TEST_ASSET_SEP38_FORMAT)
+        .amountFee("2")
+        .amountFeeAsset(TEST_ASSET_SEP38_FORMAT)
+        .build()
+
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(destinationAsset)
+        .sourceAsset(sourceAsset)
+        .amount(amount)
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .build()
+    val response = sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+
+    // Verify effects
+    verify(exactly = 1) { exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_ACCOUNT) }
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+
+    JSONAssert.assertEquals(
+      depositExchangeTxnWithoutQuoteJson,
+      gson.toJson(slotTxn.captured),
+      JSONCompareMode.LENIENT
+    )
+    assert(slotTxn.captured.id.isNotEmpty())
+    assertNotNull(slotTxn.captured.startedAt)
+
+    JSONAssert.assertEquals(
+      depositExchangeTxnEventWithoutQuoteJson,
+      gson.toJson(slotEvent.captured),
+      JSONCompareMode.LENIENT
+    )
+    assert(slotEvent.captured.id.isNotEmpty())
+    assert(slotEvent.captured.transaction.id.isNotEmpty())
+    assertNotNull(slotEvent.captured.transaction.startedAt)
+
+    // Verify response
+    assertEquals(slotTxn.captured.id, response.id)
+    JSONAssert.assertEquals(depositResJson, gson.toJson(response), JSONCompareMode.LENIENT)
+  }
+
+  @Test
+  fun `test deposit-exchange with unsupported destination asset`() {
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset("???")
+        .sourceAsset("iso4217:USD")
+        .quoteId(TEST_QUOTE_ID)
+        .amount("100")
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .build()
+
+    assertThrows<SepValidationException> {
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+    verify { exchangeAmountsCalculator wasNot Called }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test deposit-exchange with unsupported source asset`() {
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(TEST_ASSET)
+        .sourceAsset("???")
+        .quoteId(TEST_QUOTE_ID)
+        .amount("100")
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .build()
+
+    assertThrows<SepValidationException> {
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+    verify { exchangeAmountsCalculator wasNot Called }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test deposit-exchange with unsupported type`() {
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(TEST_ASSET)
+        .sourceAsset("iso4217:USD")
+        .quoteId(TEST_QUOTE_ID)
+        .amount("100")
+        .account(TEST_ACCOUNT)
+        .type("unsupported_Type")
+        .build()
+
+    assertThrows<SepValidationException> {
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+    verify { exchangeAmountsCalculator wasNot Called }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @ValueSource(strings = ["0", "-1", "0.0", "0.0000000001"])
+  @ParameterizedTest
+  fun `test deposit-exchange with bad amount`(amount: String) {
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(TEST_ASSET)
+        .sourceAsset("iso4217:USD")
+        .quoteId(TEST_QUOTE_ID)
+        .amount(amount)
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .build()
+
+    assertThrows<SepValidationException> {
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+    verify { exchangeAmountsCalculator wasNot Called }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test deposit-exchange does not send event if transaction fails`() {
+    every { txnStore.save(any()) } throws RuntimeException("unexpected failure")
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(TEST_ASSET)
+        .sourceAsset("iso4217:USD")
+        .amount("100")
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .build()
+    assertThrows<java.lang.RuntimeException> {
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+
+    // Verify effects
     verify { eventSession wasNot called }
   }
 
