@@ -43,6 +43,9 @@ class Sep38ServiceTest {
     override fun isEnabled(): Boolean {
       return true
     }
+    override fun isRequiresSep10(): Boolean {
+      return true
+    }
   }
 
   companion object {
