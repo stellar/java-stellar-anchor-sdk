@@ -1,4 +1,10 @@
 {
+  "6": {
+    "deposit": {
+      "transactionFields": {}
+    },
+    "withdraw": {}
+  },
   "12": {
     "customers": {
       "toBeCreated": {
