@@ -458,9 +458,9 @@ public class Sep6Service {
 
         if (asset.getWithdraw().getEnabled()) {
           List<String> methods = asset.getWithdraw().getMethods();
-          Map<String, Map<String, AssetInfo.Field>> types = new HashMap<>();
+          Map<String, WithdrawType> types = new HashMap<>();
           for (String method : methods) {
-            types.put(method, new HashMap<>());
+            types.put(method, WithdrawType.builder().fields(new HashMap<>()).build());
           }
 
           WithdrawAssetResponse withdraw =
