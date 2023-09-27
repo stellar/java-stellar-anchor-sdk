@@ -10,6 +10,8 @@ on:
 
 jobs:
   gradle_test_and_build:
+    runs-on:
+      labels: ubuntu-latest-16-cores
     uses: ./.github/workflows/sub_gradle_test_and_build.yml
 
   complete:
