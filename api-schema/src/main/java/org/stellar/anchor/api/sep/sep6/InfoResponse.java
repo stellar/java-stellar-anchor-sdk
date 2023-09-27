@@ -100,7 +100,15 @@ public class InfoResponse {
      * account and KYC information is supplied asynchronously through PATCH requests and SEP-12
      * requests respectively.
      */
-    Map<String, Map<String, AssetInfo.Field>> types;
+    Map<String, WithdrawType> types;
+  }
+
+  /** Withdrawal type configuration. */
+  @Data
+  @Builder
+  public static class WithdrawType {
+    /** The fields required for initiating a withdrawal. */
+    Map<String, AssetInfo.Field> fields;
   }
 
   /** Fee endpoint configuration */
