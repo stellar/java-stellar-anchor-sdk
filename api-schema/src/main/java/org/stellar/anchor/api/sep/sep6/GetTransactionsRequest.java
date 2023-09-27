@@ -3,6 +3,7 @@ package org.stellar.anchor.api.sep.sep6;
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 
 /**
  * The request body of the GET /transactions endpoint of SEP-6.
@@ -15,9 +16,10 @@ import lombok.Data;
 @Data
 public class GetTransactionsRequest {
   @SerializedName("asset_code")
+  @NonNull
   String assetCode;
 
-  String account;
+  @NonNull String account;
 
   @SerializedName("no_older_than")
   String noOlderThan;

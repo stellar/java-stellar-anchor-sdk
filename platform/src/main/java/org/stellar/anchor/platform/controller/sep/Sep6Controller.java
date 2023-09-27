@@ -137,6 +137,7 @@ public class Sep6Controller {
   public GetTransactionsResponse getTransactions(
       HttpServletRequest request,
       @RequestParam(value = "asset_code") String assetCode,
+      @RequestParam(value = "account") String account,
       @RequestParam(required = false, value = "kind") String kind,
       @RequestParam(required = false, value = "limit") Integer limit,
       @RequestParam(required = false, value = "paging_id") String pagingId,
@@ -155,6 +156,7 @@ public class Sep6Controller {
     GetTransactionsRequest getTransactionsRequest =
         GetTransactionsRequest.builder()
             .assetCode(assetCode)
+            .account(account)
             .kind(kind)
             .limit(limit)
             .pagingId(pagingId)
