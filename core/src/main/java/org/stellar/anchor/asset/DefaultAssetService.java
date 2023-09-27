@@ -109,7 +109,7 @@ public class DefaultAssetService implements AssetService {
   }
 
   @Override
-  public AssetInfo getAssetBySep38Name(String name) {
+  public AssetInfo getAssetByName(String name) {
     for (AssetInfo asset : assets.getAssets()) {
       if (asset.getSep38AssetName().equals(name)) {
         return asset;

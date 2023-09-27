@@ -120,17 +120,13 @@ public class SepBeans {
       Sep6Config sep6Config,
       AssetService assetService,
       Sep6TransactionStore txnStore,
-      ExchangeAmountsCalculator exchangeAmountsCalculator,
-      EventService eventService) {
+      EventService eventService,
+      FeeIntegration feeIntegration,
+      Sep38QuoteStore sep38QuoteStore) {
+    ExchangeAmountsCalculator exchangeAmountsCalculator =
+        new ExchangeAmountsCalculator(feeIntegration, sep38QuoteStore, assetService);
     return new Sep6Service(
         sep6Config, assetService, txnStore, exchangeAmountsCalculator, eventService);
-  }
-
-  @Bean
-  @ConditionalOnAllSepsEnabled(seps = {"sep6"})
-  ExchangeAmountsCalculator exchangeAmountsCalculator(
-      FeeIntegration feeIntegration, Sep38QuoteStore sep38QuoteStore, AssetService assetService) {
-    return new ExchangeAmountsCalculator(feeIntegration, sep38QuoteStore, assetService);
   }
 
   @Bean

@@ -1,5 +1,6 @@
 package org.stellar.anchor.sep6;
 
+import static org.stellar.anchor.util.MemoHelper.*;
 import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import com.google.common.collect.ImmutableMap;
@@ -19,7 +20,6 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.util.MemoHelper;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.TransactionHelper;
 import org.stellar.sdk.KeyPair;
@@ -53,7 +53,7 @@ public class Sep6Service {
     return infoResponse;
   }
 
-  public GetDepositResponse deposit(Sep10Jwt token, GetDepositRequest request)
+  public StartDepositResponse deposit(Sep10Jwt token, StartDepositRequest request)
       throws AnchorException {
     // Pre-validation
     if (token == null) {
@@ -74,7 +74,7 @@ public class Sep6Service {
     } catch (RuntimeException ex) {
       throw new SepValidationException(String.format("invalid account %s", request.getAccount()));
     }
-    Memo memo = MemoHelper.makeMemo(request.getMemo(), request.getMemoType());
+    Memo memo = makeMemo(request.getMemo(), request.getMemoType());
     String id = SepHelper.generateSepTransactionId();
 
     Sep6TransactionBuilder builder =
@@ -94,7 +94,7 @@ public class Sep6Service {
 
     if (memo != null) {
       builder.memo(memo.toString());
-      builder.memoType(SepHelper.memoTypeString(MemoHelper.memoType(memo)));
+      builder.memoType(SepHelper.memoTypeString(memoType(memo)));
     }
 
     Sep6Transaction txn = builder.build();
@@ -108,13 +108,13 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
-    return GetDepositResponse.builder()
+    return StartDepositResponse.builder()
         .how("Check the transaction for more information about how to deposit.")
         .id(txn.getId())
         .build();
   }
 
-  public GetWithdrawResponse withdraw(Sep10Jwt token, GetWithdrawRequest request)
+  public StartWithdrawResponse withdraw(Sep10Jwt token, StartWithdrawRequest request)
       throws AnchorException {
     // Pre-validation
     if (token == null) {
@@ -163,8 +163,8 @@ public class Sep6Service {
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
-            .memo(MemoHelper.generateMemo(id))
-            .memoType(MemoHelper.memoTypeAsString(MEMO_HASH))
+            .memo(generateMemo(id))
+            .memoType(memoTypeAsString(MEMO_HASH))
             .fromAccount(token.getAccount())
             .withdrawAnchorAccount(asset.getDistributionAccount())
             .toAccount(asset.getDistributionAccount())
@@ -182,16 +182,16 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
-    return GetWithdrawResponse.builder()
+    return StartWithdrawResponse.builder()
         .accountId(asset.getDistributionAccount())
         .id(txn.getId())
         .memo(txn.getMemo())
-        .memoType(MemoHelper.memoTypeAsString(MEMO_HASH))
+        .memoType(memoTypeAsString(MEMO_HASH))
         .build();
   }
 
-  public GetWithdrawResponse withdrawExchange(Sep10Jwt token, GetWithdrawExchangeRequest request)
-      throws AnchorException {
+  public StartWithdrawResponse withdrawExchange(
+      Sep10Jwt token, StartWithdrawExchangeRequest request) throws AnchorException {
     // Pre-validation
     if (token == null) {
       throw new SepNotAuthorizedException("missing token");
@@ -200,7 +200,7 @@ public class Sep6Service {
       throw new SepValidationException("missing request");
     }
 
-    AssetInfo buyAsset = assetService.getAssetBySep38Name(request.getDestinationAsset());
+    AssetInfo buyAsset = assetService.getAssetByName(request.getDestinationAsset());
     if (buyAsset == null) {
       throw new SepValidationException(
           String.format("invalid operation for asset %s", request.getDestinationAsset()));
@@ -262,8 +262,8 @@ public class Sep6Service {
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
-            .memo(MemoHelper.generateMemo(id))
-            .memoType(MemoHelper.memoTypeAsString(MEMO_HASH))
+            .memo(generateMemo(id))
+            .memoType(memoTypeAsString(MEMO_HASH))
             .fromAccount(token.getAccount())
             .withdrawAnchorAccount(sellAsset.getDistributionAccount())
             .refundMemo(request.getRefundMemo())
@@ -281,11 +281,11 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
-    return GetWithdrawResponse.builder()
+    return StartWithdrawResponse.builder()
         .accountId(sellAsset.getDistributionAccount())
         .id(txn.getId())
         .memo(txn.getMemo())
-        .memoType(MemoHelper.memoTypeAsString(MEMO_HASH))
+        .memoType(memoTypeAsString(MEMO_HASH))
         .build();
   }
 

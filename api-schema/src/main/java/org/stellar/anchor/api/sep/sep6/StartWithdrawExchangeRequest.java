@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NonNull;
 
 /**
- * The request body of the GET /withdraw endpoint.
+ * The request body of the GET /withdraw-exchange endpoint.
  *
  * @see <a
  *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#request-3">GET
@@ -14,7 +14,7 @@ import lombok.NonNull;
  */
 @Builder
 @Data
-public class GetWithdrawExchangeRequest {
+public class StartWithdrawExchangeRequest {
   /** The asset code of the on-chain asset the user wants to withdraw. */
   @NonNull
   @SerializedName("source_asset")

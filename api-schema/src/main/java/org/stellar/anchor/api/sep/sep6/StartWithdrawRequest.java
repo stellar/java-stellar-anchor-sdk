@@ -14,7 +14,7 @@ import lombok.NonNull;
  */
 @Builder
 @Data
-public class GetWithdrawRequest {
+public class StartWithdrawRequest {
   /** The asset code of the asset to withdraw. */
   @SerializedName("asset_code")
   @NonNull

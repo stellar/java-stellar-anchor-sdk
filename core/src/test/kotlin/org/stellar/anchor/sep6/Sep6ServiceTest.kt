@@ -420,7 +420,7 @@ class Sep6ServiceTest {
     every { eventSession.publish(capture(slotEvent)) } returns Unit
 
     val request =
-      GetDepositRequest.builder()
+      StartDepositRequest.builder()
         .assetCode(TEST_ASSET)
         .account(TEST_ACCOUNT)
         .type("bank_account")
@@ -452,7 +452,7 @@ class Sep6ServiceTest {
   @Test
   fun `test deposit with unsupported asset`() {
     val request =
-      GetDepositRequest.builder()
+      StartDepositRequest.builder()
         .assetCode("??")
         .account(TEST_ACCOUNT)
         .type("bank_account")
@@ -474,7 +474,7 @@ class Sep6ServiceTest {
     every { eventSession.publish(capture(slotEvent)) } returns Unit
 
     val request =
-      GetDepositRequest.builder()
+      StartDepositRequest.builder()
         .assetCode(TEST_ASSET)
         .account(TEST_ACCOUNT)
         .type("bank_account")
@@ -498,7 +498,7 @@ class Sep6ServiceTest {
     every { eventSession.publish(capture(slotEvent)) } returns Unit
 
     val request =
-      GetWithdrawRequest.builder()
+      StartWithdrawRequest.builder()
         .assetCode(TEST_ASSET)
         .type("bank_account")
         .amount("100")
@@ -538,7 +538,7 @@ class Sep6ServiceTest {
   @Test
   fun `test withdraw with unsupported asset`() {
     val request =
-      GetWithdrawRequest.builder().assetCode("??").type("bank_account").amount("100").build()
+      StartWithdrawRequest.builder().assetCode("??").type("bank_account").amount("100").build()
 
     assertThrows<SepValidationException> {
       sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
@@ -550,7 +550,7 @@ class Sep6ServiceTest {
   @Test
   fun `test withdraw with unsupported type`() {
     val request =
-      GetWithdrawRequest.builder()
+      StartWithdrawRequest.builder()
         .assetCode(TEST_ASSET)
         .type("unsupported_Type")
         .amount("100")
@@ -567,7 +567,11 @@ class Sep6ServiceTest {
   @ParameterizedTest
   fun `test withdraw with bad amount`(amount: String) {
     val request =
-      GetWithdrawRequest.builder().assetCode(TEST_ASSET).type("bank_account").amount(amount).build()
+      StartWithdrawRequest.builder()
+        .assetCode(TEST_ASSET)
+        .type("bank_account")
+        .amount(amount)
+        .build()
 
     assertThrows<SepValidationException> {
       sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
@@ -584,7 +588,11 @@ class Sep6ServiceTest {
     every { eventSession.publish(capture(slotEvent)) } returns Unit
 
     val request =
-      GetWithdrawRequest.builder().assetCode(TEST_ASSET).type("bank_account").amount("100").build()
+      StartWithdrawRequest.builder()
+        .assetCode(TEST_ASSET)
+        .type("bank_account")
+        .amount("100")
+        .build()
     assertThrows<java.lang.RuntimeException> {
       sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
     }
@@ -616,7 +624,7 @@ class Sep6ServiceTest {
         .build()
 
     val request =
-      GetWithdrawExchangeRequest.builder()
+      StartWithdrawExchangeRequest.builder()
         .sourceAsset(sourceAsset)
         .destinationAsset(destinationAsset)
         .quoteId(TEST_QUOTE_ID)
@@ -684,7 +692,7 @@ class Sep6ServiceTest {
         .build()
 
     val request =
-      GetWithdrawExchangeRequest.builder()
+      StartWithdrawExchangeRequest.builder()
         .sourceAsset(sourceAsset)
         .destinationAsset(destinationAsset)
         .type("bank_account")
@@ -730,7 +738,7 @@ class Sep6ServiceTest {
   @Test
   fun `test withdraw-exchange with unsupported source asset`() {
     val request =
-      GetWithdrawExchangeRequest.builder()
+      StartWithdrawExchangeRequest.builder()
         .sourceAsset("???")
         .destinationAsset("iso4217:USD")
         .type("bank_account")
@@ -748,7 +756,7 @@ class Sep6ServiceTest {
   @Test
   fun `test withdraw-exchange with unsupported destination asset`() {
     val request =
-      GetWithdrawExchangeRequest.builder()
+      StartWithdrawExchangeRequest.builder()
         .sourceAsset(TEST_ASSET)
         .destinationAsset("USD")
         .type("bank_account")
@@ -766,7 +774,7 @@ class Sep6ServiceTest {
   @Test
   fun `test withdraw-exchange with unsupported type`() {
     val request =
-      GetWithdrawExchangeRequest.builder()
+      StartWithdrawExchangeRequest.builder()
         .sourceAsset(TEST_ASSET)
         .destinationAsset("iso4217:USD")
         .type("unsupported_Type")
@@ -785,7 +793,7 @@ class Sep6ServiceTest {
   @ParameterizedTest
   fun `test withdraw-exchange with bad amount`(amount: String) {
     val request =
-      GetWithdrawExchangeRequest.builder()
+      StartWithdrawExchangeRequest.builder()
         .sourceAsset(TEST_ASSET)
         .destinationAsset("iso4217:USD")
         .type("bank_account")
@@ -808,7 +816,7 @@ class Sep6ServiceTest {
     every { eventSession.publish(capture(slotEvent)) } returns Unit
 
     val request =
-      GetWithdrawExchangeRequest.builder()
+      StartWithdrawExchangeRequest.builder()
         .sourceAsset(TEST_ASSET)
         .destinationAsset("iso4217:USD")
         .type("bank_account")

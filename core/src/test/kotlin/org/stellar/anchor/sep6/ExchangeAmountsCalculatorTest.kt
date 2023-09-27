@@ -1,12 +1,9 @@
 package org.stellar.anchor.sep6
 
 import io.mockk.MockKAnnotations
-import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.unmockkAll
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -38,12 +35,6 @@ class ExchangeAmountsCalculatorTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     calculator = ExchangeAmountsCalculator(feeIntegration, sep38QuoteStore, assetService)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   private val usdcQuote =
@@ -130,7 +121,7 @@ class ExchangeAmountsCalculatorTest {
 
     val result =
       calculator.calculate(
-        assetService.getAssetBySep38Name("iso4217:USD"),
+        assetService.getAssetByName("iso4217:USD"),
         assetService.getAsset(TEST_ASSET),
         "100",
         TEST_ACCOUNT

@@ -35,5 +35,5 @@ public interface AssetService {
    * @param asset the SEP-38 asset identifier
    * @return an asset with the given SEP-38 asset identifier.
    */
-  AssetInfo getAssetBySep38Name(String asset);
+  AssetInfo getAssetByName(String asset);
 }

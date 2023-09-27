@@ -12,7 +12,7 @@ import lombok.NonNull;
  */
 @Builder
 @Data
-public class GetDepositRequest {
+public class StartDepositRequest {
   /** The asset code of the asset to deposit. */
   @NonNull
   @SerializedName("asset_code")

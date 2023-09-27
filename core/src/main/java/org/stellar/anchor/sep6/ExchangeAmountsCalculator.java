@@ -7,6 +7,7 @@ import static org.stellar.anchor.util.SepHelper.amountEquals;
 import java.math.BigDecimal;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.GetFeeRequest;
@@ -23,9 +24,9 @@ import org.stellar.anchor.sep38.Sep38QuoteStore;
 /** Calculates the amounts for an exchange request. */
 @RequiredArgsConstructor
 public class ExchangeAmountsCalculator {
-  private final FeeIntegration feeIntegration;
-  private final Sep38QuoteStore sep38QuoteStore;
-  private final AssetService assetService;
+  @NonNull private final FeeIntegration feeIntegration;
+  @NonNull private final Sep38QuoteStore sep38QuoteStore;
+  @NonNull private final AssetService assetService;
 
   /**
    * Calculates the amounts from a saved quote.
@@ -95,7 +96,7 @@ public class ExchangeAmountsCalculator {
                     .build())
             .getFee();
 
-    AssetInfo feeAsset = assetService.getAssetBySep38Name(fee.getAsset());
+    AssetInfo feeAsset = assetService.getAssetByName(fee.getAsset());
 
     BigDecimal requestedAmount = decimal(amount, sellAsset.getSignificantDecimals());
     BigDecimal feeAmount = decimal(fee.getAmount(), feeAsset.getSignificantDecimals());

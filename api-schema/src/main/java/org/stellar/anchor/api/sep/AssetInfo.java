@@ -15,16 +15,6 @@ public class AssetInfo {
   String issuer;
 
   /**
-   * Returns the SEP-11 asset name, which is the asset code and issuer separated by a colon. If the
-   * asset is the native asset, the name is "native".
-   *
-   * @return The SEP-11 asset name.
-   */
-  public String getSep11AssetName() {
-    return makeSep11AssetName(code, issuer);
-  }
-
-  /**
    * Returns the SEP-38 asset name, which is the SEP-11 asset name prefixed with the schema.
    *
    * @return The SEP-38 asset name.
