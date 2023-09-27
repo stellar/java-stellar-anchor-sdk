@@ -13,6 +13,7 @@ import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt;
 import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
+import org.stellar.anchor.util.ConfigHelper;
 
 public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
   private final PropertyClientsConfig clientsConfig;
@@ -30,7 +31,7 @@ public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
   @SneakyThrows
   public String construct(Sep24Transaction txn) {
     PropertyClientsConfig.ClientConfig clientConfig =
-        UrlConstructorHelper.getClientConfig(clientsConfig, txn);
+        ConfigHelper.getClientConfig(clientsConfig, txn);
 
     Sep24MoreInfoUrlJwt token =
         new Sep24MoreInfoUrlJwt(

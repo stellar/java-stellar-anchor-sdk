@@ -25,7 +25,7 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
   Map<String, String> signingKeyToClientNameMap = null;
 
   @Override
-  public ClientConfig getClientConfigBySigningKey(String signingKey) {
+  public ClientsConfig.ClientConfig getClientConfigBySigningKey(String signingKey) {
     if (signingKeyToClientNameMap == null) {
       signingKeyToClientNameMap = Maps.newHashMap();
       clients.forEach(
@@ -83,7 +83,7 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     }
   }
 
-  void validateCustodialClient(ClientConfig clientConfig, Errors errors) {
+  public void validateCustodialClient(ClientConfig clientConfig, Errors errors) {
     if (isEmpty(clientConfig.getSigningKey())) {
       errors.reject(
           "empty-client-signing-key", "The client.signingKey cannot be empty and must be defined");
@@ -97,7 +97,7 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     }
   }
 
-  void validateNonCustodialClient(ClientConfig clientConfig, Errors errors) {
+  public void validateNonCustodialClient(ClientConfig clientConfig, Errors errors) {
     if (isEmpty(clientConfig.getDomain())) {
       errors.reject("empty-client-domain", "The client.domain cannot be empty and must be defined");
     }
@@ -124,6 +124,12 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
       } catch (MalformedURLException e) {
         errors.reject("client-invalid-callback_url", "The client.callbackUrl is invalid");
       }
+    }
+
+    if (clientConfig.getDestinationAccounts() != null) {
+      errors.reject(
+          "destination-accounts-noncustodial",
+          "Destination accounts list is not a valid configuration option for a non-custodial client");
     }
   }
 }

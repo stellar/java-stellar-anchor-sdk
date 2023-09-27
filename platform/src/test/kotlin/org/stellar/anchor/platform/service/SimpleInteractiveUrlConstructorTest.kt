@@ -63,7 +63,9 @@ class SimpleInteractiveUrlConstructorTest {
         NONCUSTODIAL,
         "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
         "lobstr.co",
-        "https://callback.lobstr.co/api/v2/anchor/callback"
+        "https://callback.lobstr.co/api/v2/anchor/callback",
+        false,
+        null
       )
     every { clientsConfig.getClientConfigByDomain(any()) } returns null
     every { clientsConfig.getClientConfigByDomain(clientConfig.domain) } returns clientConfig
@@ -79,6 +81,8 @@ class SimpleInteractiveUrlConstructorTest {
         ClientType.CUSTODIAL,
         "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         null,
+        null,
+        false,
         null
       )
 

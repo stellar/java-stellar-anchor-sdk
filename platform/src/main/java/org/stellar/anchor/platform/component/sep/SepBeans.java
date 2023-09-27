@@ -14,16 +14,7 @@ import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.CustodyConfig;
-import org.stellar.anchor.config.SecretConfig;
-import org.stellar.anchor.config.Sep10Config;
-import org.stellar.anchor.config.Sep12Config;
-import org.stellar.anchor.config.Sep1Config;
-import org.stellar.anchor.config.Sep24Config;
-import org.stellar.anchor.config.Sep31Config;
-import org.stellar.anchor.config.Sep38Config;
-import org.stellar.anchor.config.Sep6Config;
+import org.stellar.anchor.config.*;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.Sep10JwtFilter;
@@ -153,6 +144,7 @@ public class SepBeans {
   Sep24Service sep24Service(
       AppConfig appConfig,
       Sep24Config sep24Config,
+      ClientsConfig clientsConfig,
       AssetService assetService,
       JwtService jwtService,
       Sep24TransactionStore sep24TransactionStore,
@@ -163,6 +155,7 @@ public class SepBeans {
     return new Sep24Service(
         appConfig,
         sep24Config,
+        clientsConfig,
         assetService,
         jwtService,
         sep24TransactionStore,

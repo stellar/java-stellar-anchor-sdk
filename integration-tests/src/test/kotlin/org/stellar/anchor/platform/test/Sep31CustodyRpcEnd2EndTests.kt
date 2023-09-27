@@ -143,7 +143,7 @@ class Sep31CustodyRpcEnd2EndTests(
           .stellar()
           .transaction(keypair)
           .transfer(postTxResponse.stellarAccountId, asset, amount)
-          .addMemo(Pair(memoType, postTxResponse.stellarMemo))
+          .setMemo(Pair(memoType, postTxResponse.stellarMemo))
           .build()
       transfer.sign(keypair)
       wallet.stellar().submitTransaction(transfer)

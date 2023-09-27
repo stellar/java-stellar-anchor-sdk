@@ -88,13 +88,13 @@ class CustodyPaymentHandlerTest {
   "from": "testFrom",
   "to": "testTo",
   "amount": "1.0000000",
-  "assetType": "credit_alphanum100",
-  "assetName": "testAmountInAsset",
-  "createdAt": "2023-05-10T10:18:25.778Z",
+  "asset_type": "credit_alphanum100",
+  "asset_name": "testAmountInAsset",
+  "created_at": "2023-05-10T10:18:25.778Z",
   "status": "ERROR",
-  "transactionHash": "testTxHash",
-  "transactionMemoType": "none",
-  "transactionEnvelope": "testEnvelopeXdr"
+  "transaction_hash": "testTxHash",
+  "transaction_memo_type": "none",
+  "transaction_envelope": "testEnvelopeXdr"
 }
 """
 
