@@ -12,7 +12,7 @@ import lombok.Data;
  */
 @Builder
 @Data
-public class GetDepositResponse {
+public class StartDepositResponse {
   /**
    * Terse but complete instructions for how to deposit the asset.
    *
