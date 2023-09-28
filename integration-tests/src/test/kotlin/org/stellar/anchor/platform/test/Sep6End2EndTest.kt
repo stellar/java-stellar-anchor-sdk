@@ -59,8 +59,8 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
         mapOf(
           "asset_code" to USDC.code,
           "account" to keypair.address,
-          "amount" to "0.01",
-          "type" to "bank_account"
+          "amount" to "1",
+          "type" to "SWIFT"
         )
       )
     waitStatus(deposit.id, "pending_customer_info_update", sep6Client)
@@ -102,7 +102,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
 
     val withdraw =
       sep6Client.withdraw(
-        mapOf("asset_code" to USDC.code, "amount" to "0.01", "type" to "bank_account")
+        mapOf("asset_code" to USDC.code, "amount" to "1", "type" to "bank_account")
       )
     waitStatus(withdraw.id, "pending_customer_info_update", sep6Client)
 
@@ -123,7 +123,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       wallet
         .stellar()
         .transaction(keypair, memo = Pair(MemoType.HASH, withdraw.memo))
-        .transfer(withdraw.accountId, USDC, "0.01")
+        .transfer(withdraw.accountId, USDC, "1")
         .build()
     transfer.sign(keypair)
     wallet.stellar().submitTransaction(transfer)
