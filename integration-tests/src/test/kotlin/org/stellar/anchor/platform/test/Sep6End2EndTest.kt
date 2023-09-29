@@ -6,6 +6,7 @@ import kotlin.test.DefaultAsserter.fail
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.stellar.anchor.api.sep.sep6.GetTransactionResponse
 import org.stellar.anchor.api.shared.InstructionField
@@ -46,7 +47,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
   }
 
-  private fun `test typical deposit end-to-end flow`() = runBlocking {
+  private suspend fun `test typical deposit end-to-end flow`() {
     val token = anchor.auth().authenticate(keypair)
     // TODO: migrate this to wallet-sdk when it's available
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
@@ -92,7 +93,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     assertEquals(completedDepositTxn.transaction.id, transactionByStellarId.transaction.id)
   }
 
-  private fun `test typical withdraw end-to-end flow`() = runBlocking {
+  private suspend fun `test typical withdraw end-to-end flow`() {
     val token = anchor.auth().authenticate(keypair)
     // TODO: migrate this to wallet-sdk when it's available
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
@@ -148,7 +149,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
   }
 
   fun testAll() {
-    `test typical deposit end-to-end flow`()
-    `test typical withdraw end-to-end flow`()
+    runBlocking {
+      launch { `test typical deposit end-to-end flow`() }
+      launch { `test typical withdraw end-to-end flow`() }
+    }
   }
 }
