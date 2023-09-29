@@ -13,7 +13,7 @@ import lombok.Data;
  */
 @Builder
 @Data
-public class GetWithdrawResponse {
+public class StartWithdrawResponse {
   /** The account the user should send its token back to. */
   @SerializedName("account_id")
   String accountId;

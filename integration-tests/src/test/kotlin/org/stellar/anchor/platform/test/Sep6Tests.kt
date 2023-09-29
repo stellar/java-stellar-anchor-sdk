@@ -121,8 +121,8 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
       mapOf(
         "asset_code" to "USDC",
         "account" to CLIENT_WALLET_ACCOUNT,
-        "amount" to "0.01",
-        "type" to "bank_account"
+        "amount" to "1",
+        "type" to "SWIFT"
       )
     val response = sep6Client.deposit(request)
     Log.info("GET /deposit response: $response")
@@ -137,7 +137,7 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
   }
 
   private fun `test sep6 withdraw`() {
-    val request = mapOf("asset_code" to "USDC", "type" to "bank_account", "amount" to "0.01")
+    val request = mapOf("asset_code" to "USDC", "type" to "bank_account", "amount" to "1")
     val response = sep6Client.withdraw(request)
     Log.info("GET /withdraw response: $response")
     assert(!response.id.isNullOrEmpty())

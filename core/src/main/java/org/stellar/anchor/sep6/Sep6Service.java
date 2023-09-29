@@ -1,13 +1,12 @@
 package org.stellar.anchor.sep6;
 
+import static org.stellar.anchor.util.MemoHelper.*;
 import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import com.google.common.collect.ImmutableMap;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -18,16 +17,16 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.util.MemoHelper;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.TransactionHelper;
-import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
 public class Sep6Service {
   private final Sep6Config sep6Config;
   private final AssetService assetService;
+  private final RequestValidator requestValidator;
   private final Sep6TransactionStore txnStore;
+  private final ExchangeAmountsCalculator exchangeAmountsCalculator;
   private final EventService.Session eventSession;
 
   private final InfoResponse infoResponse;
@@ -35,11 +34,15 @@ public class Sep6Service {
   public Sep6Service(
       Sep6Config sep6Config,
       AssetService assetService,
+      RequestValidator requestValidator,
       Sep6TransactionStore txnStore,
+      ExchangeAmountsCalculator exchangeAmountsCalculator,
       EventService eventService) {
     this.sep6Config = sep6Config;
     this.assetService = assetService;
+    this.requestValidator = requestValidator;
     this.txnStore = txnStore;
+    this.exchangeAmountsCalculator = exchangeAmountsCalculator;
     this.eventSession =
         eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
     this.infoResponse = buildInfoResponse();
@@ -49,7 +52,7 @@ public class Sep6Service {
     return infoResponse;
   }
 
-  public GetDepositResponse deposit(Sep10Jwt token, GetDepositRequest request)
+  public StartDepositResponse deposit(Sep10Jwt token, StartDepositRequest request)
       throws AnchorException {
     // Pre-validation
     if (token == null) {
@@ -59,18 +62,22 @@ public class Sep6Service {
       throw new SepValidationException("missing request");
     }
 
-    AssetInfo asset = assetService.getAsset(request.getAssetCode());
-    if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep6Enabled()) {
-      throw new SepValidationException(
-          String.format("invalid operation for asset %s", request.getAssetCode()));
+    AssetInfo asset = requestValidator.getDepositAsset(request.getAssetCode());
+    if (request.getType() != null) {
+      requestValidator.validateTypes(
+          request.getType(), asset.getCode(), asset.getDeposit().getMethods());
     }
+    if (request.getAmount() != null) {
+      requestValidator.validateAmount(
+          request.getAmount(),
+          asset.getCode(),
+          asset.getSignificantDecimals(),
+          asset.getDeposit().getMinAmount(),
+          asset.getDeposit().getMaxAmount());
+    }
+    requestValidator.validateAccount(request.getAccount());
 
-    try {
-      KeyPair.fromAccountId(request.getAccount());
-    } catch (RuntimeException ex) {
-      throw new SepValidationException(String.format("invalid account %s", request.getAccount()));
-    }
-    Memo memo = MemoHelper.makeMemo(request.getMemo(), request.getMemoType());
+    Memo memo = makeMemo(request.getMemo(), request.getMemoType());
     String id = SepHelper.generateSepTransactionId();
 
     Sep6TransactionBuilder builder =
@@ -90,7 +97,7 @@ public class Sep6Service {
 
     if (memo != null) {
       builder.memo(memo.toString());
-      builder.memoType(SepHelper.memoTypeString(MemoHelper.memoType(memo)));
+      builder.memoType(SepHelper.memoTypeString(memoType(memo)));
     }
 
     Sep6Transaction txn = builder.build();
@@ -104,13 +111,13 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
-    return GetDepositResponse.builder()
+    return StartDepositResponse.builder()
         .how("Check the transaction for more information about how to deposit.")
         .id(txn.getId())
         .build();
   }
 
-  public GetWithdrawResponse withdraw(Sep10Jwt token, GetWithdrawRequest request)
+  public StartWithdrawResponse withdraw(Sep10Jwt token, StartWithdrawRequest request)
       throws AnchorException {
     // Pre-validation
     if (token == null) {
@@ -120,36 +127,21 @@ public class Sep6Service {
       throw new SepValidationException("missing request");
     }
 
-    AssetInfo asset = assetService.getAsset(request.getAssetCode());
-    if (asset == null || !asset.getWithdraw().getEnabled() || !asset.getSep6Enabled()) {
-      throw new SepValidationException(
-          String.format("invalid operation for asset %s", request.getAssetCode()));
+    AssetInfo asset = requestValidator.getWithdrawAsset(request.getAssetCode());
+    if (request.getType() != null) {
+      requestValidator.validateTypes(
+          request.getType(), asset.getCode(), asset.getWithdraw().getMethods());
     }
-    if (!asset.getWithdraw().getMethods().contains(request.getType())) {
-      throw new SepValidationException(
-          String.format(
-              "invalid type %s for asset %s, supported types are %s",
-              request.getType(), request.getAssetCode(), asset.getWithdraw().getMethods()));
-    }
-    BigDecimal amount = new BigDecimal(request.getAmount());
-    if (amount.scale() > asset.getSignificantDecimals()) {
-      throw new SepValidationException(
-          String.format(
-              "invalid amount %s for asset %s, significant decimals is %s",
-              request.getAmount(), request.getAssetCode(), asset.getSignificantDecimals()));
-    }
-    if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-      throw new SepValidationException(
-          String.format(
-              "invalid amount %s for asset %s", request.getAmount(), request.getAssetCode()));
+    if (request.getAmount() != null) {
+      requestValidator.validateAmount(
+          request.getAmount(),
+          asset.getCode(),
+          asset.getSignificantDecimals(),
+          asset.getWithdraw().getMinAmount(),
+          asset.getWithdraw().getMaxAmount());
     }
 
     String id = SepHelper.generateSepTransactionId();
-
-    // Make a unique memo from the transaction ID
-    String memo = StringUtils.truncate(id, 32);
-    memo = StringUtils.leftPad(memo, 32, '0');
-    memo = new String(Base64.getEncoder().encode(memo.getBytes()));
 
     Sep6TransactionBuilder builder =
         new Sep6TransactionBuilder(txnStore)
@@ -164,8 +156,8 @@ public class Sep6Service {
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
-            .memo(memo)
-            .memoType(MemoHelper.memoTypeAsString(MEMO_HASH))
+            .memo(generateMemo(id))
+            .memoType(memoTypeAsString(MEMO_HASH))
             .fromAccount(token.getAccount())
             .withdrawAnchorAccount(asset.getDistributionAccount())
             .toAccount(asset.getDistributionAccount())
@@ -183,11 +175,96 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
-    return GetWithdrawResponse.builder()
+    return StartWithdrawResponse.builder()
         .accountId(asset.getDistributionAccount())
         .id(txn.getId())
-        .memo(memo)
-        .memoType(MemoHelper.memoTypeAsString(MEMO_HASH))
+        .memo(txn.getMemo())
+        .memoType(memoTypeAsString(MEMO_HASH))
+        .build();
+  }
+
+  public StartWithdrawResponse withdrawExchange(
+      Sep10Jwt token, StartWithdrawExchangeRequest request) throws AnchorException {
+    // Pre-validation
+    if (token == null) {
+      throw new SepNotAuthorizedException("missing token");
+    }
+    if (request == null) {
+      throw new SepValidationException("missing request");
+    }
+
+    AssetInfo buyAsset = assetService.getAssetByName(request.getDestinationAsset());
+    if (buyAsset == null) {
+      throw new SepValidationException(
+          String.format("invalid operation for asset %s", request.getDestinationAsset()));
+    }
+
+    AssetInfo sellAsset = requestValidator.getWithdrawAsset(request.getSourceAsset());
+    requestValidator.validateTypes(
+        request.getType(), sellAsset.getCode(), sellAsset.getWithdraw().getMethods());
+    requestValidator.validateAmount(
+        request.getAmount(),
+        sellAsset.getCode(),
+        sellAsset.getSignificantDecimals(),
+        sellAsset.getWithdraw().getMinAmount(),
+        sellAsset.getWithdraw().getMaxAmount());
+
+    String id = SepHelper.generateSepTransactionId();
+
+    ExchangeAmountsCalculator.Amounts amounts;
+    if (request.getQuoteId() != null) {
+      amounts =
+          exchangeAmountsCalculator.calculateFromQuote(
+              request.getQuoteId(), sellAsset, request.getAmount());
+    } else {
+      amounts =
+          exchangeAmountsCalculator.calculate(
+              buyAsset, sellAsset, request.getAmount(), token.getAccount());
+    }
+
+    Sep6TransactionBuilder builder =
+        new Sep6TransactionBuilder(txnStore)
+            .id(id)
+            .transactionId(id)
+            .status(SepTransactionStatus.INCOMPLETE.toString())
+            .kind(Sep6Transaction.Kind.WITHDRAWAL_EXCHANGE.toString())
+            .type(request.getType())
+            .assetCode(sellAsset.getCode())
+            .assetIssuer(sellAsset.getIssuer())
+            .amountIn(amounts.getAmountIn())
+            .amountInAsset(amounts.getAmountInAsset())
+            .amountOut(amounts.getAmountOut())
+            .amountOutAsset(amounts.getAmountOutAsset())
+            .amountFee(amounts.getAmountFee())
+            .amountFeeAsset(amounts.getAmountFeeAsset())
+            .amountExpected(request.getAmount())
+            .startedAt(Instant.now())
+            .sep10Account(token.getAccount())
+            .sep10AccountMemo(token.getAccountMemo())
+            .memo(generateMemo(id))
+            .memoType(memoTypeAsString(MEMO_HASH))
+            .fromAccount(token.getAccount())
+            .withdrawAnchorAccount(sellAsset.getDistributionAccount())
+            .refundMemo(request.getRefundMemo())
+            .refundMemoType(request.getRefundMemoType())
+            .quoteId(request.getQuoteId());
+
+    Sep6Transaction txn = builder.build();
+    txnStore.save(txn);
+
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("6")
+            .type(AnchorEvent.Type.TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .build());
+
+    return StartWithdrawResponse.builder()
+        .accountId(sellAsset.getDistributionAccount())
+        .id(txn.getId())
+        .memo(txn.getMemo())
+        .memoType(memoTypeAsString(MEMO_HASH))
         .build();
   }
 
@@ -301,9 +378,9 @@ public class Sep6Service {
 
         if (asset.getWithdraw().getEnabled()) {
           List<String> methods = asset.getWithdraw().getMethods();
-          Map<String, Map<String, AssetInfo.Field>> types = new HashMap<>();
+          Map<String, WithdrawType> types = new HashMap<>();
           for (String method : methods) {
-            types.put(method, new HashMap<>());
+            types.put(method, WithdrawType.builder().fields(new HashMap<>()).build());
           }
 
           WithdrawAssetResponse withdraw =
