@@ -43,11 +43,11 @@ public class Sep6Controller {
       @RequestParam(value = "memo_type", required = false) String memoType,
       @RequestParam(value = "memo", required = false) String memo,
       @RequestParam(value = "email_address", required = false) String emailAddress,
-      @RequestParam(value = "type") String type,
+      @RequestParam(value = "type", required = false) String type,
       @RequestParam(value = "wallet_name", required = false) String walletName,
       @RequestParam(value = "wallet_url", required = false) String walletUrl,
       @RequestParam(value = "lang", required = false) String lang,
-      @RequestParam(value = "amount") String amount,
+      @RequestParam(value = "amount", required = false) String amount,
       @RequestParam(value = "country_code", required = false) String countryCode,
       @RequestParam(value = "claimable_balances_supported", required = false)
           Boolean claimableBalancesSupported)
@@ -79,8 +79,8 @@ public class Sep6Controller {
   public StartWithdrawResponse withdraw(
       HttpServletRequest request,
       @RequestParam(value = "asset_code") String assetCode,
-      @RequestParam(value = "type") String type,
-      @RequestParam(value = "amount") String amount,
+      @RequestParam(value = "type", required = false) String type,
+      @RequestParam(value = "amount", required = false) String amount,
       @RequestParam(value = "country_code", required = false) String countryCode,
       @RequestParam(value = "refundMemo", required = false) String refundMemo,
       @RequestParam(value = "refundMemoType", required = false) String refundMemoType)
@@ -137,6 +137,7 @@ public class Sep6Controller {
   public GetTransactionsResponse getTransactions(
       HttpServletRequest request,
       @RequestParam(value = "asset_code") String assetCode,
+      @RequestParam(value = "account") String account,
       @RequestParam(required = false, value = "kind") String kind,
       @RequestParam(required = false, value = "limit") Integer limit,
       @RequestParam(required = false, value = "paging_id") String pagingId,
@@ -155,6 +156,7 @@ public class Sep6Controller {
     GetTransactionsRequest getTransactionsRequest =
         GetTransactionsRequest.builder()
             .assetCode(assetCode)
+            .account(account)
             .kind(kind)
             .limit(limit)
             .pagingId(pagingId)

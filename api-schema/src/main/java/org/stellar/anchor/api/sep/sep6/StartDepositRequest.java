@@ -33,7 +33,7 @@ public class StartDepositRequest {
   String emailAddress;
 
   /** Type of deposit. */
-  @NonNull String type;
+  String type;
 
   /** Name of wallet to deposit to. Currently, ignored. */
   @SerializedName("wallet_name")
@@ -53,7 +53,7 @@ public class StartDepositRequest {
   String lang;
 
   /** The amount to deposit. */
-  @NonNull String amount;
+  String amount;
 
   /** The ISO 3166-1 alpha-3 code of the user's current address. */
   @SerializedName("country_code")
