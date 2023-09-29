@@ -135,6 +135,11 @@ class Sep6ServiceTest {
 
     // Verify response
     assertEquals(slotTxn.captured.id, response.id)
+    JSONAssert.assertEquals(
+      Sep6ServiceTestData.depositResJson,
+      gson.toJson(response),
+      JSONCompareMode.LENIENT
+    )
   }
 
   @Test
@@ -175,6 +180,11 @@ class Sep6ServiceTest {
 
     // Verify response
     assertEquals(slotTxn.captured.id, response.id)
+    JSONAssert.assertEquals(
+      Sep6ServiceTestData.depositResJson,
+      gson.toJson(response),
+      JSONCompareMode.LENIENT
+    )
   }
 
   @Test
@@ -810,8 +820,6 @@ class Sep6ServiceTest {
         .type("bank_account")
         .amount(badAmount)
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
     every { requestValidator.validateAmount(badAmount, TEST_ASSET, any(), any(), any()) } throws
       SepValidationException("bad amount")
 
@@ -852,8 +860,6 @@ class Sep6ServiceTest {
         .type("bank_account")
         .amount("100")
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
 
     assertThrows<java.lang.RuntimeException> {
       sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
@@ -910,9 +916,6 @@ class Sep6ServiceTest {
         .refundMemo("some text")
         .refundMemoType("text")
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
-
     val response = sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
 
     // Verify validations
@@ -998,9 +1001,6 @@ class Sep6ServiceTest {
         .refundMemo("some text")
         .refundMemoType("text")
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
-
     val response = sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
 
     // Verify validations
@@ -1090,8 +1090,6 @@ class Sep6ServiceTest {
         .type("bank_account")
         .amount("100")
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
 
     assertThrows<SepValidationException> {
       sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
@@ -1111,8 +1109,6 @@ class Sep6ServiceTest {
         .type(unsupportedType)
         .amount("100")
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
     every { requestValidator.validateTypes(unsupportedType, TEST_ASSET, any()) } throws
       SepValidationException("unsupported type")
 
