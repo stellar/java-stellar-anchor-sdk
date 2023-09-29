@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepException
-import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.platform.Sep38Client
 import org.stellar.anchor.platform.TestConfig
@@ -88,14 +87,21 @@ class Sep38Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     }
   }
 
-  fun `test endpoints failed when authenticate requried but token missing`() {
-    assertThrows<SepNotAuthorizedException> { sep38ClientWithoutJwt.getInfo() }
+  fun `test endpoints does not required valid token when auth is disabled`() {
+    sep38ClientWithoutJwt.getInfo()
+    sep38ClientWithoutJwt.getPrices("iso4217:USD", "100")
+    sep38ClientWithoutJwt.getPrice(
+      "iso4217:USD",
+      "100",
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      SEP31
+    )
   }
 
   fun testAll() {
     println("Performing SEP38 tests...")
     `test sep38 info, price and prices endpoints`()
     `test selling over asset limit throws an exception`()
-    `test endpoints failed when authenticate requried but token missing`()
+    `test endpoints does not required valid token when auth is disabled`()
   }
 }

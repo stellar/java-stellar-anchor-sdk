@@ -44,7 +44,7 @@ class Sep38ServiceTest {
       return true
     }
     override fun isRequiresSep10(): Boolean {
-      return true
+      return false
     }
   }
 
