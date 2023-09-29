@@ -21,10 +21,10 @@ public class StartWithdrawRequest {
   String assetCode;
 
   /** Type of withdrawal. */
-  @NonNull String type;
+  String type;
 
   /** The amount to withdraw. */
-  @NonNull String amount;
+  String amount;
 
   /** The ISO 3166-1 alpha-3 code of the user's current address. */
   @SerializedName("country_code")

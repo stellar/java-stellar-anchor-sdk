@@ -36,6 +36,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator;
+import org.stellar.anchor.sep6.RequestValidator;
 import org.stellar.anchor.sep6.Sep6Service;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
@@ -124,10 +125,16 @@ public class SepBeans {
       EventService eventService,
       FeeIntegration feeIntegration,
       Sep38QuoteStore sep38QuoteStore) {
+    RequestValidator requestValidator = new RequestValidator(assetService);
     ExchangeAmountsCalculator exchangeAmountsCalculator =
         new ExchangeAmountsCalculator(feeIntegration, sep38QuoteStore, assetService);
     return new Sep6Service(
-        sep6Config, assetService, txnStore, exchangeAmountsCalculator, eventService);
+        sep6Config,
+        assetService,
+        requestValidator,
+        txnStore,
+        exchangeAmountsCalculator,
+        eventService);
   }
 
   @Bean
