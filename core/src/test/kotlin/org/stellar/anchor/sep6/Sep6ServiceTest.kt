@@ -135,6 +135,11 @@ class Sep6ServiceTest {
 
     // Verify response
     assertEquals(slotTxn.captured.id, response.id)
+    JSONAssert.assertEquals(
+      Sep6ServiceTestData.depositResJson,
+      gson.toJson(response),
+      JSONCompareMode.LENIENT
+    )
   }
 
   @Test
@@ -175,6 +180,11 @@ class Sep6ServiceTest {
 
     // Verify response
     assertEquals(slotTxn.captured.id, response.id)
+    JSONAssert.assertEquals(
+      Sep6ServiceTestData.depositResJson,
+      gson.toJson(response),
+      JSONCompareMode.LENIENT
+    )
   }
 
   @Test
@@ -290,6 +300,325 @@ class Sep6ServiceTest {
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) {
       requestValidator.validateTypes("bank_account", asset.code, asset.deposit.methods)
+    }
+    verify(exactly = 1) {
+      requestValidator.validateAmount(
+        "100",
+        asset.code,
+        asset.significantDecimals,
+        asset.deposit.minAmount,
+        asset.deposit.maxAmount,
+      )
+    }
+
+    // Verify effects
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify { eventSession wasNot called }
+  }
+
+  @Test
+  fun `test deposit-exchange with quote`() {
+    val sourceAsset = "iso4217:USD"
+    val destinationAsset = TEST_ASSET
+    val amount = "100"
+
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    every { exchangeAmountsCalculator.calculateFromQuote(TEST_QUOTE_ID, any(), any()) } returns
+      Amounts.builder()
+        .amountIn("100")
+        .amountInAsset(sourceAsset)
+        .amountOut("98")
+        .amountOutAsset(TEST_ASSET_SEP38_FORMAT)
+        .amountFee("2")
+        .amountFeeAsset(TEST_ASSET_SEP38_FORMAT)
+        .build()
+
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(destinationAsset)
+        .sourceAsset(sourceAsset)
+        .quoteId(TEST_QUOTE_ID)
+        .amount(amount)
+        .account(TEST_ACCOUNT)
+        .type("SWIFT")
+        .build()
+    val response = sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+
+    // Verify validations
+    verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
+    verify(exactly = 1) {
+      requestValidator.validateTypes("SWIFT", asset.code, asset.deposit.methods)
+    }
+    verify(exactly = 1) {
+      requestValidator.validateAmount(
+        "100",
+        asset.code,
+        asset.significantDecimals,
+        asset.deposit.minAmount,
+        asset.deposit.maxAmount,
+      )
+    }
+
+    // Verify effects
+    verify(exactly = 1) {
+      exchangeAmountsCalculator.calculateFromQuote(TEST_QUOTE_ID, any(), "100")
+    }
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+
+    JSONAssert.assertEquals(
+      Sep6ServiceTestData.depositExchangeTxnJson,
+      gson.toJson(slotTxn.captured),
+      JSONCompareMode.LENIENT
+    )
+    assert(slotTxn.captured.id.isNotEmpty())
+    assertNotNull(slotTxn.captured.startedAt)
+
+    JSONAssert.assertEquals(
+      Sep6ServiceTestData.depositExchangeTxnEventJson,
+      gson.toJson(slotEvent.captured),
+      JSONCompareMode.LENIENT
+    )
+    assert(slotEvent.captured.id.isNotEmpty())
+    assert(slotEvent.captured.transaction.id.isNotEmpty())
+    assertNotNull(slotEvent.captured.transaction.startedAt)
+
+    // Verify response
+    assertEquals(slotTxn.captured.id, response.id)
+    JSONAssert.assertEquals(
+      Sep6ServiceTestData.depositResJson,
+      gson.toJson(response),
+      JSONCompareMode.LENIENT
+    )
+  }
+
+  @Test
+  fun `test deposit-exchange without quote`() {
+    val sourceAsset = "iso4217:USD"
+    val destinationAsset = TEST_ASSET
+    val amount = "100"
+
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    every { exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_ACCOUNT) } returns
+      Amounts.builder()
+        .amountIn("100")
+        .amountInAsset(sourceAsset)
+        .amountOut("98")
+        .amountOutAsset(TEST_ASSET_SEP38_FORMAT)
+        .amountFee("2")
+        .amountFeeAsset(TEST_ASSET_SEP38_FORMAT)
+        .build()
+
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(destinationAsset)
+        .sourceAsset(sourceAsset)
+        .amount(amount)
+        .account(TEST_ACCOUNT)
+        .type("SWIFT")
+        .build()
+    val response = sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+
+    // Verify validations
+    verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
+    verify(exactly = 1) {
+      requestValidator.validateTypes("SWIFT", asset.code, asset.deposit.methods)
+    }
+    verify(exactly = 1) {
+      requestValidator.validateAmount(
+        "100",
+        asset.code,
+        asset.significantDecimals,
+        asset.deposit.minAmount,
+        asset.deposit.maxAmount,
+      )
+    }
+
+    // Verify effects
+    verify(exactly = 1) { exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_ACCOUNT) }
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+
+    JSONAssert.assertEquals(
+      Sep6ServiceTestData.depositExchangeTxnWithoutQuoteJson,
+      gson.toJson(slotTxn.captured),
+      JSONCompareMode.LENIENT
+    )
+    assert(slotTxn.captured.id.isNotEmpty())
+    assertNotNull(slotTxn.captured.startedAt)
+
+    JSONAssert.assertEquals(
+      Sep6ServiceTestData.depositExchangeTxnEventWithoutQuoteJson,
+      gson.toJson(slotEvent.captured),
+      JSONCompareMode.LENIENT
+    )
+    assert(slotEvent.captured.id.isNotEmpty())
+    assert(slotEvent.captured.transaction.id.isNotEmpty())
+    assertNotNull(slotEvent.captured.transaction.startedAt)
+
+    // Verify response
+    assertEquals(slotTxn.captured.id, response.id)
+    JSONAssert.assertEquals(
+      Sep6ServiceTestData.depositResJson,
+      gson.toJson(response),
+      JSONCompareMode.LENIENT
+    )
+  }
+
+  @Test
+  fun `test deposit-exchange with unsupported destination asset`() {
+    val unsupportedAsset = "??"
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(unsupportedAsset)
+        .sourceAsset("iso4217:USD")
+        .amount("100")
+        .account(TEST_ACCOUNT)
+        .type("SWIFT")
+        .build()
+    every { requestValidator.getDepositAsset(unsupportedAsset) } throws
+      SepValidationException("unsupported asset")
+
+    assertThrows<SepValidationException> {
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+
+    // Verify validations
+    verify(exactly = 1) { requestValidator.getDepositAsset(unsupportedAsset) }
+
+    // Verify effects
+    verify { exchangeAmountsCalculator wasNot Called }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test deposit-exchange with unsupported source asset`() {
+    val unsupportedAsset = "??"
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(TEST_ASSET)
+        .sourceAsset(unsupportedAsset)
+        .amount("100")
+        .account(TEST_ACCOUNT)
+        .type("SWIFT")
+        .build()
+
+    assertThrows<SepValidationException> {
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+
+    // Verify effects
+    verify { exchangeAmountsCalculator wasNot Called }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test deposit-exchange with unsupported type`() {
+    val unsupportedType = "??"
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(TEST_ASSET)
+        .sourceAsset("iso4217:USD")
+        .amount("100")
+        .account(TEST_ACCOUNT)
+        .type(unsupportedType)
+        .build()
+    every { requestValidator.validateTypes(unsupportedType, TEST_ASSET, any()) } throws
+      SepValidationException("unsupported type")
+
+    assertThrows<SepValidationException> {
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+
+    // Verify validations
+    verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
+    verify(exactly = 1) {
+      requestValidator.validateTypes(unsupportedType, TEST_ASSET, asset.deposit.methods)
+    }
+
+    // Verify effects
+    verify { exchangeAmountsCalculator wasNot Called }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test deposit-exchange with bad amount`() {
+    val sourceAsset = "iso4217:USD"
+    val destinationAsset = TEST_ASSET
+    val badAmount = "100"
+
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(destinationAsset)
+        .sourceAsset(sourceAsset)
+        .amount(badAmount)
+        .account(TEST_ACCOUNT)
+        .type("SWIFT")
+        .build()
+    every { requestValidator.validateAmount(badAmount, TEST_ASSET, any(), any(), any()) } throws
+      SepValidationException("bad amount")
+
+    assertThrows<SepValidationException> {
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+
+    // Verify validations
+    verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
+    verify(exactly = 1) {
+      requestValidator.validateTypes("SWIFT", TEST_ASSET, asset.deposit.methods)
+    }
+    verify(exactly = 1) {
+      requestValidator.validateAmount(
+        badAmount,
+        TEST_ASSET,
+        asset.significantDecimals,
+        asset.deposit.minAmount,
+        asset.deposit.maxAmount,
+      )
+    }
+
+    // Verify effects
+    verify { exchangeAmountsCalculator wasNot Called }
+    verify { txnStore wasNot Called }
+    verify { eventSession wasNot Called }
+  }
+
+  @Test
+  fun `test deposit-exchange does not send event if transaction fails`() {
+    every { txnStore.save(any()) } throws RuntimeException("unexpected failure")
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val request =
+      StartDepositExchangeRequest.builder()
+        .destinationAsset(TEST_ASSET)
+        .sourceAsset("iso4217:USD")
+        .amount("100")
+        .account(TEST_ACCOUNT)
+        .type("SWIFT")
+        .build()
+    assertThrows<java.lang.RuntimeException> {
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    }
+
+    // Verify validations
+    verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
+    verify(exactly = 1) {
+      requestValidator.validateTypes("SWIFT", asset.code, asset.deposit.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
@@ -519,8 +848,6 @@ class Sep6ServiceTest {
         .type("bank_account")
         .amount(badAmount)
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
     every { requestValidator.validateAmount(badAmount, TEST_ASSET, any(), any(), any()) } throws
       SepValidationException("bad amount")
 
@@ -561,8 +888,6 @@ class Sep6ServiceTest {
         .type("bank_account")
         .amount("100")
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
 
     assertThrows<java.lang.RuntimeException> {
       sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
@@ -620,9 +945,6 @@ class Sep6ServiceTest {
         .refundMemo("some text")
         .refundMemoType("text")
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
-
     val response = sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
 
     // Verify validations
@@ -709,9 +1031,6 @@ class Sep6ServiceTest {
         .refundMemo("some text")
         .refundMemoType("text")
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
-
     val response = sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
 
     // Verify validations
@@ -834,8 +1153,6 @@ class Sep6ServiceTest {
         .type("bank_account")
         .amount("100")
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
 
     assertThrows<SepValidationException> {
       sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
@@ -855,8 +1172,6 @@ class Sep6ServiceTest {
         .type(unsupportedType)
         .amount("100")
         .build()
-    every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
     every { requestValidator.validateTypes(unsupportedType, TEST_ASSET, any()) } throws
       SepValidationException("unsupported type")
 
