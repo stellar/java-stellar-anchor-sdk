@@ -17,8 +17,6 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
   init {
     sep6Client = Sep6Client(toml.getString("TRANSFER_SERVER"), jwt)
     sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
-    // Create a customer before running any tests
-    putCustomer()
   }
 
   private val expectedSep6Info =
@@ -172,6 +170,8 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
 
   fun testAll() {
     Log.info("Performing SEP6 tests")
+    // Create a customer before running any tests
+    putCustomer()
     `test Sep6 info endpoint`()
     `test sep6 deposit`()
     `test sep6 withdraw`()

@@ -363,6 +363,7 @@ class Sep6ServiceTest {
         asset.deposit.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) {
@@ -443,6 +444,7 @@ class Sep6ServiceTest {
         asset.deposit.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) { exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_ACCOUNT) }
@@ -629,6 +631,7 @@ class Sep6ServiceTest {
         asset.deposit.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
