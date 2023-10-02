@@ -2,14 +2,24 @@ package org.stellar.anchor.platform.test
 
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.platform.CLIENT_WALLET_ACCOUNT
+import org.stellar.anchor.platform.Sep12Client
 import org.stellar.anchor.platform.Sep6Client
 import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.Log
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 
 class Sep6Tests(val toml: TomlContent, jwt: String) {
-  private val sep6Client = Sep6Client(toml.getString("TRANSFER_SERVER"), jwt)
+  private val sep6Client: Sep6Client
+  private val sep12Client: Sep12Client
+
+  init {
+    sep6Client = Sep6Client(toml.getString("TRANSFER_SERVER"), jwt)
+    sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
+    // Create a customer before running any tests
+    putCustomer()
+  }
 
   private val expectedSep6Info =
     """
@@ -148,6 +158,16 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
       gson.toJson(savedWithdrawTxn),
       JSONCompareMode.LENIENT
     )
+  }
+
+  private fun putCustomer() {
+    val request =
+      Sep12PutCustomerRequest.builder()
+        .firstName("John")
+        .lastName("Doe")
+        .emailAddress("john@email.com")
+        .build()
+    sep12Client.putCustomer(request)
   }
 
   fun testAll() {
