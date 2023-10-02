@@ -32,7 +32,7 @@ dependencies {
   implementation(libs.google.gson)
   implementation(libs.hibernate.types)
   implementation(libs.jackson.dataformat.yaml)
-  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
+  implementation(libs.java.stellar.sdk)
   implementation(libs.jjwt)
   implementation(libs.log4j2.api)
   implementation(libs.log4j2.core)
