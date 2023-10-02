@@ -33,6 +33,9 @@ public class StartWithdrawExchangeRequest {
   @SerializedName("quote_id")
   String quoteId;
 
+  /** The account to withdraw from. */
+  String account;
+
   /** The amount of the source asset the user would like to withdraw. */
   @NonNull String amount;
 
