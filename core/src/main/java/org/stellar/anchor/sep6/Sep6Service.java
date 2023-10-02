@@ -119,6 +119,91 @@ public class Sep6Service {
         .build();
   }
 
+  public StartDepositResponse depositExchange(Sep10Jwt token, StartDepositExchangeRequest request)
+      throws AnchorException {
+    if (token == null) {
+      throw new SepNotAuthorizedException("missing token");
+    }
+    if (request == null) {
+      throw new SepValidationException("missing request");
+    }
+
+    AssetInfo sellAsset = assetService.getAssetByName(request.getSourceAsset());
+    if (sellAsset == null) {
+      throw new SepValidationException(
+          String.format("invalid operation for asset %s", request.getSourceAsset()));
+    }
+
+    AssetInfo buyAsset = requestValidator.getDepositAsset(request.getDestinationAsset());
+    requestValidator.validateTypes(
+        request.getType(), buyAsset.getCode(), buyAsset.getDeposit().getMethods());
+    requestValidator.validateAmount(
+        request.getAmount(),
+        buyAsset.getCode(),
+        buyAsset.getSignificantDecimals(),
+        buyAsset.getDeposit().getMinAmount(),
+        buyAsset.getDeposit().getMaxAmount());
+    requestValidator.validateAccount(request.getAccount());
+
+    ExchangeAmountsCalculator.Amounts amounts;
+    if (request.getQuoteId() != null) {
+      amounts =
+          exchangeAmountsCalculator.calculateFromQuote(
+              request.getQuoteId(), sellAsset, request.getAmount());
+    } else {
+      amounts =
+          exchangeAmountsCalculator.calculate(
+              buyAsset, sellAsset, request.getAmount(), token.getAccount());
+    }
+
+    Memo memo = makeMemo(request.getMemo(), request.getMemoType());
+    String id = SepHelper.generateSepTransactionId();
+
+    Sep6TransactionBuilder builder =
+        new Sep6TransactionBuilder(txnStore)
+            .id(id)
+            .transactionId(id)
+            .status(SepTransactionStatus.INCOMPLETE.toString())
+            .kind(Sep6Transaction.Kind.DEPOSIT_EXCHANGE.toString())
+            .type(request.getType())
+            .assetCode(buyAsset.getCode())
+            .assetIssuer(buyAsset.getIssuer())
+            .amountIn(amounts.getAmountIn())
+            .amountInAsset(amounts.getAmountInAsset())
+            .amountOut(amounts.getAmountOut())
+            .amountOutAsset(amounts.getAmountOutAsset())
+            .amountFee(amounts.getAmountFee())
+            .amountFeeAsset(amounts.getAmountFeeAsset())
+            .amountExpected(request.getAmount())
+            .amountExpected(request.getAmount())
+            .startedAt(Instant.now())
+            .sep10Account(token.getAccount())
+            .sep10AccountMemo(token.getAccountMemo())
+            .toAccount(request.getAccount())
+            .quoteId(request.getQuoteId());
+
+    if (memo != null) {
+      builder.memo(memo.toString());
+      builder.memoType(SepHelper.memoTypeString(memoType(memo)));
+    }
+
+    Sep6Transaction txn = builder.build();
+    txnStore.save(txn);
+
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("6")
+            .type(AnchorEvent.Type.TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .build());
+
+    return StartDepositResponse.builder()
+        .how("Check the transaction for more information about how to deposit.")
+        .id(id)
+        .build();
+  }
+
   public StartWithdrawResponse withdraw(Sep10Jwt token, StartWithdrawRequest request)
       throws AnchorException {
     // Pre-validation

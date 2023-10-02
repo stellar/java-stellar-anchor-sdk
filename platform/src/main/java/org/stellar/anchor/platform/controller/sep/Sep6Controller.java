@@ -74,6 +74,44 @@ public class Sep6Controller {
 
   @CrossOrigin(origins = "*")
   @RequestMapping(
+      value = "/deposit-exchange",
+      method = {RequestMethod.GET})
+  public StartDepositResponse depositExchange(
+      HttpServletRequest request,
+      @RequestParam(value = "destination_asset") String destinationAsset,
+      @RequestParam(value = "source_asset") String sourceAsset,
+      @RequestParam(value = "quote_id", required = false) String quoteId,
+      @RequestParam(value = "amount") String amount,
+      @RequestParam(value = "account") String account,
+      @RequestParam(value = "memo_type", required = false) String memoType,
+      @RequestParam(value = "memo", required = false) String memo,
+      @RequestParam(value = "type") String type,
+      @RequestParam(value = "lang", required = false) String lang,
+      @RequestParam(value = "country_code", required = false) String countryCode,
+      @RequestParam(value = "claimable_balances_supported", required = false)
+          Boolean claimableBalancesSupported)
+      throws AnchorException {
+    debugF("GET /deposit-exchange");
+    Sep10Jwt token = getSep10Token(request);
+    StartDepositExchangeRequest startDepositExchangeRequest =
+        StartDepositExchangeRequest.builder()
+            .destinationAsset(destinationAsset)
+            .sourceAsset(sourceAsset)
+            .quoteId(quoteId)
+            .amount(amount)
+            .account(account)
+            .memoType(memoType)
+            .memo(memo)
+            .type(type)
+            .lang(lang)
+            .countryCode(countryCode)
+            .claimableBalancesSupported(claimableBalancesSupported)
+            .build();
+    return sep6Service.depositExchange(token, startDepositExchangeRequest);
+  }
+
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
       value = "/withdraw",
       method = {RequestMethod.GET})
   public StartWithdrawResponse withdraw(

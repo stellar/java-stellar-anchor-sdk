@@ -132,6 +132,8 @@ public class PlatformTransactionData {
     RECEIVE("receive"),
     @SerializedName("deposit")
     DEPOSIT("deposit"),
+    @SerializedName("deposit-exchange")
+    DEPOSIT_EXCHANGE("deposit-exchange"),
     @SerializedName("withdrawal")
     WITHDRAWAL("withdrawal"),
 
