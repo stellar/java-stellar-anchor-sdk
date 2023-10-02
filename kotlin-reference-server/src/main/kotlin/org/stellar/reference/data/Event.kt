@@ -1,5 +1,6 @@
 package org.stellar.reference.data
 
+import org.stellar.anchor.api.platform.CustomerUpdatedResponse
 import org.stellar.anchor.api.platform.GetQuoteResponse
 import org.stellar.anchor.api.platform.GetTransactionResponse
 
@@ -10,7 +11,8 @@ data class SendEventRequest(
   val payload: SendEventRequestPayload
 )
 
-public data class SendEventRequestPayload(
-  val transaction: GetTransactionResponse,
-  val quote: GetQuoteResponse
+data class SendEventRequestPayload(
+  val transaction: GetTransactionResponse?,
+  val quote: GetQuoteResponse?,
+  val customer: CustomerUpdatedResponse?
 )

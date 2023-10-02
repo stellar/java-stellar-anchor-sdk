@@ -26,7 +26,7 @@ class EventService {
   fun getEvents(txnId: String?): List<SendEventRequest> {
     if (txnId != null) {
       // filter events with txnId
-      return receivedEvents.filter { it.payload.transaction.id == txnId }
+      return receivedEvents.filter { it.payload.transaction?.id == txnId }
     }
     // return all events
     return receivedEvents
