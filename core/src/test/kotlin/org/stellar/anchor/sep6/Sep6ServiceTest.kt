@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.junit.jupiter.api.BeforeEach
@@ -363,6 +363,7 @@ class Sep6ServiceTest {
         asset.deposit.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) {
@@ -443,6 +444,7 @@ class Sep6ServiceTest {
         asset.deposit.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) { exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_ACCOUNT) }
@@ -629,6 +631,7 @@ class Sep6ServiceTest {
         asset.deposit.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -668,6 +671,7 @@ class Sep6ServiceTest {
         asset.withdraw.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -705,6 +709,32 @@ class Sep6ServiceTest {
   }
 
   @Test
+  fun `test withdraw from requested account`() {
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val request =
+      StartWithdrawRequest.builder()
+        .assetCode(TEST_ASSET)
+        .account("requested_account")
+        .refundMemo("some text")
+        .refundMemoType("text")
+        .build()
+    sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+
+    // Verify validations
+    verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
+    verify(exactly = 1) { requestValidator.validateAccount("requested_account") }
+
+    // Verify effects
+    assertEquals("requested_account", slotTxn.captured.fromAccount)
+    assertEquals("requested_account", slotEvent.captured.transaction.sourceAccount)
+  }
+
+  @Test
   fun `test withdraw without amount or type`() {
     val slotTxn = slot<Sep6Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
@@ -722,6 +752,7 @@ class Sep6ServiceTest {
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -879,6 +910,7 @@ class Sep6ServiceTest {
         asset.withdraw.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -932,6 +964,7 @@ class Sep6ServiceTest {
         asset.withdraw.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) {
@@ -1017,6 +1050,7 @@ class Sep6ServiceTest {
         asset.withdraw.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) { exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_ACCOUNT) }
@@ -1052,6 +1086,38 @@ class Sep6ServiceTest {
       gson.toJson(response),
       JSONCompareMode.LENIENT
     )
+  }
+
+  @Test
+  fun `test withdraw-exchange from requested account`() {
+    val sourceAsset = TEST_ASSET
+    val destinationAsset = "iso4217:USD"
+
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val request =
+      StartWithdrawExchangeRequest.builder()
+        .sourceAsset(sourceAsset)
+        .destinationAsset(destinationAsset)
+        .type("bank_account")
+        .amount("100")
+        .account("requested_account")
+        .refundMemo("some text")
+        .refundMemoType("text")
+        .build()
+    sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+
+    // Verify validations
+    verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
+    verify(exactly = 1) { requestValidator.validateAccount("requested_account") }
+
+    // Verify effects
+    assertEquals("requested_account", slotTxn.captured.fromAccount)
+    assertEquals("requested_account", slotEvent.captured.transaction.sourceAccount)
   }
 
   @Test
@@ -1203,6 +1269,7 @@ class Sep6ServiceTest {
         asset.withdraw.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
