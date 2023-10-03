@@ -1,5 +1,6 @@
 package org.stellar.anchor.config;
 
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,8 @@ public interface ClientsConfig {
     String signingKey;
     String domain;
     String callbackUrl;
+    boolean allowAnyDestination = false;
+    Set<String> destinationAccounts;
   }
 
   enum ClientType {

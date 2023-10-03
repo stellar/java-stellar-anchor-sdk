@@ -31,6 +31,7 @@ dependencies {
 
   implementation(libs.commons.beanutils)
   implementation(libs.commons.text)
+  implementation(libs.commons.io)
   implementation(libs.apache.commons.lang3)
   implementation(libs.log4j2.core)
   implementation(libs.httpclient)
@@ -41,7 +42,7 @@ dependencies {
   implementation(libs.jjwt)
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
-  implementation(libs.java.stellar.sdk)
+  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(project(":api-schema"))
 

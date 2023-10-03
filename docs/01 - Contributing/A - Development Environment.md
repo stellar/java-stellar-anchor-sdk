@@ -77,6 +77,7 @@ communicate with each other.
 127.0.0.1 reference-server
 127.0.0.1 wallet-server
 127.0.0.1 platform
+127.0.0.1 custody-server
 127.0.0.1 host.docker.internal
 ```
 

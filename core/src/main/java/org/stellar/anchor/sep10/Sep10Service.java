@@ -294,7 +294,7 @@ public class Sep10Service {
             sep10Config.getHomeDomain(),
             sep10Config.getWebAuthDomain());
     debug("challenge:", challenge);
-    long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
+    long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime().longValue();
     Memo memo = challenge.getTransaction().getMemo();
     Sep10Jwt sep10Jwt =
         Sep10Jwt.of(

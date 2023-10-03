@@ -22,6 +22,7 @@ import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
+import org.stellar.anchor.util.ConfigHelper;
 import org.stellar.anchor.util.GsonUtils;
 
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
@@ -72,7 +73,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   @SneakyThrows
   String constructToken(Sep24Transaction txn, Map<String, String> request) {
     PropertyClientsConfig.ClientConfig clientConfig =
-        UrlConstructorHelper.getClientConfig(clientsConfig, txn);
+        ConfigHelper.getClientConfig(clientsConfig, txn);
 
     debugF(
         "Resolving configs for token construct. Got config: {}, all configs: {}",

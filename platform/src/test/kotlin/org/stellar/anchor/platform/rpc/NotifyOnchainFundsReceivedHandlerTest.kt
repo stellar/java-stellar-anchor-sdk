@@ -603,6 +603,110 @@ class NotifyOnchainFundsReceivedHandlerTest {
     verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
+  private val paymentOperationRecord =
+    """
+[
+  {
+    "amount": "15.0000000",
+    "asset_type": "native",
+    "from": "testFrom",
+    "to": "testTo",
+    "id": 12345,
+    "source_account": "testSourceAccount",
+    "paging_token": "testPagingToken",
+    "created_at": "2023-05-10T10:18:20Z",
+    "transaction_hash": "testTxHash",
+    "transaction_successful": true,
+    "type": "payment",
+    "links": {
+      "effects": {
+        "href": "https://horizon-testnet.stellar.org/operations/12345/effects",
+        "templated": false
+      },
+      "precedes": {
+        "href": "https://horizon-testnet.stellar.org/effects?order\u003dasc\u0026cursor\u003d12345",
+        "templated": false
+      },
+      "self": {
+        "href": "https://horizon-testnet.stellar.org/operations/12345",
+        "templated": false
+      },
+      "succeeds": {
+        "href": "https://horizon-testnet.stellar.org/effects?order\u003ddesc\u0026cursor\u003d12345",
+        "templated": false
+      },
+      "transaction": {
+        "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
+        "templated": false
+      }
+    },
+    "transaction": {
+      "hash": "testTxHash",
+      "ledger": 1234,
+      "created_at": "2023-05-10T10:18:20Z",
+      "source_account": "testSourceAccount",
+      "fee_account": "testFeeAccount",
+      "successful": true,
+      "paging_token": "1234",
+      "source_accountSequence": 12345,
+      "maxFee": 100,
+      "fee_charged": 100,
+      "operation_count": 1,
+      "envelope_xdr": "testEnvelopeXdr",
+      "result_xdr": "testResultXdr",
+      "result_meta_xdr": "resultMetaXdr",
+      "signatures": [
+        "testSignature1"
+      ],
+      "preconditions": {
+        "time_bounds": {
+          "min_time": 0,
+          "max_time": 1683713997
+        },
+        "min_accountSequenceAge": 0,
+        "min_accountSequenceLedgerGap": 0
+      },
+      "links": {
+        "account": {
+          "href": "https://horizon-testnet.stellar.org/accounts/testAccount",
+          "templated": false
+        },
+        "effects": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/effects{?cursor,limit,order}",
+          "templated": true
+        },
+        "ledger": {
+          "href": "https://horizon-testnet.stellar.org/ledgers/1234",
+          "templated": false
+        },
+        "operations": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/operations{?cursor,limit,order}",
+          "templated": true
+        },
+        "precedes": {
+          "href": "https://horizon-testnet.stellar.org/transactions?order\u003dasc\u0026cursor\u003d12345",
+          "templated": false
+        },
+        "self": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
+          "templated": false
+        },
+        "succeeds": {
+          "href": "https://horizon-testnet.stellar.org/transactions?order\u003ddesc\u0026cursor\u003d12345",
+          "templated": false
+        }
+      },
+      "rate_limitLimit": 0,
+      "rate_limitRemaining": 0,
+      "rate_limitReset": 0
+    },
+    "rate_limit_limit": 0,
+    "rate_limit_remaining": 0,
+    "rate_limit_lreset": 0
+  }
+]  
+"""
+
   @Test
   fun test_handle_sep24_invalidAmounts() {
     val request =
@@ -645,110 +749,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     verify(exactly = 0) { sepTransactionCounter.increment() }
   }
 
-  private val paymentOperationRecord =
-    """
-[
-  {
-    "amount": "15.0000000",
-    "assetType": "native",
-    "from": "testFrom",
-    "to": "testTo",
-    "id": 12345,
-    "sourceAccount": "testSourceAccount",
-    "pagingToken": "testPagingToken",
-    "createdAt": "2023-05-10T10:18:20Z",
-    "transactionHash": "testTxHash",
-    "transactionSuccessful": true,
-    "type": "payment",
-    "links": {
-      "effects": {
-        "href": "https://horizon-testnet.stellar.org/operations/12345/effects",
-        "templated": false
-      },
-      "precedes": {
-        "href": "https://horizon-testnet.stellar.org/effects?order\u003dasc\u0026cursor\u003d12345",
-        "templated": false
-      },
-      "self": {
-        "href": "https://horizon-testnet.stellar.org/operations/12345",
-        "templated": false
-      },
-      "succeeds": {
-        "href": "https://horizon-testnet.stellar.org/effects?order\u003ddesc\u0026cursor\u003d12345",
-        "templated": false
-      },
-      "transaction": {
-        "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
-        "templated": false
-      }
-    },
-    "transaction": {
-      "hash": "testTxHash",
-      "ledger": 1234,
-      "createdAt": "2023-05-10T10:18:20Z",
-      "sourceAccount": "testSourceAccount",
-      "feeAccount": "testFeeAccount",
-      "successful": true,
-      "pagingToken": "1234",
-      "sourceAccountSequence": 12345,
-      "maxFee": 100,
-      "feeCharged": 100,
-      "operationCount": 1,
-      "envelopeXdr": "testEnvelopeXdr",
-      "resultXdr": "testResultXdr",
-      "resultMetaXdr": "resultMetaXdr",
-      "signatures": [
-        "testSignature1"
-      ],
-      "preconditions": {
-        "timeBounds": {
-          "minTime": 0,
-          "maxTime": 1683713997
-        },
-        "minAccountSequenceAge": 0,
-        "minAccountSequenceLedgerGap": 0
-      },
-      "links": {
-        "account": {
-          "href": "https://horizon-testnet.stellar.org/accounts/testAccount",
-          "templated": false
-        },
-        "effects": {
-          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/effects{?cursor,limit,order}",
-          "templated": true
-        },
-        "ledger": {
-          "href": "https://horizon-testnet.stellar.org/ledgers/1234",
-          "templated": false
-        },
-        "operations": {
-          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/operations{?cursor,limit,order}",
-          "templated": true
-        },
-        "precedes": {
-          "href": "https://horizon-testnet.stellar.org/transactions?order\u003dasc\u0026cursor\u003d12345",
-          "templated": false
-        },
-        "self": {
-          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
-          "templated": false
-        },
-        "succeeds": {
-          "href": "https://horizon-testnet.stellar.org/transactions?order\u003ddesc\u0026cursor\u003d12345",
-          "templated": false
-        }
-      },
-      "rateLimitLimit": 0,
-      "rateLimitRemaining": 0,
-      "rateLimitReset": 0
-    },
-    "rateLimitLimit": 0,
-    "rateLimitRemaining": 0,
-    "rateLimitReset": 0
-  }
-]  
-"""
-
   private val stellarTransactions =
     """
 [
@@ -763,6 +763,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
           "amount": "15.0000000",
           "asset": "native"
         },
+        "asset_type": "native",
         "payment_type": "payment",
         "source_account": "testFrom",
         "destination_account": "testTo"
