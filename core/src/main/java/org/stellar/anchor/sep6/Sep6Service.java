@@ -515,6 +515,8 @@ public class Sep6Service {
               DepositAssetResponse.builder()
                   .enabled(true)
                   .authenticationRequired(true)
+                  .minAmount(asset.getDeposit().getMinAmount())
+                  .maxAmount(asset.getDeposit().getMaxAmount())
                   .fields(ImmutableMap.of("type", type))
                   .build();
 
@@ -533,6 +535,8 @@ public class Sep6Service {
               WithdrawAssetResponse.builder()
                   .enabled(true)
                   .authenticationRequired(true)
+                  .minAmount(asset.getWithdraw().getMinAmount())
+                  .maxAmount(asset.getWithdraw().getMaxAmount())
                   .types(types)
                   .build();
 

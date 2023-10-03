@@ -14,74 +14,86 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
   private val expectedSep6Info =
     """
       {
-        "deposit": {
-          "USDC": {
-            "enabled": true,
-            "authentication_required": true,
-            "fields": {
-              "type": {
-                "description": "type of deposit to make",
-                "choices": [
-                  "SEPA",
-                  "SWIFT"
-                ],
-                "optional": false
+          "deposit": {
+              "USDC": {
+                  "enabled": true,
+                  "authentication_required": true,
+                  "min_amount": 1,
+                  "fields": {
+                      "type": {
+                          "description": "type of deposit to make",
+                          "choices": [
+                              "SEPA",
+                              "SWIFT"
+                          ],
+                          "optional": false
+                      }
+                  }
               }
-            }
-          }
-        },
-        "deposit-exchange": {
-          "USDC": {
-            "enabled": true,
-            "authentication_required": true,
-            "fields": {
-              "type": {
-                "description": "type of deposit to make",
-                "choices": [
-                  "SEPA",
-                  "SWIFT"
-                ],
-                "optional": false
+          },
+          "deposit-exchange": {
+              "USDC": {
+                  "enabled": true,
+                  "authentication_required": true,
+                  "min_amount": 1,
+                  "fields": {
+                      "type": {
+                          "description": "type of deposit to make",
+                          "choices": [
+                              "SEPA",
+                              "SWIFT"
+                          ],
+                          "optional": false
+                      }
+                  }
               }
-            }
+          },
+          "withdraw": {
+              "USDC": {
+                  "enabled": true,
+                  "authentication_required": true,
+                  "max_amount": 1000000,
+                  "types": {
+                      "cash": {
+                          "fields": {}
+                      },
+                      "bank_account": {
+                          "fields": {}
+                      }
+                  }
+              }
+          },
+          "withdraw-exchange": {
+              "USDC": {
+                  "enabled": true,
+                  "authentication_required": true,
+                  "max_amount": 1000000,
+                  "types": {
+                      "cash": {
+                          "fields": {}
+                      },
+                      "bank_account": {
+                          "fields": {}
+                      }
+                  }
+              }
+          },
+          "fee": {
+              "enabled": false,
+              "description": "Fee endpoint is not supported."
+          },
+          "transactions": {
+              "enabled": true,
+              "authentication_required": true
+          },
+          "transaction": {
+              "enabled": true,
+              "authentication_required": true
+          },
+          "features": {
+              "account_creation": false,
+              "claimable_balances": false
           }
-        },
-        "withdraw": {
-          "USDC": {
-            "enabled": true,
-            "authentication_required": true,
-            "types": {
-              "cash": {},
-              "bank_account": {}
-            }
-          }
-        },
-        "withdraw-exchange": {
-          "USDC": {
-            "enabled": true,
-            "authentication_required": true,
-            "types": {
-              "cash": {},
-              "bank_account": {}
-            }
-          }
-        },
-        "fee": {
-          "enabled": false,
-          "description": "Fee endpoint is not supported."
-        },
-        "transactions": {
-          "enabled": true,
-          "authentication_required": true
-        },
-        "transaction": {
-          "enabled": true,
-          "authentication_required": true
-        },
-        "features": {
-          "account_creation": false,
-          "claimable_balances": false
-        }
       }
     """
       .trimIndent()
@@ -113,7 +125,7 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
 
   private fun `test Sep6 info endpoint`() {
     val info = sep6Client.getInfo()
-    JSONAssert.assertEquals(expectedSep6Info, gson.toJson(info), JSONCompareMode.LENIENT)
+    JSONAssert.assertEquals(expectedSep6Info, gson.toJson(info), JSONCompareMode.STRICT)
   }
 
   private fun `test sep6 deposit`() {

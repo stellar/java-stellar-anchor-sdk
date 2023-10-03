@@ -71,7 +71,7 @@ class Sep6ServiceTest {
   private val asset = assetService.getAsset(TEST_ASSET)
 
   @Test
-  fun `test INFO response`() {
+  fun `test info response`() {
     val infoResponse = sep6Service.info
     assertEquals(
       gson.fromJson(Sep6ServiceTestData.infoJson, InfoResponse::class.java),

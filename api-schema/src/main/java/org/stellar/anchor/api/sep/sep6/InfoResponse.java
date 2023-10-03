@@ -69,6 +69,14 @@ public class InfoResponse {
     @SerializedName("authentication_required")
     Boolean authenticationRequired;
 
+    /** The minimum amount that can be deposited. */
+    @SerializedName("min_amount")
+    Long minAmount;
+
+    /** The maximum amount that can be deposited. */
+    @SerializedName("max_amount")
+    Long maxAmount;
+
     /**
      * The fields required to initiate a deposit.
      *
@@ -92,6 +100,14 @@ public class InfoResponse {
      */
     @SerializedName("authentication_required")
     Boolean authenticationRequired;
+
+    /** The minimum amount that can be withdrawn. */
+    @SerializedName("min_amount")
+    Long minAmount;
+
+    /** The maximum amount that can be withdrawn. */
+    @SerializedName("max_amount")
+    Long maxAmount;
 
     /**
      * The types of withdrawal methods supported and their fields.
