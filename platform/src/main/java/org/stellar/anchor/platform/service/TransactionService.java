@@ -230,6 +230,8 @@ public class TransactionService {
       case "6":
         // TODO: this needs major refactoring
         JdbcSep6Transaction sep6Transaction = (JdbcSep6Transaction) txn;
+        sep6Transaction.setFromAccount(patch.getTransaction().getSourceAccount());
+        sep6Transaction.setToAccount(patch.getTransaction().getDestinationAccount());
         sep6Transaction.setRequiredInfoMessage(patch.getTransaction().getRequiredInfoMessage());
         sep6Transaction.setRequiredInfoUpdates(patch.getTransaction().getRequiredInfoUpdates());
         sep6Transaction.setRequiredCustomerInfoMessage(

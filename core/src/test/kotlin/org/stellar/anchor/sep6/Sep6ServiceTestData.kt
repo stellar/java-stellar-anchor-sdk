@@ -339,7 +339,6 @@ class Sep6ServiceTestData {
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "withdrawAnchorAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-          "toAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
           "memoType": "hash",
           "refundMemo": "some text",
           "refundMemoType": "text"
@@ -361,7 +360,6 @@ class Sep6ServiceTestData {
                   "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
               },
               "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-              "destination_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
               "memo_type": "hash",
               "refund_memo": "some text",
               "refund_memo_type": "text"
@@ -380,7 +378,6 @@ class Sep6ServiceTestData {
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "withdrawAnchorAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-          "toAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
           "memoType": "hash",
           "refundMemo": "some text",
           "refundMemoType": "text"
@@ -398,7 +395,6 @@ class Sep6ServiceTestData {
               "kind": "withdrawal",
               "status": "incomplete",
               "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-              "destination_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
               "memo_type": "hash",
               "refund_memo": "some text",
               "refund_memo_type": "text"

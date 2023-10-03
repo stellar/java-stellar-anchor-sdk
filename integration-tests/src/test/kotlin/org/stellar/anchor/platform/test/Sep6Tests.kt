@@ -104,7 +104,6 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
               "kind": "withdrawal",
               "status": "incomplete",
               "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-              "to": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
               "withdraw_memo_type": "hash"
           }
       }
