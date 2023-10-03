@@ -31,6 +31,7 @@ import org.stellar.anchor.platform.config.EventProcessorConfig;
 import org.stellar.anchor.platform.utils.DaemonExecutors;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.ExponentialBackoffTimer;
 import org.stellar.anchor.util.Log;
 
@@ -44,6 +45,7 @@ public class EventProcessorManager {
   private final ClientsConfig clientsConfig;
   private final EventService eventService;
   private final AssetService assetService;
+  private final Sep6TransactionStore sep6TransactionStore;
   private final Sep24TransactionStore sep24TransactionStore;
   private final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
@@ -56,6 +58,7 @@ public class EventProcessorManager {
       ClientsConfig clientsConfig,
       EventService eventService,
       AssetService assetService,
+      Sep6TransactionStore sep6TransactionStore,
       Sep24TransactionStore sep24TransactionStore,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
     this.secretConfig = secretConfig;
@@ -64,6 +67,7 @@ public class EventProcessorManager {
     this.clientsConfig = clientsConfig;
     this.eventService = eventService;
     this.assetService = assetService;
+    this.sep6TransactionStore = sep6TransactionStore;
     this.sep24TransactionStore = sep24TransactionStore;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
@@ -112,6 +116,7 @@ public class EventProcessorManager {
                 new ClientStatusCallbackHandler(
                     secretConfig,
                     clientConfig,
+                    sep6TransactionStore,
                     sep24TransactionStore,
                     assetService,
                     moreInfoUrlConstructor),

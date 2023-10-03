@@ -18,12 +18,16 @@ import okhttp3.Response;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
+import org.stellar.anchor.api.sep.sep6.GetTransactionResponse;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
+import org.stellar.anchor.sep6.Sep6Transaction;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionUtils;
 import org.stellar.sdk.KeyPair;
 
 public class ClientStatusCallbackHandler extends EventHandler {
@@ -36,6 +40,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
           .build();
   private final SecretConfig secretConfig;
   private final ClientConfig clientConfig;
+  private final Sep6TransactionStore sep6TransactionStore;
   private final Sep24TransactionStore sep24TransactionStore;
   private final AssetService assetService;
   private final MoreInfoUrlConstructor moreInfoUrlConstructor;
@@ -43,12 +48,14 @@ public class ClientStatusCallbackHandler extends EventHandler {
   public ClientStatusCallbackHandler(
       SecretConfig secretConfig,
       ClientConfig clientConfig,
+      Sep6TransactionStore sep6TransactionStore,
       Sep24TransactionStore sep24TransactionStore,
       AssetService assetService,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
     super();
     this.secretConfig = secretConfig;
     this.clientConfig = clientConfig;
+    this.sep6TransactionStore = sep6TransactionStore;
     this.sep24TransactionStore = sep24TransactionStore;
     this.assetService = assetService;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
@@ -97,14 +104,20 @@ public class ClientStatusCallbackHandler extends EventHandler {
   private String getPayload(AnchorEvent event)
       throws SepException, MalformedURLException, URISyntaxException {
     switch (event.getTransaction().getSep()) {
+      case SEP_6:
+        Sep6Transaction sep6Txn =
+            sep6TransactionStore.findByTransactionId(event.getTransaction().getId());
+        GetTransactionResponse sep6TxnRes =
+            new GetTransactionResponse(Sep6TransactionUtils.fromTxn(sep6Txn));
+        return json(sep6TxnRes);
       case SEP_24:
         Sep24Transaction sep24Txn =
             sep24TransactionStore.findByTransactionId(event.getTransaction().getId());
-        Sep24GetTransactionResponse txnResponse =
+        Sep24GetTransactionResponse Sep24TxnRes =
             Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, sep24Txn));
-        return json(txnResponse);
+        return json(Sep24TxnRes);
       default:
-        throw new SepException("Only SEP-24 is supported");
+        throw new SepException("Only SEP-6 and SEP-24 is supported");
     }
   }
 }

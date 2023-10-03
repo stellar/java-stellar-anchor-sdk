@@ -13,6 +13,7 @@ import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.sep24.TransactionResponse
+import org.stellar.anchor.api.sep.sep6.Sep6TransactionResponse
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.platform.config.ClientsConfig
 import org.stellar.anchor.platform.config.PropertySecretConfig
@@ -20,6 +21,8 @@ import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.sep24.Sep24Helper
 import org.stellar.anchor.sep24.Sep24Helper.fromTxn
 import org.stellar.anchor.sep24.Sep24TransactionStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
+import org.stellar.anchor.sep6.Sep6TransactionUtils
 import org.stellar.anchor.util.StringHelper.json
 import org.stellar.sdk.KeyPair
 
@@ -31,6 +34,7 @@ class ClientStatusCallbackHandlerTest {
   private lateinit var ts: String
   private lateinit var event: AnchorEvent
 
+  @MockK(relaxed = true) private lateinit var sep6TransactionStore: Sep6TransactionStore
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
@@ -41,6 +45,11 @@ class ClientStatusCallbackHandlerTest {
     clientConfig.type = ClientsConfig.ClientType.CUSTODIAL
     clientConfig.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
     clientConfig.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
+
+    sep6TransactionStore = mockk<Sep6TransactionStore>()
+    every { sep6TransactionStore.findByTransactionId(any()) } returns null
+    mockkStatic(Sep6TransactionUtils::class)
+    every { Sep6TransactionUtils.fromTxn(any()) } returns mockk<Sep6TransactionResponse>()
 
     sep24TransactionStore = mockk<Sep24TransactionStore>()
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
@@ -64,6 +73,7 @@ class ClientStatusCallbackHandlerTest {
       ClientStatusCallbackHandler(
         secretConfig,
         clientConfig,
+        sep6TransactionStore,
         sep24TransactionStore,
         assetService,
         moreInfoUrlConstructor
