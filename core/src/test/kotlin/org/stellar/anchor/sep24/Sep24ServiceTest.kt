@@ -40,6 +40,9 @@ import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.ClientsConfig
+import org.stellar.anchor.config.CustodyConfig
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config
 import org.stellar.anchor.event.EventService
@@ -61,6 +64,7 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
 
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
+  @MockK(relaxed = true) lateinit var custodySecretConfig: CustodySecretConfig
 
   @MockK(relaxed = true) lateinit var sep24Config: Sep24Config
 
@@ -73,6 +77,12 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var interactiveUrlConstructor: InteractiveUrlConstructor
 
   @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
+
+  @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
+
+  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig
+
+  @MockK(relaxed = true) lateinit var clientConfig: ClientsConfig.ClientConfig
 
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
@@ -91,24 +101,27 @@ internal class Sep24ServiceTest {
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns TEST_JWT_SECRET
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
-    jwtService = spyk(JwtService(secretConfig))
+    jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
     testInteractiveUrlJwt = createTestInteractiveJwt(TEST_ACCOUNT, null)
     val strToken = jwtService.encode(testInteractiveUrlJwt)
     every { interactiveUrlConstructor.construct(any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     every { moreInfoUrlConstructor.construct(any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
+    every { clientsConfig.getClientConfigByDomain(any()) } returns clientConfig
 
     sep24Service =
       Sep24Service(
         appConfig,
         sep24Config,
+        clientsConfig,
         assetService,
         jwtService,
         txnStore,
         eventService,
         interactiveUrlConstructor,
-        moreInfoUrlConstructor
+        moreInfoUrlConstructor,
+        custodyConfig
       )
   }
 
@@ -316,6 +329,49 @@ internal class Sep24ServiceTest {
     }
 
     assertThrows<SepValidationException> { sep24Service.deposit(createTestSep10JwtToken(), null) }
+  }
+
+  @Test
+  fun `test deposit to unknown account`() {
+    every { clientConfig.destinationAccounts }.returns(null)
+    val request = createTestTransactionRequest()
+    val unknownAccount = "GC6TP2RCW665CBOTMR5Q2JXNRK77FWV2FCTHNQXS3FNDMWZCGJBJ4QCY"
+    request["account"] = unknownAccount
+
+    val ex =
+      assertThrows<SepValidationException> {
+        sep24Service.deposit(createTestSep10JwtToken(), request)
+      }
+    assertEquals(Sep24Service.ERR_TOKEN_ACCOUNT_MISMATCH, ex.message)
+  }
+
+  @Test
+  fun `test deposit to whitelisted account`() {
+    val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, null))
+    every { interactiveUrlConstructor.construct(any(), any()) } returns
+      "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
+    val slotTxn = slot<Sep24Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val whitelistedAccount = "GC6TP2RCW665CBOTMR5Q2JXNRK77FWV2FCTHNQXS3FNDMWZCGJBJ4QCY"
+    every { clientConfig.destinationAccounts }.returns(setOf(whitelistedAccount))
+    val request = createTestTransactionRequest()
+    request["account"] = whitelistedAccount
+
+    val response = sep24Service.deposit(createTestSep10JwtToken(), request)
+
+    verify(exactly = 1) { txnStore.save(any()) }
+
+    assertEquals(response.type, "interactive_customer_info_needed")
+    assertTrue(response.url.startsWith(TEST_SEP24_INTERACTIVE_URL))
+    assertEquals(response.id, slotTxn.captured.transactionId)
+
+    assertEquals("incomplete", slotTxn.captured.status)
+    assertEquals("deposit", slotTxn.captured.kind)
+    assertEquals(TEST_ASSET, slotTxn.captured.requestAssetCode)
+    assertEquals(TEST_ASSET_ISSUER_ACCOUNT_ID, slotTxn.captured.requestAssetIssuer)
+    assertEquals(whitelistedAccount, slotTxn.captured.toAccount)
+    assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
   }
 
   @Test

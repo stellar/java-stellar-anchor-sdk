@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform
 
+import com.google.common.reflect.TypeToken
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -12,7 +13,6 @@ import org.stellar.anchor.api.sep.sep12.Sep12DeleteCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse
-import shadow.com.google.common.reflect.TypeToken
 
 const val APPLICATION_JSON_CHARSET_UTF_8 = "application/json; charset=utf-8"
 val TYPE_JSON = APPLICATION_JSON_CHARSET_UTF_8.toMediaType()
@@ -93,7 +93,7 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
    * change to NEEDS_INFO if it's a receiving customer.
    */
   fun invalidateCustomerClabe(id: String) {
-    val url = String.format("http://localhost:8081/invalidate_clabe/%s", id)
+    val url = String.format("http://localhost:8091/invalidate_clabe/%s", id)
     httpGet(url, jwt)
   }
 }

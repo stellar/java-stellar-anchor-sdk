@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
@@ -10,19 +12,13 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.codec.DecoderException;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.platform.PatchTransactionRequest;
-import org.stellar.anchor.api.platform.PatchTransactionsRequest;
-import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.StellarPayment;
-import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.apiclient.PlatformApiClient;
+import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
@@ -35,14 +31,17 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   final JdbcSep24TransactionStore sep24TransactionStore;
   private final PlatformApiClient platformApiClient;
+  private final RpcConfig rpcConfig;
 
   public PaymentOperationToEventListener(
       JdbcSep31TransactionStore sep31TransactionStore,
       JdbcSep24TransactionStore sep24TransactionStore,
-      PlatformApiClient platformApiClient) {
+      PlatformApiClient platformApiClient,
+      RpcConfig rpcConfig) {
     this.sep31TransactionStore = sep31TransactionStore;
     this.sep24TransactionStore = sep24TransactionStore;
     this.platformApiClient = platformApiClient;
+    this.rpcConfig = rpcConfig;
   }
 
   @Override
@@ -78,7 +77,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     JdbcSep31Transaction sep31Txn = null;
     try {
       sep31Txn =
-          sep31TransactionStore.findByStellarAccountIdAndMemo(payment.getSourceAccount(), memo);
+          sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+              payment.getTo(), memo, SepTransactionStatus.PENDING_SENDER.toString());
     } catch (Exception ex) {
       errorEx(ex);
     }
@@ -97,7 +97,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     JdbcSep24Transaction sep24Txn;
     try {
       sep24Txn =
-          sep24TransactionStore.findByStellarAccountIdAndMemo(payment.getSourceAccount(), memo);
+          sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
+              payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
     } catch (Exception ex) {
       errorEx(ex);
       return;
@@ -126,36 +127,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
           "Payment asset {} does not match the expected asset {}.",
           payment.getAssetCode(),
           txn.getAmountInAsset());
-      return;
     }
-
-    // parse payment creation time
-    Instant paymentTime = parsePaymentTime(payment.getCreatedAt());
-    // Build Stellar Transaction object
-    debugF("Building StellarTransaction object for payment {}.", payment.getId());
-    StellarTransaction stellarTransaction =
-        StellarTransaction.builder()
-            .id(payment.getTransactionHash())
-            .memo(txn.getStellarMemo())
-            .memoType(txn.getStellarMemoType())
-            .createdAt(paymentTime)
-            .envelope(payment.getTransactionEnvelope())
-            .payments(
-                List.of(
-                    StellarPayment.builder()
-                        .id(payment.getId())
-                        .paymentType(
-                            payment.getType() == ObservedPayment.Type.PAYMENT
-                                ? StellarPayment.Type.PAYMENT
-                                : StellarPayment.Type.PATH_PAYMENT)
-                        .sourceAccount(payment.getFrom())
-                        .destinationAccount(payment.getTo())
-                        .amount(new Amount(payment.getAmount(), payment.getAssetName()))
-                        .build()))
-            .build();
-
-    // TODO: this should be taken care of by the RPC actions.
-    SepTransactionStatus newStatus = SepTransactionStatus.PENDING_RECEIVER;
 
     // Check if the payment contains the expected amount (or greater)
     BigDecimal expectedAmount = decimal(txn.getAmountIn());
@@ -163,7 +135,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
     String message = "Incoming payment for SEP-31 transaction";
     if (gotAmount.compareTo(expectedAmount) >= 0) {
       Log.info(message);
-      txn.setTransferReceivedAt(paymentTime);
     } else {
       message =
           String.format(
@@ -172,42 +143,20 @@ public class PaymentOperationToEventListener implements PaymentListener {
       Log.warn(message);
     }
 
-    // Patch transaction
-    patchTransaction(txn, stellarTransaction, paymentTime, newStatus);
+    platformApiClient.notifyOnchainFundsReceived(
+        txn.getId(),
+        payment.getTransactionHash(),
+        payment.getAmount(),
+        rpcConfig.getCustomMessages().getIncomingPaymentReceived());
 
     // Update metrics
-    Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", newStatus.toString())
+    Metrics.counter(
+            AnchorMetrics.SEP31_TRANSACTION.toString(),
+            "status",
+            SepTransactionStatus.PENDING_RECEIVER.toString())
         .increment();
     Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
         .increment(Double.parseDouble(payment.getAmount()));
-  }
-
-  private void patchTransaction(
-      JdbcSepTransaction txn,
-      StellarTransaction stellarTransaction,
-      Instant paymentTime,
-      SepTransactionStatus newStatus)
-      throws IOException, AnchorException {
-    PatchTransactionsRequest patchTransactionsRequest =
-        PatchTransactionsRequest.builder()
-            .records(
-                Collections.singletonList(
-                    PatchTransactionRequest.builder()
-                        .transaction(
-                            PlatformTransactionData.builder()
-                                .updatedAt(paymentTime)
-                                .transferReceivedAt(txn.getTransferReceivedAt())
-                                .status(newStatus)
-                                .stellarTransactions(
-                                    StellarTransaction.addOrUpdateTransactions(
-                                        txn.getStellarTransactions(), stellarTransaction))
-                                .id(txn.getId())
-                                .build())
-                        .build()))
-            .build();
-    debugF("Patching transaction {}.", txn.getId());
-    traceF("Patching transaction {} with request {}.", txn.getId(), patchTransactionsRequest);
-    platformApiClient.patchTransaction(patchTransactionsRequest);
   }
 
   void handleSep24Transaction(ObservedPayment payment, JdbcSep24Transaction txn)
@@ -220,35 +169,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
           "Payment asset {} does not match the expected asset {}.",
           payment.getAssetCode(),
           txn.getAmountInAsset());
-      return;
     }
-
-    // parse payment creation time
-    Instant paymentTime = parsePaymentTime(payment.getCreatedAt());
-    // Build Stellar Transaction object
-    debugF("Building StellarTransaction for payment {}.", payment.getId());
-    StellarTransaction stellarTransaction =
-        StellarTransaction.builder()
-            .id(payment.getTransactionHash())
-            .memo(txn.getMemo())
-            .memoType(txn.getMemoType())
-            .createdAt(paymentTime)
-            .envelope(payment.getTransactionEnvelope())
-            .payments(
-                List.of(
-                    StellarPayment.builder()
-                        .id(payment.getId())
-                        .paymentType(
-                            payment.getType() == ObservedPayment.Type.PAYMENT
-                                ? StellarPayment.Type.PAYMENT
-                                : StellarPayment.Type.PATH_PAYMENT)
-                        .sourceAccount(payment.getFrom())
-                        .destinationAccount(payment.getTo())
-                        .amount(new Amount(payment.getAmount(), payment.getAssetName()))
-                        .build()))
-            .build();
-
-    SepTransactionStatus newStatus = SepTransactionStatus.PENDING_ANCHOR;
 
     // Check if the payment contains the expected amount (or greater)
     BigDecimal amountIn = decimal(txn.getAmountIn());
@@ -256,7 +177,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
     String message = "Incoming payment for SEP-24 transaction";
     if (gotAmount.compareTo(amountIn) == 0) {
       Log.info(message);
-      txn.setTransferReceivedAt(paymentTime);
     } else {
       message =
           String.format(
@@ -265,11 +185,30 @@ public class PaymentOperationToEventListener implements PaymentListener {
       Log.warn(message);
     }
 
-    // Patch transaction
-    patchTransaction(txn, stellarTransaction, paymentTime, newStatus);
+    if (DEPOSIT.getKind().equals(txn.getKind())) {
+      platformApiClient.notifyOnchainFundsSent(
+          txn.getId(),
+          payment.getTransactionHash(),
+          rpcConfig.getCustomMessages().getOutgoingPaymentSent());
+    } else if (WITHDRAWAL.getKind().equals(txn.getKind())) {
+      platformApiClient.notifyOnchainFundsReceived(
+          txn.getId(),
+          payment.getTransactionHash(),
+          payment.getAmount(),
+          rpcConfig.getCustomMessages().getIncomingPaymentReceived());
+    }
+
+    // Update metrics
+    Metrics.counter(
+            AnchorMetrics.SEP24_TRANSACTION.toString(),
+            "status",
+            SepTransactionStatus.PENDING_ANCHOR.toString())
+        .increment();
+    Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
+        .increment(Double.parseDouble(payment.getAmount()));
   }
 
-  Instant parsePaymentTime(String paymentTimeStr) {
+  public static Instant parsePaymentTime(String paymentTimeStr) {
     try {
       return DateTimeFormatter.ISO_INSTANT.parse(paymentTimeStr, Instant::from);
     } catch (DateTimeParseException | NullPointerException ex) {

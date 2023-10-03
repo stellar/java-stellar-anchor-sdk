@@ -3,20 +3,24 @@ package org.stellar.anchor.platform;
 import static org.stellar.anchor.util.Log.info;
 
 import java.util.Map;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.stellar.anchor.reference.AnchorReferenceServer;
-import org.stellar.reference.RefenreceServerStartKt;
+import org.stellar.reference.ReferenceServerStartKt;
 import org.stellar.reference.wallet.WalletServerStartKt;
 
 public class ServiceRunner {
-  public static final int DEFAULT_ANCHOR_REFERENCE_SERVER_PORT = 8081;
 
   public static void main(String[] args) {
     Options options = new Options();
     options.addOption("h", "help", false, "Print this message.");
     options.addOption("a", "all", false, "Start all servers.");
     options.addOption("s", "sep-server", false, "Start SEP endpoint server.");
+    options.addOption("c", "custody-server", false, "Start Custody server.");
     options.addOption("p", "platform-server", false, "Start Platform API endpoint server.");
     options.addOption(
         "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
@@ -36,6 +40,11 @@ public class ServiceRunner {
         anyServerStarted = true;
       }
 
+      if (cmd.hasOption("custody-server") || cmd.hasOption("all")) {
+        startCustodyServer(null);
+        anyServerStarted = true;
+      }
+
       if (cmd.hasOption("platform-server") || cmd.hasOption("all")) {
         startPlatformServer(null);
         anyServerStarted = true;
@@ -51,13 +60,8 @@ public class ServiceRunner {
         anyServerStarted = true;
       }
 
-      if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
-        startAnchorReferenceServer(null);
-        anyServerStarted = true;
-      }
-
       if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
-        startKotlinReferenceServer(null, false);
+        startKotlinReferenceServer(null, true);
         anyServerStarted = true;
       }
 
@@ -87,6 +91,10 @@ public class ServiceRunner {
     return new PlatformServer().start(env);
   }
 
+  public static ConfigurableApplicationContext startCustodyServer(Map<String, String> env) {
+    return new CustodyServer().start(env);
+  }
+
   public static ConfigurableApplicationContext startStellarObserver(Map<String, String> env) {
     return new StellarObservingServer().start(env);
   }
@@ -95,20 +103,8 @@ public class ServiceRunner {
     return new EventProcessingServer().start(env);
   }
 
-  public static ConfigurableApplicationContext startAnchorReferenceServer(Map<String, String> env) {
-    String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
-
-    int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
-
-    if (strPort != null) {
-      port = Integer.parseInt(strPort);
-    }
-
-    return AnchorReferenceServer.start(env, port, "/");
-  }
-
   public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {
-    RefenreceServerStartKt.start(envMap, wait);
+    ReferenceServerStartKt.start(envMap, wait);
   }
 
   public static void startWalletServer(Map<String, String> envMap, boolean wait) {

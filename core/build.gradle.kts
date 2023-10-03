@@ -19,7 +19,10 @@ dependencies {
   implementation(libs.spring.kafka)
   implementation(libs.spring.data.commons)
 
-  implementation(rootProject.libs.scala.library) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer one.
+  implementation(
+    libs.scala.library
+  ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
+    // one.
   implementation(libs.bundles.kafka)
 
   // TODO: Consider to simplify
@@ -28,6 +31,7 @@ dependencies {
 
   implementation(libs.commons.beanutils)
   implementation(libs.commons.text)
+  implementation(libs.commons.io)
   implementation(libs.apache.commons.lang3)
   implementation(libs.log4j2.core)
   implementation(libs.httpclient)
@@ -38,7 +42,7 @@ dependencies {
   implementation(libs.jjwt)
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
-  implementation(libs.java.stellar.sdk)
+  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(project(":api-schema"))
 
@@ -58,44 +62,44 @@ publishing {
   configure<PublishingExtension> {
     publications {
       val main by
-          creating(MavenPublication::class) {
-            from(components["java"])
-            groupId = "org.stellar.anchor-sdk"
+        creating(MavenPublication::class) {
+          from(components["java"])
+          groupId = "org.stellar.anchor-sdk"
 
-            pom {
-              name.set("stellar-anchor-sdk")
-              description.set("Stellar Anchor SDK - Java")
-              url.set("https://github.com/stellar/java-stellar-anchor-sdk")
-              licenses {
-                license {
-                  name.set("Apache 2.0")
-                  url.set("https://github.com/stellar/java-stellar-anchor-sdk/blob/main/LICENSE")
-                }
-              }
-              developers {
-                developer {
-                  id.set("lijamie98")
-                  name.set("Jamie Li")
-                  email.set("jamie@stellar.org")
-                }
-                developer {
-                  id.set("JakeUrban")
-                  name.set("Jake Urban")
-                  email.set("jake@stellar.org")
-                }
-                developer {
-                  id.set("marcelosalloum")
-                  name.set("Marcelo Salloum")
-                  email.set("marcelo@stellar.org")
-                }
-              }
-              scm {
-                connection.set("scm:git:git://github.com/stellar/java-stellar-anchor-sdk")
-                developerConnection.set("scm:git:git://github.com/stellar/java-stellar-anchor-sdk")
-                url.set("https://github.com/stellar/java-stellar-anchor-sdk")
+          pom {
+            name.set("stellar-anchor-sdk")
+            description.set("Stellar Anchor SDK - Java")
+            url.set("https://github.com/stellar/java-stellar-anchor-sdk")
+            licenses {
+              license {
+                name.set("Apache 2.0")
+                url.set("https://github.com/stellar/java-stellar-anchor-sdk/blob/main/LICENSE")
               }
             }
+            developers {
+              developer {
+                id.set("lijamie98")
+                name.set("Jamie Li")
+                email.set("jamie@stellar.org")
+              }
+              developer {
+                id.set("JakeUrban")
+                name.set("Jake Urban")
+                email.set("jake@stellar.org")
+              }
+              developer {
+                id.set("marcelosalloum")
+                name.set("Marcelo Salloum")
+                email.set("marcelo@stellar.org")
+              }
+            }
+            scm {
+              connection.set("scm:git:git://github.com/stellar/java-stellar-anchor-sdk")
+              developerConnection.set("scm:git:git://github.com/stellar/java-stellar-anchor-sdk")
+              url.set("https://github.com/stellar/java-stellar-anchor-sdk")
+            }
           }
+        }
     }
     repositories {
       maven {

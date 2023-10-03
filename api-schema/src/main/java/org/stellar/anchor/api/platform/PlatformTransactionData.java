@@ -77,6 +77,12 @@ public class PlatformTransactionData {
   @SerializedName("memo_type")
   String memoType;
 
+  @SerializedName("refund_memo")
+  String refundMemo;
+
+  @SerializedName("refund_memo_type")
+  String refundMemoType;
+
   Customers customers;
   StellarId creator;
 
@@ -98,6 +104,15 @@ public class PlatformTransactionData {
     @JsonValue
     public Integer getSep() {
       return sep;
+    }
+
+    public static Sep from(String str) {
+      for (Sep sep : values()) {
+        if (sep.sep.toString().equals(str)) {
+          return sep;
+        }
+      }
+      throw new IllegalArgumentException("No matching constant for [" + str + "]");
     }
   }
 

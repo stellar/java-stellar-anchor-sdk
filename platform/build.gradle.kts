@@ -20,6 +20,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-aop")
+  implementation("org.springframework.boot:spring-boot-starter-validation")
 
   implementation(libs.abdera)
   implementation(libs.aws.rds)
@@ -32,7 +33,7 @@ dependencies {
   implementation(libs.google.gson)
   implementation(libs.hibernate.types)
   implementation(libs.jackson.dataformat.yaml)
-  implementation(libs.java.stellar.sdk)
+  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
   implementation(libs.jjwt)
   implementation(libs.log4j2.api)
   implementation(libs.log4j2.core)
@@ -47,7 +48,6 @@ dependencies {
   // From projects
   implementation(project(":api-schema"))
   implementation(project(":core"))
-  implementation(project(":anchor-reference-server"))
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(libs.okhttp3.mockserver)

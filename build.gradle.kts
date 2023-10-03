@@ -6,6 +6,7 @@ plugins {
   java
   alias(libs.plugins.spotless)
   alias(libs.plugins.kotlin.jvm) apply false
+  jacoco
 }
 
 tasks {
@@ -25,12 +26,13 @@ tasks {
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
+  apply(plugin = "jacoco")
 
   repositories {
     mavenLocal()
     mavenCentral()
     maven { url = uri("https://packages.confluent.io/maven") }
-    maven { url = uri("https://reposdeitory.mulesoft.org/nexus/content/repositories/public/") }
+    maven { url = uri("https://repository.mulesoft.org/nexus/content/repositories/public/") }
     maven { url = uri("https://jitpack.io") }
   }
 
@@ -62,18 +64,25 @@ subprojects {
     }
 
     kotlin { ktfmt("0.42").googleStyle() }
+
+    tasks.jacocoTestReport {
+      dependsOn(tasks.test) // tests are required to run before generating the report
+      reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.required.set(true)
+      }
+    }
   }
 
   dependencies {
-    // This is to fix the missing implementation in JSR305 that causes "unknown enum constant
-    // When.MAYBE" warning.
+    // `rootProject` is required here if we want to use the libs object in the root project.
     implementation(rootProject.libs.findbugs.jsr305)
     implementation(rootProject.libs.aws.sqs)
     implementation(rootProject.libs.postgresql)
-    implementation(
-      rootProject.libs.scala.library
-    ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a
-      // safer one.
+    // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
+    // one.
+    implementation(rootProject.libs.scala.library)
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
     implementation(rootProject.libs.log4j.template.json)
@@ -115,12 +124,38 @@ subprojects {
     test {
       useJUnitPlatform()
 
+      exclude("**/AnchorPlatformCustodyEnd2EndTest**")
+      exclude("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
+
       testLogging {
         events("SKIPPED", "FAILED")
         showExceptions = true
         showStandardStreams = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
       }
+    }
+
+    register<Test>("testFireblocksE2E") {
+      useJUnitPlatform()
+
+      include("**/AnchorPlatformCustodyEnd2EndTest**")
+      include("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
+
+      testLogging {
+        events("SKIPPED", "FAILED")
+        showExceptions = true
+        showStandardStreams = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+      }
+    }
+
+    processResources {
+      doFirst {
+        val existingFile = file("$buildDir/resources/main/metadata.properties")
+        existingFile.delete()
+      }
+      // This is to replace the %APP_VERSION_TOKEN% in the  metadata.properties file.
+      filter { line -> line.replace("%APP_VERSION_TOKEN%", rootProject.version.toString()) }
     }
   }
 
@@ -135,7 +170,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.1.2"
+  version = "2.2.3"
 
   tasks.jar {
     manifest {
@@ -144,4 +179,8 @@ allprojects {
       )
     }
   }
+}
+
+tasks.register("printVersionName") {
+  println(rootProject.version.toString())
 }

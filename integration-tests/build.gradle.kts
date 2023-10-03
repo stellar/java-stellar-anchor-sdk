@@ -19,7 +19,7 @@ dependencies {
 
   implementation(libs.commons.cli)
   implementation(libs.dotenv)
-  implementation(libs.java.stellar.sdk)
+  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
   implementation(libs.google.gson)
   implementation(libs.okhttp3)
   implementation(libs.log4j2.api)
@@ -35,7 +35,6 @@ dependencies {
   implementation(project(":api-schema"))
   implementation(project(":core"))
   implementation(project(":platform"))
-  implementation(project(":anchor-reference-server"))
   implementation(project(":kotlin-reference-server"))
   implementation(project(":wallet-reference-server"))
   implementation(project(":service-runner"))

@@ -13,11 +13,13 @@ dependencies {
   implementation(libs.google.gson)
   implementation(libs.hoplite.core)
   implementation(libs.hoplite.yaml)
-  implementation(libs.java.stellar.sdk)
+  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
   implementation(libs.jjwt)
   implementation(libs.javax.jaxb.api)
   implementation(libs.kotlin.logging)
   implementation(libs.slf4j.simple)
+  implementation(libs.h2database)
+  implementation(libs.bundles.exposed)
   implementation(project(mapOf("path" to ":api-schema")))
 }
 
