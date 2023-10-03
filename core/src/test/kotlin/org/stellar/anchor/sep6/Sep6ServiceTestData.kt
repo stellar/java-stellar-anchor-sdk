@@ -4,85 +4,93 @@ class Sep6ServiceTestData {
   companion object {
     val infoJson =
       """
-      {
-          "deposit": {
-              "USDC": {
-                  "enabled": true,
-                  "authentication_required": true,
-                  "fields": {
-                      "type": {
-                          "description": "type of deposit to make",
-                          "choices": [
-                              "SEPA",
-                              "SWIFT"
-                          ],
-                          "optional": false
-                      }
-                  }
-              }
-          },
-          "deposit-exchange": {
-              "USDC": {
-                  "enabled": true,
-                  "authentication_required": true,
-                  "fields": {
-                      "type": {
-                          "description": "type of deposit to make",
-                          "choices": [
-                              "SEPA",
-                              "SWIFT"
-                          ],
-                          "optional": false
-                      }
-                  }
-              }
-          },
-          "withdraw": {
-              "USDC": {
-                  "enabled": true,
-                  "authentication_required": true,
-                  "types": {
-                      "cash": {
-                          "fields": {}
-                      },
-                      "bank_account": {
-                          "fields": {}
-                      }
-                  }
-              }
-          },
-          "withdraw-exchange": {
-              "USDC": {
-                  "enabled": true,
-                  "authentication_required": true,
-                  "types": {
-                      "cash": {
-                          "fields": {}
-                      },
-                      "bank_account": {
-                          "fields": {}
-                      }
-                  }
-              }
-          },
-          "fee": {
-              "enabled": false,
-              "description": "Fee endpoint is not supported."
-          },
-          "transactions": {
-              "enabled": true,
-              "authentication_required": true
-          },
-          "transaction": {
-              "enabled": true,
-              "authentication_required": true
-          },
-          "features": {
-              "account_creation": false,
-              "claimable_balances": false
-          }
-      }
-    """
+        {
+            "deposit": {
+                "USDC": {
+                    "enabled": true,
+                    "authentication_required": true,
+                    "min_amount": 1,
+                    "max_amount": 10000,
+                    "fields": {
+                        "type": {
+                            "description": "type of deposit to make",
+                            "choices": [
+                                "SEPA",
+                                "SWIFT"
+                            ],
+                            "optional": false
+                        }
+                    }
+                }
+            },
+            "deposit-exchange": {
+                "USDC": {
+                    "enabled": true,
+                    "authentication_required": true,
+                    "min_amount": 1,
+                    "max_amount": 10000,
+                    "fields": {
+                        "type": {
+                            "description": "type of deposit to make",
+                            "choices": [
+                                "SEPA",
+                                "SWIFT"
+                            ],
+                            "optional": false
+                        }
+                    }
+                }
+            },
+            "withdraw": {
+                "USDC": {
+                    "enabled": true,
+                    "authentication_required": true,
+                    "min_amount": 1,
+                    "max_amount": 10000,
+                    "types": {
+                        "cash": {
+                            "fields": {}
+                        },
+                        "bank_account": {
+                            "fields": {}
+                        }
+                    }
+                }
+            },
+            "withdraw-exchange": {
+                "USDC": {
+                    "enabled": true,
+                    "authentication_required": true,
+                    "min_amount": 1,
+                    "max_amount": 10000,
+                    "types": {
+                        "cash": {
+                            "fields": {}
+                        },
+                        "bank_account": {
+                            "fields": {}
+                        }
+                    }
+                }
+            },
+            "fee": {
+                "enabled": false,
+                "description": "Fee endpoint is not supported."
+            },
+            "transactions": {
+                "enabled": true,
+                "authentication_required": true
+            },
+            "transaction": {
+                "enabled": true,
+                "authentication_required": true
+            },
+            "features": {
+                "account_creation": false,
+                "claimable_balances": false
+            }
+        }
+      """
         .trimIndent()
 
     val transactionsJson =
