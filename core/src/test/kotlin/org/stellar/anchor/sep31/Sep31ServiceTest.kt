@@ -11,9 +11,9 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.stream.Stream
 import org.apache.commons.lang3.StringUtils
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -50,6 +50,7 @@ import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Network.TESTNET
 
+@Order(13)
 class Sep31ServiceTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
@@ -270,7 +271,6 @@ class Sep31ServiceTest {
         }
       }
   """
-
     private val lobstrClientConfig =
       ClientsConfig.ClientConfig(
         "lobstr",
@@ -357,12 +357,6 @@ class Sep31ServiceTest {
     asset = gson.fromJson(assetJson, AssetInfo::class.java)
     quote = gson.fromJson(quoteJson, PojoSep38Quote::class.java)
     patchRequest = gson.fromJson(patchTxnRequestJson, Sep31PatchTransactionRequest::class.java)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test
@@ -1053,6 +1047,7 @@ class Sep31ServiceTest {
     // No quote
     every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount("10", "USDC"))
     Context.get().quote = null
+    Context.get().asset = asset
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
     fee = Context.get().fee

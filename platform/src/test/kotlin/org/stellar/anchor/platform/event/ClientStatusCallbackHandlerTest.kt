@@ -4,8 +4,10 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import java.util.*
 import java.util.concurrent.TimeUnit
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -66,6 +68,11 @@ class ClientStatusCallbackHandlerTest {
 
     handler =
       ClientStatusCallbackHandler(secretConfig, clientConfig, assetService, moreInfoUrlConstructor)
+  }
+
+  @AfterEach
+  fun teardown() {
+    unmockkStatic(Sep24Helper::class)
   }
 
   @Test
