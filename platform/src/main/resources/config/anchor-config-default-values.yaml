@@ -451,6 +451,8 @@ sep38:
   # Whether to enable SEP-38
   #
   enabled: false
+  # Whether to enforce SEP-10 authentication for SEP-38 /info, /price, /prices endpoints.
+  sep10_enforced: false
 
 ######################
 ## Custody Server configuration
