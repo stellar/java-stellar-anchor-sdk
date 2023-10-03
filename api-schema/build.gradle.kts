@@ -16,7 +16,7 @@ dependencies {
 
 tasks.test {
   // Enable parallel test execution
-  systemProperty("junit.jupiter.execution.parallel.enabled", false)
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
   // Allocate thread count based on available processors
   systemProperty("junit.jupiter.execution.parallel.config.strategy", "dynamic")
   // Set default parallel mode to same thread. All tests within a class are run in sequence.

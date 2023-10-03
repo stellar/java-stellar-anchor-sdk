@@ -21,7 +21,8 @@ dependencies {
 
   implementation(
     libs.scala.library
-  ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer one.
+  ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
+    // one.
   implementation(libs.bundles.kafka)
 
   // TODO: Consider to simplify
@@ -48,22 +49,6 @@ dependencies {
   testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)
-}
-
-tasks.test {
-  // Enable parallel test execution
-  systemProperty("junit.jupiter.execution.parallel.enabled", false)
-  systemProperty("junit.jupiter.execution.parallel.config.strategy", "dynamic")
-  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
-  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
-  systemProperty(
-    "junit.jupiter.testclass.order.default",
-    "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation"
-  )
-  maxParallelForks =
-    (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1).also {
-      println("junit5 ... setting maxParallelForks to $it")
-    }
 }
 
 publishing {

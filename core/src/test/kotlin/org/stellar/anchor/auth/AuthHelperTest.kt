@@ -62,7 +62,6 @@ class AuthHelperTest {
         val wantCustodyAuthHeader =
           AuthHeader("Authorization", "Bearer ${jwtService.encode(wantCustodyJwt)}")
         assertEquals(wantCustodyAuthHeader, gotCustodyAuthHeader)
-        unmockkAll()
         unmockkStatic(Calendar::class)
       }
       API_KEY -> {
