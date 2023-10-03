@@ -39,12 +39,7 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
-import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.config.ClientsConfig
-import org.stellar.anchor.config.CustodyConfig
-import org.stellar.anchor.config.CustodySecretConfig
-import org.stellar.anchor.config.SecretConfig
-import org.stellar.anchor.config.Sep24Config
+import org.stellar.anchor.config.*
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo
