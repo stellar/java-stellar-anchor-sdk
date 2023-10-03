@@ -1,17 +1,21 @@
 package org.stellar.reference.client
 
+import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventResponse
 import org.stellar.anchor.util.GsonUtils
 
 class AnchorReferenceServerClient(val endpoint: Url) {
-  val gson = GsonUtils.getInstance()
+  val gson: Gson = GsonUtils.getInstance()
   val client = HttpClient()
+
   suspend fun sendEvent(sendEventRequest: SendEventRequest): SendEventResponse {
     val response =
       client.post {
@@ -27,6 +31,7 @@ class AnchorReferenceServerClient(val endpoint: Url) {
 
     return gson.fromJson(response.body<String>(), SendEventResponse::class.java)
   }
+
   suspend fun getEvents(txnId: String? = null): List<SendEventRequest> {
     val response =
       client.get {
@@ -39,11 +44,24 @@ class AnchorReferenceServerClient(val endpoint: Url) {
         }
       }
 
-    // Parse the JSON string into a list of Person objects
     return gson.fromJson(
       response.body<String>(),
       object : TypeToken<List<SendEventRequest>>() {}.type
     )
+  }
+
+  suspend fun pollEvents(txnId: String? = null, expected: Int): List<SendEventRequest> {
+    var retries = 5
+    var events: List<SendEventRequest> = listOf()
+    while (retries > 0) {
+      events = getEvents(txnId)
+      if (events.size >= expected) {
+        return events
+      }
+      delay(5.seconds)
+      retries--
+    }
+    return events
   }
 
   suspend fun getLatestEvent(): SendEventRequest? {

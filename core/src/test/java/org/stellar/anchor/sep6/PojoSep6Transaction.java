@@ -45,7 +45,6 @@ public class PojoSep6Transaction implements Sep6Transaction {
   String refundMemo;
   String refundMemoType;
   String requiredInfoMessage;
-  String requiredInfoUpdateMessage;
   List<String> requiredInfoUpdates;
   String requiredCustomerInfoMessage;
   List<String> requiredCustomerInfoUpdates;
