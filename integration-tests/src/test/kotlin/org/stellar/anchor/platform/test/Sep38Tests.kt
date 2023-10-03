@@ -14,11 +14,9 @@ import org.stellar.anchor.util.Sep1Helper.TomlContent
 
 class Sep38Tests(config: TestConfig, toml: TomlContent, jwt: String) {
   private val sep38Client: Sep38Client
-  private val sep38ClientWithoutJwt: Sep38Client
 
   init {
     sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
-    sep38ClientWithoutJwt = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), "Invalid Token")
   }
 
   fun `test sep38 info, price and prices endpoints`() {
@@ -87,21 +85,9 @@ class Sep38Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     }
   }
 
-  fun `test endpoints does not required valid token when auth is disabled`() {
-    sep38ClientWithoutJwt.getInfo()
-    sep38ClientWithoutJwt.getPrices("iso4217:USD", "100")
-    sep38ClientWithoutJwt.getPrice(
-      "iso4217:USD",
-      "100",
-      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      SEP31
-    )
-  }
-
   fun testAll() {
     println("Performing SEP38 tests...")
     `test sep38 info, price and prices endpoints`()
     `test selling over asset limit throws an exception`()
-    `test endpoints does not required valid token when auth is disabled`()
   }
 }

@@ -8,6 +8,6 @@ import org.stellar.anchor.config.Sep38Config;
 public class PropertySep38Config implements Sep38Config {
   boolean enabled;
 
-  @SerializedName("requires_sep10")
-  boolean requiresSep10;
+  @SerializedName("sep10_enforced")
+  boolean sep10Enforced;
 }

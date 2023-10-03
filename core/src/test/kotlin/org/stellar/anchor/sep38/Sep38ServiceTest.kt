@@ -43,7 +43,8 @@ class Sep38ServiceTest {
     override fun isEnabled(): Boolean {
       return true
     }
-    override fun isRequiresSep10(): Boolean {
+
+    override fun isSep10Enforced(): Boolean {
       return false
     }
   }
