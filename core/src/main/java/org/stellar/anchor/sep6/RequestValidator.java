@@ -1,10 +1,14 @@
 package org.stellar.anchor.sep6;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.callback.CustomerIntegration;
+import org.stellar.anchor.api.callback.GetCustomerRequest;
+import org.stellar.anchor.api.callback.GetCustomerResponse;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.sdk.KeyPair;
@@ -13,6 +17,7 @@ import org.stellar.sdk.KeyPair;
 @RequiredArgsConstructor
 public class RequestValidator {
   @NonNull private final AssetService assetService;
+  @NonNull private final CustomerIntegration customerIntegration;
 
   /**
    * Validates that the requested asset is valid and enabled for deposit.
@@ -102,11 +107,33 @@ public class RequestValidator {
    * @param account the account
    * @throws SepValidationException if the account is invalid
    */
-  public void validateAccount(String account) throws SepValidationException {
+  public void validateAccount(String account) throws AnchorException {
     try {
       KeyPair.fromAccountId(account);
     } catch (RuntimeException ex) {
       throw new SepValidationException(String.format("invalid account %s", account));
+    }
+
+    GetCustomerRequest request = GetCustomerRequest.builder().account(account).build();
+    GetCustomerResponse response = customerIntegration.getCustomer(request);
+
+    if (response == null || response.getStatus() == null) {
+      throw new ServerErrorException("unable to get required fields for customer") {};
+    }
+
+    switch (response.getStatus()) {
+      case "NEEDS_INFO":
+        throw new SepCustomerInfoNeededException(new ArrayList<>(response.getFields().keySet()));
+      case "PROCESSING":
+        throw new SepNotAuthorizedException("customer is being reviewed by anchor");
+      case "REJECTED":
+        throw new SepNotAuthorizedException("customer rejected by anchor");
+      case "ACCEPTED":
+        // do nothing
+        break;
+      default:
+        throw new ServerErrorException(
+            String.format("unknown customer status: %s", response.getStatus()));
     }
   }
 }

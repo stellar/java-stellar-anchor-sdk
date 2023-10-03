@@ -52,7 +52,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor.customer(token).add(mapOf("first_name" to "John", "last_name" to "Doe"))
+    anchor
+      .customer(token)
+      .add(mapOf("first_name" to "John", "last_name" to "Doe", "email_address" to "john@email.com"))
 
     val deposit =
       sep6Client.deposit(
@@ -98,7 +100,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor.customer(token).add(mapOf("first_name" to "John", "last_name" to "Doe"))
+    anchor
+      .customer(token)
+      .add(mapOf("first_name" to "John", "last_name" to "Doe", "email_address" to "john@email.com"))
 
     val withdraw =
       sep6Client.withdraw(

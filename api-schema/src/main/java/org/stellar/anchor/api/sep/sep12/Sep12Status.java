@@ -13,10 +13,7 @@ public enum Sep12Status {
   PROCESSING("PROCESSING"),
 
   @SerializedName("REJECTED")
-  REJECTED("REJECTED"),
-
-  @SerializedName("VERIFICATION_REQUIRED")
-  VERIFICATION_REQUIRED("VERIFICATION_REQUIRED");
+  REJECTED("REJECTED");
 
   private final String name;
 
