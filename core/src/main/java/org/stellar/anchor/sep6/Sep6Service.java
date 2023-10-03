@@ -373,7 +373,7 @@ public class Sep6Service {
     // Query the transaction store
     List<Sep6Transaction> transactions =
         txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), request);
-    List<org.stellar.anchor.api.sep.sep6.Sep6Transaction> responses =
+    List<Sep6TransactionResponse> responses =
         transactions.stream().map(Sep6TransactionUtils::fromTxn).collect(Collectors.toList());
 
     return new GetTransactionsResponse(responses);

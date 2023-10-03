@@ -13,7 +13,7 @@ import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.sep24.TransactionResponse
-import org.stellar.anchor.api.sep.sep6.Sep6Transaction
+import org.stellar.anchor.api.sep.sep6.Sep6TransactionResponse
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.platform.config.ClientsConfig
 import org.stellar.anchor.platform.config.PropertySecretConfig
@@ -49,7 +49,7 @@ class ClientStatusCallbackHandlerTest {
     sep6TransactionStore = mockk<Sep6TransactionStore>()
     every { sep6TransactionStore.findByTransactionId(any()) } returns null
     mockkStatic(Sep6TransactionUtils::class)
-    every { Sep6TransactionUtils.fromTxn(any()) } returns mockk<Sep6Transaction>()
+    every { Sep6TransactionUtils.fromTxn(any()) } returns mockk<Sep6TransactionResponse>()
 
     sep24TransactionStore = mockk<Sep24TransactionStore>()
     every { sep24TransactionStore.findByTransactionId(any()) } returns null

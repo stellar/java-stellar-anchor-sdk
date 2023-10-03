@@ -10,7 +10,7 @@ import org.stellar.anchor.api.shared.Refunds;
 
 @Data
 @Builder
-public class Sep6Transaction {
+public class Sep6TransactionResponse {
   String id;
 
   String kind;

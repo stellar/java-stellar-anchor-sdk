@@ -2,6 +2,7 @@ package org.stellar.anchor.sep6;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.stellar.anchor.api.sep.sep6.Sep6TransactionResponse;
 import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.api.shared.Refunds;
 
@@ -13,7 +14,7 @@ public class Sep6TransactionUtils {
    * @param txn the SEP-6 database transaction object
    * @return the SEP-6 API transaction object
    */
-  public static org.stellar.anchor.api.sep.sep6.Sep6Transaction fromTxn(Sep6Transaction txn) {
+  public static Sep6TransactionResponse fromTxn(Sep6Transaction txn) {
     Refunds refunds = null;
     if (txn.getRefunds() != null && txn.getRefunds().getPayments() != null) {
       List<RefundPayment> payments = new ArrayList<>();
@@ -33,8 +34,8 @@ public class Sep6TransactionUtils {
               .payments(payments.toArray(new RefundPayment[0]))
               .build();
     }
-    org.stellar.anchor.api.sep.sep6.Sep6Transaction.Sep6TransactionBuilder builder =
-        org.stellar.anchor.api.sep.sep6.Sep6Transaction.builder()
+    Sep6TransactionResponse.Sep6TransactionResponseBuilder builder =
+        Sep6TransactionResponse.builder()
             .id(txn.getId())
             .kind(txn.getKind())
             .status(txn.getStatus())
