@@ -10,8 +10,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.stellar.anchor.config.AppConfig
 import org.stellar.sdk.AssetTypeCreditAlphaNum
 import org.stellar.sdk.Server
@@ -20,7 +18,6 @@ import org.stellar.sdk.responses.AccountResponse
 import org.stellar.sdk.responses.AccountResponse.Balance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Execution(SAME_THREAD)
 internal class HorizonTest {
   companion object {
     const val TEST_HORIZON_URI = "https://horizon-testnet.stellar.org/"

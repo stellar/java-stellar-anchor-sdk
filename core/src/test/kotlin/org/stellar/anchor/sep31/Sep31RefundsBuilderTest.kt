@@ -11,10 +11,7 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 
-@Execution(SAME_THREAD)
 class Sep31RefundsBuilderTest {
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
 

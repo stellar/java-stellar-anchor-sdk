@@ -8,8 +8,6 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.TestHelper.Companion.createSep10Jwt
@@ -37,7 +35,6 @@ import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.util.StringHelper.json
 
-@Execution(SAME_THREAD)
 @Order(88)
 class Sep38ServiceTest {
   class PropertySep38Config : Sep38Config {

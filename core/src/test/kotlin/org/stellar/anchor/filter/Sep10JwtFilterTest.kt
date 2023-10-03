@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServletResponse
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestHelper.Companion.createSep10Jwt
@@ -24,7 +22,6 @@ import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.filter.Sep10JwtFilter.APPLICATION_JSON_VALUE
 import org.stellar.anchor.filter.Sep10JwtFilter.JWT_TOKEN
 
-@Execution(SAME_THREAD)
 @Order(85)
 internal class Sep10JwtFilterTest {
   companion object {

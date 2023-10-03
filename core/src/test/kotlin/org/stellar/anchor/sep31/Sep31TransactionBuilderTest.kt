@@ -8,10 +8,7 @@ import io.mockk.impl.annotations.MockK
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 
-@Execution(SAME_THREAD)
 class Sep31TransactionBuilderTest {
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
 

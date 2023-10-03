@@ -5,15 +5,12 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import org.junit.jupiter.api.Order
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.auth.ApiAuthJwt.*
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.util.AuthHeader
 
-@Execution(SAME_THREAD)
 @Order(86)
 class AuthHelperTest {
   companion object {

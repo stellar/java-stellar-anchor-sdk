@@ -21,8 +21,7 @@ dependencies {
 
   implementation(
     libs.scala.library
-  ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
-  // one.
+  ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer one.
   implementation(libs.bundles.kafka)
 
   // TODO: Consider to simplify
