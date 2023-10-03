@@ -6,11 +6,8 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.TestHelper.Companion.createSep10Jwt
@@ -38,6 +35,7 @@ import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.util.StringHelper.json
 
+@Order(88)
 class Sep38ServiceTest {
   class PropertySep38Config : Sep38Config {
     override fun isEnabled(): Boolean {

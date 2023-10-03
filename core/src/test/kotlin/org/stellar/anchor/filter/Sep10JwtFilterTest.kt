@@ -22,7 +22,7 @@ import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.filter.Sep10JwtFilter.APPLICATION_JSON_VALUE
 import org.stellar.anchor.filter.Sep10JwtFilter.JWT_TOKEN
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Order(85)
 internal class Sep10JwtFilterTest {
   companion object {
     private const val PUBLIC_KEY = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
@@ -48,12 +48,6 @@ internal class Sep10JwtFilterTest {
     this.request = mockk(relaxed = true)
     this.response = mockk(relaxed = true)
     this.mockFilterChain = mockk(relaxed = true)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test
