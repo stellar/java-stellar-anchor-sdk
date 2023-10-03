@@ -23,6 +23,9 @@ public class StartWithdrawRequest {
   /** Type of withdrawal. */
   String type;
 
+  /** The account to withdraw from. */
+  String account;
+
   /** The amount to withdraw. */
   String amount;
 

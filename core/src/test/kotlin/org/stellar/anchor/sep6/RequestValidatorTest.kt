@@ -1,9 +1,8 @@
 package org.stellar.anchor.sep6
 
-import io.mockk.MockKAnnotations
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import io.mockk.mockk
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -11,19 +10,28 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
+import org.stellar.anchor.api.callback.CustomerIntegration
+import org.stellar.anchor.api.callback.GetCustomerRequest
+import org.stellar.anchor.api.callback.GetCustomerResponse
+import org.stellar.anchor.api.exception.SepCustomerInfoNeededException
+import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepValidationException
+import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.sep12.Sep12Status
+import org.stellar.anchor.api.shared.CustomerField
 import org.stellar.anchor.asset.AssetService
 
 class RequestValidatorTest {
   @MockK(relaxed = true) lateinit var assetService: AssetService
+  @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
 
   private lateinit var requestValidator: RequestValidator
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    requestValidator = RequestValidator(assetService)
+    requestValidator = RequestValidator(assetService, customerIntegration)
   }
 
   @Test
@@ -140,11 +148,63 @@ class RequestValidatorTest {
 
   @Test
   fun `test validateAccount`() {
+    every {
+      customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
+    } returns GetCustomerResponse.builder().status(Sep12Status.ACCEPTED.name).build()
     requestValidator.validateAccount(TEST_ACCOUNT)
   }
 
   @Test
   fun `test validateAccount with invalid account`() {
     assertThrows<SepValidationException> { requestValidator.validateAccount("??") }
+
+    verify { customerIntegration wasNot called }
+  }
+
+  @Test
+  fun `test validateAccount customerIntegration failure`() {
+    every {
+      customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
+    } throws RuntimeException("test")
+    assertThrows<RuntimeException> { requestValidator.validateAccount(TEST_ACCOUNT) }
+  }
+
+  @Test
+  fun `test validateAccount with needs info customer`() {
+    every {
+      customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
+    } returns
+      GetCustomerResponse.builder()
+        .status(Sep12Status.NEEDS_INFO.name)
+        .fields(mapOf("first_name" to CustomerField.builder().build()))
+        .build()
+    val ex =
+      assertThrows<SepCustomerInfoNeededException> {
+        requestValidator.validateAccount(TEST_ACCOUNT)
+      }
+    assertEquals(listOf("first_name"), ex.fields)
+  }
+
+  @Test
+  fun `test validateAccount with processing customer`() {
+    every {
+      customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
+    } returns GetCustomerResponse.builder().status(Sep12Status.PROCESSING.name).build()
+    assertThrows<SepNotAuthorizedException> { requestValidator.validateAccount(TEST_ACCOUNT) }
+  }
+
+  @Test
+  fun `test validateAccount with rejected customer`() {
+    every {
+      customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
+    } returns GetCustomerResponse.builder().status(Sep12Status.REJECTED.name).build()
+    assertThrows<SepNotAuthorizedException> { requestValidator.validateAccount(TEST_ACCOUNT) }
+  }
+
+  @Test
+  fun `test validateAccount with unknown status customer`() {
+    every { customerIntegration.getCustomer(any()) } returns
+      GetCustomerResponse.builder().status("??").build()
+    assertThrows<ServerErrorException> { requestValidator.validateAccount(TEST_ACCOUNT) }
   }
 }

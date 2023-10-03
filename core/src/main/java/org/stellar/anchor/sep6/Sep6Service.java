@@ -225,6 +225,8 @@ public class Sep6Service {
           asset.getWithdraw().getMinAmount(),
           asset.getWithdraw().getMaxAmount());
     }
+    String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
+    requestValidator.validateAccount(sourceAccount);
 
     String id = SepHelper.generateSepTransactionId();
 
@@ -243,7 +245,7 @@ public class Sep6Service {
             .sep10AccountMemo(token.getAccountMemo())
             .memo(generateMemo(id))
             .memoType(memoTypeAsString(MEMO_HASH))
-            .fromAccount(token.getAccount())
+            .fromAccount(sourceAccount)
             .withdrawAnchorAccount(asset.getDistributionAccount())
             .toAccount(asset.getDistributionAccount())
             .refundMemo(request.getRefundMemo())
@@ -293,6 +295,8 @@ public class Sep6Service {
         sellAsset.getSignificantDecimals(),
         sellAsset.getWithdraw().getMinAmount(),
         sellAsset.getWithdraw().getMaxAmount());
+    String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
+    requestValidator.validateAccount(sourceAccount);
 
     String id = SepHelper.generateSepTransactionId();
 
@@ -328,7 +332,7 @@ public class Sep6Service {
             .sep10AccountMemo(token.getAccountMemo())
             .memo(generateMemo(id))
             .memoType(memoTypeAsString(MEMO_HASH))
-            .fromAccount(token.getAccount())
+            .fromAccount(sourceAccount)
             .withdrawAnchorAccount(sellAsset.getDistributionAccount())
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType())
