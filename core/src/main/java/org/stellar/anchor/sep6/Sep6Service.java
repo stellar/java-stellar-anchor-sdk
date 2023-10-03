@@ -13,8 +13,6 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep6.*;
 import org.stellar.anchor.api.sep.sep6.InfoResponse.*;
-import org.stellar.anchor.api.shared.RefundPayment;
-import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep6Config;
@@ -379,8 +377,8 @@ public class Sep6Service {
     // Query the transaction store
     List<Sep6Transaction> transactions =
         txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), request);
-    List<org.stellar.anchor.api.sep.sep6.Sep6Transaction> responses =
-        transactions.stream().map(this::fromTxn).collect(Collectors.toList());
+    List<Sep6TransactionResponse> responses =
+        transactions.stream().map(Sep6TransactionUtils::fromTxn).collect(Collectors.toList());
 
     return new GetTransactionsResponse(responses);
   }
@@ -419,66 +417,7 @@ public class Sep6Service {
       throw new NotFoundException("account memo does not match token");
     }
 
-    return new GetTransactionResponse(fromTxn(txn));
-  }
-
-  private org.stellar.anchor.api.sep.sep6.Sep6Transaction fromTxn(Sep6Transaction txn) {
-    Refunds refunds = null;
-    if (txn.getRefunds() != null && txn.getRefunds().getPayments() != null) {
-      List<RefundPayment> payments = new ArrayList<>();
-      for (RefundPayment payment : txn.getRefunds().getPayments()) {
-        payments.add(
-            RefundPayment.builder()
-                .id(payment.getId())
-                .idType(payment.getIdType())
-                .amount(payment.getAmount())
-                .fee(payment.getFee())
-                .build());
-      }
-      refunds =
-          Refunds.builder()
-              .amountRefunded(txn.getRefunds().getAmountRefunded())
-              .amountFee(txn.getRefunds().getAmountFee())
-              .payments(payments.toArray(new RefundPayment[0]))
-              .build();
-    }
-    org.stellar.anchor.api.sep.sep6.Sep6Transaction.Sep6TransactionBuilder builder =
-        org.stellar.anchor.api.sep.sep6.Sep6Transaction.builder()
-            .id(txn.getId())
-            .kind(txn.getKind())
-            .status(txn.getStatus())
-            .statusEta(txn.getStatusEta())
-            .moreInfoUrl(txn.getMoreInfoUrl())
-            .amountIn(txn.getAmountIn())
-            .amountInAsset(txn.getAmountInAsset())
-            .amountOut(txn.getAmountOut())
-            .amountOutAsset(txn.getAmountOutAsset())
-            .amountFee(txn.getAmountFee())
-            .amountFeeAsset(txn.getAmountFeeAsset())
-            .startedAt(txn.getStartedAt().toString())
-            .updatedAt(txn.getUpdatedAt().toString())
-            .completedAt(txn.getCompletedAt() != null ? txn.getCompletedAt().toString() : null)
-            .stellarTransactionId(txn.getStellarTransactionId())
-            .externalTransactionId(txn.getExternalTransactionId())
-            .from(txn.getFromAccount())
-            .to(txn.getToAccount())
-            .message(txn.getMessage())
-            .refunds(refunds)
-            .requiredInfoMessage(txn.getRequiredInfoMessage())
-            .requiredInfoUpdates(txn.getRequiredInfoUpdates())
-            .requiredCustomerInfoMessage(txn.getRequiredCustomerInfoMessage())
-            .requiredCustomerInfoUpdates(txn.getRequiredCustomerInfoUpdates())
-            .instructions(txn.getInstructions());
-
-    if (org.stellar.anchor.sep6.Sep6Transaction.Kind.DEPOSIT.toString().equals(txn.getKind())) {
-      return builder.depositMemo(txn.getMemo()).depositMemoType(txn.getMemoType()).build();
-    } else {
-      return builder
-          .withdrawAnchorAccount(txn.getWithdrawAnchorAccount())
-          .withdrawMemo(txn.getMemo())
-          .withdrawMemoType(txn.getMemoType())
-          .build();
-    }
+    return new GetTransactionResponse(Sep6TransactionUtils.fromTxn(txn));
   }
 
   private InfoResponse buildInfoResponse() {

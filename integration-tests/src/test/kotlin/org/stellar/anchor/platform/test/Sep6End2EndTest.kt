@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.test
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlin.test.DefaultAsserter.fail
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
@@ -12,7 +13,10 @@ import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.Sep6Client
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log
+import org.stellar.reference.client.AnchorReferenceServerClient
+import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.StellarConfiguration
 import org.stellar.walletsdk.Wallet
@@ -40,6 +44,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       }
     }
   private val maxTries = 30
+  private val anchorReferenceServerClient =
+    AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
+  private val walletServerClient = WalletServerClient(Url(config.env["wallet.server.url"]!!))
 
   companion object {
     private val USDC =
@@ -92,6 +99,11 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
         mapOf("stellar_transaction_id" to completedDepositTxn.transaction.stellarTransactionId)
       )
     assertEquals(completedDepositTxn.transaction.id, transactionByStellarId.transaction.id)
+
+    val expectedStatuses =
+      listOf("incomplete", "pending_anchor", "pending_customer_info_update", "completed")
+    assertAnchorReceivedStatuses(deposit.id, expectedStatuses)
+    assertWalletReceivedStatuses(deposit.id, expectedStatuses)
   }
 
   private fun `test typical withdraw end-to-end flow`() = runBlocking {
@@ -133,6 +145,32 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     wallet.stellar().submitTransaction(transfer)
 
     waitStatus(withdraw.id, "completed", sep6Client)
+
+    val expectedStatuses =
+      listOf(
+        "incomplete",
+        "pending_customer_info_update",
+        "pending_user_transfer_start",
+        "pending_anchor",
+        "completed"
+      )
+    assertAnchorReceivedStatuses(withdraw.id, expectedStatuses)
+    assertWalletReceivedStatuses(withdraw.id, expectedStatuses)
+  }
+
+  private suspend fun assertAnchorReceivedStatuses(txnId: String, expected: List<String>) {
+    val events = anchorReferenceServerClient.pollEvents(txnId, expected.size)
+    val statuses = events.map { it.payload.transaction?.status.toString() }
+    assertContentEquals(expected, statuses)
+  }
+
+  private suspend fun assertWalletReceivedStatuses(txnId: String, expected: List<String>) {
+    val callbacks = walletServerClient.pollCallbacks(txnId, expected.size)
+    val statuses =
+      callbacks.map {
+        GsonUtils.getInstance().fromJson(it, GetTransactionResponse::class.java).transaction.status
+      }
+    assertContentEquals(expected, statuses)
   }
 
   private suspend fun waitStatus(id: String, expectedStatus: String, sep6Client: Sep6Client) {
