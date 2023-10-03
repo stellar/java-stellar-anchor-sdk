@@ -9,6 +9,7 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
+import java.util.stream.Stream
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -17,6 +18,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestHelper
@@ -270,6 +274,24 @@ class Sep31ServiceTest {
         }
       }
   """
+    private val lobstrClientConfig =
+      ClientsConfig.ClientConfig(
+        "lobstr",
+        ClientsConfig.ClientType.NONCUSTODIAL,
+        "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+        "lobstr.co",
+        "https://callback.lobstr.co/api/v2/anchor/callback"
+      )
+
+    @JvmStatic
+    fun generateGetClientNameTestConfig(): Stream<Arguments> {
+      return Stream.of(
+        Arguments.of(listOf<String>(), false, null, false),
+        Arguments.of(listOf<String>(), true, null, true),
+        Arguments.of(listOf(lobstrClientConfig.domain), false, lobstrClientConfig.name, false),
+        Arguments.of(listOf(lobstrClientConfig.domain), true, lobstrClientConfig.name, true),
+      )
+    }
   }
 
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
@@ -1051,5 +1073,32 @@ class Sep31ServiceTest {
     quote.fee = null
     val ex = assertThrows<SepValidationException> { sep31Service.updateFee() }
     assertEquals("Quote is missing the 'fee' field", ex.message)
+  }
+
+  @ParameterizedTest
+  @MethodSource("generateGetClientNameTestConfig")
+  fun `test getClientName when`(
+    allowedClientDomains: List<String>,
+    isClientAttributionRequired: Boolean,
+    expectedClientName: String?,
+    shouldThrowExceptionWithInvalidInput: Boolean,
+  ) {
+    every { sep10Config.allowedClientDomains } returns allowedClientDomains
+    every { sep10Config.isClientAttributionRequired } returns isClientAttributionRequired
+    every { clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKey) } returns
+      lobstrClientConfig
+
+    // client name should be returned for valid input
+    val clientName = sep31Service.getClientName(lobstrClientConfig.signingKey)
+    assertEquals(expectedClientName, clientName)
+
+    // exception maybe thrown for invalid input
+    every { clientsConfig.getClientConfigBySigningKey("Invalid Public Key") } returns null
+    if (!shouldThrowExceptionWithInvalidInput) {
+      val clientNameNotFound = sep31Service.getClientName("Invalid Public Key")
+      assertNull(clientNameNotFound)
+    } else {
+      assertThrows<BadRequestException> { sep31Service.getClientName("Invalid Public Key") }
+    }
   }
 }
