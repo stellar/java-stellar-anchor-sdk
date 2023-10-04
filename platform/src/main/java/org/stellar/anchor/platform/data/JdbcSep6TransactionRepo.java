@@ -20,8 +20,8 @@ public interface JdbcSep6TransactionRepo
 
   JdbcSep6Transaction findOneByExternalTransactionId(String externalTransactionId);
 
-  JdbcSep6Transaction findOneByToAccountAndMemoAndStatus(
-      String toAccount, String memo, String status);
+  JdbcSep6Transaction findOneByWithdrawAnchorAccountAndMemoAndStatus(
+      String withdrawAnchorAccount, String memo, String status);
 
   List<Sep6Transaction> findBySep10AccountAndRequestAssetCodeOrderByStartedAtDesc(
       String stellarAccount, String assetCode);

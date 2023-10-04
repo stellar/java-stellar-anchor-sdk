@@ -99,8 +99,9 @@ class PaymentOperationToEventListenerTest {
     } returns null
     every { sep24TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
       null
-    every { sep6TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
-      null
+    every {
+      sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
+    } returns null
     paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
@@ -439,8 +440,9 @@ class PaymentOperationToEventListenerTest {
     every {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
     } returns null
-    every { sep6TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
-      null
+    every {
+      sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
+    } returns null
 
     val sep24TxnCopy = gson.fromJson(gson.toJson(sep24TxMock), JdbcSep24Transaction::class.java)
     every {
@@ -556,7 +558,7 @@ class PaymentOperationToEventListenerTest {
 
     val sep6TxnCopy = gson.fromJson(gson.toJson(sep6Txn), JdbcSep6Transaction::class.java)
     every {
-      sep6TransactionStore.findOneByToAccountAndMemoAndStatus(
+      sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         capture(slotMemo),
         capture(slotStatus)
