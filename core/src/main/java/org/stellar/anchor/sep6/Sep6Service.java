@@ -247,7 +247,6 @@ public class Sep6Service {
             .memoType(memoTypeAsString(MEMO_HASH))
             .fromAccount(sourceAccount)
             .withdrawAnchorAccount(asset.getDistributionAccount())
-            .toAccount(asset.getDistributionAccount())
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType());
 

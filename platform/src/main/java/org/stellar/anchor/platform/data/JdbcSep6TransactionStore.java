@@ -116,8 +116,9 @@ public class JdbcSep6TransactionStore implements Sep6TransactionStore {
   }
 
   @Override
-  public JdbcSep6Transaction findOneByToAccountAndMemoAndStatus(
-      String toAccount, String memo, String status) {
-    return transactionRepo.findOneByToAccountAndMemoAndStatus(toAccount, memo, status);
+  public JdbcSep6Transaction findOneByWithdrawAnchorAccountAndMemoAndStatus(
+      String withdrawAnchorAccount, String memo, String status) {
+    return transactionRepo.findOneByWithdrawAnchorAccountAndMemoAndStatus(
+        withdrawAnchorAccount, memo, status);
   }
 }

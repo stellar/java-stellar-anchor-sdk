@@ -121,7 +121,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     JdbcSep6Transaction sep6Txn;
     try {
       sep6Txn =
-          sep6TransactionStore.findOneByToAccountAndMemoAndStatus(
+          sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(
               payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
     } catch (Exception ex) {
       errorEx(ex);
