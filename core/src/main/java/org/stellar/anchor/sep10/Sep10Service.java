@@ -226,14 +226,17 @@ public class Sep10Service {
       signers.add(challenge.getClientAccountId());
 
       infoF(
-          "Verifying challenge threshold. server_account={}, signers={}",
+          "Verifying challenge threshold. server_account={}, client_domain={}, signers={}",
           shorter(serverAccountId),
+          clientDomain,
           signers.size());
 
       if ((clientDomain != null && challenge.getTransaction().getSignatures().size() != 3)
           || (clientDomain == null && challenge.getTransaction().getSignatures().size() != 2)) {
         infoF(
-            "Invalid SEP 10 challenge exception, there is more than one client signer on challenge transaction for an account that doesn't exist");
+            "Invalid SEP 10 challenge exception, there is more than one client signer on challenge transaction for an account that doesn't exist. client_domain={}, account_id={}",
+            clientDomain,
+            challenge.getClientAccountId());
         throw new InvalidSep10ChallengeException(
             "There is more than one client signer on challenge transaction for an account that doesn't exist");
       }
@@ -264,8 +267,9 @@ public class Sep10Service {
     int threshold = account.getThresholds().getMedThreshold();
 
     infoF(
-        "Verifying challenge threshold. server_account={}, threshold={}, signers={}",
+        "Verifying challenge threshold. server_account={}, client_domain={}, threshold={}, signers={}",
         shorter(serverAccountId),
+        clientDomain,
         threshold,
         signers.size());
     Sep10ChallengeWrapper.instance()
