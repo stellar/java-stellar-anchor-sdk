@@ -1,16 +1,15 @@
 package org.stellar.anchor
 
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
+import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.config.Sep1Config.TomlType.*
 import org.stellar.anchor.platform.config.PropertySep1Config
 import org.stellar.anchor.platform.config.PropertySep1Config.TomlConfig
@@ -119,10 +118,9 @@ class Sep1ServiceTest {
     mockServer.enqueue(MockResponse().setResponseCode(500))
 
     val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
-    val exception = assertThrows(IOException::class.java) { sep1 = Sep1Service(config) }
-    assertTrue(
-      exception.message?.contains("Unsuccessful response code: 500, message: Server Error") == true
-    )
+    val sep1Service = Sep1Service(config)
+    val exception = assertThrows(SepException::class.java) { sep1Service.toml }
+    assertEquals(exception.message, "Unable to read SEP-1 value")
     mockServer.shutdown()
   }
 }
