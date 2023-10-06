@@ -33,6 +33,27 @@ internal class Sep1ServiceTest {
   }
 
   @Test
+  fun `test readSep1Toml failure should throw Exceptions`() {
+    // Given
+    every { sep1Config.isEnabled } returns true
+    every { sep1Config.value } returns "toml content"
+    val sep1Service = spyk(Sep1Service(sep1Config))
+    every { sep1Config.type } returns FILE
+    every { sep1Service.readTomlFromFile(any()) } throws Exception("readTomlFromFile failed")
+
+    // When, Then
+    var ex = assertThrows<SepException> { sep1Service.toml }
+    assertEquals("Unable to read SEP-1 value", ex.message)
+
+    // Given
+    every { sep1Service.readTomlFromURL(any()) } throws Exception("readTomlFromURL failed")
+    every { sep1Config.type } returns URL
+    // When, Then
+    ex = assertThrows<SepException> { sep1Service.toml }
+    assertEquals("Unable to read SEP-1 value", ex.message)
+  }
+
+  @Test
   fun `test string type`() {
     // Given
     every { sep1Config.isEnabled } returns true

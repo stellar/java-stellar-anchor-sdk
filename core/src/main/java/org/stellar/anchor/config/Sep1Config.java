@@ -14,7 +14,8 @@ public interface Sep1Config {
   enum TomlType {
     STRING,
     FILE,
-    URL;
+    URL,
+    ;
 
     public static TomlType fromString(String name) throws InvalidConfigException {
       if (StringHelper.isEmpty(name)) name = "";
