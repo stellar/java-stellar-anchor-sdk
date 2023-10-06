@@ -56,14 +56,14 @@ class Sep1ServiceTest {
   fun `test Sep1Service reading toml from inline string`() {
     val config = PropertySep1Config(true, TomlConfig(STRING, stellarToml))
     sep1 = Sep1Service(config)
-    assertEquals(sep1.stellarToml, stellarToml)
+    assertEquals(sep1.toml, stellarToml)
   }
 
   @Test
   fun `test Sep1Service reading toml from file`() {
     val config = PropertySep1Config(true, TomlConfig(FILE, Sep1ConfigTest.getTestTomlAsFile()))
     sep1 = Sep1Service(config)
-    assertEquals(sep1.stellarToml, Files.readString(Path.of(Sep1ConfigTest.getTestTomlAsFile())))
+    assertEquals(sep1.toml, Files.readString(Path.of(Sep1ConfigTest.getTestTomlAsFile())))
   }
 
   @Test
@@ -74,7 +74,7 @@ class Sep1ServiceTest {
     mockServer.enqueue(MockResponse().setBody(stellarToml))
     val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
     sep1 = Sep1Service(config)
-    assertEquals(sep1.stellarToml, stellarToml)
+    assertEquals(sep1.toml, stellarToml)
   }
 
   // this test is not expected to raise an exception. given the re-direct to a malicious
@@ -105,7 +105,7 @@ class Sep1ServiceTest {
 
     val config = PropertySep1Config(true, TomlConfig(URL, mockAnchorUrl))
     val sep1 = Sep1Service(config)
-    assertEquals(sep1.getStellarToml(), metadata)
+    assertEquals(sep1.getToml(), metadata)
     mockServer.shutdown()
   }
 
