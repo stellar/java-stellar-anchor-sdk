@@ -12,7 +12,11 @@ import static org.stellar.anchor.util.MetricConstants.*;
 
 import com.google.gson.Gson;
 import io.micrometer.core.instrument.Metrics;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +69,7 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
   }
 
   @Transactional
-  public GetTransactionResponse handle(Object requestParams) throws AnchorException {
+  public GetTransactionResponse handle(Object requestParams) throws AnchorException, IOException {
     T request = gson.fromJson(gson.toJson(requestParams), requestType);
     JdbcSepTransaction txn = getTransaction(request.getTransactionId());
 
@@ -131,7 +135,8 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     requestValidator.validate(request);
   }
 
-  private void updateTransaction(JdbcSepTransaction txn, T request) throws AnchorException {
+  private void updateTransaction(JdbcSepTransaction txn, T request)
+      throws AnchorException, IOException {
     validate(txn, request);
 
     SepTransactionStatus nextStatus = getNextStatus(txn, request);
@@ -143,37 +148,50 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     boolean shouldClearMessageStatus =
         !isErrorStatus(nextStatus) && isErrorStatus(SepTransactionStatus.from(txn.getStatus()));
 
+    byte[] serialized1 = getSnapshotFromTransaction(txn);
     updateTransactionWithRpcRequest(txn, request);
+    byte[] serialized2 = getSnapshotFromTransaction(txn);
 
-    txn.setUpdatedAt(Instant.now());
-    txn.setStatus(nextStatus.toString());
+    if (!isEqual(serialized1, serialized2)) {
 
-    if (isFinalStatus(nextStatus)) {
-      txn.setCompletedAt(Instant.now());
+      txn.setUpdatedAt(Instant.now());
+      txn.setStatus(nextStatus.toString());
+
+      if (isFinalStatus(nextStatus)) {
+        txn.setCompletedAt(Instant.now());
+      }
+
+      eventSession.publish(
+          AnchorEvent.builder()
+              .id(UUID.randomUUID().toString())
+              .sep(txn.getProtocol())
+              .type(TRANSACTION_STATUS_CHANGED)
+              .transaction(toGetTransactionResponse(txn, assetService))
+              .build());
+
+      switch (Sep.from(txn.getProtocol())) {
+        case SEP_24:
+          JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+          if (request.getMessage() != null) {
+            txn24.setMessage(request.getMessage());
+          } else if (shouldClearMessageStatus) {
+            txn24.setMessage(null);
+          }
+          txn24Store.save(txn24);
+          break;
+        case SEP_31:
+          JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+          if (request.getMessage() != null) {
+            txn31.setRequiredInfoMessage(request.getMessage());
+          } else if (shouldClearMessageStatus) {
+            txn31.setRequiredInfoMessage(null);
+          }
+          txn31Store.save(txn31);
+          break;
+      }
+
+      updateMetrics(txn);
     }
-
-    switch (Sep.from(txn.getProtocol())) {
-      case SEP_24:
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-        if (request.getMessage() != null) {
-          txn24.setMessage(request.getMessage());
-        } else if (shouldClearMessageStatus) {
-          txn24.setMessage(null);
-        }
-        txn24Store.save(txn24);
-        break;
-      case SEP_31:
-        JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
-        if (request.getMessage() != null) {
-          txn31.setRequiredInfoMessage(request.getMessage());
-        } else if (shouldClearMessageStatus) {
-          txn31.setRequiredInfoMessage(null);
-        }
-        txn31Store.save(txn31);
-        break;
-    }
-
-    updateMetrics(txn);
   }
 
   protected boolean areFundsReceived(JdbcSepTransaction txn) {
@@ -197,5 +215,18 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
         Metrics.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP31).increment();
         break;
     }
+  }
+
+  private boolean isEqual(byte[] serialized1, byte[] serialized2) {
+    return Arrays.equals(serialized1, serialized2);
+  }
+
+  private byte[] getSnapshotFromTransaction(JdbcSepTransaction txn) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    ObjectOutputStream oos = new ObjectOutputStream(baos);
+    oos.writeObject(txn);
+    byte[] serialized1 = baos.toByteArray();
+    oos.close();
+    return serialized1;
   }
 }
