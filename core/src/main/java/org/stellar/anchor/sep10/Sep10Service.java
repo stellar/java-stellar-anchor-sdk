@@ -84,7 +84,7 @@ public class Sep10Service implements ISep10Service {
     // pre validation to be defined by the anchor
     preValidateRequestValidation(request, challenge);
     // fetch the client domain from the transaction
-    String clientDomain = fetchClientDomain(request, challenge);
+    String clientDomain = fetchClientDomain(challenge);
     // fetch the account response from the horizon
     AccountResponse account = fetchAccount(request, challenge, clientDomain);
 
@@ -107,24 +107,13 @@ public class Sep10Service implements ISep10Service {
       String clientSigningKey = null;
       if (!Objects.toString(request.getClientDomain(), "").isEmpty()) {
         debugF("Fetching SIGNING_KEY from client_domain: {}", request.getClientDomain());
-        clientSigningKey = Sep10Helper.fetchSigningKeyFromClientDomain(request.getClientDomain());
+        clientSigningKey = fetchSigningKeyFromClientDomain(request.getClientDomain());
         debugF("SIGNING_KEY from client_domain fetched: {}", clientSigningKey);
       }
 
-      KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
-      long now = System.currentTimeMillis() / 1000L;
-      Transaction txn =
-          Sep10ChallengeWrapper.instance()
-              .newChallenge(
-                  signer,
-                  new Network(appConfig.getStellarNetworkPassphrase()),
-                  request.getAccount(),
-                  request.getHomeDomain(),
-                  sep10Config.getWebAuthDomain(),
-                  new TimeBounds(now, now + sep10Config.getAuthTimeout()),
-                  (request.getClientDomain() == null) ? "" : request.getClientDomain(),
-                  (clientSigningKey == null) ? "" : clientSigningKey,
-                  memo);
+      // create challenge transaction
+      Transaction txn = newChallenge(request, clientSigningKey, memo);
+
       // Convert the challenge to response
       trace("SEP-10 challenge txn:", txn);
       ChallengeResponse challengeResponse =
@@ -135,6 +124,25 @@ public class Sep10Service implements ISep10Service {
       warnEx(ex);
       throw new SepException("Failed to create the sep-10 challenge.", ex);
     }
+  }
+
+  Transaction newChallenge(ChallengeRequest request, String clientSigningKey, Memo memo)
+      throws InvalidSep10ChallengeException {
+
+    KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
+    long now = System.currentTimeMillis() / 1000L;
+
+    return Sep10ChallengeWrapper.instance()
+        .newChallenge(
+            signer,
+            new Network(appConfig.getStellarNetworkPassphrase()),
+            request.getAccount(),
+            request.getHomeDomain(),
+            sep10Config.getWebAuthDomain(),
+            new TimeBounds(now, now + sep10Config.getAuthTimeout()),
+            (request.getClientDomain() == null) ? "" : request.getClientDomain(),
+            (clientSigningKey == null) ? "" : clientSigningKey,
+            memo);
   }
 
   @Override
@@ -149,12 +157,13 @@ public class Sep10Service implements ISep10Service {
               String.format("Invalid memo value: %s", request.getMemo()));
         }
         return new MemoId(memoLong);
+      } else {
+        return null;
       }
     } catch (NumberFormatException e) {
       infoF("invalid memo format: {}. Only MEMO_ID is supported", request.getMemo());
       throw new SepValidationException(String.format("Invalid memo format: %s", request.getMemo()));
     }
-    return null;
   }
 
   @Override
@@ -218,6 +227,10 @@ public class Sep10Service implements ISep10Service {
   @Override
   public void incrementValidationRequestValidatedCounter() {
     sep10ChallengeValidatedCounter.increment();
+  }
+
+  String fetchSigningKeyFromClientDomain(String clientDomain) throws SepException {
+    return Sep10Helper.fetchSigningKeyFromClientDomain(clientDomain);
   }
 
   void validateHomeDomain(ChallengeRequest request) throws SepValidationException {
@@ -323,7 +336,7 @@ public class Sep10Service implements ISep10Service {
     return null;
   }
 
-  String fetchClientDomain(ValidationRequest request, ChallengeTransaction challenge) {
+  String fetchClientDomain(ChallengeTransaction challenge) {
     String clientDomain = null;
     Operation operation =
         Arrays.stream(challenge.getTransaction().getOperations())

@@ -18,9 +18,6 @@ public interface ISep10Service {
    */
   void postChallengeRequestValidation(ChallengeRequest request) throws SepException;
 
-  ChallengeResponse createChallengeResponse(ChallengeRequest request, Memo memo)
-      throws SepException;
-
   /**
    * Validate the memo of the challenge request and return the memo that is validated.
    *
@@ -56,6 +53,17 @@ public interface ISep10Service {
 
   /** Increment the metrics counter for the number of challenge requests created. */
   void incrementChallengeRequestCreatedCounter();
+
+  /**
+   * Create a challenge transaction from the request and the memo
+   *
+   * @param request The challenge request.
+   * @param memo The memo.
+   * @return The challenge transaction.
+   * @throws SepException If the challenge transaction cannot be created.
+   */
+  ChallengeResponse createChallengeResponse(ChallengeRequest request, Memo memo)
+      throws SepException;
 
   /**
    * Validate the validation request. The default implementation is NOOP. This is used for the

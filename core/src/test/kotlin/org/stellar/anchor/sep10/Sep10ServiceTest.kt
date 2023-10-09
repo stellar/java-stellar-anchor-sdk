@@ -16,6 +16,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
@@ -91,8 +92,8 @@ open class Sep10ServiceTest {
   lateinit var jwtService: JwtService
   lateinit var sep10Service: Sep10Service
   lateinit var httpClient: OkHttpClient
-  val clientKeyPair = KeyPair.random()
-  val clientDomainKeyPair = KeyPair.random()
+  val clientKeyPair: KeyPair = KeyPair.random()
+  val clientDomainKeyPair: KeyPair = KeyPair.random()
 
   @BeforeEach
   fun setUp() {
@@ -411,6 +412,32 @@ class Sep10ServiceTestPart1 : Sep10ServiceTest() {
     assertThrows<SepValidationException> { sep10Service.createChallenge(cr) }
   }
 
+  @Test
+  fun `Test create challenge request with empty memo`() {
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(null)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
+
+    sep10Service.createChallenge(cr)
+  }
+
+  @Test
+  fun `test when account is custodial, but the client domain is specified, exception should be thrown`() {
+    every { sep10Config.knownCustodialAccountList } returns listOf(TEST_ACCOUNT)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(null)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
+    assertThrows<SepValidationException> { sep10Service.createChallenge(cr) }
+  }
+
   @ParameterizedTest
   @MethodSource("homeDomains")
   fun `test client domain failures`(homeDomain: String?) {
@@ -462,6 +489,78 @@ class Sep10ServiceTestPart1 : Sep10ServiceTest() {
     cr.memo = badMemo
 
     assertThrows<SepValidationException> { sep10Service.createChallenge(cr) }
+  }
+
+  @Test
+  fun `test createChallengeResponse()`() {
+    // Given
+    sep10Service = spyk(sep10Service)
+    // When
+    sep10Service.createChallengeResponse(
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(null)
+        .build(),
+      MemoId(1234567890)
+    )
+    // Then
+    verify(exactly = 0) { sep10Service.fetchSigningKeyFromClientDomain(any()) }
+
+    // Given
+    every { sep10Service.fetchSigningKeyFromClientDomain(any()) } returns clientKeyPair.accountId
+    // When
+    sep10Service.createChallengeResponse(
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build(),
+      MemoId(1234567890)
+    )
+    // Then
+    verify(exactly = 1) { sep10Service.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
+
+    // Given
+    every { sep10Service.fetchSigningKeyFromClientDomain(any()) } throws IOException("mock error")
+    InvalidSep10ChallengeException("mock error")
+    // When
+    val ioex =
+      assertThrows<IOException> {
+        sep10Service.createChallengeResponse(
+          ChallengeRequest.builder()
+            .account(TEST_ACCOUNT)
+            .memo(TEST_MEMO)
+            .homeDomain(TEST_HOME_DOMAIN)
+            .clientDomain(TEST_CLIENT_DOMAIN)
+            .build(),
+          MemoId(1234567890)
+        )
+      }
+    // Then
+    assertEquals(ioex.message, "mock error")
+
+    // Given
+    every { sep10Service.fetchSigningKeyFromClientDomain(any()) } returns null
+    every { sep10Service.newChallenge(any(), any(), any()) } throws
+      InvalidSep10ChallengeException("mock error")
+    // When
+    val sepex =
+      assertThrows<SepException> {
+        sep10Service.createChallengeResponse(
+          ChallengeRequest.builder()
+            .account(TEST_ACCOUNT)
+            .memo(TEST_MEMO)
+            .homeDomain(TEST_HOME_DOMAIN)
+            .clientDomain(TEST_CLIENT_DOMAIN)
+            .build(),
+          MemoId(1234567890)
+        )
+      }
+    // Then
+    assertTrue(sepex.message!!.startsWith("Failed to create the sep-10 challenge"))
   }
 }
 
@@ -696,7 +795,6 @@ internal class Sep10ServiceTestPart2 : Sep10ServiceTest() {
   @CsvSource(
     value = ["true,test.client.stellar.org", "false,test.client.stellar.org", "false,null"]
   )
-  @Disabled
   fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
     mockkStatic(Sep10Helper::class)
     mockkStatic(Sep10Challenge::class)
