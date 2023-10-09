@@ -69,7 +69,7 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
   }
 
   @Transactional
-  public GetTransactionResponse handle(Object requestParams) throws AnchorException, IOException {
+  public GetTransactionResponse handle(Object requestParams) throws AnchorException {
     T request = gson.fromJson(gson.toJson(requestParams), requestType);
     JdbcSepTransaction txn = getTransaction(request.getTransactionId());
 
@@ -97,19 +97,19 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
               getRpcMethod(), txn.getStatus(), kind, txn.getProtocol(), areFundsReceived(txn)));
     }
 
-    updateTransaction(txn, request);
-
     GetTransactionResponse txResponse = toGetTransactionResponse(txn, assetService);
+    boolean isTxnUpdated = updateTransaction(txn, request);
 
-    eventSession.publish(
-        AnchorEvent.builder()
-            .id(UUID.randomUUID().toString())
-            .sep(txn.getProtocol())
-            .type(TRANSACTION_STATUS_CHANGED)
-            .transaction(txResponse)
-            .build());
-
-    return toGetTransactionResponse(txn, assetService);
+    if (isTxnUpdated) {
+      eventSession.publish(
+          AnchorEvent.builder()
+              .id(UUID.randomUUID().toString())
+              .sep(txn.getProtocol())
+              .type(TRANSACTION_STATUS_CHANGED)
+              .transaction(txResponse)
+              .build());
+    }
+    return txResponse;
   }
 
   public abstract RpcMethod getRpcMethod();
@@ -135,8 +135,11 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     requestValidator.validate(request);
   }
 
-  private void updateTransaction(JdbcSepTransaction txn, T request)
-      throws AnchorException, IOException {
+  /*
+   * Returns true if the transaction was updated.
+   * Returns false if the transaction was not updated.
+   */
+  private boolean updateTransaction(JdbcSepTransaction txn, T request) throws AnchorException {
     validate(txn, request);
 
     SepTransactionStatus nextStatus = getNextStatus(txn, request);
@@ -148,50 +151,40 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     boolean shouldClearMessageStatus =
         !isErrorStatus(nextStatus) && isErrorStatus(SepTransactionStatus.from(txn.getStatus()));
 
-    byte[] serialized1 = getSnapshotFromTransaction(txn);
+    byte[] serialized1 = snapshotTransaction(txn);
     updateTransactionWithRpcRequest(txn, request);
-    byte[] serialized2 = getSnapshotFromTransaction(txn);
+    byte[] serialized2 = snapshotTransaction(txn);
 
-    if (!isEqual(serialized1, serialized2)) {
+    txn.setUpdatedAt(Instant.now());
+    txn.setStatus(nextStatus.toString());
 
-      txn.setUpdatedAt(Instant.now());
-      txn.setStatus(nextStatus.toString());
-
-      if (isFinalStatus(nextStatus)) {
-        txn.setCompletedAt(Instant.now());
-      }
-
-      eventSession.publish(
-          AnchorEvent.builder()
-              .id(UUID.randomUUID().toString())
-              .sep(txn.getProtocol())
-              .type(TRANSACTION_STATUS_CHANGED)
-              .transaction(toGetTransactionResponse(txn, assetService))
-              .build());
-
-      switch (Sep.from(txn.getProtocol())) {
-        case SEP_24:
-          JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-          if (request.getMessage() != null) {
-            txn24.setMessage(request.getMessage());
-          } else if (shouldClearMessageStatus) {
-            txn24.setMessage(null);
-          }
-          txn24Store.save(txn24);
-          break;
-        case SEP_31:
-          JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
-          if (request.getMessage() != null) {
-            txn31.setRequiredInfoMessage(request.getMessage());
-          } else if (shouldClearMessageStatus) {
-            txn31.setRequiredInfoMessage(null);
-          }
-          txn31Store.save(txn31);
-          break;
-      }
-
-      updateMetrics(txn);
+    if (isFinalStatus(nextStatus)) {
+      txn.setCompletedAt(Instant.now());
     }
+
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_24:
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        if (request.getMessage() != null) {
+          txn24.setMessage(request.getMessage());
+        } else if (shouldClearMessageStatus) {
+          txn24.setMessage(null);
+        }
+        txn24Store.save(txn24);
+        break;
+      case SEP_31:
+        JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+        if (request.getMessage() != null) {
+          txn31.setRequiredInfoMessage(request.getMessage());
+        } else if (shouldClearMessageStatus) {
+          txn31.setRequiredInfoMessage(null);
+        }
+        txn31Store.save(txn31);
+        break;
+    }
+
+    updateMetrics(txn);
+    return !isEqual(serialized1, serialized2);
   }
 
   protected boolean areFundsReceived(JdbcSepTransaction txn) {
@@ -218,15 +211,19 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
   }
 
   private boolean isEqual(byte[] serialized1, byte[] serialized2) {
-    return Arrays.equals(serialized1, serialized2);
+    return serialized1 != null && serialized2 != null && Arrays.equals(serialized1, serialized2);
   }
 
-  private byte[] getSnapshotFromTransaction(JdbcSepTransaction txn) throws IOException {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    ObjectOutputStream oos = new ObjectOutputStream(baos);
-    oos.writeObject(txn);
-    byte[] serialized1 = baos.toByteArray();
-    oos.close();
-    return serialized1;
+  private byte[] snapshotTransaction(JdbcSepTransaction txn) {
+    try {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      ObjectOutputStream oos = new ObjectOutputStream(baos);
+      oos.writeObject(txn);
+      byte[] serialized1 = baos.toByteArray();
+      oos.close();
+      return serialized1;
+    } catch (IOException e) {
+      return null;
+    }
   }
 }
