@@ -76,6 +76,7 @@ public class Sep6Service {
           asset.getDeposit().getMaxAmount());
     }
     requestValidator.validateAccount(request.getAccount());
+    requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
 
     Memo memo = makeMemo(request.getMemo(), request.getMemoType());
     String id = SepHelper.generateSepTransactionId();
@@ -142,6 +143,7 @@ public class Sep6Service {
         buyAsset.getDeposit().getMinAmount(),
         buyAsset.getDeposit().getMaxAmount());
     requestValidator.validateAccount(request.getAccount());
+    requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
 
     ExchangeAmountsCalculator.Amounts amounts;
     if (request.getQuoteId() != null) {
@@ -227,6 +229,7 @@ public class Sep6Service {
     }
     String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
     requestValidator.validateAccount(sourceAccount);
+    requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
 
     String id = SepHelper.generateSepTransactionId();
 
@@ -296,6 +299,7 @@ public class Sep6Service {
         sellAsset.getWithdraw().getMaxAmount());
     String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
     requestValidator.validateAccount(sourceAccount);
+    requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
 
     String id = SepHelper.generateSepTransactionId();
 

@@ -10,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
+import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetCustomerResponse
@@ -162,17 +163,21 @@ class RequestValidatorTest {
   }
 
   @Test
-  fun `test validateAccount customerIntegration failure`() {
+  fun `test validateKyc customerIntegration failure`() {
     every {
-      customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
+      customerIntegration.getCustomer(
+        GetCustomerRequest.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).memoType("id").build()
+      )
     } throws RuntimeException("test")
-    assertThrows<RuntimeException> { requestValidator.validateAccount(TEST_ACCOUNT) }
+    assertThrows<RuntimeException> { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
   }
 
   @Test
-  fun `test validateAccount with needs info customer`() {
+  fun `test validateKyc with needs info customer`() {
     every {
-      customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
+      customerIntegration.getCustomer(
+        GetCustomerRequest.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).memoType("id").build()
+      )
     } returns
       GetCustomerResponse.builder()
         .status(Sep12Status.NEEDS_INFO.name)
@@ -180,31 +185,50 @@ class RequestValidatorTest {
         .build()
     val ex =
       assertThrows<SepCustomerInfoNeededException> {
-        requestValidator.validateAccount(TEST_ACCOUNT)
+        requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO)
       }
     assertEquals(listOf("first_name"), ex.fields)
   }
 
   @Test
-  fun `test validateAccount with processing customer`() {
+  fun `test validateKyc with processing customer`() {
     every {
-      customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
+      customerIntegration.getCustomer(
+        GetCustomerRequest.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).memoType("id").build()
+      )
     } returns GetCustomerResponse.builder().status(Sep12Status.PROCESSING.name).build()
-    assertThrows<SepNotAuthorizedException> { requestValidator.validateAccount(TEST_ACCOUNT) }
+    assertThrows<SepNotAuthorizedException> {
+      requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO)
+    }
   }
 
   @Test
-  fun `test validateAccount with rejected customer`() {
+  fun `test validateKyc with rejected customer`() {
+    every {
+      customerIntegration.getCustomer(
+        GetCustomerRequest.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).memoType("id").build()
+      )
+    } returns GetCustomerResponse.builder().status(Sep12Status.REJECTED.name).build()
+    assertThrows<SepNotAuthorizedException> {
+      requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO)
+    }
+  }
+
+  @Test
+  fun `test validateKyc with unknown status customer`() {
+    every {
+      customerIntegration.getCustomer(
+        GetCustomerRequest.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).memoType("id").build()
+      )
+    } returns GetCustomerResponse.builder().status("??").build()
+    assertThrows<ServerErrorException> { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
+  }
+
+  @Test
+  fun `test validateKyc without memo`() {
     every {
       customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
-    } returns GetCustomerResponse.builder().status(Sep12Status.REJECTED.name).build()
-    assertThrows<SepNotAuthorizedException> { requestValidator.validateAccount(TEST_ACCOUNT) }
-  }
-
-  @Test
-  fun `test validateAccount with unknown status customer`() {
-    every { customerIntegration.getCustomer(any()) } returns
-      GetCustomerResponse.builder().status("??").build()
-    assertThrows<ServerErrorException> { requestValidator.validateAccount(TEST_ACCOUNT) }
+    } returns GetCustomerResponse.builder().status(Sep12Status.ACCEPTED.name).build()
+    requestValidator.validateKyc(TEST_ACCOUNT, null)
   }
 }

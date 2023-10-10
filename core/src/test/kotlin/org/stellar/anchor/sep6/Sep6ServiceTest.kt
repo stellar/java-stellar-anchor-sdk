@@ -15,6 +15,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
+import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_QUOTE_ID
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.event.AnchorEvent
@@ -94,7 +95,7 @@ class Sep6ServiceTest {
         .type("bank_account")
         .amount("100")
         .build()
-    val response = sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    val response = sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
@@ -111,6 +112,7 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -151,11 +153,12 @@ class Sep6ServiceTest {
     every { eventSession.publish(capture(slotEvent)) } returns Unit
 
     val request = StartDepositRequest.builder().assetCode(TEST_ASSET).account(TEST_ACCOUNT).build()
-    val response = sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    val response = sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -201,7 +204,7 @@ class Sep6ServiceTest {
       SepValidationException("unsupported asset")
 
     assertThrows<SepValidationException> {
-      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -226,7 +229,7 @@ class Sep6ServiceTest {
       SepValidationException("unsupported type")
 
     assertThrows<SepValidationException> {
-      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -254,7 +257,7 @@ class Sep6ServiceTest {
       SepValidationException("bad amount")
 
     assertThrows<SepValidationException> {
-      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -293,7 +296,7 @@ class Sep6ServiceTest {
         .build()
 
     assertThrows<java.lang.RuntimeException> {
-      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -310,6 +313,8 @@ class Sep6ServiceTest {
         asset.deposit.maxAmount,
       )
     }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -347,7 +352,8 @@ class Sep6ServiceTest {
         .account(TEST_ACCOUNT)
         .type("SWIFT")
         .build()
-    val response = sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    val response =
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
@@ -364,6 +370,7 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) {
@@ -428,7 +435,8 @@ class Sep6ServiceTest {
         .account(TEST_ACCOUNT)
         .type("SWIFT")
         .build()
-    val response = sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    val response =
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
@@ -445,6 +453,7 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_ACCOUNT) }
@@ -492,7 +501,7 @@ class Sep6ServiceTest {
       SepValidationException("unsupported asset")
 
     assertThrows<SepValidationException> {
-      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -517,7 +526,7 @@ class Sep6ServiceTest {
         .build()
 
     assertThrows<SepValidationException> {
-      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify effects
@@ -541,7 +550,7 @@ class Sep6ServiceTest {
       SepValidationException("unsupported type")
 
     assertThrows<SepValidationException> {
-      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -574,7 +583,7 @@ class Sep6ServiceTest {
       SepValidationException("bad amount")
 
     assertThrows<SepValidationException> {
-      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -614,7 +623,7 @@ class Sep6ServiceTest {
         .type("SWIFT")
         .build()
     assertThrows<java.lang.RuntimeException> {
-      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.depositExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -632,6 +641,7 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -655,7 +665,7 @@ class Sep6ServiceTest {
         .refundMemoType("text")
         .build()
 
-    val response = sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    val response = sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
@@ -672,6 +682,7 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -723,11 +734,12 @@ class Sep6ServiceTest {
         .refundMemo("some text")
         .refundMemoType("text")
         .build()
-    sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) { requestValidator.validateAccount("requested_account") }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     assertEquals("requested_account", slotTxn.captured.fromAccount)
@@ -748,11 +760,12 @@ class Sep6ServiceTest {
         .refundMemo("some text")
         .refundMemoType("text")
         .build()
-    val response = sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    val response = sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -802,7 +815,7 @@ class Sep6ServiceTest {
       SepValidationException("unsupported asset")
 
     assertThrows<SepValidationException> {
-      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -828,7 +841,7 @@ class Sep6ServiceTest {
       SepValidationException("unsupported type")
 
     assertThrows<SepValidationException> {
-      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -855,7 +868,7 @@ class Sep6ServiceTest {
       SepValidationException("bad amount")
 
     assertThrows<SepValidationException> {
-      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -893,7 +906,7 @@ class Sep6ServiceTest {
         .build()
 
     assertThrows<java.lang.RuntimeException> {
-      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.withdraw(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -911,6 +924,7 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -948,7 +962,8 @@ class Sep6ServiceTest {
         .refundMemo("some text")
         .refundMemoType("text")
         .build()
-    val response = sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    val response =
+      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
@@ -965,6 +980,7 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) {
@@ -1034,7 +1050,8 @@ class Sep6ServiceTest {
         .refundMemo("some text")
         .refundMemoType("text")
         .build()
-    val response = sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    val response =
+      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
@@ -1051,6 +1068,7 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_ACCOUNT) }
@@ -1109,11 +1127,12 @@ class Sep6ServiceTest {
         .refundMemo("some text")
         .refundMemoType("text")
         .build()
-    sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+    sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
 
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) { requestValidator.validateAccount("requested_account") }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     assertEquals("requested_account", slotTxn.captured.fromAccount)
@@ -1134,7 +1153,7 @@ class Sep6ServiceTest {
       SepValidationException("unsupported asset")
 
     assertThrows<SepValidationException> {
-      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -1158,7 +1177,7 @@ class Sep6ServiceTest {
         .build()
 
     assertThrows<SepValidationException> {
-      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
     verify { exchangeAmountsCalculator wasNot Called }
     verify { txnStore wasNot Called }
@@ -1179,7 +1198,7 @@ class Sep6ServiceTest {
       SepValidationException("unsupported type")
 
     assertThrows<SepValidationException> {
-      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -1210,7 +1229,7 @@ class Sep6ServiceTest {
       SepValidationException("bad amount")
 
     assertThrows<SepValidationException> {
-      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -1252,7 +1271,7 @@ class Sep6ServiceTest {
       assetService.getAsset(TEST_ASSET)
 
     assertThrows<java.lang.RuntimeException> {
-      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+      sep6Service.withdrawExchange(TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO), request)
     }
 
     // Verify validations
@@ -1270,6 +1289,7 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }

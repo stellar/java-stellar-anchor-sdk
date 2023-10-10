@@ -113,8 +113,24 @@ public class RequestValidator {
     } catch (RuntimeException ex) {
       throw new SepValidationException(String.format("invalid account %s", account));
     }
+  }
 
-    GetCustomerRequest request = GetCustomerRequest.builder().account(account).build();
+  /**
+   * Validates that the authenticated account has been KYC'ed by the anchor.
+   *
+   * @param sep10Account the authenticated account
+   * @param sep10AccountMemo the authenticated account memo
+   * @throws AnchorException if the account has not been KYC'ed
+   */
+  public void validateKyc(String sep10Account, String sep10AccountMemo) throws AnchorException {
+    GetCustomerRequest request =
+        sep10AccountMemo != null
+            ? GetCustomerRequest.builder()
+                .account(sep10Account)
+                .memo(sep10AccountMemo)
+                .memoType("id")
+                .build()
+            : GetCustomerRequest.builder().account(sep10Account).build();
     GetCustomerResponse response = customerIntegration.getCustomer(request);
 
     if (response == null || response.getStatus() == null) {
