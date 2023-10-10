@@ -50,6 +50,23 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
   companion object {
     private val USDC =
       IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
+    private val basicInfoFields = listOf("first_name", "last_name", "email_address")
+    private val customerInfo =
+      mapOf(
+        "first_name" to "John",
+        "last_name" to "Doe",
+        "address" to "123 Bay Street",
+        "email_address" to "john@email.com",
+        "id_type" to "drivers_license",
+        "id_country_code" to "CAN",
+        "id_issue_date" to "2023-01-01",
+        "id_expiration_date" to "2028-01-01",
+        "id_number" to "1234567890",
+        "bank_account_number" to "13719713158835300",
+        "bank_account_type" to "checking",
+        "bank_number" to "123",
+        "bank_branch_number" to "121122676"
+      )
   }
 
   private fun `test typical deposit end-to-end flow`() = runBlocking {
@@ -58,9 +75,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor
-      .customer(token)
-      .add(mapOf("first_name" to "John", "last_name" to "Doe", "email_address" to "john@email.com"))
+    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! })
 
     val deposit =
       sep6Client.deposit(
@@ -74,7 +89,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     waitStatus(deposit.id, "pending_customer_info_update", sep6Client)
 
     // Supply missing KYC info to continue with the transaction
-    anchor.customer(token).add(mapOf("email_address" to "customer@email.com"))
+    val additionalRequiredFields =
+      sep6Client.getTransaction(mapOf("id" to deposit.id)).transaction.requiredCustomerInfoUpdates
+    anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! })
     waitStatus(deposit.id, "completed", sep6Client)
 
     val completedDepositTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))
@@ -99,8 +116,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       )
     assertEquals(completedDepositTxn.transaction.id, transactionByStellarId.transaction.id)
 
-    val expectedStatuses =
-      listOf("incomplete", "pending_anchor", "pending_customer_info_update", "completed")
+    val expectedStatuses = listOf("incomplete", "pending_customer_info_update", "completed")
     assertAnchorReceivedStatuses(deposit.id, expectedStatuses)
     assertWalletReceivedStatuses(deposit.id, expectedStatuses)
   }
@@ -111,9 +127,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor
-      .customer(token)
-      .add(mapOf("first_name" to "John", "last_name" to "Doe", "email_address" to "john@email.com"))
+    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! })
 
     val withdraw =
       sep6Client.withdraw(
@@ -122,15 +136,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     waitStatus(withdraw.id, "pending_customer_info_update", sep6Client)
 
     // Supply missing financial account info to continue with the transaction
-    anchor
-      .customer(token)
-      .add(
-        mapOf(
-          "bank_account_type" to "checking",
-          "bank_account_number" to "121122676",
-          "bank_number" to "13719713158835300",
-        )
-      )
+    val additionalRequiredFields =
+      sep6Client.getTransaction(mapOf("id" to withdraw.id)).transaction.requiredCustomerInfoUpdates
+    anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! })
     waitStatus(withdraw.id, "pending_user_transfer_start", sep6Client)
 
     // Transfer the withdrawal amount to the Anchor
@@ -142,7 +150,6 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
         .build()
     transfer.sign(keypair)
     wallet.stellar().submitTransaction(transfer)
-
     waitStatus(withdraw.id, "completed", sep6Client)
 
     val expectedStatuses =

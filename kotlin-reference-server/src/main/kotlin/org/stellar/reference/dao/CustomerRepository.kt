@@ -8,9 +8,13 @@ import org.stellar.reference.model.Customer
 
 interface CustomerRepository {
   fun get(id: String): Customer?
+
   fun get(stellarAccount: String, memo: String?, memoType: String?): Customer?
+
   fun create(customer: Customer): String?
+
   fun update(customer: Customer)
+
   fun delete(id: String)
 }
 
@@ -29,12 +33,19 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
               memo = it[Customers.memo],
               memoType = it[Customers.memoType],
               firstName = it[Customers.firstName],
+              address = it[Customers.address],
               lastName = it[Customers.lastName],
               emailAddress = it[Customers.emailAddress],
               bankAccountNumber = it[Customers.bankAccountNumber],
               bankAccountType = it[Customers.bankAccountType],
-              bankRoutingNumber = it[Customers.bankRoutingNumber],
-              clabeNumber = it[Customers.clabeNumber]
+              bankNumber = it[Customers.bankNumber],
+              bankBranchNumber = it[Customers.bankBranchNumber],
+              clabeNumber = it[Customers.clabeNumber],
+              idType = it[Customers.idType],
+              idCountryCode = it[Customers.idCountryCode],
+              idIssueDate = it[Customers.idIssueDate],
+              idExpirationDate = it[Customers.idExpirationDate],
+              idNumber = it[Customers.idNumber]
             )
           }
       }
@@ -64,11 +75,18 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
               memoType = it[Customers.memoType],
               firstName = it[Customers.firstName],
               lastName = it[Customers.lastName],
+              address = it[Customers.address],
               emailAddress = it[Customers.emailAddress],
               bankAccountNumber = it[Customers.bankAccountNumber],
               bankAccountType = it[Customers.bankAccountType],
-              bankRoutingNumber = it[Customers.bankRoutingNumber],
-              clabeNumber = it[Customers.clabeNumber]
+              bankNumber = it[Customers.bankNumber],
+              bankBranchNumber = it[Customers.bankBranchNumber],
+              clabeNumber = it[Customers.clabeNumber],
+              idType = it[Customers.idType],
+              idCountryCode = it[Customers.idCountryCode],
+              idIssueDate = it[Customers.idIssueDate],
+              idExpirationDate = it[Customers.idExpirationDate],
+              idNumber = it[Customers.idNumber]
             )
           }
       }
@@ -84,11 +102,18 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
           it[memoType] = customer.memoType
           it[firstName] = customer.firstName
           it[lastName] = customer.lastName
+          it[address] = customer.address
           it[emailAddress] = customer.emailAddress
           it[bankAccountNumber] = customer.bankAccountNumber
           it[bankAccountType] = customer.bankAccountType
-          it[bankRoutingNumber] = customer.bankRoutingNumber
+          it[bankNumber] = customer.bankNumber
+          it[bankAccountNumber] = customer.bankAccountNumber
           it[clabeNumber] = customer.clabeNumber
+          it[idType] = customer.idType
+          it[idCountryCode] = customer.idCountryCode
+          it[idIssueDate] = customer.idIssueDate
+          it[idExpirationDate] = customer.idExpirationDate
+          it[idNumber] = customer.idNumber
         }
       }
       .resultedValues
@@ -103,11 +128,18 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
         it[memoType] = customer.memoType
         it[firstName] = customer.firstName
         it[lastName] = customer.lastName
+        it[address] = customer.address
         it[emailAddress] = customer.emailAddress
         it[bankAccountNumber] = customer.bankAccountNumber
         it[bankAccountType] = customer.bankAccountType
-        it[bankRoutingNumber] = customer.bankRoutingNumber
+        it[bankNumber] = customer.bankNumber
+        it[bankBranchNumber] = customer.bankBranchNumber
         it[clabeNumber] = customer.clabeNumber
+        it[idType] = customer.idType
+        it[idCountryCode] = customer.idCountryCode
+        it[idIssueDate] = customer.idIssueDate
+        it[idExpirationDate] = customer.idExpirationDate
+        it[idNumber] = customer.idNumber
       }
     }
 
