@@ -237,6 +237,7 @@ public class Sep10Service implements ISep10Service {
     String homeDomain = request.getHomeDomain();
     if (homeDomain == null) {
       debugF("home_domain is not specified. Will use the default: {}", sep10Config.getHomeDomain());
+      request.setHomeDomain(sep10Config.getHomeDomain());
     } else if (!homeDomain.equalsIgnoreCase(sep10Config.getHomeDomain())) {
       infoF("Bad home_domain: {}", homeDomain);
       throw new SepValidationException(
