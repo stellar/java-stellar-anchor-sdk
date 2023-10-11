@@ -2,33 +2,30 @@ package org.stellar.anchor
 
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.reflect.KClass
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
 
 private class TestMutex(vararg clzs: Class<*>) {
   companion object {
-    val knownClasses = mutableMapOf<Class<*>, Mutex>()
+    val knownClasses = mutableMapOf<Class<*>, ReentrantLock>()
   }
 
   private val classes = clzs.sortedBy { it.name }
 
   fun withLock(action: () -> Unit) {
-    runBlocking {
-      for (clazz in classes) {
-        if (knownClasses[clazz] == null) {
-          knownClasses[clazz] = Mutex()
-        }
-        knownClasses[clazz]!!.lock()
-        println("locked ${clazz.name}")
+    for (clazz in classes) {
+      if (knownClasses[clazz] == null) {
+        knownClasses[clazz] = ReentrantLock()
       }
-      try {
-        action()
-      } finally {
-        for (clazz in classes.asReversed()) {
-          knownClasses[clazz]!!.unlock()
-          println("unlocked ${clazz.name}")
-        }
+      knownClasses[clazz]!!.lock()
+      println("Locked ${clazz.name} ${knownClasses[clazz]}")
+    }
+    try {
+      action()
+    } finally {
+      for (clazz in classes.asReversed()) {
+        knownClasses[clazz]!!.unlock()
+        println("Unlocked ${clazz.name} ${knownClasses[clazz]}")
       }
     }
   }

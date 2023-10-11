@@ -1,6 +1,7 @@
 package org.stellar.anchor.auth
 
 import io.mockk.*
+import java.time.Instant
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -21,15 +22,15 @@ class AuthHelperTest {
   @ParameterizedTest
   @EnumSource(AuthType::class)
   fun `test AuthHeader creation based on the AuthType`(authType: AuthType) {
+    val calendarSingleton = mockk<Calendar>(relaxed = true)
     lockAndMockStatic(Calendar::class) {
       // Mock calendar to guarantee the jwt token format
       when (authType) {
         JWT -> {
-          val calendarSingleton = Calendar.getInstance()
-          val currentTimeMilliseconds = calendarSingleton.timeInMillis
-          mockkObject(calendarSingleton)
+          val currentTimeMilliseconds = Instant.now().toEpochMilli()
           every { calendarSingleton.timeInMillis } returns currentTimeMilliseconds
-          every { calendarSingleton.timeInMillis = any() } answers { callOriginal() }
+          every { calendarSingleton.time } returns Date(currentTimeMilliseconds)
+          every { calendarSingleton.timeInMillis = any() } answers {}
           every { Calendar.getInstance() } returns calendarSingleton
 
           // mock jwt token based on the mocked calendar

@@ -17,7 +17,6 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -143,7 +142,6 @@ open class Sep10ServiceTest {
 }
 
 @Order(63)
-@Execution(CONCURRENT)
 class Sep10ServiceTestPart1 : Sep10ServiceTest() {
   @Test
   fun `test challenge with non existent account and client domain`() {
@@ -572,7 +570,6 @@ class Sep10ServiceTestPart1 : Sep10ServiceTest() {
 }
 
 @Order(85)
-@Execution(CONCURRENT)
 internal class Sep10ServiceTestPart2 : Sep10ServiceTest() {
   @Test
   fun `test getClientAccountId failure`() {

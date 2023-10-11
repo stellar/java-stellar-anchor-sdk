@@ -14,7 +14,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.filter.Sep10JwtFilter.APPLICATION_JSON_VALUE
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ApiKeyFilterTest {
   companion object {
     private const val API_KEY = "MY_API_KEY"
@@ -31,12 +30,6 @@ internal class ApiKeyFilterTest {
     this.response = mockk(relaxed = true)
     this.apiKeyFilter = ApiKeyFilter(API_KEY)
     this.mockFilterChain = mockk(relaxed = true)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

@@ -90,11 +90,7 @@ class Sep12ServiceTest {
     sep12Service = Sep12Service(customerIntegration, assetService)
   }
 
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
-  }
+  @AfterEach fun tearDown() {}
 
   @Test
   fun `test validate request and token accounts`() {

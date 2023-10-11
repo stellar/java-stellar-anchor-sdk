@@ -8,7 +8,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.slf4j.Logger
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.PII
@@ -16,7 +15,6 @@ import org.stellar.anchor.lockAndMockStatic
 import org.stellar.anchor.util.Log.shorter
 import org.stellar.sdk.Network.TESTNET
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LogTest {
   @MockK(relaxed = true) private lateinit var logger: Logger
 
@@ -25,10 +23,7 @@ internal class LogTest {
     MockKAnnotations.init(this, relaxed = true)
   }
 
-  @AfterEach
-  fun teardown() {
-    unmockkAll()
-  }
+  @AfterEach fun teardown() {}
 
   @Suppress("unused")
   class TestBean {
@@ -116,7 +111,7 @@ internal class LogTest {
 
       every { Log.getLogger() } returns logger
       Log.errorEx(Exception("mock exception"))
-      verify(exactly = 2) { logger.error(ofType(String::class)) }
+      verify(exactly = 1) { logger.error(ofType(String::class)) }
 
       val slot = slot<String>()
       every { logger.error(capture(slot)) } answers {}

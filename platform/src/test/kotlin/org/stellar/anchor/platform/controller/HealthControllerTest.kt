@@ -3,11 +3,8 @@
 package org.stellar.anchor.platform.controller
 
 import io.mockk.MockKAnnotations
-import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.unmockkAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -26,12 +23,6 @@ class HealthControllerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxed = true)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

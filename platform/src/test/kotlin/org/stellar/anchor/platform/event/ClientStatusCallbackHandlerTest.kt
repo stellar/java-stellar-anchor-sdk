@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.event
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
-import io.mockk.unmockkAll
 import java.util.*
 import java.util.concurrent.TimeUnit
 import org.junit.jupiter.api.AfterEach
@@ -68,10 +67,7 @@ class ClientStatusCallbackHandlerTest {
       ClientStatusCallbackHandler(secretConfig, clientConfig, assetService, moreInfoUrlConstructor)
   }
 
-  @AfterEach
-  fun teardown() {
-    unmockkAll()
-  }
+  @AfterEach fun teardown() {}
 
   @Test
   fun `test verify request signature`() {

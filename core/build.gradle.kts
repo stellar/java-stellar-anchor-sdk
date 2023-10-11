@@ -122,7 +122,10 @@ publishing {
 // TODO: when we enable parallelization for all sub-projects, we can extract the following block.
 tasks.test {
   // Enable parallel test execution
-  systemProperty("junit.jupiter.execution.parallel.enabled", false)
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  // Enable parallel test execution
+  systemProperty("junit.jupiter.testinstance.lifecycle.default", "per_method")
+
   // Allocate thread count based on available processors
   systemProperty("junit.jupiter.execution.parallel.config.strategy", "dynamic")
   // Set default parallel mode to same thread. All tests within a class are run in sequence.

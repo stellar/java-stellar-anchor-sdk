@@ -8,7 +8,6 @@ import java.net.URI
 import java.nio.charset.Charset
 import java.time.Instant
 import org.apache.http.client.utils.URLEncodedUtils
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -118,12 +117,6 @@ internal class Sep24ServiceTest {
         moreInfoUrlConstructor,
         custodyConfig
       )
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

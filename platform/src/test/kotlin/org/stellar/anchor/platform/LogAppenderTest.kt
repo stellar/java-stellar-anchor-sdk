@@ -39,8 +39,6 @@ class LogAppenderTest {
 
   @AfterEach
   fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
     rootLoggerConfig.removeAppender("mock appender")
     rootLoggerConfig.level = lastLevel
   }
