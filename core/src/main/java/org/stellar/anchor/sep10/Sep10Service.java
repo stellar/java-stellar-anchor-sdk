@@ -107,7 +107,7 @@ public class Sep10Service implements ISep10Service {
       throws SepException {
     try {
       String clientSigningKey = null;
-      if (StringHelper.isEmpty(request.getClientDomain())) {
+      if (!StringHelper.isEmpty(request.getClientDomain())) {
         debugF("Fetching SIGNING_KEY from client_domain: {}", request.getClientDomain());
         clientSigningKey = fetchSigningKeyFromClientDomain(request.getClientDomain());
         debugF("SIGNING_KEY from client_domain fetched: {}", clientSigningKey);
