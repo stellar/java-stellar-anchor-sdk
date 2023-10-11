@@ -5,12 +5,12 @@ import io.mockk.unmockkStatic
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.reflect.KClass
 
-private class TestMutex(vararg clzs: Class<*>) {
+private class TestMutex(vararg clzs: KClass<*>) {
   companion object {
-    val knownClasses = mutableMapOf<Class<*>, ReentrantLock>()
+    val knownClasses = mutableMapOf<KClass<*>, ReentrantLock>()
   }
 
-  private val classes = clzs.sortedBy { it.name }
+  private val classes = clzs.sortedBy { it.qualifiedName }
 
   fun withLock(action: () -> Unit) {
     for (clazz in classes) {
@@ -18,28 +18,17 @@ private class TestMutex(vararg clzs: Class<*>) {
         knownClasses[clazz] = ReentrantLock()
       }
       knownClasses[clazz]!!.lock()
-      println("Locked ${clazz.name} ${knownClasses[clazz]}")
+      println("Locked ${clazz.qualifiedName} ${knownClasses[clazz]}")
     }
     try {
       action()
     } finally {
       for (clazz in classes.asReversed()) {
         knownClasses[clazz]!!.unlock()
-        println("Unlocked ${clazz.name} ${knownClasses[clazz]}")
+        println("Unlocked ${clazz.qualifiedName} ${knownClasses[clazz]}")
       }
     }
   }
-}
-
-/**
- * Obtain locks of the clzs in order and execute the action.
- *
- * @param clzs the Java classes to lock
- * @param action the action to execute
- * @receiver
- */
-fun withLock(vararg clzs: Class<*>, action: () -> Unit) {
-  TestMutex(*clzs).withLock { action() }
 }
 
 /**
@@ -49,8 +38,7 @@ fun withLock(vararg clzs: Class<*>, action: () -> Unit) {
  * @param action the action to execute
  */
 fun withLock(vararg clzs: KClass<*>, action: () -> Unit) {
-  val javaClzs = Array<Class<*>>(clzs.size) { clzs[it].java }
-  TestMutex(*javaClzs).withLock { action() }
+  TestMutex(*clzs).withLock { action() }
 }
 
 fun lockAndMockStatic(vararg clzs: KClass<*>, action: () -> Unit) {
