@@ -102,7 +102,11 @@ class PaymentOperationToEventListenerTest {
     val slotAccount = slot<String>()
     val slotStatus = slot<String>()
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+        capture(slotAccount),
+        capture(slotMemo),
+        capture(slotStatus)
+      )
     } returns null
     every { sep24TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
       null

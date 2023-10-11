@@ -272,6 +272,7 @@ class TransactionServiceTest {
       PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
 
     transactionService.patchTransactions(request)
@@ -296,6 +297,7 @@ class TransactionServiceTest {
       PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
 
     transactionService.patchTransactions(request)
@@ -320,6 +322,7 @@ class TransactionServiceTest {
       PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
 
@@ -345,6 +348,7 @@ class TransactionServiceTest {
       PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
 
@@ -370,6 +374,7 @@ class TransactionServiceTest {
       PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
 
     transactionService.patchTransactions(request)
