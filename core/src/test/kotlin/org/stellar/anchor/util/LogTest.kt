@@ -25,7 +25,10 @@ internal class LogTest {
     MockKAnnotations.init(this, relaxed = true)
   }
 
-  @AfterEach fun teardown() {}
+  @AfterEach
+  fun teardown() {
+    unmockkAll()
+  }
 
   @Suppress("unused")
   class TestBean {
@@ -109,9 +112,11 @@ internal class LogTest {
   @Test
   fun `test errorEx`() {
     lockAndMockStatic(Log::class) {
+      every { logger.error(any()) } answers {}
+
       every { Log.getLogger() } returns logger
       Log.errorEx(Exception("mock exception"))
-      verify(exactly = 1) { logger.error(any()) }
+      verify(exactly = 2) { logger.error(ofType(String::class)) }
 
       val slot = slot<String>()
       every { logger.error(capture(slot)) } answers {}
