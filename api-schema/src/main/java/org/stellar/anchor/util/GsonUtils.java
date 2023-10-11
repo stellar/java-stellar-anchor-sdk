@@ -12,6 +12,7 @@ public class GsonUtils {
 
   public static GsonBuilder builder() {
     return new GsonBuilder()
+        .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
         .registerTypeAdapter(Instant.class, new InstantConverter())
         .registerTypeAdapter(Duration.class, new DurationConverter());
   }

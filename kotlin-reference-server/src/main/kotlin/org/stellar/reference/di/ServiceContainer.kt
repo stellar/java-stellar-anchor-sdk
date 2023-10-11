@@ -12,16 +12,18 @@ import org.stellar.reference.dao.JdbcCustomerRepository
 import org.stellar.reference.dao.JdbcQuoteRepository
 import org.stellar.reference.event.EventService
 import org.stellar.reference.sep24.DepositService
-import org.stellar.reference.sep24.Sep24Helper
 import org.stellar.reference.sep24.WithdrawalService
+import org.stellar.reference.service.SepHelper
+import org.stellar.reference.service.sep31.ReceiveService
 import org.stellar.sdk.Server
 
 object ServiceContainer {
   private val config = ConfigContainer.getInstance().config
   val eventService = EventService()
-  val sep24Helper = Sep24Helper(config)
+  val sepHelper = SepHelper(config)
   val depositService = DepositService(config)
   val withdrawalService = WithdrawalService(config)
+  val receiveService = ReceiveService(config)
 
   private val database =
     Database.connect(

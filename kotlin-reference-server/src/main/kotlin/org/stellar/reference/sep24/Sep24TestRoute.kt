@@ -11,11 +11,12 @@ import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.stellar.reference.ClientException
 import org.stellar.reference.jwt.JwtDecoder
+import org.stellar.reference.service.SepHelper
 
 private val log = KotlinLogging.logger {}
 
 fun Route.testSep24(
-  sep24: Sep24Helper,
+  sep24: SepHelper,
   depositService: DepositService,
   withdrawalService: WithdrawalService,
   jwtKey: String

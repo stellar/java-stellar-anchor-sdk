@@ -4,8 +4,10 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import java.util.*
 import java.util.concurrent.TimeUnit
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,12 +17,14 @@ import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.sep24.TransactionResponse
 import org.stellar.anchor.api.sep.sep6.Sep6TransactionResponse
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.platform.config.ClientsConfig
+import org.stellar.anchor.config.ClientsConfig.ClientConfig
+import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.sep24.Sep24Helper
 import org.stellar.anchor.sep24.Sep24Helper.fromTxn
 import org.stellar.anchor.sep24.Sep24TransactionStore
+import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.sep6.Sep6TransactionUtils
 import org.stellar.anchor.util.StringHelper.json
@@ -29,20 +33,21 @@ import org.stellar.sdk.KeyPair
 class ClientStatusCallbackHandlerTest {
   private lateinit var handler: ClientStatusCallbackHandler
   private lateinit var secretConfig: PropertySecretConfig
-  private lateinit var clientConfig: ClientsConfig.ClientConfig
+  private lateinit var clientConfig: ClientConfig
   private lateinit var signer: KeyPair
   private lateinit var ts: String
   private lateinit var event: AnchorEvent
 
   @MockK(relaxed = true) private lateinit var sep6TransactionStore: Sep6TransactionStore
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
+  @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
 
   @BeforeEach
   fun setUp() {
-    clientConfig = ClientsConfig.ClientConfig()
-    clientConfig.type = ClientsConfig.ClientType.CUSTODIAL
+    clientConfig = ClientConfig()
+    clientConfig.type = CUSTODIAL
     clientConfig.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
     clientConfig.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
 
@@ -52,6 +57,7 @@ class ClientStatusCallbackHandlerTest {
     every { Sep6TransactionUtils.fromTxn(any()) } returns mockk<Sep6TransactionResponse>()
 
     sep24TransactionStore = mockk<Sep24TransactionStore>()
+    sep31TransactionStore = mockk<Sep31TransactionStore>()
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
     mockkStatic(Sep24Helper::class)
     every { fromTxn(any(), any(), any()) } returns mockk<TransactionResponse>()
@@ -74,10 +80,14 @@ class ClientStatusCallbackHandlerTest {
         secretConfig,
         clientConfig,
         sep6TransactionStore,
-        sep24TransactionStore,
         assetService,
         moreInfoUrlConstructor
       )
+  }
+
+  @AfterEach
+  fun teardown() {
+    unmockkStatic(Sep24Helper::class)
   }
 
   @Test
