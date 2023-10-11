@@ -5,18 +5,12 @@ import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
-import static org.stellar.anchor.util.Log.debug;
-import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.Log.info;
-import static org.stellar.anchor.util.Log.infoF;
+import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_CREATED;
 import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_PATCHED;
-import static org.stellar.anchor.util.SepHelper.amountEquals;
-import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
-import static org.stellar.anchor.util.SepHelper.validateAmount;
-import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
+import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
@@ -24,106 +18,68 @@ import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 import io.micrometer.core.instrument.Counter;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
-import org.stellar.anchor.api.callback.CustomerIntegration;
-import org.stellar.anchor.api.callback.FeeIntegration;
-import org.stellar.anchor.api.callback.GetCustomerRequest;
-import org.stellar.anchor.api.callback.GetCustomerResponse;
-import org.stellar.anchor.api.callback.GetFeeRequest;
+import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.event.AnchorEvent;
-import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.exception.NotFoundException;
-import org.stellar.anchor.api.exception.Sep31CustomerInfoNeededException;
-import org.stellar.anchor.api.exception.Sep31MissingFieldException;
-import org.stellar.anchor.api.exception.SepValidationException;
-import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.operation.Sep12Operation;
 import org.stellar.anchor.api.sep.operation.Sep31Operation.Fields;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
-import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
-import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
-import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest;
-import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest;
-import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse;
+import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.ClientsConfig;
-import org.stellar.anchor.config.ClientsConfig.ClientConfig;
-import org.stellar.anchor.config.CustodyConfig;
-import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep31Config;
-import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
-import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.TransactionHelper;
 
 public class Sep31Service {
   private final AppConfig appConfig;
-  private final Sep10Config sep10Config;
   private final Sep31Config sep31Config;
   private final Sep31TransactionStore sep31TransactionStore;
   private final Sep31DepositInfoGenerator sep31DepositInfoGenerator;
   private final Sep38QuoteStore sep38QuoteStore;
-  private final ClientsConfig clientsConfig;
   private final AssetService assetService;
   private final FeeIntegration feeIntegration;
   private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
-  private final CustodyService custodyService;
-  private final CustodyConfig custodyConfig;
   private final EventService.Session eventSession;
   private final Counter sep31TransactionCreatedCounter = counter(SEP31_TRANSACTION_CREATED);
   private final Counter sep31TransactionPatchedCounter = counter(SEP31_TRANSACTION_PATCHED);
 
   public Sep31Service(
       AppConfig appConfig,
-      Sep10Config sep10Config,
       Sep31Config sep31Config,
       Sep31TransactionStore sep31TransactionStore,
       Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
-      ClientsConfig clientsConfig,
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
-      EventService eventService,
-      CustodyService custodyService,
-      CustodyConfig custodyConfig) {
+      EventService eventService) {
     debug("appConfig:", appConfig);
     debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
-    this.sep10Config = sep10Config;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;
     this.sep31DepositInfoGenerator = sep31DepositInfoGenerator;
     this.sep38QuoteStore = sep38QuoteStore;
-    this.clientsConfig = clientsConfig;
     this.assetService = assetService;
     this.feeIntegration = feeIntegration;
     this.customerIntegration = customerIntegration;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
-    this.custodyService = custodyService;
-    this.custodyConfig = custodyConfig;
     Log.info("Sep31Service initialized.");
   }
 
@@ -230,10 +186,6 @@ public class Sep31Service {
     txn = Context.get().getTransaction();
 
     updateDepositInfo();
-
-    if (custodyConfig.isCustodyIntegrationEnabled()) {
-      custodyService.createTransaction(txn);
-    }
 
     eventSession.publish(
         AnchorEvent.builder()
@@ -351,16 +303,8 @@ public class Sep31Service {
    */
   void updateDepositInfo() throws AnchorException {
     Sep31Transaction txn = Context.get().getTransaction();
-    SepDepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
+    Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
     infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
-
-    if (!CustodyUtils.isMemoTypeSupported(custodyConfig.getType(), depositInfo.getMemoType())) {
-      throw new BadRequestException(
-          String.format(
-              "Memo type[%s] is not supported for custody type[%s]",
-              depositInfo.getMemoType(), custodyConfig.getType()));
-    }
-
     txn.setStellarAccountId(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());
     txn.setStellarMemoType(isEmpty(depositInfo.getMemoType()) ? "none" : depositInfo.getMemoType());
@@ -564,26 +508,11 @@ public class Sep31Service {
                     .receiveAmount(null)
                     .senderId(request.getSenderId())
                     .receiverId(request.getReceiverId())
-                    .clientId(getClientName())
+                    .clientId(token.getAccount())
                     .build())
             .getFee();
     infoF("Fee for request ({}) is ({})", request, fee);
     Context.get().setFee(fee);
-  }
-
-  String getClientName() throws BadRequestException {
-    return getClientName(Context.get().getSep10Jwt().getAccount());
-  }
-
-  String getClientName(String account) throws BadRequestException {
-    ClientConfig client = clientsConfig.getClientConfigBySigningKey(account);
-    if (sep10Config.isClientAttributionRequired() && client == null) {
-      throw new BadRequestException("Client not found");
-    }
-    if (client != null && !sep10Config.getAllowedClientDomains().contains(client.getDomain())) {
-      client = null;
-    }
-    return client == null ? null : client.getName();
   }
 
   /**

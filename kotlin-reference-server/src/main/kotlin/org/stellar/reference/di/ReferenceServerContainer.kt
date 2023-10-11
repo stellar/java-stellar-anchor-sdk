@@ -23,7 +23,6 @@ import org.stellar.reference.data.AuthSettings
 import org.stellar.reference.event.event
 import org.stellar.reference.plugins.RequestExceptionHandlerPlugin
 import org.stellar.reference.plugins.RequestLoggerPlugin
-import org.stellar.reference.plugins.testSep31
 import org.stellar.reference.sep24.sep24
 import org.stellar.reference.sep24.testSep24
 
@@ -47,7 +46,7 @@ object ReferenceServerContainer {
 
   private fun Application.configureRouting() = routing {
     sep24(
-      ServiceContainer.sepHelper,
+      ServiceContainer.sep24Helper,
       ServiceContainer.depositService,
       ServiceContainer.withdrawalService,
       config.sep24.interactiveJwtKey
@@ -59,14 +58,13 @@ object ReferenceServerContainer {
     uniqueAddress(ServiceContainer.uniqueAddressService)
     sep24Interactive()
 
-    if (config.appSettings.enableTest) {
+    if (config.sep24.enableTest) {
       testSep24(
-        ServiceContainer.sepHelper,
+        ServiceContainer.sep24Helper,
         ServiceContainer.depositService,
         ServiceContainer.withdrawalService,
         config.sep24.interactiveJwtKey
       )
-      testSep31(ServiceContainer.receiveService)
     }
     if (config.appSettings.isTest) {
       testCustomer(ServiceContainer.customerService)

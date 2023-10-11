@@ -6,7 +6,6 @@ public enum AnchorMetrics {
   SEP31_TRANSACTION_DB("sep31.transaction.db"),
   SEP24_TRANSACTION_DB("sep24.transaction.db"),
   PAYMENT_RECEIVED("payment.received"),
-  PAYMENT_SENT("payment.sent"),
   LOGGER("logger"),
 
   // Metric Tags

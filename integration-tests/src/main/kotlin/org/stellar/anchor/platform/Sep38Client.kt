@@ -13,7 +13,7 @@ import org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse
 class Sep38Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getInfo(): InfoResponse {
     println("GET $endpoint/info")
-    val responseBody = httpGet("$endpoint/info", jwt)
+    val responseBody = httpGet("$endpoint/info")
     return gson.fromJson(responseBody, InfoResponse::class.java)
   }
 
@@ -28,7 +28,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
         .addQueryParameter("sell_amount", sellAmount)
     println(urlBuilder.build().toString())
 
-    val responseBody = httpGet(urlBuilder.build().toString(), jwt)
+    val responseBody = httpGet(urlBuilder.build().toString())
     return gson.fromJson(responseBody, GetPricesResponse::class.java)
   }
 
@@ -50,7 +50,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
         .addQueryParameter("context", context.toString())
     println(urlBuilder.build().toString())
 
-    val responseBody = httpGet(urlBuilder.build().toString(), jwt)
+    val responseBody = httpGet(urlBuilder.build().toString())
     return gson.fromJson(responseBody, GetPriceResponse::class.java)
   }
 

@@ -12,7 +12,7 @@ class AnchorPlatformEnd2EndTest : AbstractIntegrationTest(TestConfig(testProfile
     @JvmStatic
     fun construct() {
       println("Running AnchorPlatformEnd2EndTest")
-      singleton.setUp(mapOf())
+      singleton.setUp()
     }
 
     @AfterAll

@@ -67,18 +67,22 @@ public interface Sep10Config {
   boolean isClientAttributionRequired();
 
   /**
-   * Get the list of allowed client domains.
+   * Get the list of allowed client domains if the client attribution is required.
    *
    * @return the list of allowed client domains.
    */
-  List<String> getAllowedClientDomains();
+  List<String> getClientAttributionAllowList();
 
   /**
-   * Get the list of allowed client names.
+   * Whether to require authenticating clients to be in the list of known custodial accounts. # # If
+   * the flag is set to true, the client must be one of the custodial clients defined in the clients
+   * section # of this configuration file.
    *
-   * @return the list of allowed client names.
+   * <p>The flag is only relevant for custodial wallets.
+   *
+   * @return true if known custodial account is required.
    */
-  List<String> getAllowedClientNames();
+  boolean isKnownCustodialAccountRequired();
 
   /**
    * Set the list of known custodial accounts.

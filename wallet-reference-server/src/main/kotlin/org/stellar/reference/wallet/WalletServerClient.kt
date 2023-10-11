@@ -31,7 +31,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
     return gson.fromJson(response.body<String>(), SendEventResponse::class.java)
   }
 
-  suspend fun <T> getCallbacks(txnId: String? = null, responseType: Class<T>): List<T> {
+  suspend fun getCallbacks(txnId: String? = null): List<String> {
     val response =
       client.get {
         url {
@@ -43,18 +43,15 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
         }
       }
 
-    return gson.fromJson(
-      response.body<String>(),
-      TypeToken.getParameterized(List::class.java, responseType).type
-    )
+    return gson.fromJson(response.body<String>(), object : TypeToken<List<String>>() {}.type)
   }
 
-  suspend fun <T> pollCallbacks(txnId: String?, expected: Int, responseType: Class<T>): List<T> {
+  suspend fun pollCallbacks(txnId: String?, expected: Int): List<String> {
     var retries = 5
-    var callbacks: List<T> = listOf()
+    var callbacks: List<String> = listOf()
     while (retries > 0) {
       // TODO: remove when callbacks are de-duped
-      callbacks = getCallbacks(txnId, responseType).distinct()
+      callbacks = getCallbacks(txnId).distinct()
       if (callbacks.size >= expected) {
         return callbacks
       }

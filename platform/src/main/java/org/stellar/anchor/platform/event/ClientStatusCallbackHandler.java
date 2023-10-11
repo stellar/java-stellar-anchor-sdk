@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.event;
 
 import static org.stellar.anchor.sep24.Sep24Helper.fromTxn;
 import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.Log.errorF;
 import static org.stellar.anchor.util.NetUtil.getDomainFromURL;
 import static org.stellar.anchor.util.OkHttpUtil.buildJsonRequestBody;
 import static org.stellar.anchor.util.StringHelper.json;
@@ -10,30 +9,22 @@ import static org.stellar.anchor.util.StringHelper.json;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Base64;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.stellar.anchor.api.event.AnchorEvent;
-import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
+import org.stellar.anchor.api.sep.sep6.GetTransactionResponse;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.SecretConfig;
-import org.stellar.anchor.platform.data.*;
-import org.stellar.anchor.sep24.*;
+import org.stellar.anchor.platform.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
-import org.stellar.anchor.sep31.RefundPayment;
-import org.stellar.anchor.sep31.Sep31Refunds;
-import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep6.Sep6Transaction;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionUtils;
@@ -50,6 +41,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
   private final SecretConfig secretConfig;
   private final ClientConfig clientConfig;
   private final Sep6TransactionStore sep6TransactionStore;
+  private final Sep24TransactionStore sep24TransactionStore;
   private final AssetService assetService;
   private final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
@@ -57,13 +49,15 @@ public class ClientStatusCallbackHandler extends EventHandler {
       SecretConfig secretConfig,
       ClientConfig clientConfig,
       Sep6TransactionStore sep6TransactionStore,
+      Sep24TransactionStore sep24TransactionStore,
       AssetService assetService,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
     super();
     this.secretConfig = secretConfig;
     this.clientConfig = clientConfig;
-    this.assetService = assetService;
     this.sep6TransactionStore = sep6TransactionStore;
+    this.sep24TransactionStore = sep24TransactionStore;
+    this.assetService = assetService;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
 
@@ -76,7 +70,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
       debugF(
           "Sending event: {} to client status api: {}", json(event), clientConfig.getCallbackUrl());
       if (response.code() < 200 || response.code() >= 400) {
-        errorF("Failed to send event to client status API. Error code: {}", response.code());
         return false;
       }
     }
@@ -109,122 +102,22 @@ public class ClientStatusCallbackHandler extends EventHandler {
   }
 
   private String getPayload(AnchorEvent event)
-      throws AnchorException, MalformedURLException, URISyntaxException {
+      throws SepException, MalformedURLException, URISyntaxException {
     switch (event.getTransaction().getSep()) {
       case SEP_6:
-        // TODO: remove dependence on the transaction store
         Sep6Transaction sep6Txn =
             sep6TransactionStore.findByTransactionId(event.getTransaction().getId());
-        org.stellar.anchor.api.sep.sep6.GetTransactionResponse sep6TxnRes =
-            new org.stellar.anchor.api.sep.sep6.GetTransactionResponse(
-                Sep6TransactionUtils.fromTxn(sep6Txn));
+        GetTransactionResponse sep6TxnRes =
+            new GetTransactionResponse(Sep6TransactionUtils.fromTxn(sep6Txn));
         return json(sep6TxnRes);
       case SEP_24:
-        Sep24Transaction sep24Txn = fromSep24Txn(event.getTransaction());
-        Sep24GetTransactionResponse txn24Response =
+        Sep24Transaction sep24Txn =
+            sep24TransactionStore.findByTransactionId(event.getTransaction().getId());
+        Sep24GetTransactionResponse Sep24TxnRes =
             Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, sep24Txn));
-        return json(txn24Response);
-      case SEP_31:
-        Sep31Transaction sep31Txn = fromSep31Txn(event.getTransaction());
-        return json(sep31Txn.toSep31GetTransactionResponse());
+        return json(Sep24TxnRes);
       default:
-        throw new SepException(
-            String.format("Unsupported SEP: %s", event.getTransaction().getSep()));
+        throw new SepException("Only SEP-6 and SEP-24 is supported");
     }
-  }
-
-  private Sep24Transaction fromSep24Txn(GetTransactionResponse txn) {
-    JdbcSep24Transaction sep24Txn = new JdbcSep24Transaction();
-    sep24Txn.setTransactionId(txn.getId());
-    sep24Txn.setKind(txn.getKind().kind);
-    sep24Txn.setStatus(txn.getStatus().getStatus());
-    if (txn.getAmountIn() != null) {
-      sep24Txn.setAmountIn(txn.getAmountIn().getAmount());
-      sep24Txn.setAmountInAsset(txn.getAmountIn().getAsset());
-    }
-    if (txn.getAmountOut() != null) {
-      sep24Txn.setAmountOut(txn.getAmountOut().getAmount());
-      sep24Txn.setAmountOutAsset(txn.getAmountOut().getAsset());
-    }
-    if (txn.getAmountFee() != null) {
-      sep24Txn.setAmountFee(txn.getAmountFee().getAmount());
-      sep24Txn.setAmountFeeAsset(txn.getAmountFee().getAsset());
-    }
-    sep24Txn.setStartedAt(txn.getStartedAt());
-    sep24Txn.setCompletedAt(txn.getCompletedAt());
-    sep24Txn.setExternalTransactionId(txn.getExternalTransactionId());
-    sep24Txn.setMessage(txn.getMessage());
-    sep24Txn.setFromAccount(txn.getSourceAccount());
-    sep24Txn.setToAccount(txn.getDestinationAccount());
-    sep24Txn.setMemo(txn.getMemo());
-    sep24Txn.setMemoType(txn.getMemoType());
-
-    if (txn.getRefunds() != null) {
-      List<Sep24RefundPayment> paymentList =
-          Arrays.stream(txn.getRefunds().getPayments())
-              .map(
-                  refundPayment -> {
-                    Sep24RefundPayment payment = new JdbcSep24RefundPayment();
-                    payment.setAmount(refundPayment.getAmount().getAmount());
-                    payment.setFee(refundPayment.getFee().getAmount());
-                    payment.setId(refundPayment.getId());
-
-                    return payment;
-                  })
-              .collect(Collectors.toList());
-      Sep24Refunds refunds = new JdbcSep24Refunds();
-      refunds.setAmountRefunded(txn.getRefunds().getAmountRefunded().getAmount());
-      refunds.setAmountFee(txn.getRefunds().getAmountFee().getAmount());
-      refunds.setRefundPayments(paymentList);
-      sep24Txn.setRefunds(refunds);
-    }
-
-    return sep24Txn;
-  }
-
-  private Sep31Transaction fromSep31Txn(GetTransactionResponse txn) {
-    JdbcSep31Transaction sep24Txn = new JdbcSep31Transaction();
-    sep24Txn.setId(txn.getId());
-    sep24Txn.setStatus(txn.getStatus().getStatus());
-    if (txn.getAmountIn() != null) {
-      sep24Txn.setAmountIn(txn.getAmountIn().getAmount());
-      sep24Txn.setAmountInAsset(txn.getAmountIn().getAsset());
-    }
-    if (txn.getAmountOut() != null) {
-      sep24Txn.setAmountOut(txn.getAmountOut().getAmount());
-      sep24Txn.setAmountOutAsset(txn.getAmountOut().getAsset());
-    }
-    if (txn.getAmountFee() != null) {
-      sep24Txn.setAmountFee(txn.getAmountFee().getAmount());
-      sep24Txn.setAmountFeeAsset(txn.getAmountFee().getAsset());
-    }
-    sep24Txn.setStartedAt(txn.getStartedAt());
-    sep24Txn.setCompletedAt(txn.getCompletedAt());
-    sep24Txn.setExternalTransactionId(txn.getExternalTransactionId());
-    sep24Txn.setRequiredInfoMessage(txn.getMessage());
-    sep24Txn.setStellarMemo(txn.getMemo());
-    sep24Txn.setStellarMemoType(txn.getMemoType());
-
-    if (txn.getRefunds() != null) {
-      List<RefundPayment> paymentList =
-          Arrays.stream(txn.getRefunds().getPayments())
-              .map(
-                  refundPayment -> {
-                    RefundPayment payment = new JdbcSep31RefundPayment();
-                    payment.setAmount(refundPayment.getAmount().getAmount());
-                    payment.setFee(refundPayment.getFee().getAmount());
-                    payment.setId(refundPayment.getId());
-
-                    return payment;
-                  })
-              .collect(Collectors.toList());
-      Sep31Refunds refunds = new JdbcSep31Refunds();
-      refunds.setAmountRefunded(txn.getRefunds().getAmountRefunded().getAmount());
-      refunds.setAmountFee(txn.getRefunds().getAmountFee().getAmount());
-      refunds.setRefundPayments(paymentList);
-      sep24Txn.setRefunds(refunds);
-    }
-
-    return sep24Txn;
   }
 }

@@ -19,14 +19,6 @@ desc = "Circle USDC Token"
 anchor_asset_type = "crypto"
 
 [[CURRENCIES]]
-code = "USDC"
-issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-status = "test"
-is_asset_anchored = false
-desc = "Circle USDC Token"
-anchor_asset_type = "crypto"
-
-[[CURRENCIES]]
 code = "native"
 status = "test"
 is_asset_anchored = false

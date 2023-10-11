@@ -93,7 +93,7 @@ public class Sep10Jwt extends AbstractJwt {
             this.muxedAccount = sub;
             byte[] pubKeyBytes = muxedAccount.getEd25519().getUint256();
             this.account = KeyPair.fromPublicKey(pubKeyBytes).getAccountId();
-            this.muxedAccountId = muxedAccount.getId().getUint64().getNumber().longValue();
+            this.muxedAccountId = muxedAccount.getId().getUint64();
           }
         } catch (Exception ignored) {
         }

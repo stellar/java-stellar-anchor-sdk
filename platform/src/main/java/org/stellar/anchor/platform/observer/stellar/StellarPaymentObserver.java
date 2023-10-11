@@ -45,11 +45,11 @@ import org.stellar.sdk.responses.Page;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
+import shadow.com.google.common.base.Optional;
 
 public class StellarPaymentObserver implements HealthCheckable {
   /** The maximum number of results the Stellar Blockchain can return. */
   private static final int MAX_RESULTS = 200;
-
   /** The minimum number of results the Stellar Blockchain can return. */
   private static final int MIN_RESULTS = 1;
 
@@ -148,34 +148,32 @@ public class StellarPaymentObserver implements HealthCheckable {
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
-            if (operationResponse.getTransaction().isPresent()) {
-              metricLatestBlockRead.set(operationResponse.getTransaction().get().getLedger());
+            metricLatestBlockRead.set(operationResponse.getTransaction().get().getLedger());
 
-              if (isHealthy()) {
-                debugF("Received event {}", operationResponse.getId());
-                // clear stream timeout/reconnect status
-                lastActivityTime = Instant.now();
-                silenceTimeoutCount = 0;
-                streamBackoffTimer.reset();
-                try {
-                  debugF("Dispatching event {}", operationResponse.getId());
-                  handleEvent(operationResponse);
-                  metricLatestBlockProcessed.set(
-                      operationResponse.getTransaction().get().getLedger());
+            if (isHealthy()) {
+              debugF("Received event {}", operationResponse.getId());
+              // clear stream timeout/reconnect status
+              lastActivityTime = Instant.now();
+              silenceTimeoutCount = 0;
+              streamBackoffTimer.reset();
+              try {
+                debugF("Dispatching event {}", operationResponse.getId());
+                handleEvent(operationResponse);
+                metricLatestBlockProcessed.set(
+                    operationResponse.getTransaction().get().getLedger());
 
-                } catch (TransactionException ex) {
-                  errorEx("Error handling events", ex);
-                  setStatus(DATABASE_ERROR);
-                }
-              } else {
-                warnF("Observer is not healthy. Ignore event {}", operationResponse.getId());
+              } catch (TransactionException ex) {
+                errorEx("Error handling events", ex);
+                setStatus(DATABASE_ERROR);
               }
+            } else {
+              warnF("Observer is not healthy. Ignore event {}", operationResponse.getId());
             }
           }
 
           @Override
-          public void onFailure(Optional<Throwable> error, Optional<Integer> responseCode) {
-            handleFailure(error);
+          public void onFailure(Optional<Throwable> exception, Optional<Integer> statusCode) {
+            handleFailure(exception);
           }
         });
   }
@@ -369,13 +367,11 @@ public class StellarPaymentObserver implements HealthCheckable {
         observedPayment = ObservedPayment.fromPathPaymentOperationResponse(pathPayment);
       }
     } catch (SepException ex) {
-      if (operationResponse.getTransaction().isPresent()) {
-        warn(
-            String.format(
-                "Payment of id %s contains unsupported memo %s.",
-                operationResponse.getId(),
-                operationResponse.getTransaction().get().getMemo().toString()));
-      }
+      warn(
+          String.format(
+              "Payment of id %s contains unsupported memo %s.",
+              operationResponse.getId(),
+              operationResponse.getTransaction().get().getMemo().toString()));
       warnEx(ex);
     }
 
@@ -413,10 +409,11 @@ public class StellarPaymentObserver implements HealthCheckable {
     }
   }
 
-  void handleFailure(Optional<Throwable> throwable) {
+  void handleFailure(Optional<Throwable> exception) {
     // The SSEStreamer has internal errors. We will give up and let the container
-    // manager to restart.
-    errorEx("stellar payment observer stream error: ", throwable.orElse(null));
+    // manager to
+    // restart.
+    errorEx("stellar payment observer stream error: ", exception.get());
 
     // Mark the observer unhealthy
     setStatus(STREAM_ERROR);

@@ -43,7 +43,6 @@ public class ObservedPayment {
   public static ObservedPayment fromPaymentOperationResponse(PaymentOperationResponse paymentOp)
       throws SepException {
     String assetCode = null, assetIssuer = null;
-
     if (paymentOp.getAsset() instanceof AssetTypeCreditAlphaNum) {
       AssetTypeCreditAlphaNum issuedAsset = (AssetTypeCreditAlphaNum) paymentOp.getAsset();
       assetCode = issuedAsset.getCode();

@@ -1,11 +1,11 @@
 package org.stellar.anchor.platform.controller.sep;
 
+import java.io.IOException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
-import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.config.Sep1Config;
@@ -41,13 +41,13 @@ public class Sep1Controller {
   @RequestMapping(
       value = "/.well-known/stellar.toml",
       method = {RequestMethod.GET, RequestMethod.OPTIONS})
-  public ResponseEntity<String> getToml() throws SepException {
+  public ResponseEntity<String> getToml() throws IOException, SepNotFoundException {
     if (!sep1Config.isEnabled()) {
       throw new SepNotFoundException("Not Found");
     }
     HttpHeaders headers = new HttpHeaders();
     headers.set("content-type", "text/plain");
-    return ResponseEntity.ok().headers(headers).body(sep1Service.getToml());
+    return ResponseEntity.ok().headers(headers).body(sep1Service.getStellarToml());
   }
 
   @ExceptionHandler({SepNotFoundException.class})

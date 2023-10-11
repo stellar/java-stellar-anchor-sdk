@@ -36,13 +36,6 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  custody-server:
-    image: stellar/anchor-platform:edge
-    command: "--custody-server"
-    volumes:
-      # add mounts for the new config directory
-      - ../config:/config
-
   kafka:
     platform: linux/x86_64
     image: confluentinc/cp-kafka:6.1.9

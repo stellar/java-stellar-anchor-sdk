@@ -37,20 +37,14 @@ open class SepClient {
   }
 
   fun httpPost(url: String, requestBody: Map<String, Any>, jwt: String? = null): String? {
-    val headers = if (jwt != null) mapOf("Authorization" to "Bearer $jwt") else mapOf()
-    return httpPost(url, requestBody, headers)
-  }
-
-  fun httpPost(url: String, requestBody: Map<String, Any>, headers: Map<String, String>): String? {
     val requestBodyStr = gson.toJson(requestBody).toRequestBody(TYPE_JSON)
 
-    val request =
-      Request.Builder()
-        .url(url)
-        .header("Content-Type", "application/json")
-        .apply { headers.forEach { (key, value) -> header(key, value) } }
-        .post(requestBodyStr)
-        .build()
+    var builder =
+      Request.Builder().url(url).header("Content-Type", "application/json").post(requestBodyStr)
+    if (jwt != null) {
+      builder = builder.header("Authorization", "Bearer $jwt")
+    }
+    val request = builder.build()
 
     val response = client.newCall(request).execute()
     return handleResponse(response)

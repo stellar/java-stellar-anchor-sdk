@@ -32,7 +32,7 @@ class StellarObserverTests {
     Assertions.assertNotNull(responseBody["started_at"])
     Assertions.assertNotNull(responseBody["elapsed_time_ms"])
     Assertions.assertNotNull(responseBody["number_of_checks"])
-    Assertions.assertEquals(2L, responseBody["number_of_checks"])
+    Assertions.assertEquals(2.0, responseBody["number_of_checks"])
     Assertions.assertNotNull(responseBody["version"])
     Assertions.assertNotNull(responseBody["checks"])
 
