@@ -6,7 +6,7 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 import org.stellar.anchor.api.sep.sep38.RateFee;
 import org.stellar.anchor.util.GsonUtils;
-import shadow.com.google.common.reflect.TypeToken;
+import com.google.common.reflect.TypeToken;
 
 @Converter
 public class RateFeeConverter implements AttributeConverter<RateFee, String> {

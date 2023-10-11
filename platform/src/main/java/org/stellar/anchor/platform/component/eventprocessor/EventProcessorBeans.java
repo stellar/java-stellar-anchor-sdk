@@ -6,12 +6,10 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
-import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
+import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.platform.event.EventProcessorManager;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
-import org.stellar.anchor.sep24.Sep24TransactionStore;
-import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 @Configuration
 public class EventProcessorBeans {
@@ -21,11 +19,9 @@ public class EventProcessorBeans {
       SecretConfig secretConfig,
       EventProcessorConfig eventProcessorConfig,
       CallbackApiConfig callbackApiConfig,
-      ClientsConfig clientsConfig,
+      PropertyClientsConfig clientsConfig,
       EventService eventService,
       AssetService assetService,
-      Sep6TransactionStore sep6TransactionStore,
-      Sep24TransactionStore sep24TransactionStore,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
     return new EventProcessorManager(
         secretConfig,
@@ -34,8 +30,6 @@ public class EventProcessorBeans {
         clientsConfig,
         eventService,
         assetService,
-        sep6TransactionStore,
-        sep24TransactionStore,
         moreInfoUrlConstructor);
   }
 }

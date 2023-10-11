@@ -2,9 +2,10 @@ package org.stellar.anchor.sep38;
 
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31;
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6;
+import static org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse.*;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.util.BeanHelper.updateField;
-import static org.stellar.anchor.util.Log.debug;
+import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.MetricConstants.SEP38_PRICE_QUERIED;
@@ -20,9 +21,7 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.lang3.StringUtils;
-import org.stellar.anchor.api.callback.GetRateRequest;
-import org.stellar.anchor.api.callback.GetRateResponse;
-import org.stellar.anchor.api.callback.RateIntegration;
+import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -139,7 +138,8 @@ public class Sep38Service {
     }
   }
 
-  public GetPriceResponse getPrice(Sep38GetPriceRequest getPriceRequest) throws AnchorException {
+  public GetPriceResponse getPrice(Sep10Jwt token, Sep38GetPriceRequest getPriceRequest)
+      throws AnchorException {
     String sellAssetName = getPriceRequest.getSellAssetName();
     String sellAmount = getPriceRequest.getSellAmount();
     String sellDeliveryMethod = getPriceRequest.getSellDeliveryMethod();
@@ -215,7 +215,7 @@ public class Sep38Service {
       validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
     }
 
-    GetRateRequest request =
+    GetRateRequest.GetRateRequestBuilder rrBuilder =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.INDICATIVE)
             .sellAsset(sellAssetName)
@@ -224,8 +224,15 @@ public class Sep38Service {
             .buyAsset(buyAssetName)
             .buyAmount(buyAmount)
             .buyDeliveryMethod(buyDeliveryMethod)
-            .countryCode(countryCode)
-            .build();
+            .countryCode(countryCode);
+
+    String clientId = getClientIdFromToken(token);
+    if (clientId != null) {
+      rrBuilder.clientId(clientId);
+    }
+
+    // Get the rate
+    GetRateRequest request = rrBuilder.build();
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
     GetRateResponse.Rate rate = rateResponse.getRate();
 
@@ -348,7 +355,7 @@ public class Sep38Service {
       validateAmountLimit("sell_", request.getSellAmount(), sendMinLimit, sendMaxLimit);
     }
 
-    GetRateRequest getRateRequest =
+    GetRateRequest.GetRateRequestBuilder getRateRequestBuilder =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.FIRM)
             .sellAsset(request.getSellAssetName())
@@ -358,11 +365,17 @@ public class Sep38Service {
             .buyAmount(request.getBuyAmount())
             .buyDeliveryMethod(request.getBuyDeliveryMethod())
             .countryCode(request.getCountryCode())
-            .expireAfter(request.getExpireAfter())
-            .clientId(account)
-            .build();
-    GetRateResponse.Rate rate = this.rateIntegration.getRate(getRateRequest).getRate();
+            .expireAfter(request.getExpireAfter());
 
+    // Sets the clientId if the customer exists
+    String clientId = getClientIdFromToken(token);
+    if (clientId != null) {
+      getRateRequestBuilder.clientId(clientId);
+    }
+    GetRateRequest getRateRequest = getRateRequestBuilder.build();
+
+    // Get and set the rate
+    GetRateResponse.Rate rate = this.rateIntegration.getRate(getRateRequest).getRate();
     if (rate.getBuyAmount() == null || rate.getSellAmount() == null) {
       throw new ServerErrorException(
           String.format(
@@ -375,8 +388,8 @@ public class Sep38Service {
             decimal(rate.getSellAmount(), pricePrecision),
             decimal(rate.getBuyAmount(), pricePrecision));
 
-    Sep38QuoteResponse.Sep38QuoteResponseBuilder builder =
-        Sep38QuoteResponse.builder()
+    Sep38QuoteResponse.Sep38QuoteResponseBuilder responseBuilder =
+        builder()
             .id(rate.getId())
             .expiresAt(rate.getExpiresAt())
             .price(rate.getPrice())
@@ -386,7 +399,8 @@ public class Sep38Service {
 
     String sellAmount = formatAmount(decimal(rate.getSellAmount()), sellAsset.getDecimals());
     String buyAmount = formatAmount(decimal(rate.getBuyAmount()), buyAsset.getDecimals());
-    builder = builder.totalPrice(totalPrice).sellAmount(sellAmount).buyAmount(buyAmount);
+    responseBuilder =
+        responseBuilder.totalPrice(totalPrice).sellAmount(sellAmount).buyAmount(buyAmount);
 
     // SEP31: when buy_amount is specified (sell amount found from rate integration)
     if (context == SEP31 && isNotEmpty(buyAmount)) {
@@ -449,7 +463,7 @@ public class Sep38Service {
 
     // increment counter
     sep38QuoteCreated.increment();
-    return builder.build();
+    return responseBuilder.build();
   }
 
   public Sep38QuoteResponse getQuote(Sep10Jwt token, String quoteId) throws AnchorException {
@@ -488,7 +502,7 @@ public class Sep38Service {
       throw new NotFoundException("quote not found");
     }
 
-    return Sep38QuoteResponse.builder()
+    return builder()
         .id(quote.getId())
         .expiresAt(quote.getExpiresAt())
         .totalPrice(quote.getTotalPrice())
@@ -506,5 +520,10 @@ public class Sep38Service {
     BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, pricePrecision, RoundingMode.FLOOR);
 
     return formatAmount(bTotalPrice, pricePrecision);
+  }
+
+  private String getClientIdFromToken(Sep10Jwt token) {
+    if (token == null) return null;
+    return token.getAccount();
   }
 }

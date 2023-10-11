@@ -28,6 +28,7 @@ jobs:
           sudo echo "127.0.0.1 reference-server" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 wallet-server" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 custody-server" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts 
 
       - name: Build and run the stack with docker compose
@@ -127,6 +128,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Set up Gradle properties
+        run: |
+          echo "kotlin.daemon.jvmargs=-Xmx2g" >> gradle.properties
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2

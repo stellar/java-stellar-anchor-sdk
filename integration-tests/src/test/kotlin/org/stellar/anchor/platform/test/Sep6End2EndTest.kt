@@ -13,7 +13,6 @@ import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.Sep6Client
 import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
@@ -165,11 +164,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
   }
 
   private suspend fun assertWalletReceivedStatuses(txnId: String, expected: List<String>) {
-    val callbacks = walletServerClient.pollCallbacks(txnId, expected.size)
-    val statuses =
-      callbacks.map {
-        GsonUtils.getInstance().fromJson(it, GetTransactionResponse::class.java).transaction.status
-      }
+    val callbacks =
+      walletServerClient.pollCallbacks(txnId, expected.size, GetTransactionResponse::class.java)
+    val statuses = callbacks.map { it.transaction.status }
     assertContentEquals(expected, statuses)
   }
 
