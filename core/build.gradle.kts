@@ -49,6 +49,7 @@ dependencies {
   testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)
+  testImplementation(libs.coroutines.core)
 }
 
 publishing {

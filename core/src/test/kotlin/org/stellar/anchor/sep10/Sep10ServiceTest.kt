@@ -17,6 +17,8 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
@@ -41,6 +43,7 @@ import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.horizon.Horizon
+import org.stellar.anchor.lockAndMockStatic
 import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil
@@ -108,11 +111,6 @@ open class Sep10ServiceTest {
     every { secretConfig.sep10SigningSeed } returns TEST_SIGNING_SEED
     every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
 
-    mockkStatic(NetUtil::class)
-    mockkStatic(Sep10Challenge::class)
-
-    every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
-
     this.jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
     this.httpClient = `create httpClient`()
@@ -145,6 +143,7 @@ open class Sep10ServiceTest {
 }
 
 @Order(63)
+@Execution(CONCURRENT)
 class Sep10ServiceTestPart1 : Sep10ServiceTest() {
   @Test
   fun `test challenge with non existent account and client domain`() {
@@ -290,32 +289,37 @@ class Sep10ServiceTestPart1 : Sep10ServiceTest() {
     value = ["true,test.client.stellar.org", "false,test.client.stellar.org", "false,null"]
   )
   fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
-    every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
-    every { sep10Config.allowedClientDomains } returns listOf(TEST_CLIENT_DOMAIN)
-    val cr =
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(TEST_CLIENT_DOMAIN)
-        .build()
-    cr.clientDomain = if (clientDomain == "null") null else clientDomain
+    lockAndMockStatic(NetUtil::class, Sep10Challenge::class) {
+      every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
 
-    val challengeResponse = sep10Service.createChallenge(cr)
+      every { sep10Config.isClientAttributionRequired } returns
+        clientAttributionRequired.toBoolean()
+      every { sep10Config.allowedClientDomains } returns listOf(TEST_CLIENT_DOMAIN)
+      val cr =
+        ChallengeRequest.builder()
+          .account(TEST_ACCOUNT)
+          .memo(TEST_MEMO)
+          .homeDomain(TEST_HOME_DOMAIN)
+          .clientDomain(TEST_CLIENT_DOMAIN)
+          .build()
+      cr.clientDomain = if (clientDomain == "null") null else clientDomain
 
-    assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
-    verify(exactly = 1) {
-      Sep10Challenge.newChallenge(
-        any(),
-        Network(TESTNET.networkPassphrase),
-        TEST_ACCOUNT,
-        TEST_HOME_DOMAIN,
-        TEST_WEB_AUTH_DOMAIN,
-        any(),
-        any(),
-        any(),
-        any()
-      )
+      val challengeResponse = sep10Service.createChallenge(cr)
+
+      assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
+      verify(exactly = 1) {
+        Sep10Challenge.newChallenge(
+          any(),
+          Network(TESTNET.networkPassphrase),
+          TEST_ACCOUNT,
+          TEST_HOME_DOMAIN,
+          TEST_WEB_AUTH_DOMAIN,
+          any(),
+          any(),
+          any(),
+          any()
+        )
+      }
     }
   }
 
@@ -414,15 +418,18 @@ class Sep10ServiceTestPart1 : Sep10ServiceTest() {
 
   @Test
   fun `Test create challenge request with empty memo`() {
-    val cr =
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(null)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(TEST_CLIENT_DOMAIN)
-        .build()
+    lockAndMockStatic(NetUtil::class) {
+      every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
+      val cr =
+        ChallengeRequest.builder()
+          .account(TEST_ACCOUNT)
+          .memo(null)
+          .homeDomain(TEST_HOME_DOMAIN)
+          .clientDomain(TEST_CLIENT_DOMAIN)
+          .build()
 
-    sep10Service.createChallenge(cr)
+      sep10Service.createChallenge(cr)
+    }
   }
 
   @Test
@@ -565,48 +572,44 @@ class Sep10ServiceTestPart1 : Sep10ServiceTest() {
 }
 
 @Order(85)
+@Execution(CONCURRENT)
 internal class Sep10ServiceTestPart2 : Sep10ServiceTest() {
   @Test
   fun `test getClientAccountId failure`() {
-    mockkStatic(NetUtil::class)
-    mockkStatic(KeyPair::class)
+    lockAndMockStatic(NetUtil::class, KeyPair::class) {
+      every { NetUtil.fetch(any()) } returns
+        "       NETWORK_PASSPHRASE=\"Public Global Stellar Network ; September 2015\"\n"
 
-    every { NetUtil.fetch(any()) } returns
-      "       NETWORK_PASSPHRASE=\"Public Global Stellar Network ; September 2015\"\n"
+      assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
 
-    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
+      every { NetUtil.fetch(any()) } answers { throw IOException("Cannot connect") }
+      assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
 
-    every { NetUtil.fetch(any()) } answers { throw IOException("Cannot connect") }
-    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
-
-    every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
-    every { KeyPair.fromAccountId(any()) } answers { throw FormatException("Bad Format") }
-    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
-
-    unmockkStatic(NetUtil::class)
-    unmockkStatic(KeyPair::class)
+      every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
+      every { KeyPair.fromAccountId(any()) } answers { throw FormatException("Bad Format") }
+      assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
+    }
   }
 
   @Test
   fun `test createChallenge signing error`() {
-    mockkStatic(Sep10Challenge::class)
-    every { sep10Config.isClientAttributionRequired } returns false
-    every {
-      Sep10Challenge.newChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
-    } answers { throw InvalidSep10ChallengeException("mock exception") }
+    lockAndMockStatic(Sep10Challenge::class) {
+      every { sep10Config.isClientAttributionRequired } returns false
+      every {
+        Sep10Challenge.newChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
+      } answers { throw InvalidSep10ChallengeException("mock exception") }
 
-    assertThrows<SepException> {
-      sep10Service.createChallenge(
-        ChallengeRequest.builder()
-          .account(TEST_ACCOUNT)
-          .memo(TEST_MEMO)
-          .homeDomain(TEST_HOME_DOMAIN)
-          .clientDomain(TEST_CLIENT_DOMAIN)
-          .build()
-      )
+      assertThrows<SepException> {
+        sep10Service.createChallenge(
+          ChallengeRequest.builder()
+            .account(TEST_ACCOUNT)
+            .memo(TEST_MEMO)
+            .homeDomain(TEST_HOME_DOMAIN)
+            .clientDomain(TEST_CLIENT_DOMAIN)
+            .build()
+        )
+      }
     }
-
-    unmockkStatic(Sep10Challenge::class)
   }
 
   @Test
@@ -796,41 +799,38 @@ internal class Sep10ServiceTestPart2 : Sep10ServiceTest() {
     value = ["true,test.client.stellar.org", "false,test.client.stellar.org", "false,null"]
   )
   fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
-    mockkStatic(Sep10Helper::class)
-    mockkStatic(Sep10Challenge::class)
+    lockAndMockStatic(Sep10Helper::class, Sep10Challenge::class) {
+      every { sep10Config.isClientAttributionRequired } returns
+        clientAttributionRequired.toBoolean()
+      every { sep10Config.allowedClientDomains } returns listOf(TEST_CLIENT_DOMAIN)
+      every { Sep10Helper.fetchSigningKeyFromClientDomain(eq("test.client.stellar.org")) } returns
+        TEST_ACCOUNT
 
-    every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
-    every { sep10Config.allowedClientDomains } returns listOf(TEST_CLIENT_DOMAIN)
-    every { Sep10Helper.fetchSigningKeyFromClientDomain(eq("test.client.stellar.org")) } returns
-      TEST_ACCOUNT
+      val cr =
+        ChallengeRequest.builder()
+          .account(TEST_ACCOUNT)
+          .memo(TEST_MEMO)
+          .homeDomain(TEST_HOME_DOMAIN)
+          .clientDomain(TEST_CLIENT_DOMAIN)
+          .build()
+      cr.clientDomain = if (clientDomain == "null") null else clientDomain
 
-    val cr =
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(TEST_CLIENT_DOMAIN)
-        .build()
-    cr.clientDomain = if (clientDomain == "null") null else clientDomain
+      val challengeResponse = sep10Service.createChallenge(cr)
 
-    val challengeResponse = sep10Service.createChallenge(cr)
-
-    assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
-    verify(exactly = 1) {
-      Sep10Challenge.newChallenge(
-        any(),
-        Network(TESTNET.networkPassphrase),
-        TEST_ACCOUNT,
-        TEST_HOME_DOMAIN,
-        TEST_WEB_AUTH_DOMAIN,
-        any(),
-        any(),
-        any(),
-        any()
-      )
+      assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
+      verify(exactly = 1) {
+        Sep10Challenge.newChallenge(
+          any(),
+          Network(TESTNET.networkPassphrase),
+          TEST_ACCOUNT,
+          TEST_HOME_DOMAIN,
+          TEST_WEB_AUTH_DOMAIN,
+          any(),
+          any(),
+          any(),
+          any()
+        )
+      }
     }
-    unmockkStatic(Sep10Challenge::class)
-    unmockkStatic(Sep10Helper::class)
-    unmockkAll()
   }
 }
