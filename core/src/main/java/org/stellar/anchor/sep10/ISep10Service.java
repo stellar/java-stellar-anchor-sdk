@@ -9,14 +9,30 @@ import org.stellar.anchor.api.sep.sep10.ValidationRequest;
 import org.stellar.sdk.Memo;
 
 public interface ISep10Service {
+
   /**
-   * Validate the challenge transaction. The default implementation is NOOP. This is used for the
+   * Validate the challenge request. The default implementation is NOOP. This is used for the
    * customization of the validation behavior.
    *
    * @param request The challenge request.
-   * @throws SepException If the challenge transaction is invalid.
    */
-  void postChallengeRequestValidation(ChallengeRequest request) throws SepException;
+  void preChallengeRequestValidation(ChallengeRequest request) throws SepException;
+
+  /**
+   * Validate the home domain of the challenge request.
+   *
+   * @param request The challenge request.
+   * @throws SepException If the home domain is invalid.
+   */
+  void validateChallengeRequestFormat(ChallengeRequest request) throws SepException;
+
+  /**
+   * Validate the client domain of the challenge request.
+   *
+   * @param request The challenge request.
+   * @throws SepException If the client domain is invalid.
+   */
+  void validateChallengeRequestClient(ChallengeRequest request) throws SepException;
 
   /**
    * Validate the memo of the challenge request and return the memo that is validated.
@@ -28,28 +44,13 @@ public interface ISep10Service {
   Memo validateChallengeRequestMemo(ChallengeRequest request) throws SepException;
 
   /**
-   * Validate the client domain of the challenge request.
-   *
-   * @param request The challenge request.
-   * @throws SepException If the client domain is invalid.
-   */
-  void validateChallengeRequestClient(ChallengeRequest request) throws SepException;
-
-  /**
-   * Validate the home domain of the challenge request.
-   *
-   * @param request The challenge request.
-   * @throws SepException If the home domain is invalid.
-   */
-  void validateChallengeRequestFormat(ChallengeRequest request) throws SepException;
-
-  /**
-   * Validate the challenge request. The default implementation is NOOP. This is used for the
+   * Validate the challenge transaction. The default implementation is NOOP. This is used for the
    * customization of the validation behavior.
    *
    * @param request The challenge request.
+   * @throws SepException If the challenge transaction is invalid.
    */
-  void preChallengeRequestValidation(ChallengeRequest request) throws SepException;
+  void postChallengeRequestValidation(ChallengeRequest request) throws SepException;
 
   /** Increment the metrics counter for the number of challenge requests created. */
   void incrementChallengeRequestCreatedCounter();

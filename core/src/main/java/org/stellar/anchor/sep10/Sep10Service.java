@@ -7,6 +7,7 @@ import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_VALIDATED;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
@@ -23,6 +24,7 @@ import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.*;
 import org.stellar.sdk.Sep10Challenge.ChallengeTransaction;
 import org.stellar.sdk.requests.ErrorResponse;
@@ -105,7 +107,7 @@ public class Sep10Service implements ISep10Service {
       throws SepException {
     try {
       String clientSigningKey = null;
-      if (!Objects.toString(request.getClientDomain(), "").isEmpty()) {
+      if (StringHelper.isEmpty(request.getClientDomain())) {
         debugF("Fetching SIGNING_KEY from client_domain: {}", request.getClientDomain());
         clientSigningKey = fetchSigningKeyFromClientDomain(request.getClientDomain());
         debugF("SIGNING_KEY from client_domain fetched: {}", clientSigningKey);
@@ -130,7 +132,7 @@ public class Sep10Service implements ISep10Service {
       throws InvalidSep10ChallengeException {
 
     KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
-    long now = System.currentTimeMillis() / 1000L;
+    long now = Instant.now().getEpochSecond();
 
     return Sep10ChallengeWrapper.instance()
         .newChallenge(
@@ -297,6 +299,7 @@ public class Sep10Service implements ISep10Service {
       infoF("Checking if {} exists in the Stellar network", challenge.getClientAccountId());
       account = horizon.getServer().accounts().account(challenge.getClientAccountId());
       traceF("challenge account: {}", account);
+      sep10ChallengeValidatedCounter.increment();
       return account;
     } catch (ErrorResponse | IOException ex) {
       infoF("Account {} does not exist in the Stellar Network");
@@ -332,8 +335,8 @@ public class Sep10Service implements ISep10Service {
               signers);
 
       // increment counter
-      sep10ChallengeValidatedCounter.increment();
     }
+    sep10ChallengeValidatedCounter.increment();
     return null;
   }
 
