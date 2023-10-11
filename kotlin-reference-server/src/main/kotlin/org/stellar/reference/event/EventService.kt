@@ -4,6 +4,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.reference.data.SendEventRequest
 import org.stellar.reference.log
 
@@ -26,7 +27,9 @@ class EventService {
   fun getEvents(txnId: String?): List<SendEventRequest> {
     if (txnId != null) {
       // filter events with txnId
-      return receivedEvents.filter { it.payload.transaction?.id == txnId }
+      return receivedEvents.filter {
+        it.type != AnchorEvent.Type.QUOTE_CREATED.type && it.payload.transaction?.id == txnId
+      }
     }
     // return all events
     return receivedEvents

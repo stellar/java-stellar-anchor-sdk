@@ -1,11 +1,11 @@
 package org.stellar.reference.wallet
 
+import com.moandjiezana.toml.Toml
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
-import shadow.com.moandjiezana.toml.Toml
 
 fun fetchSigningKey(config: Config): String = runBlocking {
   val endpoint = Url(config.anchor.endpoint)
