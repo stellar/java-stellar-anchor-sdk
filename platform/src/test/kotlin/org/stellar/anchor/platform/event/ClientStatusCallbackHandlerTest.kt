@@ -3,8 +3,6 @@ package org.stellar.anchor.platform.event
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import java.util.*
 import java.util.concurrent.TimeUnit
 import org.junit.jupiter.api.AfterEach
@@ -20,7 +18,6 @@ import org.stellar.anchor.config.ClientsConfig.*
 import org.stellar.anchor.config.ClientsConfig.ClientType.*
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor
-import org.stellar.anchor.sep24.Sep24Helper
 import org.stellar.anchor.sep24.Sep24Helper.fromTxn
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -50,7 +47,6 @@ class ClientStatusCallbackHandlerTest {
     sep24TransactionStore = mockk<Sep24TransactionStore>()
     sep31TransactionStore = mockk<Sep31TransactionStore>()
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
-    mockkStatic(Sep24Helper::class)
     every { fromTxn(any(), any(), any()) } returns mockk<TransactionResponse>()
 
     assetService = mockk<AssetService>()
@@ -70,10 +66,7 @@ class ClientStatusCallbackHandlerTest {
       ClientStatusCallbackHandler(secretConfig, clientConfig, assetService, moreInfoUrlConstructor)
   }
 
-  @AfterEach
-  fun teardown() {
-    unmockkStatic(Sep24Helper::class)
-  }
+  @AfterEach fun teardown() {}
 
   @Test
   fun `test verify request signature`() {

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.io.ClassPathResource
 import org.stellar.anchor.api.exception.InvalidConfigException
+import org.stellar.anchor.lockAndMockStatic
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.DEFAULT
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.FILE
 
@@ -18,6 +19,7 @@ class ConfigManagerTest {
         override fun initialize(context: ConfigurableApplicationContext) {}
       }
     )
+
   @Test
   fun `test reading a file and it is processed correctly`() {
     val testingConfigFile = ClassPathResource("config/test_anchor_config.yaml")
@@ -44,6 +46,7 @@ class ConfigManagerTest {
       "https://callback.lobstr.co/api/v2/anchor/callback"
     )
   }
+
   @Test
   fun `test reading a file missing version throws an exception`() {
     val testingConfigFile = ClassPathResource("config/test_anchor_config_missing_version.yaml")
@@ -67,9 +70,11 @@ class ConfigManagerTestExt {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    mockkStatic(ConfigReader::class)
-    mockkStatic(ConfigHelper::class)
+  }
 
+  @AfterEach fun teardown() {}
+
+  fun `add default config mocks`() {
     configManager = spyk(ConfigManager.getInstance())
 
     every { ConfigHelper.loadDefaultConfig() } returns
@@ -87,95 +92,104 @@ class ConfigManagerTestExt {
       }
   }
 
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
-  }
-
   @Test
   @Order(1)
   fun `(scene-1) configuration with version upgrades`() {
-    every { configManager.getConfigFileAsResource(any()) } answers
-      {
-        ClassPathResource("org/stellar/anchor/platform/configurator/scene-1/test.yaml")
-      }
+    lockAndMockStatic(ConfigReader::class, ConfigHelper::class) {
+      `add default config mocks`()
+      every { configManager.getConfigFileAsResource(any()) } answers
+        {
+          ClassPathResource("org/stellar/anchor/platform/configurator/scene-1/test.yaml")
+        }
 
-    val wantedConfig =
-      ConfigHelper.loadConfig(
-        ClassPathResource("org/stellar/anchor/platform/configurator/scene-1/wanted.yaml"),
-        FILE
-      )
-    val gotConfig = configManager.processConfigurations(null)
+      val wantedConfig =
+        ConfigHelper.loadConfig(
+          ClassPathResource("org/stellar/anchor/platform/configurator/scene-1/wanted.yaml"),
+          FILE
+        )
+      val gotConfig = configManager.processConfigurations(null)
 
-    assertTrue(gotConfig.equals(wantedConfig))
+      assertTrue(gotConfig.equals(wantedConfig))
+    }
   }
 
   @Test
   @Order(2)
   fun `(scene-2) bad configuration file`() {
-    every { configManager.getConfigFileAsResource(any()) } answers
-      {
-        ClassPathResource("org/stellar/anchor/platform/configurator/scene-2/test.bad.yaml")
-      }
-    val ex = assertThrows<InvalidConfigException> { configManager.processConfigurations(null) }
-    assertEquals(2, ex.messages.size)
-    assertEquals("Invalid configuration: stellar.apollo=star. (version=1)", ex.messages[0])
-    assertEquals("Invalid configuration: horizon.aster=star. (version=1)", ex.messages[1])
+    lockAndMockStatic(ConfigReader::class, ConfigHelper::class) {
+      `add default config mocks`()
+      every { configManager.getConfigFileAsResource(any()) } answers
+        {
+          ClassPathResource("org/stellar/anchor/platform/configurator/scene-2/test.bad.yaml")
+        }
+      val ex = assertThrows<InvalidConfigException> { configManager.processConfigurations(null) }
+      assertEquals(2, ex.messages.size)
+      assertEquals("Invalid configuration: stellar.apollo=star. (version=1)", ex.messages[0])
+      assertEquals("Invalid configuration: horizon.aster=star. (version=1)", ex.messages[1])
+    }
   }
 
   @Test
   @Order(3)
   fun `(scene-3) configuration from file and system environment variables with upgrades`() {
-    every { configManager.getConfigFileAsResource(any()) } answers
-      {
-        ClassPathResource("org/stellar/anchor/platform/configurator/scene-3/test.yaml")
-      }
+    lockAndMockStatic(ConfigReader::class, ConfigHelper::class) {
+      `add default config mocks`()
+      every { configManager.getConfigFileAsResource(any()) } answers
+        {
+          ClassPathResource("org/stellar/anchor/platform/configurator/scene-3/test.yaml")
+        }
 
-    System.setProperty("stellar.bianca", "white")
-    System.setProperty("stellar.deimos", "satellite")
+      System.setProperty("stellar.bianca", "white")
+      System.setProperty("stellar.deimos", "satellite")
 
-    ConfigEnvironment.rebuild()
+      ConfigEnvironment.rebuild()
 
-    val wantedConfig =
-      ConfigHelper.loadConfig(
-        ClassPathResource("org/stellar/anchor/platform/configurator/scene-3/wanted.yaml"),
-        FILE
-      )
-    val gotConfig = configManager.processConfigurations(null)
+      val wantedConfig =
+        ConfigHelper.loadConfig(
+          ClassPathResource("org/stellar/anchor/platform/configurator/scene-3/wanted.yaml"),
+          FILE
+        )
+      val gotConfig = configManager.processConfigurations(null)
 
-    assertTrue(gotConfig.equals(wantedConfig))
+      assertTrue(gotConfig.equals(wantedConfig))
+    }
   }
 
   @Test
   fun `test ConfigEnvironment getenv with line breaks and quotes`() {
-    val multilineEnvName = "MULTILINE_ENV"
-    val multilineEnvValue = """FOO=\"FOO\"\nBAR=\"BAR\""""
-    val wantValue = "FOO=\"FOO\"\nBAR=\"BAR\""
+    lockAndMockStatic(ConfigReader::class, ConfigHelper::class) {
+      `add default config mocks`()
+      val multilineEnvName = "MULTILINE_ENV"
+      val multilineEnvValue = """FOO=\"FOO\"\nBAR=\"BAR\""""
+      val wantValue = "FOO=\"FOO\"\nBAR=\"BAR\""
 
-    System.setProperty(multilineEnvName, multilineEnvValue)
-    ConfigEnvironment.rebuild()
+      System.setProperty(multilineEnvName, multilineEnvValue)
+      ConfigEnvironment.rebuild()
 
-    assertEquals(wantValue, ConfigEnvironment.getenv(multilineEnvName))
+      assertEquals(wantValue, ConfigEnvironment.getenv(multilineEnvName))
 
-    System.clearProperty(multilineEnvName)
-    ConfigEnvironment.rebuild()
-    assertNull(ConfigEnvironment.getenv(multilineEnvName))
+      System.clearProperty(multilineEnvName)
+      ConfigEnvironment.rebuild()
+      assertNull(ConfigEnvironment.getenv(multilineEnvName))
+    }
   }
 
   @Test
   fun `test ConfigEnvironment getenv without line breaks or quotes`() {
-    val simpleEnvName = "SIMPLE_ENV"
-    val simpleEnvValue = "FOOBAR"
-    val wantValue = "FOOBAR"
+    lockAndMockStatic(ConfigReader::class, ConfigHelper::class) {
+      `add default config mocks`()
+      val simpleEnvName = "SIMPLE_ENV"
+      val simpleEnvValue = "FOOBAR"
+      val wantValue = "FOOBAR"
 
-    System.setProperty(simpleEnvName, simpleEnvValue)
-    ConfigEnvironment.rebuild()
+      System.setProperty(simpleEnvName, simpleEnvValue)
+      ConfigEnvironment.rebuild()
 
-    assertEquals(wantValue, ConfigEnvironment.getenv(simpleEnvName))
+      assertEquals(wantValue, ConfigEnvironment.getenv(simpleEnvName))
 
-    System.clearProperty(simpleEnvName)
-    ConfigEnvironment.rebuild()
-    assertNull(ConfigEnvironment.getenv(simpleEnvName))
+      System.clearProperty(simpleEnvName)
+      ConfigEnvironment.rebuild()
+      assertNull(ConfigEnvironment.getenv(simpleEnvName))
+    }
   }
 }

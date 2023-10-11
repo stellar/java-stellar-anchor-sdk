@@ -45,6 +45,7 @@ dependencies {
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(project(":api-schema"))
+  implementation(project(":test-lib"))
 
   testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)
