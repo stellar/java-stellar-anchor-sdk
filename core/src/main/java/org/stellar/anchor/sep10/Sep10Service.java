@@ -38,6 +38,8 @@ public class Sep10Service {
   final Counter sep10ChallengeCreatedCounter = Metrics.counter(SEP10_CHALLENGE_CREATED);
   final Counter sep10ChallengeValidatedCounter = Metrics.counter(SEP10_CHALLENGE_VALIDATED);
 
+  static final Object lock = new Object();
+
   public Sep10Service(
       AppConfig appConfig,
       SecretConfig secretConfig,
@@ -76,17 +78,9 @@ public class Sep10Service {
           sep10Config.getKnownCustodialAccountList().contains(challengeRequest.getAccount().trim());
     }
 
-    if (sep10Config.isKnownCustodialAccountRequired() && !custodialWallet) {
-      // validate that requesting account is allowed access
-      infoF("requesting account: {} is not in allow list", challengeRequest.getAccount().trim());
-      throw new SepNotAuthorizedException("unable to process");
-    }
-
-    if (custodialWallet) {
-      if (challengeRequest.getClientDomain() != null) {
-        throw new SepValidationException(
-            "client_domain must not be specified if the account is an custodial-wallet account");
-      }
+    if (custodialWallet && challengeRequest.getClientDomain() != null) {
+      throw new SepValidationException(
+          "client_domain must not be specified if the account is an custodial-wallet account");
     }
 
     if (!custodialWallet && sep10Config.isClientAttributionRequired()) {
@@ -95,7 +89,7 @@ public class Sep10Service {
         throw new SepValidationException("client_domain is required");
       }
 
-      List<String> allowList = sep10Config.getClientAttributionAllowList();
+      List<String> allowList = sep10Config.getAllowedClientDomains();
       if (!allowList.contains(challengeRequest.getClientDomain())) {
         infoF(
             "client_domain provided ({}) is not in the configured allow list",
@@ -145,18 +139,19 @@ public class Sep10Service {
       KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
       long now = System.currentTimeMillis() / 1000L;
       Transaction txn =
-          Sep10Challenge.newChallenge(
-              signer,
-              new Network(appConfig.getStellarNetworkPassphrase()),
-              challengeRequest.getAccount(),
-              challengeRequest.getHomeDomain(),
-              sep10Config.getWebAuthDomain(),
-              new TimeBounds(now, now + sep10Config.getAuthTimeout()),
-              (challengeRequest.getClientDomain() == null)
-                  ? ""
-                  : challengeRequest.getClientDomain(),
-              (clientSigningKey == null) ? "" : clientSigningKey,
-              memo);
+          Sep10ChallengeWrapper.instance()
+              .newChallenge(
+                  signer,
+                  new Network(appConfig.getStellarNetworkPassphrase()),
+                  challengeRequest.getAccount(),
+                  challengeRequest.getHomeDomain(),
+                  sep10Config.getWebAuthDomain(),
+                  new TimeBounds(now, now + sep10Config.getAuthTimeout()),
+                  (challengeRequest.getClientDomain() == null)
+                      ? ""
+                      : challengeRequest.getClientDomain(),
+                  (clientSigningKey == null) ? "" : clientSigningKey,
+                  memo);
       // Convert the challenge to response
       trace("SEP-10 challenge txn:", txn);
       ChallengeResponse challengeResponse =
@@ -186,12 +181,13 @@ public class Sep10Service {
       throws IOException, InvalidSep10ChallengeException {
     debug("Parse challenge string.");
     Sep10Challenge.ChallengeTransaction challenge =
-        Sep10Challenge.readChallengeTransaction(
-            challengeXdr,
-            serverAccountId,
-            new Network(appConfig.getStellarNetworkPassphrase()),
-            sep10Config.getHomeDomain(),
-            sep10Config.getWebAuthDomain());
+        Sep10ChallengeWrapper.instance()
+            .readChallengeTransaction(
+                challengeXdr,
+                serverAccountId,
+                new Network(appConfig.getStellarNetworkPassphrase()),
+                sep10Config.getHomeDomain(),
+                sep10Config.getWebAuthDomain());
 
     debugF(
         "Challenge parsed. account={}, home_domain={}",
@@ -230,26 +226,30 @@ public class Sep10Service {
       signers.add(challenge.getClientAccountId());
 
       infoF(
-          "Verifying challenge threshold. server_account={}, signers={}",
+          "Verifying challenge threshold. server_account={}, client_domain={}, signers={}",
           shorter(serverAccountId),
+          clientDomain,
           signers.size());
 
       if ((clientDomain != null && challenge.getTransaction().getSignatures().size() != 3)
           || (clientDomain == null && challenge.getTransaction().getSignatures().size() != 2)) {
         infoF(
-            "Invalid SEP 10 challenge exception, there is more than one client signer on challenge transaction for an account that doesn't exist");
+            "Invalid SEP 10 challenge exception, there is more than one client signer on challenge transaction for an account that doesn't exist. client_domain={}, account_id={}",
+            clientDomain,
+            challenge.getClientAccountId());
         throw new InvalidSep10ChallengeException(
             "There is more than one client signer on challenge transaction for an account that doesn't exist");
       }
 
       debug("Calling Sep10Challenge.verifyChallengeTransactionSigners");
-      Sep10Challenge.verifyChallengeTransactionSigners(
-          challengeXdr,
-          serverAccountId,
-          new Network(appConfig.getStellarNetworkPassphrase()),
-          sep10Config.getHomeDomain(),
-          sep10Config.getWebAuthDomain(),
-          signers);
+      Sep10ChallengeWrapper.instance()
+          .verifyChallengeTransactionSigners(
+              challengeXdr,
+              serverAccountId,
+              new Network(appConfig.getStellarNetworkPassphrase()),
+              sep10Config.getHomeDomain(),
+              sep10Config.getWebAuthDomain(),
+              signers);
 
       // increment counter
       sep10ChallengeValidatedCounter.increment();
@@ -267,18 +267,20 @@ public class Sep10Service {
     int threshold = account.getThresholds().getMedThreshold();
 
     infoF(
-        "Verifying challenge threshold. server_account={}, threshold={}, signers={}",
+        "Verifying challenge threshold. server_account={}, client_domain={}, threshold={}, signers={}",
         shorter(serverAccountId),
+        clientDomain,
         threshold,
         signers.size());
-    Sep10Challenge.verifyChallengeTransactionThreshold(
-        challengeXdr,
-        serverAccountId,
-        new Network(appConfig.getStellarNetworkPassphrase()),
-        sep10Config.getHomeDomain(),
-        sep10Config.getWebAuthDomain(),
-        threshold,
-        signers);
+    Sep10ChallengeWrapper.instance()
+        .verifyChallengeTransactionThreshold(
+            challengeXdr,
+            serverAccountId,
+            new Network(appConfig.getStellarNetworkPassphrase()),
+            sep10Config.getHomeDomain(),
+            sep10Config.getWebAuthDomain(),
+            threshold,
+            signers);
 
     // increment counter
     sep10ChallengeValidatedCounter.increment();
@@ -310,5 +312,72 @@ public class Sep10Service {
             clientDomain);
     debug("jwtToken:", sep10Jwt);
     return jwtService.encode(sep10Jwt);
+  }
+}
+
+class Sep10ChallengeWrapper {
+  static Sep10ChallengeWrapper instance = new Sep10ChallengeWrapper();
+
+  public static Sep10ChallengeWrapper instance() {
+    return instance;
+  }
+
+  public synchronized Transaction newChallenge(
+      KeyPair signer,
+      Network network,
+      String clientAccountId,
+      String domainName,
+      String webAuthDomain,
+      TimeBounds timebounds,
+      String clientDomain,
+      String clientSigningKey,
+      Memo memo)
+      throws InvalidSep10ChallengeException {
+    return Sep10Challenge.newChallenge(
+        signer,
+        network,
+        clientAccountId,
+        domainName,
+        webAuthDomain,
+        timebounds,
+        clientDomain,
+        clientSigningKey,
+        memo);
+  }
+
+  public synchronized Sep10Challenge.ChallengeTransaction readChallengeTransaction(
+      String challengeXdr,
+      String serverAccountId,
+      Network network,
+      String domainName,
+      String webAuthDomain)
+      throws InvalidSep10ChallengeException, IOException {
+    return Sep10Challenge.readChallengeTransaction(
+        challengeXdr, serverAccountId, network, domainName, webAuthDomain);
+  }
+
+  public synchronized Set<String> verifyChallengeTransactionSigners(
+      String challengeXdr,
+      String serverAccountId,
+      Network network,
+      String domainName,
+      String webAuthDomain,
+      Set<String> signers)
+      throws InvalidSep10ChallengeException, IOException {
+    return Sep10Challenge.verifyChallengeTransactionSigners(
+        challengeXdr, serverAccountId, network, domainName, webAuthDomain, signers);
+  }
+
+  public synchronized Set<String> verifyChallengeTransactionThreshold(
+      String challengeXdr,
+      String serverAccountId,
+      Network network,
+      String domainName,
+      String webAuthDomain,
+      int threshold,
+      Set<Sep10Challenge.Signer> signers)
+      throws InvalidSep10ChallengeException, IOException {
+    return Sep10Challenge.verifyChallengeTransactionThreshold(
+        challengeXdr, serverAccountId, network, domainName, webAuthDomain, threshold, signers);
   }
 }

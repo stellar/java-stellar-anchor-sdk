@@ -17,11 +17,12 @@ import org.stellar.anchor.auth.AbstractJwt
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.filter.Sep10JwtFilter.APPLICATION_JSON_VALUE
 import org.stellar.anchor.filter.Sep10JwtFilter.JWT_TOKEN
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Order(85)
 internal class Sep10JwtFilterTest {
   companion object {
     private const val PUBLIC_KEY = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
@@ -29,6 +30,7 @@ internal class Sep10JwtFilterTest {
 
   private lateinit var appConfig: AppConfig
   private lateinit var secretConfig: SecretConfig
+  private lateinit var custodySecretConfig: CustodySecretConfig
   private lateinit var jwtService: JwtService
   private lateinit var sep10TokenFilter: Sep10JwtFilter
   private lateinit var request: HttpServletRequest
@@ -39,18 +41,13 @@ internal class Sep10JwtFilterTest {
   fun setup() {
     this.appConfig = mockk(relaxed = true)
     this.secretConfig = mockk(relaxed = true)
+    this.custodySecretConfig = mockk(relaxed = true)
     every { secretConfig.sep10JwtSecretKey } returns "secret"
-    this.jwtService = JwtService(secretConfig)
+    this.jwtService = JwtService(secretConfig, custodySecretConfig)
     this.sep10TokenFilter = Sep10JwtFilter(jwtService)
     this.request = mockk(relaxed = true)
     this.response = mockk(relaxed = true)
     this.mockFilterChain = mockk(relaxed = true)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

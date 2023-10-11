@@ -11,12 +11,15 @@ import org.apache.commons.codec.binary.Base64
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
 import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.JwtService.CLIENT_NAME
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class JwtServiceTest {
   companion object {
     const val TEST_ISS = "test_issuer"
@@ -29,19 +32,22 @@ internal class JwtServiceTest {
   }
 
   lateinit var secretConfig: SecretConfig
+  lateinit var custodySecretConfig: CustodySecretConfig
   @BeforeEach
   fun setup() {
     secretConfig = mockk()
+    custodySecretConfig = mockk()
     every { secretConfig.sep10JwtSecretKey } returns "jwt_secret"
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "jwt_secret"
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "jwt_secret"
     every { secretConfig.callbackAuthSecret } returns "jwt_secret"
     every { secretConfig.platformAuthSecret } returns "jwt_secret"
+    every { custodySecretConfig.custodyAuthSecret } returns "jwt_secret"
   }
 
   @Test
   fun `test apply Sep10Jwt encoding and decoding and make sure the original values are not changed`() {
-    val jwtService = JwtService(secretConfig)
+    val jwtService = JwtService(secretConfig, custodySecretConfig)
     val token =
       Sep10Jwt.of(
         TEST_ISS,
@@ -69,7 +75,7 @@ internal class JwtServiceTest {
 
   @Test
   fun `test apply Sep24MoreInfoUrlJwt encoding and decoding and make sure the original values are not changed`() {
-    val jwtService = JwtService(secretConfig)
+    val jwtService = JwtService(secretConfig, custodySecretConfig)
     val token =
       Sep24MoreInfoUrlJwt(TEST_ACCOUNT, TEST_ISS, TEST_EXP, TEST_CLIENT_DOMAIN, TEST_CLIENT_NAME)
     val cipher = jwtService.encode(token)
@@ -84,7 +90,7 @@ internal class JwtServiceTest {
 
   @Test
   fun `test apply Sep24InteractiveUrlJwt encoding and decoding and make sure the original values are not changed`() {
-    val jwtService = JwtService(secretConfig)
+    val jwtService = JwtService(secretConfig, custodySecretConfig)
     val token =
       Sep24InteractiveUrlJwt(TEST_ACCOUNT, TEST_ISS, TEST_EXP, TEST_CLIENT_DOMAIN, TEST_CLIENT_NAME)
     val cipher = jwtService.encode(token)
@@ -100,7 +106,7 @@ internal class JwtServiceTest {
   @Test
   fun `make sure decoding bad cipher test throws an error`() {
     every { secretConfig.sep10JwtSecretKey } returns "jwt_secret"
-    val jwtService = JwtService(secretConfig)
+    val jwtService = JwtService(secretConfig, custodySecretConfig)
 
     assertThrows<MalformedJwtException> {
       jwtService.decode("This is a bad cipher", Sep10Jwt::class.java)
@@ -109,8 +115,7 @@ internal class JwtServiceTest {
 
   @Test
   fun `make sure JwtService only decodes HS256`() {
-
-    val jwtService = JwtService(secretConfig)
+    val jwtService = JwtService(secretConfig, custodySecretConfig)
     val jwtKey =
       Base64.encodeBase64String(secretConfig.sep10JwtSecretKey.toByteArray(StandardCharsets.UTF_8))
 

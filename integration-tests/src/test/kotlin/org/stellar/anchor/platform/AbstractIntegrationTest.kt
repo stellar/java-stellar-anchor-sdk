@@ -7,7 +7,9 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   companion object {
     const val ANCHOR_TO_PLATFORM_SECRET = "myAnchorToPlatformSecret"
     const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
+    const val PLATFORM_TO_CUSTODY_SECRET = "myPlatformToCustodySecret"
     const val PLATFORM_SERVER_PORT = 8085
+    const val CUSTODY_SERVER_SERVER_PORT = 8086
     const val REFERENCE_SERVER_PORT = 8091
     const val JWT_EXPIRATION_MILLISECONDS = 10000L
   }
@@ -26,12 +28,20 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   lateinit var sep38Tests: Sep38Tests
   lateinit var sepHealthTests: SepHealthTests
   lateinit var platformApiTests: PlatformApiTests
+  lateinit var platformApiCustodyTests: PlatformApiCustodyTests
   lateinit var callbackApiTests: CallbackApiTests
   lateinit var stellarObserverTests: StellarObserverTests
+  lateinit var custodyApiTests: CustodyApiTests
   lateinit var eventProcessingServerTests: EventProcessingServerTests
-  lateinit var sep24E2eTests: Sep24End2EndTest
+  lateinit var sep24E2eTests: Sep24End2EndTests
+  lateinit var sep24RpcE2eTests: Sep24RpcEnd2EndTests
+  lateinit var sep24CustodyE2eTests: Sep24CustodyEnd2EndTests
+  lateinit var sep24CustodyRpcE2eTests: Sep24CustodyRpcEnd2EndTests
+  lateinit var sep31RpcE2eTests: Sep31RpcEnd2EndTests
+  lateinit var sep31CustodyRpcE2eTests: Sep31CustodyRpcEnd2EndTests
 
-  fun setUp() {
+  fun setUp(envMap: Map<String, String>) {
+    envMap.forEach { (key, value) -> config.env[key] = value }
     testProfileRunner.start()
     setupTests()
   }
@@ -58,9 +68,16 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     sep38Tests = Sep38Tests(config, toml, jwt)
     sepHealthTests = SepHealthTests(config, toml, jwt)
     platformApiTests = PlatformApiTests(config, toml, jwt)
+    platformApiCustodyTests = PlatformApiCustodyTests(config, toml, jwt)
     callbackApiTests = CallbackApiTests(config, toml, jwt)
     stellarObserverTests = StellarObserverTests()
-    sep24E2eTests = Sep24End2EndTest(config, jwt)
+    custodyApiTests = CustodyApiTests(config, toml, jwt)
+    sep24E2eTests = Sep24End2EndTests(config, jwt)
+    sep24CustodyE2eTests = Sep24CustodyEnd2EndTests(config, jwt)
+    sep24RpcE2eTests = Sep24RpcEnd2EndTests(config, jwt)
+    sep24CustodyRpcE2eTests = Sep24CustodyRpcEnd2EndTests(config, jwt)
+    sep31RpcE2eTests = Sep31RpcEnd2EndTests(config, toml, jwt)
+    sep31CustodyRpcE2eTests = Sep31CustodyRpcEnd2EndTests(config, toml, jwt)
     eventProcessingServerTests = EventProcessingServerTests(config, toml, jwt)
   }
 }

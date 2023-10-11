@@ -1,6 +1,6 @@
 [![License](https://badgen.net/badge/license/Apache%202/blue?icon=github&label=License)](https://github.com/stellar/java-stellar-anchor-sdk/blob/develop/LICENSE)
 [![GitHub Version](https://badgen.net/github/release/stellar/java-stellar-anchor-sdk?icon=github&label=Latest%20release)](https://github.com/stellar/java-stellar-anchor-sdk/releases)
-[![Docker](https://badgen.net/badge/Latest%20Release/v2.2.2/blue?icon=docker)](https://hub.docker.com/r/stellar/anchor-platform/tags?page=1&name=2.2.2)
+[![Docker](https://badgen.net/badge/Latest%20Release/v2.3.0/blue?icon=docker)](https://hub.docker.com/r/stellar/anchor-platform/tags?page=1&name=2.3.0)
 ![Develop Branch](https://github.com/stellar/java-stellar-anchor-sdk/actions/workflows/wk_push_to_develop.yml/badge.svg?branch=develop)
 
 <div style="text-align: center">
@@ -39,7 +39,7 @@ contribute to this project.
   infrastructures, such as database, configuration, queue, or logging implementations are assumed in this sub-project.
 - __platform__: Contains the Anchor Platform implementation that uses Spring Boot as the underlying framework. This
   sub-project is responsible for providing the infrastructure implementations, such as database, configuration, queue,
-  and logging. The `sep-server`, `platform-server`, `event-processor` and `stellar-observer` services are also implemented here.
+  and logging. The `sep-server`, `platform-server`, `custody-server`, `event-processor` and `stellar-observer` services are also implemented here.
 - __kotlin_reference_server__: Contains the anchor's reference server implementation in Kotlin.
 - __anchor_reference_server__: Contains the anchor's reference server implementation in Java. This will be deprecated soon.
 - __wallet_reference_server__: Contains the wallet's reference server implementation in Kotlin.
