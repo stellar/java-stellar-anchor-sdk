@@ -8,20 +8,17 @@ import java.io.IOException
 import java.net.MalformedURLException
 import okhttp3.Response
 import okhttp3.ResponseBody
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.util.NetUtil.*
 
-@Execution(SAME_THREAD)
-@Order(100)
 internal class NetUtilTest {
   @MockK private lateinit var mockCall: okhttp3.Call
 
@@ -32,6 +29,12 @@ internal class NetUtilTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxed = true)
+  }
+
+  @AfterEach
+  fun tearDown() {
+    clearAllMocks()
+    unmockkAll()
   }
 
   @Test
@@ -50,8 +53,6 @@ internal class NetUtilTest {
       NetUtil.getCall(any())
       mockCall.execute()
     }
-
-    unmockkStatic(NetUtil::class)
   }
 
   @Test
@@ -62,7 +63,6 @@ internal class NetUtilTest {
     every { mockResponse.isSuccessful } returns false
 
     assertThrows(IOException::class.java) { NetUtil.fetch("http://hello") }
-    unmockkStatic(NetUtil::class)
   }
 
   @Test
@@ -74,7 +74,6 @@ internal class NetUtilTest {
     every { mockResponse.body } returns null
 
     assertThrows(IOException::class.java) { NetUtil.fetch("http://hello") }
-    unmockkStatic(NetUtil::class)
   }
 
   @Test

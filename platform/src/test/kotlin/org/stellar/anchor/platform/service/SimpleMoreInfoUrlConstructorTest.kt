@@ -13,11 +13,8 @@ import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
-import org.stellar.anchor.config.ClientsConfig.ClientConfig
-import org.stellar.anchor.config.ClientsConfig.ClientType.*
-import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
-import org.stellar.anchor.platform.config.PropertyClientsConfig
+import org.stellar.anchor.platform.config.ClientsConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.util.GsonUtils
@@ -28,9 +25,7 @@ class SimpleMoreInfoUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
-  @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig
-  @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
-
+  @MockK(relaxed = true) private lateinit var clientsConfig: ClientsConfig
   private lateinit var jwtService: JwtService
 
   @BeforeEach
@@ -39,14 +34,12 @@ class SimpleMoreInfoUrlConstructorTest {
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "sep24_jwt_secret"
 
     val clientConfig =
-      ClientConfig(
+      ClientsConfig.ClientConfig(
         "lobstr",
-        NONCUSTODIAL,
+        ClientsConfig.ClientType.NONCUSTODIAL,
         "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
         "lobstr.co",
-        "https://callback.lobstr.co/api/v2/anchor/callback",
-        false,
-        null
+        "https://callback.lobstr.co/api/v2/anchor/callback"
       )
     every { clientsConfig.getClientConfigByDomain(any()) } returns null
     every { clientsConfig.getClientConfigByDomain(clientConfig.domain) } returns clientConfig
@@ -57,17 +50,15 @@ class SimpleMoreInfoUrlConstructorTest {
         "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       )
     } returns
-      ClientConfig(
+      ClientsConfig.ClientConfig(
         "some-wallet",
-        CUSTODIAL,
+        ClientsConfig.ClientType.CUSTODIAL,
         "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         null,
-        null,
-        false,
         null
       )
 
-    jwtService = JwtService(secretConfig, custodySecretConfig)
+    jwtService = JwtService(secretConfig)
   }
 
   @Test

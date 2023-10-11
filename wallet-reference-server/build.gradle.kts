@@ -13,10 +13,9 @@ dependencies {
   implementation(libs.google.gson)
   implementation(libs.hoplite.core)
   implementation(libs.hoplite.yaml)
-  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
+  implementation(libs.java.stellar.sdk)
   implementation(libs.kotlin.logging)
   implementation(libs.slf4j.simple)
-  implementation(libs.toml4j)
   implementation(project(mapOf("path" to ":api-schema")))
 }
 

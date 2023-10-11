@@ -5,6 +5,8 @@ import static org.stellar.anchor.util.StringHelper.*;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.beanutils.BeanUtils;
+import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.util.StringHelper;
 
@@ -36,5 +38,19 @@ public class UrlConstructorHelper {
     return isEmpty(txn.getSep10AccountMemo())
         ? txn.getSep10Account()
         : txn.getSep10Account() + ":" + txn.getSep10AccountMemo();
+  }
+
+  public static ClientsConfig.ClientConfig getClientConfig(
+      ClientsConfig clientsConfig, Sep24Transaction txn) throws SepValidationException {
+    ClientsConfig.ClientConfig clientConfig;
+    if (isEmpty(txn.getClientDomain())) {
+      clientConfig = clientsConfig.getClientConfigBySigningKey(txn.getSep10Account());
+      if (clientConfig != null && clientConfig.getType() == ClientsConfig.ClientType.NONCUSTODIAL) {
+        throw new SepValidationException("Non-custodial clients must specify a client_domain");
+      }
+    } else {
+      clientConfig = clientsConfig.getClientConfigByDomain(txn.getClientDomain());
+    }
+    return clientConfig;
   }
 }

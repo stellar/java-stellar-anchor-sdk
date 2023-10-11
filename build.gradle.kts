@@ -124,23 +124,6 @@ subprojects {
     test {
       useJUnitPlatform()
 
-      exclude("**/AnchorPlatformCustodyEnd2EndTest**")
-      exclude("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
-
-      testLogging {
-        events("SKIPPED", "FAILED")
-        showExceptions = true
-        showStandardStreams = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-      }
-    }
-
-    register<Test>("testFireblocksE2E") {
-      useJUnitPlatform()
-
-      include("**/AnchorPlatformCustodyEnd2EndTest**")
-      include("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
-
       testLogging {
         events("SKIPPED", "FAILED")
         showExceptions = true
@@ -170,7 +153,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.2.3"
+  version = "2.2.2"
 
   tasks.jar {
     manifest {

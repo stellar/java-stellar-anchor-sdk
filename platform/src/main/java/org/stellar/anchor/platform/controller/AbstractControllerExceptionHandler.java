@@ -8,12 +8,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.stellar.anchor.api.custody.CustodyExceptionResponse;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.exception.custody.CustodyBadRequestException;
-import org.stellar.anchor.api.exception.custody.CustodyNotFoundException;
-import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException;
-import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
 import org.stellar.anchor.api.sep.CustomerInfoNeededResponse;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 
@@ -65,34 +60,6 @@ public abstract class AbstractControllerExceptionHandler {
   public SepExceptionResponse handleNotImplementedError(Exception ex) {
     errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());
-  }
-
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler({CustodyBadRequestException.class})
-  public CustodyExceptionResponse handleCustodyBadRequest(AnchorException ex) {
-    errorEx(ex);
-    return new CustodyExceptionResponse(ex.getMessage());
-  }
-
-  @ResponseStatus(value = HttpStatus.NOT_FOUND)
-  @ExceptionHandler({CustodyNotFoundException.class})
-  public CustodyExceptionResponse handleCustodyNotFound(AnchorException ex) {
-    errorEx(ex);
-    return new CustodyExceptionResponse(ex.getMessage());
-  }
-
-  @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
-  @ExceptionHandler({CustodyTooManyRequestsException.class})
-  public CustodyExceptionResponse handleCustodyTooManyRequestsError(AnchorException ex) {
-    errorEx(ex);
-    return new CustodyExceptionResponse(ex.getMessage());
-  }
-
-  @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-  @ExceptionHandler({CustodyServiceUnavailableException.class})
-  public CustodyExceptionResponse handleCustodyServiceUnavailableError(AnchorException ex) {
-    errorEx(ex);
-    return new CustodyExceptionResponse(ex.getMessage());
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

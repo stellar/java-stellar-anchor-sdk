@@ -1,7 +1,6 @@
 package org.stellar.reference.wallet
 
 import com.google.gson.Gson
-import com.google.gson.JsonObject
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -30,11 +29,10 @@ fun Route.callback(config: Config, callbackEventService: CallbackService) {
         return@post
       }
 
-      val event: JsonObject = gson.fromJson(body, JsonObject::class.java)
-      callbackEventService.processCallback(event)
+      callbackEventService.processCallback(body)
       call.respond("POST /callback received")
     }
-    get { call.respond(gson.toJson(callbackEventService.getCallbacks(call.parameters["txnId"]))) }
+    get { call.respond(callbackEventService.getCallbacks(call.parameters["txnId"])) }
   }
 
   route("/callbacks/latest") { get { call.respond("GET /callbacks/latest") } }

@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform
 
-import com.google.common.reflect.TypeToken
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -13,6 +12,7 @@ import org.stellar.anchor.api.sep.sep12.Sep12DeleteCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse
+import shadow.com.google.common.reflect.TypeToken
 
 const val APPLICATION_JSON_CHARSET_UTF_8 = "application/json; charset=utf-8"
 val TYPE_JSON = APPLICATION_JSON_CHARSET_UTF_8.toMediaType()

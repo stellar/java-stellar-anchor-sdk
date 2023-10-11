@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import lombok.NoArgsConstructor;
-import org.apache.commons.io.FilenameUtils;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -15,6 +14,7 @@ import org.stellar.anchor.config.AssetsConfig;
 import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.GsonUtils;
 import org.yaml.snakeyaml.Yaml;
+import shadow.org.apache.commons.io.FilenameUtils;
 
 @NoArgsConstructor
 public class DefaultAssetService implements AssetService {

@@ -8,67 +8,48 @@ import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.stellar.anchor.api.exception.InvalidConfigException;
-import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.NetUtil;
 
-public class Sep1Service implements ISep1Service {
-  private final Sep1Config sep1Config;
-  private String tomlValue = null;
+public class Sep1Service {
+  private String tomlValue;
   Counter sep1TomlAccessedCounter = Metrics.counter(SEP1_TOML_ACCESSED);
 
   /**
    * Construct the Sep1Service that reads the stellar.toml content from Java resource.
    *
    * @param sep1Config The Sep1 configuration.
+   * @throws IOException if the file cannot be read.
+   * @throws InvalidConfigException if invalid type is specified.
    */
-  public Sep1Service(Sep1Config sep1Config) {
-    this.sep1Config = sep1Config;
-    Log.info("Sep1Service initialized.");
-  }
-
-  @Override
-  public String readSep1Toml(Sep1Config sep1Config) throws Exception {
+  public Sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     if (sep1Config.isEnabled()) {
       switch (sep1Config.getType()) {
         case STRING:
           debugF("reading stellar.toml from config[sep1.toml.value]");
-          return sep1Config.getValue();
+          tomlValue = sep1Config.getValue();
+          break;
         case FILE:
           debugF("reading stellar.toml from {}", sep1Config.getValue());
-          return readTomlFromFile(sep1Config.getValue());
+          tomlValue = FileUtil.read(Path.of(sep1Config.getValue()));
+          break;
         case URL:
           debugF("reading stellar.toml from {}", sep1Config.getValue());
-          return readTomlFromURL(sep1Config.getValue());
+          tomlValue = NetUtil.fetch(sep1Config.getValue());
+          break;
         default:
           throw new InvalidConfigException(
               String.format("invalid sep1.type: %s", sep1Config.getType()));
       }
-    } else {
-      throw new SepException("SEP-1 is not enabled");
+
+      Log.info("Sep1Service initialized.");
     }
   }
 
-  public String getToml() throws SepException {
-    try {
-      if (tomlValue == null) tomlValue = readSep1Toml(sep1Config);
-      sep1TomlAccessedCounter.increment();
-      return tomlValue;
-    } catch (SepException sepEx) {
-      throw sepEx;
-    } catch (Exception e) {
-      Log.error("Failed to read stellar.toml", e);
-      throw new SepException("Unable to read SEP-1 value");
-    }
-  }
-
-  String readTomlFromFile(String path) throws IOException {
-    return FileUtil.read(Path.of(path));
-  }
-
-  String readTomlFromURL(String path) throws IOException {
-    return NetUtil.fetch(path);
+  public String getStellarToml() {
+    sep1TomlAccessedCounter.increment();
+    return tomlValue;
   }
 }

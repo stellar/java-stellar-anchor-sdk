@@ -19,7 +19,6 @@ const val RUN_SEP_SERVER = "run_sep_server"
 const val RUN_PLATFORM_SERVER = "run_platform_server"
 const val RUN_EVENT_PROCESSING_SERVER = "run_event_processing_server"
 const val RUN_PAYMENT_OBSERVER = "run_observer"
-const val RUN_CUSTODY_SERVER = "run_custody_server"
 const val RUN_KOTLIN_REFERENCE_SERVER = "run_kotlin_reference_server"
 const val RUN_WALLET_SERVER = "run_wallet_server"
 
@@ -52,10 +51,8 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartPlatformServer: Boolean = false
   private var shouldStartWalletServer: Boolean = false
   private var shouldStartObserver: Boolean = false
-  private var shouldStartCustodyServer: Boolean = false
   private var shouldStartEventProcessingServer: Boolean = false
   private var shouldStartKotlinReferenceServer: Boolean = false
-  private var custodyEnabled: Boolean = false
 
   fun start(wait: Boolean = false, preStart: (config: TestConfig) -> Unit = {}) {
     info("Starting TestProfileExecutor...")
@@ -68,15 +65,9 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartSepServer = config.env[RUN_SEP_SERVER].toBoolean()
     shouldStartPlatformServer = config.env[RUN_PLATFORM_SERVER].toBoolean()
     shouldStartObserver = config.env[RUN_PAYMENT_OBSERVER].toBoolean()
-    shouldStartCustodyServer = config.env[RUN_CUSTODY_SERVER].toBoolean()
     shouldStartEventProcessingServer = config.env[RUN_EVENT_PROCESSING_SERVER].toBoolean()
     shouldStartKotlinReferenceServer = config.env[RUN_KOTLIN_REFERENCE_SERVER].toBoolean()
     shouldStartWalletServer = config.env[RUN_WALLET_SERVER].toBoolean()
-
-    val custodyType = config.env["custody.type"]
-    if (custodyType != null) {
-      custodyEnabled = "none" != custodyType
-    }
 
     startDocker()
     // TODO: Check server readiness instead of wait for 5 seconds
@@ -109,14 +100,9 @@ class TestProfileExecutor(val config: TestConfig) {
         info("Starting wallet server...")
         jobs += scope.launch { ServiceRunner.startWalletServer(envMap, wait) }
       }
-      if ((shouldStartAllServers || shouldStartObserver) && !custodyEnabled) {
+      if (shouldStartAllServers || shouldStartObserver) {
         info("Starting observer...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
-      }
-      if ((shouldStartAllServers || shouldStartCustodyServer) && custodyEnabled) {
-        info("Starting Custody server...")
-
-        jobs += scope.launch { runningServers.add(ServiceRunner.startCustodyServer(envMap)) }
       }
       if (shouldStartAllServers || shouldStartEventProcessingServer) {
         info("Starting event processing server...")

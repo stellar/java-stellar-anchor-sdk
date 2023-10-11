@@ -15,15 +15,15 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.platform.PatchTransactionsResponse
-import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.SepTransactionStatus
-import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.StellarId
-import org.stellar.anchor.api.shared.StellarPayment
-import org.stellar.anchor.api.shared.StellarTransaction
+import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.apiclient.PlatformApiClient
-import org.stellar.anchor.platform.config.RpcConfig
-import org.stellar.anchor.platform.data.*
+import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcSep24TransactionStore
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
+import org.stellar.anchor.platform.data.JdbcSep6Transaction
+import org.stellar.anchor.platform.data.JdbcSep6TransactionStore
 import org.stellar.anchor.platform.observer.ObservedPayment
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Asset
@@ -35,7 +35,6 @@ class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: JdbcSep24TransactionStore
   @MockK(relaxed = true) private lateinit var sep6TransactionStore: JdbcSep6TransactionStore
   @MockK(relaxed = true) private lateinit var platformApiClient: PlatformApiClient
-  @MockK(relaxed = true) private lateinit var rpcConfig: RpcConfig
 
   private lateinit var paymentOperationToEventListener: PaymentOperationToEventListener
   private val gson = GsonUtils.getInstance()
@@ -49,8 +48,7 @@ class PaymentOperationToEventListenerTest {
         sep31TransactionStore,
         sep24TransactionStore,
         sep6TransactionStore,
-        platformApiClient,
-        rpcConfig
+        platformApiClient
       )
   }
 
@@ -63,57 +61,48 @@ class PaymentOperationToEventListenerTest {
   @Test
   fun test_onReceiver_failValidation() {
     // Payment missing txHash shouldn't trigger an event nor reach the DB
-    val p = ObservedPayment.builder().build()
-    p.transactionHash = null
-    p.transactionMemoType = "text"
-    p.transactionMemo = "my_memo_1"
-    paymentOperationToEventListener.onReceived(p)
+    val payment = ObservedPayment.builder().build()
+    payment.transactionHash = null
+    payment.transactionMemoType = "text"
+    payment.transactionMemo = "my_memo_1"
+    paymentOperationToEventListener.onReceived(payment)
     verify { sep31TransactionStore wasNot Called }
     verify { sep24TransactionStore wasNot Called }
     verify { sep6TransactionStore wasNot Called }
 
     // Payment missing txMemo shouldn't trigger an event nor reach the DB
-    p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
-    p.transactionMemo = null
-    paymentOperationToEventListener.onReceived(p)
+    payment.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
+    payment.transactionMemo = null
+    paymentOperationToEventListener.onReceived(payment)
     verify { sep31TransactionStore wasNot Called }
     verify { sep24TransactionStore wasNot Called }
     verify { sep6TransactionStore wasNot Called }
 
     // Asset types different from "native", "credit_alphanum4" and "credit_alphanum12" shouldn't
     // trigger an event nor reach the DB
-    p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
-    p.transactionMemo = "my_memo_1"
-    p.assetType = "liquidity_pool_shares"
-    paymentOperationToEventListener.onReceived(p)
+    payment.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
+    payment.transactionMemo = "my_memo_1"
+    payment.assetType = "liquidity_pool_shares"
+    paymentOperationToEventListener.onReceived(payment)
     verify { sep31TransactionStore wasNot Called }
     verify { sep24TransactionStore wasNot Called }
     verify { sep6TransactionStore wasNot Called }
 
     // Payment whose memo is not in the DB shouldn't trigger event
-    p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
-    p.transactionMemo = "my_memo_2"
-    p.assetType = "credit_alphanum4"
-    p.amount = "1"
-    p.assetName = "FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
-    p.sourceAccount = "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5"
-    p.to = "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
-    var slotMemo = slot<String>()
-    val slotAccount = slot<String>()
-    val slotStatus = slot<String>()
+    payment.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
+    payment.transactionMemo = "my_memo_2"
+    payment.assetType = "credit_alphanum4"
+    payment.sourceAccount = "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5"
+    payment.to = "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
-        capture(slotAccount),
-        capture(slotMemo),
-        capture(slotStatus)
-      )
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
     } returns null
     every { sep24TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
       null
     every {
       sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
     } returns null
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -121,21 +110,13 @@ class PaymentOperationToEventListenerTest {
         "pending_sender"
       )
     }
-    assertEquals("my_memo_2", slotMemo.captured)
-    assertEquals("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364", slotAccount.captured)
-    assertEquals("pending_sender", slotStatus.captured)
 
     // If findByStellarAccountIdAndMemoAndStatus throws an exception, we shouldn't trigger an event
-    slotMemo = slot()
-    p.transactionMemo = "my_memo_3"
+    payment.transactionMemo = "my_memo_3"
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
-        capture(slotAccount),
-        capture(slotMemo),
-        capture(slotStatus)
-      )
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
     } throws SepException("Something went wrong")
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -143,25 +124,16 @@ class PaymentOperationToEventListenerTest {
         "pending_sender"
       )
     }
-    assertEquals("my_memo_3", slotMemo.captured)
-    assertEquals("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364", slotAccount.captured)
-    assertEquals("pending_sender", slotStatus.captured)
 
     // If asset code from the fetched tx is different, don't trigger event
-    slotMemo = slot()
-    p.transactionMemo = "my_memo_4"
-    p.assetCode = "FOO"
+    payment.transactionMemo = "my_memo_4"
+    payment.assetCode = "FOO"
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.amountInAsset = "BAR"
-    sep31TxMock.amountIn = "1"
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
-        capture(slotAccount),
-        capture(slotMemo),
-        capture(slotStatus)
-      )
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
     } returns sep31TxMock
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -169,9 +141,6 @@ class PaymentOperationToEventListenerTest {
         "pending_sender"
       )
     }
-    assertEquals("my_memo_4", slotMemo.captured)
-    assertEquals("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364", slotAccount.captured)
-    assertEquals("pending_sender", slotStatus.captured)
   }
 
   @ParameterizedTest
@@ -196,7 +165,7 @@ class PaymentOperationToEventListenerTest {
     val inAsset = createAsset(inAssetType, inAssetCode, inAssetIssuer)
     val outAsset = createAsset(outAssetType, outAssetCode, outAssetIssuer)
 
-    val p =
+    val payment =
       ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
@@ -255,22 +224,35 @@ class PaymentOperationToEventListenerTest {
       )
     } returns sep31TxCopy
 
-    val txnIdCapture = slot<String>()
-    val stellarTxnIdCapture = slot<String>()
-    val amountCapture = slot<String>()
-    val messageCapture = slot<String>()
+    val patchTxnRequestSlot = slot<PatchTransactionsRequest>()
+    every { platformApiClient.patchTransaction(capture(patchTxnRequestSlot)) } answers
+      {
+        PatchTransactionsResponse(emptyList())
+      }
 
-    every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
-    every {
-      platformApiClient.notifyOnchainFundsReceived(
-        capture(txnIdCapture),
-        capture(stellarTxnIdCapture),
-        capture(amountCapture),
-        capture(messageCapture)
-      )
-    } just Runs
+    val stellarTransaction =
+      StellarTransaction.builder()
+        .id("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
+        .memo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
+        .memoType("hash")
+        .createdAt(transferReceivedAt)
+        .envelope(
+          "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
+        )
+        .payments(
+          listOf(
+            StellarPayment.builder()
+              .id("755914248193")
+              .paymentType(StellarPayment.Type.PATH_PAYMENT)
+              .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
+              .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
+              .amount(Amount("10.0000000", inAsset.toString()))
+              .build()
+          )
+        )
+        .build()
 
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -279,10 +261,15 @@ class PaymentOperationToEventListenerTest {
       )
     }
 
-    assertEquals(sep31TxMock.id, txnIdCapture.captured)
-    assertEquals(p.transactionHash, stellarTxnIdCapture.captured)
-    assertEquals(p.amount, amountCapture.captured)
-    assertEquals("payment received", messageCapture.captured)
+    val capturedRequest = patchTxnRequestSlot.captured.records[0]
+    assertEquals(
+      SepTransactionStatus.PENDING_RECEIVER.status,
+      capturedRequest.transaction.status.toString()
+    )
+    assertEquals(stellarTransaction.id, capturedRequest.transaction.stellarTransactions[0].id)
+    assertEquals(transferReceivedAt, capturedRequest.transaction.transferReceivedAt)
+    assertEquals(transferReceivedAt, capturedRequest.transaction.updatedAt)
+    assertEquals(listOf(stellarTransaction), capturedRequest.transaction.stellarTransactions)
   }
 
   @Test
@@ -293,7 +280,7 @@ class PaymentOperationToEventListenerTest {
     val fooAsset = "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     val barAsset = "stellar:BAR:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
 
-    val p =
+    val payment =
       ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
@@ -351,22 +338,37 @@ class PaymentOperationToEventListenerTest {
       )
     } returns sep31TxCopy
 
-    val txnIdCapture = slot<String>()
-    val stellarTxnIdCapture = slot<String>()
-    val amountCapture = slot<String>()
-    val messageCapture = slot<String>()
+    val patchTxnRequestSlot = slot<PatchTransactionsRequest>()
+    every { platformApiClient.patchTransaction(capture(patchTxnRequestSlot)) } answers
+      {
+        PatchTransactionsResponse(emptyList())
+      }
 
-    every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
-    every {
-      platformApiClient.notifyOnchainFundsReceived(
-        capture(txnIdCapture),
-        capture(stellarTxnIdCapture),
-        capture(amountCapture),
-        capture(messageCapture)
-      )
-    } just Runs
+    val stellarTransaction =
+      StellarTransaction.builder()
+        .id("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
+        .memo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
+        .memoType("hash")
+        .createdAt(transferReceivedAt)
+        .envelope(
+          "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
+        )
+        .payments(
+          listOf(
+            StellarPayment.builder()
+              .id("755914248193")
+              .paymentType(StellarPayment.Type.PAYMENT)
+              .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
+              .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
+              .amount(
+                Amount("9.0000000", "FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
+              )
+              .build()
+          )
+        )
+        .build()
 
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -375,10 +377,15 @@ class PaymentOperationToEventListenerTest {
       )
     }
 
-    assertEquals(sep31TxMock.id, txnIdCapture.captured)
-    assertEquals(p.transactionHash, stellarTxnIdCapture.captured)
-    assertEquals(p.amount, amountCapture.captured)
-    assertEquals("payment received", messageCapture.captured)
+    val capturedRequest = patchTxnRequestSlot.captured.records[0]
+    assertEquals(
+      SepTransactionStatus.PENDING_RECEIVER.status,
+      capturedRequest.transaction.status.toString()
+    )
+    assertEquals(stellarTransaction.id, capturedRequest.transaction.stellarTransactions[0].id)
+    assertEquals(null, capturedRequest.transaction.transferReceivedAt)
+    assertEquals(transferReceivedAt, capturedRequest.transaction.updatedAt)
+    assertEquals(listOf(stellarTransaction), capturedRequest.transaction.stellarTransactions)
   }
 
   @ParameterizedTest
@@ -398,7 +405,7 @@ class PaymentOperationToEventListenerTest {
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
     val asset = createAsset(assetType, assetCode, assetIssuer)
 
-    val p =
+    val payment =
       ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
@@ -428,7 +435,6 @@ class PaymentOperationToEventListenerTest {
     sep24TxMock.amountIn = "10.0000000"
     sep24TxMock.memo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ"
     sep24TxMock.memoType = "hash"
-    sep24TxMock.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
 
     // TODO: this shouldn't be necessary
     every {
@@ -447,22 +453,35 @@ class PaymentOperationToEventListenerTest {
       )
     } returns sep24TxnCopy
 
-    val txnIdCapture = slot<String>()
-    val stellarTxnIdCapture = slot<String>()
-    val amountCapture = slot<String>()
-    val messageCapture = slot<String>()
+    val patchTxnRequestSlot = slot<PatchTransactionsRequest>()
+    every { platformApiClient.patchTransaction(capture(patchTxnRequestSlot)) } answers
+      {
+        PatchTransactionsResponse(emptyList())
+      }
 
-    every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
-    every {
-      platformApiClient.notifyOnchainFundsReceived(
-        capture(txnIdCapture),
-        capture(stellarTxnIdCapture),
-        capture(amountCapture),
-        capture(messageCapture)
-      )
-    } just Runs
+    val stellarTransaction =
+      StellarTransaction.builder()
+        .id("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
+        .memo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ")
+        .memoType("hash")
+        .createdAt(transferReceivedAt)
+        .envelope(
+          "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
+        )
+        .payments(
+          listOf(
+            StellarPayment.builder()
+              .id("755914248193")
+              .paymentType(StellarPayment.Type.PAYMENT)
+              .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
+              .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
+              .amount(Amount("10.0000000", asset.toString()))
+              .build()
+          )
+        )
+        .build()
 
-    paymentOperationToEventListener.onReceived(p)
+    paymentOperationToEventListener.onReceived(payment)
     verify(exactly = 1) {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -471,10 +490,16 @@ class PaymentOperationToEventListenerTest {
       )
     }
 
-    assertEquals(sep24TxMock.id, txnIdCapture.captured)
-    assertEquals(p.transactionHash, stellarTxnIdCapture.captured)
-    assertEquals(p.amount, amountCapture.captured)
-    assertEquals("payment received", messageCapture.captured)
+    val capturedRequest = patchTxnRequestSlot.captured.records[0]
+    assertEquals(
+      SepTransactionStatus.PENDING_ANCHOR.status.toString(),
+      capturedRequest.transaction.status.toString()
+    )
+    assertEquals(stellarTransaction.id, capturedRequest.transaction.stellarTransactions[0].id)
+    assertEquals(transferReceivedAt, capturedRequest.transaction.transferReceivedAt)
+    assertEquals(transferReceivedAt, capturedRequest.transaction.updatedAt)
+    assertEquals(listOf(stellarTransaction), capturedRequest.transaction.stellarTransactions)
+    assertEquals(sep24TxMock.id, capturedRequest.transaction.id)
   }
 
   @ParameterizedTest

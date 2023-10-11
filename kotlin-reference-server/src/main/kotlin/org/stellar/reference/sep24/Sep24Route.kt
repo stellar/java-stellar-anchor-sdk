@@ -15,12 +15,11 @@ import org.stellar.reference.data.ErrorResponse
 import org.stellar.reference.data.Success
 import org.stellar.reference.data.WithdrawalRequest
 import org.stellar.reference.jwt.JwtDecoder
-import org.stellar.reference.service.SepHelper
 
 private val log = KotlinLogging.logger {}
 
 fun Route.sep24(
-  sep24: SepHelper,
+  sep24: Sep24Helper,
   depositService: DepositService,
   withdrawalService: WithdrawalService,
   jwtKey: String
@@ -98,15 +97,13 @@ fun Route.sep24(
 
             call.respond(Success(sessionId))
 
-            val stellarAsset = asset.replace("stellar:", "")
-
             // Run deposit processing asynchronously
             CoroutineScope(Job()).launch {
               depositService.processDeposit(
                 transaction.id,
                 deposit.amount.toBigDecimal(),
                 account,
-                stellarAsset,
+                asset,
                 memo,
                 memoType
               )
@@ -121,14 +118,12 @@ fun Route.sep24(
               transaction.amountExpected?.asset
                 ?: throw ClientException("Missing amountExpected.asset field")
 
-            val stellarAsset = asset.replace("stellar:", "")
-
             // Run deposit processing asynchronously
             CoroutineScope(Job()).launch {
               withdrawalService.processWithdrawal(
                 transaction.id,
                 withdrawal.amount.toBigDecimal(),
-                stellarAsset
+                asset
               )
             }
           }

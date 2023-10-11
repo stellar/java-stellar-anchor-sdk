@@ -145,13 +145,13 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     assertOrderCorrect(listOf(tx1, tx2), statusesTxs.records)
 
     // Pagination test
-    val pageNull = getTransactions(pageSize = 1, order = Sort.Direction.DESC)
-    val page0 = getTransactions(pageSize = 1, pageNumber = 0, order = Sort.Direction.DESC)
-    assertOrderCorrect(listOf(tx3), pageNull.records)
-    assertOrderCorrect(listOf(tx3), page0.records)
+    val pageNull = getTransactions(pageSize = 1)
+    val page0 = getTransactions(pageSize = 1, pageNumber = 0)
+    assertOrderCorrect(listOf(tx1), pageNull.records)
+    assertOrderCorrect(listOf(tx1), page0.records)
 
-    val page2 = getTransactions(pageSize = 1, pageNumber = 2, order = Sort.Direction.DESC)
-    assertOrderCorrect(listOf(tx1), page2.records)
+    val page2 = getTransactions(pageSize = 1, pageNumber = 2)
+    assertOrderCorrect(listOf(tx3), page2.records)
   }
 
   private fun getTransactions(
@@ -175,13 +175,12 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     txs: List<Sep31PostTransactionResponse>,
     records: MutableList<GetTransactionResponse>
   ) {
-    assertTrue(txs.size <= records.size)
+    assertEquals(txs.size, records.size)
 
-    val txIds = txs.stream().map { it.id }.toList()
     assertEquals(
-      txIds.toString(),
-      records.stream().map { it.id }.filter { txIds.contains(it) }.toList().toString(),
-      "Incorrect order of transactions"
+      txs.stream().map { it.id }.toList().toString(),
+      records.stream().map { it.id }.toList().toString(),
+      "Incorrect oder of transactions"
     )
   }
 
@@ -468,7 +467,6 @@ private const val expectedSep31Info =
         "fee_fixed": 0,
         "fee_percent": 0,
         "max_amount": 1000000,
-        "min_amount": 1,
         "sep12": {
           "sender": {
             "types": {

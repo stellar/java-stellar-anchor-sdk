@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.callback;
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.platform.callback.PlatformIntegrationHelper.*;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import java.net.URI;
@@ -22,6 +21,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.Log;
+import shadow.com.google.common.reflect.TypeToken;
 
 public class RestRateIntegration implements RateIntegration {
   private final String anchorEndpoint;

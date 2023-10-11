@@ -9,16 +9,12 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
-import java.util.stream.Stream
 import org.apache.commons.lang3.StringUtils
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestHelper
@@ -32,15 +28,14 @@ import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.config.*
-import org.stellar.anchor.config.CustodyConfig.CustodyType.NONE
+import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.SecretConfig
+import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
-import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
@@ -50,7 +45,6 @@ import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Network.TESTNET
 
-@Order(13)
 class Sep31ServiceTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
@@ -271,26 +265,6 @@ class Sep31ServiceTest {
         }
       }
   """
-    private val lobstrClientConfig =
-      ClientsConfig.ClientConfig(
-        "lobstr",
-        ClientsConfig.ClientType.NONCUSTODIAL,
-        "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-        "lobstr.co",
-        "https://callback.lobstr.co/api/v2/anchor/callback",
-        false,
-        null
-      )
-
-    @JvmStatic
-    fun generateGetClientNameTestConfig(): Stream<Arguments> {
-      return Stream.of(
-        Arguments.of(listOf<String>(), false, null, false),
-        Arguments.of(listOf<String>(), true, null, true),
-        Arguments.of(listOf(lobstrClientConfig.domain), false, lobstrClientConfig.name, false),
-        Arguments.of(listOf(lobstrClientConfig.domain), true, lobstrClientConfig.name, true),
-      )
-    }
   }
 
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
@@ -299,21 +273,17 @@ class Sep31ServiceTest {
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
-  @MockK(relaxed = true) lateinit var custodySecretConfig: CustodySecretConfig
-  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig
-  @MockK(relaxed = true) lateinit var sep10Config: Sep10Config
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
   @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
-  @MockK(relaxed = true) lateinit var custodyService: CustodyService
-  @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
   @MockK(relaxed = true) lateinit var eventService: EventService
   @MockK(relaxed = true) lateinit var eventSession: Session
 
   private lateinit var jwtService: JwtService
   private lateinit var sep31Service: Sep31Service
+
   private lateinit var request: Sep31PostTransactionRequest
   private lateinit var txn: Sep31Transaction
   private lateinit var fee: Amount
@@ -329,26 +299,20 @@ class Sep31ServiceTest {
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
-    every { custodyConfig.type } returns NONE
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
-
-    jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
+    jwtService = spyk(JwtService(secretConfig))
 
     sep31Service =
       Sep31Service(
         appConfig,
-        sep10Config,
         sep31Config,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
-        clientsConfig,
         assetService,
         feeIntegration,
         customerIntegration,
         eventService,
-        custodyService,
-        custodyConfig
       )
 
     request = gson.fromJson(requestJson, Sep31PostTransactionRequest::class.java)
@@ -357,6 +321,12 @@ class Sep31ServiceTest {
     asset = gson.fromJson(assetJson, AssetInfo::class.java)
     quote = gson.fromJson(quoteJson, PojoSep38Quote::class.java)
     patchRequest = gson.fromJson(patchTxnRequestJson, Sep31PatchTransactionRequest::class.java)
+  }
+
+  @AfterEach
+  fun teardown() {
+    clearAllMocks()
+    unmockkAll()
   }
 
   @Test
@@ -390,18 +360,14 @@ class Sep31ServiceTest {
     val ex: AnchorException = assertThrows {
       Sep31Service(
         appConfig,
-        sep10Config,
         sep31Config,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
-        clientsConfig,
         assetServiceQuotesNotSupported,
         feeIntegration,
         customerIntegration,
         eventService,
-        custodyService,
-        custodyConfig
       )
     }
     assertInstanceOf(SepValidationException::class.java, ex)
@@ -771,7 +737,6 @@ class Sep31ServiceTest {
     val mockCustomer = GetCustomerResponse()
     mockCustomer.status = Sep12Status.ACCEPTED.name
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
-    every { custodyConfig.isCustodyIntegrationEnabled } returns true
 
     // mock sep31 deposit info generation
     val txForDepositInfoGenerator = slot<Sep31Transaction>()
@@ -781,7 +746,7 @@ class Sep31ServiceTest {
         var memo = StringUtils.truncate(tx.id, 32)
         memo = StringUtils.leftPad(memo, 32, '0')
         memo = String(Base64.getEncoder().encode(memo.toByteArray()))
-        SepDepositInfo(tx.stellarAccountId, memo, "hash")
+        Sep31DepositInfo(tx.stellarAccountId, memo, "hash")
       }
 
     // mock transaction save
@@ -804,7 +769,6 @@ class Sep31ServiceTest {
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
     verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
-    verify(exactly = 1) { custodyService.createTransaction(any() as Sep31Transaction) }
     verify(exactly = 1) { eventSession.publish(any()) }
 
     // validate the values of the saved sep31Transaction
@@ -898,7 +862,7 @@ class Sep31ServiceTest {
   @Test
   fun `test post transaction when quote is not supported`() {
     every { sep31DepositInfoGenerator.generate(any()) } returns
-      SepDepositInfo("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I", "123456", "id")
+      Sep31DepositInfo("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I", "123456", "id")
 
     every { txnStore.save(any()) } answers
       {
@@ -913,18 +877,14 @@ class Sep31ServiceTest {
     sep31Service =
       Sep31Service(
         appConfig,
-        sep10Config,
         sep31Config,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
-        clientsConfig,
         assetServiceQuotesNotSupported,
         feeIntegration,
         customerIntegration,
         eventService,
-        custodyService,
-        custodyConfig
       )
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
@@ -1047,7 +1007,6 @@ class Sep31ServiceTest {
     // No quote
     every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount("10", "USDC"))
     Context.get().quote = null
-    Context.get().asset = asset
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
     fee = Context.get().fee
@@ -1072,32 +1031,5 @@ class Sep31ServiceTest {
     quote.fee = null
     val ex = assertThrows<SepValidationException> { sep31Service.updateFee() }
     assertEquals("Quote is missing the 'fee' field", ex.message)
-  }
-
-  @ParameterizedTest
-  @MethodSource("generateGetClientNameTestConfig")
-  fun `test getClientName when`(
-    allowedClientDomains: List<String>,
-    isClientAttributionRequired: Boolean,
-    expectedClientName: String?,
-    shouldThrowExceptionWithInvalidInput: Boolean,
-  ) {
-    every { sep10Config.allowedClientDomains } returns allowedClientDomains
-    every { sep10Config.isClientAttributionRequired } returns isClientAttributionRequired
-    every { clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKey) } returns
-      lobstrClientConfig
-
-    // client name should be returned for valid input
-    val clientName = sep31Service.getClientName(lobstrClientConfig.signingKey)
-    assertEquals(expectedClientName, clientName)
-
-    // exception maybe thrown for invalid input
-    every { clientsConfig.getClientConfigBySigningKey("Invalid Public Key") } returns null
-    if (!shouldThrowExceptionWithInvalidInput) {
-      val clientNameNotFound = sep31Service.getClientName("Invalid Public Key")
-      assertNull(clientNameNotFound)
-    } else {
-      assertThrows<BadRequestException> { sep31Service.getClientName("Invalid Public Key") }
-    }
   }
 }

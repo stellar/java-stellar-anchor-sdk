@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.component.sep;
 
 import java.io.IOException;
-import java.util.Optional;
 import javax.servlet.Filter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -15,17 +14,14 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
-import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.Sep10JwtFilter;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
-import org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator;
-import org.stellar.anchor.platform.service.Sep31DepositInfoCustodyGenerator;
-import org.stellar.anchor.platform.service.Sep31DepositInfoSelfGenerator;
+import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
+import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
@@ -47,7 +43,6 @@ import org.stellar.anchor.sep6.Sep6TransactionStore;
 /** SEP configurations */
 @Configuration
 public class SepBeans {
-
   /**********************************
    * SEP configurations
    */
@@ -66,7 +61,7 @@ public class SepBeans {
   @Bean
   @ConfigurationProperties(prefix = "sep10")
   Sep10Config sep10Config(
-      AppConfig appConfig, SecretConfig secretConfig, PropertyClientsConfig clientsConfig) {
+      AppConfig appConfig, SecretConfig secretConfig, ClientsConfig clientsConfig) {
     return new PropertySep10Config(appConfig, clientsConfig, secretConfig);
   }
 
@@ -78,8 +73,8 @@ public class SepBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep31")
-  Sep31Config sep31Config(CustodyConfig custodyConfig) {
-    return new PropertySep31Config(custodyConfig);
+  Sep31Config sep31Config() {
+    return new PropertySep31Config();
   }
 
   @Bean
@@ -94,8 +89,7 @@ public class SepBeans {
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<Filter> sep10TokenFilter(
-      JwtService jwtService, Sep38Config sep38Config) {
+  public FilterRegistrationBean<Filter> sep10TokenFilter(JwtService jwtService) {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10JwtFilter(jwtService));
     registrationBean.addUrlPatterns("/sep6/deposit/*");
@@ -113,11 +107,6 @@ public class SepBeans {
     registrationBean.addUrlPatterns("/sep31/transactions/*");
     registrationBean.addUrlPatterns("/sep38/quote");
     registrationBean.addUrlPatterns("/sep38/quote/*");
-    if (sep38Config.isSep10Enforced()) {
-      registrationBean.addUrlPatterns("/sep38/info");
-      registrationBean.addUrlPatterns("/sep38/price");
-      registrationBean.addUrlPatterns("/sep38/prices");
-    }
     return registrationBean;
   }
 
@@ -174,30 +163,26 @@ public class SepBeans {
   Sep24Service sep24Service(
       AppConfig appConfig,
       Sep24Config sep24Config,
-      ClientsConfig clientsConfig,
       AssetService assetService,
       JwtService jwtService,
       Sep24TransactionStore sep24TransactionStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
-      MoreInfoUrlConstructor moreInfoUrlConstructor,
-      CustodyConfig custodyConfig) {
+      MoreInfoUrlConstructor moreInfoUrlConstructor) {
     return new Sep24Service(
         appConfig,
         sep24Config,
-        clientsConfig,
         assetService,
         jwtService,
         sep24TransactionStore,
         eventService,
         interactiveUrlConstructor,
-        moreInfoUrlConstructor,
-        custodyConfig);
+        moreInfoUrlConstructor);
   }
 
   @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
-      PropertyClientsConfig clientsConfig,
+      ClientsConfig clientsConfig,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
@@ -209,20 +194,13 @@ public class SepBeans {
   Sep31DepositInfoGenerator sep31DepositInfoGenerator(
       Sep31Config sep31Config,
       PaymentObservingAccountsManager paymentObservingAccountsManager,
-      UniqueAddressIntegration uniqueAddressIntegration,
-      Optional<CustodyApiClient> custodyApiClient)
-      throws InvalidConfigException {
+      UniqueAddressIntegration uniqueAddressIntegration) {
     switch (sep31Config.getDepositInfoGeneratorType()) {
       case SELF:
-        return new Sep31DepositInfoSelfGenerator();
+        return new Sep31DepositInfoGeneratorSelf();
       case API:
-        return new Sep31DepositInfoApiGenerator(
+        return new Sep31DepositInfoGeneratorApi(
             uniqueAddressIntegration, paymentObservingAccountsManager);
-      case CUSTODY:
-        return new Sep31DepositInfoCustodyGenerator(
-            custodyApiClient.orElseThrow(
-                () ->
-                    new InvalidConfigException("Integration with custody service is not enabled")));
       default:
         throw new RuntimeException("Not supported");
     }
@@ -232,32 +210,24 @@ public class SepBeans {
   @ConditionalOnAllSepsEnabled(seps = {"sep31"})
   Sep31Service sep31Service(
       AppConfig appConfig,
-      Sep10Config sep10Config,
       Sep31Config sep31Config,
       Sep31TransactionStore sep31TransactionStore,
       Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
-      PropertyClientsConfig clientsConfig,
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
-      EventService eventService,
-      CustodyService custodyService,
-      CustodyConfig custodyConfig) {
+      EventService eventService) {
     return new Sep31Service(
         appConfig,
-        sep10Config,
         sep31Config,
         sep31TransactionStore,
         sep31DepositInfoGenerator,
         sep38QuoteStore,
-        clientsConfig,
         assetService,
         feeIntegration,
         customerIntegration,
-        eventService,
-        custodyService,
-        custodyConfig);
+        eventService);
   }
 
   @Bean

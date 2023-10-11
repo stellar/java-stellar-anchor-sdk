@@ -82,8 +82,6 @@ public class MemoHelper {
           return new MemoText(memo);
         case MEMO_HASH:
           return new MemoHash(convertBase64ToHex(memo));
-        case MEMO_RETURN:
-          return new MemoReturnHash(convertBase64ToHex(memo));
         case MEMO_NONE:
           if (isEmpty(memo)) {
             return new MemoNone();
@@ -117,8 +115,6 @@ public class MemoHelper {
         return ((MemoText) memo).getText();
       case MEMO_HASH:
         return ((MemoHash) memo).getHexValue();
-      case MEMO_RETURN:
-        return ((MemoReturnHash) memo).getHexValue();
       case MEMO_NONE:
         return "";
       default:

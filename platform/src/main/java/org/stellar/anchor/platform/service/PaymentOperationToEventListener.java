@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
@@ -26,7 +24,6 @@ import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
 import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.apiclient.PlatformApiClient;
-import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
@@ -40,19 +37,16 @@ public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep24TransactionStore sep24TransactionStore;
   final JdbcSep6TransactionStore sep6TransactionStore;
   private final PlatformApiClient platformApiClient;
-  private final RpcConfig rpcConfig;
 
   public PaymentOperationToEventListener(
       JdbcSep31TransactionStore sep31TransactionStore,
       JdbcSep24TransactionStore sep24TransactionStore,
       JdbcSep6TransactionStore sep6TransactionStore,
-      PlatformApiClient platformApiClient,
-      RpcConfig rpcConfig) {
+      PlatformApiClient platformApiClient) {
     this.sep31TransactionStore = sep31TransactionStore;
     this.sep24TransactionStore = sep24TransactionStore;
     this.sep6TransactionStore = sep6TransactionStore;
     this.platformApiClient = platformApiClient;
-    this.rpcConfig = rpcConfig;
   }
 
   @Override
@@ -157,7 +151,12 @@ public class PaymentOperationToEventListener implements PaymentListener {
           "Payment asset {} does not match the expected asset {}.",
           payment.getAssetCode(),
           txn.getAmountInAsset());
+      return;
     }
+
+    // parse payment creation time
+    StellarTransaction stellarTransaction =
+        buildStellarTransaction(payment, txn.getStellarMemo(), txn.getStellarMemoType());
 
     // Check if the payment contains the expected amount (or greater)
     BigDecimal expectedAmount = decimal(txn.getAmountIn());
@@ -165,6 +164,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     String message = "Incoming payment for SEP-31 transaction";
     if (gotAmount.compareTo(expectedAmount) >= 0) {
       Log.info(message);
+      txn.setTransferReceivedAt(stellarTransaction.getCreatedAt());
     } else {
       message =
           String.format(
@@ -173,11 +173,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
       Log.warn(message);
     }
 
-    platformApiClient.notifyOnchainFundsReceived(
-        txn.getId(),
-        payment.getTransactionHash(),
-        payment.getAmount(),
-        rpcConfig.getCustomMessages().getIncomingPaymentReceived());
+    // TODO: this should be taken care of by the RPC actions.
+    patchTransaction(txn, stellarTransaction, SepTransactionStatus.PENDING_RECEIVER);
 
     // Update metrics
     Metrics.counter(
@@ -202,12 +199,16 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
 
+    StellarTransaction stellarTransaction =
+        buildStellarTransaction(payment, txn.getMemo(), txn.getMemoType());
+
     // Check if the payment contains the expected amount (or greater)
     BigDecimal amountIn = decimal(txn.getAmountIn());
     BigDecimal gotAmount = decimal(payment.getAmount());
     String message = "Incoming payment for SEP-24 transaction";
     if (gotAmount.compareTo(amountIn) == 0) {
       Log.info(message);
+      txn.setTransferReceivedAt(stellarTransaction.getCreatedAt());
     } else {
       message =
           String.format(
@@ -216,27 +217,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
       Log.warn(message);
     }
 
-    if (DEPOSIT.getKind().equals(txn.getKind())) {
-      platformApiClient.notifyOnchainFundsSent(
-          txn.getId(),
-          payment.getTransactionHash(),
-          rpcConfig.getCustomMessages().getOutgoingPaymentSent());
-    } else if (WITHDRAWAL.getKind().equals(txn.getKind())) {
-      platformApiClient.notifyOnchainFundsReceived(
-          txn.getId(),
-          payment.getTransactionHash(),
-          payment.getAmount(),
-          rpcConfig.getCustomMessages().getIncomingPaymentReceived());
-    }
-
-    // Update metrics
-    Metrics.counter(
-            AnchorMetrics.SEP24_TRANSACTION.toString(),
-            "status",
-            SepTransactionStatus.PENDING_ANCHOR.toString())
-        .increment();
-    Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
-        .increment(Double.parseDouble(payment.getAmount()));
+    // TODO: this should be taken care of by the RPC actions.
+    patchTransaction(txn, stellarTransaction, SepTransactionStatus.PENDING_ANCHOR);
   }
 
   void handleSep6Transaction(ObservedPayment payment, JdbcSep6Transaction txn)
@@ -320,7 +302,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
         .build();
   }
 
-  public static Instant parsePaymentTime(String paymentTimeStr) {
+  Instant parsePaymentTime(String paymentTimeStr) {
     try {
       return DateTimeFormatter.ISO_INSTANT.parse(paymentTimeStr, Instant::from);
     } catch (DateTimeParseException | NullPointerException ex) {

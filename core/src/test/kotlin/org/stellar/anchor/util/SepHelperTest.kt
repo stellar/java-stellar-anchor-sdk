@@ -1,7 +1,6 @@
 package org.stellar.anchor.util
 
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -44,8 +43,6 @@ internal class SepHelperTest {
         "AMCEO75Y6YKE53HM6N46IJYH3LK3YYFZ4QWGNUKCSSIQSH3KOAD7BEAAAAAAAAAAAPNT2W"
       ]
   )
-  @Disabled // This is disabled until AccountConverter.enableMuxed() is throwing exception on
-  // "MCEO75Y6YKE53HM6N46IJYH3LK3YYFZ4QWGNUKCSSIQSH3KOAD7BEAAAAAAAAAAAPNT2W___"
   fun `test invalid stellar account`(strAccount: String) {
     assertThrows<Exception> { SepHelper.getAccountMemo(strAccount) }
   }

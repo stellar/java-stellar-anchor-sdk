@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.event;
 
-import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.Log.traceF;
 
 import java.io.IOException;
 import org.stellar.anchor.api.callback.SendEventRequest;
@@ -27,7 +28,6 @@ public class CallbackApiEventHandler extends EventHandler {
       callbackApiClient.sendEvent(SendEventRequest.from(event));
       return true;
     } catch (AnchorException e) {
-      errorEx("Failed to send event to callback API. Error code: {}", e);
       return false;
     }
   }

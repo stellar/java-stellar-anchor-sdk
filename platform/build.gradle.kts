@@ -20,7 +20,6 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-aop")
-  implementation("org.springframework.boot:spring-boot-starter-validation")
 
   implementation(libs.abdera)
   implementation(libs.aws.rds)
@@ -33,7 +32,7 @@ dependencies {
   implementation(libs.google.gson)
   implementation(libs.hibernate.types)
   implementation(libs.jackson.dataformat.yaml)
-  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
+  implementation(libs.java.stellar.sdk)
   implementation(libs.jjwt)
   implementation(libs.log4j2.api)
   implementation(libs.log4j2.core)
@@ -55,8 +54,6 @@ dependencies {
 }
 
 tasks.test {
-  // Enable parallel test execution
-  systemProperty("junit.jupiter.execution.parallel.enabled", false)
   testLogging {
     exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     events = setOf(org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED)

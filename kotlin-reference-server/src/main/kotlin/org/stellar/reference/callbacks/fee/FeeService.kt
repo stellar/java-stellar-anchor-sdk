@@ -26,6 +26,10 @@ class FeeService(private val customerRepository: CustomerRepository) {
       throw BadRequestException("Receive asset must be provided")
     }
 
+    if (request.clientId == null) {
+      throw BadRequestException("Client id must be provided")
+    }
+
     if (request.sendAmount == null && request.receiveAmount == null) {
       throw BadRequestException("Either send or receive amount must be provided")
     }

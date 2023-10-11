@@ -9,8 +9,6 @@ public interface Sep24Config {
 
   Features getFeatures();
 
-  DepositInfoGeneratorType getDepositInfoGeneratorType();
-
   @Getter
   @Setter
   class Features {
@@ -19,11 +17,5 @@ public interface Sep24Config {
 
     @SerializedName("claimable_balances")
     Boolean claimableBalances;
-  }
-
-  enum DepositInfoGeneratorType {
-    SELF,
-    CUSTODY,
-    NONE
   }
 }
