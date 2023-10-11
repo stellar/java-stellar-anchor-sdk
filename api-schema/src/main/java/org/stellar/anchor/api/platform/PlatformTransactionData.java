@@ -122,6 +122,15 @@ public class PlatformTransactionData {
     public Integer getSep() {
       return sep;
     }
+
+    public static Sep from(String str) {
+      for (Sep sep : values()) {
+        if (sep.sep.toString().equals(str)) {
+          return sep;
+        }
+      }
+      throw new IllegalArgumentException("No matching constant for [" + str + "]");
+    }
   }
 
   public enum Kind {

@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run - All Servers - no Docker" type="JetRunConfigurationType">
     <envs>
-      <env name="sep24.enableTest" value="true" />
+      <env name="app.enableTest" value="true" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunAllServers" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />

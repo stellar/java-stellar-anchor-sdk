@@ -4,23 +4,17 @@ import io.mockk.*
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Order
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt
-import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
+import org.stellar.anchor.auth.ApiAuthJwt.*
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.util.AuthHeader
 
+@Order(86)
 class AuthHelperTest {
   companion object {
     const val JWT_EXPIRATION_MILLISECONDS: Long = 90000
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @ParameterizedTest
@@ -29,12 +23,12 @@ class AuthHelperTest {
     when (authType) {
       JWT -> {
         // Mock calendar to guarantee the jwt token format
+        mockkStatic(Calendar::class)
         val calendarSingleton = Calendar.getInstance()
         val currentTimeMilliseconds = calendarSingleton.timeInMillis
         mockkObject(calendarSingleton)
         every { calendarSingleton.timeInMillis } returns currentTimeMilliseconds
         every { calendarSingleton.timeInMillis = any() } answers { callOriginal() }
-        mockkStatic(Calendar::class)
         every { Calendar.getInstance() } returns calendarSingleton
 
         // mock jwt token based on the mocked calendar
@@ -48,8 +42,13 @@ class AuthHelperTest {
             currentTimeMilliseconds / 1000L,
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
+        val wantCustodyJwt =
+          CustodyAuthJwt(
+            currentTimeMilliseconds / 1000L,
+            (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
+          )
 
-        val jwtService = JwtService(null, null, null, "secret", "secret")
+        val jwtService = JwtService(null, null, null, "secret", "secret", "secret")
         val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
         val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()
         val wantPlatformAuthHeader =
@@ -59,6 +58,11 @@ class AuthHelperTest {
         val wantCallbackAuthHeader =
           AuthHeader("Authorization", "Bearer ${jwtService.encode(wantCallbackJwt)}")
         assertEquals(wantCallbackAuthHeader, gotCallbackAuthHeader)
+        val gotCustodyAuthHeader = authHelper.createCustodyAuthHeader()
+        val wantCustodyAuthHeader =
+          AuthHeader("Authorization", "Bearer ${jwtService.encode(wantCustodyJwt)}")
+        assertEquals(wantCustodyAuthHeader, gotCustodyAuthHeader)
+        unmockkStatic(Calendar::class)
       }
       API_KEY -> {
         val authHelper = AuthHelper.forApiKey("secret")
@@ -68,6 +72,9 @@ class AuthHelperTest {
         val gotCallbackAuthHeader = authHelper.createCallbackAuthHeader()
         val wantCallbackAuthHeader = AuthHeader("X-Api-Key", "secret")
         assertEquals(wantCallbackAuthHeader, gotCallbackAuthHeader)
+        val gotCustodyAuthHeader = authHelper.createCustodyAuthHeader()
+        val wantCustodyAuthHeader = AuthHeader("X-Api-Key", "secret")
+        assertEquals(wantCustodyAuthHeader, gotCustodyAuthHeader)
       }
       NONE -> {
         val authHelper = AuthHelper.forNone()
@@ -75,6 +82,8 @@ class AuthHelperTest {
         assertNull(platformAuthHeader)
         val callbackAuthHeader = authHelper.createCallbackAuthHeader()
         assertNull(callbackAuthHeader)
+        val custodyAuthHeader = authHelper.createCustodyAuthHeader()
+        assertNull(custodyAuthHeader)
       }
       else -> {
         throw Exception("Unsupported new AuthType!!!")

@@ -84,6 +84,7 @@ class Sep38Tests(config: TestConfig, toml: TomlContent, jwt: String) {
       )
     }
   }
+
   fun testAll() {
     println("Performing SEP38 tests...")
     `test sep38 info, price and prices endpoints`()
