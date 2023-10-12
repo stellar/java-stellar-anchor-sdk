@@ -8,7 +8,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.config.AppConfig
 import org.stellar.sdk.AssetTypeCreditAlphaNum
@@ -17,7 +16,6 @@ import org.stellar.sdk.requests.AccountsRequestBuilder
 import org.stellar.sdk.responses.AccountResponse
 import org.stellar.sdk.responses.AccountResponse.Balance
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class HorizonTest {
   companion object {
     const val TEST_HORIZON_URI = "https://horizon-testnet.stellar.org/"

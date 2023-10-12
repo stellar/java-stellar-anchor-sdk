@@ -45,10 +45,12 @@ dependencies {
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(project(":api-schema"))
+  implementation(project(":test-lib"))
 
   testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)
+  testImplementation(libs.coroutines.core)
 }
 
 publishing {
@@ -120,11 +122,13 @@ publishing {
 // TODO: when we enable parallelization for all sub-projects, we can extract the following block.
 tasks.test {
   // Enable parallel test execution
-  systemProperty("junit.jupiter.execution.parallel.enabled", false)
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  // Enable parallel test execution
+  systemProperty("junit.jupiter.testinstance.lifecycle.default", "per_method")
   // Allocate thread count based on available processors
   systemProperty("junit.jupiter.execution.parallel.config.strategy", "dynamic")
   // Set default parallel mode to same thread. All tests within a class are run in sequence.
-  systemProperty("junit.jupiter.execution.parallel.mode.default", "same_thread")
+  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
   // Set default parallel mode for classes to concurrent. All test classes are run in parallel.
   systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
 

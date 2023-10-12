@@ -6,7 +6,6 @@ import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.util.*
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -46,12 +45,6 @@ class Sep6ServiceTest {
     every { sep6Config.features.isAccountCreation } returns false
     every { sep6Config.features.isClaimableBalances } returns false
     sep6Service = Sep6Service(sep6Config, assetService, txnStore)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   private val infoJson =

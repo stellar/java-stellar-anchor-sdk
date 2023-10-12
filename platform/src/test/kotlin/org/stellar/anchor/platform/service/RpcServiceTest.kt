@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.service
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.mockkStatic
 import io.mockk.verify
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -16,6 +15,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.method.NotifyInteractiveFlowCompletedRequest
 import org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED
+import org.stellar.anchor.lockAndMockStatic
 import org.stellar.anchor.platform.config.RpcConfig
 import org.stellar.anchor.platform.rpc.RpcMethodHandler
 import org.stellar.anchor.platform.utils.RpcUtil
@@ -281,17 +281,18 @@ class RpcServiceTest {
 
   @Test
   fun `test handle internal exception`() {
-    val rpcRequest = RpcRequest.builder().build()
+    lockAndMockStatic(RpcUtil::class) {
+      // Given
+      val rpcRequest = RpcRequest.builder().build()
 
-    every { rpcConfig.batchSizeLimit } returns BATCH_SIZE_LIMIT
+      every { rpcConfig.batchSizeLimit } returns BATCH_SIZE_LIMIT
+      every { RpcUtil.validateRpcRequest(rpcRequest) } throws NullPointerException(ERROR_MSG)
 
-    mockkStatic(RpcUtil::class)
-    every { RpcUtil.validateRpcRequest(rpcRequest) } throws NullPointerException(ERROR_MSG)
+      // When
+      val response = rpcService.handle(listOf(rpcRequest))
 
-    val response = rpcService.handle(listOf(rpcRequest))
-
-    val expectedResponse =
-      """
+      val expectedResponse =
+        """
     [
       {
         "jsonrpc": "2.0",
@@ -302,26 +303,28 @@ class RpcServiceTest {
       }
     ]
     """
-        .trimIndent()
+          .trimIndent()
 
-    JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
+      // Then
+      JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
 
-    verify(exactly = 0) { rpcMethodHandler.handle(any()) }
+      verify(exactly = 0) { rpcMethodHandler.handle(any()) }
+    }
   }
 
   @Test
   fun `test handle bad request exception`() {
-    val rpcRequest = RpcRequest.builder().build()
+    lockAndMockStatic(RpcUtil::class) {
+      val rpcRequest = RpcRequest.builder().build()
 
-    every { rpcConfig.batchSizeLimit } returns BATCH_SIZE_LIMIT
+      every { rpcConfig.batchSizeLimit } returns BATCH_SIZE_LIMIT
 
-    mockkStatic(RpcUtil::class)
-    every { RpcUtil.validateRpcRequest(rpcRequest) } throws BadRequestException(ERROR_MSG)
+      every { RpcUtil.validateRpcRequest(rpcRequest) } throws BadRequestException(ERROR_MSG)
 
-    val response = rpcService.handle(listOf(rpcRequest))
+      val response = rpcService.handle(listOf(rpcRequest))
 
-    val expectedResponse =
-      """
+      val expectedResponse =
+        """
     [
       {
         "jsonrpc": "2.0",
@@ -332,11 +335,12 @@ class RpcServiceTest {
       }
     ]
     """
-        .trimIndent()
+          .trimIndent()
 
-    JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
+      JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
 
-    verify(exactly = 0) { rpcMethodHandler.handle(any()) }
+      verify(exactly = 0) { rpcMethodHandler.handle(any()) }
+    }
   }
 
   @Test

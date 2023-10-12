@@ -4,11 +4,8 @@ package org.stellar.anchor.sep1
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Order
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.config.Sep1Config
 import org.stellar.anchor.config.Sep1Config.TomlType.*
