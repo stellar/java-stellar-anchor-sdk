@@ -17,6 +17,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -74,6 +75,7 @@ fun `create httpClient`(): OkHttpClient {
     .build()
 }
 
+@Execution(SAME_THREAD)
 internal class Sep10ServiceTest {
   companion object {
     @JvmStatic
