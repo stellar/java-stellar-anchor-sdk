@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -33,6 +32,7 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
+import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep24Refunds
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
@@ -62,6 +62,8 @@ class NotifyRefundPendingHandlerTest {
 
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
+  @MockK(relaxed = true) private lateinit var metricsService: MetricsService
+
   @MockK(relaxed = true) private lateinit var eventSession: Session
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
@@ -79,7 +81,8 @@ class NotifyRefundPendingHandlerTest {
         txn31Store,
         requestValidator,
         assetService,
-        eventService
+        eventService,
+        metricsService
       )
   }
 
@@ -277,13 +280,11 @@ class NotifyRefundPendingHandlerTest {
     payment.amount = request.refund.amount.amount
     payment.fee = request.refund.amountFee.amount
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -392,13 +393,11 @@ class NotifyRefundPendingHandlerTest {
     refunds.payments = listOf(payment)
     txn24.refunds = refunds
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

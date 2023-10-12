@@ -27,6 +27,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
@@ -46,13 +47,15 @@ public class NotifyOnchainFundsReceivedHandler
       RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService,
-      EventService eventService) {
+      EventService eventService,
+      MetricsService metricsService) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
         eventService,
+        metricsService,
         NotifyOnchainFundsReceivedRequest.class);
     this.horizon = horizon;
   }

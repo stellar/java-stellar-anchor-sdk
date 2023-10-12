@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.service
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.util.*
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -80,12 +79,6 @@ class TransactionServiceTest {
         custodyService,
         custodyConfig
       )
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

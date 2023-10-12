@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -37,6 +36,7 @@ import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
+import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator
@@ -85,6 +85,8 @@ class RequestOnchainFundsHandlerTest {
 
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
+  @MockK(relaxed = true) private lateinit var metricsService: MetricsService
+
   @MockK(relaxed = true) private lateinit var eventSession: Session
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
@@ -105,7 +107,8 @@ class RequestOnchainFundsHandlerTest {
         custodyService,
         custodyConfig,
         sep24DepositInfoGenerator,
-        eventService
+        eventService,
+        metricsService
       )
   }
 
@@ -237,15 +240,13 @@ class RequestOnchainFundsHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { custodyConfig.type } returns NONE
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -329,7 +330,8 @@ class RequestOnchainFundsHandlerTest {
         custodyService,
         custodyConfig,
         sep24DepositInfoGenerator,
-        eventService
+        eventService,
+        metricsService
       )
 
     val request =
@@ -349,8 +351,6 @@ class RequestOnchainFundsHandlerTest {
     val anchorEventCapture = slot<AnchorEvent>()
     val depositInfo = SepDepositInfo(DESTINATION_ACCOUNT_2, TEXT_MEMO_2, TEXT_MEMO_TYPE)
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -359,7 +359,7 @@ class RequestOnchainFundsHandlerTest {
     every { sep24DepositInfoGenerator.generate(ofType(Sep24Transaction::class)) } returns
       depositInfo
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -453,8 +453,6 @@ class RequestOnchainFundsHandlerTest {
     val sep24CustodyTxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -462,7 +460,7 @@ class RequestOnchainFundsHandlerTest {
     every { custodyConfig.type } returns NONE
     every { custodyService.createTransaction(capture(sep24CustodyTxnCapture)) } just Runs
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -559,15 +557,13 @@ class RequestOnchainFundsHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { custodyConfig.type } returns NONE
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -663,15 +659,13 @@ class RequestOnchainFundsHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { custodyConfig.type } returns NONE
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -821,7 +815,8 @@ class RequestOnchainFundsHandlerTest {
         custodyService,
         custodyConfig,
         sep24DepositInfoGenerator,
-        eventService
+        eventService,
+        metricsService
       )
 
     val request =

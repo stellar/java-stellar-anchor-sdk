@@ -1,14 +1,17 @@
 package org.stellar.anchor.platform.custody
 
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Metrics
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.slot
+import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.apiclient.PlatformApiClient
+import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.config.RpcConfig
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
@@ -24,6 +27,8 @@ class Sep31CustodyPaymentHandlerTest {
 
   @MockK(relaxed = true) private lateinit var rpcConfig: RpcConfig
 
+  @MockK(relaxed = true) private lateinit var metricsService: MetricsService
+
   private lateinit var sep31CustodyPaymentHandler: Sep31CustodyPaymentHandler
 
   private val gson = GsonUtils.getInstance()
@@ -32,7 +37,12 @@ class Sep31CustodyPaymentHandlerTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     sep31CustodyPaymentHandler =
-      Sep31CustodyPaymentHandler(custodyTransactionRepo, platformApiClient, rpcConfig)
+      Sep31CustodyPaymentHandler(
+        custodyTransactionRepo,
+        platformApiClient,
+        rpcConfig,
+        metricsService
+      )
   }
 
   @Test
@@ -42,11 +52,10 @@ class Sep31CustodyPaymentHandlerTest {
     val payment = gson.fromJson(custodyPaymentWithId, CustodyPayment::class.java)
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
-    mockkStatic(Metrics::class)
 
     every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
-    every { Metrics.counter("payment.received", "asset", "testAmountInAsset") } returns
+    every { metricsService.counter("payment.received", "asset", "testAmountInAsset") } returns
       paymentReceivedCounter
 
     sep31CustodyPaymentHandler.onReceived(txn, payment)
@@ -75,14 +84,13 @@ class Sep31CustodyPaymentHandlerTest {
     val payment = gson.fromJson(custodyPaymentWithId, CustodyPayment::class.java)
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
-    mockkStatic(Metrics::class)
 
     every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
 
     sep31CustodyPaymentHandler.onReceived(txn, payment)
 
-    verify(exactly = 0) { Metrics.counter("payment.sent", any(), any()) }
+    verify(exactly = 0) { metricsService.counter("payment.sent", any(), any()) }
     verify(exactly = 1) {
       platformApiClient.notifyRefundSent(
         txn.id,
@@ -107,14 +115,13 @@ class Sep31CustodyPaymentHandlerTest {
     val payment = gson.fromJson(custodyPaymentWithIdError, CustodyPayment::class.java)
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
-    mockkStatic(Metrics::class)
 
     every { rpcConfig.customMessages.custodyTransactionFailed } returns "payment failed"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
 
     sep31CustodyPaymentHandler.onReceived(txn, payment)
 
-    verify(exactly = 0) { Metrics.counter("payment.received", any(), any()) }
+    verify(exactly = 0) { metricsService.counter("payment.received", any(), any()) }
     verify(exactly = 1) { platformApiClient.notifyTransactionError(txn.id, "payment failed") }
 
     JSONAssert.assertEquals(
@@ -130,11 +137,9 @@ class Sep31CustodyPaymentHandlerTest {
       gson.fromJson(custodyTransactionInputSep31ReceivePayment, JdbcCustodyTransaction::class.java)
     val payment = gson.fromJson(custodyPaymentWithId, CustodyPayment::class.java)
 
-    mockkStatic(Metrics::class)
-
     sep31CustodyPaymentHandler.onSent(txn, payment)
 
-    verify(exactly = 0) { Metrics.counter("payment.sent", any(), any()) }
+    verify(exactly = 0) { metricsService.counter("payment.sent", any(), any()) }
     verify(exactly = 0) { custodyTransactionRepo.save(any()) }
   }
 

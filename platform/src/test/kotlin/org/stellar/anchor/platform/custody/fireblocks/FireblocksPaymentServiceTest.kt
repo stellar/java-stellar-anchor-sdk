@@ -9,10 +9,9 @@ import kotlin.test.assertEquals
 import org.apache.commons.lang3.StringUtils
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasEntry
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.FireblocksException
@@ -20,6 +19,8 @@ import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.util.GsonUtils
 
+@Execution(ExecutionMode.CONCURRENT)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 class FireblocksPaymentServiceTest {
 
   companion object {
@@ -155,8 +156,8 @@ class FireblocksPaymentServiceTest {
     every { fireblocksClient.get(capture(urlCapture), capture(queryParamsCapture)) } returns
       twoTransactionsResponse
 
-    val startTime = Instant.now().minusSeconds(5)
     val endTime = Instant.now()
+    val startTime = endTime.minusSeconds(5)
     val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
 
     Assertions.assertEquals("/v1/transactions", urlCapture.captured)
@@ -173,7 +174,7 @@ class FireblocksPaymentServiceTest {
 
   @Test
   fun `getTransactionsByTimeRange select number of items equal to limit`() {
-    FireblocksPaymentService.TRANSACTIONS_LIMIT = 2
+    fireblocksPaymentService.transactionLimit = 2
     val startTime = Instant.now().minusSeconds(5)
     val endTime = Instant.now()
 
@@ -181,7 +182,7 @@ class FireblocksPaymentServiceTest {
       mapOf(
         "after" to startTime.toEpochMilli().toString(),
         "before" to endTime.toEpochMilli().toString(),
-        "limit" to FireblocksPaymentService.TRANSACTIONS_LIMIT.toString(),
+        "limit" to fireblocksPaymentService.transactionLimit.toString(),
         "orderBy" to "createdAt",
         "sort" to "ASC"
       )
@@ -192,7 +193,7 @@ class FireblocksPaymentServiceTest {
       mapOf(
         "after" to maxCreatedTime.toString(),
         "before" to endTime.toEpochMilli().toString(),
-        "limit" to FireblocksPaymentService.TRANSACTIONS_LIMIT.toString(),
+        "limit" to fireblocksPaymentService.transactionLimit.toString(),
         "orderBy" to "createdAt",
         "sort" to "ASC"
       )
@@ -201,12 +202,12 @@ class FireblocksPaymentServiceTest {
     val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
 
     JSONAssert.assertEquals(twoTransactionsResponse, gson.toJson(response), JSONCompareMode.STRICT)
-    FireblocksPaymentService.TRANSACTIONS_LIMIT = 500
+    fireblocksPaymentService.transactionLimit = 500
   }
 
   @Test
   fun `getTransactionsByTimeRange select more than limit`() {
-    FireblocksPaymentService.TRANSACTIONS_LIMIT = 2
+    fireblocksPaymentService.transactionLimit = 2
     val startTime = Instant.now().minusSeconds(5)
     val endTime = Instant.now()
 
@@ -214,7 +215,7 @@ class FireblocksPaymentServiceTest {
       mapOf(
         "after" to startTime.toEpochMilli().toString(),
         "before" to endTime.toEpochMilli().toString(),
-        "limit" to FireblocksPaymentService.TRANSACTIONS_LIMIT.toString(),
+        "limit" to fireblocksPaymentService.transactionLimit.toString(),
         "orderBy" to "createdAt",
         "sort" to "ASC"
       )
@@ -225,7 +226,7 @@ class FireblocksPaymentServiceTest {
       mapOf(
         "after" to maxCreatedTime.toString(),
         "before" to endTime.toEpochMilli().toString(),
-        "limit" to FireblocksPaymentService.TRANSACTIONS_LIMIT.toString(),
+        "limit" to fireblocksPaymentService.transactionLimit.toString(),
         "orderBy" to "createdAt",
         "sort" to "ASC"
       )
@@ -234,7 +235,7 @@ class FireblocksPaymentServiceTest {
     val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
     assertEquals(3, response.size)
 
-    FireblocksPaymentService.TRANSACTIONS_LIMIT = 500
+    fireblocksPaymentService.transactionLimit = 500
   }
 
   @Test
@@ -244,6 +245,8 @@ class FireblocksPaymentServiceTest {
 
     val ex =
       assertThrows<IllegalArgumentException> {
+        println("44444444444444444")
+
         fireblocksPaymentService.getTransactionsByTimeRange(endTime, startTime)
       }
     assertEquals("End time can't be before start time", ex.message)

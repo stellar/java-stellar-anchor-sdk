@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.utils
 
 import io.mockk.*
 import javax.servlet.FilterChain
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.mock.web.MockHttpServletRequest
@@ -21,12 +20,6 @@ class RequestLoggerFilterTest {
     request = MockHttpServletRequest()
     response = MockHttpServletResponse()
     filterChain = mockk<FilterChain>(relaxed = true)
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

@@ -28,6 +28,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
@@ -53,13 +54,15 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       CustodyService custodyService,
       CustodyConfig custodyConfig,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
-      EventService eventService) {
+      EventService eventService,
+      MetricsService metricsService) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
         eventService,
+        metricsService,
         RequestOnchainFundsRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;

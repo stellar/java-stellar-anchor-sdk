@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -27,6 +26,7 @@ import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.Session
+import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -51,6 +51,8 @@ class NotifyCustomerInfoUpdatedHandlerTest {
 
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
+  @MockK(relaxed = true) private lateinit var metricsService: MetricsService
+
   @MockK(relaxed = true) private lateinit var eventSession: Session
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
@@ -68,7 +70,8 @@ class NotifyCustomerInfoUpdatedHandlerTest {
         txn31Store,
         requestValidator,
         assetService,
-        eventService
+        eventService,
+        metricsService
       )
   }
 
@@ -141,13 +144,11 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
     every { txn31Store.save(capture(sep31TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep31") } returns
+    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep31") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

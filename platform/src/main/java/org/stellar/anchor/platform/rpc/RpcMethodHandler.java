@@ -11,7 +11,6 @@ import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetT
 import static org.stellar.anchor.util.MetricConstants.*;
 
 import com.google.gson.Gson;
-import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
@@ -29,6 +28,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.Session;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -46,6 +46,7 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
   protected final Sep31TransactionStore txn31Store;
   protected final AssetService assetService;
   private final RequestValidator requestValidator;
+  private final MetricsService metricsService;
   private final Class<T> requestType;
   private final Session eventSession;
 
@@ -55,11 +56,13 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
       RequestValidator requestValidator,
       AssetService assetService,
       EventService eventService,
+      MetricsService metricsService,
       Class<T> requestType) {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.requestValidator = requestValidator;
     this.assetService = assetService;
+    this.metricsService = metricsService;
     this.requestType = requestType;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
   }
@@ -191,10 +194,10 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
   private void updateMetrics(JdbcSepTransaction txn) {
     switch (Sep.from(txn.getProtocol())) {
       case SEP_24:
-        Metrics.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP24).increment();
+        metricsService.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP24).increment();
         break;
       case SEP_31:
-        Metrics.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP31).increment();
+        metricsService.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP31).increment();
         break;
     }
   }

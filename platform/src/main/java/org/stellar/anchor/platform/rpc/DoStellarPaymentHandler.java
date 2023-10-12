@@ -25,6 +25,7 @@ import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrust;
@@ -49,6 +50,7 @@ public class DoStellarPaymentHandler extends RpcMethodHandler<DoStellarPaymentRe
       AssetService assetService,
       CustodyService custodyService,
       EventService eventService,
+      MetricsService metricsService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     super(
         txn24Store,
@@ -56,6 +58,7 @@ public class DoStellarPaymentHandler extends RpcMethodHandler<DoStellarPaymentRe
         requestValidator,
         assetService,
         eventService,
+        metricsService,
         DoStellarPaymentRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
