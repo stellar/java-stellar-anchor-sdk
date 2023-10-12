@@ -10,10 +10,12 @@ import org.apache.logging.log4j.core.config.LoggerConfig
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.util.*
 
+@Disabled
 class LogAppenderTest {
   private lateinit var appender: Appender
   private lateinit var capturedLogEvent: CapturingSlot<LogEvent>

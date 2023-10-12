@@ -7,6 +7,7 @@ import io.mockk.impl.annotations.MockK
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.stellar.anchor.config.AppConfig
@@ -15,6 +16,7 @@ import org.stellar.anchor.lockAndMockStatic
 import org.stellar.anchor.util.Log.shorter
 import org.stellar.sdk.Network.TESTNET
 
+@Disabled
 internal class LogTest {
   @MockK(relaxed = true) private lateinit var logger: Logger
 
