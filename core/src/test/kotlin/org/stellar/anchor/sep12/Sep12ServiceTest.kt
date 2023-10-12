@@ -90,8 +90,6 @@ class Sep12ServiceTest {
     sep12Service = Sep12Service(customerIntegration, assetService)
   }
 
-  @AfterEach fun tearDown() {}
-
   @Test
   fun `test validate request and token accounts`() {
     val mockRequestBase = mockk<Sep12CustomerRequestBase>(relaxed = true)

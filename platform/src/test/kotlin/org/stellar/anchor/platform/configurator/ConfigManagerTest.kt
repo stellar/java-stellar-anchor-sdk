@@ -72,8 +72,6 @@ class ConfigManagerTestExt {
     MockKAnnotations.init(this, relaxUnitFun = true)
   }
 
-  @AfterEach fun teardown() {}
-
   fun `add default config mocks`() {
     configManager = spyk(ConfigManager.getInstance())
 

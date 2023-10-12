@@ -22,8 +22,6 @@ internal class NoneFilterTest {
     this.mockFilterChain = mockk(relaxed = true)
   }
 
-  @AfterEach fun teardown() {}
-
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE", "OPTIONS"])
   fun `test NoneFilter works without Authorization header`(method: String) {
