@@ -116,13 +116,15 @@ public class RequestValidator {
   }
 
   /**
-   * Validates that the authenticated account has been KYC'ed by the anchor.
+   * Validates that the authenticated account has been KYC'ed by the anchor and returns its SEP-12
+   * customer ID.
    *
    * @param sep10Account the authenticated account
    * @param sep10AccountMemo the authenticated account memo
    * @throws AnchorException if the account has not been KYC'ed
+   * @return the SEP-12 customer ID if the account has been KYC'ed
    */
-  public void validateKyc(String sep10Account, String sep10AccountMemo) throws AnchorException {
+  public String validateKyc(String sep10Account, String sep10AccountMemo) throws AnchorException {
     GetCustomerRequest request =
         sep10AccountMemo != null
             ? GetCustomerRequest.builder()
@@ -151,5 +153,7 @@ public class RequestValidator {
         throw new ServerErrorException(
             String.format("unknown customer status: %s", response.getStatus()));
     }
+
+    return response.getId();
   }
 }

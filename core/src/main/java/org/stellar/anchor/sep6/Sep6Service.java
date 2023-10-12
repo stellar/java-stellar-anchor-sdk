@@ -76,7 +76,7 @@ public class Sep6Service {
           asset.getDeposit().getMaxAmount());
     }
     requestValidator.validateAccount(request.getAccount());
-    requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
+    String customerId = requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
 
     Memo memo = makeMemo(request.getMemo(), request.getMemoType());
     String id = SepHelper.generateSepTransactionId();
@@ -94,7 +94,8 @@ public class Sep6Service {
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
-            .toAccount(request.getAccount());
+            .toAccount(request.getAccount())
+            .customer(customerId);
 
     if (memo != null) {
       builder.memo(memo.toString());
@@ -143,7 +144,7 @@ public class Sep6Service {
         buyAsset.getDeposit().getMinAmount(),
         buyAsset.getDeposit().getMaxAmount());
     requestValidator.validateAccount(request.getAccount());
-    requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
+    String customerId = requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
 
     ExchangeAmountsCalculator.Amounts amounts;
     if (request.getQuoteId() != null) {
@@ -180,7 +181,8 @@ public class Sep6Service {
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(request.getAccount())
-            .quoteId(request.getQuoteId());
+            .quoteId(request.getQuoteId())
+            .customer(customerId);
 
     if (memo != null) {
       builder.memo(memo.toString());
@@ -229,7 +231,7 @@ public class Sep6Service {
     }
     String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
     requestValidator.validateAccount(sourceAccount);
-    requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
+    String customerId = requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
 
     String id = SepHelper.generateSepTransactionId();
 
@@ -251,7 +253,8 @@ public class Sep6Service {
             .fromAccount(sourceAccount)
             .withdrawAnchorAccount(asset.getDistributionAccount())
             .refundMemo(request.getRefundMemo())
-            .refundMemoType(request.getRefundMemoType());
+            .refundMemoType(request.getRefundMemoType())
+            .customer(customerId);
 
     Sep6Transaction txn = builder.build();
     txnStore.save(txn);
@@ -299,7 +302,7 @@ public class Sep6Service {
         sellAsset.getWithdraw().getMaxAmount());
     String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
     requestValidator.validateAccount(sourceAccount);
-    requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
+    String customerId = requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
 
     String id = SepHelper.generateSepTransactionId();
 
@@ -339,7 +342,8 @@ public class Sep6Service {
             .withdrawAnchorAccount(sellAsset.getDistributionAccount())
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType())
-            .quoteId(request.getQuoteId());
+            .quoteId(request.getQuoteId())
+            .customer(customerId);
 
     Sep6Transaction txn = builder.build();
     txnStore.save(txn);

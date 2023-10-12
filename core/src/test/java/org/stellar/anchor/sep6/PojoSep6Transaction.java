@@ -49,4 +49,5 @@ public class PojoSep6Transaction implements Sep6Transaction {
   String requiredCustomerInfoMessage;
   List<String> requiredCustomerInfoUpdates;
   Map<String, InstructionField> instructions;
+  String customer;
 }

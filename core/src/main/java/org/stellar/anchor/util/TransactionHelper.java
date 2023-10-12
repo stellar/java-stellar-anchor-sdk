@@ -11,9 +11,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.RefundPayment;
-import org.stellar.anchor.api.shared.Refunds;
+import org.stellar.anchor.api.shared.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
@@ -95,6 +93,7 @@ public class TransactionHelper {
     String amountOutAsset = makeAsset(txn.getAmountOutAsset(), assetService, txn);
     String amountFeeAsset = makeAsset(txn.getAmountFeeAsset(), assetService, txn);
     String amountExpectedAsset = makeAsset(null, assetService, txn);
+    StellarId customer = StellarId.builder().id(txn.getCustomer()).build();
 
     return GetTransactionResponse.builder()
         .id(txn.getId())
@@ -124,6 +123,7 @@ public class TransactionHelper {
         .requiredCustomerInfoMessage(txn.getRequiredCustomerInfoMessage())
         .requiredCustomerInfoUpdates(txn.getRequiredCustomerInfoUpdates())
         .instructions(txn.getInstructions())
+        .customers(Customers.builder().sender(customer).receiver(customer).build())
         .build();
   }
 

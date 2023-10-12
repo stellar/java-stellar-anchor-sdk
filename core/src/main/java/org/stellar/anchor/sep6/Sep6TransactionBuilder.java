@@ -199,6 +199,11 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
+  public Sep6TransactionBuilder customer(String customer) {
+    txn.setCustomer(customer);
+    return this;
+  }
+
   public Sep6Transaction build() {
     return txn;
   }

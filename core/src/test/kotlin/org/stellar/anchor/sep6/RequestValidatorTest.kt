@@ -163,6 +163,16 @@ class RequestValidatorTest {
   }
 
   @Test
+  fun `test validateKyc`() {
+    every {
+      customerIntegration.getCustomer(
+        GetCustomerRequest.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).memoType("id").build()
+      )
+    } returns GetCustomerResponse.builder().id("123").status(Sep12Status.ACCEPTED.name).build()
+    assertEquals("123", requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO))
+  }
+
+  @Test
   fun `test validateKyc customerIntegration failure`() {
     every {
       customerIntegration.getCustomer(
@@ -228,7 +238,7 @@ class RequestValidatorTest {
   fun `test validateKyc without memo`() {
     every {
       customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
-    } returns GetCustomerResponse.builder().status(Sep12Status.ACCEPTED.name).build()
-    requestValidator.validateKyc(TEST_ACCOUNT, null)
+    } returns GetCustomerResponse.builder().id("123").status(Sep12Status.ACCEPTED.name).build()
+    assertEquals("123", requestValidator.validateKyc(TEST_ACCOUNT, null))
   }
 }
