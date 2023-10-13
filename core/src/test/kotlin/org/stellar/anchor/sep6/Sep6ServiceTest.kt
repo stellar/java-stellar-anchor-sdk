@@ -15,6 +15,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
+import org.stellar.anchor.TestConstants.Companion.TEST_CUSTOMER_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_QUOTE_ID
 import org.stellar.anchor.TestHelper
@@ -58,6 +59,7 @@ class Sep6ServiceTest {
     every { eventService.createSession(any(), any()) } returns eventSession
     every { requestValidator.getDepositAsset(TEST_ASSET) } returns asset
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns asset
+    every { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) } returns TEST_CUSTOMER_ID
     sep6Service =
       Sep6Service(
         sep6Config,

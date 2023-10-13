@@ -362,6 +362,15 @@ public interface Sep6Transaction extends SepTransaction {
 
   void setInstructions(Map<String, InstructionField> instructions);
 
+  /**
+   * The SEP-12 customer ID of the user initiating the transaction.
+   *
+   * @return the customer ID.
+   */
+  String getCustomer();
+
+  void setCustomer(String customer);
+
   enum Kind {
     DEPOSIT("deposit"),
     WITHDRAWAL("withdrawal"),

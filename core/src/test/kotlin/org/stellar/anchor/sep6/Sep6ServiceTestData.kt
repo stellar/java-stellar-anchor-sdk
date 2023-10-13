@@ -168,7 +168,8 @@ class Sep6ServiceTestData {
           "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "customer": "test-customer-id"
       }
     """
         .trimIndent()
@@ -186,7 +187,11 @@ class Sep6ServiceTestData {
                   "amount": "100",
                   "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
               },
-              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+              "customers": {
+                  "sender": { "id": "test-customer-id" },
+                  "receiver": { "id": "test-customer-id" }
+              }
           }
       }
     """
@@ -200,7 +205,8 @@ class Sep6ServiceTestData {
           "requestAssetCode": "USDC",
           "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "customer": "test-customer-id"
       }
     """
         .trimIndent()
@@ -214,7 +220,11 @@ class Sep6ServiceTestData {
               "sep": "6",
               "kind": "deposit",
               "status": "incomplete",
-              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+              "customers": {
+                  "sender": { "id": "test-customer-id" },
+                  "receiver": { "id": "test-customer-id" }
+              }
           }
       }
     """
@@ -237,7 +247,8 @@ class Sep6ServiceTestData {
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-          "quoteId": "test-quote-id"
+          "quoteId": "test-quote-id",
+          "customer": "test-customer-id"
       }
     """
         .trimIndent()
@@ -268,7 +279,11 @@ class Sep6ServiceTestData {
                   "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
               },
               "quote_id": "test-quote-id",
-              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+              "customers": {
+                  "sender": { "id": "test-customer-id" },
+                  "receiver": { "id": "test-customer-id" }
+              }
           }
       }
     """
@@ -290,7 +305,8 @@ class Sep6ServiceTestData {
           "amountFeeAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "customer": "test-customer-id"
       }
     """
         .trimIndent()
@@ -320,7 +336,11 @@ class Sep6ServiceTestData {
                   "amount": "2",
                   "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
               },
-              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+              "customers": {
+                  "sender": { "id": "test-customer-id" },
+                  "receiver": { "id": "test-customer-id" }
+              }
           }
       }
     """
@@ -349,7 +369,8 @@ class Sep6ServiceTestData {
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "memoType": "hash",
           "refundMemo": "some text",
-          "refundMemoType": "text"
+          "refundMemoType": "text",
+          "customer": "test-customer-id"
       }
     """
         .trimIndent()
@@ -370,7 +391,11 @@ class Sep6ServiceTestData {
               "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
               "memo_type": "hash",
               "refund_memo": "some text",
-              "refund_memo_type": "text"
+              "refund_memo_type": "text",
+              "customers": {
+                  "sender": { "id": "test-customer-id" },
+                  "receiver": { "id": "test-customer-id" }
+              }
           }
       }
     """
@@ -388,7 +413,8 @@ class Sep6ServiceTestData {
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "memoType": "hash",
           "refundMemo": "some text",
-          "refundMemoType": "text"
+          "refundMemoType": "text",
+          "customer": "test-customer-id"
       }
     """
         .trimIndent()
@@ -405,7 +431,11 @@ class Sep6ServiceTestData {
               "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
               "memo_type": "hash",
               "refund_memo": "some text",
-              "refund_memo_type": "text"
+              "refund_memo_type": "text",
+              "customers": {
+                  "sender": { "id": "test-customer-id" },
+                  "receiver": { "id": "test-customer-id" }
+              }
           }
       }
     """
@@ -432,7 +462,8 @@ class Sep6ServiceTestData {
           "memoType": "hash",
           "quoteId": "test-quote-id",
           "refundMemo": "some text",
-          "refundMemoType": "text"
+          "refundMemoType": "text",
+          "customer": "test-customer-id"
       }
     """
         .trimIndent()
@@ -466,7 +497,11 @@ class Sep6ServiceTestData {
               "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
               "memo_type": "hash",
               "refund_memo": "some text",
-              "refund_memo_type": "text"
+              "refund_memo_type": "text",
+              "customers": {
+                  "sender": { "id": "test-customer-id" },
+                  "receiver": { "id": "test-customer-id" }
+              }
           }
       }
     """
@@ -492,7 +527,8 @@ class Sep6ServiceTestData {
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "memoType": "hash",
           "refundMemo": "some text",
-          "refundMemoType": "text"
+          "refundMemoType": "text",
+          "customer": "test-customer-id"
       }
     """
         .trimIndent()
@@ -525,7 +561,11 @@ class Sep6ServiceTestData {
               "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
               "memo_type": "hash",
               "refund_memo": "some text",
-              "refund_memo_type": "text"
+              "refund_memo_type": "text",
+              "customers": {
+                  "sender": { "id": "test-customer-id" },
+                  "receiver": { "id": "test-customer-id" }
+              }
           }
       }
     """
