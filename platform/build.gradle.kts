@@ -57,7 +57,6 @@ dependencies {
 
 tasks.test {
   // Enable parallel test execution
-  // Enable parallel test execution
   systemProperty("junit.jupiter.execution.parallel.enabled", true)
   // Enable parallel test execution
   systemProperty("junit.jupiter.testinstance.lifecycle.default", "per_method")

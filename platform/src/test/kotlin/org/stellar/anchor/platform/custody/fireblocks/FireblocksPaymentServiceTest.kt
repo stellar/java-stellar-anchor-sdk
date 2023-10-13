@@ -10,8 +10,6 @@ import org.apache.commons.lang3.StringUtils
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasEntry
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.FireblocksException
@@ -19,8 +17,6 @@ import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.util.GsonUtils
 
-@Execution(ExecutionMode.CONCURRENT)
-@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 class FireblocksPaymentServiceTest {
 
   companion object {
@@ -245,8 +241,6 @@ class FireblocksPaymentServiceTest {
 
     val ex =
       assertThrows<IllegalArgumentException> {
-        println("44444444444444444")
-
         fireblocksPaymentService.getTransactionsByTimeRange(endTime, startTime)
       }
     assertEquals("End time can't be before start time", ex.message)

@@ -50,18 +50,28 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
   private static final String QUERY_PARAM_SORT = "sort";
   private static final String TRANSACTIONS_ORDER_BY = "createdAt";
   private static final String TRANSACTIONS_SORT = "ASC";
-  private static final int TRANSACTION_LIMIT = 500;
+  private static final int DEFAULT_TRANSACTION_LIMIT = 500;
 
   private final FireblocksApiClient fireblocksApiClient;
   private final FireblocksConfig fireblocksConfig;
   private final Type transactionDetailsListType;
-  private int transactionLimit = TRANSACTION_LIMIT;
+  private int transactionLimit = DEFAULT_TRANSACTION_LIMIT;
 
   public FireblocksPaymentService(
       FireblocksApiClient fireblocksApiClient, FireblocksConfig fireblocksConfig) {
     this.fireblocksApiClient = fireblocksApiClient;
     this.fireblocksConfig = fireblocksConfig;
     this.transactionDetailsListType = new TypeToken<ArrayList<TransactionDetails>>() {}.getType();
+  }
+
+  public FireblocksPaymentService(
+      FireblocksApiClient fireblocksApiClient,
+      FireblocksConfig fireblocksConfig,
+      int transactionLimit) {
+    this.fireblocksApiClient = fireblocksApiClient;
+    this.fireblocksConfig = fireblocksConfig;
+    this.transactionDetailsListType = new TypeToken<ArrayList<TransactionDetails>>() {}.getType();
+    this.transactionLimit = transactionLimit;
   }
 
   /**
@@ -128,8 +138,6 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
         fireblocksApiClient.get(String.format(GET_TRANSACTION_BY_ID_URL_FORMAT, txnId)),
         TransactionDetails.class);
   }
-
-  int counter = 0;
 
   @Override
   public List<TransactionDetails> getTransactionsByTimeRange(Instant startTime, Instant endTime)
