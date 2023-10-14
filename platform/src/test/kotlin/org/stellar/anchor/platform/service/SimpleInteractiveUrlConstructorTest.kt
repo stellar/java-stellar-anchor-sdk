@@ -20,6 +20,7 @@ import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerResponse
 import org.stellar.anchor.api.exception.SepValidationException
+import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
@@ -46,6 +47,7 @@ class SimpleInteractiveUrlConstructorTest {
   @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig
   @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
+  @MockK(relaxed = true) private lateinit var testAsset: AssetInfo
 
   private lateinit var jwtService: JwtService
   private lateinit var sep24Config: PropertySep24Config
@@ -85,6 +87,8 @@ class SimpleInteractiveUrlConstructorTest {
         false,
         null
       )
+    every { testAsset.assetName } returns
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
 
     jwtService = JwtService(secretConfig, custodySecretConfig)
     sep24Config = gson.fromJson(SEP24_CONFIG_JSON_1, PropertySep24Config::class.java)
@@ -103,7 +107,9 @@ class SimpleInteractiveUrlConstructorTest {
       SimpleInteractiveUrlConstructor(clientsConfig, testConfig, customerIntegration, jwtService)
 
     var jwt =
-      parseJwtFromUrl(constructor.construct(testTxn, testRequest as HashMap<String, String>?))
+      parseJwtFromUrl(
+        constructor.construct(testTxn, testRequest as HashMap<String, String>?, testAsset)
+      )
     testJwt(jwt)
     var claims = jwt.claims
     assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO:1234", jwt.sub)
@@ -113,7 +119,7 @@ class SimpleInteractiveUrlConstructorTest {
     // Unknown client domain
     testTxn.sep10AccountMemo = null
     testTxn.clientDomain = "unknown.com"
-    jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest))
+    jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest, testAsset))
     claims = jwt.claims
     testJwt(jwt)
     assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO", jwt.sub)
@@ -124,7 +130,7 @@ class SimpleInteractiveUrlConstructorTest {
     testTxn.sep10Account = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     testTxn.sep10AccountMemo = "1234"
     testTxn.clientDomain = null
-    jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest))
+    jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest, testAsset))
     claims = jwt.claims
     testJwt(jwt)
     assertEquals("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP:1234", jwt.sub)
@@ -143,7 +149,7 @@ class SimpleInteractiveUrlConstructorTest {
 
     testTxn.clientDomain = null
     assertThrows<SepValidationException> {
-      constructor.construct(testTxn, testRequest as HashMap<String, String>?)
+      constructor.construct(testTxn, testRequest as HashMap<String, String>?, testAsset)
     }
   }
 
@@ -156,7 +162,7 @@ class SimpleInteractiveUrlConstructorTest {
     val constructor =
       SimpleInteractiveUrlConstructor(clientsConfig, sep24Config, customerIntegration, jwtService)
     sep24Config.kycFieldsForwarding.isEnabled = true
-    constructor.construct(txn, request as HashMap<String, String>?)
+    constructor.construct(txn, request as HashMap<String, String>?, testAsset)
     assertEquals(capturedPutCustomerRequest.captured.type, FORWARD_KYC_CUSTOMER_TYPE)
     assertEquals(capturedPutCustomerRequest.captured.firstName, request.get("first_name"))
     assertEquals(capturedPutCustomerRequest.captured.lastName, request.get("last_name"))
@@ -169,7 +175,7 @@ class SimpleInteractiveUrlConstructorTest {
     val constructor =
       SimpleInteractiveUrlConstructor(clientsConfig, sep24Config, customerIntegration, jwtService)
     sep24Config.kycFieldsForwarding.isEnabled = false
-    constructor.construct(txn, request as HashMap<String, String>?)
+    constructor.construct(txn, request as HashMap<String, String>?, testAsset)
     verify(exactly = 0) { customerIntegration.putCustomer(any()) }
   }
 
