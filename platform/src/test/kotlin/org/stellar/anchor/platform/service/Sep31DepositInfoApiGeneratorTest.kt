@@ -3,11 +3,8 @@
 package org.stellar.anchor.platform.service
 
 import io.mockk.MockKAnnotations
-import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.unmockkAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
@@ -38,12 +35,6 @@ class Sep31DepositInfoApiGeneratorTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     paymentObservingAccountsManager = PaymentObservingAccountsManager(paymentObservingAccountStore)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @ParameterizedTest

@@ -19,6 +19,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -35,13 +36,15 @@ public class RequestTrustlineHandler extends RpcMethodHandler<RequestTrustReques
       RequestValidator requestValidator,
       AssetService assetService,
       CustodyConfig custodyConfig,
-      EventService eventService) {
+      EventService eventService,
+      MetricsService metricsService) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
         eventService,
+        metricsService,
         RequestTrustRequest.class);
     this.custodyConfig = custodyConfig;
   }

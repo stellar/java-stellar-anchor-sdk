@@ -13,6 +13,7 @@ import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.CustodyAuthJwtFilter;
 import org.stellar.anchor.filter.NoneFilter;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.config.RpcConfig;
@@ -61,16 +62,20 @@ public class CustodyBeans {
   Sep24CustodyPaymentHandler sep24CustodyPaymentHandler(
       JdbcCustodyTransactionRepo custodyTransactionRepo,
       PlatformApiClient platformApiClient,
-      RpcConfig rpcConfig) {
-    return new Sep24CustodyPaymentHandler(custodyTransactionRepo, platformApiClient, rpcConfig);
+      RpcConfig rpcConfig,
+      MetricsService metricsService) {
+    return new Sep24CustodyPaymentHandler(
+        custodyTransactionRepo, platformApiClient, rpcConfig, metricsService);
   }
 
   @Bean
   Sep31CustodyPaymentHandler sep31CustodyPaymentHandler(
       JdbcCustodyTransactionRepo custodyTransactionRepo,
       PlatformApiClient platformApiClient,
-      RpcConfig rpcConfig) {
-    return new Sep31CustodyPaymentHandler(custodyTransactionRepo, platformApiClient, rpcConfig);
+      RpcConfig rpcConfig,
+      MetricsService metricsService) {
+    return new Sep31CustodyPaymentHandler(
+        custodyTransactionRepo, platformApiClient, rpcConfig, metricsService);
   }
 
   @Bean(name = "custodyHttpClient")
