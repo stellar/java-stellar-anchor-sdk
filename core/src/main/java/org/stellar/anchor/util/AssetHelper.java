@@ -51,28 +51,6 @@ public class AssetHelper {
   }
 
   /**
-   * Returns the asset id in the SEP-38 asset identification format, or null if the asset is not
-   * supported.
-   *
-   * @param assetCode The asset code
-   * @param assetIssuer The asset issuer
-   * @return The asset id in the SEP-38 asset identification format.
-   */
-  public static String getAssetId(String assetCode, String assetIssuer) {
-    if (isISO4217(assetCode, assetIssuer)) {
-      // fiat assets
-      return "iso4217:" + assetCode;
-    } else if (isNativeAsset(assetCode, assetIssuer)) {
-      return "stellar:native";
-    } else if (isNonNativeAsset(assetCode, assetIssuer)) {
-      return "stellar:" + assetCode + ":" + assetIssuer;
-    } else {
-      // not supported
-      return null;
-    }
-  }
-
-  /**
    * Returns the asset code from asset
    *
    * @param asset asset

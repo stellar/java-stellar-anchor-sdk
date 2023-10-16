@@ -98,7 +98,7 @@ internal class Sep24ServiceTest {
     jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
     testInteractiveUrlJwt = createTestInteractiveJwt(TEST_ACCOUNT, null)
     val strToken = jwtService.encode(testInteractiveUrlJwt)
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    every { interactiveUrlConstructor.construct(any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     every { moreInfoUrlConstructor.construct(any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
@@ -122,7 +122,7 @@ internal class Sep24ServiceTest {
   @Test
   fun `test withdraw`() {
     val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, null))
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    every { interactiveUrlConstructor.construct(any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
 
     val slotTxn = slot<Sep24Transaction>()
@@ -166,7 +166,7 @@ internal class Sep24ServiceTest {
   @Test
   fun `test withdraw with token memo`() {
     val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, TEST_MEMO))
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    every { interactiveUrlConstructor.construct(any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     val slotTxn = slot<Sep24Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
@@ -251,7 +251,7 @@ internal class Sep24ServiceTest {
   @ValueSource(strings = ["true", "false"])
   fun `test deposit`(claimableBalanceSupported: String) {
     val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, null))
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    every { interactiveUrlConstructor.construct(any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
 
     val slotTxn = slot<Sep24Transaction>()
@@ -279,7 +279,7 @@ internal class Sep24ServiceTest {
   @Test
   fun `test deposit with token memo`() {
     val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, TEST_MEMO))
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    every { interactiveUrlConstructor.construct(any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     val slotTxn = slot<Sep24Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
@@ -336,7 +336,7 @@ internal class Sep24ServiceTest {
   @Test
   fun `test deposit to whitelisted account`() {
     val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, null))
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    every { interactiveUrlConstructor.construct(any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     val slotTxn = slot<Sep24Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
