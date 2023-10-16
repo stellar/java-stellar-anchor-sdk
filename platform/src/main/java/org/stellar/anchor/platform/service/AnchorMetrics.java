@@ -9,6 +9,8 @@ public enum AnchorMetrics {
   PAYMENT_SENT("payment.sent"),
   LOGGER("logger"),
 
+  PLATFORM_RPC_TRANSACTION("platform_server.rpc_transaction"),
+
   // Metric Tags
   TAG_SEP31_STATUS_PENDING_STELLAR("pending_stellar"),
   TAG_SEP31_STATUS_PENDING_CUSTOMER("pending_customer_info_update"),

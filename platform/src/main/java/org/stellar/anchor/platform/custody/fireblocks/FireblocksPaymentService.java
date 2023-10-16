@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
@@ -32,7 +31,6 @@ import org.stellar.anchor.util.GsonUtils;
 import org.stellar.sdk.xdr.MemoType;
 
 /** Fireblocks implementation of payment service */
-@Setter
 @Getter
 public class FireblocksPaymentService implements CustodyPaymentService<TransactionDetails> {
 

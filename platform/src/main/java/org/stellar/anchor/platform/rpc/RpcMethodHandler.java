@@ -7,6 +7,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
+import static org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION;
 import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.util.MetricConstants.*;
 

@@ -58,7 +58,7 @@ public class Sep31CustodyPaymentHandler extends CustodyPaymentHandler {
               rpcConfig.getCustomMessages().getIncomingPaymentReceived());
 
           metricsService
-              .counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
+              .counter(AnchorMetrics.PAYMENT_RECEIVED, "asset", payment.getAssetName())
               .increment(Double.parseDouble(payment.getAmount()));
 
           break;

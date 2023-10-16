@@ -170,7 +170,7 @@ class FireblocksPaymentServiceTest {
 
   @Test
   fun `getTransactionsByTimeRange select number of items equal to limit`() {
-    fireblocksPaymentService.transactionLimit = 2
+    fireblocksPaymentService = FireblocksPaymentService(fireblocksClient, fireblocksConfig, 2)
     val startTime = Instant.now().minusSeconds(5)
     val endTime = Instant.now()
 
@@ -198,12 +198,11 @@ class FireblocksPaymentServiceTest {
     val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
 
     JSONAssert.assertEquals(twoTransactionsResponse, gson.toJson(response), JSONCompareMode.STRICT)
-    fireblocksPaymentService.transactionLimit = 500
   }
 
   @Test
   fun `getTransactionsByTimeRange select more than limit`() {
-    fireblocksPaymentService.transactionLimit = 2
+    fireblocksPaymentService = FireblocksPaymentService(fireblocksClient, fireblocksConfig, 2)
     val startTime = Instant.now().minusSeconds(5)
     val endTime = Instant.now()
 
@@ -230,8 +229,6 @@ class FireblocksPaymentServiceTest {
 
     val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
     assertEquals(3, response.size)
-
-    fireblocksPaymentService.transactionLimit = 500
   }
 
   @Test
