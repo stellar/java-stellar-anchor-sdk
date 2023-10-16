@@ -15,6 +15,8 @@ import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.config.RpcConfig
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
+import org.stellar.anchor.platform.service.AnchorMetrics.PAYMENT_RECEIVED
+import org.stellar.anchor.platform.service.AnchorMetrics.PAYMENT_SENT
 import org.stellar.anchor.util.GsonUtils
 
 class Sep24CustodyPaymentHandlerTest {
@@ -60,7 +62,7 @@ class Sep24CustodyPaymentHandlerTest {
 
     every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
-    every { metricsService.counter("payment.received", "asset", "testAmountInAsset") } returns
+    every { metricsService.counter(PAYMENT_RECEIVED, "asset", "testAmountInAsset") } returns
       paymentReceivedCounter
 
     sep24CustodyPaymentHandler.onReceived(txn, payment)
@@ -98,7 +100,7 @@ class Sep24CustodyPaymentHandlerTest {
 
     sep24CustodyPaymentHandler.onReceived(txn, payment)
 
-    verify(exactly = 0) { metricsService.counter("payment.received", any(), any()) }
+    verify(exactly = 0) { metricsService.counter(PAYMENT_RECEIVED, any(), any()) }
     verify(exactly = 1) {
       platformApiClient.notifyRefundSent(
         txn.id,
@@ -132,7 +134,7 @@ class Sep24CustodyPaymentHandlerTest {
 
     sep24CustodyPaymentHandler.onReceived(txn, payment)
 
-    verify(exactly = 0) { metricsService.counter("payment.sent", any(), any()) }
+    verify(exactly = 0) { metricsService.counter(PAYMENT_SENT, any(), any()) }
     verify(exactly = 1) { platformApiClient.notifyTransactionError(txn.id, "payment failed") }
 
     JSONAssert.assertEquals(
@@ -152,7 +154,7 @@ class Sep24CustodyPaymentHandlerTest {
 
     every { rpcConfig.customMessages.outgoingPaymentSent } returns "payment sent"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
-    every { metricsService.counter("payment.sent", "asset", "testAmountInAsset") } returns
+    every { metricsService.counter(PAYMENT_SENT, "asset", "testAmountInAsset") } returns
       paymentSentCounter
 
     sep24CustodyPaymentHandler.onSent(txn, payment)
@@ -182,7 +184,7 @@ class Sep24CustodyPaymentHandlerTest {
 
     sep24CustodyPaymentHandler.onSent(txn, payment)
 
-    verify(exactly = 0) { metricsService.counter("payment.sent", any(), any()) }
+    verify(exactly = 0) { metricsService.counter(PAYMENT_SENT, any(), any()) }
     verify(exactly = 1) { platformApiClient.notifyTransactionError(txn.id, "payment failed") }
 
     JSONAssert.assertEquals(

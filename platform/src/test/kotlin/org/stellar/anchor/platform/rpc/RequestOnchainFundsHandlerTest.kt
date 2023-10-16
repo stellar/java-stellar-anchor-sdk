@@ -38,6 +38,7 @@ import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.service.AnchorMetrics
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator
 import org.stellar.anchor.platform.validator.RequestValidator
@@ -246,7 +247,7 @@ class RequestOnchainFundsHandlerTest {
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { custodyConfig.type } returns NONE
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(AnchorMetrics.PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -359,7 +360,7 @@ class RequestOnchainFundsHandlerTest {
     every { sep24DepositInfoGenerator.generate(ofType(Sep24Transaction::class)) } returns
       depositInfo
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(AnchorMetrics.PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -460,7 +461,7 @@ class RequestOnchainFundsHandlerTest {
     every { custodyConfig.type } returns NONE
     every { custodyService.createTransaction(capture(sep24CustodyTxnCapture)) } just Runs
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(AnchorMetrics.PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -563,7 +564,7 @@ class RequestOnchainFundsHandlerTest {
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { custodyConfig.type } returns NONE
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(AnchorMetrics.PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -665,7 +666,7 @@ class RequestOnchainFundsHandlerTest {
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { custodyConfig.type } returns NONE
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(AnchorMetrics.PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

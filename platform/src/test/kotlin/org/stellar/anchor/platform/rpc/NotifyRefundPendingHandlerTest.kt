@@ -36,6 +36,7 @@ import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep24Refunds
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -284,7 +285,7 @@ class NotifyRefundPendingHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -397,7 +398,7 @@ class NotifyRefundPendingHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

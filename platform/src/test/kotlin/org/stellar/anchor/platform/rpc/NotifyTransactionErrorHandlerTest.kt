@@ -34,6 +34,7 @@ import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo
+import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -201,7 +202,7 @@ class NotifyTransactionErrorHandlerTest {
     every { transactionPendingTrustRepo.deleteById(TX_ID) } just Runs
     every { transactionPendingTrustRepo.existsById(TX_ID) } returns true
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()

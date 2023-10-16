@@ -33,6 +33,7 @@ import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrust
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo
+import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -225,7 +226,7 @@ class DoStellarPaymentHandlerTest {
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
     every { horizon.isTrustlineConfigured(TO_ACCOUNT, AMOUNT_OUT_ASSET) } returns true
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -307,7 +308,7 @@ class DoStellarPaymentHandlerTest {
     every { horizon.isTrustlineConfigured(TO_ACCOUNT, AMOUNT_OUT_ASSET) } returns false
     every { transactionPendingTrustRepo.save(capture(txnPendingTrustCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
