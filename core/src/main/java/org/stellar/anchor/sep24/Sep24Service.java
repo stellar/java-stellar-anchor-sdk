@@ -267,7 +267,7 @@ public class Sep24Service {
     InteractiveTransactionResponse response =
         new InteractiveTransactionResponse(
             "interactive_customer_info_needed",
-            interactiveUrlConstructor.construct(txn, withdrawRequest),
+            interactiveUrlConstructor.construct(txn, withdrawRequest, asset),
             txn.getTransactionId());
 
     // increment counter
@@ -428,7 +428,7 @@ public class Sep24Service {
     InteractiveTransactionResponse response =
         new InteractiveTransactionResponse(
             "interactive_customer_info_needed",
-            interactiveUrlConstructor.construct(txn, depositRequest),
+            interactiveUrlConstructor.construct(txn, depositRequest, asset),
             txn.getTransactionId());
     // increment counter
     sep24DepositCounter.increment();

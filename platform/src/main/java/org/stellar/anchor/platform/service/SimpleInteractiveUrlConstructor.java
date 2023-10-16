@@ -4,7 +4,6 @@ import static org.stellar.anchor.sep24.Sep24Service.INTERACTIVE_URL_JWT_REQUIRED
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.AssetHelper.*;
 import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import com.google.gson.Gson;
 import java.net.URI;
@@ -16,6 +15,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.PutCustomerRequest;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt;
 import org.stellar.anchor.platform.config.PropertyClientsConfig;
@@ -46,13 +46,13 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
 
   @Override
   @SneakyThrows
-  public String construct(Sep24Transaction txn, Map<String, String> request) {
+  public String construct(Sep24Transaction txn, Map<String, String> request, AssetInfo asset) {
     // If there are KYC fields in the request, they will be forwarded to PUT /customer before
     // returning the token.
     forwardKycFields(request);
 
     // construct the token
-    String token = constructToken(txn, request);
+    String token = constructToken(txn, request, asset);
 
     // construct the URL
     String baseUrl = sep24Config.getInteractiveUrl().getBaseUrl();
@@ -71,7 +71,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   }
 
   @SneakyThrows
-  String constructToken(Sep24Transaction txn, Map<String, String> request) {
+  String constructToken(Sep24Transaction txn, Map<String, String> request, AssetInfo asset) {
     PropertyClientsConfig.ClientConfig clientConfig =
         ConfigHelper.getClientConfig(clientsConfig, txn);
 
@@ -89,7 +89,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
             clientConfig != null ? clientConfig.getName() : null);
 
     // Add required JWT fields from request
-    Map<String, String> data = new HashMap<>(extractRequiredJwtFieldsFromRequest(request));
+    Map<String, String> data = new HashMap<>(extractRequiredJwtFieldsFromRequest(request, asset));
     // Add fields defined in txnFields
     UrlConstructorHelper.addTxnFields(data, txn, sep24Config.getInteractiveUrl().getTxnFields());
 
@@ -115,7 +115,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   }
 
   public static Map<String, String> extractRequiredJwtFieldsFromRequest(
-      Map<String, String> request) {
+      Map<String, String> request, AssetInfo asset) {
     Map<String, String> fields = new HashMap<>();
     for (Map.Entry<String, String> entry : request.entrySet()) {
       if (INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST.contains(entry.getKey())) {
@@ -123,10 +123,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
       }
     }
 
-    String asset = getAssetId(request.get("asset_code"), request.get("asset_issuer"));
-    if (!isEmpty(asset)) {
-      fields.put("asset", asset);
-    }
+    fields.put("asset", asset.getAssetName());
 
     return fields;
   }
