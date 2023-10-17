@@ -111,25 +111,7 @@ public class Sep10Service implements ISep10Service {
       throws SepValidationException {
     String homeDomain;
     try {
-      homeDomain = getMatchedHomeDomain(challenge);
-    } catch (Throwable e) {
-      throw new SepValidationException("Invalid challenge transaction.");
-    }
-
-    if (!Objects.equals(sep10Config.getHomeDomain(), homeDomain)) {
-      throw new SepValidationException(format("Invalid home_domain. %s", homeDomain));
-    }
-
-    return homeDomain;
-  }
-
-  private String getMatchedHomeDomain(ChallengeTransaction challenge)
-      throws SepValidationException {
-    String homeDomain;
-    try {
-      ManageDataOperation operation =
-          (ManageDataOperation) challenge.getTransaction().getOperations()[0];
-      homeDomain = operation.getName().split(" ")[0];
+      homeDomain = challenge.getMatchedHomeDomain();
     } catch (Throwable e) {
       throw new SepValidationException("Invalid challenge transaction.");
     }
