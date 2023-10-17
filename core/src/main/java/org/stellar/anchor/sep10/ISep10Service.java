@@ -3,6 +3,7 @@ package org.stellar.anchor.sep10;
 import static org.stellar.sdk.Sep10Challenge.*;
 
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10.ValidationRequest;
@@ -55,6 +56,17 @@ public interface ISep10Service {
 
   /** Increment the metrics counter for the number of challenge requests created. */
   void incrementChallengeRequestCreatedCounter();
+
+  /**
+   * Validate the home domain of the challenge transaction. The home_domain of the challenge
+   * transaction must match the home_domain of the Sep10Config::getHomeDomain()
+   *
+   * @param challenge
+   * @return The home domain of the challenge transaction.
+   * @throws SepValidationException If the home domain of the challenge transaction is invalid.
+   */
+  String validateChallengeTransactionHomeDomain(ChallengeTransaction challenge)
+      throws SepValidationException;
 
   /**
    * Create a challenge transaction from the request and the memo

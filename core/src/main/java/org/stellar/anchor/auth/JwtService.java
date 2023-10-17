@@ -20,6 +20,7 @@ import org.stellar.anchor.config.SecretConfig;
 public class JwtService {
   // SEP-24 specific claims
   public static final String CLIENT_DOMAIN = "client_domain";
+  public static final String HOME_DOMAIN = "home_domain";
   public static final String CLIENT_NAME = "client_name";
 
   String sep10JwtSecret;
@@ -73,6 +74,10 @@ public class JwtService {
 
     if (token.getClientDomain() != null) {
       builder.claim(CLIENT_DOMAIN, token.getClientDomain());
+    }
+
+    if (token.getHomeDomain() != null) {
+      builder.claim(HOME_DOMAIN, token.getHomeDomain());
     }
 
     return builder.signWith(SignatureAlgorithm.HS256, sep10JwtSecret).compact();

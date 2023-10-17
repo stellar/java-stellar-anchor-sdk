@@ -118,7 +118,11 @@ internal class Sep10ServiceTest {
   }
 
   @Synchronized
-  fun createTestChallenge(clientDomain: String, signWithClientDomain: Boolean): String {
+  fun createTestChallenge(
+    clientDomain: String,
+    homeDomain: String,
+    signWithClientDomain: Boolean
+  ): String {
     val now = System.currentTimeMillis() / 1000L
     val signer = KeyPair.fromSecretSeed(TEST_SIGNING_SEED)
     val memo = MemoId(TEST_MEMO.toLong())
@@ -128,7 +132,7 @@ internal class Sep10ServiceTest {
           signer,
           Network(TESTNET.networkPassphrase),
           clientKeyPair.accountId,
-          TEST_HOME_DOMAIN,
+          homeDomain,
           TEST_WEB_AUTH_DOMAIN,
           TimeBounds(now, now + 900),
           clientDomain,
@@ -323,7 +327,7 @@ internal class Sep10ServiceTest {
   @Test
   fun `test validate challenge when client account is on Stellar network`() {
     val vr = ValidationRequest()
-    vr.transaction = createTestChallenge("", false)
+    vr.transaction = createTestChallenge("", TEST_HOME_DOMAIN, false)
 
     val accountResponse = spyk(AccountResponse(clientKeyPair.accountId, 1))
     val signers =
@@ -352,15 +356,16 @@ internal class Sep10ServiceTest {
     every { horizon.server.accounts().account(ofType(String::class)) } returns accountResponse
 
     val vr = ValidationRequest()
-    vr.transaction = createTestChallenge(TEST_CLIENT_DOMAIN, true)
+    vr.transaction = createTestChallenge(TEST_CLIENT_DOMAIN, TEST_HOME_DOMAIN, true)
 
     val validationResponse = sep10Service.validateChallenge(vr)
 
     val token = jwtService.decode(validationResponse.token, Sep10Jwt::class.java)
     assertEquals(token.clientDomain, TEST_CLIENT_DOMAIN)
+    assertEquals(token.homeDomain, TEST_HOME_DOMAIN)
 
     // Test when the transaction was not signed by the client domain and the client account exists
-    vr.transaction = createTestChallenge(TEST_CLIENT_DOMAIN, false)
+    vr.transaction = createTestChallenge(TEST_CLIENT_DOMAIN, TEST_HOME_DOMAIN, false)
     assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
 
     // Test when the transaction was not signed by the client domain and the client account not
@@ -369,7 +374,7 @@ internal class Sep10ServiceTest {
       {
         throw ErrorResponse(0, "mock error")
       }
-    vr.transaction = createTestChallenge(TEST_CLIENT_DOMAIN, false)
+    vr.transaction = createTestChallenge(TEST_CLIENT_DOMAIN, TEST_HOME_DOMAIN, false)
 
     assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
   }
@@ -377,7 +382,7 @@ internal class Sep10ServiceTest {
   @Test
   fun `test validate challenge when client account is not on network`() {
     val vr = ValidationRequest()
-    vr.transaction = createTestChallenge("", false)
+    vr.transaction = createTestChallenge("", TEST_HOME_DOMAIN, false)
 
     every { horizon.server.accounts().account(ofType(String::class)) } answers
       {
