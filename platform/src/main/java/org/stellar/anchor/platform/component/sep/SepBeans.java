@@ -130,6 +130,8 @@ public class SepBeans {
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep6"})
   Sep6Service sep6Service(
+      Sep10Config sep10Config,
+      ClientsConfig clientsConfig,
       Sep6Config sep6Config,
       AssetService assetService,
       Sep6TransactionStore txnStore,
@@ -139,7 +141,8 @@ public class SepBeans {
       Sep38QuoteStore sep38QuoteStore) {
     RequestValidator requestValidator = new RequestValidator(assetService, customerIntegration);
     ExchangeAmountsCalculator exchangeAmountsCalculator =
-        new ExchangeAmountsCalculator(feeIntegration, sep38QuoteStore, assetService);
+        new ExchangeAmountsCalculator(
+            sep10Config, clientsConfig, feeIntegration, sep38QuoteStore, assetService);
     return new Sep6Service(
         sep6Config,
         assetService,

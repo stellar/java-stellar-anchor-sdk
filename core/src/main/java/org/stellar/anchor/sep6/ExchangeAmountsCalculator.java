@@ -18,12 +18,17 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.RateFee;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.auth.Sep10Jwt;
+import org.stellar.anchor.config.ClientsConfig;
+import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 
 /** Calculates the amounts for an exchange request. */
 @RequiredArgsConstructor
 public class ExchangeAmountsCalculator {
+  @NonNull private final Sep10Config sep10Config;
+  @NonNull private final ClientsConfig clientsConfig;
   @NonNull private final FeeIntegration feeIntegration;
   @NonNull private final Sep38QuoteStore sep38QuoteStore;
   @NonNull private final AssetService assetService;
@@ -76,12 +81,15 @@ public class ExchangeAmountsCalculator {
    * @param buyAsset The asset the user is buying
    * @param sellAsset The asset the user is selling
    * @param amount The amount the user is selling
-   * @param account The user's account
+   * @param customerId The customer ID
+   * @param sep10Jwt The SEP-10 JWT used to authenticate the request
    * @return The amounts
    * @throws AnchorException if the fee integration fails
    */
-  public Amounts calculate(AssetInfo buyAsset, AssetInfo sellAsset, String amount, String account)
+  public Amounts calculate(
+      AssetInfo buyAsset, AssetInfo sellAsset, String amount, String customerId, Sep10Jwt sep10Jwt)
       throws AnchorException {
+    String clientId = getClientId(sep10Jwt);
     Amount fee =
         feeIntegration
             .getFee(
@@ -90,9 +98,9 @@ public class ExchangeAmountsCalculator {
                     .sendAsset(sellAsset.getSep38AssetName())
                     .receiveAsset(buyAsset.getSep38AssetName())
                     .receiveAmount(null)
-                    .senderId(account)
-                    .receiverId(account)
-                    .clientId(account)
+                    .senderId(customerId)
+                    .receiverId(customerId)
+                    .clientId(clientId)
                     .build())
             .getFee();
 
@@ -123,5 +131,43 @@ public class ExchangeAmountsCalculator {
     String amountOutAsset;
     String amountFee;
     String amountFeeAsset;
+  }
+
+  private String getClientId(Sep10Jwt token) throws BadRequestException {
+    ClientsConfig.ClientConfig clientByDomain =
+        clientsConfig.getClientConfigByDomain(token.getClientDomain());
+    ClientsConfig.ClientConfig clientByAccount =
+        clientsConfig.getClientConfigBySigningKey(token.getAccount());
+    ClientsConfig.ClientConfig client = clientByDomain != null ? clientByDomain : clientByAccount;
+
+    if (!sep10Config.isClientAttributionRequired()) {
+      return client != null ? client.getName() : null;
+    }
+    if (sep10Config.isClientAttributionRequired() && client == null) {
+      throw new BadRequestException("Client not found");
+    }
+
+    if (sep10Config.getAllowedClientDomains().isEmpty()
+        && sep10Config.getAllowedClientNames().isEmpty()) {
+      return client.getName();
+    }
+
+    if (token.getClientDomain() != null) {
+      if (sep10Config.getAllowedClientDomains().contains(client.getDomain())
+          || sep10Config.getAllowedClientDomains().isEmpty()) {
+        if (sep10Config.getAllowedClientNames().contains(client.getName())
+            || sep10Config.getAllowedClientNames().isEmpty()) {
+          return client.getName();
+        }
+        throw new BadRequestException("Client name not allowed");
+      }
+      throw new BadRequestException("Client domain not allowed");
+    }
+
+    if (sep10Config.getAllowedClientNames().contains(client.getName())
+        || sep10Config.getAllowedClientNames().isEmpty()) {
+      return client.getName();
+    }
+    throw new BadRequestException("Client name not allowed");
   }
 }
