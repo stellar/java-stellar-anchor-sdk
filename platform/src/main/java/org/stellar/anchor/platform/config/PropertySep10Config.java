@@ -26,6 +26,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private Boolean enabled;
   private String webAuthDomain;
   private String homeDomain;
+  private List<String> homeDomains;
   private boolean clientAttributionRequired = false;
   private List<String> clientAllowList = null;
   private Integer authTimeout = 900;
@@ -50,8 +51,11 @@ public class PropertySep10Config implements Sep10Config, Validator {
 
   @PostConstruct
   public void postConstruct() {
-    if (isEmpty(webAuthDomain)) {
-      webAuthDomain = homeDomain;
+    if (homeDomains == null || homeDomains.isEmpty()) {
+      homeDomains = List.of(homeDomain);
+    }
+    if (isEmpty(webAuthDomain) && homeDomains.size() == 1) {
+      webAuthDomain = homeDomains.get(0);
     }
   }
 
@@ -93,27 +97,22 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");
     }
 
-    if (isEmpty(homeDomain)) {
+    // Only one of homeDomain or homeDomains can be defined.
+    if (isEmpty(homeDomain) && (homeDomains == null || homeDomains.isEmpty())) {
       errors.rejectValue(
           "homeDomain", "home-domain-empty", "The sep10.home_domain is not defined.");
+    } else if (!isEmpty(homeDomain) && (homeDomains != null && !homeDomains.isEmpty())) {
+      errors.rejectValue(
+          "homeDomain",
+          "home-domain-coexist",
+          "home_domain and home_domains cannot coexist. Please choose one to use.");
     } else {
-      try {
-        new ManageDataOperation.Builder(String.format("%s %s", homeDomain, "auth"), new byte[64])
-            .build();
-      } catch (IllegalArgumentException iaex) {
-        errors.rejectValue(
-            "homeDomain",
-            "sep10-home-domain-too-long",
-            format(
-                "The sep10.home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
-                homeDomain, iaex));
-      }
-
-      if (!NetUtil.isServerPortValid(homeDomain, false)) {
-        errors.rejectValue(
-            "homeDomain",
-            "sep10-home-domain-invalid",
-            "The sep10.home_domain does not have valid format.");
+      if (!isEmpty(homeDomain)) {
+        validateDomain(errors, homeDomain);
+      } else {
+        for (String domain : homeDomains) {
+          validateDomain(errors, domain);
+        }
       }
     }
 
@@ -135,6 +134,11 @@ public class PropertySep10Config implements Sep10Config, Validator {
             "sep10-web-auth-domain-invalid",
             "The sep10.web_auth_domain does not have valid format.");
       }
+    } else if (homeDomains != null && homeDomains.size() > 1) {
+      errors.rejectValue(
+          "webAuthDomain",
+          "sep10-web-auth-domain-empty",
+          "The sep10.web_auth_domain is required for multiple home domains.");
     }
 
     if (authTimeout <= 0) {
@@ -188,6 +192,26 @@ public class PropertySep10Config implements Sep10Config, Validator {
             "sep10-custodial-account-not-valid",
             format("Invalid custodial account:%s in clients:", account));
       }
+    }
+  }
+
+  private void validateDomain(Errors errors, String domain) {
+    try {
+      new ManageDataOperation.Builder(String.format("%s %s", domain, "auth"), new byte[64]).build();
+    } catch (IllegalArgumentException iaex) {
+      errors.rejectValue(
+          "homeDomain",
+          "sep10-home-domain-too-long",
+          format(
+              "The sep10.home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
+              domain, iaex));
+    }
+
+    if (!NetUtil.isServerPortValid(domain, false)) {
+      errors.rejectValue(
+          "homeDomain",
+          "sep10-home-domain-invalid",
+          "The sep10.home_domain does not have valid format.");
     }
   }
 
