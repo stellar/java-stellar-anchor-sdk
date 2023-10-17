@@ -92,13 +92,10 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
             homeDomain);
 
     // Add required JWT fields from request
-    Map<String, String> data = new HashMap<>(extractRequiredJwtFieldsFromRequest(request, asset));
+    Map<String, String> data =
+        new HashMap<>(extractRequiredJwtFieldsFromRequest(request, asset, homeDomain));
     // Add fields defined in txnFields
     UrlConstructorHelper.addTxnFields(data, txn, sep24Config.getInteractiveUrl().getTxnFields());
-
-    if (homeDomain != null) {
-      data.put(HOME_DOMAIN, homeDomain);
-    }
 
     token.claim("data", data);
     return jwtService.encode(token);
@@ -122,7 +119,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   }
 
   public static Map<String, String> extractRequiredJwtFieldsFromRequest(
-      Map<String, String> request, AssetInfo asset) {
+      Map<String, String> request, AssetInfo asset, String homeDomain) {
     Map<String, String> fields = new HashMap<>();
     for (Map.Entry<String, String> entry : request.entrySet()) {
       if (INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST.contains(entry.getKey())) {
@@ -131,6 +128,10 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
     }
 
     fields.put("asset", asset.getAssetName());
+
+    if (homeDomain != null) {
+      fields.put(HOME_DOMAIN, homeDomain);
+    }
 
     return fields;
   }
