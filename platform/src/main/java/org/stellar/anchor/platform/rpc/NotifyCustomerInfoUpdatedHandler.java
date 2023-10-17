@@ -16,6 +16,7 @@ import org.stellar.anchor.api.rpc.method.RpcMethod;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -29,13 +30,15 @@ public class NotifyCustomerInfoUpdatedHandler
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
-      EventService eventService) {
+      EventService eventService,
+      MetricsService metricsService) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
         eventService,
+        metricsService,
         NotifyCustomerInfoUpdatedRequest.class);
   }
 

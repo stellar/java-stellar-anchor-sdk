@@ -15,6 +15,7 @@ import org.stellar.anchor.api.rpc.method.RpcMethod;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -31,6 +32,7 @@ public class NotifyTransactionErrorHandler extends RpcMethodHandler<NotifyTransa
       RequestValidator requestValidator,
       AssetService assetService,
       EventService eventService,
+      MetricsService metricsService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     super(
         txn24Store,
@@ -38,6 +40,7 @@ public class NotifyTransactionErrorHandler extends RpcMethodHandler<NotifyTransa
         requestValidator,
         assetService,
         eventService,
+        metricsService,
         NotifyTransactionErrorRequest.class);
     this.transactionPendingTrustRepo = transactionPendingTrustRepo;
   }

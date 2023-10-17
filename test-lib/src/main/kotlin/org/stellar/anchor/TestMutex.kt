@@ -14,10 +14,15 @@ private class TestMutex(vararg clzs: KClass<*>) {
 
   fun withLock(action: () -> Unit) {
     for (clazz in classes) {
-      if (knownClasses[clazz] == null) {
-        knownClasses[clazz] = ReentrantLock()
+      var lock: ReentrantLock?
+      synchronized(knownClasses) {
+        lock = knownClasses[clazz]
+        if (lock == null) {
+          lock = ReentrantLock()
+          knownClasses[clazz] = lock!!
+        }
       }
-      knownClasses[clazz]!!.lock()
+      lock!!.lock()
       println("Locked ${clazz.qualifiedName} ${knownClasses[clazz]}")
     }
     try {

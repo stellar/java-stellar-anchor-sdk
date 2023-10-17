@@ -17,6 +17,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSepTransaction
 import org.stellar.anchor.platform.validator.RequestValidator
@@ -31,7 +32,8 @@ class RpcMethodHandlerTest {
     txn31Store: Sep31TransactionStore,
     requestValidator: RequestValidator,
     assetService: AssetService,
-    eventService: EventService
+    eventService: EventService,
+    metricsService: MetricsService
   ) :
     RpcMethodHandler<NotifyInteractiveFlowCompletedRequest>(
       txn24Store,
@@ -39,6 +41,7 @@ class RpcMethodHandlerTest {
       requestValidator,
       assetService,
       eventService,
+      metricsService,
       NotifyInteractiveFlowCompletedRequest::class.java
     ) {
     override fun getRpcMethod(): RpcMethod {
@@ -76,13 +79,22 @@ class RpcMethodHandlerTest {
 
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
+  @MockK(relaxed = true) private lateinit var metricsService: MetricsService
+
   private lateinit var handler: RpcMethodHandler<NotifyInteractiveFlowCompletedRequest>
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.handler =
-      RpcMethodHandlerTestImpl(txn24Store, txn31Store, requestValidator, assetService, eventService)
+      RpcMethodHandlerTestImpl(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService
+      )
   }
 
   @Test

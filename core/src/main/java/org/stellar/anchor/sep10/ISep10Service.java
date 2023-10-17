@@ -15,6 +15,7 @@ public interface ISep10Service {
    * customization of the validation behavior.
    *
    * @param request The challenge request.
+   * @throws SepException If the challenge failed to validate.
    */
   void preChallengeRequestValidation(ChallengeRequest request) throws SepException;
 

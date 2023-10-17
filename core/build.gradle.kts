@@ -123,7 +123,12 @@ publishing {
 tasks.test {
   // Enable parallel test execution
   systemProperty("junit.jupiter.execution.parallel.enabled", true)
-  // Enable parallel test execution
+  // Use PER_METHOD test instance life cycle. This avoids the race condition when tests are run in parallel mode
+  // if the test class has a non-static fields. The non-static fields are shared across all test methods. If the life
+  // cycle is not PER_METHOD, the test methods may overwrite the fields and cause test failures.
+  //
+  // However, the life cycle can still be over-written by @TestInstance(Lifecycle) annotation.
+  // See https://junit.org/junit5/docs/current/user-guide/#writing-tests-parallel-execution
   systemProperty("junit.jupiter.testinstance.lifecycle.default", "per_method")
   // Allocate thread count based on available processors
   systemProperty("junit.jupiter.execution.parallel.config.strategy", "dynamic")

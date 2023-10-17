@@ -29,6 +29,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -51,13 +52,15 @@ public class DoStellarRefundHandler extends RpcMethodHandler<DoStellarRefundRequ
       CustodyConfig custodyConfig,
       AssetService assetService,
       CustodyService custodyService,
-      EventService eventService) {
+      EventService eventService,
+      MetricsService metricsService) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
         eventService,
+        metricsService,
         DoStellarRefundRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
