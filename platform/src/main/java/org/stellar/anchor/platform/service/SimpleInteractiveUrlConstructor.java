@@ -94,6 +94,9 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
     UrlConstructorHelper.addTxnFields(data, txn, sep24Config.getInteractiveUrl().getTxnFields());
 
     token.claim("data", data);
+
+    debugF("Attaching data to the token: {}", data);
+
     return jwtService.encode(token);
   }
 
