@@ -13,8 +13,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
-import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
-import org.stellar.anchor.auth.JwtService.CLIENT_NAME
+import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
+import org.stellar.anchor.auth.JwtService.*
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 
@@ -31,6 +31,7 @@ internal class JwtServiceTest {
 
   lateinit var secretConfig: SecretConfig
   lateinit var custodySecretConfig: CustodySecretConfig
+
   @BeforeEach
   fun setup() {
     secretConfig = mockk()
@@ -90,7 +91,14 @@ internal class JwtServiceTest {
   fun `test apply Sep24InteractiveUrlJwt encoding and decoding and make sure the original values are not changed`() {
     val jwtService = JwtService(secretConfig, custodySecretConfig)
     val token =
-      Sep24InteractiveUrlJwt(TEST_ACCOUNT, TEST_ISS, TEST_EXP, TEST_CLIENT_DOMAIN, TEST_CLIENT_NAME)
+      Sep24InteractiveUrlJwt(
+        TEST_ACCOUNT,
+        TEST_ISS,
+        TEST_EXP,
+        TEST_CLIENT_DOMAIN,
+        TEST_CLIENT_NAME,
+        TEST_HOME_DOMAIN
+      )
     val cipher = jwtService.encode(token)
     val sep24InteractiveUrlJwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
 
@@ -99,6 +107,7 @@ internal class JwtServiceTest {
     assertEquals(sep24InteractiveUrlJwt.exp, token.exp)
     assertEquals(sep24InteractiveUrlJwt.claims[CLIENT_DOMAIN], token.claims[CLIENT_DOMAIN])
     assertEquals(sep24InteractiveUrlJwt.claims[CLIENT_NAME], token.claims[CLIENT_NAME])
+    assertEquals(sep24InteractiveUrlJwt.claims[HOME_DOMAIN], token.claims[HOME_DOMAIN])
   }
 
   @Test

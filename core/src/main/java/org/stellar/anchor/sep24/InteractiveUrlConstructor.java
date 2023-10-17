@@ -7,6 +7,6 @@ import org.stellar.anchor.api.sep.AssetInfo;
 
 public abstract class InteractiveUrlConstructor {
   public abstract String construct(
-      Sep24Transaction txn, Map<String, String> sep9Fields, AssetInfo asset)
+      Sep24Transaction txn, Map<String, String> sep9Fields, AssetInfo asset, String homeDomain)
       throws URISyntaxException, MalformedURLException;
 }

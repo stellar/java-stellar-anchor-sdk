@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.auth.JwtService.HOME_DOMAIN;
 import static org.stellar.anchor.sep24.Sep24Service.INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
-import static org.stellar.anchor.util.AssetHelper.*;
 import static org.stellar.anchor.util.Log.debugF;
 
 import com.google.gson.Gson;
@@ -46,13 +46,14 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
 
   @Override
   @SneakyThrows
-  public String construct(Sep24Transaction txn, Map<String, String> request, AssetInfo asset) {
+  public String construct(
+      Sep24Transaction txn, Map<String, String> request, AssetInfo asset, String homeDomain) {
     // If there are KYC fields in the request, they will be forwarded to PUT /customer before
     // returning the token.
     forwardKycFields(request);
 
     // construct the token
-    String token = constructToken(txn, request, asset);
+    String token = constructToken(txn, request, asset, homeDomain);
 
     // construct the URL
     String baseUrl = sep24Config.getInteractiveUrl().getBaseUrl();
@@ -71,7 +72,8 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   }
 
   @SneakyThrows
-  String constructToken(Sep24Transaction txn, Map<String, String> request, AssetInfo asset) {
+  String constructToken(
+      Sep24Transaction txn, Map<String, String> request, AssetInfo asset, String homeDomain) {
     PropertyClientsConfig.ClientConfig clientConfig =
         ConfigHelper.getClientConfig(clientsConfig, txn);
 
@@ -86,12 +88,17 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
             txn.getTransactionId(),
             Instant.now().getEpochSecond() + sep24Config.getInteractiveUrl().getJwtExpiration(),
             txn.getClientDomain(),
-            clientConfig != null ? clientConfig.getName() : null);
+            clientConfig != null ? clientConfig.getName() : null,
+            homeDomain);
 
     // Add required JWT fields from request
     Map<String, String> data = new HashMap<>(extractRequiredJwtFieldsFromRequest(request, asset));
     // Add fields defined in txnFields
     UrlConstructorHelper.addTxnFields(data, txn, sep24Config.getInteractiveUrl().getTxnFields());
+
+    if (homeDomain != null) {
+      data.put(HOME_DOMAIN, homeDomain);
+    }
 
     token.claim("data", data);
     return jwtService.encode(token);

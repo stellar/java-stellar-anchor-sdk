@@ -1,5 +1,6 @@
 package org.stellar.anchor.sep10;
 
+import static java.lang.String.*;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_CREATED;
 import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_VALIDATED;
@@ -85,6 +86,9 @@ public class Sep10Service implements ISep10Service {
     ChallengeTransaction challenge = parseChallenge(request);
     // pre validation to be defined by the anchor
     preValidateRequestValidation(request, challenge);
+
+    String homeDomain = validateChallengeTransactionHomeDomain(challenge);
+
     // fetch the client domain from the transaction
     String clientDomain = fetchClientDomain(challenge);
     // fetch the account response from the horizon
@@ -92,14 +96,33 @@ public class Sep10Service implements ISep10Service {
 
     if (account == null) {
       // The account does not exist from Horizon, using the client's master key to verify.
-      return ValidationResponse.of(generateSep10Jwt(challenge, clientDomain));
+      return ValidationResponse.of(generateSep10Jwt(challenge, clientDomain, homeDomain));
     }
     // Since the account exists, we should check the signers and the client domain
     validateChallengeRequest(request, account, clientDomain);
     // increment counter
     incrementValidationRequestValidatedCounter();
     // Generate the JWT token
-    return ValidationResponse.of(generateSep10Jwt(challenge, clientDomain));
+    return ValidationResponse.of(generateSep10Jwt(challenge, clientDomain, homeDomain));
+  }
+
+  @Override
+  public String validateChallengeTransactionHomeDomain(ChallengeTransaction challenge)
+      throws SepValidationException {
+    String homeDomain;
+    try {
+      ManageDataOperation operation =
+          (ManageDataOperation) challenge.getTransaction().getOperations()[0];
+      homeDomain = operation.getName().split(" ")[0];
+    } catch (Throwable e) {
+      throw new SepValidationException("Invalid challenge transaction.");
+    }
+
+    if (!Objects.equals(sep10Config.getHomeDomain(), homeDomain)) {
+      throw new SepValidationException(format("Invalid home_domain. %s", homeDomain));
+    }
+
+    return homeDomain;
   }
 
   @Override
@@ -155,8 +178,7 @@ public class Sep10Service implements ISep10Service {
         long memoLong = Long.parseUnsignedLong(request.getMemo());
         if (memoLong <= 0) {
           infoF("Invalid memo value: {}", request.getMemo());
-          throw new SepValidationException(
-              String.format("Invalid memo value: %s", request.getMemo()));
+          throw new SepValidationException(format("Invalid memo value: %s", request.getMemo()));
         }
         return new MemoId(memoLong);
       } else {
@@ -164,7 +186,7 @@ public class Sep10Service implements ISep10Service {
       }
     } catch (NumberFormatException e) {
       infoF("invalid memo format: {}. Only MEMO_ID is supported", request.getMemo());
-      throw new SepValidationException(String.format("Invalid memo format: %s", request.getMemo()));
+      throw new SepValidationException(format("Invalid memo format: %s", request.getMemo()));
     }
   }
 
@@ -242,8 +264,7 @@ public class Sep10Service implements ISep10Service {
       request.setHomeDomain(sep10Config.getHomeDomain());
     } else if (!homeDomain.equalsIgnoreCase(sep10Config.getHomeDomain())) {
       infoF("Bad home_domain: {}", homeDomain);
-      throw new SepValidationException(
-          String.format("home_domain [%s] is not supported.", homeDomain));
+      throw new SepValidationException(format("home_domain [%s] is not supported.", homeDomain));
     }
   }
 
@@ -389,7 +410,7 @@ public class Sep10Service implements ISep10Service {
     return challenge;
   }
 
-  String generateSep10Jwt(ChallengeTransaction challenge, String clientDomain) {
+  String generateSep10Jwt(ChallengeTransaction challenge, String clientDomain, String homeDomain) {
     long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime().longValue();
     Memo memo = challenge.getTransaction().getMemo();
     Sep10Jwt sep10Jwt =
@@ -401,7 +422,8 @@ public class Sep10Service implements ISep10Service {
             issuedAt,
             issuedAt + sep10Config.getJwtTimeout(),
             challenge.getTransaction().hashHex(),
-            clientDomain);
+            clientDomain,
+            homeDomain);
     debug("jwtToken:", sep10Jwt);
     return jwtService.encode(sep10Jwt);
   }
