@@ -15,7 +15,7 @@ import org.stellar.anchor.lockAndMockStatic
 class PlatformIntegrationHelperTest {
   companion object {
     const val JWT_EXPIRATION_MILLISECONDS: Long = 90000
-    const val TEST_HOME_DOMAIN = "test.stellar.org"
+    const val TEST_HOME_DOMAIN = "https://test.stellar.org"
   }
 
   @ParameterizedTest
