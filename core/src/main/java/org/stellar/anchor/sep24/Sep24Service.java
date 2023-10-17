@@ -156,6 +156,7 @@ public class Sep24Service {
 
     // Verify that the asset code exists in our database, with withdraw enabled.
     AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
+    debugF("Asset: {}", asset);
     if (asset == null || !asset.getWithdraw().getEnabled() || !asset.getSep24Enabled()) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
