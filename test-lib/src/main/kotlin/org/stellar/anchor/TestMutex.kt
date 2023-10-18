@@ -5,37 +5,45 @@ import io.mockk.unmockkStatic
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.reflect.KClass
 
-private class TestMutex(vararg clzs: KClass<*>) {
+class TestMutex(vararg clzs: KClass<*>) {
   companion object {
+    // A map of known classes to their locks
     val knownClasses = mutableMapOf<KClass<*>, ReentrantLock>()
   }
 
+  // The classes to lock. The classes must always be locked by the same order otherwise it will be
+  // vulnerable to deadlocks.
   private val classes = clzs.sortedBy { it.qualifiedName }
 
   fun withLock(action: () -> Unit) {
-    for (clazz in classes) {
-      var lock: ReentrantLock?
-      synchronized(knownClasses) {
-        lock = knownClasses[clazz]
-        if (lock == null) {
-          lock = ReentrantLock()
-          knownClasses[clazz] = lock!!
-        }
-      }
-      lock!!.lock()
-      println("Locked ${clazz.qualifiedName} ${knownClasses[clazz]}")
-    }
     try {
+      lock()
       action()
     } finally {
-      for (clazz in classes.asReversed()) {
-        knownClasses[clazz]!!.unlock()
-        println("Unlocked ${clazz.qualifiedName} ${knownClasses[clazz]}")
+      unlock()
+    }
+  }
+
+  fun lock() {
+    for (clazz in classes) {
+      var rlock: ReentrantLock?
+      synchronized(knownClasses) {
+        rlock = knownClasses[clazz]
+        if (rlock == null) {
+          rlock = ReentrantLock()
+          knownClasses[clazz] = rlock!!
+        }
       }
+      rlock!!.lock()
+    }
+  }
+
+  fun unlock() {
+    for (clazz in classes.asReversed()) {
+      knownClasses[clazz]!!.unlock()
     }
   }
 }
-
 /**
  * Obtain locks of the clzs in order and execute the action.
  *
@@ -46,6 +54,12 @@ fun withLock(vararg clzs: KClass<*>, action: () -> Unit) {
   TestMutex(*clzs).withLock { action() }
 }
 
+/**
+ * Locks the clzs in order, mocks the static methods of the clzs, executes the action, and unmocks.
+ *
+ * @param clzs the Kotlin classes to lock and mock
+ * @param action the action to execute
+ */
 fun lockAndMockStatic(vararg clzs: KClass<*>, action: () -> Unit) {
   // Lock all the classes in order
   withLock(*clzs) {
