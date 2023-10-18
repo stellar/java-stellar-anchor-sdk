@@ -35,6 +35,7 @@ import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTIO
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
 class NotifyTrustSetHandlerTest {
@@ -44,6 +45,8 @@ class NotifyTrustSetHandlerTest {
     private const val TX_ID = "testId"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
+
+  @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
@@ -73,6 +76,7 @@ class NotifyTrustSetHandlerTest {
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.handler =
       NotifyTrustSetHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,

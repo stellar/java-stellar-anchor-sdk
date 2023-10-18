@@ -160,79 +160,104 @@ class Sep6ServiceTestData {
 
     val depositTxnJson =
       """
-      {
+        {
           "status": "incomplete",
           "kind": "deposit",
           "type": "bank_account",
           "requestAssetCode": "USDC",
           "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountOut": "100",
+          "amountOutAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountFee": "0",
+          "amountFeeAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "sep10AccountMemo": "123",
           "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "customer": "test-customer-id"
-      }
+        }
     """
         .trimIndent()
 
     val depositTxnEventJson =
       """
-      {
+        {
           "type": "transaction_created",
           "sep": "6",
           "transaction": {
-              "sep": "6",
-              "kind": "deposit",
-              "status": "incomplete",
-              "amount_expected": {
-                  "amount": "100",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-              "customers": {
-                  "sender": { "id": "test-customer-id" },
-                  "receiver": { "id": "test-customer-id" }
-              }
+            "sep": "6",
+            "kind": "deposit",
+            "status": "incomplete",
+            "amount_expected": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_out": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_fee": {
+              "amount": "0",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "customers": {
+              "sender": { "id": "test-customer-id" },
+              "receiver": { "id": "test-customer-id" }
+            }
           }
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val depositTxnJsonWithoutAmountOrType =
       """
-      {
+        {
           "status": "incomplete",
           "kind": "deposit",
           "requestAssetCode": "USDC",
           "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountOutAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountFee": "0",
+          "amountFeeAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "sep10AccountMemo": "123",
           "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "customer": "test-customer-id"
-      }
-    """
+        }
+
+      """
         .trimIndent()
 
     val depositTxnEventWithoutAmountOrTypeJson =
       """
-      {
+        {
           "type": "transaction_created",
           "sep": "6",
           "transaction": {
-              "sep": "6",
-              "kind": "deposit",
-              "status": "incomplete",
-              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-              "customers": {
-                  "sender": { "id": "test-customer-id" },
-                  "receiver": { "id": "test-customer-id" }
-              }
+            "sep": "6",
+            "kind": "deposit",
+            "status": "incomplete",
+            "amount_expected": {
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_fee": {
+              "amount": "0",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "customers": {
+              "sender": { "id": "test-customer-id" },
+              "receiver": { "id": "test-customer-id" }
+            }
           }
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val depositExchangeTxnJson =
       """
-      {
+        {
           "status": "incomplete",
           "kind": "deposit-exchange",
           "type": "SWIFT",
@@ -246,52 +271,50 @@ class Sep6ServiceTestData {
           "amountFeeAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "sep10AccountMemo": "123",
           "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "quoteId": "test-quote-id",
           "customer": "test-customer-id"
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val depositExchangeTxnEventJson =
       """
-      {
+        {
           "type": "transaction_created",
           "sep": "6",
           "transaction": {
-              "sep": "6",
-              "kind": "deposit-exchange",
-              "status": "incomplete",
-              "amount_expected": {
-                  "amount": "100",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "amount_in": {
-                  "amount": "100",
-                  "asset": "iso4217:USD"
-              },
-              "amount_out": {
-                  "amount": "98",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "amount_fee": {
-                  "amount": "2",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "quote_id": "test-quote-id",
-              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-              "customers": {
-                  "sender": { "id": "test-customer-id" },
-                  "receiver": { "id": "test-customer-id" }
-              }
+            "sep": "6",
+            "kind": "deposit-exchange",
+            "status": "incomplete",
+            "amount_expected": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_in": { "amount": "100", "asset": "iso4217:USD" },
+            "amount_out": {
+              "amount": "98",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_fee": {
+              "amount": "2",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "quote_id": "test-quote-id",
+            "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "customers": {
+              "sender": { "id": "test-customer-id" },
+              "receiver": { "id": "test-customer-id" }
+            }
           }
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val depositExchangeTxnWithoutQuoteJson =
       """
-      {
+        {
           "status": "incomplete",
           "kind": "deposit-exchange",
           "type": "SWIFT",
@@ -305,45 +328,43 @@ class Sep6ServiceTestData {
           "amountFeeAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "sep10AccountMemo": "123",
           "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "customer": "test-customer-id"
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val depositExchangeTxnEventWithoutQuoteJson =
       """
-      {
+        {
           "type": "transaction_created",
           "sep": "6",
           "transaction": {
-              "sep": "6",
-              "kind": "deposit-exchange",
-              "status": "incomplete",
-              "amount_expected": {
-                  "amount": "100",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "amount_in": {
-                  "amount": "100",
-                  "asset": "iso4217:USD"
-              },
-              "amount_out": {
-                  "amount": "98",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "amount_fee": {
-                  "amount": "2",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-              "customers": {
-                  "sender": { "id": "test-customer-id" },
-                  "receiver": { "id": "test-customer-id" }
-              }
+            "sep": "6",
+            "kind": "deposit-exchange",
+            "status": "incomplete",
+            "amount_expected": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_in": { "amount": "100", "asset": "iso4217:USD" },
+            "amount_out": {
+              "amount": "98",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_fee": {
+              "amount": "2",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "customers": {
+              "sender": { "id": "test-customer-id" },
+              "receiver": { "id": "test-customer-id" }
+            }
           }
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val withdrawResJson =
@@ -357,93 +378,124 @@ class Sep6ServiceTestData {
 
     val withdrawTxnJson =
       """
-      {
+        {
           "status": "incomplete",
           "kind": "withdrawal",
           "type": "bank_account",
           "requestAssetCode": "USDC",
           "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountIn": "100",
+          "amountInAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountOut": "100",
+          "amountOutAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountFee": "0",
+          "amountFeeAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "sep10AccountMemo": "123",
           "withdrawAnchorAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "memoType": "hash",
           "refundMemo": "some text",
           "refundMemoType": "text",
           "customer": "test-customer-id"
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val withdrawTxnEventJson =
       """
-      {
+        {
           "type": "transaction_created",
           "sep": "6",
           "transaction": {
-              "sep": "6",
-              "kind": "withdrawal",
-              "status": "incomplete",
-              "amount_expected": {
-                  "amount": "100",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-              "memo_type": "hash",
-              "refund_memo": "some text",
-              "refund_memo_type": "text",
-              "customers": {
-                  "sender": { "id": "test-customer-id" },
-                  "receiver": { "id": "test-customer-id" }
-              }
+            "sep": "6",
+            "kind": "withdrawal",
+            "status": "incomplete",
+            "amount_expected": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_in": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_out": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_fee": {
+              "amount": "0",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "memo_type": "hash",
+            "refund_memo": "some text",
+            "refund_memo_type": "text",
+            "customers": {
+              "sender": { "id": "test-customer-id" },
+              "receiver": { "id": "test-customer-id" }
+            }
           }
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val withdrawTxnWithoutAmountOrTypeJson =
       """
-      {
+        {
           "status": "incomplete",
           "kind": "withdrawal",
           "requestAssetCode": "USDC",
           "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountInAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountOutAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "amountFee": "0",
+          "amountFeeAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "sep10AccountMemo": "123",
           "withdrawAnchorAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "memoType": "hash",
           "refundMemo": "some text",
           "refundMemoType": "text",
           "customer": "test-customer-id"
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val withdrawTxnEventWithoutAmountOrTypeJson =
       """
-      {
+        {
           "type": "transaction_created",
           "sep": "6",
           "transaction": {
-              "sep": "6",
-              "kind": "withdrawal",
-              "status": "incomplete",
-              "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-              "memo_type": "hash",
-              "refund_memo": "some text",
-              "refund_memo_type": "text",
-              "customers": {
-                  "sender": { "id": "test-customer-id" },
-                  "receiver": { "id": "test-customer-id" }
-              }
+            "sep": "6",
+            "kind": "withdrawal",
+            "status": "incomplete",
+            "amount_expected": {
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_fee": {
+              "amount": "0",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "memo_type": "hash",
+            "refund_memo": "some text",
+            "refund_memo_type": "text",
+            "customers": {
+              "sender": { "id": "test-customer-id" },
+              "receiver": { "id": "test-customer-id" }
+            }
           }
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val withdrawExchangeTxnJson =
       """
-      {
+        {
           "status": "incomplete",
           "kind": "withdrawal-exchange",
           "type": "bank_account",
@@ -457,6 +509,7 @@ class Sep6ServiceTestData {
           "amountFeeAsset": "iso4217:USD",
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "sep10AccountMemo": "123",
           "withdrawAnchorAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "memoType": "hash",
@@ -464,52 +517,46 @@ class Sep6ServiceTestData {
           "refundMemo": "some text",
           "refundMemoType": "text",
           "customer": "test-customer-id"
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val withdrawExchangeTxnEventJson =
       """
-      {
+        {
           "type": "transaction_created",
           "sep": "6",
           "transaction": {
-              "sep": "6",
-              "kind": "withdrawal-exchange",
-              "status": "incomplete",
-              "amount_expected": {
-                  "amount": "100",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "amount_in": {
-                  "amount": "100",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "amount_out": {
-                  "amount": "98",
-                  "asset": "iso4217:USD"
-              },
-              "amount_fee": {
-                  "amount": "2",
-                  "asset": "iso4217:USD"
-              },
-              "quote_id": "test-quote-id",
-              "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-              "memo_type": "hash",
-              "refund_memo": "some text",
-              "refund_memo_type": "text",
-              "customers": {
-                  "sender": { "id": "test-customer-id" },
-                  "receiver": { "id": "test-customer-id" }
-              }
+            "sep": "6",
+            "kind": "withdrawal-exchange",
+            "status": "incomplete",
+            "amount_expected": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_in": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_out": { "amount": "98", "asset": "iso4217:USD" },
+            "amount_fee": { "amount": "2", "asset": "iso4217:USD" },
+            "quote_id": "test-quote-id",
+            "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "memo_type": "hash",
+            "refund_memo": "some text",
+            "refund_memo_type": "text",
+            "customers": {
+              "sender": { "id": "test-customer-id" },
+              "receiver": { "id": "test-customer-id" }
+            }
           }
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val withdrawExchangeTxnWithoutQuoteJson =
       """
-      {
+        {
           "status": "incomplete",
           "kind": "withdrawal-exchange",
           "type": "bank_account",
@@ -523,52 +570,47 @@ class Sep6ServiceTestData {
           "amountFeeAsset": "iso4217:USD",
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "sep10AccountMemo": "123",
           "withdrawAnchorAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "memoType": "hash",
           "refundMemo": "some text",
           "refundMemoType": "text",
           "customer": "test-customer-id"
-      }
-    """
+        }
+      """
         .trimIndent()
 
     val withdrawExchangeTxnWithoutQuoteEventJson =
       """
-      {
+        {
           "type": "transaction_created",
           "sep": "6",
           "transaction": {
-              "sep": "6",
-              "kind": "withdrawal-exchange",
-              "status": "incomplete",
-              "amount_expected": {
-                  "amount": "100",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "amount_in": {
-                  "amount": "100",
-                  "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              },
-              "amount_out": {
-                  "amount": "98",
-                  "asset": "iso4217:USD"
-              },
-              "amount_fee": {
-                  "amount": "2",
-                  "asset": "iso4217:USD"
-              },
-              "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-              "memo_type": "hash",
-              "refund_memo": "some text",
-              "refund_memo_type": "text",
-              "customers": {
-                  "sender": { "id": "test-customer-id" },
-                  "receiver": { "id": "test-customer-id" }
-              }
+            "sep": "6",
+            "kind": "withdrawal-exchange",
+            "status": "incomplete",
+            "amount_expected": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_in": {
+              "amount": "100",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "amount_out": { "amount": "98", "asset": "iso4217:USD" },
+            "amount_fee": { "amount": "2", "asset": "iso4217:USD" },
+            "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "memo_type": "hash",
+            "refund_memo": "some text",
+            "refund_memo_type": "text",
+            "customers": {
+              "sender": { "id": "test-customer-id" },
+              "receiver": { "id": "test-customer-id" }
+            }
           }
-      }
-    """
+        }
+      """
         .trimIndent()
   }
 }

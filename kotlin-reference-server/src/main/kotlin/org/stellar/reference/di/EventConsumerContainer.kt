@@ -28,7 +28,8 @@ object EventConsumerContainer {
       config,
       ServiceContainer.horizon,
       ServiceContainer.platform,
-      ServiceContainer.customerService
+      ServiceContainer.customerService,
+      ServiceContainer.sepHelper
     )
   private val noOpEventProcessor = NoOpEventProcessor()
   private val processor = AnchorEventProcessor(sep6EventProcessor, noOpEventProcessor)

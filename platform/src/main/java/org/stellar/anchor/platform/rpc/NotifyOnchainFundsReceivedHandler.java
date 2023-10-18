@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.rpc;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL_EXCHANGE;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_ONCHAIN_FUNDS_RECEIVED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
@@ -9,6 +10,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSF
 import static org.stellar.anchor.platform.utils.PaymentsUtil.addStellarTransaction;
 import static org.stellar.anchor.util.Log.errorEx;
 
+import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -29,11 +31,13 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.sdk.responses.operations.OperationResponse;
 
 public class NotifyOnchainFundsReceivedHandler
@@ -42,6 +46,7 @@ public class NotifyOnchainFundsReceivedHandler
   private final Horizon horizon;
 
   public NotifyOnchainFundsReceivedHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -50,6 +55,7 @@ public class NotifyOnchainFundsReceivedHandler
       EventService eventService,
       MetricsService metricsService) {
     super(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -118,6 +124,7 @@ public class NotifyOnchainFundsReceivedHandler
       JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request)
       throws InvalidRequestException {
     switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
       case SEP_24:
         return PENDING_ANCHOR;
       case SEP_31:
@@ -134,6 +141,12 @@ public class NotifyOnchainFundsReceivedHandler
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
     switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+        if (ImmutableSet.of(WITHDRAWAL, WITHDRAWAL_EXCHANGE).contains(Kind.from(txn6.getKind()))) {
+          supportedStatuses.add(PENDING_USR_TRANSFER_START);
+        }
+        break;
       case SEP_24:
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
         if (WITHDRAWAL == Kind.from(txn24.getKind())) {
