@@ -25,45 +25,49 @@ public class ClientFinder {
    */
   @Nullable
   public String getClientId(Sep10Jwt token) throws BadRequestException {
-    // Try to find the client by domain then by name
-    ClientsConfig.ClientConfig clientByDomain =
-        clientsConfig.getClientConfigByDomain(token.getClientDomain());
-    ClientsConfig.ClientConfig clientByAccount =
-        clientsConfig.getClientConfigBySigningKey(token.getAccount());
-    ClientsConfig.ClientConfig client = clientByDomain != null ? clientByDomain : clientByAccount;
+    ClientsConfig.ClientConfig client = getClient(token);
 
+    // If client attribution is not required, return the client name
     if (!sep10Config.isClientAttributionRequired()) {
       return client != null ? client.getName() : null;
     }
-    if (sep10Config.isClientAttributionRequired() && client == null) {
+
+    // Check if the client domain and name are allowed
+    if (client == null) {
       throw new BadRequestException("Client not found");
     }
 
-    // Case 1: All client domains and names are allowed
-    if (sep10Config.getAllowedClientDomains().isEmpty()
-        && sep10Config.getAllowedClientNames().isEmpty()) {
-      return client.getName();
-    }
-
-    // Case 2: If the client domain is set, only return the client ID if the domain
-    // and the name are allowed
+    // Token has a client domain set
     if (token.getClientDomain() != null) {
-      if (sep10Config.getAllowedClientDomains().contains(client.getDomain())
-          || sep10Config.getAllowedClientDomains().isEmpty()) {
-        if (sep10Config.getAllowedClientNames().contains(client.getName())
-            || sep10Config.getAllowedClientNames().isEmpty()) {
-          return client.getName();
-        }
-        throw new BadRequestException("Client name not allowed");
+      if (isDomainAllowed(client.getDomain()) && isClientNameAllowed(client.getName())) {
+        return client.getName();
       }
       throw new BadRequestException("Client domain not allowed");
     }
 
-    // Case 3: If the client domain is not set, only return the client ID if the name is allowed
-    if (sep10Config.getAllowedClientNames().contains(client.getName())
-        || sep10Config.getAllowedClientNames().isEmpty()) {
+    // Token has only an account set
+    if (isClientNameAllowed(client.getName())) {
       return client.getName();
     }
     throw new BadRequestException("Client name not allowed");
+  }
+
+  @Nullable
+  private ClientsConfig.ClientConfig getClient(Sep10Jwt token) {
+    ClientsConfig.ClientConfig clientByDomain =
+        clientsConfig.getClientConfigByDomain(token.getClientDomain());
+    ClientsConfig.ClientConfig clientByAccount =
+        clientsConfig.getClientConfigBySigningKey(token.getAccount());
+    return clientByDomain != null ? clientByDomain : clientByAccount;
+  }
+
+  private boolean isDomainAllowed(String domain) {
+    return sep10Config.getAllowedClientDomains().contains(domain)
+        || sep10Config.getAllowedClientDomains().isEmpty();
+  }
+
+  private boolean isClientNameAllowed(String name) {
+    return sep10Config.getAllowedClientNames().contains(name)
+        || sep10Config.getAllowedClientNames().isEmpty();
   }
 }
