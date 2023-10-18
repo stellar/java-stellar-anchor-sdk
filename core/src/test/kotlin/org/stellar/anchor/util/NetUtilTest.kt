@@ -12,14 +12,17 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
-import org.stellar.anchor.lockAndMockStatic
+import org.stellar.anchor.LockAndMockStatic
+import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.util.NetUtil.*
 
 @Order(100)
+@ExtendWith(LockAndMockTest::class)
 internal class NetUtilTest {
   @MockK private lateinit var mockCall: okhttp3.Call
 
@@ -33,45 +36,42 @@ internal class NetUtilTest {
   }
 
   @Test
+  @LockAndMockStatic([NetUtil::class])
   fun `test fetch successful response`() {
-    lockAndMockStatic(NetUtil::class) {
-      every { getCall(any()) } returns mockCall
-      every { mockCall.execute() } returns mockResponse
-      every { mockResponse.isSuccessful } returns true
-      every { mockResponse.body } returns mockResponseBody
-      every { mockResponseBody.string() } returns "result"
+    every { getCall(any()) } returns mockCall
+    every { mockCall.execute() } returns mockResponse
+    every { mockResponse.isSuccessful } returns true
+    every { mockResponse.body } returns mockResponseBody
+    every { mockResponseBody.string() } returns "result"
 
-      val result = fetch("http://hello")
-      assertEquals("result", result)
+    val result = fetch("http://hello")
+    assertEquals("result", result)
 
-      verify {
-        getCall(any())
-        mockCall.execute()
-      }
+    verify {
+      getCall(any())
+      mockCall.execute()
     }
   }
 
   @Test
+  @LockAndMockStatic([NetUtil::class])
   fun `test fetch unsuccessful response`() {
-    lockAndMockStatic(NetUtil::class) {
-      every { getCall(any()) } returns mockCall
-      every { mockCall.execute() } returns mockResponse
-      every { mockResponse.isSuccessful } returns false
+    every { getCall(any()) } returns mockCall
+    every { mockCall.execute() } returns mockResponse
+    every { mockResponse.isSuccessful } returns false
 
-      assertThrows(IOException::class.java) { NetUtil.fetch("http://hello") }
-    }
+    assertThrows(IOException::class.java) { NetUtil.fetch("http://hello") }
   }
 
   @Test
+  @LockAndMockStatic([NetUtil::class])
   fun `test fetch null response body`() {
-    lockAndMockStatic(NetUtil::class) {
-      every { getCall(any()) } returns mockCall
-      every { mockCall.execute() } returns mockResponse
-      every { mockResponse.isSuccessful } returns true
-      every { mockResponse.body } returns null
+    every { getCall(any()) } returns mockCall
+    every { mockCall.execute() } returns mockResponse
+    every { mockResponse.isSuccessful } returns true
+    every { mockResponse.body } returns null
 
-      assertThrows(IOException::class.java) { NetUtil.fetch("http://hello") }
-    }
+    assertThrows(IOException::class.java) { NetUtil.fetch("http://hello") }
   }
 
   @Test

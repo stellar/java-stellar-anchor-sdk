@@ -8,14 +8,17 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.Logger
+import org.stellar.anchor.LockAndMockStatic
+import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.PII
-import org.stellar.anchor.lockAndMockStatic
 import org.stellar.anchor.util.Log.shorter
 import org.stellar.sdk.Network.TESTNET
 
 @Disabled
+@ExtendWith(LockAndMockTest::class)
 internal class LogTest {
   @MockK(relaxed = true) private lateinit var logger: Logger
 
@@ -40,48 +43,46 @@ internal class LogTest {
   val wantTestPIIJson = """{"fieldNoPII":"no secret"}"""
 
   @Test
+  @LockAndMockStatic([Log::class])
   fun `test log messages`() {
-    lockAndMockStatic(Log::class) {
-      every { Log.getLogger() } returns logger
+    every { Log.getLogger() } returns logger
 
-      Log.error("Hello")
-      verify { logger.error("Hello") }
+    Log.error("Hello")
+    verify { logger.error("Hello") }
 
-      Log.warn("Hello")
-      verify { logger.warn("Hello") }
+    Log.warn("Hello")
+    verify { logger.warn("Hello") }
 
-      Log.info("Hello")
-      verify { logger.info("Hello") }
+    Log.info("Hello")
+    verify { logger.info("Hello") }
 
-      Log.debug("Hello")
-      verify { logger.debug("Hello") }
+    Log.debug("Hello")
+    verify { logger.debug("Hello") }
 
-      Log.trace("Hello")
-      verify { logger.trace("Hello") }
-    }
+    Log.trace("Hello")
+    verify { logger.trace("Hello") }
   }
 
   @Test
+  @LockAndMockStatic([Log::class])
   fun `test log messages with JSON format`() {
-    lockAndMockStatic(Log::class) {
-      every { Log.getLogger() } returns logger
-      val detail = TestBeanPII()
+    every { Log.getLogger() } returns logger
+    val detail = TestBeanPII()
 
-      Log.error("Hello", detail)
-      verify { logger.error("Hello$wantTestPIIJson") }
+    Log.error("Hello", detail)
+    verify { logger.error("Hello$wantTestPIIJson") }
 
-      Log.warn("Hello", detail)
-      verify { logger.warn("Hello$wantTestPIIJson") }
+    Log.warn("Hello", detail)
+    verify { logger.warn("Hello$wantTestPIIJson") }
 
-      Log.info("Hello", detail)
-      verify { logger.info("Hello$wantTestPIIJson") }
+    Log.info("Hello", detail)
+    verify { logger.info("Hello$wantTestPIIJson") }
 
-      Log.debug("Hello", detail)
-      verify { logger.debug("Hello$wantTestPIIJson") }
+    Log.debug("Hello", detail)
+    verify { logger.debug("Hello$wantTestPIIJson") }
 
-      Log.trace("Hello", detail)
-      verify { logger.trace("Hello$wantTestPIIJson") }
-    }
+    Log.trace("Hello", detail)
+    verify { logger.trace("Hello$wantTestPIIJson") }
   }
 
   @Suppress("unused")
@@ -104,21 +105,20 @@ internal class LogTest {
   }
 
   @Test
+  @LockAndMockStatic([Log::class])
   fun `test errorEx`() {
-    lockAndMockStatic(Log::class) {
-      every { logger.error(any()) } answers {}
+    every { logger.error(any()) } answers {}
 
-      every { Log.getLogger() } returns logger
-      Log.errorEx(Exception("mock exception"))
-      verify(exactly = 1) { logger.error(ofType(String::class)) }
+    every { Log.getLogger() } returns logger
+    Log.errorEx(Exception("mock exception"))
+    verify(exactly = 1) { logger.error(ofType(String::class)) }
 
-      val slot = slot<String>()
-      every { logger.error(capture(slot)) } answers {}
+    val slot = slot<String>()
+    every { logger.error(capture(slot)) } answers {}
 
-      Log.errorEx("Hello", Exception("mock exception"))
-      assertTrue(slot.captured.contains("Hello"))
-      assertTrue(slot.captured.contains("mock exception"))
-    }
+    Log.errorEx("Hello", Exception("mock exception"))
+    assertTrue(slot.captured.contains("Hello"))
+    assertTrue(slot.captured.contains("mock exception"))
   }
 
   @Test

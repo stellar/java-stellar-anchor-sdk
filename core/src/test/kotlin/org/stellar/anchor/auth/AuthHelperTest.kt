@@ -22,8 +22,8 @@ class AuthHelperTest {
   @ParameterizedTest
   @EnumSource(AuthType::class)
   fun `test AuthHeader creation based on the AuthType`(authType: AuthType) {
-    val calendarSingleton = mockk<Calendar>(relaxed = true)
     lockAndMockStatic(Calendar::class) {
+      val calendarSingleton = mockk<Calendar>(relaxed = true)
       // Mock calendar to guarantee the jwt token format
       when (authType) {
         JWT -> {

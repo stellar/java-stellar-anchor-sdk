@@ -17,12 +17,14 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.parallel.ExecutionMode.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.stellar.anchor.LockAndMockStatic
+import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_TOML
@@ -43,7 +45,6 @@ import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.horizon.Horizon
-import org.stellar.anchor.lockAndMockStatic
 import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil
@@ -75,7 +76,7 @@ fun `create httpClient`(): OkHttpClient {
     .build()
 }
 
-@Execution(SAME_THREAD)
+@ExtendWith(LockAndMockTest::class)
 internal class Sep10ServiceTest {
   companion object {
     @JvmStatic
@@ -289,38 +290,36 @@ internal class Sep10ServiceTest {
   @CsvSource(
     value = ["true,test.client.stellar.org", "false,test.client.stellar.org", "false,null"]
   )
+  @LockAndMockStatic([NetUtil::class, Sep10Challenge::class])
   fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
-    lockAndMockStatic(NetUtil::class, Sep10Challenge::class) {
-      every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
+    every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
 
-      every { sep10Config.isClientAttributionRequired } returns
-        clientAttributionRequired.toBoolean()
-      every { sep10Config.allowedClientDomains } returns listOf(TEST_CLIENT_DOMAIN)
-      val cr =
-        ChallengeRequest.builder()
-          .account(TEST_ACCOUNT)
-          .memo(TEST_MEMO)
-          .homeDomain(TEST_HOME_DOMAIN)
-          .clientDomain(TEST_CLIENT_DOMAIN)
-          .build()
-      cr.clientDomain = if (clientDomain == "null") null else clientDomain
+    every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
+    every { sep10Config.allowedClientDomains } returns listOf(TEST_CLIENT_DOMAIN)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
+    cr.clientDomain = if (clientDomain == "null") null else clientDomain
 
-      val challengeResponse = sep10Service.createChallenge(cr)
+    val challengeResponse = sep10Service.createChallenge(cr)
 
-      assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
-      verify(exactly = 1) {
-        Sep10Challenge.newChallenge(
-          any(),
-          Network(TESTNET.networkPassphrase),
-          TEST_ACCOUNT,
-          TEST_HOME_DOMAIN,
-          TEST_WEB_AUTH_DOMAIN,
-          any(),
-          any(),
-          any(),
-          any()
-        )
-      }
+    assertEquals(challengeResponse.networkPassphrase, TESTNET.networkPassphrase)
+    verify(exactly = 1) {
+      Sep10Challenge.newChallenge(
+        any(),
+        Network(TESTNET.networkPassphrase),
+        TEST_ACCOUNT,
+        TEST_HOME_DOMAIN,
+        TEST_WEB_AUTH_DOMAIN,
+        any(),
+        any(),
+        any(),
+        any()
+      )
     }
   }
 
@@ -343,6 +342,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
+  @LockAndMockStatic([Sep10Challenge::class])
   fun `test validate challenge with client domain`() {
     val accountResponse = spyk(AccountResponse(clientKeyPair.accountId, 1))
     val signers =
@@ -419,19 +419,18 @@ internal class Sep10ServiceTest {
   }
 
   @Test
+  @LockAndMockStatic([NetUtil::class])
   fun `Test create challenge request with empty memo`() {
-    lockAndMockStatic(NetUtil::class) {
-      every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
-      val cr =
-        ChallengeRequest.builder()
-          .account(TEST_ACCOUNT)
-          .memo(null)
-          .homeDomain(TEST_HOME_DOMAIN)
-          .clientDomain(TEST_CLIENT_DOMAIN)
-          .build()
+    every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(null)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
 
-      sep10Service.createChallenge(cr)
-    }
+    sep10Service.createChallenge(cr)
   }
 
   @Test
@@ -501,6 +500,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
+  @LockAndMockStatic([Sep10Challenge::class])
   fun `test createChallengeResponse()`() {
     // Given
     sep10Service = spyk(sep10Service)
@@ -573,44 +573,43 @@ internal class Sep10ServiceTest {
   }
 
   @Test
+  @LockAndMockStatic([NetUtil::class, KeyPair::class])
   fun `test getClientAccountId failure`() {
-    lockAndMockStatic(NetUtil::class, KeyPair::class) {
-      every { NetUtil.fetch(any()) } returns
-        "       NETWORK_PASSPHRASE=\"Public Global Stellar Network ; September 2015\"\n"
+    every { NetUtil.fetch(any()) } returns
+      "       NETWORK_PASSPHRASE=\"Public Global Stellar Network ; September 2015\"\n"
 
-      assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
 
-      every { NetUtil.fetch(any()) } answers { throw IOException("Cannot connect") }
-      assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
+    every { NetUtil.fetch(any()) } answers { throw IOException("Cannot connect") }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
 
-      every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
-      every { KeyPair.fromAccountId(any()) } answers { throw FormatException("Bad Format") }
-      assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
-    }
+    every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
+    every { KeyPair.fromAccountId(any()) } answers { throw FormatException("Bad Format") }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
   }
 
   @Test
+  @LockAndMockStatic([Sep10Challenge::class])
   fun `test createChallenge signing error`() {
-    lockAndMockStatic(Sep10Challenge::class) {
-      every { sep10Config.isClientAttributionRequired } returns false
-      every {
-        Sep10Challenge.newChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
-      } answers { throw InvalidSep10ChallengeException("mock exception") }
+    every { sep10Config.isClientAttributionRequired } returns false
+    every {
+      Sep10Challenge.newChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
+    } answers { throw InvalidSep10ChallengeException("mock exception") }
 
-      assertThrows<SepException> {
-        sep10Service.createChallenge(
-          ChallengeRequest.builder()
-            .account(TEST_ACCOUNT)
-            .memo(TEST_MEMO)
-            .homeDomain(TEST_HOME_DOMAIN)
-            .clientDomain(TEST_CLIENT_DOMAIN)
-            .build()
-        )
-      }
+    assertThrows<SepException> {
+      sep10Service.createChallenge(
+        ChallengeRequest.builder()
+          .account(TEST_ACCOUNT)
+          .memo(TEST_MEMO)
+          .homeDomain(TEST_HOME_DOMAIN)
+          .clientDomain(TEST_CLIENT_DOMAIN)
+          .build()
+      )
     }
   }
 
   @Test
+  @LockAndMockStatic([Sep10Challenge::class])
   fun `test createChallenge() ok`() {
     every { sep10Config.knownCustodialAccountList } returns listOf(TEST_ACCOUNT)
     val cr =
