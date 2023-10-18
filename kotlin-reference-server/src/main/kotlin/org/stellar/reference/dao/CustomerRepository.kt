@@ -1,5 +1,6 @@
 package org.stellar.reference.dao
 
+import java.time.Instant
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
@@ -43,8 +44,9 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
               clabeNumber = it[Customers.clabeNumber],
               idType = it[Customers.idType],
               idCountryCode = it[Customers.idCountryCode],
-              idIssueDate = it[Customers.idIssueDate],
-              idExpirationDate = it[Customers.idExpirationDate],
+              idIssueDate = it[Customers.idIssueDate]?.let { ts -> Instant.ofEpochMilli(ts) },
+              idExpirationDate =
+                it[Customers.idExpirationDate]?.let { ts -> Instant.ofEpochMilli(ts) },
               idNumber = it[Customers.idNumber]
             )
           }
@@ -84,8 +86,9 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
               clabeNumber = it[Customers.clabeNumber],
               idType = it[Customers.idType],
               idCountryCode = it[Customers.idCountryCode],
-              idIssueDate = it[Customers.idIssueDate],
-              idExpirationDate = it[Customers.idExpirationDate],
+              idIssueDate = it[Customers.idIssueDate]?.let { ts -> Instant.ofEpochMilli(ts) },
+              idExpirationDate =
+                it[Customers.idExpirationDate]?.let { ts -> Instant.ofEpochMilli(ts) },
               idNumber = it[Customers.idNumber]
             )
           }
@@ -111,8 +114,8 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
           it[clabeNumber] = customer.clabeNumber
           it[idType] = customer.idType
           it[idCountryCode] = customer.idCountryCode
-          it[idIssueDate] = customer.idIssueDate
-          it[idExpirationDate] = customer.idExpirationDate
+          it[idIssueDate] = customer.idIssueDate?.toEpochMilli()
+          it[idExpirationDate] = customer.idExpirationDate?.toEpochMilli()
           it[idNumber] = customer.idNumber
         }
       }
@@ -137,8 +140,8 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
         it[clabeNumber] = customer.clabeNumber
         it[idType] = customer.idType
         it[idCountryCode] = customer.idCountryCode
-        it[idIssueDate] = customer.idIssueDate
-        it[idExpirationDate] = customer.idExpirationDate
+        it[idIssueDate] = customer.idIssueDate?.toEpochMilli()
+        it[idExpirationDate] = customer.idExpirationDate?.toEpochMilli()
         it[idNumber] = customer.idNumber
       }
     }

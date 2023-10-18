@@ -19,7 +19,7 @@ object Customers : Table() {
   val clabeNumber = varchar("clabe_number", 255).nullable()
   val idType = varchar("id_type", 255).nullable()
   val idCountryCode = varchar("id_country_code", 255).nullable()
-  val idIssueDate = varchar("id_issue_date", 255).nullable()
-  val idExpirationDate = varchar("id_expiration_date", 255).nullable()
+  val idIssueDate = long("id_issue_date").nullable()
+  val idExpirationDate = long("id_expiration_date").nullable()
   val idNumber = varchar("id_number", 255).nullable()
 }

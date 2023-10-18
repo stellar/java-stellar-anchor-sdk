@@ -113,10 +113,10 @@ public class PutCustomerRequest {
   String idCountryCode;
 
   @SerializedName("id_issue_date")
-  String idIssueDate;
+  Instant idIssueDate;
 
   @SerializedName("id_expiration_date")
-  String idExpirationDate;
+  Instant idExpirationDate;
 
   @SerializedName("id_number")
   String idNumber;
