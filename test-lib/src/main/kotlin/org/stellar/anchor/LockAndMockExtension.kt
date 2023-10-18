@@ -10,6 +10,10 @@ import org.junit.jupiter.api.extension.ExtensionContext
 class LockAndMockTest : BeforeTestExecutionCallback, AfterTestExecutionCallback {
   private val mutexThreadLocal = ThreadLocal<TestMutex>()
 
+  /**
+   * Lock the classes and optionally mock the static methods of the classes before the test method
+   * call.
+   */
   override fun beforeTestExecution(context: ExtensionContext?) {
     val annotation = getAnnotation(context)
     if (annotation is LockAndMockStatic) {
@@ -26,6 +30,10 @@ class LockAndMockTest : BeforeTestExecutionCallback, AfterTestExecutionCallback 
     }
   }
 
+  /**
+   * Unlock the classes and optionally unmock the static methods of the classes after the test
+   * method call.
+   */
   override fun afterTestExecution(context: ExtensionContext?) {
     val annotation = getAnnotation(context)
     if (annotation is LockAndMockStatic) {
@@ -45,21 +53,33 @@ class LockAndMockTest : BeforeTestExecutionCallback, AfterTestExecutionCallback 
       it is LockAndMockStatic || it is LockStatic
     }
   }
-  //
-  //  private fun getLockAndMockStaticAnnotation(context: ExtensionContext?): LockAndMockStatic? {
-  //    return context?.requiredTestMethod?.annotations?.find { it is LockAndMockStatic }
-  //      as LockAndMockStatic?
-  //  }
-  //
-  //  private fun getLockStaticAnnotation(context: ExtensionContext?): LockStatic? {
-  //    return context?.requiredTestMethod?.annotations?.find { it is LockStatic } as LockStatic?
-  //  }
 }
 
+/**
+ * The annotated method will lock the classes and mock the static methods of the classes in the
+ * array.
+ *
+ * In order to use this annotation, the JUnit test class must be extended with the [LockAndMockTest]
+ * extension.
+ *
+ * For example:
+ * ```
+ * @ExtendWith(LockAndMockTest::class) class MyTest {}
+ * ```
+ */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class LockAndMockStatic(val classes: Array<KClass<*>>)
 
+/**
+ * The annotated method will lock the classes in the array. In order to use this annotation, the
+ * JUnit test class must be extended with the [LockAndMockTest] extension.
+ *
+ * For example:
+ * ```
+ * @ExtendWith(LockAndMockTest::class) class MyTest {}
+ * ```
+ */
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class LockStatic(val classes: Array<KClass<*>>)
