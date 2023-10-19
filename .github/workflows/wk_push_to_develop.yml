@@ -14,17 +14,6 @@ jobs:
   gradle_test_and_build:
     uses: ./.github/workflows/sub_gradle_test_and_build.yml
 
-  # TODO: enable the SEP validation when the develop deployment is fixed.
-#  sep_validation_suite:
-#    needs: [ gradle_test_and_build ]
-#    uses: ./.github/workflows/sub_stellar_anchor_tests.yml
-
-  # TODO: enable end_to_end_tests after it is fixed.
-#  end_to_end_tests:
-#    name: Run end-to-end Tests
-#    uses: ./.github/workflows/sub_end_to_end_tests.yml
-#    secrets: inherit
-
   build_and_push_docker_image:
     # stellar/anchor-platform:edge-${{ steps.get_date.outputs.date }}-${{ steps.get_sha.outputs.SHA }}
     # and stellar/anchor-platform:edge

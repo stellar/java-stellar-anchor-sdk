@@ -55,7 +55,6 @@ public class MetricConstants {
 
   // platform server metrics
   public static final String PLATFORM_PATCH_TRANSACTION = "platform_server.patch_transaction";
-  public static final String PLATFORM_RPC_TRANSACTION = "platform_server.rpc_transaction";
   public static final String PLATFORM_FIND_TRANSACTION = "platform_server.get_transaction";
   public static final String PLATFORM_FIND_TRANSACTIONS = "platform_server.get_transactions";
   public static final String TV_SEP6 = "sep6";

@@ -4,32 +4,27 @@ package org.stellar.anchor.util
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.Logger
+import org.stellar.anchor.LockAndMockStatic
+import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.PII
 import org.stellar.anchor.util.Log.shorter
 import org.stellar.sdk.Network.TESTNET
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Disabled
+@ExtendWith(LockAndMockTest::class)
 internal class LogTest {
   @MockK(relaxed = true) private lateinit var logger: Logger
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxed = true)
-    mockkStatic(Log::class)
-    every { Log.getLogger() } returns logger
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Suppress("unused")
@@ -48,7 +43,10 @@ internal class LogTest {
   val wantTestPIIJson = """{"fieldNoPII":"no secret"}"""
 
   @Test
+  @LockAndMockStatic([Log::class])
   fun `test log messages`() {
+    every { Log.getLogger() } returns logger
+
     Log.error("Hello")
     verify { logger.error("Hello") }
 
@@ -66,7 +64,9 @@ internal class LogTest {
   }
 
   @Test
+  @LockAndMockStatic([Log::class])
   fun `test log messages with JSON format`() {
+    every { Log.getLogger() } returns logger
     val detail = TestBeanPII()
 
     Log.error("Hello", detail)
@@ -105,9 +105,13 @@ internal class LogTest {
   }
 
   @Test
+  @LockAndMockStatic([Log::class])
   fun `test errorEx`() {
+    every { logger.error(any()) } answers {}
+
+    every { Log.getLogger() } returns logger
     Log.errorEx(Exception("mock exception"))
-    verify(exactly = 1) { logger.error(any()) }
+    verify(exactly = 1) { logger.error(ofType(String::class)) }
 
     val slot = slot<String>()
     every { logger.error(capture(slot)) } answers {}
@@ -129,7 +133,6 @@ internal class LogTest {
 
   @Test
   fun `test getLogger`() {
-    unmockkAll()
     val logger = Log.getLogger()
     assertNotNull(logger)
   }

@@ -42,7 +42,7 @@ jobs:
 
       # Prepare Stellar Validation Tests
       - name: Pull Stellar Validation Tests Docker Image
-        run: docker pull stellar/anchor-tests:v0.5.12 &
+        run: docker pull stellar/anchor-tests:v0.6.5 &
 
       # Set up JDK 11
       - name: Set up JDK 11
@@ -108,9 +108,8 @@ jobs:
           interval: "1"
 
       - name: Run Stellar validation tool
-        # TODO: re-enable SEP-24 tests once it passes (ANCHOR-487)
         run: |
-          docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.6.1 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
+          docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.6.5 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
 
   analyze:
     name: CodeQL Analysis

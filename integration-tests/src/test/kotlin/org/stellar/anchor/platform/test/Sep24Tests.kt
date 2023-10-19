@@ -2,6 +2,7 @@
 
 package org.stellar.anchor.platform.test
 
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
@@ -71,6 +72,25 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
     val cipher = params["token"]!![0]
     val jwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
     assertEquals(response.id, jwt.jti)
+    assertNotNull(jwt.claims["data"])
+    assertNotNull((jwt.claims["data"] as HashMap<String, String>)["asset"])
+  }
+
+  private fun `test Sep24 deposit no issuer`() {
+    printRequest("POST /transactions/withdraw/interactive")
+    val depositRequest = gson.fromJson(depositRequestNoIssuer, HashMap::class.java)
+    val response = sep24Client.deposit(depositRequest as HashMap<String, String>)
+    printResponse("POST /transactions/deposit/interactive response:", response)
+    savedDepositTxn = sep24Client.getTransaction(response.id, "USDC")
+    printResponse(savedDepositTxn)
+    JSONAssert.assertEquals(expectedSep24DepositResponse, json(savedDepositTxn), LENIENT)
+    // check the returning Sep24InteractiveUrlJwt
+    val params = UriComponentsBuilder.fromUriString(response.url).build().queryParams
+    val cipher = params["token"]!![0]
+    val jwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
+    assertEquals(response.id, jwt.jti)
+    assertNotNull(jwt.claims["data"])
+    assertNotNull((jwt.claims["data"] as HashMap<String, String>)["asset"])
   }
 
   private fun `test Sep24 GET transaction and check the JWT`() {
@@ -139,6 +159,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
     `test Sep24 info endpoint`()
     `test Sep24 withdraw`()
     `test Sep24 deposit`()
+    `test Sep24 deposit no issuer`()
     `test Sep24 GET transaction and check the JWT`()
     `test PlatformAPI GET transaction for deposit and withdrawal`()
     `test patch, get and compare`()
@@ -160,6 +181,14 @@ private const val depositRequest =
     "amount": "10",
     "asset_code": "USDC",
     "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+    "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+    "lang": "en"
+}"""
+
+private const val depositRequestNoIssuer =
+  """{
+    "amount": "10",
+    "asset_code": "USDC",
     "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
     "lang": "en"
 }"""

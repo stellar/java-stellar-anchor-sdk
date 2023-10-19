@@ -3,11 +3,8 @@ package org.stellar.anchor.platform.event
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import java.util.*
 import java.util.concurrent.TimeUnit
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -17,8 +14,11 @@ import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.sep24.TransactionResponse
 import org.stellar.anchor.api.sep.sep6.Sep6TransactionResponse
 import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.config.ClientsConfig.*
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
+import org.stellar.anchor.config.ClientsConfig.ClientType.*
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
+import org.stellar.anchor.lockAndMockStatic
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.sep24.Sep24Helper
@@ -59,8 +59,6 @@ class ClientStatusCallbackHandlerTest {
     sep24TransactionStore = mockk<Sep24TransactionStore>()
     sep31TransactionStore = mockk<Sep31TransactionStore>()
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
-    mockkStatic(Sep24Helper::class)
-    every { fromTxn(any(), any(), any()) } returns mockk<TransactionResponse>()
 
     assetService = mockk<AssetService>()
     moreInfoUrlConstructor = mockk<MoreInfoUrlConstructor>()
@@ -85,27 +83,27 @@ class ClientStatusCallbackHandlerTest {
       )
   }
 
-  @AfterEach
-  fun teardown() {
-    unmockkStatic(Sep24Helper::class)
-  }
-
   @Test
   fun `test verify request signature`() {
-    // header example: "X-Stellar-Signature": "t=....., s=......"
-    // Get the signature from request
-    val payload = json(event)
-    val request =
-      ClientStatusCallbackHandler.buildHttpRequest(signer, payload, clientConfig.callbackUrl)
-    val requestHeader = request.headers["Signature"]
-    val parsedSignature = requestHeader?.split(", ")?.get(1)?.substring(2)
-    val decodedSignature = Base64.getDecoder().decode(parsedSignature)
+    lockAndMockStatic(Sep24Helper::class) {
+      // header example: "X-Stellar-Signature": "t=....., s=......"
+      // Get the signature from request
 
-    // re-compose the signature from request info for verify
-    val tsInRequest = requestHeader?.split(", ")?.get(0)?.substring(2)
-    val payloadToVerify = tsInRequest + "." + request.url.host + "." + payload
-    val signatureToVerify = signer.sign(payloadToVerify.toByteArray())
+      every { fromTxn(any(), any(), any()) } returns mockk<TransactionResponse>()
 
-    Assertions.assertArrayEquals(decodedSignature, signatureToVerify)
+      val payload = json(event)
+      val request =
+        ClientStatusCallbackHandler.buildHttpRequest(signer, payload, clientConfig.callbackUrl)
+      val requestHeader = request.headers["Signature"]
+      val parsedSignature = requestHeader?.split(", ")?.get(1)?.substring(2)
+      val decodedSignature = Base64.getDecoder().decode(parsedSignature)
+
+      // re-compose the signature from request info for verify
+      val tsInRequest = requestHeader?.split(", ")?.get(0)?.substring(2)
+      val payloadToVerify = tsInRequest + "." + request.url.host + "." + payload
+      val signatureToVerify = signer.sign(payloadToVerify.toByteArray())
+
+      Assertions.assertArrayEquals(decodedSignature, signatureToVerify)
+    }
   }
 }
