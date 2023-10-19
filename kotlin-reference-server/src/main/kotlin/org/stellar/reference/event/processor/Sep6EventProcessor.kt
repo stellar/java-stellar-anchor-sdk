@@ -1,75 +1,71 @@
 package org.stellar.reference.event.processor
 
-import java.lang.RuntimeException
 import java.time.Instant
 import kotlinx.coroutines.runBlocking
+import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.*
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.api.shared.StellarPayment
 import org.stellar.anchor.api.shared.StellarTransaction
+import org.stellar.reference.callbacks.customer.CustomerService
 import org.stellar.reference.client.PlatformClient
 import org.stellar.reference.data.Config
 import org.stellar.reference.log
-import org.stellar.sdk.Asset
-import org.stellar.sdk.KeyPair
-import org.stellar.sdk.Network
-import org.stellar.sdk.PaymentOperation
-import org.stellar.sdk.Server
-import org.stellar.sdk.TransactionBuilder
+import org.stellar.sdk.*
 
 class Sep6EventProcessor(
   private val config: Config,
   private val server: Server,
   private val platformClient: PlatformClient,
+  private val customerService: CustomerService,
 ) : SepAnchorEventProcessor {
+  companion object {
+    val requiredKyc =
+      listOf("id_type", "id_country_code", "id_issue_date", "id_expiration_date", "id_number")
+    val depositRequiredKyc = listOf("address")
+    val withdrawRequiredKyc =
+      listOf("bank_account_number", "bank_account_type", "bank_number", "bank_branch_number")
+  }
+
   override fun onQuoteCreated(event: AnchorEvent) {
     TODO("Not yet implemented")
   }
 
   override fun onTransactionCreated(event: AnchorEvent) {
     when (val kind = event.transaction.kind) {
-      PlatformTransactionData.Kind.DEPOSIT -> onDepositTransactionCreated(event)
-      PlatformTransactionData.Kind.WITHDRAWAL -> onWithdrawTransactionCreated(event)
+      Kind.DEPOSIT,
+      Kind.WITHDRAWAL -> {
+        if (event.transaction.status != SepTransactionStatus.INCOMPLETE) {
+          log.warn(
+            "Received $kind transaction created event with unsupported status: ${event.transaction.status}"
+          )
+          return
+        }
+        val missingFields = verifyKyc(event.transaction.customers.sender.id, kind)
+        val (status, requiredFields) =
+          if (missingFields.isEmpty()) {
+            SepTransactionStatus.PENDING_ANCHOR to null
+          } else {
+            SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE to missingFields
+          }
+        runBlocking {
+          patchTransaction(
+            PlatformTransactionData.builder()
+              .id(event.transaction.id)
+              .status(status)
+              .updatedAt(Instant.now())
+              .requiredCustomerInfoUpdates(requiredFields)
+              .build()
+          )
+        }
+      }
       else -> {
         log.warn("Received transaction created event with unsupported kind: $kind")
       }
-    }
-  }
-
-  private fun onDepositTransactionCreated(event: AnchorEvent) {
-    if (event.transaction.status != SepTransactionStatus.INCOMPLETE) {
-      log.warn(
-        "Received deposit transaction created event with unsupported status: ${event.transaction.status}"
-      )
-      return
-    }
-    runBlocking {
-      patchTransaction(
-        PlatformTransactionData.builder()
-          .id(event.transaction.id)
-          .status(SepTransactionStatus.PENDING_ANCHOR)
-          .build()
-      )
-    }
-  }
-
-  private fun onWithdrawTransactionCreated(event: AnchorEvent) {
-    if (event.transaction.status != SepTransactionStatus.INCOMPLETE) {
-      log.warn(
-        "Received withdraw transaction created event with unsupported status: ${event.transaction.status}"
-      )
-      return
-    }
-    runBlocking {
-      patchTransaction(
-        PlatformTransactionData.builder()
-          .id(event.transaction.id)
-          .status(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE)
-          .build()
-      )
     }
   }
 
@@ -79,8 +75,8 @@ class Sep6EventProcessor(
 
   override fun onTransactionStatusChanged(event: AnchorEvent) {
     when (val kind = event.transaction.kind) {
-      PlatformTransactionData.Kind.DEPOSIT -> onDepositTransactionStatusChanged(event)
-      PlatformTransactionData.Kind.WITHDRAWAL -> onWithdrawTransactionStatusChanged(event)
+      Kind.DEPOSIT -> onDepositTransactionStatusChanged(event)
+      Kind.WITHDRAWAL -> onWithdrawTransactionStatusChanged(event)
       else -> {
         log.warn("Received transaction created event with unsupported kind: $kind")
       }
@@ -91,12 +87,29 @@ class Sep6EventProcessor(
     val transaction = event.transaction
     when (val status = transaction.status) {
       SepTransactionStatus.PENDING_ANCHOR -> {
+        val missingFields = verifyKyc(event.transaction.customers.sender.id, Kind.DEPOSIT)
+        val (newStatus, requiredFields) =
+          if (missingFields.isEmpty()) {
+            SepTransactionStatus.COMPLETED to null
+          } else {
+            SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE to missingFields
+          }
         runBlocking {
           patchTransaction(
             PlatformTransactionData.builder()
-              .id(transaction.id)
+              .id(event.transaction.id)
+              .status(newStatus)
               .updatedAt(Instant.now())
-              .status(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE)
+              .requiredCustomerInfoUpdates(requiredFields)
+              .apply {
+                if (newStatus == SepTransactionStatus.COMPLETED) {
+                  completedAt(Instant.now())
+                  requiredInfoMessage(null)
+                  requiredInfoUpdates(null)
+                  requiredCustomerInfoMessage(null)
+                  requiredCustomerInfoUpdates(null)
+                }
+              }
               .build()
           )
         }
@@ -113,13 +126,16 @@ class Sep6EventProcessor(
   private fun onWithdrawTransactionStatusChanged(event: AnchorEvent) {
     val transaction = event.transaction
     when (val status = transaction.status) {
+      // The transaction only moves into this state after the user has submitted funds to the
+      // Anchor.
       SepTransactionStatus.PENDING_ANCHOR -> {
         runBlocking {
           patchTransaction(
             PlatformTransactionData.builder()
               .id(transaction.id)
-              .updatedAt(Instant.now())
               .status(SepTransactionStatus.COMPLETED)
+              .updatedAt(Instant.now())
+              .completedAt(Instant.now())
               .build()
           )
         }
@@ -148,8 +164,8 @@ class Sep6EventProcessor(
       }
       .forEach { transaction ->
         when (transaction.kind) {
-          PlatformTransactionData.Kind.DEPOSIT -> handleDepositTransaction(transaction)
-          PlatformTransactionData.Kind.WITHDRAWAL -> handleWithdrawTransaction(transaction)
+          Kind.DEPOSIT -> handleDepositTransaction(transaction)
+          Kind.WITHDRAWAL -> handleWithdrawTransaction(transaction)
           else -> {
             log.warn(
               "Received transaction created event with unsupported kind: ${transaction.kind}"
@@ -160,6 +176,10 @@ class Sep6EventProcessor(
   }
 
   private fun handleDepositTransaction(transaction: GetTransactionResponse) {
+    if (verifyKyc(transaction.customers.sender.id, Kind.DEPOSIT).isNotEmpty()) {
+      return
+    }
+
     val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
     val assetCode = transaction.amountExpected.asset.toAssetId()
 
@@ -177,7 +197,7 @@ class Sep6EventProcessor(
           .completedAt(Instant.now())
           .requiredInfoMessage(null)
           .requiredInfoUpdates(null)
-          .requiredCustomerInfoUpdates(null)
+          .requiredCustomerInfoMessage(null)
           .requiredCustomerInfoUpdates(null)
           .instructions(
             mapOf(
@@ -200,13 +220,16 @@ class Sep6EventProcessor(
   }
 
   private fun handleWithdrawTransaction(transaction: GetTransactionResponse) {
+    if (verifyKyc(transaction.customers.sender.id, Kind.WITHDRAWAL).isNotEmpty()) {
+      return
+    }
+
     runBlocking {
       patchTransaction(
         PlatformTransactionData.builder()
           .id(transaction.id)
           .status(SepTransactionStatus.PENDING_USR_TRANSFER_START)
           .updatedAt(Instant.now())
-          .completedAt(Instant.now())
           .requiredInfoMessage(null)
           .requiredInfoUpdates(null)
           .requiredCustomerInfoUpdates(null)
@@ -223,6 +246,14 @@ class Sep6EventProcessor(
       2 -> parts[1]
       else -> throw RuntimeException("Invalid asset format: $this")
     }
+  }
+
+  private fun verifyKyc(customerId: String, kind: Kind): List<String> {
+    val customer = customerService.getCustomer(GetCustomerRequest.builder().id(customerId).build())
+    val providedFields = customer.providedFields.keys
+    return requiredKyc
+      .plus(if (kind == Kind.DEPOSIT) depositRequiredKyc else withdrawRequiredKyc)
+      .filter { !providedFields.contains(it) }
   }
 
   private fun submitStellarTransaction(

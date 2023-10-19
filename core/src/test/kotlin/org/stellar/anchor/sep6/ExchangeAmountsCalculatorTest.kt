@@ -7,9 +7,13 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
+import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
+import org.stellar.anchor.TestConstants.Companion.TEST_CUSTOMER_ID
+import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.callback.FeeIntegration
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetFeeResponse
@@ -19,13 +23,19 @@ import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
+import org.stellar.anchor.client.ClientFinder
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts
 
 class ExchangeAmountsCalculatorTest {
+  companion object {
+    val token = TestHelper.createSep10Jwt(TEST_ACCOUNT, TestConstants.TEST_MEMO)
+  }
+
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
+  @MockK(relaxed = true) lateinit var clientFinder: ClientFinder
   @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var sep38QuoteStore: Sep38QuoteStore
 
@@ -34,7 +44,21 @@ class ExchangeAmountsCalculatorTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    calculator = ExchangeAmountsCalculator(feeIntegration, sep38QuoteStore, assetService)
+    every { clientFinder.getClientId(token) } returns TEST_CLIENT_NAME
+    every {
+      feeIntegration.getFee(
+        GetFeeRequest.builder()
+          .sendAmount("100")
+          .sendAsset(TEST_ASSET_SEP38_FORMAT)
+          .receiveAsset("iso4217:USD")
+          .senderId(TEST_CUSTOMER_ID)
+          .receiverId(TEST_CUSTOMER_ID)
+          .clientId(TEST_CLIENT_NAME)
+          .build()
+      )
+    } returns GetFeeResponse(Amount("2", "iso4217:USD"))
+    calculator =
+      ExchangeAmountsCalculator(clientFinder, feeIntegration, sep38QuoteStore, assetService)
   }
 
   private val usdcQuote =
@@ -106,25 +130,13 @@ class ExchangeAmountsCalculatorTest {
 
   @Test
   fun `test calculate`() {
-    every {
-      feeIntegration.getFee(
-        GetFeeRequest.builder()
-          .sendAmount("100")
-          .sendAsset(TEST_ASSET_SEP38_FORMAT)
-          .receiveAsset("iso4217:USD")
-          .senderId(TEST_ACCOUNT)
-          .receiverId(TEST_ACCOUNT)
-          .clientId(TEST_ACCOUNT)
-          .build()
-      )
-    } returns GetFeeResponse(Amount("2", "iso4217:USD"))
-
     val result =
       calculator.calculate(
         assetService.getAssetByName("iso4217:USD"),
         assetService.getAsset(TEST_ASSET),
         "100",
-        TEST_ACCOUNT
+        TEST_CUSTOMER_ID,
+        token
       )
     assertEquals(
       Amounts.builder()
