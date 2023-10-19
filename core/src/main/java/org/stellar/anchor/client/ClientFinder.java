@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.ClientsConfig;
+import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.Sep10Config;
 
 /** Finds the client ID for a SEP-10 JWT. */
@@ -37,27 +38,20 @@ public class ClientFinder {
       throw new BadRequestException("Client not found");
     }
 
-    // Token has a client domain set
-    if (token.getClientDomain() != null) {
-      if (isDomainAllowed(client.getDomain()) && isClientNameAllowed(client.getName())) {
-        return client.getName();
-      }
+    if (token.getClientDomain() != null && !isDomainAllowed(client.getDomain())) {
       throw new BadRequestException("Client domain not allowed");
     }
-
-    // Token has only an account set
-    if (isClientNameAllowed(client.getName())) {
-      return client.getName();
+    if (!isClientNameAllowed(client.getName())) {
+      throw new BadRequestException("Client name not allowed");
     }
-    throw new BadRequestException("Client name not allowed");
+
+    return client.getName();
   }
 
   @Nullable
-  private ClientsConfig.ClientConfig getClient(Sep10Jwt token) {
-    ClientsConfig.ClientConfig clientByDomain =
-        clientsConfig.getClientConfigByDomain(token.getClientDomain());
-    ClientsConfig.ClientConfig clientByAccount =
-        clientsConfig.getClientConfigBySigningKey(token.getAccount());
+  private ClientConfig getClient(Sep10Jwt token) {
+    ClientConfig clientByDomain = clientsConfig.getClientConfigByDomain(token.getClientDomain());
+    ClientConfig clientByAccount = clientsConfig.getClientConfigBySigningKey(token.getAccount());
     return clientByDomain != null ? clientByDomain : clientByAccount;
   }
 
