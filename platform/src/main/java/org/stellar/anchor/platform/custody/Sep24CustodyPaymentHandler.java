@@ -3,10 +3,10 @@ package org.stellar.anchor.platform.custody;
 import static org.stellar.anchor.platform.data.CustodyTransactionStatus.FAILED;
 import static org.stellar.anchor.util.Log.infoF;
 
-import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.apiclient.PlatformApiClient;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
@@ -19,14 +19,17 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
 
   private final PlatformApiClient platformApiClient;
   private final RpcConfig rpcConfig;
+  private final MetricsService metricsService;
 
   public Sep24CustodyPaymentHandler(
       JdbcCustodyTransactionRepo custodyTransactionRepo,
       PlatformApiClient platformApiClient,
-      RpcConfig rpcConfig) {
+      RpcConfig rpcConfig,
+      MetricsService metricsService) {
     super(custodyTransactionRepo);
     this.platformApiClient = platformApiClient;
     this.rpcConfig = rpcConfig;
+    this.metricsService = metricsService;
   }
 
   /**
@@ -56,8 +59,8 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
               payment.getAmount(),
               rpcConfig.getCustomMessages().getIncomingPaymentReceived());
 
-          Metrics.counter(
-                  AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
+          metricsService
+              .counter(AnchorMetrics.PAYMENT_RECEIVED, "asset", payment.getAssetName())
               .increment(Double.parseDouble(payment.getAmount()));
 
           break;
@@ -97,7 +100,8 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
           payment.getTransactionHash(),
           rpcConfig.getCustomMessages().getOutgoingPaymentSent());
 
-      Metrics.counter(AnchorMetrics.PAYMENT_SENT.toString(), "asset", payment.getAssetName())
+      metricsService
+          .counter(AnchorMetrics.PAYMENT_SENT, "asset", payment.getAssetName())
           .increment(Double.parseDouble(payment.getAmount()));
     }
   }

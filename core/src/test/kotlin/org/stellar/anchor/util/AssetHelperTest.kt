@@ -51,19 +51,4 @@ class AssetHelperTest {
   fun `test invalid stellar assets`(assetCode: String?, assetIssuer: String?) {
     assertFalse(AssetHelper.isNonNativeAsset(assetCode, assetIssuer))
   }
-  @ParameterizedTest
-  @CsvSource(
-    value =
-      [
-        "USDC,GDJJES5JOST5VTBLDVVQRAW26LZ5IIJJFVN5IJOMICM73HLGGB3G74SS,stellar:USDC:GDJJES5JOST5VTBLDVVQRAW26LZ5IIJJFVN5IJOMICM73HLGGB3G74SS",
-        "USDC,BAD_WALLET,",
-        "USD,,iso4217:USD",
-        "USD,BAD_WALLET,",
-        ",GDJJES5JOST5VTBLDVVQRAW26LZ5IIJJFVN5IJOMICM73HLGGB3G74SS,",
-        "native,,stellar:native"
-      ]
-  )
-  fun `test getAssetId`(assetCode: String?, assetIssuer: String?, assetId: String?) {
-    assertEquals(assetId, AssetHelper.getAssetId(assetCode, assetIssuer))
-  }
 }

@@ -4,7 +4,6 @@ package org.stellar.anchor.platform
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,12 +27,6 @@ class PaymentObservingAccountsBeansTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxed = true)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

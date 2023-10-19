@@ -6,7 +6,6 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.time.format.DateTimeFormatter
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -52,12 +51,6 @@ class PaymentOperationToEventListenerTest {
         platformApiClient,
         rpcConfig
       )
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

@@ -11,7 +11,8 @@ class TestHelper {
       account: String = TEST_ACCOUNT,
       accountMemo: String? = null,
       hostUrl: String = "",
-      clientDomain: String = "vibrant.stellar.org"
+      clientDomain: String = "vibrant.stellar.org",
+      homeDomain: String = "test.stellar.org"
     ): Sep10Jwt {
       val issuedAt: Long = System.currentTimeMillis() / 1000L
       return Sep10Jwt.of(
@@ -20,7 +21,8 @@ class TestHelper {
         issuedAt,
         issuedAt + 60,
         "",
-        clientDomain
+        clientDomain,
+        homeDomain
       )
     }
   }

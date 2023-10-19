@@ -5,12 +5,16 @@ import kotlin.test.assertNull
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.io.ClassPathResource
+import org.stellar.anchor.LockAndMockStatic
+import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.DEFAULT
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.FILE
 
+@ExtendWith(LockAndMockTest::class)
 class ConfigManagerTest {
   val configManager =
     spyk(
@@ -18,6 +22,7 @@ class ConfigManagerTest {
         override fun initialize(context: ConfigurableApplicationContext) {}
       }
     )
+
   @Test
   fun `test reading a file and it is processed correctly`() {
     val testingConfigFile = ClassPathResource("config/test_anchor_config.yaml")
@@ -44,6 +49,7 @@ class ConfigManagerTest {
       "https://callback.lobstr.co/api/v2/anchor/callback"
     )
   }
+
   @Test
   fun `test reading a file missing version throws an exception`() {
     val testingConfigFile = ClassPathResource("config/test_anchor_config_missing_version.yaml")
@@ -61,15 +67,17 @@ class ConfigManagerTest {
 }
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
+@ExtendWith(LockAndMockTest::class)
 class ConfigManagerTestExt {
   private lateinit var configManager: ConfigManager
 
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    mockkStatic(ConfigReader::class)
-    mockkStatic(ConfigHelper::class)
+  }
 
+  @LockAndMockStatic([ConfigReader::class, ConfigHelper::class])
+  fun `add default config mocks`() {
     configManager = spyk(ConfigManager.getInstance())
 
     every { ConfigHelper.loadDefaultConfig() } returns
@@ -87,15 +95,11 @@ class ConfigManagerTestExt {
       }
   }
 
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
-  }
-
   @Test
   @Order(1)
+  @LockAndMockStatic([ConfigReader::class, ConfigHelper::class])
   fun `(scene-1) configuration with version upgrades`() {
+    `add default config mocks`()
     every { configManager.getConfigFileAsResource(any()) } answers
       {
         ClassPathResource("org/stellar/anchor/platform/configurator/scene-1/test.yaml")
@@ -113,7 +117,9 @@ class ConfigManagerTestExt {
 
   @Test
   @Order(2)
+  @LockAndMockStatic([ConfigReader::class, ConfigHelper::class])
   fun `(scene-2) bad configuration file`() {
+    `add default config mocks`()
     every { configManager.getConfigFileAsResource(any()) } answers
       {
         ClassPathResource("org/stellar/anchor/platform/configurator/scene-2/test.bad.yaml")
@@ -126,7 +132,9 @@ class ConfigManagerTestExt {
 
   @Test
   @Order(3)
+  @LockAndMockStatic([ConfigReader::class, ConfigHelper::class])
   fun `(scene-3) configuration from file and system environment variables with upgrades`() {
+    `add default config mocks`()
     every { configManager.getConfigFileAsResource(any()) } answers
       {
         ClassPathResource("org/stellar/anchor/platform/configurator/scene-3/test.yaml")
@@ -148,7 +156,9 @@ class ConfigManagerTestExt {
   }
 
   @Test
+  @LockAndMockStatic([ConfigReader::class, ConfigHelper::class])
   fun `test ConfigEnvironment getenv with line breaks and quotes`() {
+    `add default config mocks`()
     val multilineEnvName = "MULTILINE_ENV"
     val multilineEnvValue = """FOO=\"FOO\"\nBAR=\"BAR\""""
     val wantValue = "FOO=\"FOO\"\nBAR=\"BAR\""
@@ -164,7 +174,9 @@ class ConfigManagerTestExt {
   }
 
   @Test
+  @LockAndMockStatic([ConfigReader::class, ConfigHelper::class])
   fun `test ConfigEnvironment getenv without line breaks or quotes`() {
+    `add default config mocks`()
     val simpleEnvName = "SIMPLE_ENV"
     val simpleEnvValue = "FOOBAR"
     val wantValue = "FOOBAR"

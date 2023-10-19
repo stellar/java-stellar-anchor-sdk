@@ -6,12 +6,6 @@ on:
     types: [ created, edited ]
 
 jobs:
-  # TODO: Enable end_to_end tests after it is fixed.
-#  end_to_end_tests:
-#    name: Run end-to-end Tests
-#    uses: ./.github/workflows/sub_end_to_end_tests.yml
-#    secrets: inherit
-  
   build_and_push_docker_image:
     name: Push to DockerHub (tag=stellar/anchor-platform:${{ github.event.release.tag_name }})
     runs-on: ubuntu-22.04

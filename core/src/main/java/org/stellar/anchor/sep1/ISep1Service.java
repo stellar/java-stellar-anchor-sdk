@@ -13,7 +13,7 @@ public interface ISep1Service {
    *
    * @param sep1Config The Sep1 configuration.
    * @return The stellar.toml content.
-   * @throws Exception
+   * @throws Exception If reading the stellar.toml content fails.
    */
   String readSep1Toml(Sep1Config sep1Config) throws Exception;
 }

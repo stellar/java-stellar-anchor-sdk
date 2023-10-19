@@ -3,14 +3,14 @@ package org.stellar.anchor.platform.event
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import java.util.*
 import java.util.concurrent.TimeUnit
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.stellar.anchor.LockAndMockStatic
+import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
@@ -30,6 +30,7 @@ import org.stellar.anchor.sep6.Sep6TransactionUtils
 import org.stellar.anchor.util.StringHelper.json
 import org.stellar.sdk.KeyPair
 
+@ExtendWith(LockAndMockTest::class)
 class ClientStatusCallbackHandlerTest {
   private lateinit var handler: ClientStatusCallbackHandler
   private lateinit var secretConfig: PropertySecretConfig
@@ -53,14 +54,10 @@ class ClientStatusCallbackHandlerTest {
 
     sep6TransactionStore = mockk<Sep6TransactionStore>()
     every { sep6TransactionStore.findByTransactionId(any()) } returns null
-    mockkStatic(Sep6TransactionUtils::class)
-    every { Sep6TransactionUtils.fromTxn(any()) } returns mockk<Sep6TransactionResponse>()
 
     sep24TransactionStore = mockk<Sep24TransactionStore>()
     sep31TransactionStore = mockk<Sep31TransactionStore>()
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
-    mockkStatic(Sep24Helper::class)
-    every { fromTxn(any(), any(), any()) } returns mockk<TransactionResponse>()
 
     assetService = mockk<AssetService>()
     moreInfoUrlConstructor = mockk<MoreInfoUrlConstructor>()
@@ -85,15 +82,15 @@ class ClientStatusCallbackHandlerTest {
       )
   }
 
-  @AfterEach
-  fun teardown() {
-    unmockkStatic(Sep24Helper::class)
-  }
-
+  @LockAndMockStatic([Sep24Helper::class, Sep6TransactionUtils::class])
   @Test
   fun `test verify request signature`() {
     // header example: "X-Stellar-Signature": "t=....., s=......"
     // Get the signature from request
+
+    every { Sep6TransactionUtils.fromTxn(any()) } returns mockk<Sep6TransactionResponse>()
+    every { fromTxn(any(), any(), any()) } returns mockk<TransactionResponse>()
+
     val payload = json(event)
     val request =
       ClientStatusCallbackHandler.buildHttpRequest(signer, payload, clientConfig.callbackUrl)

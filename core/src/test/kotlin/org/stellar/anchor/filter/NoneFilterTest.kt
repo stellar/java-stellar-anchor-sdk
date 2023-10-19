@@ -8,7 +8,6 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class NoneFilterTest {
   private lateinit var noneFilter: NoneFilter
   private lateinit var request: HttpServletRequest
@@ -21,12 +20,6 @@ internal class NoneFilterTest {
     this.request = mockk(relaxed = true)
     this.response = mockk(relaxed = true)
     this.mockFilterChain = mockk(relaxed = true)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @ParameterizedTest

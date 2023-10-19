@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.event
 
 import org.apache.commons.lang3.NotImplementedException
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -19,8 +18,6 @@ internal class DefaultEventServiceTest {
     eventConfig =
       GsonUtils.getInstance().fromJson(eventConfigJson, PropertyEventConfig::class.java)!!
   }
-
-  @AfterEach fun tearDown() {}
 
   @Test
   fun `test if the create session returns correct Session class`() {

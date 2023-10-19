@@ -2,6 +2,7 @@ package org.stellar.anchor.auth;
 
 import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN;
+import static org.stellar.anchor.auth.JwtService.HOME_DOMAIN;
 
 import com.google.gson.annotations.SerializedName;
 import io.jsonwebtoken.Jwt;
@@ -18,6 +19,9 @@ import org.stellar.sdk.xdr.MuxedAccount;
 public class Sep10Jwt extends AbstractJwt {
   @SerializedName(value = "client_domain")
   String clientDomain;
+
+  @SerializedName(value = "home_domain")
+  String homeDomain;
 
   String account;
 
@@ -49,26 +53,46 @@ public class Sep10Jwt extends AbstractJwt {
     super(jwt);
     if (isNotEmpty(claims.get(CLIENT_DOMAIN)))
       this.clientDomain = claims.get(CLIENT_DOMAIN).toString();
+    if (isNotEmpty(claims.get(HOME_DOMAIN))) this.homeDomain = claims.get(HOME_DOMAIN).toString();
     updateAccountAndMemo();
   }
 
-  public Sep10Jwt(String iss, String sub, long iat, long exp, String jti, String clientDomain) {
+  public Sep10Jwt(
+      String iss,
+      String sub,
+      long iat,
+      long exp,
+      String jti,
+      String clientDomain,
+      String homeDomain) {
     this.iss = iss;
     this.sub = sub;
     this.iat = iat;
     this.exp = exp;
     this.jti = jti;
     this.clientDomain = clientDomain;
+    this.homeDomain = homeDomain;
     updateAccountAndMemo();
   }
 
   public static Sep10Jwt of(
       String iss, String sub, long iat, long exp, String jti, String clientDomain) {
-    return new Sep10Jwt(iss, sub, iat, exp, jti, clientDomain);
+    return new Sep10Jwt(iss, sub, iat, exp, jti, clientDomain, null);
+  }
+
+  public static Sep10Jwt of(
+      String iss,
+      String sub,
+      long iat,
+      long exp,
+      String jti,
+      String clientDomain,
+      String homeDomain) {
+    return new Sep10Jwt(iss, sub, iat, exp, jti, clientDomain, homeDomain);
   }
 
   public static Sep10Jwt of(String iss, long iat, long exp) {
-    Sep10Jwt token = new Sep10Jwt(iss, null, iat, 0, null, null);
+    Sep10Jwt token = new Sep10Jwt(iss, null, iat, 0, null, null, null);
     token.iss = iss;
     token.iat = iat;
     token.exp = exp;

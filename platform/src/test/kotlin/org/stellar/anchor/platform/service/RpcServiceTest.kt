@@ -3,14 +3,16 @@ package org.stellar.anchor.platform.service
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.mockkStatic
 import io.mockk.verify
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.LockAndMockStatic
+import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.rpc.RpcRequest
@@ -22,6 +24,7 @@ import org.stellar.anchor.platform.utils.RpcUtil
 import org.stellar.anchor.platform.utils.RpcUtil.JSON_RPC_VERSION
 import org.stellar.anchor.util.GsonUtils
 
+@ExtendWith(LockAndMockTest::class)
 class RpcServiceTest {
   companion object {
     private const val RPC_ID = 1
@@ -280,14 +283,15 @@ class RpcServiceTest {
   }
 
   @Test
+  @LockAndMockStatic([RpcUtil::class])
   fun `test handle internal exception`() {
+    // Given
     val rpcRequest = RpcRequest.builder().build()
 
     every { rpcConfig.batchSizeLimit } returns BATCH_SIZE_LIMIT
-
-    mockkStatic(RpcUtil::class)
     every { RpcUtil.validateRpcRequest(rpcRequest) } throws NullPointerException(ERROR_MSG)
 
+    // When
     val response = rpcService.handle(listOf(rpcRequest))
 
     val expectedResponse =
@@ -304,18 +308,19 @@ class RpcServiceTest {
     """
         .trimIndent()
 
+    // Then
     JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
 
     verify(exactly = 0) { rpcMethodHandler.handle(any()) }
   }
 
   @Test
+  @LockAndMockStatic([RpcUtil::class])
   fun `test handle bad request exception`() {
     val rpcRequest = RpcRequest.builder().build()
 
     every { rpcConfig.batchSizeLimit } returns BATCH_SIZE_LIMIT
 
-    mockkStatic(RpcUtil::class)
     every { RpcUtil.validateRpcRequest(rpcRequest) } throws BadRequestException(ERROR_MSG)
 
     val response = rpcService.handle(listOf(rpcRequest))
