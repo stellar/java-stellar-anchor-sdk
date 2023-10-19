@@ -130,7 +130,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
       }
     }
 
-    fields.put("asset", asset.getAssetName());
+    fields.put("asset", asset.getSep38AssetName());
 
     if (homeDomain != null) {
       fields.put(HOME_DOMAIN, homeDomain);
