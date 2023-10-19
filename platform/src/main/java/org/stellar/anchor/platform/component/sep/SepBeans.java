@@ -14,6 +14,7 @@ import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.client.ClientFinder;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
@@ -128,8 +129,15 @@ public class SepBeans {
   }
 
   @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep6", "sep24"})
+  ClientFinder clientFinder(Sep10Config sep10Config, ClientsConfig clientsConfig) {
+    return new ClientFinder(sep10Config, clientsConfig);
+  }
+
+  @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep6"})
   Sep6Service sep6Service(
+      ClientFinder clientFinder,
       Sep6Config sep6Config,
       AssetService assetService,
       Sep6TransactionStore txnStore,
@@ -139,7 +147,7 @@ public class SepBeans {
       Sep38QuoteStore sep38QuoteStore) {
     RequestValidator requestValidator = new RequestValidator(assetService, customerIntegration);
     ExchangeAmountsCalculator exchangeAmountsCalculator =
-        new ExchangeAmountsCalculator(feeIntegration, sep38QuoteStore, assetService);
+        new ExchangeAmountsCalculator(clientFinder, feeIntegration, sep38QuoteStore, assetService);
     return new Sep6Service(
         sep6Config,
         assetService,

@@ -18,12 +18,15 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.RateFee;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.auth.Sep10Jwt;
+import org.stellar.anchor.client.ClientFinder;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 
 /** Calculates the amounts for an exchange request. */
 @RequiredArgsConstructor
 public class ExchangeAmountsCalculator {
+  @NonNull private final ClientFinder clientFinder;
   @NonNull private final FeeIntegration feeIntegration;
   @NonNull private final Sep38QuoteStore sep38QuoteStore;
   @NonNull private final AssetService assetService;
@@ -76,12 +79,15 @@ public class ExchangeAmountsCalculator {
    * @param buyAsset The asset the user is buying
    * @param sellAsset The asset the user is selling
    * @param amount The amount the user is selling
-   * @param account The user's account
+   * @param customerId The customer ID
+   * @param sep10Jwt The SEP-10 JWT used to authenticate the request
    * @return The amounts
    * @throws AnchorException if the fee integration fails
    */
-  public Amounts calculate(AssetInfo buyAsset, AssetInfo sellAsset, String amount, String account)
+  public Amounts calculate(
+      AssetInfo buyAsset, AssetInfo sellAsset, String amount, String customerId, Sep10Jwt sep10Jwt)
       throws AnchorException {
+    String clientId = clientFinder.getClientId(sep10Jwt);
     Amount fee =
         feeIntegration
             .getFee(
@@ -90,9 +96,9 @@ public class ExchangeAmountsCalculator {
                     .sendAsset(sellAsset.getSep38AssetName())
                     .receiveAsset(buyAsset.getSep38AssetName())
                     .receiveAmount(null)
-                    .senderId(account)
-                    .receiverId(account)
-                    .clientId(account)
+                    .senderId(customerId)
+                    .receiverId(customerId)
+                    .clientId(clientId)
                     .build())
             .getFee();
 

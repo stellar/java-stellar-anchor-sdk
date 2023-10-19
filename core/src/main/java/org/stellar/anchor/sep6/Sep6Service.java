@@ -154,7 +154,7 @@ public class Sep6Service {
     } else {
       amounts =
           exchangeAmountsCalculator.calculate(
-              buyAsset, sellAsset, request.getAmount(), token.getAccount());
+              buyAsset, sellAsset, request.getAmount(), customerId, token);
     }
 
     Memo memo = makeMemo(request.getMemo(), request.getMemoType());
@@ -314,7 +314,7 @@ public class Sep6Service {
     } else {
       amounts =
           exchangeAmountsCalculator.calculate(
-              buyAsset, sellAsset, request.getAmount(), token.getAccount());
+              buyAsset, sellAsset, request.getAmount(), customerId, token);
     }
 
     Sep6TransactionBuilder builder =
