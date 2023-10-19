@@ -24,7 +24,12 @@ object EventConsumerContainer {
       it.subscribe(listOf(config.eventSettings.topic))
     }
   private val sep6EventProcessor =
-    Sep6EventProcessor(config, ServiceContainer.horizon, ServiceContainer.platform)
+    Sep6EventProcessor(
+      config,
+      ServiceContainer.horizon,
+      ServiceContainer.platform,
+      ServiceContainer.customerService
+    )
   private val noOpEventProcessor = NoOpEventProcessor()
   private val processor = AnchorEventProcessor(sep6EventProcessor, noOpEventProcessor)
   val eventConsumer = EventConsumer(kafkaConsumer, processor)
