@@ -9,6 +9,8 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.event.AnchorEvent
@@ -16,6 +18,7 @@ import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.*
@@ -111,6 +114,29 @@ class NotifyOffchainFundsAvailableHandlerTest {
   }
 
   @Test
+  fun test_handle_invalidRequest() {
+    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.transferReceivedAt = Instant.now()
+
+    every { txn6Store.findByTransactionId(any()) } returns null
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @Test
   fun test_handle_sep24_unsupportedStatus() {
     val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
@@ -174,29 +200,6 @@ class NotifyOffchainFundsAvailableHandlerTest {
       "RPC method[notify_offchain_funds_available] is not supported. Status[pending_anchor], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
-
-    verify(exactly = 0) { txn6Store.save(any()) }
-    verify(exactly = 0) { txn24Store.save(any()) }
-    verify(exactly = 0) { txn31Store.save(any()) }
-    verify(exactly = 0) { sepTransactionCounter.increment() }
-  }
-
-  @Test
-  fun test_handle_invalidRequest() {
-    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_ANCHOR.toString()
-    txn24.kind = WITHDRAWAL.kind
-    txn24.transferReceivedAt = Instant.now()
-
-    every { txn6Store.findByTransactionId(any()) } returns null
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws
-      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
-
-    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
@@ -350,8 +353,83 @@ class NotifyOffchainFundsAvailableHandlerTest {
     assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 
-  @Test
-  fun test_handle_sep6_ok_deposit_withExternalTxId() {
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_sep6_unsupportedStatus(kind: String) {
+    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_TRUST.toString()
+    txn6.kind = kind
+    txn6.transferReceivedAt = Instant.now()
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "RPC method[notify_offchain_funds_available] is not supported. Status[pending_trust], kind[$kind], protocol[6], funds received[true]",
+      ex.message
+    )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @CsvSource(value = ["deposit", "deposit-exchange"])
+  @ParameterizedTest
+  fun test_handle_sep6_unsupportedKind(kind: String) {
+    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_ANCHOR.toString()
+    txn6.kind = kind
+    txn6.transferReceivedAt = Instant.now()
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "RPC method[notify_offchain_funds_available] is not supported. Status[pending_anchor], kind[$kind], protocol[6], funds received[true]",
+      ex.message
+    )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_sep6_transferNotReceived(kind: String) {
+    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_ANCHOR.toString()
+    txn6.kind = kind
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "RPC method[notify_offchain_funds_available] is not supported. Status[pending_anchor], kind[$kind], protocol[6], funds received[false]",
+      ex.message
+    )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_sep6_ok_deposit_withExternalTxId(kind: String) {
     val transferReceivedAt = Instant.now()
     val request =
       NotifyOffchainFundsAvailableRequest.builder()
@@ -360,7 +438,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
         .build()
     val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_ANCHOR.toString()
-    txn6.kind = WITHDRAWAL.kind
+    txn6.kind = kind
     txn6.transferReceivedAt = transferReceivedAt
     txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
@@ -383,7 +461,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep6Txn = JdbcSep6Transaction()
-    expectedSep6Txn.kind = WITHDRAWAL.kind
+    expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_USR_TRANSFER_COMPLETE.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedSep6Txn.transferReceivedAt = transferReceivedAt
@@ -398,7 +476,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
     val expectedResponse = GetTransactionResponse()
     expectedResponse.sep = SEP_6
-    expectedResponse.kind = WITHDRAWAL
+    expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = PENDING_USR_TRANSFER_COMPLETE
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
@@ -430,13 +508,14 @@ class NotifyOffchainFundsAvailableHandlerTest {
     assertTrue(sep6TxnCapture.captured.updatedAt <= endDate)
   }
 
-  @Test
-  fun test_handle_sep6_ok_deposit_withoutExternalTxId() {
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_sep6_ok_deposit_withoutExternalTxId(kind: String) {
     val transferReceivedAt = Instant.now()
     val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
     val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_ANCHOR.toString()
-    txn6.kind = WITHDRAWAL.kind
+    txn6.kind = kind
     txn6.transferReceivedAt = transferReceivedAt
     txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
@@ -459,7 +538,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep6Txn = JdbcSep6Transaction()
-    expectedSep6Txn.kind = WITHDRAWAL.kind
+    expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_USR_TRANSFER_COMPLETE.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedSep6Txn.transferReceivedAt = transferReceivedAt
@@ -473,7 +552,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
     val expectedResponse = GetTransactionResponse()
     expectedResponse.sep = SEP_6
-    expectedResponse.kind = WITHDRAWAL
+    expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = PENDING_USR_TRANSFER_COMPLETE
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")

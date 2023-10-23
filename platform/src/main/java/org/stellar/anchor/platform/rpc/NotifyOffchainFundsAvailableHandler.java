@@ -2,12 +2,14 @@ package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL_EXCHANGE;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_COMPLETE;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
@@ -65,7 +67,8 @@ public class NotifyOffchainFundsAvailableHandler
     switch (Sep.from(txn.getProtocol())) {
       case SEP_6:
         JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
-        if (WITHDRAWAL == Kind.from(txn6.getKind()) && areFundsReceived(txn6)) {
+        if (ImmutableSet.of(WITHDRAWAL, WITHDRAWAL_EXCHANGE).contains(Kind.from(txn6.getKind()))
+            && areFundsReceived(txn6)) {
           return Set.of(PENDING_ANCHOR);
         }
         break;
