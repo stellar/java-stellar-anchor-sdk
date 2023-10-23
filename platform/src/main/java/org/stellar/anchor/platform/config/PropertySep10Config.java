@@ -54,6 +54,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
     if (homeDomains == null || homeDomains.isEmpty()) {
       homeDomains = List.of(homeDomain);
     }
+    // If webAuthDomain is not specified and there is 1 and only 1 domain in the home_domains
     if (isEmpty(webAuthDomain) && homeDomains.size() == 1) {
       webAuthDomain = homeDomains.get(0);
     }
