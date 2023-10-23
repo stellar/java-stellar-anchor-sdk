@@ -16,7 +16,7 @@ public interface Sep10Config {
    * The `web_auth_domain` property of <a
    * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response">SEP-10</a>.
    * If the `web_auth_domain` is not specified, the `web_auth_domain` will be set to the first value
-   * of `home_domains`. `web_auth_domain` value must be equal to the host of the SEP server.
+   * of `home_domains`. The `web_auth_domain` value must equal to the host of the SEP server.
    *
    * @return the web auth domain.
    */
