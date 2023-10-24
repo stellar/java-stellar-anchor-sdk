@@ -14,8 +14,12 @@ jobs:
 
   complete:
     if: always()
-    needs: [gradle_test_and_build]
+    needs: [ gradle_test_and_build ]
     runs-on: ubuntu-22.04
     steps:
-    - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
-      run: exit 1
+      - uses: actions/upload-artifact@v3
+        with:
+          name: gradle-artifact
+          path: /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/integration-tests/build/reports/tests/
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
