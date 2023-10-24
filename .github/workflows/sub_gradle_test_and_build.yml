@@ -111,6 +111,18 @@ jobs:
         run: |
           docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.6.5 --home-domain http://host.docker.internal:8080 --seps 1 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
 
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: gradle-artifact
+          path: |
+            /etc/hosts
+            /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/api-schema/build/reports/
+            /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/
+            /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/
+            /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/integration-test/build/reports/
+
   analyze:
     name: CodeQL Analysis
     runs-on: ubuntu-22.04
