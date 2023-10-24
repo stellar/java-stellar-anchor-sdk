@@ -14,7 +14,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation(
-      libs.snakeyaml) // used to force the version of snakeyaml (used by springboot) to a safer one.
+    libs.snakeyaml
+  ) // used to force the version of snakeyaml (used by springboot) to a safer one.
   implementation("org.springframework.boot:spring-boot-starter-web")
 
   implementation(libs.commons.cli)
@@ -47,12 +48,4 @@ dependencies {
   testImplementation(libs.dotenv)
 }
 
-tasks {
-  bootJar { enabled = false }
-  test {
-    useJUnitPlatform()
-    // Setting forkEvery to 1 makes Gradle test execution to start a separeate JVM for each integration test classes.
-    // This is to to avoid the interaction between static states between each integration test classes.
-    setForkEvery(1)
-  }
-}
+tasks { bootJar { enabled = false } }
