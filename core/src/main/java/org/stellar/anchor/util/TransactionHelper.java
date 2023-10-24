@@ -100,6 +100,7 @@ public class TransactionHelper {
         .sep(PlatformTransactionData.Sep.SEP_6)
         .kind(PlatformTransactionData.Kind.from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
+        .type(txn.getType())
         .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
         .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
         .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))

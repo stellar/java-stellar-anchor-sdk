@@ -30,6 +30,8 @@ public class PlatformTransactionData {
   Kind kind;
   SepTransactionStatus status;
 
+  String type;
+
   @SerializedName("amount_expected")
   Amount amountExpected;
 
