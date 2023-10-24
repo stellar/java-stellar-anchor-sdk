@@ -336,9 +336,6 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     val expectedResult = actionResponses.replace(TX_ID_KEY, txId).trimIndent()
     val actualResult = rpcActionResponses.body?.string()?.trimIndent()
 
-    println(expectedResult)
-    println(actualResult)
-
     JSONAssert.assertEquals(
       expectedResult,
       actualResult,
