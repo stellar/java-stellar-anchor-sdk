@@ -471,6 +471,7 @@ class NotifyOnchainFundsSentHandlerTest {
     expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = COMPLETED
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.completedAt = sep6TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.stellarTransactions = stellarTransactions

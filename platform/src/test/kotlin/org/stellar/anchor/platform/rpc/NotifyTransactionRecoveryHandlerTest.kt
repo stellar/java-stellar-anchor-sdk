@@ -352,6 +352,7 @@ class NotifyTransactionRecoveryHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers =
       Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
 

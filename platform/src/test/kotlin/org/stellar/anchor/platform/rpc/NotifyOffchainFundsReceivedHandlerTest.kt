@@ -748,6 +748,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
@@ -834,6 +835,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.kind = Kind.from(kind)
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.customers =
@@ -918,6 +920,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.customers =
       Customers(StellarId(CUSTMOMER_ID, null), StellarId(CUSTMOMER_ID, null))
@@ -995,6 +998,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.kind = Kind.from(kind)
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.customers =
       Customers(StellarId(CUSTMOMER_ID, null), StellarId(CUSTMOMER_ID, null))

@@ -558,6 +558,7 @@ class NotifyOffchainFundsPendingHandlerTest {
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers =
       Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
@@ -633,6 +634,7 @@ class NotifyOffchainFundsPendingHandlerTest {
     expectedResponse.kind = Kind.from(kind)
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers =
       Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))

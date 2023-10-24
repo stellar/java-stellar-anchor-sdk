@@ -740,6 +740,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers =
       Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
@@ -819,6 +820,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers =
       Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
@@ -977,6 +979,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.status = COMPLETED
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.completedAt = sep6TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers =
@@ -1056,6 +1059,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = COMPLETED
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.completedAt = sep6TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers =

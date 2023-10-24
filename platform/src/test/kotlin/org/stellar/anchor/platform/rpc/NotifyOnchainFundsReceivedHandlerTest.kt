@@ -795,6 +795,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
@@ -894,6 +895,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
@@ -987,6 +989,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
     expectedResponse.customers =
