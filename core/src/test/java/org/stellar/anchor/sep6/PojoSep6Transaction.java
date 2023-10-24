@@ -22,6 +22,7 @@ public class PojoSep6Transaction implements Sep6Transaction {
   Instant startedAt;
   Instant completedAt;
   Instant updatedAt;
+  Instant transferReceivedAt;
   String type;
   String requestAssetCode;
   String requestAssetIssuer;
