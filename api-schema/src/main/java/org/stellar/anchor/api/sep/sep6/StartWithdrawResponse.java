@@ -27,4 +27,12 @@ public class StartWithdrawResponse {
 
   /** The anchor's ID for this withdrawal. */
   String id;
+
+  /** The minimum amount that can be withdrawn. */
+  @SerializedName("min_amount")
+  String minAmount;
+
+  /** The maximum amount that can be withdrawn. */
+  @SerializedName("max_amount")
+  String maxAmount;
 }

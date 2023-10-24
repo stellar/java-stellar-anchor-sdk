@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.sep.sep6;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
 
@@ -23,4 +24,12 @@ public class StartDepositResponse {
 
   /** The anchor's ID for this deposit. */
   String id;
+
+  /** The minimum amount that can be deposited. */
+  @SerializedName("min_amount")
+  String minAmount;
+
+  /** The maximum amount that can be deposited. */
+  @SerializedName("max_amount")
+  String maxAmount;
 }

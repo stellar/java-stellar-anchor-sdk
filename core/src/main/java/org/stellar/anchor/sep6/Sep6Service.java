@@ -113,9 +113,14 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
+    Long minAmount = asset.getDeposit().getMinAmount();
+    Long maxAmount = asset.getDeposit().getMaxAmount();
+
     return StartDepositResponse.builder()
         .how("Check the transaction for more information about how to deposit.")
         .id(txn.getId())
+        .minAmount(minAmount != null ? minAmount.toString() : null)
+        .maxAmount(maxAmount != null ? maxAmount.toString() : null)
         .build();
   }
 
@@ -200,9 +205,14 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
+    Long minAmount = buyAsset.getDeposit().getMinAmount();
+    Long maxAmount = buyAsset.getDeposit().getMaxAmount();
+
     return StartDepositResponse.builder()
         .how("Check the transaction for more information about how to deposit.")
         .id(id)
+        .minAmount(minAmount != null ? minAmount.toString() : null)
+        .maxAmount(maxAmount != null ? maxAmount.toString() : null)
         .build();
   }
 
@@ -267,11 +277,16 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
+    Long minAmount = asset.getWithdraw().getMinAmount();
+    Long maxAmount = asset.getWithdraw().getMaxAmount();
+
     return StartWithdrawResponse.builder()
         .accountId(asset.getDistributionAccount())
         .id(txn.getId())
         .memo(txn.getMemo())
         .memoType(memoTypeAsString(MEMO_HASH))
+        .minAmount(minAmount != null ? minAmount.toString() : null)
+        .maxAmount(maxAmount != null ? maxAmount.toString() : null)
         .build();
   }
 
@@ -356,11 +371,16 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
+    Long minAmount = sellAsset.getWithdraw().getMinAmount();
+    Long maxAmount = sellAsset.getWithdraw().getMaxAmount();
+
     return StartWithdrawResponse.builder()
         .accountId(sellAsset.getDistributionAccount())
         .id(txn.getId())
         .memo(txn.getMemo())
         .memoType(memoTypeAsString(MEMO_HASH))
+        .minAmount(minAmount != null ? minAmount.toString() : null)
+        .maxAmount(maxAmount != null ? maxAmount.toString() : null)
         .build();
   }
 

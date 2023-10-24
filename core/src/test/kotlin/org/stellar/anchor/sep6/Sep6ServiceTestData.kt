@@ -153,9 +153,11 @@ class Sep6ServiceTestData {
     val depositResJson =
       """
       {
-          "how": "Check the transaction for more information about how to deposit."
+          "how": "Check the transaction for more information about how to deposit.",
+          "min_amount": "1",
+          "max_amount": "10000"
       }
-    """
+      """
         .trimIndent()
 
     val depositTxnJson =
@@ -350,7 +352,9 @@ class Sep6ServiceTestData {
       """
       {
           "account_id": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-          "memo_type": "hash"
+          "memo_type": "hash",
+          "min_amount": "1",
+          "max_amount": "10000"
       }
     """
         .trimIndent()
