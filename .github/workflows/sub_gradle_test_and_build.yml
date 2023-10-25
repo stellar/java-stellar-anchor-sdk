@@ -121,7 +121,7 @@ jobs:
             /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/api-schema/build/reports/
             /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/
             /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/
-            /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/integration-test/build/reports/
+            /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/integration-tests/build/reports/
 
   analyze:
     name: CodeQL Analysis
