@@ -4,12 +4,15 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
+import java.util.Calendar
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.parallel.ExecutionMode.*
 import org.springframework.web.util.UriComponentsBuilder
+import org.stellar.anchor.LockStatic
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
@@ -71,6 +74,7 @@ class SimpleMoreInfoUrlConstructorTest {
   }
 
   @Test
+  @LockStatic([Calendar::class])
   fun `test correct config`() {
     val config =
       gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
@@ -90,6 +94,7 @@ class SimpleMoreInfoUrlConstructorTest {
   }
 
   @Test
+  @LockStatic([Calendar::class])
   fun `test unknown client domain`() {
     val config =
       gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
@@ -99,7 +104,6 @@ class SimpleMoreInfoUrlConstructorTest {
     txn.sep10AccountMemo = null
 
     val url = constructor.construct(txn)
-
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
     val cipher = params["token"]!![0]
 
@@ -112,6 +116,7 @@ class SimpleMoreInfoUrlConstructorTest {
   }
 
   @Test
+  @LockStatic([Calendar::class])
   fun `test custodial wallet`() {
     val config =
       gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
@@ -134,6 +139,7 @@ class SimpleMoreInfoUrlConstructorTest {
   }
 
   @Test
+  @LockStatic([Calendar::class])
   fun `test non-custodial wallet with missing client domain`() {
     val config =
       gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
