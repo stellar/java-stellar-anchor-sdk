@@ -1,35 +1,23 @@
 package org.stellar.anchor.sep6;
 
-import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.amountEquals;
 
-import java.math.BigDecimal;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.stellar.anchor.api.callback.FeeIntegration;
-import org.stellar.anchor.api.callback.GetFeeRequest;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.RateFee;
-import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.auth.Sep10Jwt;
-import org.stellar.anchor.client.ClientFinder;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 
 /** Calculates the amounts for an exchange request. */
 @RequiredArgsConstructor
 public class ExchangeAmountsCalculator {
-  @NonNull private final ClientFinder clientFinder;
-  @NonNull private final FeeIntegration feeIntegration;
   @NonNull private final Sep38QuoteStore sep38QuoteStore;
-  @NonNull private final AssetService assetService;
 
   /**
    * Calculates the amounts from a saved quote.
@@ -52,11 +40,11 @@ public class ExchangeAmountsCalculator {
               "amount(%s) does not match quote sell amount(%s)",
               sellAmount, quote.getSellAmount()));
     }
-    if (!sellAsset.getCode().equals(quote.getSellAsset())) {
+    if (!sellAsset.getSep38AssetName().equals(quote.getSellAsset())) {
       throw new BadRequestException(
           String.format(
               "source asset(%s) does not match quote sell asset(%s)",
-              sellAsset.getCode(), quote.getSellAsset()));
+              sellAsset.getSep38AssetName(), quote.getSellAsset()));
     }
     RateFee fee = quote.getFee();
     if (fee == null) {
@@ -70,52 +58,6 @@ public class ExchangeAmountsCalculator {
         .amountOutAsset(quote.getBuyAsset())
         .amountFee(fee.getTotal())
         .amountFeeAsset(fee.getAsset())
-        .build();
-  }
-
-  /**
-   * Calculates the amounts for an exchange request by calling the Fee integration.
-   *
-   * @param buyAsset The asset the user is buying
-   * @param sellAsset The asset the user is selling
-   * @param amount The amount the user is selling
-   * @param customerId The customer ID
-   * @param sep10Jwt The SEP-10 JWT used to authenticate the request
-   * @return The amounts
-   * @throws AnchorException if the fee integration fails
-   */
-  public Amounts calculate(
-      AssetInfo buyAsset, AssetInfo sellAsset, String amount, String customerId, Sep10Jwt sep10Jwt)
-      throws AnchorException {
-    String clientId = clientFinder.getClientId(sep10Jwt);
-    Amount fee =
-        feeIntegration
-            .getFee(
-                GetFeeRequest.builder()
-                    .sendAmount(amount)
-                    .sendAsset(sellAsset.getSep38AssetName())
-                    .receiveAsset(buyAsset.getSep38AssetName())
-                    .receiveAmount(null)
-                    .senderId(customerId)
-                    .receiverId(customerId)
-                    .clientId(clientId)
-                    .build())
-            .getFee();
-
-    AssetInfo feeAsset = assetService.getAssetByName(fee.getAsset());
-
-    BigDecimal requestedAmount = decimal(amount, sellAsset.getSignificantDecimals());
-    BigDecimal feeAmount = decimal(fee.getAmount(), feeAsset.getSignificantDecimals());
-
-    BigDecimal amountOut = requestedAmount.subtract(feeAmount);
-
-    return Amounts.builder()
-        .amountIn(formatAmount(requestedAmount, buyAsset.getSignificantDecimals()))
-        .amountInAsset(sellAsset.getSep38AssetName())
-        .amountOut(formatAmount(amountOut, sellAsset.getSignificantDecimals()))
-        .amountOutAsset(buyAsset.getSep38AssetName())
-        .amountFee(formatAmount(feeAmount, feeAsset.getSignificantDecimals()))
-        .amountFeeAsset(feeAsset.getSep38AssetName())
         .build();
   }
 

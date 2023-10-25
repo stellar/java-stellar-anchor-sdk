@@ -45,7 +45,8 @@ class Sep6EventProcessor(
           )
           return
         }
-        val missingFields = verifyKyc(event.transaction.customers.sender.id, kind)
+        val customer = event.transaction.customers.sender
+        val missingFields = verifyKyc(customer.account, customer.memo, kind)
         val (status, requiredFields) =
           if (missingFields.isEmpty()) {
             SepTransactionStatus.PENDING_ANCHOR to null
@@ -87,7 +88,8 @@ class Sep6EventProcessor(
     val transaction = event.transaction
     when (val status = transaction.status) {
       SepTransactionStatus.PENDING_ANCHOR -> {
-        val missingFields = verifyKyc(event.transaction.customers.sender.id, Kind.DEPOSIT)
+        val customer = event.transaction.customers.sender
+        val missingFields = verifyKyc(customer.account, customer.memo, Kind.DEPOSIT)
         val (newStatus, requiredFields) =
           if (missingFields.isEmpty()) {
             SepTransactionStatus.COMPLETED to null
@@ -176,7 +178,8 @@ class Sep6EventProcessor(
   }
 
   private fun handleDepositTransaction(transaction: GetTransactionResponse) {
-    if (verifyKyc(transaction.customers.sender.id, Kind.DEPOSIT).isNotEmpty()) {
+    val customer = transaction.customers.sender
+    if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isNotEmpty()) {
       return
     }
 
@@ -220,7 +223,8 @@ class Sep6EventProcessor(
   }
 
   private fun handleWithdrawTransaction(transaction: GetTransactionResponse) {
-    if (verifyKyc(transaction.customers.sender.id, Kind.WITHDRAWAL).isNotEmpty()) {
+    val customer = transaction.customers.sender
+    if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isNotEmpty()) {
       return
     }
 
@@ -248,8 +252,11 @@ class Sep6EventProcessor(
     }
   }
 
-  private fun verifyKyc(customerId: String, kind: Kind): List<String> {
-    val customer = customerService.getCustomer(GetCustomerRequest.builder().id(customerId).build())
+  private fun verifyKyc(sep10Account: String, sep10AccountMemo: String?, kind: Kind): List<String> {
+    val customer =
+      customerService.getCustomer(
+        GetCustomerRequest.builder().account(sep10Account).memo(sep10AccountMemo).build()
+      )
     val providedFields = customer.providedFields.keys
     return requiredKyc
       .plus(if (kind == Kind.DEPOSIT) depositRequiredKyc else withdrawRequiredKyc)

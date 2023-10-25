@@ -10,6 +10,7 @@ import lombok.Data;
 public class StellarId {
   String id;
   String account;
+  String memo;
 
   public StellarId() {}
 }

@@ -7,6 +7,10 @@ import com.google.common.collect.ImmutableMap;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import org.stellar.anchor.api.callback.CustomerIntegration;
+import org.stellar.anchor.api.callback.GetCustomerRequest;
+import org.stellar.anchor.api.callback.GetCustomerResponse;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -17,6 +21,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.TransactionHelper;
 import org.stellar.sdk.Memo;
@@ -24,6 +29,7 @@ import org.stellar.sdk.Memo;
 public class Sep6Service {
   private final Sep6Config sep6Config;
   private final AssetService assetService;
+  private final CustomerIntegration customerIntegration;
   private final RequestValidator requestValidator;
   private final Sep6TransactionStore txnStore;
   private final ExchangeAmountsCalculator exchangeAmountsCalculator;
@@ -34,12 +40,14 @@ public class Sep6Service {
   public Sep6Service(
       Sep6Config sep6Config,
       AssetService assetService,
+      CustomerIntegration customerIntegration,
       RequestValidator requestValidator,
       Sep6TransactionStore txnStore,
       ExchangeAmountsCalculator exchangeAmountsCalculator,
       EventService eventService) {
     this.sep6Config = sep6Config;
     this.assetService = assetService;
+    this.customerIntegration = customerIntegration;
     this.requestValidator = requestValidator;
     this.txnStore = txnStore;
     this.exchangeAmountsCalculator = exchangeAmountsCalculator;
@@ -76,7 +84,7 @@ public class Sep6Service {
           asset.getDeposit().getMaxAmount());
     }
     requestValidator.validateAccount(request.getAccount());
-    String customerId = requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
+    String customerId = getCustomer(token.getAccount(), token.getAccountMemo());
 
     Memo memo = makeMemo(request.getMemo(), request.getMemoType());
     String id = SepHelper.generateSepTransactionId();
@@ -94,8 +102,7 @@ public class Sep6Service {
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
-            .toAccount(request.getAccount())
-            .customer(customerId);
+            .toAccount(request.getAccount());
 
     if (memo != null) {
       builder.memo(memo.toString());
@@ -144,17 +151,25 @@ public class Sep6Service {
         buyAsset.getDeposit().getMinAmount(),
         buyAsset.getDeposit().getMaxAmount());
     requestValidator.validateAccount(request.getAccount());
-    String customerId = requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
+    String customerId = getCustomer(token.getAccount(), token.getAccountMemo());
 
-    ExchangeAmountsCalculator.Amounts amounts;
+    Amounts amounts;
     if (request.getQuoteId() != null) {
       amounts =
           exchangeAmountsCalculator.calculateFromQuote(
               request.getQuoteId(), sellAsset, request.getAmount());
     } else {
+      // If a quote is no provided set, amounts to 0.
+      // The business server should use the notify_amounts_updated RPC to update the amounts.
       amounts =
-          exchangeAmountsCalculator.calculate(
-              buyAsset, sellAsset, request.getAmount(), customerId, token);
+          Amounts.builder()
+              .amountIn(request.getAmount())
+              .amountInAsset(sellAsset.getSep38AssetName())
+              .amountOut("0")
+              .amountOutAsset(buyAsset.getSep38AssetName())
+              .amountFee("0")
+              .amountFeeAsset(sellAsset.getSep38AssetName())
+              .build();
     }
 
     Memo memo = makeMemo(request.getMemo(), request.getMemoType());
@@ -181,8 +196,7 @@ public class Sep6Service {
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(request.getAccount())
-            .quoteId(request.getQuoteId())
-            .customer(customerId);
+            .quoteId(request.getQuoteId());
 
     if (memo != null) {
       builder.memo(memo.toString());
@@ -231,7 +245,7 @@ public class Sep6Service {
     }
     String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
     requestValidator.validateAccount(sourceAccount);
-    String customerId = requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
+    String customerId = getCustomer(token.getAccount(), token.getAccountMemo());
 
     String id = SepHelper.generateSepTransactionId();
 
@@ -253,8 +267,7 @@ public class Sep6Service {
             .fromAccount(sourceAccount)
             .withdrawAnchorAccount(asset.getDistributionAccount())
             .refundMemo(request.getRefundMemo())
-            .refundMemoType(request.getRefundMemoType())
-            .customer(customerId);
+            .refundMemoType(request.getRefundMemoType());
 
     Sep6Transaction txn = builder.build();
     txnStore.save(txn);
@@ -302,19 +315,27 @@ public class Sep6Service {
         sellAsset.getWithdraw().getMaxAmount());
     String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
     requestValidator.validateAccount(sourceAccount);
-    String customerId = requestValidator.validateKyc(token.getAccount(), token.getAccountMemo());
+    String customerId = getCustomer(token.getAccount(), token.getAccountMemo());
 
     String id = SepHelper.generateSepTransactionId();
 
-    ExchangeAmountsCalculator.Amounts amounts;
+    Amounts amounts;
     if (request.getQuoteId() != null) {
       amounts =
           exchangeAmountsCalculator.calculateFromQuote(
               request.getQuoteId(), sellAsset, request.getAmount());
     } else {
+      // If a quote is no provided set, amounts to 0.
+      // The business server should use the notify_amounts_updated RPC to update the amounts.
       amounts =
-          exchangeAmountsCalculator.calculate(
-              buyAsset, sellAsset, request.getAmount(), customerId, token);
+          Amounts.builder()
+              .amountIn(request.getAmount())
+              .amountInAsset(sellAsset.getSep38AssetName())
+              .amountOut("0")
+              .amountOutAsset(buyAsset.getSep38AssetName())
+              .amountFee("0")
+              .amountFeeAsset(sellAsset.getSep38AssetName())
+              .build();
     }
 
     Sep6TransactionBuilder builder =
@@ -342,8 +363,7 @@ public class Sep6Service {
             .withdrawAnchorAccount(sellAsset.getDistributionAccount())
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType())
-            .quoteId(request.getQuoteId())
-            .customer(customerId);
+            .quoteId(request.getQuoteId());
 
     Sep6Transaction txn = builder.build();
     txnStore.save(txn);
@@ -425,6 +445,25 @@ public class Sep6Service {
     }
 
     return new GetTransactionResponse(Sep6TransactionUtils.fromTxn(txn));
+  }
+
+  @Nullable
+  private String getCustomer(String sep10Account, String sep10AccountMemo) throws AnchorException {
+    GetCustomerRequest request =
+        sep10AccountMemo != null
+            ? GetCustomerRequest.builder()
+                .account(sep10Account)
+                .memo(sep10AccountMemo)
+                .memoType("id")
+                .build()
+            : GetCustomerRequest.builder().account(sep10Account).build();
+    GetCustomerResponse response = customerIntegration.getCustomer(request);
+
+    if (response == null || response.getStatus() == null) {
+      return null;
+    }
+
+    return response.getId();
   }
 
   private InfoResponse buildInfoResponse() {
