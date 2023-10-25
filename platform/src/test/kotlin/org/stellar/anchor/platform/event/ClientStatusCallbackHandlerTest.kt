@@ -82,8 +82,8 @@ class ClientStatusCallbackHandlerTest {
       )
   }
 
-  @LockAndMockStatic([Sep24Helper::class, Sep6TransactionUtils::class])
   @Test
+  @LockAndMockStatic([Sep24Helper::class, Sep6TransactionUtils::class])
   fun `test verify request signature`() {
     // header example: "X-Stellar-Signature": "t=....., s=......"
     // Get the signature from request
