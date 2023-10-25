@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.junit.jupiter.api.parallel.ExecutionMode.*
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.LockStatic
@@ -25,6 +27,7 @@ import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.util.GsonUtils
 
+@Execution(ExecutionMode.SAME_THREAD)
 class SimpleMoreInfoUrlConstructorTest {
   companion object {
     private val gson = GsonUtils.getInstance()
