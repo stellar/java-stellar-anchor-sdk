@@ -83,6 +83,9 @@ public class PlatformTransactionData {
   @SerializedName("refund_memo_type")
   String refundMemoType;
 
+  @SerializedName("withdraw_anchor_account")
+  String withdrawAnchorAccount;
+
   Customers customers;
   StellarId creator;
 
