@@ -15,7 +15,6 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
-import org.stellar.anchor.TestConstants.Companion.TEST_CUSTOMER_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_QUOTE_ID
 import org.stellar.anchor.TestHelper
@@ -60,7 +59,6 @@ class Sep6ServiceTest {
     every { eventService.createSession(any(), any()) } returns eventSession
     every { requestValidator.getDepositAsset(TEST_ASSET) } returns asset
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns asset
-    every { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) } returns TEST_CUSTOMER_ID
     sep6Service =
       Sep6Service(
         sep6Config,
@@ -115,7 +113,6 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -161,7 +158,6 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -309,7 +305,6 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -364,7 +359,6 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) {
@@ -411,18 +405,6 @@ class Sep6ServiceTest {
     val slotEvent = slot<AnchorEvent>()
     every { eventSession.publish(capture(slotEvent)) } returns Unit
 
-    every {
-      exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_CUSTOMER_ID, token)
-    } returns
-      Amounts.builder()
-        .amountIn("100")
-        .amountInAsset(sourceAsset)
-        .amountOut("98")
-        .amountOutAsset(TEST_ASSET_SEP38_FORMAT)
-        .amountFee("2")
-        .amountFeeAsset(TEST_ASSET_SEP38_FORMAT)
-        .build()
-
     val request =
       StartDepositExchangeRequest.builder()
         .destinationAsset(destinationAsset)
@@ -448,12 +430,8 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
-    verify(exactly = 1) {
-      exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_CUSTOMER_ID, token)
-    }
     verify(exactly = 1) { txnStore.save(any()) }
     verify(exactly = 1) { eventSession.publish(any()) }
 
@@ -628,7 +606,6 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -669,7 +646,6 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -726,7 +702,6 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) { requestValidator.validateAccount("requested_account") }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     assertEquals("requested_account", slotTxn.captured.fromAccount)
@@ -752,7 +727,6 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -903,7 +877,6 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }
@@ -958,7 +931,6 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) {
@@ -1009,18 +981,6 @@ class Sep6ServiceTest {
     val slotEvent = slot<AnchorEvent>()
     every { eventSession.publish(capture(slotEvent)) } returns Unit
 
-    every {
-      exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_CUSTOMER_ID, token)
-    } returns
-      Amounts.builder()
-        .amountIn("100")
-        .amountInAsset(TEST_ASSET_SEP38_FORMAT)
-        .amountOut("98")
-        .amountOutAsset(destinationAsset)
-        .amountFee("2")
-        .amountFeeAsset(destinationAsset)
-        .build()
-
     val request =
       StartWithdrawExchangeRequest.builder()
         .sourceAsset(sourceAsset)
@@ -1047,12 +1007,8 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
-    verify(exactly = 1) {
-      exchangeAmountsCalculator.calculate(any(), any(), "100", TEST_CUSTOMER_ID, token)
-    }
     verify(exactly = 1) { txnStore.save(any()) }
     verify(exactly = 1) { eventSession.publish(any()) }
 
@@ -1113,7 +1069,6 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) { requestValidator.validateAccount("requested_account") }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     assertEquals("requested_account", slotTxn.captured.fromAccount)
@@ -1260,7 +1215,6 @@ class Sep6ServiceTest {
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
-    verify(exactly = 1) { requestValidator.validateKyc(TEST_ACCOUNT, TEST_MEMO) }
 
     // Verify effects
     verify(exactly = 1) { txnStore.save(any()) }

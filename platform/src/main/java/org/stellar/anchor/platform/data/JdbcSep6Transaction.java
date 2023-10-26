@@ -141,7 +141,4 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
   @Column(name = "instructions")
   @Type(type = "json")
   Map<String, InstructionField> instructions;
-
-  @Column(name = "customer")
-  String customer;
 }

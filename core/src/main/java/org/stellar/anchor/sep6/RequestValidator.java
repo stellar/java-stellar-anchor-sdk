@@ -1,13 +1,9 @@
 package org.stellar.anchor.sep6;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.stellar.anchor.api.callback.CustomerIntegration;
-import org.stellar.anchor.api.callback.GetCustomerRequest;
-import org.stellar.anchor.api.callback.GetCustomerResponse;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
@@ -17,7 +13,6 @@ import org.stellar.sdk.KeyPair;
 @RequiredArgsConstructor
 public class RequestValidator {
   @NonNull private final AssetService assetService;
-  @NonNull private final CustomerIntegration customerIntegration;
 
   /**
    * Validates that the requested asset is valid and enabled for deposit.
@@ -113,47 +108,5 @@ public class RequestValidator {
     } catch (RuntimeException ex) {
       throw new SepValidationException(String.format("invalid account %s", account));
     }
-  }
-
-  /**
-   * Validates that the authenticated account has been KYC'ed by the anchor and returns its SEP-12
-   * customer ID.
-   *
-   * @param sep10Account the authenticated account
-   * @param sep10AccountMemo the authenticated account memo
-   * @throws AnchorException if the account has not been KYC'ed
-   * @return the SEP-12 customer ID if the account has been KYC'ed
-   */
-  public String validateKyc(String sep10Account, String sep10AccountMemo) throws AnchorException {
-    GetCustomerRequest request =
-        sep10AccountMemo != null
-            ? GetCustomerRequest.builder()
-                .account(sep10Account)
-                .memo(sep10AccountMemo)
-                .memoType("id")
-                .build()
-            : GetCustomerRequest.builder().account(sep10Account).build();
-    GetCustomerResponse response = customerIntegration.getCustomer(request);
-
-    if (response == null || response.getStatus() == null) {
-      throw new ServerErrorException("unable to get required fields for customer") {};
-    }
-
-    switch (response.getStatus()) {
-      case "NEEDS_INFO":
-        throw new SepCustomerInfoNeededException(new ArrayList<>(response.getFields().keySet()));
-      case "PROCESSING":
-        throw new SepNotAuthorizedException("customer is being reviewed by anchor");
-      case "REJECTED":
-        throw new SepNotAuthorizedException("customer rejected by anchor");
-      case "ACCEPTED":
-        // do nothing
-        break;
-      default:
-        throw new ServerErrorException(
-            String.format("unknown customer status: %s", response.getStatus()));
-    }
-
-    return response.getId();
   }
 }

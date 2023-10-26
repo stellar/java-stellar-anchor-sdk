@@ -18,13 +18,9 @@ import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
-import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
-import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31
-import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.*
 import org.stellar.anchor.api.rpc.method.NotifyTransactionRecoveryRequest
-import org.stellar.anchor.api.sep.SepTransactionStatus.ERROR
-import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
-import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER
+import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.Customers
 import org.stellar.anchor.api.shared.StellarId
@@ -278,7 +274,7 @@ class NotifyTransactionRecoveryHandlerTest {
     expectedResponse.amountFee = Amount(null, null)
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
-    expectedResponse.customers = Customers(StellarId(null, null), StellarId(null, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

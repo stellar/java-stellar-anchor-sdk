@@ -124,7 +124,7 @@ class Sep31TransactionTest {
         .clientDomain("test.com")
         .senderId("6c1770b0-0ea4-11ed-861d-0242ac120002")
         .receiverId("31212353-f265-4dba-9eb4-0bbeda3ba7f2")
-        .creator(StellarId("141ee445-f32c-4c38-9d25-f4475d6c5558", null))
+        .creator(StellarId("141ee445-f32c-4c38-9d25-f4475d6c5558", null, null))
         .build()
   }
 
