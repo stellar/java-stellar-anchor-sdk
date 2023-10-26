@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
@@ -14,7 +13,6 @@ import org.stellar.sdk.KeyPair;
 @RequiredArgsConstructor
 public class RequestValidator {
   @NonNull private final AssetService assetService;
-  @NonNull private final CustomerIntegration customerIntegration;
 
   /**
    * Validates that the requested asset is valid and enabled for deposit.

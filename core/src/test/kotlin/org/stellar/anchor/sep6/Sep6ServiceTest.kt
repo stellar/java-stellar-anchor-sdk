@@ -15,12 +15,9 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
-import org.stellar.anchor.TestConstants.Companion.TEST_CUSTOMER_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_QUOTE_ID
 import org.stellar.anchor.TestHelper
-import org.stellar.anchor.api.callback.CustomerIntegration
-import org.stellar.anchor.api.callback.GetCustomerResponse
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
@@ -45,7 +42,6 @@ class Sep6ServiceTest {
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
   @MockK(relaxed = true) lateinit var sep6Config: Sep6Config
-  @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) lateinit var requestValidator: RequestValidator
   @MockK(relaxed = true) lateinit var txnStore: Sep6TransactionStore
   @MockK(relaxed = true) lateinit var exchangeAmountsCalculator: ExchangeAmountsCalculator
@@ -61,15 +57,12 @@ class Sep6ServiceTest {
     every { sep6Config.features.isClaimableBalances } returns false
     every { txnStore.newInstance() } returns PojoSep6Transaction()
     every { eventService.createSession(any(), any()) } returns eventSession
-    every { customerIntegration.getCustomer(any()) } returns
-      GetCustomerResponse.builder().id(TEST_CUSTOMER_ID).status("ACCEPTED").build()
     every { requestValidator.getDepositAsset(TEST_ASSET) } returns asset
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns asset
     sep6Service =
       Sep6Service(
         sep6Config,
         assetService,
-        customerIntegration,
         requestValidator,
         txnStore,
         exchangeAmountsCalculator,

@@ -9,24 +9,19 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
-import org.stellar.anchor.api.callback.CustomerIntegration
-import org.stellar.anchor.api.callback.GetCustomerRequest
-import org.stellar.anchor.api.callback.GetCustomerResponse
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.AssetInfo
-import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.asset.AssetService
 
 class RequestValidatorTest {
   @MockK(relaxed = true) lateinit var assetService: AssetService
-  @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
 
   private lateinit var requestValidator: RequestValidator
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    requestValidator = RequestValidator(assetService, customerIntegration)
+    requestValidator = RequestValidator(assetService)
   }
 
   @Test
@@ -143,16 +138,11 @@ class RequestValidatorTest {
 
   @Test
   fun `test validateAccount`() {
-    every {
-      customerIntegration.getCustomer(GetCustomerRequest.builder().account(TEST_ACCOUNT).build())
-    } returns GetCustomerResponse.builder().status(Sep12Status.ACCEPTED.name).build()
     requestValidator.validateAccount(TEST_ACCOUNT)
   }
 
   @Test
   fun `test validateAccount with invalid account`() {
     assertThrows<SepValidationException> { requestValidator.validateAccount("??") }
-
-    verify { customerIntegration wasNot called }
   }
 }

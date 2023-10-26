@@ -139,17 +139,15 @@ public class SepBeans {
   Sep6Service sep6Service(
       Sep6Config sep6Config,
       AssetService assetService,
-      CustomerIntegration customerIntegration,
       Sep6TransactionStore txnStore,
       EventService eventService,
       Sep38QuoteStore sep38QuoteStore) {
-    RequestValidator requestValidator = new RequestValidator(assetService, customerIntegration);
+    RequestValidator requestValidator = new RequestValidator(assetService);
     ExchangeAmountsCalculator exchangeAmountsCalculator =
         new ExchangeAmountsCalculator(sep38QuoteStore);
     return new Sep6Service(
         sep6Config,
         assetService,
-        customerIntegration,
         requestValidator,
         txnStore,
         exchangeAmountsCalculator,

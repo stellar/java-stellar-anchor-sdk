@@ -7,10 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
-import org.stellar.anchor.api.callback.CustomerIntegration;
-import org.stellar.anchor.api.callback.GetCustomerRequest;
-import org.stellar.anchor.api.callback.GetCustomerResponse;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -29,7 +25,6 @@ import org.stellar.sdk.Memo;
 public class Sep6Service {
   private final Sep6Config sep6Config;
   private final AssetService assetService;
-  private final CustomerIntegration customerIntegration;
   private final RequestValidator requestValidator;
   private final Sep6TransactionStore txnStore;
   private final ExchangeAmountsCalculator exchangeAmountsCalculator;
@@ -40,14 +35,12 @@ public class Sep6Service {
   public Sep6Service(
       Sep6Config sep6Config,
       AssetService assetService,
-      CustomerIntegration customerIntegration,
       RequestValidator requestValidator,
       Sep6TransactionStore txnStore,
       ExchangeAmountsCalculator exchangeAmountsCalculator,
       EventService eventService) {
     this.sep6Config = sep6Config;
     this.assetService = assetService;
-    this.customerIntegration = customerIntegration;
     this.requestValidator = requestValidator;
     this.txnStore = txnStore;
     this.exchangeAmountsCalculator = exchangeAmountsCalculator;
@@ -84,7 +77,6 @@ public class Sep6Service {
           asset.getDeposit().getMaxAmount());
     }
     requestValidator.validateAccount(request.getAccount());
-    String customerId = getCustomer(token.getAccount(), token.getAccountMemo());
 
     Memo memo = makeMemo(request.getMemo(), request.getMemoType());
     String id = SepHelper.generateSepTransactionId();
@@ -151,7 +143,6 @@ public class Sep6Service {
         buyAsset.getDeposit().getMinAmount(),
         buyAsset.getDeposit().getMaxAmount());
     requestValidator.validateAccount(request.getAccount());
-    String customerId = getCustomer(token.getAccount(), token.getAccountMemo());
 
     Amounts amounts;
     if (request.getQuoteId() != null) {
@@ -245,7 +236,6 @@ public class Sep6Service {
     }
     String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
     requestValidator.validateAccount(sourceAccount);
-    String customerId = getCustomer(token.getAccount(), token.getAccountMemo());
 
     String id = SepHelper.generateSepTransactionId();
 
@@ -315,7 +305,6 @@ public class Sep6Service {
         sellAsset.getWithdraw().getMaxAmount());
     String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
     requestValidator.validateAccount(sourceAccount);
-    String customerId = getCustomer(token.getAccount(), token.getAccountMemo());
 
     String id = SepHelper.generateSepTransactionId();
 
@@ -445,25 +434,6 @@ public class Sep6Service {
     }
 
     return new GetTransactionResponse(Sep6TransactionUtils.fromTxn(txn));
-  }
-
-  @Nullable
-  private String getCustomer(String sep10Account, String sep10AccountMemo) throws AnchorException {
-    GetCustomerRequest request =
-        sep10AccountMemo != null
-            ? GetCustomerRequest.builder()
-                .account(sep10Account)
-                .memo(sep10AccountMemo)
-                .memoType("id")
-                .build()
-            : GetCustomerRequest.builder().account(sep10Account).build();
-    GetCustomerResponse response = customerIntegration.getCustomer(request);
-
-    if (response == null || response.getStatus() == null) {
-      return null;
-    }
-
-    return response.getId();
   }
 
   private InfoResponse buildInfoResponse() {
