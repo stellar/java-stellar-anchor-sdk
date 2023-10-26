@@ -20,6 +20,7 @@ import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.sep6.Sep6Transaction;
 
 public class CustodyServiceImpl implements CustodyService {
 
@@ -27,6 +28,11 @@ public class CustodyServiceImpl implements CustodyService {
 
   public CustodyServiceImpl(Optional<CustodyApiClient> custodyApiClient) {
     this.custodyApiClient = custodyApiClient;
+  }
+
+  @Override
+  public void createTransaction(Sep6Transaction txn) throws AnchorException {
+    create(toCustodyTransaction(txn));
   }
 
   @Override

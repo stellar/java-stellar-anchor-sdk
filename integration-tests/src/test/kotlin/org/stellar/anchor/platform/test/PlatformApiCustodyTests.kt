@@ -62,6 +62,14 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
     `SEP-31 refunded do_stellar_refund`()
   }
 
+  private fun `SEP-6 deposit complete full`() {
+    // TODO(philip): add this after custody changes are merged
+  }
+
+  private fun `SEP-6 withdraw full refund`() {
+    // TODO(philip): add this after custody changes are merged
+  }
+
   /**
    * 1. incomplete -> notify_interactive_flow_complete
    * 2. pending_anchor -> request_offchain_funds
@@ -70,7 +78,7 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
    * 5. completed
    */
   private fun `SEP-24 deposit complete full`() {
-    `test deposit flow`(
+    `test SEP-24 deposit flow`(
       SEP_24_DEPOSIT_COMPLETE_FULL_FLOW_ACTION_REQUESTS,
       SEP_24_DEPOSIT_COMPLETE_FULL_FLOW_ACTION_RESPONSES
     )
@@ -85,7 +93,7 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
    * 6. refunded
    */
   private fun `SEP-24 withdraw full refund`() {
-    `test withdraw flow`(
+    `test SEP-24 withdraw flow`(
       SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS,
       SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES
     )
@@ -104,7 +112,7 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
     )
   }
 
-  private fun `test deposit flow`(actionRequests: String, actionResponse: String) {
+  private fun `test SEP-24 deposit flow`(actionRequests: String, actionResponse: String) {
     val depositRequest = gson.fromJson(SEP_24_DEPOSIT_FLOW_REQUEST, HashMap::class.java)
     val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
     `test flow`(depositResponse.id, actionRequests, actionResponse)
@@ -136,7 +144,7 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
     `test flow`(receiveResponse.id, updatedActionRequests, updatedActionResponses)
   }
 
-  private fun `test withdraw flow`(actionRequests: String, actionResponse: String) {
+  private fun `test SEP-24 withdraw flow`(actionRequests: String, actionResponse: String) {
     val withdrawRequest = gson.fromJson(SEP_24_WITHDRAW_FLOW_REQUEST, HashMap::class.java)
     val withdrawResponse = sep24Client.withdraw(withdrawRequest as HashMap<String, String>)
     `test flow`(withdrawResponse.id, actionRequests, actionResponse)

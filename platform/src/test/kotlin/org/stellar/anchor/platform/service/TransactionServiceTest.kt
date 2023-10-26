@@ -1,13 +1,15 @@
 package org.stellar.anchor.platform.service
 
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import java.util.*
+import io.mockk.verify
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
@@ -22,6 +24,8 @@ import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.RefundPayment
+import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
@@ -35,6 +39,8 @@ import org.stellar.anchor.sep24.Sep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38QuoteStore
+import org.stellar.anchor.sep6.Sep6DepositInfoGenerator
+import org.stellar.anchor.sep6.Sep6Transaction
 import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
@@ -57,6 +63,7 @@ class TransactionServiceTest {
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var eventService: EventService
   @MockK(relaxed = true) private lateinit var eventSession: Session
+  @MockK(relaxed = true) private lateinit var sep6DepositInfoGenerator: Sep6DepositInfoGenerator
   @MockK(relaxed = true) private lateinit var sep24DepositInfoGenerator: Sep24DepositInfoGenerator
   @MockK(relaxed = true) private lateinit var custodyService: CustodyService
   @MockK(relaxed = true) private lateinit var custodyConfig: CustodyConfig
@@ -75,6 +82,7 @@ class TransactionServiceTest {
         sep38QuoteStore,
         assetService,
         eventService,
+        sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
         custodyService,
         custodyConfig
@@ -144,6 +152,27 @@ class TransactionServiceTest {
   }
 
   @Test
+  fun `test get SEP6 transaction`() {
+    // Mock the store
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep24TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.newInstance() } returns JdbcSep6Transaction()
+    every { sep6TransactionStore.newRefunds() } returns Refunds()
+    every { sep6TransactionStore.newRefundPayment() } answers { RefundPayment() }
+
+    val mockSep6Transaction = gson.fromJson(jsonSep6Transaction, JdbcSep6Transaction::class.java)
+
+    every { sep6TransactionStore.findByTransactionId(TEST_TXN_ID) } returns mockSep6Transaction
+    val gotGetTransactionResponse = transactionService.findTransaction(TEST_TXN_ID)
+
+    JSONAssert.assertEquals(
+      wantedGetSep6TransactionResponse,
+      gson.toJson(gotGetTransactionResponse),
+      LENIENT
+    )
+  }
+
+  @Test
   fun test_validateAsset_failure() {
     // fails if amount_in.amount is null
     var assetAmount = Amount(null, null)
@@ -207,6 +236,7 @@ class TransactionServiceTest {
         sep38QuoteStore,
         assetService,
         eventService,
+        sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
         custodyService,
         custodyConfig
@@ -377,6 +407,138 @@ class TransactionServiceTest {
     verify(exactly = 1) { eventSession.publish(any()) }
   }
 
+  @CsvSource(value = ["deposit", "deposit-exchange"])
+  @ParameterizedTest
+  fun test_patchTransaction_sep6DepositPendingUserTransferStart(kind: String) {
+    val txId = "testTxId"
+    val tx = JdbcSep6Transaction()
+    tx.status = SepTransactionStatus.INCOMPLETE.toString()
+    tx.kind = kind
+    val data = PlatformTransactionData()
+    data.id = txId
+    data.memo = "12345"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_USR_TRANSFER_START
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns tx
+    every { sep24TransactionStore.findByTransactionId(any()) } returns null
+
+    transactionService.patchTransactions(request)
+
+    verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
+    verify(exactly = 1) { sep6TransactionStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_patchTransaction_sep6WithdrawalPendingAnchor(kind: String) {
+    val txId = "testTxId"
+    val tx = JdbcSep6Transaction()
+    tx.status = SepTransactionStatus.INCOMPLETE.toString()
+    tx.kind = kind
+    val data = PlatformTransactionData()
+    data.id = txId
+    data.memo = "12345"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_ANCHOR
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns tx
+    every { sep24TransactionStore.findByTransactionId(any()) } returns null
+
+    transactionService.patchTransactions(request)
+
+    verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
+    verify(exactly = 1) { sep6TransactionStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+  }
+
+  @CsvSource(value = ["deposit", "deposit-exchange"])
+  @ParameterizedTest
+  fun test_patchTransaction_sep6DepositPendingAnchor(kind: String) {
+    val txId = "testTxId"
+    val tx = JdbcSep6Transaction()
+    tx.status = SepTransactionStatus.INCOMPLETE.toString()
+    tx.kind = kind
+    val data = PlatformTransactionData()
+    data.id = txId
+    data.memo = "12345"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_ANCHOR
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns tx
+    every { sep24TransactionStore.findByTransactionId(any()) } returns null
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
+
+    transactionService.patchTransactions(request)
+
+    verify(exactly = 1) { custodyService.createTransaction(ofType(Sep6Transaction::class)) }
+    verify(exactly = 1) { sep6TransactionStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_patchTransaction_sep6WithdrawalPendingUserTransferStart(kind: String) {
+    val txId = "testTxId"
+    val tx = JdbcSep6Transaction()
+    tx.status = SepTransactionStatus.INCOMPLETE.toString()
+    tx.kind = kind
+    val data = PlatformTransactionData()
+    data.id = txId
+    data.memo = "12345"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_USR_TRANSFER_START
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns tx
+    every { sep24TransactionStore.findByTransactionId(any()) } returns null
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
+
+    transactionService.patchTransactions(request)
+
+    verify(exactly = 1) { custodyService.createTransaction(ofType(Sep6Transaction::class)) }
+    verify(exactly = 1) { sep6TransactionStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_patchTransaction_sep6WithdrawalPendingUserTransferStart_statusNotChanged(kind: String) {
+    val txId = "testTxId"
+    val tx = JdbcSep6Transaction()
+    tx.status = SepTransactionStatus.PENDING_USR_TRANSFER_START.toString()
+    tx.kind = kind
+    val data = PlatformTransactionData()
+    data.id = txId
+    data.memo = "12345"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_USR_TRANSFER_START
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns tx
+    every { sep24TransactionStore.findByTransactionId(any()) } returns null
+
+    transactionService.patchTransactions(request)
+
+    verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
+    verify(exactly = 1) { sep6TransactionStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+  }
+
   @Test
   fun test_updateSep31Transaction() {
     val quoteId = "my-quote-id"
@@ -485,6 +647,7 @@ class TransactionServiceTest {
         sep38QuoteStore,
         assetService,
         eventService,
+        sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
         custodyService,
         custodyConfig
@@ -534,6 +697,46 @@ class TransactionServiceTest {
 
     assertTrue(testSep31Transaction.updatedAt > testSep31Transaction.startedAt)
   }
+
+  private val jsonSep6Transaction =
+    """
+      {
+        "id": "069364b1-f9f1-464f-8da2-5c36f9aad1a6",
+        "kind": "deposit",
+        "status": "completed",
+        "amount_in": "1",
+        "amount_in_asset": "iso4217:USD",
+        "amount_out": "1",
+        "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+        "amount_fee": "0",
+        "amount_fee_asset": "iso4217:USD",
+        "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+        "started_at": "2023-10-31T21:16:29.764842Z",
+        "updated_at": "2023-10-31T21:16:44.652018Z",
+        "completed_at": "2023-10-31T21:16:44.652008Z",
+        "stellar_transaction_id": "a8b7f7ba67a5c63975512aa113c5a177e675c5e195a2e15920b39f5a5a91f306",
+        "message": "Funds sent to user",
+        "required_customer_info_updates": [
+          "id_type",
+          "id_country_code",
+          "id_issue_date",
+          "id_expiration_date",
+          "id_number",
+          "address"
+        ],
+        "instructions": {
+          "organization.bank_number": {
+            "value": "121122676",
+            "description": "US Bank routing number"
+          },
+          "organization.bank_account_number": {
+            "value": "13719713158835300",
+            "description": "US Bank account number"
+          }
+        }
+      }
+    """
+      .trimIndent()
 
   private val jsonSep24Transaction =
     """
@@ -855,6 +1058,47 @@ class TransactionServiceTest {
         "external_transaction_id": "external-tx-id"
       }   
   """
+      .trimIndent()
+
+  private val wantedGetSep6TransactionResponse =
+    """
+      {
+        "id": "069364b1-f9f1-464f-8da2-5c36f9aad1a6",
+        "sep": "6",
+        "kind": "deposit",
+        "status": "completed",
+        "amount_expected": { "asset": "" },
+        "amount_in": { "amount": "1", "asset": "iso4217:USD" },
+        "amount_out": {
+          "amount": "1",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "amount_fee": { "amount": "0", "asset": "iso4217:USD" },
+        "started_at": "2023-10-31T21:16:29.764842Z",
+        "updated_at": "2023-10-31T21:16:44.652018Z",
+        "completed_at": "2023-10-31T21:16:44.652008Z",
+        "message": "Funds sent to user",
+        "customers": { "sender": {}, "receiver": {} },
+        "required_customer_info_updates": [
+          "id_type",
+          "id_country_code",
+          "id_issue_date",
+          "id_expiration_date",
+          "id_number",
+          "address"
+        ],
+        "instructions": {
+          "organization.bank_number": {
+            "value": "121122676",
+            "description": "US Bank routing number"
+          },
+          "organization.bank_account_number": {
+            "value": "13719713158835300",
+            "description": "US Bank account number"
+          }
+        }
+      }
+    """
       .trimIndent()
 
   @Test

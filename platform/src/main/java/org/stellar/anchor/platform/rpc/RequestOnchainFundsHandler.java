@@ -35,11 +35,13 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
+import org.stellar.anchor.platform.service.Sep6DepositInfoNoneGenerator;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.sdk.Memo;
@@ -48,6 +50,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
 
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;
+  private final Sep6DepositInfoGenerator sep6DepositInfoGenerator;
   private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
 
   public RequestOnchainFundsHandler(
@@ -58,6 +61,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig,
+      Sep6DepositInfoGenerator sep6DepositInfoGenerator,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
       EventService eventService,
       MetricsService metricsService) {
@@ -72,6 +76,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
         RequestOnchainFundsRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
+    this.sep6DepositInfoGenerator = sep6DepositInfoGenerator;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
   }
 
@@ -129,8 +134,13 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       throw new InvalidParamsException("amount_fee is required");
     }
 
-    // TODO: SEP-6 should use this class to generate deposit info
-    if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
+    boolean canGenerateSep6DepositInfo =
+        SEP_6 == Sep.from(txn.getProtocol())
+            && sep6DepositInfoGenerator instanceof Sep6DepositInfoNoneGenerator;
+    boolean canGenerateSep24DepositInfo =
+        SEP_24 == Sep.from(txn.getProtocol())
+            && sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator;
+    if (canGenerateSep6DepositInfo || canGenerateSep24DepositInfo) {
       Memo memo;
       try {
         memo = makeMemo(request.getMemo(), request.getMemoType());
@@ -207,8 +217,6 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       txn.setAmountFeeAsset(request.getAmountFee().getAsset());
     }
 
-    Memo memo = makeMemo(request.getMemo(), request.getMemoType());
-
     switch (Sep.from(txn.getProtocol())) {
       case SEP_6:
         JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
@@ -219,13 +227,29 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
           txn6.setAmountExpected(request.getAmountIn().getAmount());
         }
 
-        if (memo != null) {
-          txn6.setMemo(memo.toString());
-          txn6.setMemoType(memoTypeString(memoType(memo)));
-        }
-        if (request.getDestinationAccount() != null) {
+        if (sep6DepositInfoGenerator instanceof Sep6DepositInfoNoneGenerator) {
+          Memo memo = makeMemo(request.getMemo(), request.getMemoType());
+          if (memo != null) {
+            txn6.setMemo(memo.toString());
+            txn6.setMemoType(memoTypeString(memoType(memo)));
+          }
           txn6.setWithdrawAnchorAccount(request.getDestinationAccount());
-          txn6.setToAccount(request.getDestinationAccount());
+        } else {
+          SepDepositInfo sep6DepositInfo = sep6DepositInfoGenerator.generate(txn6);
+          txn6.setWithdrawAnchorAccount(sep6DepositInfo.getStellarAddress());
+          txn6.setMemo(sep6DepositInfo.getMemo());
+          txn6.setMemoType(sep6DepositInfo.getMemoType());
+        }
+
+        if (!CustodyUtils.isMemoTypeSupported(custodyConfig.getType(), txn6.getMemoType())) {
+          throw new InvalidParamsException(
+              String.format(
+                  "Memo type[%s] is not supported for custody type[%s]",
+                  txn6.getMemoType(), custodyConfig.getType()));
+        }
+
+        if (custodyConfig.isCustodyIntegrationEnabled()) {
+          custodyService.createTransaction(txn6);
         }
         break;
       case SEP_24:
@@ -238,6 +262,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
         }
 
         if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
+          Memo memo = makeMemo(request.getMemo(), request.getMemoType());
           if (memo != null) {
             txn24.setMemo(memo.toString());
             txn24.setMemoType(memoTypeString(memoType(memo)));

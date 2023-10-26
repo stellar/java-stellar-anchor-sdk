@@ -160,7 +160,7 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
               "kind": "withdrawal",
               "status": "incomplete",
               "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-              "withdraw_memo_type": "hash"
+              "withdraw_anchor_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
           }
       }
     """
@@ -179,8 +179,7 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
           "amount_fee": "0",
           "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-          "withdraw_anchor_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-          "withdraw_memo_type": "hash"
+          "withdraw_anchor_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
         }
       }
     """
@@ -199,8 +198,7 @@ class Sep6Tests(val toml: TomlContent, jwt: String) {
           "amount_fee": "1.00",
           "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-          "withdraw_anchor_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-          "withdraw_memo_type": "hash"
+          "withdraw_anchor_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
         }
       }
     """

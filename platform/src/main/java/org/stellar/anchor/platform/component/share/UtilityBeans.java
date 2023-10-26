@@ -9,16 +9,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.CustodyConfig;
-import org.stellar.anchor.config.CustodySecretConfig;
-import org.stellar.anchor.config.SecretConfig;
+import org.stellar.anchor.config.*;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.platform.config.PropertyAppConfig;
-import org.stellar.anchor.platform.config.PropertyClientsConfig;
-import org.stellar.anchor.platform.config.PropertySecretConfig;
-import org.stellar.anchor.platform.config.PropertySep24Config;
+import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.service.HealthCheckService;
 import org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -55,6 +49,12 @@ public class UtilityBeans {
   @ConfigurationProperties(prefix = "sep24")
   PropertySep24Config sep24Config(SecretConfig secretConfig, CustodyConfig custodyConfig) {
     return new PropertySep24Config(secretConfig, custodyConfig);
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "sep6")
+  PropertySep6Config sep6Config(CustodyConfig custodyConfig) {
+    return new PropertySep6Config(custodyConfig);
   }
 
   /**********************************

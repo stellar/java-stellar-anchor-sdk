@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep6;
 
 import static org.stellar.anchor.util.MemoHelper.*;
-import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import com.google.common.collect.ImmutableMap;
 import java.time.Instant;
@@ -190,7 +189,6 @@ public class Sep6Service {
             .amountFee(amounts.getAmountFee())
             .amountFeeAsset(amounts.getAmountFeeAsset())
             .amountExpected(request.getAmount())
-            .amountExpected(request.getAmount())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
@@ -270,10 +268,8 @@ public class Sep6Service {
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
-            .memo(generateMemo(id))
-            .memoType(memoTypeAsString(MEMO_HASH))
-            .fromAccount(sourceAccount)
             .withdrawAnchorAccount(asset.getDistributionAccount())
+            .fromAccount(sourceAccount)
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType());
 
@@ -291,8 +287,6 @@ public class Sep6Service {
     return StartWithdrawResponse.builder()
         .accountId(asset.getDistributionAccount())
         .id(txn.getId())
-        .memo(txn.getMemo())
-        .memoType(memoTypeAsString(MEMO_HASH))
         .build();
   }
 
@@ -364,10 +358,8 @@ public class Sep6Service {
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
-            .memo(generateMemo(id))
-            .memoType(memoTypeAsString(MEMO_HASH))
-            .fromAccount(sourceAccount)
             .withdrawAnchorAccount(sellAsset.getDistributionAccount())
+            .fromAccount(sourceAccount)
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType())
             .quoteId(request.getQuoteId());
@@ -386,8 +378,6 @@ public class Sep6Service {
     return StartWithdrawResponse.builder()
         .accountId(sellAsset.getDistributionAccount())
         .id(txn.getId())
-        .memo(txn.getMemo())
-        .memoType(memoTypeAsString(MEMO_HASH))
         .build();
   }
 

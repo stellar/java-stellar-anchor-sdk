@@ -15,6 +15,7 @@ import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.Sep6Client
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
@@ -152,11 +153,14 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! })
     waitStatus(withdraw.id, PENDING_USR_TRANSFER_START, sep6Client)
 
+    val withdrawMemo =
+      sep6Client.getTransaction(mapOf("id" to withdraw.id)).transaction.withdrawMemo
+
     // Transfer the withdrawal amount to the Anchor
     val transfer =
       wallet
         .stellar()
-        .transaction(keypair, memo = Pair(MemoType.HASH, withdraw.memo))
+        .transaction(keypair, memo = Pair(MemoType.HASH, withdrawMemo))
         .transfer(withdraw.accountId, USDC, "1")
         .build()
     transfer.sign(keypair)
@@ -206,6 +210,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       if (expectedStatus.status != transaction.transaction.status) {
         Log.info("Transaction status: ${transaction.transaction.status}")
       } else {
+        Log.info("${GsonUtils.getInstance().toJson(transaction)}")
         Log.info(
           "Transaction status ${transaction.transaction.status} matched expected status $expectedStatus"
         )

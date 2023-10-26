@@ -177,12 +177,21 @@ public class NotifyOffchainFundsReceivedHandler
       txn.setAmountFee(request.getAmountFee().getAmount());
     }
 
-    // TODO: add support for SEP-6
-    if (SEP_24 == Sep.from(txn.getProtocol())) {
-      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-      if (custodyConfig.isCustodyIntegrationEnabled()) {
-        custodyService.createTransaction(txn24);
-      }
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+        if (custodyConfig.isCustodyIntegrationEnabled()) {
+          custodyService.createTransaction(txn6);
+        }
+        break;
+      case SEP_24:
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        if (custodyConfig.isCustodyIntegrationEnabled()) {
+          custodyService.createTransaction(txn24);
+        }
+        break;
+      default:
+        break;
     }
   }
 }

@@ -59,12 +59,6 @@ public class SepBeans {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "sep6")
-  Sep6Config sep6Config() {
-    return new PropertySep6Config();
-  }
-
-  @Bean
   @ConfigurationProperties(prefix = "sep10")
   Sep10Config sep10Config(
       AppConfig appConfig, SecretConfig secretConfig, PropertyClientsConfig clientsConfig) {
