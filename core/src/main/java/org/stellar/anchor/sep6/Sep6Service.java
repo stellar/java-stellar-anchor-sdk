@@ -150,7 +150,7 @@ public class Sep6Service {
           exchangeAmountsCalculator.calculateFromQuote(
               request.getQuoteId(), sellAsset, request.getAmount());
     } else {
-      // If a quote is no provided set, amounts to 0.
+      // If a quote is not provided, set the fee and out amounts to 0.
       // The business server should use the notify_amounts_updated RPC to update the amounts.
       amounts =
           Amounts.builder()
@@ -314,7 +314,7 @@ public class Sep6Service {
           exchangeAmountsCalculator.calculateFromQuote(
               request.getQuoteId(), sellAsset, request.getAmount());
     } else {
-      // If a quote is no provided set, amounts to 0.
+      // If a quote is not provided, set the fee and out amounts to 0.
       // The business server should use the notify_amounts_updated RPC to update the amounts.
       amounts =
           Amounts.builder()
