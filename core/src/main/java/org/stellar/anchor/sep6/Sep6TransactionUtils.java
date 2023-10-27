@@ -62,7 +62,7 @@ public class Sep6TransactionUtils {
             .requiredCustomerInfoUpdates(txn.getRequiredCustomerInfoUpdates())
             .instructions(txn.getInstructions());
 
-    if (Sep6Transaction.Kind.valueOf(txn.getKind().toUpperCase()).isDeposit()) {
+    if (Sep6Transaction.Kind.valueOf(txn.getKind().toUpperCase().replace("-", "_")).isDeposit()) {
       return builder.depositMemo(txn.getMemo()).depositMemoType(txn.getMemoType()).build();
     } else {
       return builder

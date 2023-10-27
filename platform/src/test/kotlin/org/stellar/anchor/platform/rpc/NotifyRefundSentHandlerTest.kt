@@ -1014,7 +1014,7 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.amountFee = Amount("0", STELLAR_USDC)
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
-    expectedResponse.customers = Customers(StellarId(null, null), StellarId(null, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn31.amountInAsset)

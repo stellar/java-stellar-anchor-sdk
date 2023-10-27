@@ -184,6 +184,7 @@ public class Sep31Service {
     StellarId creatorStellarId =
         StellarId.builder()
             .account(Objects.requireNonNullElse(sep10Jwt.getMuxedAccount(), sep10Jwt.getAccount()))
+            .memo(sep10Jwt.getAccountMemo())
             .build();
 
     Amount fee = Context.get().getFee();

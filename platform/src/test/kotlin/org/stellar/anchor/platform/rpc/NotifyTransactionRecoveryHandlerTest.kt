@@ -292,7 +292,7 @@ class NotifyTransactionRecoveryHandlerTest {
     expectedResponse.amountFee = Amount(null, null)
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
-    expectedResponse.customers = Customers(StellarId(null, null), StellarId(null, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

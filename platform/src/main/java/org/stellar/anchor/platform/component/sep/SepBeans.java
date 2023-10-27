@@ -137,17 +137,14 @@ public class SepBeans {
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep6"})
   Sep6Service sep6Service(
-      ClientFinder clientFinder,
       Sep6Config sep6Config,
       AssetService assetService,
       Sep6TransactionStore txnStore,
       EventService eventService,
-      CustomerIntegration customerIntegration,
-      FeeIntegration feeIntegration,
       Sep38QuoteStore sep38QuoteStore) {
-    RequestValidator requestValidator = new RequestValidator(assetService, customerIntegration);
+    RequestValidator requestValidator = new RequestValidator(assetService);
     ExchangeAmountsCalculator exchangeAmountsCalculator =
-        new ExchangeAmountsCalculator(clientFinder, feeIntegration, sep38QuoteStore, assetService);
+        new ExchangeAmountsCalculator(sep38QuoteStore);
     return new Sep6Service(
         sep6Config,
         assetService,

@@ -67,7 +67,8 @@ class Sep6EventProcessor(
     val transaction = event.transaction
     when (val status = transaction.status) {
       PENDING_ANCHOR -> {
-        if (verifyKyc(transaction.customers.sender.id, Kind.DEPOSIT).isNotEmpty()) {
+        val customer = transaction.customers.sender
+        if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isNotEmpty()) {
           requestKyc(event)
           return
         }
@@ -125,7 +126,8 @@ class Sep6EventProcessor(
     val transaction = event.transaction
     when (val status = transaction.status) {
       PENDING_ANCHOR -> {
-        if (verifyKyc(transaction.customers.sender.id, Kind.WITHDRAWAL).isNotEmpty()) {
+        val customer = transaction.customers.sender
+        if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isNotEmpty()) {
           requestKyc(event)
           return
         }
@@ -186,9 +188,10 @@ class Sep6EventProcessor(
           .records
       }
       .forEach { transaction ->
+        val customer = transaction.customers.sender
         when (transaction.kind) {
           Kind.DEPOSIT -> {
-            if (verifyKyc(transaction.customers.sender.id, Kind.DEPOSIT).isNotEmpty()) {
+            if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isNotEmpty()) {
               return
             }
             runBlocking {
@@ -226,7 +229,7 @@ class Sep6EventProcessor(
             }
           }
           Kind.WITHDRAWAL -> {
-            if (verifyKyc(transaction.customers.sender.id, Kind.WITHDRAWAL).isNotEmpty()) {
+            if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isNotEmpty()) {
               return
             }
             runBlocking {
@@ -260,8 +263,11 @@ class Sep6EventProcessor(
       }
   }
 
-  private fun verifyKyc(customerId: String, kind: Kind): List<String> {
-    val customer = customerService.getCustomer(GetCustomerRequest.builder().id(customerId).build())
+  private fun verifyKyc(sep10Account: String, sep10AccountMemo: String?, kind: Kind): List<String> {
+    val customer =
+      customerService.getCustomer(
+        GetCustomerRequest.builder().account(sep10Account).memo(sep10AccountMemo).build()
+      )
     val providedFields = customer.providedFields.keys
     return requiredKyc
       .plus(if (kind == Kind.DEPOSIT) depositRequiredKyc else withdrawRequiredKyc)
@@ -289,7 +295,8 @@ class Sep6EventProcessor(
 
   private fun requestKyc(event: AnchorEvent) {
     val kind = event.transaction.kind
-    val missingFields = verifyKyc(event.transaction.customers.sender.id, kind)
+    val customer = event.transaction.customers.sender
+    val missingFields = verifyKyc(customer.account, customer.memo, kind)
     runBlocking {
       if (missingFields.isNotEmpty()) {
         sepHelper.rpcAction(

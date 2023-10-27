@@ -93,7 +93,8 @@ public class TransactionHelper {
     String amountOutAsset = makeAsset(txn.getAmountOutAsset(), assetService, txn);
     String amountFeeAsset = makeAsset(txn.getAmountFeeAsset(), assetService, txn);
     String amountExpectedAsset = makeAsset(null, assetService, txn);
-    StellarId customer = StellarId.builder().id(txn.getCustomer()).build();
+    StellarId customer =
+        StellarId.builder().account(txn.getSep10Account()).memo(txn.getSep10AccountMemo()).build();
 
     return GetTransactionResponse.builder()
         .id(txn.getId())
