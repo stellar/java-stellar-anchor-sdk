@@ -56,7 +56,6 @@ class RequestOffchainFundsHandlerTest {
       "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
     private const val FIAT_USD_CODE = "USD"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
-    private const val CUSTOMER_ID = "testCustomerId"
   }
 
   @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
@@ -732,7 +731,6 @@ class RequestOffchainFundsHandlerTest {
     txn6.status = status
     txn6.kind = kind
     txn6.requestAssetCode = FIAT_USD_CODE
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -764,7 +762,6 @@ class RequestOffchainFundsHandlerTest {
     expectedSep6Txn.amountFee = "0.1"
     expectedSep6Txn.amountFeeAsset = FIAT_USD
     expectedSep6Txn.amountExpected = "1"
-    expectedSep6Txn.customer = CUSTOMER_ID
     expectedSep6Txn.instructions = mapOf("first_name" to InstructionField.builder().build())
 
     JSONAssert.assertEquals(
@@ -782,8 +779,7 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
     expectedResponse.instructions = mapOf("first_name" to InstructionField.builder().build())
 
     JSONAssert.assertEquals(
@@ -835,7 +831,6 @@ class RequestOffchainFundsHandlerTest {
     txn6.status = status
     txn6.kind = kind
     txn6.requestAssetCode = FIAT_USD_CODE
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -866,7 +861,6 @@ class RequestOffchainFundsHandlerTest {
     expectedSep6Txn.amountFee = "0.1"
     expectedSep6Txn.amountFeeAsset = FIAT_USD
     expectedSep6Txn.amountExpected = "1"
-    expectedSep6Txn.customer = CUSTOMER_ID
     expectedSep6Txn.instructions = mapOf("first_name" to InstructionField.builder().build())
 
     JSONAssert.assertEquals(
@@ -884,8 +878,7 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
     expectedResponse.instructions = mapOf("first_name" to InstructionField.builder().build())
 
     JSONAssert.assertEquals(
@@ -941,7 +934,6 @@ class RequestOffchainFundsHandlerTest {
     txn6.amountFee = "0.1"
     txn6.amountFeeAsset = STELLAR_USDC
     txn6.amountExpected = "1"
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -973,7 +965,6 @@ class RequestOffchainFundsHandlerTest {
     expectedSep6Txn.amountFee = "0.1"
     expectedSep6Txn.amountFeeAsset = STELLAR_USDC
     expectedSep6Txn.amountExpected = "1"
-    expectedSep6Txn.customer = CUSTOMER_ID
     expectedSep6Txn.instructions = mapOf("first_name" to InstructionField.builder().build())
 
     JSONAssert.assertEquals(
@@ -991,8 +982,7 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
     expectedResponse.instructions = mapOf("first_name" to InstructionField.builder().build())
 
     JSONAssert.assertEquals(

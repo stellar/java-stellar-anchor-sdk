@@ -47,7 +47,6 @@ class NotifyTransactionErrorHandlerTest {
     private const val TX_ID = "testId"
     private const val TX_MESSAGE = "testMessage"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
-    private const val CUSTOMER_ID = "testCustomerId"
   }
 
   @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
@@ -352,7 +351,6 @@ class NotifyTransactionErrorHandlerTest {
     txn6.id = TX_ID
     txn6.status = PENDING_ANCHOR.toString()
     txn6.kind = DEPOSIT.kind
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -381,7 +379,6 @@ class NotifyTransactionErrorHandlerTest {
     expectedSep6Txn.status = ERROR.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedSep6Txn.message = TX_MESSAGE
-    expectedSep6Txn.customer = CUSTOMER_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -397,8 +394,7 @@ class NotifyTransactionErrorHandlerTest {
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.message = TX_MESSAGE
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

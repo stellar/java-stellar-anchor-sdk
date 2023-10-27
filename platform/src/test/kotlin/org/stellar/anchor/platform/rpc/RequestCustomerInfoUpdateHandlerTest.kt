@@ -46,7 +46,6 @@ class RequestCustomerInfoUpdateHandlerTest {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
-    private const val CUSTOMER_ID = "testCustomerId"
   }
 
   @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
@@ -274,7 +273,6 @@ class RequestCustomerInfoUpdateHandlerTest {
     val txn6 = JdbcSep6Transaction()
     txn6.status = status
     txn6.kind = kind
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -297,7 +295,6 @@ class RequestCustomerInfoUpdateHandlerTest {
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_CUSTOMER_INFO_UPDATE.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
-    expectedSep6Txn.customer = CUSTOMER_ID
     expectedSep6Txn.requiredCustomerInfoUpdates =
       listOf("email_address", "family_name", "given_name")
 
@@ -313,8 +310,7 @@ class RequestCustomerInfoUpdateHandlerTest {
     expectedResponse.status = PENDING_CUSTOMER_INFO_UPDATE
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
     expectedResponse.requiredCustomerInfoUpdates =
       listOf("email_address", "family_name", "given_name")
 

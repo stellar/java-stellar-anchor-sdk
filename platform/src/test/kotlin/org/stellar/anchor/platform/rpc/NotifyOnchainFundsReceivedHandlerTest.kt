@@ -63,7 +63,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     private const val STELLAR_TX_ID = "stellarTxId"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
     private const val STELLAR_PAYMENT_DATE = "2023-05-10T10:18:20Z"
-    private const val CUSTOMER_ID = "testCustomerId"
   }
 
   @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
@@ -738,7 +737,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     txn6.amountInAsset = FIAT_USD
     txn6.amountOutAsset = STELLAR_USDC
     txn6.amountFeeAsset = STELLAR_USDC
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -782,7 +780,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedSep6Txn.amountFeeAsset = STELLAR_USDC
     expectedSep6Txn.stellarTransactionId = STELLAR_TX_ID
     expectedSep6Txn.stellarTransactions = stellarTransactions
-    expectedSep6Txn.customer = CUSTOMER_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -801,8 +798,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -842,7 +838,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     txn6.kind = kind
     txn6.requestAssetCode = FIAT_USD_CODE
     txn6.amountInAsset = FIAT_USD
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -882,7 +877,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedSep6Txn.amountInAsset = FIAT_USD
     expectedSep6Txn.stellarTransactionId = STELLAR_TX_ID
     expectedSep6Txn.stellarTransactions = stellarTransactions
-    expectedSep6Txn.customer = CUSTOMER_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -899,8 +893,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -938,7 +931,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     txn6.status = PENDING_USR_TRANSFER_START.toString()
     txn6.kind = kind
     txn6.requestAssetCode = FIAT_USD_CODE
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -976,7 +968,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedSep6Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep6Txn.stellarTransactionId = STELLAR_TX_ID
     expectedSep6Txn.stellarTransactions = stellarTransactions
-    expectedSep6Txn.customer = CUSTOMER_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -992,8 +983,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

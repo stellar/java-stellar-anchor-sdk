@@ -55,7 +55,6 @@ class NotifyAmountsUpdatedTest {
       "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
     private const val FIAT_USD_CODE = "USD"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
-    private const val CUSTOMER_ID = "testCustomerId"
   }
 
   @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
@@ -366,7 +365,6 @@ class NotifyAmountsUpdatedTest {
     txn6.amountOut = "1.8"
     txn6.amountFeeAsset = STELLAR_USDC
     txn6.amountFee = "0.2"
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -395,7 +393,6 @@ class NotifyAmountsUpdatedTest {
     expectedSep6Txn.amountOut = "0.9"
     expectedSep6Txn.amountFeeAsset = STELLAR_USDC
     expectedSep6Txn.amountFee = "0.1"
-    expectedSep6Txn.customer = CUSTOMER_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -411,8 +408,7 @@ class NotifyAmountsUpdatedTest {
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

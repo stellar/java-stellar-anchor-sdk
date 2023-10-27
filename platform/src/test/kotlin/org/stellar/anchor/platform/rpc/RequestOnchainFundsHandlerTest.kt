@@ -73,7 +73,6 @@ class RequestOnchainFundsHandlerTest {
     private const val DESTINATION_ACCOUNT = "testDestinationAccount"
     private const val DESTINATION_ACCOUNT_2 = "testDestinationAccount2"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
-    private const val CUSTOMER_ID = "testCustomerId"
   }
 
   @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
@@ -1221,7 +1220,6 @@ class RequestOnchainFundsHandlerTest {
     txn6.kind = kind
     txn6.requestAssetCode = STELLAR_USDC_CODE
     txn6.requestAssetIssuer = STELLAR_USDC_ISSUER
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -1259,7 +1257,6 @@ class RequestOnchainFundsHandlerTest {
     expectedSep6Txn.memoType = TEXT_MEMO_TYPE
     expectedSep6Txn.toAccount = DESTINATION_ACCOUNT
     expectedSep6Txn.withdrawAnchorAccount = DESTINATION_ACCOUNT
-    expectedSep6Txn.customer = CUSTOMER_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -1279,8 +1276,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -1324,7 +1320,6 @@ class RequestOnchainFundsHandlerTest {
     txn6.kind = kind
     txn6.requestAssetCode = STELLAR_USDC_CODE
     txn6.requestAssetIssuer = STELLAR_USDC_ISSUER
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -1361,7 +1356,6 @@ class RequestOnchainFundsHandlerTest {
     expectedSep6Txn.memoType = TEXT_MEMO_TYPE
     expectedSep6Txn.toAccount = DESTINATION_ACCOUNT
     expectedSep6Txn.withdrawAnchorAccount = DESTINATION_ACCOUNT
-    expectedSep6Txn.customer = CUSTOMER_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -1381,8 +1375,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -1430,7 +1423,6 @@ class RequestOnchainFundsHandlerTest {
     txn6.amountFee = "0.1"
     txn6.amountFeeAsset = STELLAR_USDC
     txn6.amountExpected = "1"
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -1468,7 +1460,6 @@ class RequestOnchainFundsHandlerTest {
     expectedSep6Txn.memoType = TEXT_MEMO_TYPE
     expectedSep6Txn.toAccount = DESTINATION_ACCOUNT
     expectedSep6Txn.withdrawAnchorAccount = DESTINATION_ACCOUNT
-    expectedSep6Txn.customer = CUSTOMER_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -1488,8 +1479,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

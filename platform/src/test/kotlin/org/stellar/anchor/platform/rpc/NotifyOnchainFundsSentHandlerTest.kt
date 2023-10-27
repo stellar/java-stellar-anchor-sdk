@@ -55,7 +55,6 @@ class NotifyOnchainFundsSentHandlerTest {
     private const val TX_ID = "testId"
     private const val STELLAR_TX_ID = "stellarTxId"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
-    private const val CUSTOMER_ID = "testCustomerId"
   }
 
   @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
@@ -420,7 +419,6 @@ class NotifyOnchainFundsSentHandlerTest {
     txn6.status = PENDING_ANCHOR.toString()
     txn6.kind = kind
     txn6.transferReceivedAt = transferReceivedAt
-    txn6.customer = CUSTOMER_ID
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -458,7 +456,6 @@ class NotifyOnchainFundsSentHandlerTest {
     expectedSep6Txn.transferReceivedAt = transferReceivedAt
     expectedSep6Txn.stellarTransactionId = STELLAR_TX_ID
     expectedSep6Txn.stellarTransactions = stellarTransactions
-    expectedSep6Txn.customer = CUSTOMER_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -475,8 +472,7 @@ class NotifyOnchainFundsSentHandlerTest {
     expectedResponse.completedAt = sep6TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.stellarTransactions = stellarTransactions
-    expectedResponse.customers =
-      Customers(StellarId(CUSTOMER_ID, null), StellarId(CUSTOMER_ID, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
