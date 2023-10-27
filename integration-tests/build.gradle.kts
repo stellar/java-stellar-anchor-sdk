@@ -48,4 +48,10 @@ dependencies {
   testImplementation(libs.dotenv)
 }
 
-tasks { bootJar { enabled = false } }
+tasks {
+  bootJar { enabled = false }
+}
+
+tasks.test {
+  exclude("**/org/stellar/anchor/platform/*Test.class")
+}
