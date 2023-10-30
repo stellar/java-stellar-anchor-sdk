@@ -44,7 +44,7 @@ class TransactionServiceTest {
     private const val fiatUSD = "iso4217:USD"
     private const val stellarUSDC =
       "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    private const val TEST_ACCOUNT = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
+    private const val TEST_DEST_ACCOUNT = "testWithdrawAnchorAccount"
     private const val TEST_MEMO = "test memo"
     private const val TEST_TXN_ID = "a4baff5f-778c-43d6-bbef-3e9fb41d096e"
     private val gson = GsonUtils.getInstance()
@@ -332,11 +332,13 @@ class TransactionServiceTest {
     val tx = JdbcSep24Transaction()
     tx.status = SepTransactionStatus.INCOMPLETE.toString()
     tx.kind = "withdrawal"
+    tx.withdrawAnchorAccount = null
     val data = PlatformTransactionData()
     data.id = txId
     data.memo = "12345"
     data.memoType = "id"
     data.status = SepTransactionStatus.PENDING_USR_TRANSFER_START
+    data.withdrawAnchorAccount = TEST_DEST_ACCOUNT
     val request =
       PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
 
@@ -350,6 +352,7 @@ class TransactionServiceTest {
     verify(exactly = 1) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
     verify(exactly = 1) { eventSession.publish(any()) }
+    assertEquals(TEST_DEST_ACCOUNT, tx.withdrawAnchorAccount)
   }
 
   @Test

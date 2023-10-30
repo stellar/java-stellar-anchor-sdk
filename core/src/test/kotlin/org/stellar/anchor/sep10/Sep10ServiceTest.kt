@@ -111,7 +111,7 @@ internal class Sep10ServiceTest {
     every { sep10Config.webAuthDomain } returns TEST_WEB_AUTH_DOMAIN
     every { sep10Config.authTimeout } returns 900
     every { sep10Config.jwtTimeout } returns 900
-    every { sep10Config.homeDomain } returns TEST_HOME_DOMAIN
+    every { sep10Config.homeDomains } returns listOf(TEST_HOME_DOMAIN)
 
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
 

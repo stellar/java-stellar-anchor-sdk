@@ -271,17 +271,6 @@ public class TransactionService {
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
 
-        // add a memo for the transaction if the transaction is ready for user to send funds
-        if (sep24Txn.getMemo() == null
-            && Kind.WITHDRAWAL.getKind().equals(sep24Txn.getKind())
-            && sep24Txn.getStatus().equals(PENDING_USR_TRANSFER_START.toString())) {
-          SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(sep24Txn);
-          sep24Txn.setToAccount(sep24DepositInfo.getStellarAddress());
-          sep24Txn.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
-          sep24Txn.setMemo(sep24DepositInfo.getMemo());
-          sep24Txn.setMemoType(sep24DepositInfo.getMemoType());
-        }
-
         if (custodyConfig.isCustodyIntegrationEnabled()
             && !lastStatus.equals(sep24Txn.getStatus())
             && ((Kind.DEPOSIT.getKind().equals(sep24Txn.getKind())
@@ -372,7 +361,17 @@ public class TransactionService {
           txnUpdated = updateField(patch, sep24Txn, "memoType", txnUpdated);
         }
 
+        // add a memo for the transaction if the transaction is ready for user to send funds
+        if (sep24Txn.getMemo() == null
+            && Kind.WITHDRAWAL.getKind().equals(sep24Txn.getKind())
+            && sep24Txn.getStatus().equals(PENDING_USR_TRANSFER_START.toString())) {
+          SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(sep24Txn);
+          sep24Txn.setMemo(sep24DepositInfo.getMemo());
+          sep24Txn.setMemoType(sep24DepositInfo.getMemoType());
+        }
+
         txnUpdated = updateField(patch, sep24Txn, "message", txnUpdated);
+        txnUpdated = updateField(patch, sep24Txn, "withdrawAnchorAccount", txnUpdated);
 
         // update refunds
         if (patch.getRefunds() != null) {

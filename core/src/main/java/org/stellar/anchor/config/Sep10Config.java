@@ -15,23 +15,20 @@ public interface Sep10Config {
   /**
    * The `web_auth_domain` property of <a
    * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response">SEP-10</a>.
-   * If the `web_auth_domain` is not specified, the `web_auth_domain` will be set to the domain of
-   * the value of the `home_domain`. `web_auth_domain` value must be equal to the host of the SEP
-   * server.
+   * If the `web_auth_domain` is not specified, the `web_auth_domain` will be set to the first value
+   * of `home_domains`. The `web_auth_domain` value must equal to the host of the SEP server.
    *
    * @return the web auth domain.
    */
   String getWebAuthDomain();
 
   /**
-   * The `home_domain` property of <a
+   * The `home_domains` property of <a
    * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request">SEP-10</a>.
-   * `home_domain` value must be equal to the host of the toml file. If sep1 is enabled, toml file
-   * will be hosted on the SEP server.
    *
-   * @return the home domain.
+   * @return the list of home domains.
    */
-  String getHomeDomain();
+  List<String> getHomeDomains();
 
   /**
    * Set the authentication challenge transaction timeout in seconds. An expired signed transaction

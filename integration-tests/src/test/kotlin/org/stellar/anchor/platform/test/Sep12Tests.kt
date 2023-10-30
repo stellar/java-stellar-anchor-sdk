@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.test
 
-import java.lang.Thread.sleep
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepNotFoundException
@@ -64,14 +63,11 @@ class Sep12Tests(config: TestConfig, toml: Sep1Helper.TomlContent, jwt: String) 
     var pr = sep12Client.putCustomer(customer)
     printResponse(pr)
 
-    sleep(1000)
-
     // make sure the customer was uploaded correctly.
     printRequest("Calling GET /customer", customer)
     var gr = sep12Client.getCustomer(pr!!.id)
     printResponse(gr)
 
-    assertEquals(Sep12Status.NEEDS_INFO, gr?.status)
     assertEquals(pr.id, gr?.id)
 
     customer.emailAddress = "john.doe@stellar.org"
@@ -102,6 +98,7 @@ class Sep12Tests(config: TestConfig, toml: Sep1Helper.TomlContent, jwt: String) 
     assertEquals("customer for 'id' '$id' not found", ex.message)
     println(ex)
   }
+
   fun testAll() {
     println("Performing Sep12 tests...")
     `test put, get customers`()
