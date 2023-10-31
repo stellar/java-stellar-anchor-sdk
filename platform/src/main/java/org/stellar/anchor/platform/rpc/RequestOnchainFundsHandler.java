@@ -1,15 +1,17 @@
 package org.stellar.anchor.platform.rpc;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL_EXCHANGE;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.REQUEST_ONCHAIN_FUNDS;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.MemoHelper.memoType;
 import static org.stellar.anchor.util.SepHelper.memoTypeString;
 
+import com.google.common.collect.ImmutableSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -30,6 +32,7 @@ import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
@@ -37,6 +40,7 @@ import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.sdk.Memo;
 
@@ -47,6 +51,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
   private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
 
   public RequestOnchainFundsHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -57,6 +62,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       EventService eventService,
       MetricsService metricsService) {
     super(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -123,6 +129,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       throw new InvalidParamsException("amount_fee is required");
     }
 
+    // TODO: SEP-6 should use this class to generate deposit info
     if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
       Memo memo;
       try {
@@ -160,6 +167,17 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
+    if (SEP_6 == Sep.from(txn.getProtocol())) {
+      JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+      if (ImmutableSet.of(WITHDRAWAL, WITHDRAWAL_EXCHANGE).contains(Kind.from(txn6.getKind()))) {
+        supportedStatuses.add(INCOMPLETE);
+        supportedStatuses.add(PENDING_CUSTOMER_INFO_UPDATE);
+        if (!areFundsReceived(txn6)) {
+          supportedStatuses.add(PENDING_ANCHOR);
+        }
+      }
+      return supportedStatuses;
+    }
     if (SEP_24 == Sep.from(txn.getProtocol())) {
       JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
       if (WITHDRAWAL == Kind.from(txn24.getKind())) {
@@ -168,8 +186,9 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
           supportedStatuses.add(PENDING_ANCHOR);
         }
       }
+      return supportedStatuses;
     }
-    return supportedStatuses;
+    return Collections.emptySet();
   }
 
   @Override
@@ -188,39 +207,64 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       txn.setAmountFeeAsset(request.getAmountFee().getAsset());
     }
 
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    Memo memo = makeMemo(request.getMemo(), request.getMemoType());
 
-    if (request.getAmountExpected() != null) {
-      txn24.setAmountExpected(request.getAmountExpected().getAmount());
-    } else if (request.getAmountIn() != null) {
-      txn24.setAmountExpected(request.getAmountIn().getAmount());
-    }
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
 
-    if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
-      Memo memo = makeMemo(request.getMemo(), request.getMemoType());
-      if (memo != null) {
-        txn24.setMemo(memo.toString());
-        txn24.setMemoType(memoTypeString(memoType(memo)));
-      }
-      txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
-      txn24.setToAccount(request.getDestinationAccount());
-    } else {
-      SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(txn24);
-      txn24.setToAccount(sep24DepositInfo.getStellarAddress());
-      txn24.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
-      txn24.setMemo(sep24DepositInfo.getMemo());
-      txn24.setMemoType(sep24DepositInfo.getMemoType());
-    }
+        if (request.getAmountExpected() != null) {
+          txn6.setAmountExpected(request.getAmountExpected().getAmount());
+        } else if (request.getAmountIn() != null) {
+          txn6.setAmountExpected(request.getAmountIn().getAmount());
+        }
 
-    if (!CustodyUtils.isMemoTypeSupported(custodyConfig.getType(), txn24.getMemoType())) {
-      throw new InvalidParamsException(
-          String.format(
-              "Memo type[%s] is not supported for custody type[%s]",
-              txn24.getMemoType(), custodyConfig.getType()));
-    }
+        if (memo != null) {
+          txn6.setMemo(memo.toString());
+          txn6.setMemoType(memoTypeString(memoType(memo)));
+        }
+        if (request.getDestinationAccount() != null) {
+          txn6.setWithdrawAnchorAccount(request.getDestinationAccount());
+          txn6.setToAccount(request.getDestinationAccount());
+        }
+        break;
+      case SEP_24:
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
-    if (custodyConfig.isCustodyIntegrationEnabled()) {
-      custodyService.createTransaction(txn24);
+        if (request.getAmountExpected() != null) {
+          txn24.setAmountExpected(request.getAmountExpected().getAmount());
+        } else if (request.getAmountIn() != null) {
+          txn24.setAmountExpected(request.getAmountIn().getAmount());
+        }
+
+        if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
+          if (memo != null) {
+            txn24.setMemo(memo.toString());
+            txn24.setMemoType(memoTypeString(memoType(memo)));
+          }
+          txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
+          txn24.setToAccount(request.getDestinationAccount());
+        } else {
+          SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(txn24);
+          txn24.setToAccount(sep24DepositInfo.getStellarAddress());
+          txn24.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
+          txn24.setMemo(sep24DepositInfo.getMemo());
+          txn24.setMemoType(sep24DepositInfo.getMemoType());
+        }
+
+        if (!CustodyUtils.isMemoTypeSupported(custodyConfig.getType(), txn24.getMemoType())) {
+          throw new InvalidParamsException(
+              String.format(
+                  "Memo type[%s] is not supported for custody type[%s]",
+                  txn24.getMemoType(), custodyConfig.getType()));
+        }
+
+        if (custodyConfig.isCustodyIntegrationEnabled()) {
+          custodyService.createTransaction(txn24);
+        }
+        break;
+      default:
+        break;
     }
   }
 }

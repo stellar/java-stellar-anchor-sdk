@@ -28,6 +28,7 @@ import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyTrustSetHandler extends RpcMethodHandler<NotifyTrustSetRequest> {
 
@@ -35,6 +36,7 @@ public class NotifyTrustSetHandler extends RpcMethodHandler<NotifyTrustSetReques
   private final CustodyService custodyService;
 
   public NotifyTrustSetHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -44,6 +46,7 @@ public class NotifyTrustSetHandler extends RpcMethodHandler<NotifyTrustSetReques
       PropertyCustodyConfig custodyConfig,
       CustodyService custodyService) {
     super(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,

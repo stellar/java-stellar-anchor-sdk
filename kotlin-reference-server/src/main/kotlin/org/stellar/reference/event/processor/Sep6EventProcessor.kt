@@ -1,20 +1,19 @@
 package org.stellar.reference.event.processor
 
 import java.time.Instant
+import java.util.*
 import kotlinx.coroutines.runBlocking
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.*
+import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind
-import org.stellar.anchor.api.sep.SepTransactionStatus
-import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.InstructionField
-import org.stellar.anchor.api.shared.StellarPayment
-import org.stellar.anchor.api.shared.StellarTransaction
+import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.reference.callbacks.customer.CustomerService
 import org.stellar.reference.client.PlatformClient
-import org.stellar.reference.data.Config
+import org.stellar.reference.data.*
 import org.stellar.reference.log
+import org.stellar.reference.service.SepHelper
 import org.stellar.sdk.*
 
 class Sep6EventProcessor(
@@ -22,6 +21,11 @@ class Sep6EventProcessor(
   private val server: Server,
   private val platformClient: PlatformClient,
   private val customerService: CustomerService,
+  private val sepHelper: SepHelper,
+  /** Map of transaction ID to Stellar transaction ID. */
+  private val onchainPayments: MutableMap<String, String> = mutableMapOf(),
+  /** Map of transaction ID to external transaction ID. */
+  private val offchainPayments: MutableMap<String, String> = mutableMapOf()
 ) : SepAnchorEventProcessor {
   companion object {
     val requiredKyc =
@@ -38,32 +42,7 @@ class Sep6EventProcessor(
   override fun onTransactionCreated(event: AnchorEvent) {
     when (val kind = event.transaction.kind) {
       Kind.DEPOSIT,
-      Kind.WITHDRAWAL -> {
-        if (event.transaction.status != SepTransactionStatus.INCOMPLETE) {
-          log.warn(
-            "Received $kind transaction created event with unsupported status: ${event.transaction.status}"
-          )
-          return
-        }
-        val customer = event.transaction.customers.sender
-        val missingFields = verifyKyc(customer.account, customer.memo, kind)
-        val (status, requiredFields) =
-          if (missingFields.isEmpty()) {
-            SepTransactionStatus.PENDING_ANCHOR to null
-          } else {
-            SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE to missingFields
-          }
-        runBlocking {
-          patchTransaction(
-            PlatformTransactionData.builder()
-              .id(event.transaction.id)
-              .status(status)
-              .updatedAt(Instant.now())
-              .requiredCustomerInfoUpdates(requiredFields)
-              .build()
-          )
-        }
-      }
+      Kind.WITHDRAWAL -> updateAmounts(event)
       else -> {
         log.warn("Received transaction created event with unsupported kind: $kind")
       }
@@ -87,36 +66,54 @@ class Sep6EventProcessor(
   private fun onDepositTransactionStatusChanged(event: AnchorEvent) {
     val transaction = event.transaction
     when (val status = transaction.status) {
-      SepTransactionStatus.PENDING_ANCHOR -> {
-        val customer = event.transaction.customers.sender
-        val missingFields = verifyKyc(customer.account, customer.memo, Kind.DEPOSIT)
-        val (newStatus, requiredFields) =
-          if (missingFields.isEmpty()) {
-            SepTransactionStatus.COMPLETED to null
-          } else {
-            SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE to missingFields
-          }
+      PENDING_ANCHOR -> {
+        val customer = transaction.customers.sender
+        if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isNotEmpty()) {
+          requestKyc(event)
+          return
+        }
         runBlocking {
+          val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
+          val txnId =
+            submitStellarTransaction(
+              keypair.accountId,
+              transaction.destinationAccount,
+              Asset.create(transaction.amountExpected.asset.toAssetId()),
+              transaction.amountExpected.amount
+            )
+          onchainPayments[transaction.id] = txnId
+          // TODO: manually submit the transaction until custody service is implemented
           patchTransaction(
             PlatformTransactionData.builder()
-              .id(event.transaction.id)
-              .status(newStatus)
+              .id(transaction.id)
+              .status(PENDING_STELLAR)
               .updatedAt(Instant.now())
-              .requiredCustomerInfoUpdates(requiredFields)
-              .apply {
-                if (newStatus == SepTransactionStatus.COMPLETED) {
-                  completedAt(Instant.now())
-                  requiredInfoMessage(null)
-                  requiredInfoUpdates(null)
-                  requiredCustomerInfoMessage(null)
-                  requiredCustomerInfoUpdates(null)
-                }
-              }
               .build()
           )
         }
       }
-      SepTransactionStatus.COMPLETED -> {
+      PENDING_USR_TRANSFER_START ->
+        runBlocking {
+          sepHelper.rpcAction(
+            "notify_offchain_funds_received",
+            NotifyOffchainFundsReceivedRequest(
+              transactionId = transaction.id,
+              message = "Funds received from user",
+            )
+          )
+        }
+      PENDING_STELLAR ->
+        runBlocking {
+          sepHelper.rpcAction(
+            "notify_onchain_funds_sent",
+            NotifyOnchainFundsSentRequest(
+              transactionId = transaction.id,
+              message = "Funds sent to user",
+              stellarTransactionId = onchainPayments[transaction.id]!!
+            )
+          )
+        }
+      COMPLETED -> {
         log.info("Transaction ${transaction.id} completed")
       }
       else -> {
@@ -128,21 +125,47 @@ class Sep6EventProcessor(
   private fun onWithdrawTransactionStatusChanged(event: AnchorEvent) {
     val transaction = event.transaction
     when (val status = transaction.status) {
-      // The transaction only moves into this state after the user has submitted funds to the
-      // Anchor.
-      SepTransactionStatus.PENDING_ANCHOR -> {
+      PENDING_ANCHOR -> {
+        val customer = transaction.customers.sender
+        if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isNotEmpty()) {
+          requestKyc(event)
+          return
+        }
         runBlocking {
-          patchTransaction(
-            PlatformTransactionData.builder()
-              .id(transaction.id)
-              .status(SepTransactionStatus.COMPLETED)
-              .updatedAt(Instant.now())
-              .completedAt(Instant.now())
-              .build()
-          )
+          if (offchainPayments[transaction.id] == null) {
+            val externalTxnId = UUID.randomUUID()
+            offchainPayments[transaction.id] = externalTxnId.toString()
+            sepHelper.rpcAction(
+              "notify_offchain_funds_pending",
+              NotifyOffchainFundsPendingRequest(
+                transactionId = transaction.id,
+                message = "Funds sent to user",
+                externalTransactionId = externalTxnId.toString()
+              )
+            )
+          } else {
+            sepHelper.rpcAction(
+              "notify_offchain_funds_available",
+              NotifyOffchainFundsAvailableRequest(
+                transactionId = transaction.id,
+                message = "Funds available for withdrawal",
+                externalTransactionId = offchainPayments[transaction.id]!!
+              )
+            )
+          }
         }
       }
-      SepTransactionStatus.COMPLETED -> {
+      PENDING_EXTERNAL ->
+        runBlocking {
+          sepHelper.rpcAction(
+            "notify_offchain_funds_sent",
+            NotifyOffchainFundsSentRequest(
+              transactionId = transaction.id,
+              message = "Funds sent to user",
+            )
+          )
+        }
+      COMPLETED -> {
         log.info("Transaction ${transaction.id} completed")
       }
       else -> {
@@ -159,15 +182,78 @@ class Sep6EventProcessor(
               .sep(TransactionsSeps.SEP_6)
               .orderBy(TransactionsOrderBy.CREATED_AT)
               .order(TransactionsOrder.ASC)
-              .statuses(listOf(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE))
+              .statuses(listOf(PENDING_CUSTOMER_INFO_UPDATE))
               .build()
           )
           .records
       }
       .forEach { transaction ->
+        val customer = transaction.customers.sender
         when (transaction.kind) {
-          Kind.DEPOSIT -> handleDepositTransaction(transaction)
-          Kind.WITHDRAWAL -> handleWithdrawTransaction(transaction)
+          Kind.DEPOSIT -> {
+            if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isNotEmpty()) {
+              return
+            }
+            runBlocking {
+              sepHelper.rpcAction(
+                "request_offchain_funds",
+                RequestOffchainFundsRequest(
+                  transactionId = transaction.id,
+                  message = "Please deposit the amount to the following bank account",
+                  amountIn =
+                    AmountAssetRequest(
+                      asset = "iso4217:USD",
+                      amount = transaction.amountExpected.amount
+                    ),
+                  amountOut =
+                    AmountAssetRequest(
+                      asset = transaction.amountOut.asset,
+                      amount = transaction.amountOut.amount
+                    ),
+                  amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                  instructions =
+                    mapOf(
+                      "organization.bank_number" to
+                        InstructionField(
+                          value = "121122676",
+                          description = "US Bank routing number"
+                        ),
+                      "organization.bank_account_number" to
+                        InstructionField(
+                          value = "13719713158835300",
+                          description = "US Bank account number"
+                        ),
+                    )
+                )
+              )
+            }
+          }
+          Kind.WITHDRAWAL -> {
+            if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isNotEmpty()) {
+              return
+            }
+            runBlocking {
+              sepHelper.rpcAction(
+                "request_onchain_funds",
+                RequestOnchainFundsRequest(
+                  transactionId = transaction.id,
+                  message = "Please deposit the amount to the following address",
+                  amountIn =
+                    AmountAssetRequest(
+                      asset = transaction.amountExpected.asset,
+                      amount = transaction.amountExpected.amount
+                    ),
+                  amountOut =
+                    AmountAssetRequest(
+                      asset = "iso4217:USD",
+                      amount = transaction.amountExpected.amount
+                    ),
+                  amountFee =
+                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
+                )
+              )
+            }
+          }
           else -> {
             log.warn(
               "Received transaction created event with unsupported kind: ${transaction.kind}"
@@ -175,81 +261,6 @@ class Sep6EventProcessor(
           }
         }
       }
-  }
-
-  private fun handleDepositTransaction(transaction: GetTransactionResponse) {
-    val customer = transaction.customers.sender
-    if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isNotEmpty()) {
-      return
-    }
-
-    val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
-    val assetCode = transaction.amountExpected.asset.toAssetId()
-
-    val asset = Asset.create(assetCode)
-    val amount = transaction.amountExpected.amount
-    val destination = transaction.destinationAccount
-
-    val stellarTxn = submitStellarTransaction(keypair.accountId, destination, asset, amount)
-    runBlocking {
-      patchTransaction(
-        PlatformTransactionData.builder()
-          .id(transaction.id)
-          .status(SepTransactionStatus.COMPLETED)
-          .updatedAt(Instant.now())
-          .completedAt(Instant.now())
-          .requiredInfoMessage(null)
-          .requiredInfoUpdates(null)
-          .requiredCustomerInfoMessage(null)
-          .requiredCustomerInfoUpdates(null)
-          .instructions(
-            mapOf(
-              "organization.bank_number" to
-                InstructionField.builder()
-                  .value("121122676")
-                  .description("US Bank routing number")
-                  .build(),
-              "organization.bank_account_number" to
-                InstructionField.builder()
-                  .value("13719713158835300")
-                  .description("US Bank account number")
-                  .build(),
-            )
-          )
-          .stellarTransactions(listOf(stellarTxn))
-          .build()
-      )
-    }
-  }
-
-  private fun handleWithdrawTransaction(transaction: GetTransactionResponse) {
-    val customer = transaction.customers.sender
-    if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isNotEmpty()) {
-      return
-    }
-
-    runBlocking {
-      patchTransaction(
-        PlatformTransactionData.builder()
-          .id(transaction.id)
-          .status(SepTransactionStatus.PENDING_USR_TRANSFER_START)
-          .updatedAt(Instant.now())
-          .requiredInfoMessage(null)
-          .requiredInfoUpdates(null)
-          .requiredCustomerInfoUpdates(null)
-          .requiredCustomerInfoUpdates(null)
-          .build()
-      )
-    }
-  }
-
-  private fun String.toAssetId(): String {
-    val parts = this.split(":")
-    return when (parts.size) {
-      3 -> "${parts[1]}:${parts[2]}"
-      2 -> parts[1]
-      else -> throw RuntimeException("Invalid asset format: $this")
-    }
   }
 
   private fun verifyKyc(sep10Account: String, sep10AccountMemo: String?, kind: Kind): List<String> {
@@ -263,12 +274,58 @@ class Sep6EventProcessor(
       .filter { !providedFields.contains(it) }
   }
 
+  private fun updateAmounts(event: AnchorEvent) {
+    val asset =
+      when (event.transaction.kind) {
+        Kind.DEPOSIT -> event.transaction.amountExpected.asset
+        Kind.WITHDRAWAL -> "iso4217:USD"
+        else -> throw RuntimeException("Unsupported kind: ${event.transaction.kind}")
+      }
+    runBlocking {
+      sepHelper.rpcAction(
+        "notify_amounts_updated",
+        NotifyAmountsUpdatedRequest(
+          transactionId = event.transaction.id,
+          amountOut = AmountAssetRequest(asset, amount = event.transaction.amountExpected.amount),
+          amountFee = AmountAssetRequest(asset, amount = "0")
+        )
+      )
+    }
+  }
+
+  private fun requestKyc(event: AnchorEvent) {
+    val kind = event.transaction.kind
+    val customer = event.transaction.customers.sender
+    val missingFields = verifyKyc(customer.account, customer.memo, kind)
+    runBlocking {
+      if (missingFields.isNotEmpty()) {
+        sepHelper.rpcAction(
+          "request_customer_info_update",
+          RequestCustomerInfoUpdateHandler(
+            transactionId = event.transaction.id,
+            message = "Please update your info",
+            requiredCustomerInfoUpdates = missingFields
+          )
+        )
+      }
+    }
+  }
+
+  private fun String.toAssetId(): String {
+    val parts = this.split(":")
+    return when (parts.size) {
+      3 -> "${parts[1]}:${parts[2]}"
+      2 -> parts[1]
+      else -> throw RuntimeException("Invalid asset format: $this")
+    }
+  }
+
   private fun submitStellarTransaction(
     source: String,
     destination: String,
     asset: Asset,
     amount: String
-  ): StellarTransaction {
+  ): String {
     // TODO: use Kotlin wallet SDK
     val account = server.accounts().account(source)
     val transaction =
@@ -282,17 +339,8 @@ class Sep6EventProcessor(
     if (!txnResponse.isSuccess) {
       throw RuntimeException("Error submitting transaction: ${txnResponse.extras.resultCodes}")
     }
-    val txHash = txnResponse.hash
-    val operationId = server.operations().forTransaction(txHash).execute().records.firstOrNull()?.id
-    val stellarPayment =
-      StellarPayment(
-        operationId.toString(),
-        Amount(amount, asset.toString()),
-        StellarPayment.Type.PAYMENT,
-        source,
-        destination
-      )
-    return StellarTransaction.builder().id(txHash).payments(listOf(stellarPayment)).build()
+
+    return txnResponse.hash
   }
 
   private suspend fun patchTransaction(data: PlatformTransactionData) {

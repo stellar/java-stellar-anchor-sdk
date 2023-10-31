@@ -4,6 +4,7 @@ import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_TRANSACTION_EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 
@@ -21,6 +22,7 @@ import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyTransactionExpiredHandler
     extends RpcMethodHandler<NotifyTransactionExpiredRequest> {
@@ -28,6 +30,7 @@ public class NotifyTransactionExpiredHandler
   private final JdbcTransactionPendingTrustRepo transactionPendingTrustRepo;
 
   public NotifyTransactionExpiredHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -36,6 +39,7 @@ public class NotifyTransactionExpiredHandler
       MetricsService metricsService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     super(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -59,7 +63,7 @@ public class NotifyTransactionExpiredHandler
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    if (Set.of(SEP_24, SEP_31).contains(Sep.from(txn.getProtocol()))) {
+    if (Set.of(SEP_6, SEP_24, SEP_31).contains(Sep.from(txn.getProtocol()))) {
       if (!areFundsReceived(txn)) {
         return Arrays.stream(SepTransactionStatus.values())
             .filter(s -> !isErrorStatus(s) && !isFinalStatus(s))

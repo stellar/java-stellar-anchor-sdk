@@ -38,6 +38,7 @@ import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTIO
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
 class NotifyInteractiveFlowCompletedHandlerTest {
@@ -51,6 +52,8 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     private const val FIAT_USD_CODE = "USD"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
+
+  @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
@@ -77,6 +80,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
       NotifyInteractiveFlowCompletedHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -94,6 +98,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     txn24.status = INCOMPLETE.toString()
     val spyTxn24 = spyk(txn24)
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { spyTxn24.protocol } returns SEP_38.sep.toString()
@@ -104,6 +109,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
       ex.message
     )
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -116,6 +122,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     txn24.kind = DEPOSIT.kind
     txn24.status = PENDING_ANCHOR.toString()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
@@ -125,6 +132,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
       ex.message
     )
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -136,6 +144,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { requestValidator.validate(request) } throws
@@ -144,6 +153,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -166,6 +176,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -177,6 +188,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -249,6 +261,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -260,6 +273,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -332,6 +346,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     txn24.requestAssetCode = FIAT_USD_CODE
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -355,6 +370,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_expected.amount should be positive", ex.message)
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -376,6 +392,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     txn24.requestAssetCode = FIAT_USD_CODE
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -395,6 +412,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     assertEquals("amount_fee.asset should be non-stellar asset", ex.message)
     request.amountFee.asset = FIAT_USD
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -416,6 +434,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     txn24.requestAssetCode = FIAT_USD_CODE
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -435,6 +454,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     assertEquals("amount_fee.asset should be stellar asset", ex.message)
     request.amountFee.asset = STELLAR_USDC
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
