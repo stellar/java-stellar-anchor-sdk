@@ -43,10 +43,12 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.RefundPayment;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyRefundSentHandler extends RpcMethodHandler<NotifyRefundSentRequest> {
 
   public NotifyRefundSentHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -54,6 +56,7 @@ public class NotifyRefundSentHandler extends RpcMethodHandler<NotifyRefundSentRe
       EventService eventService,
       MetricsService metricsService) {
     super(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
