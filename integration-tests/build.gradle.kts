@@ -48,10 +48,15 @@ dependencies {
   testImplementation(libs.dotenv)
 }
 
-tasks {
-  bootJar { enabled = false }
-}
+tasks { bootJar { enabled = false } }
+
+apply(from = "$rootDir/scripts.gradle.kts")
+
+@Suppress("UNCHECKED_CAST")
+val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
 
 tasks.test {
+  enableTestConcurrency(this)
   exclude("**/org/stellar/anchor/platform/*Test.class")
+  exclude("**/org/stellar/anchor/platform/subtest/**")
 }

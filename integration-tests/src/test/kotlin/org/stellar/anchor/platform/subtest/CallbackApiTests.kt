@@ -8,10 +8,10 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetFeeRequest
@@ -25,10 +25,11 @@ import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
-import org.stellar.anchor.platform.test.testCustomer1Json
-import org.stellar.anchor.platform.test.testCustomer2Json
 import org.stellar.anchor.util.GsonUtils
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Execution(ExecutionMode.SAME_THREAD)
+@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class CallbackApiTests : SepTests(TestConfig(testProfileName = "default")) {
 
   companion object {

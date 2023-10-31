@@ -76,3 +76,37 @@ const val customerJson =
   "bank_account_type": "checking"
 }
 """
+
+const val testCustomer1Json =
+  """
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email_address": "johndoe@test.com",
+  "address": "123 Washington Street",
+  "city": "San Francisco",
+  "state_or_province": "CA",
+  "address_country_code": "US",
+  "clabe_number": "1234",
+  "bank_number": "abcd",
+  "bank_account_number": "1234",
+  "bank_account_type": "checking"
+}
+"""
+
+const val testCustomer2Json =
+  """
+{
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "email_address": "janedoe@test.com",
+  "address": "321 Washington Street",
+  "city": "San Francisco",
+  "state_or_province": "CA",
+  "address_country_code": "US",
+  "clabe_number": "5678",
+  "bank_number": "efgh",
+  "bank_account_number": "5678",
+  "bank_account_type": "checking"
+}
+"""

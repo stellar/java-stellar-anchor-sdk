@@ -2,9 +2,10 @@ package org.stellar.anchor.platform.subtest
 
 import java.time.Instant
 import kotlin.streams.toList
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
@@ -25,13 +26,14 @@ import org.stellar.anchor.apiclient.TransactionsOrderBy
 import org.stellar.anchor.apiclient.TransactionsSeps
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.*
-import org.stellar.anchor.platform.test.testCustomer1Json
-import org.stellar.anchor.platform.test.testCustomer2Json
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.StringHelper.json
 
 lateinit var savedTxn: Sep31GetTransactionResponse
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Execution(SAME_THREAD)
+@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
   private val sep12Client: Sep12Client
   private val sep31Client: Sep31Client
@@ -48,6 +50,7 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
   }
 
   @Test
+  @Order(10)
   fun `test info endpoint`() {
     printRequest("Calling GET /info")
     val info = sep31Client.getInfo()
@@ -55,6 +58,7 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
   }
 
   @Test
+  @Order(30)
   fun `test post and get transactions`() {
     val (senderCustomer, receiverCustomer) = mkCustomers()
 
@@ -82,7 +86,6 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
     return senderCustomer!! to receiverCustomer!!
   }
 
-  @Test
   fun createTx(
     senderCustomer: Sep12PutCustomerResponse,
     receiverCustomer: Sep12PutCustomerResponse
@@ -109,6 +112,7 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
   }
 
   @Test
+  @Order(20)
   fun `test transactions`() {
     val (senderCustomer, receiverCustomer) = mkCustomers()
 
@@ -121,7 +125,7 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
     println("Created transactions ${tx1.id} ${tx2.id} ${tx3.id}")
 
     // Basic test
-    val txs = getTransactions()
+    val txs = getTransactions(pageSize = 1000)
     assertOrderCorrect(all, txs.records)
 
     // Order test
@@ -134,13 +138,15 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
     patchForTest(tx3, tx2)
 
     // OrderBy test
-    val orderByTxs = getTransactions(orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT)
+    val orderByTxs =
+      getTransactions(orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT, pageSize = 1000)
     assertOrderCorrect(listOf(tx2, tx3, tx1), orderByTxs.records)
 
     val orderByDesc =
       getTransactions(
         orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT,
-        order = Sort.Direction.DESC
+        order = Sort.Direction.DESC,
+        pageSize = 1000
       )
     assertOrderCorrect(listOf(tx3, tx2, tx1), orderByDesc.records)
 
@@ -148,6 +154,7 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
     val statusesTxs =
       getTransactions(
         statuses = listOf(SepTransactionStatus.PENDING_SENDER, SepTransactionStatus.REFUNDED),
+        pageSize = 1000
       )
     assertOrderCorrect(listOf(tx1, tx2), statusesTxs.records)
 
@@ -217,7 +224,9 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
     )
   }
 
-  private fun testBadAsset() {
+  @Test
+  @Order(35)
+  fun testBadAsset() {
     val customer =
       GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
     val pr = sep12Client.putCustomer(customer)
@@ -230,6 +239,7 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
   }
 
   @Test
+  @Order(40)
   fun `test patch, get and compare`() {
     val patch = gson.fromJson(patchRequest, PatchTransactionsRequest::class.java)
     // create patch request and patch
@@ -248,6 +258,7 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
   }
 
   @Test
+  @Order(50)
   fun `test bad requests`() {
     // Create sender customer
     val senderCustomerRequest =
@@ -368,16 +379,6 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
     assertEquals(SepTransactionStatus.COMPLETED.status, gotSep31TxResponse.transaction.status)
     assertNull(gotSep31TxResponse.transaction.requiredInfoMessage)
     assertNotNull(patchedTx.completedAt)
-  }
-
-  fun testAll() {
-    println("Performing Sep31 tests...")
-    `test info endpoint`()
-    `test transactions`()
-    `test post and get transactions`()
-    `test patch, get and compare`()
-    `test bad requests`()
-    testBadAsset()
   }
 }
 

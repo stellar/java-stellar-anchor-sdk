@@ -28,11 +28,8 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   }
 
   val testProfileRunner = TestProfileExecutor(config)
-  lateinit var sep6Tests: Sep6Tests
   lateinit var platformApiCustodyTests: PlatformApiCustodyTests
-  lateinit var stellarObserverTests: StellarObserverTests
   lateinit var custodyApiTests: CustodyApiTests
-  lateinit var eventProcessingServerTests: EventProcessingServerTests
   lateinit var sep24E2eTests: Sep24End2EndTests
   lateinit var sep24RpcE2eTests: Sep24RpcEnd2EndTests
   lateinit var sep24CustodyE2eTests: Sep24CustodyEnd2EndTests
@@ -58,9 +55,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     // Get JWT
     val jwt = auth()
 
-    sep6Tests = Sep6Tests(toml)
     platformApiCustodyTests = PlatformApiCustodyTests(config, toml, jwt)
-    stellarObserverTests = StellarObserverTests()
     custodyApiTests = CustodyApiTests(config, toml, jwt)
     sep24E2eTests = Sep24End2EndTests(config, jwt)
     sep24CustodyE2eTests = Sep24CustodyEnd2EndTests(config, jwt)
@@ -68,7 +63,6 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     sep24CustodyRpcE2eTests = Sep24CustodyRpcEnd2EndTests(config, jwt)
     sep31RpcE2eTests = Sep31RpcEnd2EndTests(config, toml, jwt)
     sep31CustodyRpcE2eTests = Sep31CustodyRpcEnd2EndTests(config, toml, jwt)
-    eventProcessingServerTests = EventProcessingServerTests(config, toml, jwt)
   }
 
   private suspend fun auth(): String {
