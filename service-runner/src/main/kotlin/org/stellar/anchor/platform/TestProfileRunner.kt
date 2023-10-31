@@ -13,15 +13,15 @@ import kotlinx.coroutines.*
 import org.springframework.context.ConfigurableApplicationContext
 import org.stellar.anchor.util.Log.info
 
-const val RUN_DOCKER = "run_docker"
-const val RUN_ALL_SERVERS = "run_all_servers"
-const val RUN_SEP_SERVER = "run_sep_server"
-const val RUN_PLATFORM_SERVER = "run_platform_server"
-const val RUN_EVENT_PROCESSING_SERVER = "run_event_processing_server"
-const val RUN_PAYMENT_OBSERVER = "run_observer"
-const val RUN_CUSTODY_SERVER = "run_custody_server"
-const val RUN_KOTLIN_REFERENCE_SERVER = "run_kotlin_reference_server"
-const val RUN_WALLET_SERVER = "run_wallet_server"
+const val RUN_DOCKER = "run.docker"
+const val RUN_ALL_SERVERS = "run.all.servers"
+const val RUN_SEP_SERVER = "run.sep.server"
+const val RUN_PLATFORM_SERVER = "run.platform.server"
+const val RUN_EVENT_PROCESSING_SERVER = "run.event.processing.server"
+const val RUN_PAYMENT_OBSERVER = "run.observer"
+const val RUN_CUSTODY_SERVER = "run.custody.server"
+const val RUN_KOTLIN_REFERENCE_SERVER = "run.kotlin.reference.server"
+const val RUN_WALLET_SERVER = "run.wallet.server"
 
 lateinit var testProfileExecutor: TestProfileExecutor
 

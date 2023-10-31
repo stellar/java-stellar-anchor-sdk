@@ -36,6 +36,11 @@ class Sep10Tests : SepTests(TestConfig(testProfileName = "default")) {
   }
 
   @Test
+  fun testAuth() {
+    sep10Client.auth()
+  }
+
+  @Test
   fun testMultiSig() {
     sep10ClientMultiSig.auth()
   }
