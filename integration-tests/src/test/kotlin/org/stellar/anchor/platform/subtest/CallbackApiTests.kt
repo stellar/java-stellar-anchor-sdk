@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.test
+package org.stellar.anchor.platform.subtest
 
 import com.google.gson.Gson
 import java.time.Instant
@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.GetCustomerRequest
@@ -24,10 +25,11 @@ import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
+import org.stellar.anchor.platform.test.testCustomer1Json
+import org.stellar.anchor.platform.test.testCustomer2Json
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.anchor.util.Sep1Helper
 
-class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, val jwt: String) {
+class CallbackApiTests : SepTests(TestConfig(testProfileName = "default")) {
 
   companion object {
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
@@ -36,7 +38,7 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   }
 
-  private val sep12Client: Sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
+  private val sep12Client: Sep12Client = Sep12Client(toml.getString("KYC_SERVER"), token.token)
 
   private val httpClient: OkHttpClient =
     OkHttpClient.Builder()
@@ -67,13 +69,15 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
   private val rfiClient =
     RestFeeIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
 
-  private fun testCustomerIntegration() {
+  @Test
+  fun testCustomerIntegration() {
     assertThrows<NotFoundException> {
       rci.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
   }
 
-  private fun testRate_indicativePrice() {
+  @Test
+  fun testRate_indicativePrice() {
     val result =
       rriClient.getRate(
         GetRateRequest.builder()
@@ -107,7 +111,8 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
     JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(result), true)
   }
 
-  private fun testRate_firm() {
+  @Test
+  fun testRate_firm() {
     val rate =
       rriClient
         .getRate(
@@ -169,7 +174,8 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
     JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(gotQuote), true)
   }
 
-  private fun testGetFee() {
+  @Test
+  fun testGetFee() {
     // Create sender customer
     val senderCustomerRequest =
       GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
@@ -203,14 +209,5 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
         }""",
       true
     )
-  }
-
-  fun testAll() {
-    println("Performing Callback API tests...")
-
-    testCustomerIntegration()
-    testRate_indicativePrice()
-    testRate_firm()
-    testGetFee()
   }
 }

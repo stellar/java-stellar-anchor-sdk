@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.subtest
 
 import io.ktor.client.plugins.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

@@ -31,10 +31,10 @@ import org.stellar.walletsdk.anchor.IncompleteWithdrawalTransaction
 import org.stellar.walletsdk.asset.IssuedAssetId
 
 // The tests must be executed in order. Currency is disabled.
-@Execution(SAME_THREAD)
-@TestMethodOrder(OrderAnnotation::class)
 // Some of the tests depend on the result of previous tests. The lifecycle must be PER_CLASS
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Execution(SAME_THREAD)
+@TestMethodOrder(OrderAnnotation::class)
 class Sep24Tests : SepTests(TestConfig(testProfileName = "default")) {
   private val jwtService: JwtService =
     JwtService(

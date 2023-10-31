@@ -1,8 +1,9 @@
-package org.stellar.anchor.platform.test
+package org.stellar.anchor.platform.subtest
 
 import java.time.Instant
 import kotlin.streams.toList
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -24,13 +25,14 @@ import org.stellar.anchor.apiclient.TransactionsOrderBy
 import org.stellar.anchor.apiclient.TransactionsSeps
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.*
+import org.stellar.anchor.platform.test.testCustomer1Json
+import org.stellar.anchor.platform.test.testCustomer2Json
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.anchor.util.Sep1Helper.TomlContent
 import org.stellar.anchor.util.StringHelper.json
 
 lateinit var savedTxn: Sep31GetTransactionResponse
 
-class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
+class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
   private val sep12Client: Sep12Client
   private val sep31Client: Sep31Client
   private val sep38Client: Sep38Client
@@ -38,19 +40,22 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
 
   init {
     println("Performing SEP31 tests...")
-    sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
-    sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
-    sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
+    sep12Client = Sep12Client(toml.getString("KYC_SERVER"), this.token.token)
+    sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), this.token.token)
+    sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), this.token.token)
 
     platformApiClient = PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
   }
-  private fun `test info endpoint`() {
+
+  @Test
+  fun `test info endpoint`() {
     printRequest("Calling GET /info")
     val info = sep31Client.getInfo()
     JSONAssert.assertEquals(gson.toJson(info), expectedSep31Info, JSONCompareMode.STRICT)
   }
 
-  private fun `test post and get transactions`() {
+  @Test
+  fun `test post and get transactions`() {
     val (senderCustomer, receiverCustomer) = mkCustomers()
 
     val postTxResponse = createTx(senderCustomer, receiverCustomer)
@@ -77,7 +82,8 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     return senderCustomer!! to receiverCustomer!!
   }
 
-  private fun createTx(
+  @Test
+  fun createTx(
     senderCustomer: Sep12PutCustomerResponse,
     receiverCustomer: Sep12PutCustomerResponse
   ): Sep31PostTransactionResponse {
@@ -102,7 +108,8 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     return postTxResponse
   }
 
-  private fun `test transactions`() {
+  @Test
+  fun `test transactions`() {
     val (senderCustomer, receiverCustomer) = mkCustomers()
 
     val tx1 = createTx(senderCustomer, receiverCustomer)
@@ -222,7 +229,8 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     assertThrows<SepException> { sep31Client.postTransaction(txnRequest) }
   }
 
-  private fun `test patch, get and compare`() {
+  @Test
+  fun `test patch, get and compare`() {
     val patch = gson.fromJson(patchRequest, PatchTransactionsRequest::class.java)
     // create patch request and patch
     patch.records[0].transaction.id = savedTxn.transaction.id
@@ -239,6 +247,7 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     JSONAssert.assertEquals(expectedAfterPatch, json(afterPatch), LENIENT)
   }
 
+  @Test
   fun `test bad requests`() {
     // Create sender customer
     val senderCustomerRequest =

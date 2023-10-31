@@ -30,51 +30,9 @@ class AnchorPlatformIntegrationTest :
   }
 
   @Test
-  @Order(11)
-  fun runSep10Test() {
-    singleton.sep10Tests.testAll()
-  }
-
-  @Test
-  @Order(12)
-  fun runSep12Test() {
-    singleton.sep12Tests.testAll()
-  }
-
-  @Test
-  @Order(13)
-  fun runSep24Test() {
-    singleton.sep24Tests.testAll()
-  }
-
-  @Test
-  @Order(14)
-  fun runSep31Test() {
-    singleton.sep31Tests.testAll()
-  }
-
-  @Test
-  @Order(15)
-  fun runSep38Test() {
-    singleton.sep38Tests.testAll()
-  }
-
-  @Test
   @Order(16)
   fun runSep6Test() {
     singleton.sep6Tests.testAll()
-  }
-
-  @Test
-  @Order(21)
-  fun runSepHealthTest() {
-    singleton.sepHealthTests.testAll()
-  }
-
-  @Test
-  @Order(31)
-  fun runPlatformApiTest() {
-    singleton.platformApiTests.testAll()
   }
 
   @Test
