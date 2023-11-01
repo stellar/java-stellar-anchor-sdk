@@ -66,10 +66,7 @@ jobs:
           run_platform_server: true
           run_observer: true
           run_kotlin_reference_server: true
-
-          # Running wallet server is not required for sep tests. However, running wallet server
-          # and kotlin reference server at the same time causes `ktor` to block the JVM.
-          # If we need to run both `ktor` servers, we will need to run them in separate JVMs.
+          run_event_processing_server: true
           run_wallet_server: true
 
           SEP1_TOML_VALUE: service-runner/src/main/resources/config/stellar.host.docker.internal.toml
