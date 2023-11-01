@@ -56,7 +56,7 @@ jobs:
       - name: Gradle Build. (unit tests only)
         env:
           run_docker: false
-        run: ./gradlew clean build jacocoTestReport -x test --no-daemon --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
+        run: ./gradlew clean build jacocoTestReport -x integration-tests:test --no-daemon --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
 
       - name: Run sep server, platform server, observer, and reference servers for integration tests
         env:
