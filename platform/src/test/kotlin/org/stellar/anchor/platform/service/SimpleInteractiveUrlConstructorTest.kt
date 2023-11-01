@@ -19,6 +19,7 @@ import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.*
+import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType
@@ -47,6 +48,7 @@ class SimpleInteractiveUrlConstructorTest {
   @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var testAsset: AssetInfo
+  @MockK(relaxed = true) private lateinit var sep10Jwt: Sep10Jwt
 
   private lateinit var jwtService: JwtService
   private lateinit var sep24Config: PropertySep24Config
@@ -88,6 +90,7 @@ class SimpleInteractiveUrlConstructorTest {
       )
     every { testAsset.assetName } returns
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    every { sep10Jwt.homeDomain } returns TEST_HOME_DOMAIN
 
     jwtService = JwtService(secretConfig, custodySecretConfig)
     sep24Config = gson.fromJson(SEP24_CONFIG_JSON_1, PropertySep24Config::class.java)
@@ -107,12 +110,7 @@ class SimpleInteractiveUrlConstructorTest {
 
     var jwt =
       parseJwtFromUrl(
-        constructor.construct(
-          testTxn,
-          testRequest as HashMap<String, String>?,
-          testAsset,
-          TEST_HOME_DOMAIN
-        )
+        constructor.construct(testTxn, testRequest as HashMap<String, String>?, testAsset, sep10Jwt)
       )
     testJwt(jwt)
     var claims = jwt.claims
@@ -124,7 +122,7 @@ class SimpleInteractiveUrlConstructorTest {
     // Unknown client domain
     testTxn.sep10AccountMemo = null
     testTxn.clientDomain = "unknown.com"
-    jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest, testAsset, TEST_HOME_DOMAIN))
+    jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest, testAsset, sep10Jwt))
     claims = jwt.claims
     testJwt(jwt)
     assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO", jwt.sub)
@@ -136,7 +134,7 @@ class SimpleInteractiveUrlConstructorTest {
     testTxn.sep10Account = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     testTxn.sep10AccountMemo = "1234"
     testTxn.clientDomain = null
-    jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest, testAsset, TEST_HOME_DOMAIN))
+    jwt = parseJwtFromUrl(constructor.construct(testTxn, testRequest, testAsset, sep10Jwt))
     claims = jwt.claims
     testJwt(jwt)
     assertEquals("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP:1234", jwt.sub)
@@ -156,12 +154,7 @@ class SimpleInteractiveUrlConstructorTest {
 
     testTxn.clientDomain = null
     assertThrows<SepValidationException> {
-      constructor.construct(
-        testTxn,
-        testRequest as HashMap<String, String>?,
-        testAsset,
-        TEST_HOME_DOMAIN
-      )
+      constructor.construct(testTxn, testRequest as HashMap<String, String>?, testAsset, sep10Jwt)
     }
   }
 
@@ -174,11 +167,16 @@ class SimpleInteractiveUrlConstructorTest {
     val constructor =
       SimpleInteractiveUrlConstructor(clientsConfig, sep24Config, customerIntegration, jwtService)
     sep24Config.kycFieldsForwarding.isEnabled = true
-    constructor.construct(txn, request as HashMap<String, String>?, testAsset, TEST_HOME_DOMAIN)
+    every { sep10Jwt.account }.returns("test_account")
+    every { sep10Jwt.accountMemo }.returns("123")
+    constructor.construct(txn, request as HashMap<String, String>?, testAsset, sep10Jwt)
     assertEquals(capturedPutCustomerRequest.captured.type, FORWARD_KYC_CUSTOMER_TYPE)
     assertEquals(capturedPutCustomerRequest.captured.firstName, request.get("first_name"))
     assertEquals(capturedPutCustomerRequest.captured.lastName, request.get("last_name"))
     assertEquals(capturedPutCustomerRequest.captured.emailAddress, request.get("email_address"))
+    assertEquals("test_account", capturedPutCustomerRequest.captured.account)
+    assertEquals("123", capturedPutCustomerRequest.captured.memo)
+    assertEquals("id", capturedPutCustomerRequest.captured.memoType)
   }
 
   @Test
@@ -187,7 +185,12 @@ class SimpleInteractiveUrlConstructorTest {
     val constructor =
       SimpleInteractiveUrlConstructor(clientsConfig, sep24Config, customerIntegration, jwtService)
     sep24Config.kycFieldsForwarding.isEnabled = false
-    constructor.construct(txn, request as HashMap<String, String>?, testAsset, TEST_HOME_DOMAIN)
+    constructor.construct(
+      txn,
+      request as HashMap<String, String>?,
+      testAsset,
+      sep10Jwt,
+    )
     verify(exactly = 0) { customerIntegration.putCustomer(any()) }
   }
 
