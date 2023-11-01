@@ -6,9 +6,5 @@ import org.stellar.anchor.auth.Sep10Jwt;
 
 public abstract class InteractiveUrlConstructor {
   public abstract String construct(
-      Sep24Transaction txn,
-      Map<String, String> request,
-      AssetInfo asset,
-      String homeDomain,
-      Sep10Jwt jwt);
+      Sep24Transaction txn, Map<String, String> request, AssetInfo asset, Sep10Jwt jwt);
 }

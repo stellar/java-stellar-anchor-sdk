@@ -48,17 +48,13 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   @Override
   @SneakyThrows
   public String construct(
-      Sep24Transaction txn,
-      Map<String, String> request,
-      AssetInfo asset,
-      String homeDomain,
-      Sep10Jwt jwt) {
+      Sep24Transaction txn, Map<String, String> request, AssetInfo asset, Sep10Jwt jwt) {
     // If there are KYC fields in the request, they will be forwarded to PUT /customer before
     // returning the token.
     forwardKycFields(request, jwt);
 
     // construct the token
-    String token = constructToken(txn, request, asset, homeDomain);
+    String token = constructToken(txn, request, asset, jwt.getHomeDomain());
 
     // construct the URL
     String baseUrl = sep24Config.getInteractiveUrl().getBaseUrl();
