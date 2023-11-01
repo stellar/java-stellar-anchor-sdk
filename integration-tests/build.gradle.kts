@@ -57,6 +57,6 @@ val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
 
 tasks.test {
   enableTestConcurrency(this)
-  exclude("**/org/stellar/anchor/platform/*Test.class")
+//  exclude("**/org/stellar/anchor/platform/*Test.class")
   exclude("**/org/stellar/anchor/platform/subtest/**")
 }

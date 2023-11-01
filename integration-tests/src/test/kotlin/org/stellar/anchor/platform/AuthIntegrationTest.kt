@@ -64,6 +64,9 @@ open class AbstractAuthIntegrationTest {
   }
 }
 
+// Temporarily disable this test because we can only run test server in the default profile at this
+// moment. This will be moved to extended tests.
+@Disabled
 internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   companion object {
     @BeforeAll
@@ -272,6 +275,9 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   }
 }
 
+// Temporarily disable this test because we can only run test server in the default profile at this
+// moment. This will be moved to extended tests.
+@Disabled
 internal class CustodyJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   companion object {
     @BeforeAll
@@ -363,6 +369,9 @@ internal class CustodyJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   }
 }
 
+// Temporarily disable this test because we can only run test server in the default profile at this
+// moment. This will be moved to extended tests.
+@Disabled
 internal class PlatformApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
   companion object {
     @BeforeAll
@@ -445,6 +454,9 @@ internal class PlatformApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest()
   }
 }
 
+// Temporarily disable this test because we can only run test server in the default profile at this
+// moment. This will be moved to extended tests.
+@Disabled
 internal class CustodyApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
   companion object {
     @BeforeAll
