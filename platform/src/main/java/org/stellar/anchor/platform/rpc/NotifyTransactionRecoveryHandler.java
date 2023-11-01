@@ -1,8 +1,7 @@
 package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.*;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_TRANSACTION_RECOVERY;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
@@ -23,11 +22,13 @@ import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyTransactionRecoveryHandler
     extends RpcMethodHandler<NotifyTransactionRecoveryRequest> {
 
   public NotifyTransactionRecoveryHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -35,6 +36,7 @@ public class NotifyTransactionRecoveryHandler
       EventService eventService,
       MetricsService metricsService) {
     super(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -54,6 +56,7 @@ public class NotifyTransactionRecoveryHandler
       JdbcSepTransaction txn, NotifyTransactionRecoveryRequest request)
       throws InvalidRequestException {
     switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
       case SEP_24:
         return PENDING_ANCHOR;
       case SEP_31:
@@ -68,7 +71,7 @@ public class NotifyTransactionRecoveryHandler
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    if (Set.of(SEP_24, SEP_31).contains(Sep.from(txn.getProtocol()))) {
+    if (Set.of(SEP_6, SEP_24, SEP_31).contains(Sep.from(txn.getProtocol()))) {
       if (areFundsReceived(txn)) {
         return Set.of(ERROR, EXPIRED);
       }

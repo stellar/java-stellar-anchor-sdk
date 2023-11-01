@@ -104,6 +104,15 @@ public interface Sep6Transaction extends SepTransaction {
   void setCompletedAt(Instant completedAt);
 
   /**
+   * The date and time the user funds were received.
+   *
+   * @return the transfer received at timestamp.
+   */
+  Instant getTransferReceivedAt();
+
+  void setTransferReceivedAt(Instant transferReceivedAt);
+
+  /**
    * The deposit or withdrawal method used. E.g. <code>bank_account</code>, <code>cash</code>
    *
    * @return the deposit or withdraw method.

@@ -118,7 +118,16 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       )
     assertEquals(completedDepositTxn.transaction.id, transactionByStellarId.transaction.id)
 
-    val expectedStatuses = listOf(INCOMPLETE, PENDING_CUSTOMER_INFO_UPDATE, COMPLETED)
+    val expectedStatuses =
+      listOf(
+        INCOMPLETE,
+        PENDING_ANCHOR, // update amounts
+        PENDING_CUSTOMER_INFO_UPDATE, // request KYC
+        PENDING_USR_TRANSFER_START, // provide deposit instructions
+        PENDING_ANCHOR, // deposit into user wallet
+        PENDING_STELLAR,
+        COMPLETED
+      )
     assertAnchorReceivedStatuses(deposit.id, expectedStatuses)
     assertWalletReceivedStatuses(deposit.id, expectedStatuses)
   }
@@ -157,9 +166,11 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     val expectedStatuses =
       listOf(
         INCOMPLETE,
-        PENDING_CUSTOMER_INFO_UPDATE,
-        PENDING_USR_TRANSFER_START,
-        PENDING_ANCHOR,
+        PENDING_ANCHOR, // update amounts
+        PENDING_CUSTOMER_INFO_UPDATE, // request KYC
+        PENDING_USR_TRANSFER_START, // wait for onchain user transfer
+        PENDING_ANCHOR, // funds available for pickup
+        PENDING_EXTERNAL,
         COMPLETED
       )
     assertAnchorReceivedStatuses(withdraw.id, expectedStatuses)

@@ -2,10 +2,11 @@ package org.stellar.anchor.platform.utils;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
-import static org.stellar.anchor.platform.service.PaymentOperationToEventListener.parsePaymentTime;
 import static org.stellar.anchor.util.Log.error;
 
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -18,6 +19,7 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.observer.ObservedPayment;
+import org.stellar.anchor.util.Log;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
@@ -107,5 +109,15 @@ public class PaymentsUtil {
         .filter(Objects::nonNull)
         .sorted(comparing(ObservedPayment::getCreatedAt))
         .collect(toList());
+  }
+
+  private static Instant parsePaymentTime(String paymentTimeStr) {
+    try {
+      return DateTimeFormatter.ISO_INSTANT.parse(paymentTimeStr, Instant::from);
+    } catch (DateTimeParseException | NullPointerException ex) {
+      Log.errorF("Error parsing paymentTimeStr {}.", paymentTimeStr);
+      ex.printStackTrace();
+      return null;
+    }
   }
 }

@@ -50,6 +50,7 @@ import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTIO
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
 class DoStellarRefundHandlerTest {
@@ -65,6 +66,8 @@ class DoStellarRefundHandlerTest {
     private const val MEMO_TYPE = "text"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
+
+  @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
@@ -95,6 +98,7 @@ class DoStellarRefundHandlerTest {
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
       DoStellarRefundHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
