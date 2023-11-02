@@ -1,11 +1,9 @@
-package org.stellar.anchor.platform.integrationtest
+package org.stellar.anchor.platform.test
 
 import java.time.Instant
 import kotlin.streams.toList
-import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
+import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
@@ -26,41 +24,33 @@ import org.stellar.anchor.apiclient.TransactionsOrderBy
 import org.stellar.anchor.apiclient.TransactionsSeps
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.*
-import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer1Json
-import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
-import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.anchor.util.Sep1Helper.TomlContent
 import org.stellar.anchor.util.StringHelper.json
 
 lateinit var savedTxn: Sep31GetTransactionResponse
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Execution(SAME_THREAD)
-@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
   private val sep12Client: Sep12Client
   private val sep31Client: Sep31Client
   private val sep38Client: Sep38Client
   private val platformApiClient: PlatformApiClient
 
   init {
-    sep12Client = Sep12Client(toml.getString("KYC_SERVER"), this.token.token)
-    sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), this.token.token)
-    sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), this.token.token)
+    println("Performing SEP31 tests...")
+    sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
+    sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
+    sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
 
     platformApiClient = PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
   }
-
-  @Test
-  fun `test info endpoint`() {
+  private fun `test info endpoint`() {
     printRequest("Calling GET /info")
     val info = sep31Client.getInfo()
     JSONAssert.assertEquals(gson.toJson(info), expectedSep31Info, JSONCompareMode.STRICT)
   }
 
-  @Test
-  @Order(30)
-  fun `test post and get transactions`() {
+  private fun `test post and get transactions`() {
     val (senderCustomer, receiverCustomer) = mkCustomers()
 
     val postTxResponse = createTx(senderCustomer, receiverCustomer)
@@ -87,7 +77,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     return senderCustomer!! to receiverCustomer!!
   }
 
-  fun createTx(
+  private fun createTx(
     senderCustomer: Sep12PutCustomerResponse,
     receiverCustomer: Sep12PutCustomerResponse
   ): Sep31PostTransactionResponse {
@@ -112,9 +102,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     return postTxResponse
   }
 
-  @Test
-  @Order(20)
-  fun `test transactions`() {
+  private fun `test transactions`() {
     val (senderCustomer, receiverCustomer) = mkCustomers()
 
     val tx1 = createTx(senderCustomer, receiverCustomer)
@@ -126,7 +114,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     println("Created transactions ${tx1.id} ${tx2.id} ${tx3.id}")
 
     // Basic test
-    val txs = getTransactions(pageSize = 1000)
+    val txs = getTransactions()
     assertOrderCorrect(all, txs.records)
 
     // Order test
@@ -139,15 +127,13 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     patchForTest(tx3, tx2)
 
     // OrderBy test
-    val orderByTxs =
-      getTransactions(orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT, pageSize = 1000)
+    val orderByTxs = getTransactions(orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT)
     assertOrderCorrect(listOf(tx2, tx3, tx1), orderByTxs.records)
 
     val orderByDesc =
       getTransactions(
         orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT,
-        order = Sort.Direction.DESC,
-        pageSize = 1000
+        order = Sort.Direction.DESC
       )
     assertOrderCorrect(listOf(tx3, tx2, tx1), orderByDesc.records)
 
@@ -155,7 +141,6 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     val statusesTxs =
       getTransactions(
         statuses = listOf(SepTransactionStatus.PENDING_SENDER, SepTransactionStatus.REFUNDED),
-        pageSize = 1000
       )
     assertOrderCorrect(listOf(tx1, tx2), statusesTxs.records)
 
@@ -225,8 +210,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     )
   }
 
-  @Test
-  fun testBadAsset() {
+  private fun testBadAsset() {
     val customer =
       GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
     val pr = sep12Client.putCustomer(customer)
@@ -238,9 +222,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     assertThrows<SepException> { sep31Client.postTransaction(txnRequest) }
   }
 
-  @Test
-  @Order(40)
-  fun `test patch, get and compare`() {
+  private fun `test patch, get and compare`() {
     val patch = gson.fromJson(patchRequest, PatchTransactionsRequest::class.java)
     // create patch request and patch
     patch.records[0].transaction.id = savedTxn.transaction.id
@@ -257,7 +239,6 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     JSONAssert.assertEquals(expectedAfterPatch, json(afterPatch), LENIENT)
   }
 
-  @Test
   fun `test bad requests`() {
     // Create sender customer
     val senderCustomerRequest =
@@ -378,6 +359,16 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     assertEquals(SepTransactionStatus.COMPLETED.status, gotSep31TxResponse.transaction.status)
     assertNull(gotSep31TxResponse.transaction.requiredInfoMessage)
     assertNotNull(patchedTx.completedAt)
+  }
+
+  fun testAll() {
+    println("Performing Sep31 tests...")
+    `test info endpoint`()
+    `test transactions`()
+    `test post and get transactions`()
+    `test patch, get and compare`()
+    `test bad requests`()
+    testBadAsset()
   }
 }
 

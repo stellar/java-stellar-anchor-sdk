@@ -2,7 +2,6 @@ package org.stellar.anchor.platform
 
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 val PostgresConfig =
@@ -13,9 +12,6 @@ val PostgresConfig =
     it.env["data.flyway_enabled"] = "true"
   }
 
-// Temporarily disable this test because we can only run test server in the default profile at this
-// moment. This will be moved to extended tests.
-@Disabled
 class PostgresMigrationTest : AbstractIntegrationTest(PostgresConfig) {
   companion object {
     private val singleton = PostgresMigrationTest()

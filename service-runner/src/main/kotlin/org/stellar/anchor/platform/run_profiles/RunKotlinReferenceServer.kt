@@ -3,14 +3,16 @@
 package org.stellar.anchor.platform.run_profiles
 
 import kotlinx.coroutines.runBlocking
-import org.stellar.anchor.platform.*
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.TestProfileExecutor
+import org.stellar.anchor.platform.testProfileExecutor
 
 fun main() = runBlocking {
   testProfileExecutor = TestProfileExecutor(TestConfig(testProfileName = "default"))
   registerShutdownHook(testProfileExecutor)
   testProfileExecutor.start(true) {
-    it.env[RUN_DOCKER] = "false"
-    it.env[RUN_ALL_SERVERS] = "false"
-    it.env[RUN_KOTLIN_REFERENCE_SERVER] = "true"
+    it.env["run_docker"] = "false"
+    it.env["run_all_servers"] = "false"
+    it.env["run_kotlin_reference_server"] = "true"
   }
 }

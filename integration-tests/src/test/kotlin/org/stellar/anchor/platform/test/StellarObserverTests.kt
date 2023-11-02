@@ -1,19 +1,15 @@
-package org.stellar.anchor.platform.integrationtest
+package org.stellar.anchor.platform.test
 
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
-import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 
-class StellarObserverTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class StellarObserverTests {
   companion object {
     const val OBSERVER_HEALTH_SERVER_PORT = 8083
   }
-
   private val httpClient: OkHttpClient =
     OkHttpClient.Builder()
       .connectTimeout(10, TimeUnit.MINUTES)
@@ -21,7 +17,6 @@ class StellarObserverTests : AbstractIntegrationTests(TestConfig(testProfileName
       .writeTimeout(10, TimeUnit.MINUTES)
       .build()
 
-  @Test
   fun testStellarObserverHealth() {
     val httpRequest =
       Request.Builder()
@@ -60,5 +55,10 @@ class StellarObserverTests : AbstractIntegrationTests(TestConfig(testProfileName
     Assertions.assertEquals(false, stream1["thread_terminated"])
     Assertions.assertEquals(false, stream1["stopped"])
     Assertions.assertNotNull(stream1["last_event_id"])
+  }
+
+  fun testAll() {
+    println("Performing Stellar observer tests...")
+    testStellarObserverHealth()
   }
 }
