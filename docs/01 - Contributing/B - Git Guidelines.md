@@ -47,3 +47,16 @@ Resolve: #123
 We use the [Gitflow Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) for this
 project.
 
+## How to access GitHub workflow artifacts
+The following artifacts are available for each workflow run:
+- `/etc/hosts`: The hosts file of the runner.
+- `/java-stellar-anchor-sdk/api-schema/build/libs`: The build artifact of the `api-schema` subproject.
+- `java-stellar-anchor-sdk/core/build/reports`: The test reports of the `core` subproject.
+- `java-stellar-anchor-sdk/platform/build/reports`: The test reports of the `platform` subproject.
+- `java-stellar-anchor-sdk/integration-tests/build/reports`: The test reports of the `integration-tests` subproject.
+
+To access the artifacts, follow these steps:
+1. Go to the `Actions` tab of the repository.
+2. Click on the workflow run you want to access.
+3. Find the `Artifacts` section on the bottom of the page.
+4. Click to download.

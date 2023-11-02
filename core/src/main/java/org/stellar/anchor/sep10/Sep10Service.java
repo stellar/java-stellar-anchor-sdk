@@ -116,7 +116,7 @@ public class Sep10Service implements ISep10Service {
       throw new SepValidationException("Invalid challenge transaction.");
     }
 
-    if (!Objects.equals(sep10Config.getHomeDomain(), homeDomain)) {
+    if ((!sep10Config.getHomeDomains().contains(homeDomain))) {
       throw new SepValidationException(format("Invalid home_domain. %s", homeDomain));
     }
 
@@ -257,10 +257,11 @@ public class Sep10Service implements ISep10Service {
 
   void validateHomeDomain(ChallengeRequest request) throws SepValidationException {
     String homeDomain = request.getHomeDomain();
+    String defaultHomeDomain = sep10Config.getHomeDomains().get(0);
     if (homeDomain == null) {
-      debugF("home_domain is not specified. Will use the default: {}", sep10Config.getHomeDomain());
-      request.setHomeDomain(sep10Config.getHomeDomain());
-    } else if (!homeDomain.equalsIgnoreCase(sep10Config.getHomeDomain())) {
+      debugF("home_domain is not specified. Will use the default: {}", defaultHomeDomain);
+      request.setHomeDomain(defaultHomeDomain);
+    } else if (!sep10Config.getHomeDomains().contains(homeDomain)) {
       infoF("Bad home_domain: {}", homeDomain);
       throw new SepValidationException(format("home_domain [%s] is not supported.", homeDomain));
     }
@@ -295,7 +296,7 @@ public class Sep10Service implements ISep10Service {
             request.getTransaction(),
             serverAccountId,
             new Network(appConfig.getStellarNetworkPassphrase()),
-            sep10Config.getHomeDomain(),
+            sep10Config.getHomeDomains().toArray(new String[0]),
             sep10Config.getWebAuthDomain(),
             threshold,
             signers);
@@ -349,7 +350,7 @@ public class Sep10Service implements ISep10Service {
               request.getTransaction(),
               serverAccountId,
               new Network(appConfig.getStellarNetworkPassphrase()),
-              sep10Config.getHomeDomain(),
+              sep10Config.getHomeDomains().toArray(new String[0]),
               sep10Config.getWebAuthDomain(),
               signers);
 
@@ -395,7 +396,7 @@ public class Sep10Service implements ISep10Service {
                 transaction,
                 serverAccountId,
                 new Network(appConfig.getStellarNetworkPassphrase()),
-                sep10Config.getHomeDomain(),
+                sep10Config.getHomeDomains().toArray(new String[0]),
                 sep10Config.getWebAuthDomain());
 
     debugF(
@@ -461,35 +462,35 @@ class Sep10ChallengeWrapper {
       String challengeXdr,
       String serverAccountId,
       Network network,
-      String domainName,
+      String[] domainNames,
       String webAuthDomain)
       throws InvalidSep10ChallengeException, IOException {
     return Sep10Challenge.readChallengeTransaction(
-        challengeXdr, serverAccountId, network, domainName, webAuthDomain);
+        challengeXdr, serverAccountId, network, domainNames, webAuthDomain);
   }
 
   public synchronized void verifyChallengeTransactionSigners(
       String challengeXdr,
       String serverAccountId,
       Network network,
-      String domainName,
+      String[] domainNames,
       String webAuthDomain,
       Set<String> signers)
       throws InvalidSep10ChallengeException, IOException {
     Sep10Challenge.verifyChallengeTransactionSigners(
-        challengeXdr, serverAccountId, network, domainName, webAuthDomain, signers);
+        challengeXdr, serverAccountId, network, domainNames, webAuthDomain, signers);
   }
 
   public synchronized void verifyChallengeTransactionThreshold(
       String challengeXdr,
       String serverAccountId,
       Network network,
-      String domainName,
+      String[] domainNames,
       String webAuthDomain,
       int threshold,
       Set<Sep10Challenge.Signer> signers)
       throws InvalidSep10ChallengeException, IOException {
     Sep10Challenge.verifyChallengeTransactionThreshold(
-        challengeXdr, serverAccountId, network, domainName, webAuthDomain, threshold, signers);
+        challengeXdr, serverAccountId, network, domainNames, webAuthDomain, threshold, signers);
   }
 }

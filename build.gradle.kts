@@ -123,6 +123,10 @@ subprojects {
 
     test {
       useJUnitPlatform()
+      systemProperty(
+        "junit.jupiter.testclass.order.default",
+        "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation"
+      )
 
       exclude("**/AnchorPlatformCustodyEnd2EndTest**")
       exclude("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
@@ -181,6 +185,4 @@ allprojects {
   }
 }
 
-tasks.register("printVersionName") {
-  println(rootProject.version.toString())
-}
+tasks.register("printVersionName") { println(rootProject.version.toString()) }
