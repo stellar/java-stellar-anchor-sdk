@@ -44,7 +44,6 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
   private val platformApiClient: PlatformApiClient
 
   init {
-    println("Performing SEP31 tests...")
     sep12Client = Sep12Client(toml.getString("KYC_SERVER"), this.token.token)
     sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), this.token.token)
     sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), this.token.token)
