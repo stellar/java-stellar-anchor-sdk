@@ -79,7 +79,7 @@ class SepHelper(private val cfg: Config) {
     return client.get("$baseUrl/transactions/$transactionId").body()
   }
 
-  internal suspend fun sendStellarTransaction(
+  internal fun sendStellarTransaction(
     destinationAddress: String,
     assetString: String,
     amount: BigDecimal,

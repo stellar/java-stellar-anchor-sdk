@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.subtest
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue

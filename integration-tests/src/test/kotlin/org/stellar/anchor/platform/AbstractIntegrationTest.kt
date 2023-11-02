@@ -30,7 +30,6 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   val testProfileRunner = TestProfileExecutor(config)
   lateinit var platformApiCustodyTests: PlatformApiCustodyTests
   lateinit var custodyApiTests: CustodyApiTests
-  lateinit var sep24E2eTests: Sep24End2EndTests
   lateinit var sep24RpcE2eTests: Sep24RpcEnd2EndTests
   lateinit var sep24CustodyE2eTests: Sep24CustodyEnd2EndTests
   lateinit var sep24CustodyRpcE2eTests: Sep24CustodyRpcEnd2EndTests
@@ -57,7 +56,6 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
 
     platformApiCustodyTests = PlatformApiCustodyTests(config, toml, jwt)
     custodyApiTests = CustodyApiTests(config, toml, jwt)
-    sep24E2eTests = Sep24End2EndTests(config, jwt)
     sep24CustodyE2eTests = Sep24CustodyEnd2EndTests(config, jwt)
     sep24RpcE2eTests = Sep24RpcEnd2EndTests(config, jwt)
     sep24CustodyRpcE2eTests = Sep24CustodyRpcEnd2EndTests(config, jwt)

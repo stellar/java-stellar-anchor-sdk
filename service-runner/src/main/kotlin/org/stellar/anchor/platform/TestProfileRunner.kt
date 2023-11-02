@@ -22,6 +22,7 @@ const val RUN_PAYMENT_OBSERVER = "run.observer"
 const val RUN_CUSTODY_SERVER = "run.custody.server"
 const val RUN_KOTLIN_REFERENCE_SERVER = "run.kotlin.reference.server"
 const val RUN_WALLET_SERVER = "run.wallet.server"
+const val WALLET_SECRET_KEY = "wallet.secret.key"
 
 lateinit var testProfileExecutor: TestProfileExecutor
 
