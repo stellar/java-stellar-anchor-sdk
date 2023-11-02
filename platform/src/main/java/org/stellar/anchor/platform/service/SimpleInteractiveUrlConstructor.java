@@ -17,6 +17,7 @@ import org.stellar.anchor.api.callback.PutCustomerRequest;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt;
 import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.platform.config.PropertySep24Config;
@@ -47,13 +48,13 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   @Override
   @SneakyThrows
   public String construct(
-      Sep24Transaction txn, Map<String, String> request, AssetInfo asset, String homeDomain) {
+      Sep24Transaction txn, Map<String, String> request, AssetInfo asset, Sep10Jwt jwt) {
     // If there are KYC fields in the request, they will be forwarded to PUT /customer before
     // returning the token.
-    forwardKycFields(request);
+    forwardKycFields(request, jwt);
 
     // construct the token
-    String token = constructToken(txn, request, asset, homeDomain);
+    String token = constructToken(txn, request, asset, jwt.getHomeDomain());
 
     // construct the URL
     String baseUrl = sep24Config.getInteractiveUrl().getBaseUrl();
@@ -104,7 +105,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
     return jwtService.encode(token);
   }
 
-  void forwardKycFields(Map<String, String> request) throws AnchorException {
+  void forwardKycFields(Map<String, String> request, Sep10Jwt jwt) throws AnchorException {
     if (sep24Config.getKycFieldsForwarding().isEnabled()) {
       // Get sep-9 fields from request
       Map<String, String> sep9 = extractSep9Fields(request);
@@ -115,6 +116,11 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
         PutCustomerRequest putCustomerRequest =
             gson.fromJson(gsonRequest, PutCustomerRequest.class);
         putCustomerRequest.setType(FORWARD_KYC_CUSTOMER_TYPE);
+        putCustomerRequest.setAccount(jwt.getAccount());
+        if (jwt.getAccountMemo() != null) {
+          putCustomerRequest.setMemo(jwt.getAccountMemo());
+          putCustomerRequest.setMemoType("id");
+        }
         // forward kyc fields to PUT /customer
         customerIntegration.putCustomer(putCustomerRequest);
       }
