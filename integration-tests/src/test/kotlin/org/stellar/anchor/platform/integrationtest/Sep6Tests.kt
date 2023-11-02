@@ -1,13 +1,14 @@
-package org.stellar.anchor.platform.test
+package org.stellar.anchor.platform.integrationtest
 
+import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.platform.Sep6Client
+import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
-import org.stellar.anchor.util.Log
-import org.stellar.anchor.util.Sep1Helper.TomlContent
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 
-class Sep6Tests(val toml: TomlContent) {
+class Sep6Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   private val sep6Client = Sep6Client(toml.getString("TRANSFER_SERVER"))
 
   private val expectedSep6Info =
@@ -85,13 +86,9 @@ class Sep6Tests(val toml: TomlContent) {
     """
       .trimIndent()
 
-  private fun `test Sep6 info endpoint`() {
+  @Test
+  fun `test Sep6 info endpoint`() {
     val info = sep6Client.getInfo()
     JSONAssert.assertEquals(expectedSep6Info, gson.toJson(info), JSONCompareMode.LENIENT)
-  }
-
-  fun testAll() {
-    Log.info("Performing SEP6 tests")
-    `test Sep6 info endpoint`()
   }
 }

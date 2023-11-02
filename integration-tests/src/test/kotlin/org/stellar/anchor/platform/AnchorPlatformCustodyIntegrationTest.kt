@@ -6,6 +6,9 @@ import org.junit.jupiter.api.*
 import org.stellar.anchor.platform.test.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
+// Temporarily disable this test because we can only run test server in the default profile at this
+// moment. This will be moved to extended tests.
+@Disabled
 class AnchorPlatformCustodyIntegrationTest :
   AbstractIntegrationTest(TestConfig(testProfileName = "default-custody")) {
   companion object {

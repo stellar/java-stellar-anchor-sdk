@@ -1,12 +1,13 @@
-package org.stellar.anchor.platform.test
+package org.stellar.anchor.platform.integrationtest
 
 import kotlin.test.assertFailsWith
+import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.platform.*
-import org.stellar.anchor.util.Sep1Helper.TomlContent
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 
-class Sep10Tests(val toml: TomlContent) {
+class Sep10Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   lateinit var sep10Client: Sep10Client
   lateinit var sep10ClientMultiSig: Sep10Client
 
@@ -35,14 +36,17 @@ class Sep10Tests(val toml: TomlContent) {
     }
   }
 
+  @Test
+  fun testAuth() {
+    sep10Client.auth()
+  }
+
+  @Test
   fun testMultiSig() {
     sep10ClientMultiSig.auth()
   }
 
-  fun testOk(): String {
-    return sep10Client.auth()
-  }
-
+  @Test
   fun testUnsignedChallenge() {
     val challenge = sep10Client.challenge()
 
@@ -50,13 +54,5 @@ class Sep10Tests(val toml: TomlContent) {
       exceptionClass = SepNotAuthorizedException::class,
       block = { sep10Client.validate(ValidationRequest.of(challenge.transaction)) }
     )
-  }
-
-  fun testAll() {
-    println("Performing SEP10 tests...")
-
-    testOk()
-    testUnsignedChallenge()
-    testMultiSig()
   }
 }

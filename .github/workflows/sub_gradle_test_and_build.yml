@@ -7,7 +7,7 @@ on:
 
 jobs:
   gradle_test_and_build:
-    name: Gradle Test and Build
+    name: Gradle Build, Tests and Code Coverage
     runs-on: ubuntu-latest-16-cores
     # write to PR  permission is required for jacocoTestReport Action to update comment
     permissions:
@@ -31,7 +31,7 @@ jobs:
           sudo echo "127.0.0.1 custody-server" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts 
 
-      - name: Build and run the stack with docker compose
+      - name: Run Zookeeper, Kafka, Postgres, and Sep24 UI with docker compose
         env:
           TEST_PROFILE_NAME: default
         run: docker-compose -f service-runner/src/main/resources/docker-compose-test.yaml up -d --build
@@ -53,10 +53,48 @@ jobs:
 
       # Gradle test is now printing the test messages to GitHub Actions log.
       # It is not necessary to print the reports.
-      - name: Gradle test and build. (unit tests, integration tests, end-2-end tests and build)
+      - name: Gradle Build. (unit tests only)
         env:
           run_docker: false
-        run: ./gradlew clean build jacocoTestReport --no-daemon --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
+        run: ./gradlew clean build jacocoTestReport -x integration-tests:test --no-daemon --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
+
+      - name: Run sep server, platform server, observer, and reference servers for integration tests
+        env:
+          run_docker: false
+          run_all_servers: false
+          run_sep_server: true
+          run_platform_server: true
+          run_observer: true
+          run_kotlin_reference_server: true
+          run_event_processing_server: true
+          run_wallet_server: true
+
+          SEP1_TOML_VALUE: service-runner/src/main/resources/config/stellar.host.docker.internal.toml
+          SEP10_HOME_DOMAIN: host.docker.internal:8080
+        run: |
+          pwd
+          cp service-runner/build/libs/anchor-platform-runner-*.jar service-runner/build/libs/anchor-platform-runner.jar
+          java -jar service-runner/build/libs/anchor-platform-runner.jar -t &
+
+      - name: Wait for the sep server to start and get ready
+        uses: mydea/action-wait-for-api@v1
+        with:
+          url: "http://localhost:8080/.well-known/stellar.toml"
+          expected-status: "200"
+          timeout: "300"
+          interval: "1"
+
+      - name: Run the integration tests and end-2-end tests
+        env:
+          run_docker: false
+          ANCHOR_DOMAIN: http://host.docker.internal:8080
+
+        run: ./gradlew integration-tests:test
+
+      - name: Run Stellar validation tool
+        run: |
+          docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.6.5 --home-domain http://host.docker.internal:8080 --seps 1 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
+
 
       - name: Add coverage to PR
         id: jacoco
@@ -68,48 +106,6 @@ jobs:
           min-coverage-changed-files: 60
           title: Code Coverage
           update-comment: true
-
-      - name: Stop docker containers
-        env:
-          TEST_PROFILE_NAME: default
-        run: docker-compose -f service-runner/src/main/resources/docker-compose-test.yaml down
-
-      - name: Start docker containers
-        env:
-          TEST_PROFILE_NAME: default
-        run: docker-compose -f service-runner/src/main/resources/docker-compose-test.yaml up -d
-
-      - name: Run sep server, observer, java reference server and kotlin reference server
-        env:
-          run_docker: false
-          run_all_servers: false
-          run_sep_server: true
-          run_platform_server: true
-          run_observer: true
-          run_kotlin_reference_server: true
-          # Running wallet server is not required for sep tests. However, running wallet server
-          # and kotlin reference server at the same time causes `ktor` to block the JVM.
-          # If we need to run both `ktor` servers, we will need to run them in separate JVMs.
-          run_wallet_server: false
-
-          SEP1_TOML_VALUE: service-runner/src/main/resources/config/stellar.host.docker.internal.toml
-          SEP10_HOME_DOMAIN: host.docker.internal:8080
-        run: |
-          pwd
-          cp service-runner/build/libs/anchor-platform-runner-*.jar service-runner/build/libs/anchor-platform-runner.jar
-          java -jar service-runner/build/libs/anchor-platform-runner.jar -t &
-
-      - name: Wait for sep server to start and get ready
-        uses: mydea/action-wait-for-api@v1
-        with:
-          url: "http://localhost:8080/.well-known/stellar.toml"
-          expected-status: "200"
-          timeout: "300"
-          interval: "1"
-
-      - name: Run Stellar validation tool
-        run: |
-          docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.6.5 --home-domain http://host.docker.internal:8080 --seps 1 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
 
       - name: Upload Artifacts
         if: always()
@@ -134,7 +130,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'java', 'python' ]
+        language: [ 'java-kotlin' ]
 
     steps:
       - name: Checkout repository
