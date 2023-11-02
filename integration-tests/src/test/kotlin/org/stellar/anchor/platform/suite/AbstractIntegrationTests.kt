@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.subtest
+package org.stellar.anchor.platform.suite
 
 import io.ktor.client.plugins.*
 import io.ktor.http.*
@@ -13,16 +13,16 @@ import org.stellar.walletsdk.anchor.auth
 import org.stellar.walletsdk.auth.AuthToken
 import org.stellar.walletsdk.horizon.SigningKeyPair
 
-abstract class SepTests(val config: TestConfig) {
-  val toml: TomlContent =
+abstract class AbstractIntegrationTests(val config: TestConfig) {
+  var toml: TomlContent =
     parse(resourceAsString("${config.env["anchor.domain"]}/.well-known/stellar.toml"))
-  val wallet =
+  var wallet =
     Wallet(
       StellarConfiguration.Testnet,
       ApplicationConfiguration { defaultRequest { url { protocol = URLProtocol.HTTP } } }
     )
-  val walletKeyPair = SigningKeyPair.fromSecret(CLIENT_WALLET_SECRET)
-  val anchor = wallet.anchor(config.env["anchor.domain"]!!)
+  var walletKeyPair = SigningKeyPair.fromSecret(CLIENT_WALLET_SECRET)
+  var anchor = wallet.anchor(config.env["anchor.domain"]!!)
   var token: AuthToken
 
   init {

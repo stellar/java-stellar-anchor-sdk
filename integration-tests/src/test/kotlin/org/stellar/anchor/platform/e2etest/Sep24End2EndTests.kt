@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.e2e_test
+package org.stellar.anchor.platform.e2etest
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
@@ -32,7 +32,7 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.platform.subtest.SepTests
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 import org.stellar.anchor.util.Log.info
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
@@ -55,7 +55,7 @@ const val DEPOSIT_FUND_CLIENT_SECRET_2 = "SCW2SJEPTL4K7FFPFOFABFEFZJCG6LHULWVJX6
 
 @TestInstance(PER_CLASS)
 @Execution(CONCURRENT)
-class Sep24End2EndTests : SepTests(TestConfig(testProfileName = "default")) {
+class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   private val client = HttpClient {
     install(HttpTimeout) {
       requestTimeoutMillis = 300000

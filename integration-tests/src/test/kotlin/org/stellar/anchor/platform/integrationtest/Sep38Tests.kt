@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.subtest
+package org.stellar.anchor.platform.integrationtest
 
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -11,8 +11,9 @@ import org.stellar.anchor.platform.Sep38Client
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.printRequest
 import org.stellar.anchor.platform.printResponse
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 
-class Sep38Tests : SepTests(TestConfig(testProfileName = "default")) {
+class Sep38Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   private val sep38Client: Sep38Client =
     Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), this.token.token)
 

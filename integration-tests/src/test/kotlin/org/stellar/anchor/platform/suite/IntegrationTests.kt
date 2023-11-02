@@ -3,4 +3,4 @@ package org.stellar.anchor.platform.suite
 import org.junit.platform.suite.api.SelectPackages
 import org.junit.platform.suite.api.Suite
 
-@Suite @SelectPackages("org.stellar.anchor.platform.subtest") class IntegrationTests
+@Suite @SelectPackages("org.stellar.anchor.platform.integrationtest") class IntegrationTests

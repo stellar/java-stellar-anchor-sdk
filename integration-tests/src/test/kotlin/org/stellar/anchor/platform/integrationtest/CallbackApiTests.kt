@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.subtest
+package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.Gson
 import java.time.Instant
@@ -25,14 +25,15 @@ import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
-import org.stellar.anchor.platform.subtest.Sep12Tests.Companion.testCustomer1Json
-import org.stellar.anchor.platform.subtest.Sep12Tests.Companion.testCustomer2Json
+import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer1Json
+import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 import org.stellar.anchor.util.GsonUtils
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(ExecutionMode.SAME_THREAD)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class CallbackApiTests : SepTests(TestConfig(testProfileName = "default")) {
+class CallbackApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
 
   companion object {
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000

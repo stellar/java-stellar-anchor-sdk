@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.subtest
+package org.stellar.anchor.platform.integrationtest
 
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
@@ -7,8 +7,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 
-class StellarObserverTests : SepTests(TestConfig(testProfileName = "default")) {
+class StellarObserverTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   companion object {
     const val OBSERVER_HEALTH_SERVER_PORT = 8083
   }

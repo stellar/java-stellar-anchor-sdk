@@ -1,12 +1,13 @@
-package org.stellar.anchor.platform.subtest
+package org.stellar.anchor.platform.integrationtest
 
 import kotlin.test.assertFailsWith
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.platform.*
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 
-class Sep10Tests : SepTests(TestConfig(testProfileName = "default")) {
+class Sep10Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   lateinit var sep10Client: Sep10Client
   lateinit var sep10ClientMultiSig: Sep10Client
 

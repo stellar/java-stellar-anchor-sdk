@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.subtest
+package org.stellar.anchor.platform.integrationtest
 
 import java.time.Instant
 import kotlin.streams.toList
@@ -26,8 +26,9 @@ import org.stellar.anchor.apiclient.TransactionsOrderBy
 import org.stellar.anchor.apiclient.TransactionsSeps
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.*
-import org.stellar.anchor.platform.subtest.Sep12Tests.Companion.testCustomer1Json
-import org.stellar.anchor.platform.subtest.Sep12Tests.Companion.testCustomer2Json
+import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer1Json
+import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.StringHelper.json
 
@@ -36,7 +37,7 @@ lateinit var savedTxn: Sep31GetTransactionResponse
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(SAME_THREAD)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
+class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   private val sep12Client: Sep12Client
   private val sep31Client: Sep31Client
   private val sep38Client: Sep38Client
@@ -226,7 +227,6 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
   }
 
   @Test
-  @Order(35)
   fun testBadAsset() {
     val customer =
       GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)

@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.subtest
+package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.reflect.TypeToken
 import org.apache.http.HttpStatus
@@ -22,9 +22,10 @@ import org.stellar.anchor.platform.Sep12Client
 import org.stellar.anchor.platform.Sep24Client
 import org.stellar.anchor.platform.Sep31Client
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 import org.stellar.anchor.util.GsonUtils
 
-class PlatformApiTests : SepTests(TestConfig(testProfileName = "default")) {
+class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   private val gson = GsonUtils.getInstance()
 
   private val platformApiClient =
@@ -2890,7 +2891,7 @@ class PlatformApiTests : SepTests(TestConfig(testProfileName = "default")) {
           "id": "SENDER_ID"
         },
         "receiver": {
-          "id": "SENDER_ID"
+          "id": "RECEIVER_ID"
         }
       },
       "creator": {

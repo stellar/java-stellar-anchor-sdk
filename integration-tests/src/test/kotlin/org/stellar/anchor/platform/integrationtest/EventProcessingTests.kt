@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.subtest
+package org.stellar.anchor.platform.integrationtest
 
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.event.AnchorEvent
@@ -6,9 +6,11 @@ import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.config.PropertyEventConfig
 import org.stellar.anchor.platform.event.DefaultEventService
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 import org.stellar.anchor.util.GsonUtils
 
-class EventProcessingServerTests : SepTests(TestConfig(testProfileName = "default")) {
+class EventProcessingServerTests :
+  AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   companion object {
     val eventConfig =
       GsonUtils.getInstance().fromJson(eventConfigJson, PropertyEventConfig::class.java)!!
