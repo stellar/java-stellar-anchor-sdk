@@ -21,8 +21,8 @@ import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.*
-import org.stellar.anchor.platform.subtest.testCustomer1Json
-import org.stellar.anchor.platform.subtest.testCustomer2Json
+import org.stellar.anchor.platform.subtest.Sep12Tests.Companion.testCustomer1Json
+import org.stellar.anchor.platform.subtest.Sep12Tests.Companion.testCustomer2Json
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log.info
 import org.stellar.anchor.util.MemoHelper

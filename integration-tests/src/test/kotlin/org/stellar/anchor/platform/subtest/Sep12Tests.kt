@@ -15,53 +15,51 @@ import org.stellar.anchor.platform.printResponse
 class Sep12Tests : SepTests(TestConfig(testProfileName = "default")) {
 
   @Test
-  fun `test put, get customers`() {
-    runBlocking {
-      customerJson
-      val customer = Json.decodeFromString<Map<String, String>>(customerJson).toMutableMap()
-      customer.remove("emailAddress")
+  fun `test put, get customers`() = runBlocking {
+    customerJson
+    val customer = Json.decodeFromString<Map<String, String>>(customerJson).toMutableMap()
+    customer.remove("emailAddress")
 
-      // Upload a customer
-      printRequest("Calling PUT /customer", customer)
-      var pr = anchor.sep12(token).add(customer, "sep24")
-      printResponse(pr)
+    // Upload a customer
+    printRequest("Calling PUT /customer", customer)
+    var pr = anchor.sep12(token).add(customer, "sep24")
+    printResponse(pr)
 
-      // make sure the customer was uploaded correctly.
-      printRequest("Calling GET /customer", customer)
-      var gr = anchor.sep12(token).getByIdAndType(pr!!.id, "sep24")
-      printResponse(gr)
+    // make sure the customer was uploaded correctly.
+    printRequest("Calling GET /customer", customer)
+    var gr = anchor.sep12(token).getByIdAndType(pr!!.id, "sep24")
+    printResponse(gr)
 
-      assertEquals(pr.id, gr?.id)
+    assertEquals(pr.id, gr?.id)
 
-      customer["emailAddress"] = "john.doe@stellar.org"
+    customer["emailAddress"] = "john.doe@stellar.org"
 
-      // Modify the customer
-      printRequest("Calling PUT /customer", customer)
-      pr = anchor.sep12(token).add(customer, "sep31-receiver")
-      printResponse(pr)
+    // Modify the customer
+    printRequest("Calling PUT /customer", customer)
+    pr = anchor.sep12(token).add(customer, "sep31-receiver")
+    printResponse(pr)
 
-      // Make sure the customer is modified correctly.
-      printRequest("Calling GET /customer", customer)
-      gr = anchor.sep12(token).getByIdAndType(pr!!.id, "sep31-receiver")
-      printResponse(gr)
+    // Make sure the customer is modified correctly.
+    printRequest("Calling GET /customer", customer)
+    gr = anchor.sep12(token).getByIdAndType(pr!!.id, "sep31-receiver")
+    printResponse(gr)
 
-      assertEquals(pr.id, gr.id)
-      assertEquals(Sep12Status.ACCEPTED.name, gr.status!!.status)
+    assertEquals(pr.id, gr.id)
+    assertEquals(Sep12Status.ACCEPTED.name, gr.status!!.status)
 
-      // Delete the customer
-      printRequest("Calling DELETE /customer/$CLIENT_WALLET_ACCOUNT")
-      anchor.sep12(token).delete(CLIENT_WALLET_ACCOUNT)
+    // Delete the customer
+    printRequest("Calling DELETE /customer/$CLIENT_WALLET_ACCOUNT")
+    anchor.sep12(token).delete(CLIENT_WALLET_ACCOUNT)
 
-      val ex: ClientRequestException = assertThrows {
-        anchor.sep12(token).getByIdAndType(pr.id, "sep31-receiver")
-      }
-      println(ex)
+    val ex: ClientRequestException = assertThrows {
+      anchor.sep12(token).getByIdAndType(pr.id, "sep31-receiver")
     }
+    println(ex)
   }
-}
 
-const val customerJson =
-  """
+  companion object {
+    const val customerJson =
+      """
 {
   "first_name": "John",
   "last_name": "Doe",
@@ -77,8 +75,8 @@ const val customerJson =
 }
 """
 
-const val testCustomer1Json =
-  """
+    const val testCustomer1Json =
+      """
 {
   "first_name": "John",
   "last_name": "Doe",
@@ -94,8 +92,8 @@ const val testCustomer1Json =
 }
 """
 
-const val testCustomer2Json =
-  """
+    const val testCustomer2Json =
+      """
 {
   "first_name": "Jane",
   "last_name": "Doe",
@@ -110,3 +108,5 @@ const val testCustomer2Json =
   "bank_account_type": "checking"
 }
 """
+  }
+}

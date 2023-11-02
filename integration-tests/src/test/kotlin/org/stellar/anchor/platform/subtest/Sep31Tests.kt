@@ -26,6 +26,8 @@ import org.stellar.anchor.apiclient.TransactionsOrderBy
 import org.stellar.anchor.apiclient.TransactionsSeps
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.*
+import org.stellar.anchor.platform.subtest.Sep12Tests.Companion.testCustomer1Json
+import org.stellar.anchor.platform.subtest.Sep12Tests.Companion.testCustomer2Json
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.StringHelper.json
 
@@ -50,7 +52,6 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
   }
 
   @Test
-  @Order(10)
   fun `test info endpoint`() {
     printRequest("Calling GET /info")
     val info = sep31Client.getInfo()
@@ -258,7 +259,6 @@ class Sep31Tests : SepTests(TestConfig(testProfileName = "default")) {
   }
 
   @Test
-  @Order(50)
   fun `test bad requests`() {
     // Create sender customer
     val senderCustomerRequest =
