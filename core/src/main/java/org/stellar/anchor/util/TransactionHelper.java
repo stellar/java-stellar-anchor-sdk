@@ -1,9 +1,8 @@
 package org.stellar.anchor.util;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
@@ -21,6 +20,33 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep6.Sep6Transaction;
 
 public class TransactionHelper {
+
+  public static CreateCustodyTransactionRequest toCustodyTransaction(Sep6Transaction txn) {
+    PlatformTransactionData.Kind kind = PlatformTransactionData.Kind.from(txn.getKind());
+    return CreateCustodyTransactionRequest.builder()
+        .id(txn.getId())
+        .memo(txn.getMemo())
+        .memoType(txn.getMemoType())
+        .protocol("6")
+        .fromAccount(
+            ImmutableSet.of(WITHDRAWAL, WITHDRAWAL_EXCHANGE).contains(kind)
+                ? txn.getFromAccount()
+                : null)
+        .toAccount(
+            ImmutableSet.of(DEPOSIT, DEPOSIT_EXCHANGE).contains(kind)
+                ? txn.getToAccount()
+                : txn.getWithdrawAnchorAccount())
+        .amount(
+            ImmutableSet.of(DEPOSIT, DEPOSIT_EXCHANGE).contains(kind)
+                ? txn.getAmountOut()
+                : Optional.ofNullable(txn.getAmountExpected()).orElse(txn.getAmountIn()))
+        .asset(
+            ImmutableSet.of(DEPOSIT, DEPOSIT_EXCHANGE).contains(kind)
+                ? txn.getAmountOutAsset()
+                : txn.getAmountInAsset())
+        .kind(txn.getKind())
+        .build();
+  }
 
   public static CreateCustodyTransactionRequest toCustodyTransaction(Sep24Transaction txn) {
     return CreateCustodyTransactionRequest.builder()

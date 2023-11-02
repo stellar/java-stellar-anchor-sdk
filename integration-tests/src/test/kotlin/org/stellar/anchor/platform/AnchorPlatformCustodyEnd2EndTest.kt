@@ -28,4 +28,12 @@ class AnchorPlatformCustodyEnd2EndTest :
   fun runSep24Test() {
     singleton.sep24CustodyE2eTests.testAll()
   }
+
+  @Test
+  @Order(11)
+  fun runSep6Test() {
+    // The SEP-6 reference server implementation only implements RPC, so technically this test
+    // should be in the RPC test suite.
+    singleton.sep6E2eTests.testAll()
+  }
 }

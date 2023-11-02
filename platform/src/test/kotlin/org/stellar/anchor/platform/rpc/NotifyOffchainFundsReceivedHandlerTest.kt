@@ -859,7 +859,9 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
   @CsvSource(value = ["deposit", "deposit-exchange"])
   @ParameterizedTest
-  fun test_handle_sep6_ok_withExternalTxIdAndWithoutFundsReceivedAt(kind: String) {
+  fun test_handle_sep6_ok_withExternalTxIdAndWithoutFundsReceivedAt_custodyIntegrationEnabled(
+    kind: String
+  ) {
     val request =
       NotifyOffchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)
@@ -870,13 +872,15 @@ class NotifyOffchainFundsReceivedHandlerTest {
     txn6.kind = kind
     txn6.requestAssetCode = FIAT_USD_CODE
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
+    val sep6CustodyTxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn6Store.save(capture(sep6TxnCapture)) } returns null
-    every { custodyConfig.isCustodyIntegrationEnabled } returns false
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
+    every { custodyService.createTransaction(capture(sep6CustodyTxnCapture)) } just Runs
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
     every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
       sepTransactionCounter
@@ -901,6 +905,12 @@ class NotifyOffchainFundsReceivedHandlerTest {
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
       gson.toJson(sep6TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep6Txn),
+      gson.toJson(sep6CustodyTxnCapture.captured),
       JSONCompareMode.STRICT
     )
 

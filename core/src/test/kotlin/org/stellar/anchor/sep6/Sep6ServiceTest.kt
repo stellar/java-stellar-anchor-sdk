@@ -657,8 +657,6 @@ class Sep6ServiceTest {
       JSONCompareMode.LENIENT
     )
     assert(slotTxn.captured.id.isNotEmpty())
-    assert(slotTxn.captured.memo.isNotEmpty())
-    assertEquals(slotTxn.captured.memoType, "hash")
     assertNotNull(slotTxn.captured.startedAt)
 
     JSONAssert.assertEquals(
@@ -668,8 +666,6 @@ class Sep6ServiceTest {
     )
     assert(slotEvent.captured.id.isNotEmpty())
     assert(slotEvent.captured.transaction.id.isNotEmpty())
-    assert(slotEvent.captured.transaction.memo.isNotEmpty())
-    assertEquals(slotEvent.captured.transaction.memoType, "hash")
     assertNotNull(slotEvent.captured.transaction.startedAt)
 
     // Verify response
@@ -738,8 +734,6 @@ class Sep6ServiceTest {
       JSONCompareMode.LENIENT
     )
     assert(slotTxn.captured.id.isNotEmpty())
-    assert(slotTxn.captured.memo.isNotEmpty())
-    assertEquals(slotTxn.captured.memoType, "hash")
     assertNotNull(slotTxn.captured.startedAt)
 
     JSONAssert.assertEquals(
@@ -749,8 +743,6 @@ class Sep6ServiceTest {
     )
     assert(slotEvent.captured.id.isNotEmpty())
     assert(slotEvent.captured.transaction.id.isNotEmpty())
-    assert(slotEvent.captured.transaction.memo.isNotEmpty())
-    assertEquals(slotEvent.captured.transaction.memoType, "hash")
     assertNotNull(slotEvent.captured.transaction.startedAt)
 
     // Verify response
@@ -945,8 +937,6 @@ class Sep6ServiceTest {
       JSONCompareMode.LENIENT
     )
     assert(slotTxn.captured.id.isNotEmpty())
-    assert(slotTxn.captured.memo.isNotEmpty())
-    assertEquals(slotTxn.captured.memoType, "hash")
     assertNotNull(slotTxn.captured.startedAt)
 
     JSONAssert.assertEquals(
@@ -956,8 +946,6 @@ class Sep6ServiceTest {
     )
     assert(slotEvent.captured.id.isNotEmpty())
     assert(slotEvent.captured.transaction.id.isNotEmpty())
-    assert(slotEvent.captured.transaction.memo.isNotEmpty())
-    assertEquals(slotEvent.captured.transaction.memoType, "hash")
     assertNotNull(slotEvent.captured.transaction.startedAt)
 
     // Verify response
@@ -1018,8 +1006,6 @@ class Sep6ServiceTest {
       JSONCompareMode.LENIENT
     )
     assert(slotTxn.captured.id.isNotEmpty())
-    assert(slotTxn.captured.memo.isNotEmpty())
-    assertEquals(slotTxn.captured.memoType, "hash")
     assertNotNull(slotTxn.captured.startedAt)
 
     JSONAssert.assertEquals(
@@ -1029,8 +1015,6 @@ class Sep6ServiceTest {
     )
     assert(slotEvent.captured.id.isNotEmpty())
     assert(slotEvent.captured.transaction.id.isNotEmpty())
-    assert(slotEvent.captured.transaction.memo.isNotEmpty())
-    assertEquals(slotEvent.captured.transaction.memoType, "hash")
     assertNotNull(slotEvent.captured.transaction.startedAt)
 
     // Verify response

@@ -6,7 +6,6 @@ import static org.stellar.sdk.xdr.MemoType.*;
 import java.util.Base64;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.sdk.*;
@@ -125,11 +124,5 @@ public class MemoHelper {
         String memoTypeStr = memoTypeAsString(memo);
         throw new SepException("Unsupported value: " + memoTypeStr);
     }
-  }
-
-  public static String generateMemo(String transactionId) {
-    String memo = StringUtils.truncate(transactionId, 32);
-    memo = StringUtils.leftPad(memo, 32, "0");
-    return new String(Base64.getEncoder().encode(memo.getBytes()));
   }
 }
