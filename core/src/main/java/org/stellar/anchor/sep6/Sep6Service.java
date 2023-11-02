@@ -268,7 +268,6 @@ public class Sep6Service {
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
-            .withdrawAnchorAccount(asset.getDistributionAccount())
             .fromAccount(sourceAccount)
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType());
@@ -284,10 +283,7 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
-    return StartWithdrawResponse.builder()
-        .accountId(asset.getDistributionAccount())
-        .id(txn.getId())
-        .build();
+    return StartWithdrawResponse.builder().id(txn.getId()).build();
   }
 
   public StartWithdrawResponse withdrawExchange(
@@ -358,7 +354,6 @@ public class Sep6Service {
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
-            .withdrawAnchorAccount(sellAsset.getDistributionAccount())
             .fromAccount(sourceAccount)
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType())
@@ -375,10 +370,7 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
-    return StartWithdrawResponse.builder()
-        .accountId(sellAsset.getDistributionAccount())
-        .id(txn.getId())
-        .build();
+    return StartWithdrawResponse.builder().id(txn.getId()).build();
   }
 
   public GetTransactionsResponse findTransactions(Sep10Jwt token, GetTransactionsRequest request)

@@ -153,15 +153,14 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! })
     waitStatus(withdraw.id, PENDING_USR_TRANSFER_START, sep6Client)
 
-    val withdrawMemo =
-      sep6Client.getTransaction(mapOf("id" to withdraw.id)).transaction.withdrawMemo
+    val withdrawTxn = sep6Client.getTransaction(mapOf("id" to withdraw.id)).transaction
 
     // Transfer the withdrawal amount to the Anchor
     val transfer =
       wallet
         .stellar()
-        .transaction(keypair, memo = Pair(MemoType.HASH, withdrawMemo))
-        .transfer(withdraw.accountId, USDC, "1")
+        .transaction(keypair, memo = Pair(MemoType.HASH, withdrawTxn.withdrawMemo))
+        .transfer(withdrawTxn.withdrawAnchorAccount, USDC, "1")
         .build()
     transfer.sign(keypair)
     wallet.stellar().submitTransaction(transfer)
