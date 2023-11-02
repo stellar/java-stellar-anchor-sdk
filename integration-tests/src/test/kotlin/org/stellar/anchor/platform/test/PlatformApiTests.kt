@@ -1,9 +1,8 @@
-package org.stellar.anchor.platform.integrationtest
+package org.stellar.anchor.platform.test
 
 import com.google.gson.reflect.TypeToken
 import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -22,170 +21,44 @@ import org.stellar.anchor.platform.Sep12Client
 import org.stellar.anchor.platform.Sep24Client
 import org.stellar.anchor.platform.Sep31Client
 import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.anchor.util.Sep1Helper.TomlContent
 
-class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
+  companion object {
+    private const val TX_ID = "testTxId"
+    private const val JSON_RPC_VERSION = "2.0"
+    private const val TX_ID_KEY = "TX_ID"
+    private const val RECEIVER_ID_KEY = "RECEIVER_ID"
+    private const val SENDER_ID_KEY = "SENDER_ID"
+  }
+
   private val gson = GsonUtils.getInstance()
 
   private val platformApiClient =
     PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
-  private val sep12Client = Sep12Client(toml.getString("KYC_SERVER"), token.token)
-  private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), token.token)
-  private val sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), token.token)
+  private val sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
+  private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
+  private val sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
 
-  /**
-   * 1. incomplete -> request_offchain_funds
-   * 2. pending_user_transfer_start -> notify_offchain_funds_received
-   * 3. pending_anchor -> notify_onchain_funds_sent
-   * 4. completed
-   */
-  @Test
-  fun `SEP-24 deposit complete short flow`() {
-    `test deposit flow`(
-      SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS,
-      SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
-    )
-  }
-
-  /**
-   * 1. incomplete -> notify_interactive_flow_completed
-   * 2. pending_anchor -> request_offchain_funds
-   * 3. pending_user_transfer_start -> notify_offchain_funds_received
-   * 4. pending_anchor -> request_trust
-   * 5. pending_trust -> notify_trust_set
-   * 6. pending_anchor -> notify_onchain_funds_sent
-   * 7. completed
-   */
-  @Test
-  fun `SEP-24 deposit complete full with trust flow`() {
-    `test deposit flow`(
-      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_REQUESTS,
-      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_RESPONSES
-    )
+  fun testAll() {
+    println("Performing Platform API tests...")
+    `SEP-24 deposit complete short flow`()
+    `SEP-24 deposit complete full with trust flow`()
+    `SEP-24 deposit complete full with recovery flow`()
+    `SEP-24 deposit complete short partial refund flow`()
+    `SEP-24 withdraw complete short flow`()
+    `SEP-24 withdraw complete full via pending external`()
+    `SEP-24 withdraw complete full via pending user`()
+    `SEP-24 withdraw full refund`()
+    `SEP-31 refunded short`()
+    `SEP-31 complete full with recovery`()
+    `validations and errors`()
+    `send single rpc request`()
+    `send batch of rpc requests`()
   }
 
-  /**
-   * 1. incomplete -> request_offchain_funds
-   * 2. pending_user_transfer_start -> notify_offchain_funds_received
-   * 3. pending_anchor -> notify_transaction_error
-   * 4. error -> notify_transaction_recovery
-   * 5. pending_anchor -> notify_onchain_funds_sent
-   * 6. completed
-   */
-  @Test
-  fun `SEP-24 deposit complete full with recovery flow`() {
-    `test deposit flow`(
-      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS,
-      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES
-    )
-  }
-  /**
-   * 1. incomplete -> request_offchain_funds
-   * 2. pending_user_transfer_start -> notify_offchain_funds_received
-   * 3. pending_anchor -> notify_refund_pending
-   * 4. pending_external -> notify_refund_sent
-   * 5. pending_anchor -> notify_onchain_funds_sent
-   * 6. completed
-   */
-  @Test
-  fun `SEP-24 deposit complete short partial refund flow`() {
-    `test deposit flow`(
-      SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_REQUESTS,
-      SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_RESPONSES
-    )
-  }
-
-  /**
-   * 1. incomplete -> request_onchain_funds
-   * 2. pending_user_transfer_start -> notify_onchain_funds_received
-   * 3. pending_anchor -> notify_offchain_funds_sent
-   * 4. completed
-   */
-  @Test
-  fun `SEP-24 withdraw complete short flow`() {
-    `test withdraw flow`(
-      SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_REQUESTS,
-      SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
-    )
-  }
-  /**
-   * 1. incomplete -> request_onchain_funds
-   * 2. pending_user_transfer_start -> notify_onchain_funds_received
-   * 3. pending_anchor -> notify_offchain_funds_pending
-   * 4. pending_external -> notify_offchain_funds_sent
-   * 5. completed
-   */
-  @Test
-  fun `SEP-24 withdraw complete full via pending external`() {
-    `test withdraw flow`(
-      SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS,
-      SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_RESPONSES
-    )
-  }
-
-  /**
-   * 1. incomplete -> request_onchain_funds
-   * 2. pending_user_transfer_start -> notify_onchain_funds_received
-   * 3. pending_anchor -> notify_offchain_funds_available
-   * 4. pending_user_transfer_complete -> notify_offchain_funds_sent
-   * 5. completed
-   */
-  @Test
-  fun `SEP-24 withdraw complete full via pending user`() {
-    `test withdraw flow`(
-      SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_REQUESTS,
-      SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_RESPONSES
-    )
-  }
-
-  /**
-   * 1. incomplete -> request_onchain_funds
-   * 2. pending_user_transfer_start -> notify_onchain_funds_received
-   * 3. pending_anchor -> notify_refund_sent
-   * 4. refunded
-   */
-  @Test
-  fun `SEP-24 withdraw full refund`() {
-    `test withdraw flow`(
-      SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS,
-      SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES
-    )
-  }
-
-  /**
-   * 1. pending_sender -> notify_onchain_funds_received
-   * 2. pending_receiver -> notify_refund_sent
-   * 3. refunded
-   */
-  @Test
-  fun `SEP-31 refunded short`() {
-    `test receive flow`(
-      SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_REQUESTS,
-      SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES
-    )
-  }
-
-  /**
-   * 1. pending_sender -> notify_onchain_funds_received
-   * 2. pending_receiver -> request_customer_info_update
-   * 3. pending_customer_info_update -> notify_customer_info_updated
-   * 4. pending_receiver -> notify_transaction_error
-   * 5. error -> notify_transaction_recovery
-   * 6. pending_receiver -> notify_offchain_funds_pending
-   * 7. pending_external -> notify_offchain_funds_sent
-   * 8. completed
-   */
-  @Test
-  fun `SEP-31 complete full with recovery`() {
-    `test receive flow`(
-      SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS,
-      SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES
-    )
-  }
-
-  @Test
-  fun `send single rpc request`() {
+  private fun `send single rpc request`() {
     val depositRequest = gson.fromJson(SEP_24_DEPOSIT_REQUEST, HashMap::class.java)
 
     @Suppress("UNCHECKED_CAST")
@@ -218,8 +91,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
     assertEquals(SepTransactionStatus.PENDING_USR_TRANSFER_START, txResponse.status)
   }
 
-  @Test
-  fun `send batch of rpc requests`() {
+  private fun `send batch of rpc requests`() {
     val depositRequest = gson.fromJson(SEP_24_DEPOSIT_REQUEST, HashMap::class.java)
 
     @Suppress("UNCHECKED_CAST")
@@ -266,8 +138,158 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
     assertEquals(SepTransactionStatus.PENDING_ANCHOR, txResponse.status)
   }
 
+  /**
+   * 1. incomplete -> request_offchain_funds
+   * 2. pending_user_transfer_start -> notify_offchain_funds_received
+   * 3. pending_anchor -> notify_onchain_funds_sent
+   * 4. completed
+   */
+  private fun `SEP-24 deposit complete short flow`() {
+    `test deposit flow`(
+      SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS,
+      SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> notify_interactive_flow_completed
+   * 2. pending_anchor -> request_offchain_funds
+   * 3. pending_user_transfer_start -> notify_offchain_funds_received
+   * 4. pending_anchor -> request_trust
+   * 5. pending_trust -> notify_trust_set
+   * 6. pending_anchor -> notify_onchain_funds_sent
+   * 7. completed
+   */
+  private fun `SEP-24 deposit complete full with trust flow`() {
+    `test deposit flow`(
+      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_REQUESTS,
+      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> request_offchain_funds
+   * 2. pending_user_transfer_start -> notify_offchain_funds_received
+   * 3. pending_anchor -> notify_transaction_error
+   * 4. error -> notify_transaction_recovery
+   * 5. pending_anchor -> notify_onchain_funds_sent
+   * 6. completed
+   */
+  private fun `SEP-24 deposit complete full with recovery flow`() {
+    `test deposit flow`(
+      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS,
+      SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> request_offchain_funds
+   * 2. pending_user_transfer_start -> notify_offchain_funds_received
+   * 3. pending_anchor -> notify_refund_pending
+   * 4. pending_external -> notify_refund_sent
+   * 5. pending_anchor -> notify_onchain_funds_sent
+   * 6. completed
+   */
+  private fun `SEP-24 deposit complete short partial refund flow`() {
+    `test deposit flow`(
+      SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_REQUESTS,
+      SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> request_onchain_funds
+   * 2. pending_user_transfer_start -> notify_onchain_funds_received
+   * 3. pending_anchor -> notify_offchain_funds_sent
+   * 4. completed
+   */
+  private fun `SEP-24 withdraw complete short flow`() {
+    `test withdraw flow`(
+      SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_REQUESTS,
+      SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> request_onchain_funds
+   * 2. pending_user_transfer_start -> notify_onchain_funds_received
+   * 3. pending_anchor -> notify_offchain_funds_pending
+   * 4. pending_external -> notify_offchain_funds_sent
+   * 5. completed
+   */
+  private fun `SEP-24 withdraw complete full via pending external`() {
+    `test withdraw flow`(
+      SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS,
+      SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> request_onchain_funds
+   * 2. pending_user_transfer_start -> notify_onchain_funds_received
+   * 3. pending_anchor -> notify_offchain_funds_available
+   * 4. pending_user_transfer_complete -> notify_offchain_funds_sent
+   * 5. completed
+   */
+  private fun `SEP-24 withdraw complete full via pending user`() {
+    `test withdraw flow`(
+      SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_REQUESTS,
+      SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> request_onchain_funds
+   * 2. pending_user_transfer_start -> notify_onchain_funds_received
+   * 3. pending_anchor -> notify_refund_sent
+   * 4. refunded
+   */
+  private fun `SEP-24 withdraw full refund`() {
+    `test withdraw flow`(
+      SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS,
+      SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. pending_sender -> notify_onchain_funds_received
+   * 2. pending_receiver -> notify_refund_sent
+   * 3. refunded
+   */
+  private fun `SEP-31 refunded short`() {
+    `test receive flow`(
+      SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_REQUESTS,
+      SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. pending_sender -> notify_onchain_funds_received
+   * 2. pending_receiver -> request_customer_info_update
+   * 3. pending_customer_info_update -> notify_customer_info_updated
+   * 4. pending_receiver -> notify_transaction_error
+   * 5. error -> notify_transaction_recovery
+   * 6. pending_receiver -> notify_offchain_funds_pending
+   * 7. pending_external -> notify_offchain_funds_sent
+   * 8. completed
+   */
+  private fun `SEP-31 complete full with recovery`() {
+    `test receive flow`(
+      SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS,
+      SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES
+    )
+  }
+
   private fun `validations and errors`() {
     `test deposit flow`(VALIDATIONS_AND_ERRORS_REQUESTS, VALIDATIONS_AND_ERRORS_RESPONSES)
+  }
+
+  private fun `test deposit flow`(actionRequests: String, actionResponse: String) {
+    val depositRequest = gson.fromJson(SEP_24_DEPOSIT_FLOW_REQUEST, HashMap::class.java)
+
+    @Suppress("UNCHECKED_CAST")
+    val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
+    `test flow`(depositResponse.id, actionRequests, actionResponse)
   }
 
   private fun `test receive flow`(actionRequests: String, actionResponses: String) {
@@ -304,14 +326,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
     `test flow`(withdrawResponse.id, actionRequests, actionResponse)
   }
 
-  private fun `test deposit flow`(actionRequests: String, actionResponse: String) {
-    val depositRequest = gson.fromJson(SEP_24_DEPOSIT_FLOW_REQUEST, HashMap::class.java)
-
-    @Suppress("UNCHECKED_CAST")
-    val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
-    `test flow`(depositResponse.id, actionRequests, actionResponse)
-  }
-
   private fun `test flow`(txId: String, actionRequests: String, actionResponses: String) {
     val rpcActionRequestsType = object : TypeToken<List<RpcRequest>>() {}.type
     val rpcActionRequests: List<RpcRequest> =
@@ -335,16 +349,10 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
       )
     )
   }
+}
 
-  companion object {
-    private const val TX_ID = "testTxId"
-    private const val JSON_RPC_VERSION = "2.0"
-    private const val TX_ID_KEY = "TX_ID"
-    private const val RECEIVER_ID_KEY = "RECEIVER_ID"
-    private const val SENDER_ID_KEY = "SENDER_ID"
-
-    private const val SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
-      """
+private const val SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -397,8 +405,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
-      """
+private const val SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
+  """
 [
   {
     "jsonrpc": "2.0",
@@ -515,8 +523,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_REQUESTS =
-      """
+private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -620,8 +628,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_RESPONSES =
-      """
+private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_RESPONSES =
+  """
 [
   {
     "jsonrpc": "2.0",
@@ -830,8 +838,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
-      """
+private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -911,8 +919,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
-      """
+private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
+  """
 [
   {
     "jsonrpc": "2.0",
@@ -1091,8 +1099,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_REQUESTS =
-      """
+private const val SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -1194,8 +1202,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]    
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_RESPONSES =
-      """
+private const val SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_RESPONSES =
+  """
 [
   {
     "jsonrpc": "2.0",
@@ -1446,8 +1454,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]   
   """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
-      """
+private const val SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -1496,8 +1504,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
-      """
+private const val SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
+  """
 [
   {
     "jsonrpc": "2.0",
@@ -1645,8 +1653,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
 """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS =
-      """
+private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -1705,8 +1713,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_RESPONSES =
-      """
+private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_RESPONSES =
+  """
 [
   {
     "jsonrpc": "2.0",
@@ -1909,8 +1917,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
 """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_RESPONSES =
-      """
+private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_RESPONSES =
+  """
 [
   {
     "jsonrpc": "2.0",
@@ -2113,8 +2121,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
 """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_REQUESTS =
-      """
+private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -2173,8 +2181,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS =
-      """
+private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -2233,8 +2241,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
-      """
+private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
+  """
   [
   {
     "jsonrpc": "2.0",
@@ -2405,8 +2413,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
 """
 
-    private const val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_REQUESTS =
-      """
+private const val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -2441,8 +2449,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]   
   """
 
-    private const val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
-      """
+private const val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
+  """
 [
   {
     "jsonrpc": "2.0",
@@ -2589,8 +2597,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]  
   """
 
-    private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
-      """ 
+private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
+  """ 
 [
   {
     "id": "1",
@@ -2661,8 +2669,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
-      """ 
+private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
+  """ 
 [
   {
     "jsonrpc": "2.0",
@@ -2891,7 +2899,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
           "id": "SENDER_ID"
         },
         "receiver": {
-          "id": "RECEIVER_ID"
+          "id": "SENDER_ID"
         }
       },
       "creator": {
@@ -3083,8 +3091,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val VALIDATIONS_AND_ERRORS_REQUESTS =
-      """
+private const val VALIDATIONS_AND_ERRORS_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -3516,8 +3524,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val VALIDATIONS_AND_ERRORS_RESPONSES =
-      """
+private const val VALIDATIONS_AND_ERRORS_RESPONSES =
+  """
 [
   {
     "jsonrpc": "2.0",
@@ -3807,14 +3815,14 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ]
   """
 
-    private const val SEP_24_DEPOSIT_FLOW_REQUEST = """
+private const val SEP_24_DEPOSIT_FLOW_REQUEST = """
 {
   "asset_code": "USDC"
 }
   """
 
-    private const val SEP_24_WITHDRAW_FLOW_REQUEST =
-      """{
+private const val SEP_24_WITHDRAW_FLOW_REQUEST =
+  """{
     "amount": "10",
     "asset_code": "USDC",
     "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
@@ -3822,8 +3830,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
     "lang": "en"
 }"""
 
-    private const val SEP_31_RECEIVE_FLOW_REQUEST =
-      """
+private const val SEP_31_RECEIVE_FLOW_REQUEST =
+  """
 {
   "amount": "10",
   "asset_code": "USDC",
@@ -3840,15 +3848,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 }
   """
 
-    private const val SEP_24_DEPOSIT_REQUEST =
-      """{
+private const val SEP_24_DEPOSIT_REQUEST =
+  """{
     "asset_code": "USDC",
     "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
     "lang": "en"
   }"""
 
-    private const val REQUEST_OFFCHAIN_FUNDS_PARAMS =
-      """{
+private const val REQUEST_OFFCHAIN_FUNDS_PARAMS =
+  """{
     "transaction_id": "testTxId",
     "message": "test message",
     "amount_in": {
@@ -3868,8 +3876,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
     }
   }"""
 
-    private const val NOTIFY_OFFCHAIN_FUNDS_RECEIVED_PARAMS =
-      """{
+private const val NOTIFY_OFFCHAIN_FUNDS_RECEIVED_PARAMS =
+  """{
     "transaction_id": "testTxId",
     "message": "test message",
     "amount_in": {
@@ -3884,8 +3892,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
     "external_transaction_id": "1"
   }"""
 
-    private const val EXPECTED_RPC_RESPONSE =
-      """
+private const val EXPECTED_RPC_RESPONSE =
+  """
   [
    {
       "jsonrpc":"2.0",
@@ -3920,8 +3928,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ] 
 """
 
-    private const val EXPECTED_RPC_BATCH_RESPONSE =
-      """
+private const val EXPECTED_RPC_BATCH_RESPONSE =
+  """
   [
    {
       "jsonrpc":"2.0",
@@ -3987,8 +3995,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 ] 
 """
 
-    private const val CUSTOMER_1 =
-      """
+private const val CUSTOMER_1 =
+  """
 {
   "first_name": "John",
   "last_name": "Doe",
@@ -4004,8 +4012,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 }
 """
 
-    private const val CUSTOMER_2 =
-      """
+private const val CUSTOMER_2 =
+  """
 {
   "first_name": "Jane",
   "last_name": "Doe",
@@ -4020,5 +4028,3 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
   "bank_account_type": "checking"
 }
 """
-  }
-}

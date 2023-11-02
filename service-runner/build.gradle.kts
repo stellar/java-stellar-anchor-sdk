@@ -19,7 +19,6 @@ dependencies {
   implementation(libs.docker.compose.rule)
   implementation(libs.dotenv)
   implementation(libs.google.gson)
-  implementation(libs.kotlin.serialization.json)
   implementation(libs.okhttp3)
   implementation(libs.coroutines.core)
 

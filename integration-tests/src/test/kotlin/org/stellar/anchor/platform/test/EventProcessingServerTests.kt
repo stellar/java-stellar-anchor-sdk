@@ -1,28 +1,28 @@
-package org.stellar.anchor.platform.integrationtest
+package org.stellar.anchor.platform.test
 
-import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.config.PropertyEventConfig
 import org.stellar.anchor.platform.event.DefaultEventService
-import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.anchor.util.Sep1Helper
 
-class EventProcessingServerTests :
-  AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class EventProcessingServerTests(config: TestConfig, toml: Sep1Helper.TomlContent, jwt: String) {
   companion object {
     val eventConfig =
       GsonUtils.getInstance().fromJson(eventConfigJson, PropertyEventConfig::class.java)!!
   }
-
-  @Test
   fun testOk() {
     val eventService = DefaultEventService(eventConfig)
     val session = eventService.createSession("testOk", TRANSACTION)
     val quoteEvent = GsonUtils.getInstance().fromJson(testQuoteEvent, AnchorEvent::class.java)
 
     session.publish(quoteEvent)
+  }
+  fun testAll() {
+    println("Performing event processing server tests...")
+    testOk()
   }
 }
 
