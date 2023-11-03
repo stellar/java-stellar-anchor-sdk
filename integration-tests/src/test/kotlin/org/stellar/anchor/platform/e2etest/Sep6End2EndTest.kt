@@ -1,6 +1,5 @@
-package org.stellar.anchor.platform.test
+package org.stellar.anchor.platform.e2etest
 
-import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlin.test.DefaultAsserter.fail
 import kotlin.test.assertContentEquals
@@ -8,43 +7,25 @@ import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.sep.sep6.GetTransactionResponse
 import org.stellar.anchor.api.shared.InstructionField
-import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.Sep6Client
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
-import org.stellar.walletsdk.ApplicationConfiguration
-import org.stellar.walletsdk.StellarConfiguration
-import org.stellar.walletsdk.Wallet
 import org.stellar.walletsdk.anchor.MemoType
 import org.stellar.walletsdk.anchor.auth
 import org.stellar.walletsdk.anchor.customer
 import org.stellar.walletsdk.asset.IssuedAssetId
-import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
 
-class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
-  private val walletSecretKey = System.getenv("WALLET_SECRET_KEY") ?: CLIENT_WALLET_SECRET
-  private val keypair = SigningKeyPair.fromSecret(walletSecretKey)
-  private val wallet =
-    Wallet(
-      StellarConfiguration.Testnet,
-      ApplicationConfiguration { defaultRequest { url { protocol = URLProtocol.HTTP } } }
-    )
-  private val anchor =
-    wallet.anchor(config.env["anchor.domain"]!!) {
-      install(HttpTimeout) {
-        requestTimeoutMillis = 300000
-        connectTimeoutMillis = 300000
-        socketTimeoutMillis = 300000
-      }
-    }
+class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   private val maxTries = 30
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
@@ -72,8 +53,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       )
   }
 
-  private fun `test typical deposit end-to-end flow`() = runBlocking {
-    val token = anchor.auth().authenticate(keypair)
+  @Test
+  fun `test typical deposit end-to-end flow`() = runBlocking {
+    val token = anchor.auth().authenticate(walletKeyPair)
     // TODO: migrate this to wallet-sdk when it's available
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
@@ -84,7 +66,7 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       sep6Client.deposit(
         mapOf(
           "asset_code" to USDC.code,
-          "account" to keypair.address,
+          "account" to walletKeyPair.address,
           "amount" to "1",
           "type" to "SWIFT"
         )
@@ -133,8 +115,9 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     assertWalletReceivedStatuses(deposit.id, expectedStatuses)
   }
 
-  private fun `test typical withdraw end-to-end flow`() = runBlocking {
-    val token = anchor.auth().authenticate(keypair)
+  @Test
+  fun `test typical withdraw end-to-end flow`() = runBlocking {
+    val token = anchor.auth().authenticate(walletKeyPair)
     // TODO: migrate this to wallet-sdk when it's available
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
@@ -159,10 +142,10 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
     val transfer =
       wallet
         .stellar()
-        .transaction(keypair, memo = Pair(MemoType.HASH, withdrawTxn.withdrawMemo))
+        .transaction(walletKeyPair, memo = Pair(MemoType.HASH, withdrawTxn.withdrawMemo))
         .transfer(withdrawTxn.withdrawAnchorAccount, USDC, "1")
         .build()
-    transfer.sign(keypair)
+    transfer.sign(walletKeyPair)
     wallet.stellar().submitTransaction(transfer)
     waitStatus(withdraw.id, COMPLETED, sep6Client)
 
@@ -218,10 +201,5 @@ class Sep6End2EndTest(val config: TestConfig, val jwt: String) {
       delay(1.seconds)
     }
     fail("Transaction status did not match expected status $expectedStatus")
-  }
-
-  fun testAll() {
-    `test typical deposit end-to-end flow`()
-    `test typical withdraw end-to-end flow`()
   }
 }
