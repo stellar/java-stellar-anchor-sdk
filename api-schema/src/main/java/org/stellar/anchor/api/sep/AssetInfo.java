@@ -14,11 +14,30 @@ public class AssetInfo {
   String code;
   String issuer;
 
-  public String getAssetName() {
-    if (issuer != null) {
-      return schema + ":" + code + ":" + issuer;
+  /**
+   * Returns the SEP-38 asset name, which is the SEP-11 asset name prefixed with the schema.
+   *
+   * @return The SEP-38 asset name.
+   */
+  public String getSep38AssetName() {
+    return schema + ":" + makeSep11AssetName(code, issuer);
+  }
+
+  /**
+   * Returns the SEP-11 asset name for the given asset code and issuer.
+   *
+   * @param assetCode The asset code.
+   * @param assetIssuer The asset issuer.
+   * @return The SEP-11 asset name.
+   */
+  public static String makeSep11AssetName(String assetCode, String assetIssuer) {
+    if (AssetInfo.NATIVE_ASSET_CODE.equals(assetCode)) {
+      return AssetInfo.NATIVE_ASSET_CODE;
+    } else if (assetIssuer != null) {
+      return assetCode + ":" + assetIssuer;
+    } else {
+      return assetCode;
     }
-    return schema + ":" + code;
   }
 
   @SerializedName("distribution_account")

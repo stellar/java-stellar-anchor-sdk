@@ -2,7 +2,9 @@ package org.stellar.anchor.sep6;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
+import org.stellar.anchor.api.shared.InstructionField;
 import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.api.shared.StellarTransaction;
 
@@ -20,6 +22,7 @@ public class PojoSep6Transaction implements Sep6Transaction {
   Instant startedAt;
   Instant completedAt;
   Instant updatedAt;
+  Instant transferReceivedAt;
   String type;
   String requestAssetCode;
   String requestAssetIssuer;
@@ -43,6 +46,8 @@ public class PojoSep6Transaction implements Sep6Transaction {
   String refundMemo;
   String refundMemoType;
   String requiredInfoMessage;
-  String requiredInfoUpdateMessage;
-  String requiredInfoUpdates;
+  List<String> requiredInfoUpdates;
+  String requiredCustomerInfoMessage;
+  List<String> requiredCustomerInfoUpdates;
+  Map<String, InstructionField> instructions;
 }

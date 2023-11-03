@@ -9,6 +9,8 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.event.AnchorEvent
@@ -16,6 +18,7 @@ import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.*
 import org.stellar.anchor.api.rpc.method.NotifyOffchainFundsSentRequest
@@ -30,10 +33,12 @@ import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.data.JdbcSep6Transaction
 import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
 class NotifyOffchainFundsSentHandlerTest {
@@ -44,6 +49,8 @@ class NotifyOffchainFundsSentHandlerTest {
     private const val EXTERNAL_TX_ID = "testExternalTxId"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
+
+  @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
@@ -69,6 +76,7 @@ class NotifyOffchainFundsSentHandlerTest {
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.handler =
       NotifyOffchainFundsSentHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -79,13 +87,14 @@ class NotifyOffchainFundsSentHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_unsupportedProtocol() {
+  fun test_handle_unsupportedProtocol() {
     val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     val spyTxn24 = spyk(txn24)
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { spyTxn24.protocol } returns SEP_38.sep.toString()
@@ -95,6 +104,29 @@ class NotifyOffchainFundsSentHandlerTest {
       "RPC method[notify_offchain_funds_sent] is not supported. Status[incomplete], kind[null], protocol[38], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @Test
+  fun test_handle_invalidRequest() {
+    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.transferReceivedAt = Instant.now()
+
+    every { txn6Store.findByTransactionId(any()) } returns null
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
 
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
@@ -108,6 +140,7 @@ class NotifyOffchainFundsSentHandlerTest {
     txn24.status = PENDING_EXTERNAL.toString()
     txn24.kind = DEPOSIT.kind
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
@@ -117,6 +150,7 @@ class NotifyOffchainFundsSentHandlerTest {
       ex.message
     )
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -129,6 +163,7 @@ class NotifyOffchainFundsSentHandlerTest {
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = WITHDRAWAL.kind
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
@@ -138,27 +173,7 @@ class NotifyOffchainFundsSentHandlerTest {
       ex.message
     )
 
-    verify(exactly = 0) { txn24Store.save(any()) }
-    verify(exactly = 0) { txn31Store.save(any()) }
-    verify(exactly = 0) { sepTransactionCounter.increment() }
-  }
-
-  @Test
-  fun test_handle_sep24_invalidRequest() {
-    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_USR_TRANSFER_START.toString()
-    txn24.kind = DEPOSIT.kind
-    txn24.transferReceivedAt = Instant.now()
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws
-      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
-
-    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
-
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -179,6 +194,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -190,6 +206,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -239,88 +256,6 @@ class NotifyOffchainFundsSentHandlerTest {
   }
 
   @Test
-  fun test_handle_ok_sep31_deposit_withExternalTxIdAndDate() {
-    val transferReceivedAt = Instant.now()
-    val request =
-      NotifyOffchainFundsSentRequest.builder()
-        .transactionId(TX_ID)
-        .externalTransactionId(EXTERNAL_TX_ID)
-        .fundsSentAt(transferReceivedAt.minusSeconds(100))
-        .build()
-    val txn31 = JdbcSep31Transaction()
-    txn31.status = PENDING_RECEIVER.toString()
-    txn31.transferReceivedAt = transferReceivedAt
-    val sep31TxnCapture = slot<JdbcSep31Transaction>()
-    val anchorEventCapture = slot<AnchorEvent>()
-
-    every { txn24Store.findByTransactionId(any()) } returns null
-    every { txn31Store.findByTransactionId(TX_ID) } returns txn31
-    every { txn31Store.save(capture(sep31TxnCapture)) } returns null
-    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep31") } returns
-      sepTransactionCounter
-
-    val startDate = Instant.now()
-    val response = handler.handle(request)
-    val endDate = Instant.now()
-
-    verify(exactly = 0) { txn24Store.save(any()) }
-    verify(exactly = 1) { sepTransactionCounter.increment() }
-
-    val expectedSep31Txn = JdbcSep31Transaction()
-    expectedSep31Txn.status = COMPLETED.toString()
-    expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
-    expectedSep31Txn.externalTransactionId = EXTERNAL_TX_ID
-    expectedSep31Txn.transferReceivedAt = transferReceivedAt
-    expectedSep31Txn.completedAt = sep31TxnCapture.captured.completedAt
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedSep31Txn),
-      gson.toJson(sep31TxnCapture.captured),
-      JSONCompareMode.STRICT
-    )
-
-    val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = SEP_31
-    expectedResponse.kind = RECEIVE
-    expectedResponse.status = COMPLETED
-    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
-    expectedResponse.transferReceivedAt = transferReceivedAt
-    expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
-    expectedResponse.completedAt = sep31TxnCapture.captured.completedAt
-    expectedResponse.amountIn = Amount()
-    expectedResponse.amountOut = Amount()
-    expectedResponse.amountFee = Amount()
-    expectedResponse.amountExpected = Amount()
-    expectedResponse.customers = Customers(StellarId(), StellarId())
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedResponse),
-      gson.toJson(response),
-      JSONCompareMode.STRICT
-    )
-
-    val expectedEvent =
-      AnchorEvent.builder()
-        .id(anchorEventCapture.captured.id)
-        .sep(SEP_31.sep.toString())
-        .type(AnchorEvent.Type.TRANSACTION_STATUS_CHANGED)
-        .transaction(expectedResponse)
-        .build()
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedEvent),
-      gson.toJson(anchorEventCapture.captured),
-      JSONCompareMode.STRICT
-    )
-
-    assertTrue(sep31TxnCapture.captured.updatedAt >= startDate)
-    assertTrue(sep31TxnCapture.captured.updatedAt <= endDate)
-    assertTrue(sep31TxnCapture.captured.completedAt >= startDate)
-    assertTrue(sep31TxnCapture.captured.completedAt <= endDate)
-  }
-
-  @Test
   fun test_handle_ok_sep24_deposit_withExternalTxIdAndWithoutDate() {
     val request =
       NotifyOffchainFundsSentRequest.builder()
@@ -333,6 +268,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -344,6 +280,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -403,6 +340,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -414,6 +352,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -476,6 +415,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -487,6 +427,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -550,6 +491,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -561,6 +503,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -609,5 +552,526 @@ class NotifyOffchainFundsSentHandlerTest {
     assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
     assertTrue(sep24TxnCapture.captured.completedAt >= startDate)
     assertTrue(sep24TxnCapture.captured.completedAt <= endDate)
+  }
+
+  @Test
+  fun test_handle_ok_sep31_deposit_withExternalTxIdAndDate() {
+    val transferReceivedAt = Instant.now()
+    val request =
+      NotifyOffchainFundsSentRequest.builder()
+        .transactionId(TX_ID)
+        .externalTransactionId(EXTERNAL_TX_ID)
+        .fundsSentAt(transferReceivedAt.minusSeconds(100))
+        .build()
+    val txn31 = JdbcSep31Transaction()
+    txn31.status = PENDING_RECEIVER.toString()
+    txn31.transferReceivedAt = transferReceivedAt
+    val sep31TxnCapture = slot<JdbcSep31Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
+
+    every { txn6Store.findByTransactionId(any()) } returns null
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(TX_ID) } returns txn31
+    every { txn31Store.save(capture(sep31TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep31") } returns
+      sepTransactionCounter
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
+
+    val expectedSep31Txn = JdbcSep31Transaction()
+    expectedSep31Txn.status = COMPLETED.toString()
+    expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
+    expectedSep31Txn.externalTransactionId = EXTERNAL_TX_ID
+    expectedSep31Txn.transferReceivedAt = transferReceivedAt
+    expectedSep31Txn.completedAt = sep31TxnCapture.captured.completedAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep31Txn),
+      gson.toJson(sep31TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_31
+    expectedResponse.kind = RECEIVE
+    expectedResponse.status = COMPLETED
+    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
+    expectedResponse.transferReceivedAt = transferReceivedAt
+    expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
+    expectedResponse.completedAt = sep31TxnCapture.captured.completedAt
+    expectedResponse.amountIn = Amount()
+    expectedResponse.amountOut = Amount()
+    expectedResponse.amountFee = Amount()
+    expectedResponse.amountExpected = Amount()
+    expectedResponse.customers = Customers(StellarId(), StellarId())
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_31.sep.toString())
+        .type(AnchorEvent.Type.TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep31TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep31TxnCapture.captured.updatedAt <= endDate)
+    assertTrue(sep31TxnCapture.captured.completedAt >= startDate)
+    assertTrue(sep31TxnCapture.captured.completedAt <= endDate)
+  }
+
+  @CsvSource(value = ["deposit", "deposit-exchange", "withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_sep6_unsupportedStatus(kind: String) {
+    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = INCOMPLETE.toString()
+    txn6.kind = kind
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "RPC method[notify_offchain_funds_sent] is not supported. Status[incomplete], kind[$kind], protocol[6], funds received[false]",
+      ex.message
+    )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_sep6_withdrawal_transferNotReceived(kind: String) {
+    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_ANCHOR.toString()
+    txn6.kind = kind
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "RPC method[notify_offchain_funds_sent] is not supported. Status[pending_anchor], kind[$kind], protocol[6], funds received[false]",
+      ex.message
+    )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @CsvSource(value = ["deposit", "deposit-exchange"])
+  @ParameterizedTest
+  fun test_handle_ok_sep6_deposit_withExternalTxIdAndDate(kind: String) {
+    val transferReceivedAt = Instant.now()
+    val request =
+      NotifyOffchainFundsSentRequest.builder()
+        .transactionId(TX_ID)
+        .externalTransactionId(EXTERNAL_TX_ID)
+        .fundsSentAt(transferReceivedAt)
+        .build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_USR_TRANSFER_START.toString()
+    txn6.kind = kind
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
+      sepTransactionCounter
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
+
+    val expectedSep6Txn = JdbcSep6Transaction()
+    expectedSep6Txn.kind = kind
+    expectedSep6Txn.status = PENDING_EXTERNAL.toString()
+    expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedSep6Txn.externalTransactionId = EXTERNAL_TX_ID
+    expectedSep6Txn.transferReceivedAt = transferReceivedAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep6Txn),
+      gson.toJson(sep6TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_6
+    expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
+    expectedResponse.status = PENDING_EXTERNAL
+    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
+    expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
+    expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_6.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep6TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.updatedAt <= endDate)
+  }
+
+  @CsvSource(value = ["deposit", "deposit-exchange"])
+  @ParameterizedTest
+  fun test_handle_ok_sep6_deposit_withExternalTxIdAndWithoutDate(kind: String) {
+    val request =
+      NotifyOffchainFundsSentRequest.builder()
+        .transactionId(TX_ID)
+        .externalTransactionId(EXTERNAL_TX_ID)
+        .build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_USR_TRANSFER_START.toString()
+    txn6.kind = kind
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
+      sepTransactionCounter
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
+
+    val expectedSep6Txn = JdbcSep6Transaction()
+    expectedSep6Txn.kind = kind
+    expectedSep6Txn.status = PENDING_EXTERNAL.toString()
+    expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedSep6Txn.externalTransactionId = EXTERNAL_TX_ID
+    expectedSep6Txn.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep6Txn),
+      gson.toJson(sep6TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_6
+    expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
+    expectedResponse.status = PENDING_EXTERNAL
+    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
+    expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
+    expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_6.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep6TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.updatedAt <= endDate)
+    assertTrue(sep6TxnCapture.captured.transferReceivedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.transferReceivedAt <= endDate)
+  }
+
+  @CsvSource(value = ["deposit", "deposit-exchange"])
+  @ParameterizedTest
+  fun test_handle_ok_sep6_deposit_withoutExternalTxIdAndDate(kind: String) {
+    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_USR_TRANSFER_START.toString()
+    txn6.kind = kind
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
+      sepTransactionCounter
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
+
+    val expectedSep6Txn = JdbcSep6Transaction()
+    expectedSep6Txn.kind = kind
+    expectedSep6Txn.status = PENDING_EXTERNAL.toString()
+    expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedSep6Txn.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep6Txn),
+      gson.toJson(sep6TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_6
+    expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
+    expectedResponse.status = PENDING_EXTERNAL
+    expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_6.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep6TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.updatedAt <= endDate)
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_ok_sep6_withdrawal_withExternalTxIdAndDate(kind: String) {
+    val transferReceivedAt = Instant.now()
+    val request =
+      NotifyOffchainFundsSentRequest.builder()
+        .transactionId(TX_ID)
+        .externalTransactionId(EXTERNAL_TX_ID)
+        .fundsSentAt(transferReceivedAt.minusSeconds(100))
+        .build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_ANCHOR.toString()
+    txn6.kind = kind
+    txn6.transferReceivedAt = transferReceivedAt
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
+      sepTransactionCounter
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
+
+    val expectedSep6Txn = JdbcSep6Transaction()
+    expectedSep6Txn.kind = kind
+    expectedSep6Txn.status = COMPLETED.toString()
+    expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedSep6Txn.completedAt = sep6TxnCapture.captured.completedAt
+    expectedSep6Txn.externalTransactionId = EXTERNAL_TX_ID
+    expectedSep6Txn.transferReceivedAt = transferReceivedAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep6Txn),
+      gson.toJson(sep6TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_6
+    expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
+    expectedResponse.status = COMPLETED
+    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
+    expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
+    expectedResponse.completedAt = sep6TxnCapture.captured.completedAt
+    expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_6.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep6TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.updatedAt <= endDate)
+    assertTrue(sep6TxnCapture.captured.completedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.completedAt <= endDate)
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_ok_sep6_withdrawal_withoutExternalTxId(kind: String) {
+    val transferReceivedAt = Instant.now()
+    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_ANCHOR.toString()
+    txn6.kind = kind
+    txn6.transferReceivedAt = transferReceivedAt
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
+      sepTransactionCounter
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
+
+    val expectedSep6Txn = JdbcSep6Transaction()
+    expectedSep6Txn.kind = kind
+    expectedSep6Txn.status = COMPLETED.toString()
+    expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedSep6Txn.completedAt = sep6TxnCapture.captured.completedAt
+    expectedSep6Txn.transferReceivedAt = transferReceivedAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep6Txn),
+      gson.toJson(sep6TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_6
+    expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
+    expectedResponse.status = COMPLETED
+    expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
+    expectedResponse.completedAt = sep6TxnCapture.captured.completedAt
+    expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_6.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep6TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.updatedAt <= endDate)
+    assertTrue(sep6TxnCapture.captured.completedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.completedAt <= endDate)
   }
 }

@@ -1,17 +1,14 @@
 package org.stellar.anchor.platform.service
 
-import io.mockk.MockKAnnotations
-import io.mockk.Runs
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import io.mockk.just
-import io.mockk.slot
-import io.mockk.verify
 import java.util.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest
@@ -26,6 +23,7 @@ import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.platform.apiclient.CustodyApiClient
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.data.JdbcSep6Transaction
 import org.stellar.anchor.util.GsonUtils
 
 class CustodyServiceTest {
@@ -43,6 +41,46 @@ class CustodyServiceTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     custodyService = CustodyServiceImpl(Optional.of(custodyApiClient))
+  }
+
+  @CsvSource(value = ["deposit", "deposit-exchange"])
+  @ParameterizedTest
+  fun test_createTransaction_sep6Deposit(kind: String) {
+    val txn =
+      gson.fromJson(sep6DepositEntity, JdbcSep6Transaction::class.java).apply { this.kind = kind }
+    val requestCapture = slot<CreateCustodyTransactionRequest>()
+
+    every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs
+
+    custodyService.createTransaction(txn)
+
+    JSONAssert.assertEquals(
+      sep6DepositRequest.replace("testKind", kind),
+      gson.toJson(requestCapture.captured),
+      JSONCompareMode.STRICT
+    )
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_createTransaction_sep6Withdrawal(kind: String) {
+    val txn =
+      gson.fromJson(sep6WithdrawalEntity, JdbcSep6Transaction::class.java).apply {
+        this.kind = kind
+      }
+    val requestCapture = slot<CreateCustodyTransactionRequest>()
+
+    every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs
+
+    custodyService.createTransaction(txn)
+
+    println(gson.toJson(requestCapture.captured))
+
+    JSONAssert.assertEquals(
+      sep6WithdrawalRequest.replace("testKind", kind),
+      gson.toJson(requestCapture.captured),
+      JSONCompareMode.STRICT
+    )
   }
 
   @Test
@@ -187,6 +225,110 @@ class CustodyServiceTest {
       }
     Assertions.assertEquals("Forbidden", exception.rawMessage)
   }
+
+  private val sep6DepositEntity =
+    """
+      {
+        "id" : "testId",
+        "stellar_transaction_id": "testStellarTransactionId",
+        "external_transaction_id": "testExternalTransactionId",
+        "status": "pending_anchor",
+        "kind": "deposit",
+        "started_at": "2022-04-18T14:00:00.000Z",
+        "completed_at": "2022-04-18T14:00:00.000Z",
+        "updated_at": "2022-04-18T14:00:00.000Z",
+        "transfer_received_at": "2022-04-18T14:00:00.000Z",
+        "type": "SWIFT",
+        "requestAssetCode": "testRequestAssetCode",
+        "requestAssetIssuer": "testRequestAssetIssuer",
+        "amount_in": "testAmountIn",
+        "amount_in_asset": "testAmountInAsset",
+        "amount_out": "testAmountOut",
+        "amount_out_asset": "testAmountOutAsset",
+        "amount_fee": "testAmountFee",
+        "amount_fee_asset": "testAmountFeeAsset", 
+        "amount_expected": "testAmountExpected",
+        "sep10_account": "testSep10Account",
+        "sep10_account_memo": "testSep10AccountMemo",
+        "from_account": "testFromAccount",
+        "to_account": "testToAccount",
+        "memo": "testMemo",
+        "memo_type": "testMemoType",
+        "quote_id": "testQuoteId",
+        "message": "testMessage",
+        "refundMemo": "testRefundMemo",
+        "refundMemoType": "testRefundMemoType"
+      }
+    """
+      .trimIndent()
+
+  private val sep6DepositRequest =
+    """
+      {
+        "id": "testId",
+        "memo": "testMemo",
+        "memoType": "testMemoType",
+        "protocol": "6",
+        "toAccount": "testToAccount",
+        "amount": "testAmountOut",
+        "asset": "testAmountOutAsset",
+        "kind": "testKind"
+      }
+    """
+      .trimIndent()
+
+  private val sep6WithdrawalEntity =
+    """
+      {
+        "id": "testId",
+        "stellar_transaction_id": "testStellarTransactionId",
+        "external_transaction_id": "testExternalTransactionId",
+        "status": "pending_anchor",
+        "kind": "withdrawal",
+        "started_at": "2022-04-18T14:00:00.000Z",
+        "completed_at": "2022-04-18T14:00:00.000Z",
+        "updated_at": "2022-04-18T14:00:00.000Z",
+        "transfer_received_at": "2022-04-18T14:00:00.000Z",
+        "type": "bank_account",
+        "requestAssetCode": "testRequestAssetCode",
+        "requestAssetIssuer": "testRequestAssetIssuer",
+        "amount_in": "testAmountIn",
+        "amount_in_asset": "testAmountInAsset",
+        "amount_out": "testAmountOut",
+        "amount_out_asset": "testAmountOutAsset",
+        "amount_fee": "testAmountFee",
+        "amount_fee_asset": "testAmountFeeAsset",
+        "amount_expected": "testAmountExpected",
+        "sep10_account": "testSep10Account",
+        "sep10_account_memo": "testSep10AccountMemo",
+        "withdraw_anchor_account": "testWithdrawAnchorAccount",
+        "from_account": "testFromAccount",
+        "to_account": "testToAccount",
+        "memo": "testMemo",
+        "memo_type": "testMemoType",
+        "quote_id": "testQuoteId",
+        "message": "testMessage",
+        "refundMemo": "testRefundMemo",
+        "refundMemoType": "testRefundMemoType"
+      }
+    """
+      .trimIndent()
+
+  private val sep6WithdrawalRequest =
+    """
+      {
+        "id": "testId",
+        "memo": "testMemo",
+        "memoType": "testMemoType",
+        "protocol": "6",
+        "fromAccount": "testFromAccount",
+        "toAccount": "testWithdrawAnchorAccount",
+        "amount": "testAmountExpected",
+        "asset": "testAmountInAsset",
+        "kind": "testKind"
+      }
+    """
+      .trimIndent()
 
   private val sep24DepositEntity =
     """

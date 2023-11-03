@@ -22,8 +22,6 @@ import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
 import org.stellar.anchor.apiclient.PlatformApiClient
-import org.stellar.anchor.apiclient.TransactionsOrderBy
-import org.stellar.anchor.apiclient.TransactionsSeps
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.*
 import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer1Json
@@ -38,18 +36,13 @@ lateinit var savedTxn: Sep31GetTransactionResponse
 @Execution(SAME_THREAD)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
-  private val sep12Client: Sep12Client
-  private val sep31Client: Sep31Client
-  private val sep38Client: Sep38Client
-  private val platformApiClient: PlatformApiClient
-
-  init {
-    sep12Client = Sep12Client(toml.getString("KYC_SERVER"), this.token.token)
-    sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), this.token.token)
-    sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), this.token.token)
-
-    platformApiClient = PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
-  }
+  private val sep12Client: Sep12Client = Sep12Client(toml.getString("KYC_SERVER"), this.token.token)
+  private val sep31Client: Sep31Client =
+    Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), this.token.token)
+  private val sep38Client: Sep38Client =
+    Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), this.token.token)
+  private val platformApiClient: PlatformApiClient =
+    PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
 
   @Test
   fun `test info endpoint`() {

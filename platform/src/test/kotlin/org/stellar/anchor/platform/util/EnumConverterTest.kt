@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.BadRequestException
-import org.stellar.anchor.apiclient.TransactionsOrderBy
+import org.stellar.anchor.api.platform.TransactionsOrderBy
 import org.stellar.anchor.platform.utils.StringEnumConverter
 import org.stellar.anchor.platform.utils.StringEnumConverter.TransactionsOrderByConverter
 

@@ -6,7 +6,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.stellar.reference.callbacks.customer.CustomerService
-import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
+import org.stellar.reference.di.AUTH_CONFIG_ENDPOINT
 
 fun Route.testCustomer(customerService: CustomerService) {
   authenticate(AUTH_CONFIG_ENDPOINT) {

@@ -11,6 +11,8 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.event.AnchorEvent
@@ -20,6 +22,7 @@ import org.stellar.anchor.api.exception.rpc.InternalErrorException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.*
 import org.stellar.anchor.api.rpc.method.AmountRequest
@@ -38,10 +41,12 @@ import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.data.JdbcSep6Transaction
 import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.responses.operations.OperationResponse
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
@@ -59,6 +64,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
     private const val STELLAR_PAYMENT_DATE = "2023-05-10T10:18:20Z"
   }
+
+  @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
@@ -87,6 +94,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
       NotifyOnchainFundsReceivedHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -98,13 +106,14 @@ class NotifyOnchainFundsReceivedHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_unsupportedProtocol() {
+  fun test_handle_unsupportedProtocol() {
     val request = NotifyOnchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = WITHDRAWAL.kind
     val spyTxn24 = spyk(txn24)
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { spyTxn24.protocol } returns SEP_38.sep.toString()
@@ -115,6 +124,104 @@ class NotifyOnchainFundsReceivedHandlerTest {
       ex.message
     )
 
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @Test
+  fun test_handle_invalidRequest() {
+    val request = NotifyOnchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.transferReceivedAt = Instant.now()
+
+    every { txn6Store.findByTransactionId(any()) } returns null
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @Test
+  fun test_handle_notAllAmounts() {
+    val request =
+      NotifyOnchainFundsReceivedRequest.builder()
+        .amountIn(AmountRequest("1"))
+        .amountOut(AmountRequest("1"))
+        .transactionId(TX_ID)
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
+    txn24.kind = WITHDRAWAL.kind
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn6Store.findByTransactionId(any()) } returns null
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals(
+      "Invalid amounts combination provided: all, none or only amount_in should be set",
+      ex.message
+    )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @Test
+  fun test_handle_invalidAmounts() {
+    val request =
+      NotifyOnchainFundsReceivedRequest.builder()
+        .amountIn(AmountRequest("1"))
+        .amountOut(AmountRequest("1"))
+        .amountFee(AmountRequest("1"))
+        .transactionId(TX_ID)
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountInAsset = FIAT_USD
+    txn24.amountOutAsset = STELLAR_USDC
+    txn24.amountFeeAsset = STELLAR_USDC
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn6Store.findByTransactionId(any()) } returns null
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    request.amountIn.amount = "-1"
+    var ex = assertThrows<BadRequestException> { handler.handle(request) }
+    assertEquals("amount_in.amount should be positive", ex.message)
+    request.amountIn.amount = "1"
+
+    request.amountOut.amount = "-1"
+    ex = assertThrows { handler.handle(request) }
+    assertEquals("amount_out.amount should be positive", ex.message)
+    request.amountOut.amount = "1"
+
+    request.amountFee.amount = "-1"
+    ex = assertThrows { handler.handle(request) }
+    assertEquals("amount_fee.amount should be non-negative", ex.message)
+    request.amountFee.amount = "1"
+
+    request.amountIn.amount = "0"
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -127,6 +234,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     txn24.status = INCOMPLETE.toString()
     txn24.kind = WITHDRAWAL.kind
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
@@ -136,6 +244,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
       ex.message
     )
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -148,6 +257,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
@@ -157,27 +267,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
       ex.message
     )
 
-    verify(exactly = 0) { txn24Store.save(any()) }
-    verify(exactly = 0) { txn31Store.save(any()) }
-    verify(exactly = 0) { sepTransactionCounter.increment() }
-  }
-
-  @Test
-  fun test_handle_sep24_invalidRequest() {
-    val request = NotifyOnchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_USR_TRANSFER_START.toString()
-    txn24.kind = WITHDRAWAL.kind
-    txn24.transferReceivedAt = Instant.now()
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws
-      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
-
-    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
-
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -212,6 +302,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val stellarTransactions: List<StellarTransaction> =
       gson.fromJson(stellarTransactions, stellarTransactionsToken)
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -224,6 +315,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -308,6 +400,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val stellarTransactions: List<StellarTransaction> =
       gson.fromJson(stellarTransactions, stellarTransactionsToken)
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -320,6 +413,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -396,6 +490,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val stellarTransactions: List<StellarTransaction> =
       gson.fromJson(stellarTransactions, stellarTransactionsToken)
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
@@ -408,6 +503,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -459,6 +555,35 @@ class NotifyOnchainFundsReceivedHandlerTest {
   }
 
   @Test
+  fun test_handle_ok_sep24_withoutAmounts_invalidStellarTransaction() {
+    val request =
+      NotifyOnchainFundsReceivedRequest.builder()
+        .transactionId(TX_ID)
+        .stellarTransactionId(STELLAR_TX_ID)
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.requestAssetCode = FIAT_USD_CODE
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn6Store.findByTransactionId(any()) } returns null
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { horizon.getStellarTxnOperations(any()) } throws
+      IOException("Invalid stellar transaction")
+
+    val ex = assertThrows<InternalErrorException> { handler.handle(request) }
+    assertEquals("Failed to retrieve Stellar transaction by ID[stellarTxId]", ex.message)
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @Test
   fun test_handle_ok_sep31_withoutAmounts() {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
@@ -479,6 +604,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val stellarTransactions: List<StellarTransaction> =
       gson.fromJson(stellarTransactions, stellarTransactionsToken)
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
     every { txn31Store.save(capture(sep31TxnCapture)) } returns null
@@ -491,6 +617,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
@@ -544,56 +671,369 @@ class NotifyOnchainFundsReceivedHandlerTest {
     assertTrue(sep31TxnCapture.captured.updatedAt <= endDate)
   }
 
-  @Test
-  fun test_handle_ok_sep24_withoutAmounts_invalidStellarTransaction() {
+  @CsvSource(value = ["deposit", "deposit-exchange", "withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_sep6_unsupportedStatus(kind: String) {
+    val request = NotifyOnchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = INCOMPLETE.toString()
+    txn6.kind = kind
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "RPC method[notify_onchain_funds_received] is not supported. Status[incomplete], kind[$kind], protocol[6], funds received[false]",
+      ex.message
+    )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @CsvSource(value = ["deposit", "deposit-exchange"])
+  @ParameterizedTest
+  fun test_handle_sep6_unsupportedKind(kind: String) {
+    val request = NotifyOnchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_USR_TRANSFER_START.toString()
+    txn6.kind = kind
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "RPC method[notify_onchain_funds_received] is not supported. Status[pending_user_transfer_start], kind[$kind], protocol[6], funds received[false]",
+      ex.message
+    )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_ok_sep6_withAmounts(kind: String) {
+    val request =
+      NotifyOnchainFundsReceivedRequest.builder()
+        .transactionId(TX_ID)
+        .amountIn(AmountRequest("1"))
+        .amountOut(AmountRequest("0.9"))
+        .amountFee(AmountRequest("0.1"))
+        .stellarTransactionId(STELLAR_TX_ID)
+        .build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_USR_TRANSFER_START.toString()
+    txn6.kind = kind
+    txn6.requestAssetCode = FIAT_USD_CODE
+    txn6.amountInAsset = FIAT_USD
+    txn6.amountOutAsset = STELLAR_USDC
+    txn6.amountFeeAsset = STELLAR_USDC
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
+
+    val operationRecordsTypeToken =
+      object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
+    val operationRecords: ArrayList<OperationResponse> =
+      gson.fromJson(paymentOperationRecord, operationRecordsTypeToken)
+
+    val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
+    val stellarTransactions: List<StellarTransaction> =
+      gson.fromJson(stellarTransactions, stellarTransactionsToken)
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
+    every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
+      sepTransactionCounter
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
+
+    val expectedSep6Txn = JdbcSep6Transaction()
+    expectedSep6Txn.kind = kind
+    expectedSep6Txn.status = PENDING_ANCHOR.toString()
+    expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedSep6Txn.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
+    expectedSep6Txn.requestAssetCode = FIAT_USD_CODE
+    expectedSep6Txn.amountIn = "1"
+    expectedSep6Txn.amountInAsset = FIAT_USD
+    expectedSep6Txn.amountOut = "0.9"
+    expectedSep6Txn.amountOutAsset = STELLAR_USDC
+    expectedSep6Txn.amountFee = "0.1"
+    expectedSep6Txn.amountFeeAsset = STELLAR_USDC
+    expectedSep6Txn.stellarTransactionId = STELLAR_TX_ID
+    expectedSep6Txn.stellarTransactions = stellarTransactions
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep6Txn),
+      gson.toJson(sep6TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_6
+    expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
+    expectedResponse.status = PENDING_ANCHOR
+    expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
+    expectedResponse.amountIn = Amount("1", FIAT_USD)
+    expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
+    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.stellarTransactions = stellarTransactions
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_6.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep6TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.updatedAt <= endDate)
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_ok_sep6_onlyWithAmountIn(kind: String) {
+    val request =
+      NotifyOnchainFundsReceivedRequest.builder()
+        .transactionId(TX_ID)
+        .amountIn(AmountRequest("1"))
+        .stellarTransactionId(STELLAR_TX_ID)
+        .build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_USR_TRANSFER_START.toString()
+    txn6.kind = kind
+    txn6.requestAssetCode = FIAT_USD_CODE
+    txn6.amountInAsset = FIAT_USD
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
+
+    val operationRecordsTypeToken =
+      object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
+    val operationRecords: ArrayList<OperationResponse> =
+      gson.fromJson(paymentOperationRecord, operationRecordsTypeToken)
+
+    val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
+    val stellarTransactions: List<StellarTransaction> =
+      gson.fromJson(stellarTransactions, stellarTransactionsToken)
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
+    every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
+      sepTransactionCounter
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
+
+    val expectedSep6Txn = JdbcSep6Transaction()
+    expectedSep6Txn.kind = kind
+    expectedSep6Txn.status = PENDING_ANCHOR.toString()
+    expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedSep6Txn.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
+    expectedSep6Txn.requestAssetCode = FIAT_USD_CODE
+    expectedSep6Txn.amountIn = "1"
+    expectedSep6Txn.amountInAsset = FIAT_USD
+    expectedSep6Txn.stellarTransactionId = STELLAR_TX_ID
+    expectedSep6Txn.stellarTransactions = stellarTransactions
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep6Txn),
+      gson.toJson(sep6TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_6
+    expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
+    expectedResponse.status = PENDING_ANCHOR
+    expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
+    expectedResponse.amountIn = Amount("1", FIAT_USD)
+    expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.stellarTransactions = stellarTransactions
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_6.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep6TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.updatedAt <= endDate)
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_ok_sep6_withoutAmounts(kind: String) {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)
         .stellarTransactionId(STELLAR_TX_ID)
         .build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_USR_TRANSFER_START.toString()
-    txn24.kind = WITHDRAWAL.kind
-    txn24.requestAssetCode = FIAT_USD_CODE
-    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_USR_TRANSFER_START.toString()
+    txn6.kind = kind
+    txn6.requestAssetCode = FIAT_USD_CODE
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    val operationRecordsTypeToken =
+      object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
+    val operationRecords: ArrayList<OperationResponse> =
+      gson.fromJson(paymentOperationRecord, operationRecordsTypeToken)
+
+    val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
+    val stellarTransactions: List<StellarTransaction> =
+      gson.fromJson(stellarTransactions, stellarTransactionsToken)
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
+    every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
+      sepTransactionCounter
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { sepTransactionCounter.increment() }
+
+    val expectedSep6Txn = JdbcSep6Transaction()
+    expectedSep6Txn.kind = kind
+    expectedSep6Txn.status = PENDING_ANCHOR.toString()
+    expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedSep6Txn.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
+    expectedSep6Txn.requestAssetCode = FIAT_USD_CODE
+    expectedSep6Txn.stellarTransactionId = STELLAR_TX_ID
+    expectedSep6Txn.stellarTransactions = stellarTransactions
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep6Txn),
+      gson.toJson(sep6TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_6
+    expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
+    expectedResponse.status = PENDING_ANCHOR
+    expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
+    expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.stellarTransactions = stellarTransactions
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_6.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep6TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep6TxnCapture.captured.updatedAt <= endDate)
+  }
+
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  @ParameterizedTest
+  fun test_handle_ok_sep6_withoutAmounts_invalidStellarTransaction(kind: String) {
+    val request =
+      NotifyOnchainFundsReceivedRequest.builder()
+        .transactionId(TX_ID)
+        .stellarTransactionId(STELLAR_TX_ID)
+        .build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_USR_TRANSFER_START.toString()
+    txn6.kind = kind
+    txn6.requestAssetCode = FIAT_USD_CODE
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
     every { horizon.getStellarTxnOperations(any()) } throws
       IOException("Invalid stellar transaction")
 
     val ex = assertThrows<InternalErrorException> { handler.handle(request) }
     assertEquals("Failed to retrieve Stellar transaction by ID[stellarTxId]", ex.message)
 
-    verify(exactly = 0) { txn24Store.save(any()) }
-    verify(exactly = 0) { txn31Store.save(any()) }
-    verify(exactly = 0) { sepTransactionCounter.increment() }
-  }
-
-  @Test
-  fun test_handle_sep24_notAllAmounts() {
-    val request =
-      NotifyOnchainFundsReceivedRequest.builder()
-        .amountIn(AmountRequest("1"))
-        .amountOut(AmountRequest("1"))
-        .transactionId(TX_ID)
-        .build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_USR_TRANSFER_START.toString()
-    txn24.kind = WITHDRAWAL.kind
-    val sep24TxnCapture = slot<JdbcSep24Transaction>()
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-
-    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals(
-      "Invalid amounts combination provided: all, none or only amount_in should be set",
-      ex.message
-    )
-
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -702,48 +1142,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
   }
 ]  
 """
-
-  @Test
-  fun test_handle_sep24_invalidAmounts() {
-    val request =
-      NotifyOnchainFundsReceivedRequest.builder()
-        .amountIn(AmountRequest("1"))
-        .amountOut(AmountRequest("1"))
-        .amountFee(AmountRequest("1"))
-        .transactionId(TX_ID)
-        .build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_USR_TRANSFER_START.toString()
-    txn24.kind = WITHDRAWAL.kind
-    txn24.requestAssetCode = FIAT_USD_CODE
-    txn24.amountInAsset = FIAT_USD
-    txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountFeeAsset = STELLAR_USDC
-    val sep24TxnCapture = slot<JdbcSep24Transaction>()
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-
-    request.amountIn.amount = "-1"
-    var ex = assertThrows<BadRequestException> { handler.handle(request) }
-    assertEquals("amount_in.amount should be positive", ex.message)
-    request.amountIn.amount = "1"
-
-    request.amountOut.amount = "-1"
-    ex = assertThrows { handler.handle(request) }
-    assertEquals("amount_out.amount should be positive", ex.message)
-    request.amountOut.amount = "1"
-
-    request.amountFee.amount = "-1"
-    ex = assertThrows { handler.handle(request) }
-    assertEquals("amount_fee.amount should be non-negative", ex.message)
-    request.amountFee.amount = "1"
-
-    verify(exactly = 0) { txn24Store.save(any()) }
-    verify(exactly = 0) { txn31Store.save(any()) }
-    verify(exactly = 0) { sepTransactionCounter.increment() }
-  }
 
   private val stellarTransactions =
     """

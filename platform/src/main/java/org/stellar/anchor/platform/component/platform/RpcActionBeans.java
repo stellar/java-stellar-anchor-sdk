@@ -39,6 +39,8 @@ import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 @Configuration
 public class RpcActionBeans {
@@ -50,6 +52,7 @@ public class RpcActionBeans {
 
   @Bean
   DoStellarPaymentHandler doStellarPaymentHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -61,6 +64,7 @@ public class RpcActionBeans {
       MetricsService metricsService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new DoStellarPaymentHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -75,6 +79,7 @@ public class RpcActionBeans {
 
   @Bean
   DoStellarRefundHandler doStellarRefundHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -84,6 +89,7 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new DoStellarRefundHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -96,6 +102,7 @@ public class RpcActionBeans {
 
   @Bean
   NotifyAmountsUpdatedHandler notifyAmountsUpdatedHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -103,11 +110,18 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyAmountsUpdatedHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   NotifyInteractiveFlowCompletedHandler notifyInteractiveFlowCompletedHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -115,11 +129,18 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyInteractiveFlowCompletedHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   NotifyOffchainFundsAvailableHandler notifyOffchainFundsAvailableHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -127,11 +148,18 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyOffchainFundsAvailableHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   NotifyOffchainFundsPendingHandler notifyOffchainFundsPendingHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -139,11 +167,18 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyOffchainFundsPendingHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   NotifyOffchainFundsReceivedHandler notifyOffchainFundsReceivedHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -153,6 +188,7 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyOffchainFundsReceivedHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -165,6 +201,7 @@ public class RpcActionBeans {
 
   @Bean
   NotifyOffchainFundsSentHandler notifyOffchainFundsSentHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -172,11 +209,18 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyOffchainFundsSentHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   NotifyOnchainFundsReceivedHandler notifyOnchainFundsReceivedHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -185,6 +229,7 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyOnchainFundsReceivedHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -196,6 +241,7 @@ public class RpcActionBeans {
 
   @Bean
   NotifyOnchainFundsSentHandler notifyOnchainFundsSentHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -204,6 +250,7 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyOnchainFundsSentHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -215,6 +262,7 @@ public class RpcActionBeans {
 
   @Bean
   NotifyRefundPendingHandler notifyRefundPendingHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -222,11 +270,18 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyRefundPendingHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   NotifyRefundSentHandler notifyRefundSentHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -234,11 +289,18 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyRefundSentHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   NotifyTransactionErrorHandler notifyTransactionErrorHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -247,6 +309,7 @@ public class RpcActionBeans {
       MetricsService metricsService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new NotifyTransactionErrorHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -258,6 +321,7 @@ public class RpcActionBeans {
 
   @Bean
   NotifyTransactionExpiredHandler notifyTransactionExpiredHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -266,6 +330,7 @@ public class RpcActionBeans {
       MetricsService metricsService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new NotifyTransactionExpiredHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -277,6 +342,7 @@ public class RpcActionBeans {
 
   @Bean
   NotifyTransactionRecoveryHandler notifyTransactionRecoveryHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -284,11 +350,18 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyTransactionRecoveryHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   NotifyTrustSetHandler notifyTrustSetHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -298,6 +371,7 @@ public class RpcActionBeans {
       PropertyCustodyConfig custodyConfig,
       CustodyService custodyService) {
     return new NotifyTrustSetHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -310,6 +384,7 @@ public class RpcActionBeans {
 
   @Bean
   RequestCustomerInfoUpdateHandler requestCustomerInfoUpdateHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -317,11 +392,18 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new RequestCustomerInfoUpdateHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   NotifyCustomerInfoUpdatedHandler notifyCustomerInfoUpdatedHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -329,11 +411,18 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new NotifyCustomerInfoUpdatedHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   RequestOffchainFundsHandler requestOffchainFundsHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -341,27 +430,37 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new RequestOffchainFundsHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService, metricsService);
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
   }
 
   @Bean
   RequestOnchainFundsHandler requestOnchainFundsHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig,
+      Sep6DepositInfoGenerator sep6DepositInfoGenerator,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
       EventService eventService,
       MetricsService metricsService) {
     return new RequestOnchainFundsHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
         custodyService,
         custodyConfig,
+        sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
         eventService,
         metricsService);
@@ -369,6 +468,7 @@ public class RpcActionBeans {
 
   @Bean
   RequestTrustlineHandler requestTrustHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -377,6 +477,7 @@ public class RpcActionBeans {
       EventService eventService,
       MetricsService metricsService) {
     return new RequestTrustlineHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,

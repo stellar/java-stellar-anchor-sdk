@@ -2,9 +2,8 @@ package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_AMOUNTS_UPDATED;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
 import java.util.Set;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -25,10 +24,12 @@ import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsUpdatedRequest> {
 
   public NotifyAmountsUpdatedHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
@@ -36,6 +37,7 @@ public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsU
       EventService eventService,
       MetricsService metricsService) {
     super(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
@@ -80,15 +82,20 @@ public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsU
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    if (SEP_24 == Sep.from(txn.getProtocol())) {
-      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-      if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-        if (areFundsReceived(txn24)) {
-          return Set.of(PENDING_ANCHOR);
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        return Set.of(INCOMPLETE, PENDING_ANCHOR, PENDING_CUSTOMER_INFO_UPDATE);
+      case SEP_24:
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        if (WITHDRAWAL == Kind.from(txn24.getKind())) {
+          if (areFundsReceived(txn24)) {
+            return Set.of(PENDING_ANCHOR);
+          }
         }
-      }
+        return emptySet();
+      default:
+        return emptySet();
     }
-    return emptySet();
   }
 
   @Override

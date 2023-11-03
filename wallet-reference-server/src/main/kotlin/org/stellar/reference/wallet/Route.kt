@@ -1,5 +1,6 @@
 package org.stellar.reference.wallet
 
+import com.google.gson.Gson
 import com.google.gson.JsonObject
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -11,7 +12,7 @@ import org.stellar.reference.wallet.CallbackService.Companion.verifySignature
 import org.stellar.sdk.KeyPair
 
 var signer: KeyPair? = null
-val gson = GsonUtils.getInstance()
+val gson: Gson = GsonUtils.getInstance()
 
 fun Route.callback(config: Config, callbackEventService: CallbackService) {
   route("/callbacks") {
