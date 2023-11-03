@@ -200,17 +200,6 @@ class Sep6EventProcessor(
                 RequestOffchainFundsRequest(
                   transactionId = transaction.id,
                   message = "Please deposit the amount to the following bank account",
-                  amountIn =
-                    AmountAssetRequest(
-                      asset = "iso4217:USD",
-                      amount = transaction.amountExpected.amount
-                    ),
-                  amountOut =
-                    AmountAssetRequest(
-                      asset = transaction.amountOut.asset,
-                      amount = transaction.amountOut.amount
-                    ),
-                  amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
                   instructions =
                     mapOf(
                       "organization.bank_number" to
@@ -237,19 +226,7 @@ class Sep6EventProcessor(
                 "request_onchain_funds",
                 RequestOnchainFundsRequest(
                   transactionId = transaction.id,
-                  message = "Please deposit the amount to the following address",
-                  amountIn =
-                    AmountAssetRequest(
-                      asset = transaction.amountExpected.asset,
-                      amount = transaction.amountExpected.amount
-                    ),
-                  amountOut =
-                    AmountAssetRequest(
-                      asset = "iso4217:USD",
-                      amount = transaction.amountExpected.amount
-                    ),
-                  amountFee =
-                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
+                  message = "Please deposit the amount to the following address"
                 )
               )
             }
@@ -275,21 +252,57 @@ class Sep6EventProcessor(
   }
 
   private fun updateAmounts(event: AnchorEvent) {
-    val asset =
-      when (event.transaction.kind) {
-        Kind.DEPOSIT -> event.transaction.amountExpected.asset
-        Kind.WITHDRAWAL -> "iso4217:USD"
-        else -> throw RuntimeException("Unsupported kind: ${event.transaction.kind}")
-      }
     runBlocking {
-      sepHelper.rpcAction(
-        "notify_amounts_updated",
-        NotifyAmountsUpdatedRequest(
-          transactionId = event.transaction.id,
-          amountOut = AmountAssetRequest(asset, amount = event.transaction.amountExpected.amount),
-          amountFee = AmountAssetRequest(asset, amount = "0")
-        )
-      )
+      when (event.transaction.kind) {
+        Kind.DEPOSIT ->
+          runBlocking {
+            sepHelper.rpcAction(
+              "notify_amounts_assets_updated",
+              NotifyAmountsAssetsUpdatedRequest(
+                transactionId = event.transaction.id,
+                message = "Amounts updated",
+                amountIn =
+                  AmountAssetRequest(
+                    asset = "iso4217:USD",
+                    amount = event.transaction.amountExpected.amount
+                  ),
+                amountOut =
+                  AmountAssetRequest(
+                    asset = event.transaction.amountExpected.asset,
+                    amount = event.transaction.amountExpected.amount
+                  ),
+                amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0")
+              )
+            )
+          }
+        Kind.WITHDRAWAL ->
+          runBlocking {
+            sepHelper.rpcAction(
+              "notify_amounts_assets_updated",
+              NotifyAmountsAssetsUpdatedRequest(
+                transactionId = event.transaction.id,
+                message = "Amounts updated",
+                amountIn =
+                  AmountAssetRequest(
+                    asset = event.transaction.amountExpected.asset,
+                    amount = event.transaction.amountExpected.amount
+                  ),
+                amountOut =
+                  AmountAssetRequest(
+                    asset = "iso4217:USD",
+                    amount = event.transaction.amountExpected.amount
+                  ),
+                amountFee =
+                  AmountAssetRequest(asset = event.transaction.amountExpected.asset, amount = "0")
+              )
+            )
+          }
+        else -> {
+          log.warn(
+            "Received transaction created event with unsupported kind: ${event.transaction.kind}"
+          )
+        }
+      }
     }
   }
 

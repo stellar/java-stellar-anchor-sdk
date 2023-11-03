@@ -62,6 +62,9 @@ public enum RpcMethod {
   @SerializedName("request_onchain_funds")
   REQUEST_ONCHAIN_FUNDS("request_onchain_funds"),
 
+  @SerializedName("notify_amounts_assets_updated")
+  NOTIFY_AMOUNTS_ASSETS_UPDATED("notify_amounts_assets_updated"),
+
   @SerializedName("notify_amounts_updated")
   NOTIFY_AMOUNTS_UPDATED("notify_amounts_updated"),
 
