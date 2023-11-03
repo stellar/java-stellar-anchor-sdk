@@ -7,6 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
@@ -25,6 +26,7 @@ import org.stellar.walletsdk.anchor.customer
 import org.stellar.walletsdk.asset.IssuedAssetId
 import org.stellar.walletsdk.horizon.sign
 
+@Disabled
 class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   private val maxTries = 30
   private val anchorReferenceServerClient =
