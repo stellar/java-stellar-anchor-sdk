@@ -48,12 +48,16 @@ dependencies {
   testImplementation(libs.dotenv)
 }
 
-tasks {
-  bootJar { enabled = false }
-  test {
-    useJUnitPlatform()
-    // Setting forkEvery to 1 makes Gradle test execution to start a separeate JVM for each integration test classes.
-    // This is to to avoid the interaction between static states between each integration test classes.
-    setForkEvery(1)
-  }
+tasks { bootJar { enabled = false } }
+
+apply(from = "$rootDir/scripts.gradle.kts")
+
+@Suppress("UNCHECKED_CAST")
+val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
+
+tasks.test {
+  enableTestConcurrency(this)
+  exclude("**/org/stellar/anchor/platform/*Test.class")
+  exclude("**/org/stellar/anchor/platform/integrationtest/**")
+  exclude("**/org/stellar/anchor/platform/e2etest/**")
 }

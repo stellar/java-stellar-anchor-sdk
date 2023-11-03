@@ -3,6 +3,9 @@ package org.stellar.anchor.platform
 import org.junit.jupiter.api.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
+// Temporarily disable this test because we can only run test server in the default profile at this
+// moment. This will be moved to extended tests.
+@Disabled
 class AnchorPlatformCustodyEnd2EndTest :
   AbstractIntegrationTest(TestConfig(testProfileName = "default-custody")) {
 
@@ -27,13 +30,5 @@ class AnchorPlatformCustodyEnd2EndTest :
   @Order(1)
   fun runSep24Test() {
     singleton.sep24CustodyE2eTests.testAll()
-  }
-
-  @Test
-  @Order(11)
-  fun runSep6Test() {
-    // The SEP-6 reference server implementation only implements RPC, so technically this test
-    // should be in the RPC test suite.
-    singleton.sep6E2eTests.testAll()
   }
 }

@@ -1,8 +1,9 @@
-package org.stellar.anchor.platform.test
+package org.stellar.anchor.platform.integrationtest
 
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
@@ -10,15 +11,13 @@ import org.stellar.anchor.platform.Sep38Client
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.printRequest
 import org.stellar.anchor.platform.printResponse
-import org.stellar.anchor.util.Sep1Helper.TomlContent
+import org.stellar.anchor.platform.suite.AbstractIntegrationTests
 
-class Sep38Tests(config: TestConfig, toml: TomlContent, jwt: String) {
-  private val sep38Client: Sep38Client
+class Sep38Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+  private val sep38Client: Sep38Client =
+    Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), this.token.token)
 
-  init {
-    sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
-  }
-
+  @Test
   fun `test sep38 info, price and prices endpoints`() {
     // GET {SEP38}/info
     printRequest("Calling GET /info")
@@ -72,6 +71,7 @@ class Sep38Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     assertEquals(postQuote, getQuote)
   }
 
+  @Test
   fun `test selling over asset limit throws an exception`() {
     printRequest("Calling GET /price")
 
@@ -83,11 +83,5 @@ class Sep38Tests(config: TestConfig, toml: TomlContent, jwt: String) {
         SEP31
       )
     }
-  }
-
-  fun testAll() {
-    println("Performing SEP38 tests...")
-    `test sep38 info, price and prices endpoints`()
-    `test selling over asset limit throws an exception`()
   }
 }

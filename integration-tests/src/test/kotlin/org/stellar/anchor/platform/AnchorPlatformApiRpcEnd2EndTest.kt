@@ -3,6 +3,9 @@ package org.stellar.anchor.platform
 import org.junit.jupiter.api.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
+// Temporarily disable this test because we can only run test server in the default profile at this
+// moment. This will be moved to extended tests.
+@Disabled
 class AnchorPlatformApiRpcEnd2EndTest :
   AbstractIntegrationTest(TestConfig(testProfileName = "default-rpc")) {
 

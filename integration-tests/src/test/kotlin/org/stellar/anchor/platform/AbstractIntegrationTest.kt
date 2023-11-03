@@ -1,7 +1,15 @@
 package org.stellar.anchor.platform
 
+import io.ktor.client.plugins.*
+import io.ktor.http.*
+import kotlinx.coroutines.runBlocking
 import org.stellar.anchor.platform.test.*
 import org.stellar.anchor.util.Sep1Helper
+import org.stellar.walletsdk.ApplicationConfiguration
+import org.stellar.walletsdk.StellarConfiguration
+import org.stellar.walletsdk.Wallet
+import org.stellar.walletsdk.anchor.auth
+import org.stellar.walletsdk.horizon.SigningKeyPair
 
 open class AbstractIntegrationTest(private val config: TestConfig) {
   companion object {
@@ -20,21 +28,8 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   }
 
   val testProfileRunner = TestProfileExecutor(config)
-  lateinit var sep6Tests: Sep6Tests
-  lateinit var sep10Tests: Sep10Tests
-  lateinit var sep12Tests: Sep12Tests
-  lateinit var sep24Tests: Sep24Tests
-  lateinit var sep31Tests: Sep31Tests
-  lateinit var sep38Tests: Sep38Tests
-  lateinit var sepHealthTests: SepHealthTests
-  lateinit var platformApiTests: PlatformApiTests
   lateinit var platformApiCustodyTests: PlatformApiCustodyTests
-  lateinit var callbackApiTests: CallbackApiTests
-  lateinit var stellarObserverTests: StellarObserverTests
   lateinit var custodyApiTests: CustodyApiTests
-  lateinit var eventProcessingServerTests: EventProcessingServerTests
-  lateinit var sep24E2eTests: Sep24End2EndTests
-  lateinit var sep6E2eTests: Sep6End2EndTest
   lateinit var sep24RpcE2eTests: Sep24RpcEnd2EndTests
   lateinit var sep24CustodyE2eTests: Sep24CustodyEnd2EndTests
   lateinit var sep24CustodyRpcE2eTests: Sep24CustodyRpcEnd2EndTests
@@ -51,35 +46,31 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     testProfileRunner.shutdown()
   }
 
-  private fun setupTests() {
+  private fun setupTests() = runBlocking {
     // Query SEP-1
     val toml =
       Sep1Helper.parse(resourceAsString("${config.env["anchor.domain"]}/.well-known/stellar.toml"))
 
-    // Create Sep10Tests
-    sep10Tests = Sep10Tests(toml)
-
     // Get JWT
-    val jwt = sep10Tests.sep10Client.auth()
+    val jwt = auth()
 
-    sep6Tests = Sep6Tests(toml, jwt)
-    sep12Tests = Sep12Tests(config, toml, jwt)
-    sep24Tests = Sep24Tests(config, toml, jwt)
-    sep31Tests = Sep31Tests(config, toml, jwt)
-    sep38Tests = Sep38Tests(config, toml, jwt)
-    sepHealthTests = SepHealthTests(config, toml, jwt)
-    platformApiTests = PlatformApiTests(config, toml, jwt)
     platformApiCustodyTests = PlatformApiCustodyTests(config, toml, jwt)
-    callbackApiTests = CallbackApiTests(config, toml, jwt)
-    stellarObserverTests = StellarObserverTests()
     custodyApiTests = CustodyApiTests(config, toml, jwt)
-    sep24E2eTests = Sep24End2EndTests(config, jwt)
-    sep6E2eTests = Sep6End2EndTest(config, jwt)
     sep24CustodyE2eTests = Sep24CustodyEnd2EndTests(config, jwt)
     sep24RpcE2eTests = Sep24RpcEnd2EndTests(config, jwt)
     sep24CustodyRpcE2eTests = Sep24CustodyRpcEnd2EndTests(config, jwt)
     sep31RpcE2eTests = Sep31RpcEnd2EndTests(config, toml, jwt)
     sep31CustodyRpcE2eTests = Sep31CustodyRpcEnd2EndTests(config, toml, jwt)
-    eventProcessingServerTests = EventProcessingServerTests(config, toml, jwt)
+  }
+
+  private suspend fun auth(): String {
+    val wallet =
+      Wallet(
+        StellarConfiguration.Testnet,
+        ApplicationConfiguration { defaultRequest { url { protocol = URLProtocol.HTTP } } }
+      )
+    val walletKeyPair = SigningKeyPair.fromSecret(CLIENT_WALLET_SECRET)
+    val anchor = wallet.anchor(config.env["anchor.domain"]!!)
+    return anchor.auth().authenticate(walletKeyPair).token
   }
 }

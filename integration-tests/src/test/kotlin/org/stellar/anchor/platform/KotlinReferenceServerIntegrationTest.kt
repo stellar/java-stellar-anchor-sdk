@@ -10,6 +10,9 @@ import org.stellar.anchor.util.StringHelper.json
 import org.stellar.reference.client.AnchorReferenceServerClient
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+// Temporarily disable this test because we can only run test server in the default profile at this
+// moment. This will be moved to extended tests.
+@Disabled
 internal class KotlinReferenceServerIntegrationTest {
   private val testProfileRunner =
     TestProfileExecutor(
