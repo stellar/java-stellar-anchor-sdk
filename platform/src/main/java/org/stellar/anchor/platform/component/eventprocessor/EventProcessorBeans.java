@@ -12,6 +12,7 @@ import org.stellar.anchor.platform.event.EventProcessorManager;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 @Configuration
 public class EventProcessorBeans {
@@ -24,6 +25,7 @@ public class EventProcessorBeans {
       PropertyClientsConfig clientsConfig,
       EventService eventService,
       AssetService assetService,
+      Sep6TransactionStore sep6TransactionStore,
       Sep24TransactionStore sep24TransactionStore,
       Sep31TransactionStore sep31TransactionStore,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
@@ -34,6 +36,7 @@ public class EventProcessorBeans {
         clientsConfig,
         eventService,
         assetService,
+        sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,
         moreInfoUrlConstructor);

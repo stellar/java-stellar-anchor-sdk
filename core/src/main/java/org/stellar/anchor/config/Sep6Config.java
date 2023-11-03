@@ -11,6 +11,8 @@ public interface Sep6Config {
 
   Features getFeatures();
 
+  DepositInfoGeneratorType getDepositInfoGeneratorType();
+
   @Getter
   @Setter
   @AllArgsConstructor
@@ -21,5 +23,11 @@ public interface Sep6Config {
 
     @SerializedName("claimable_balances")
     boolean claimableBalances;
+  }
+
+  enum DepositInfoGeneratorType {
+    SELF,
+    CUSTODY,
+    NONE
   }
 }

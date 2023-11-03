@@ -15,6 +15,7 @@ import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.MetricConstants.*;
 
+import com.google.common.collect.ImmutableSet;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
@@ -29,6 +30,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.api.exception.NotFoundException;
+import org.stellar.anchor.api.platform.*;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.GetTransactionsResponse;
 import org.stellar.anchor.api.platform.PatchTransactionRequest;
@@ -36,11 +38,11 @@ import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
+import org.stellar.anchor.api.platform.TransactionsSeps;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.SepDepositInfo;
-import org.stellar.anchor.apiclient.TransactionsSeps;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
@@ -48,6 +50,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.Session;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
+import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24Refunds;
@@ -57,6 +60,8 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
+import org.stellar.anchor.sep6.Sep6Transaction;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.*;
 import org.stellar.anchor.util.Log;
@@ -75,6 +80,8 @@ public class TransactionService {
   private final List<AssetInfo> assets;
   private final Session eventSession;
   private final AssetService assetService;
+
+  private final Sep6DepositInfoGenerator sep6DepositInfoGenerator;
   private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;
@@ -115,6 +122,7 @@ public class TransactionService {
       Sep38QuoteStore quoteStore,
       AssetService assetService,
       EventService eventService,
+      Sep6DepositInfoGenerator sep6DepositInfoGenerator,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
@@ -125,6 +133,7 @@ public class TransactionService {
     this.assets = assetService.listAllAssets();
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.assetService = assetService;
+    this.sep6DepositInfoGenerator = sep6DepositInfoGenerator;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
@@ -202,6 +211,10 @@ public class TransactionService {
     if (txn31 != null) {
       return (JdbcSep31Transaction) txn31;
     }
+    Sep6Transaction txn6 = txn6Store.findByTransactionId(txnId);
+    if (txn6 != null) {
+      return (JdbcSep6Transaction) txn6;
+    }
 
     return (JdbcSep24Transaction) txn24Store.findByTransactionId(txnId);
   }
@@ -247,6 +260,45 @@ public class TransactionService {
     String lastStatus = txn.getStatus();
     updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
+      case "6":
+        JdbcSep6Transaction sep6Transaction = (JdbcSep6Transaction) txn;
+        Log.infoF(
+            "Updating SEP-6 transaction: {}", GsonUtils.getInstance().toJson(sep6Transaction));
+
+        boolean shouldCreateDepositTxn =
+            ImmutableSet.of(Kind.DEPOSIT, Kind.DEPOSIT_EXCHANGE)
+                    .contains(Kind.from(sep6Transaction.getKind()))
+                // TODO: check if this is correct
+                && txn.getStatus().equals(PENDING_ANCHOR.toString());
+        boolean shouldCreateWithdrawTxn =
+            ImmutableSet.of(Kind.WITHDRAWAL, Kind.WITHDRAWAL_EXCHANGE)
+                    .contains(Kind.from(sep6Transaction.getKind()))
+                && txn.getStatus().equals(PENDING_USR_TRANSFER_START.toString());
+
+        if (sep6Transaction.getMemo() == null && shouldCreateWithdrawTxn) {
+          SepDepositInfo sep6DepositInfo = sep6DepositInfoGenerator.generate(sep6Transaction);
+          sep6Transaction.setWithdrawAnchorAccount(sep6DepositInfo.getStellarAddress());
+          sep6Transaction.setMemo(sep6DepositInfo.getMemo());
+          sep6Transaction.setMemoType(sep6DepositInfo.getMemoType());
+        }
+
+        if (custodyConfig.isCustodyIntegrationEnabled()
+            && !lastStatus.equals(sep6Transaction.getStatus())
+            && (shouldCreateDepositTxn || shouldCreateWithdrawTxn)) {
+          custodyService.createTransaction(sep6Transaction);
+        }
+
+        txn6Store.save(sep6Transaction);
+        eventSession.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("6")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(
+                    TransactionHelper.toGetTransactionResponse(sep6Transaction, assetService))
+                .build());
+        patchSep6TransactionCounter.increment();
+        break;
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
 
@@ -322,6 +374,14 @@ public class TransactionService {
     }
 
     switch (txn.getProtocol()) {
+      case "6":
+        JdbcSep6Transaction sep6Txn = (JdbcSep6Transaction) txn;
+        txnUpdated = updateField(patch, sep6Txn, "requiredInfoMessage", txnUpdated);
+        txnUpdated = updateField(patch, sep6Txn, "requiredInfoUpdates", txnUpdated);
+        txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoMessage", txnUpdated);
+        txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoUpdates", txnUpdated);
+        txnUpdated = updateField(patch, sep6Txn, "instructions", txnUpdated);
+        break;
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
 
@@ -427,14 +487,14 @@ public class TransactionService {
 
     // asset name needs to be supported
     if (assets.stream()
-        .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
+        .noneMatch(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))) {
       throw new BadRequestException(
           String.format("'%s' is not a supported asset.", amount.getAsset()));
     }
 
     List<AssetInfo> allAssets =
         assets.stream()
-            .filter(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))
+            .filter(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))
             .collect(Collectors.toList());
 
     if (allAssets.size() == 1) {

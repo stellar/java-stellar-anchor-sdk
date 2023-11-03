@@ -15,7 +15,8 @@ import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventRequestPayload
 import org.stellar.anchor.api.event.AnchorEvent
-import org.stellar.anchor.api.event.AnchorEvent.Type.*
+import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED
+import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.anchor.auth.JwtService
@@ -233,9 +234,9 @@ class Sep24End2EndTests(config: TestConfig, val jwt: String) {
     var callbacks: List<Sep24GetTransactionResponse>? = null
     while (retries > 0) {
       callbacks =
-        walletServerClient
-          .getCallbackHistory(txnId, Sep24GetTransactionResponse::class.java)
-          .distinctBy { it.transaction.status }
+        walletServerClient.getCallbacks(txnId, Sep24GetTransactionResponse::class.java).distinctBy {
+          it.transaction.status
+        }
       if (callbacks.size == count) {
         return callbacks
       }

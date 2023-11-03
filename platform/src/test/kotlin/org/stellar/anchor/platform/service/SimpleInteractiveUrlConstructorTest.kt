@@ -22,8 +22,8 @@ import org.stellar.anchor.auth.JwtService.*
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
-import org.stellar.anchor.config.ClientsConfig.ClientType
-import org.stellar.anchor.config.ClientsConfig.ClientType.*
+import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
+import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.callback.PlatformIntegrationHelperTest.Companion.TEST_HOME_DOMAIN
@@ -81,14 +81,14 @@ class SimpleInteractiveUrlConstructorTest {
     } returns
       ClientConfig(
         "some-wallet",
-        ClientType.CUSTODIAL,
+        CUSTODIAL,
         "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         null,
         null,
         false,
         null
       )
-    every { testAsset.assetName } returns
+    every { testAsset.sep38AssetName } returns
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     every { sep10Jwt.homeDomain } returns TEST_HOME_DOMAIN
 

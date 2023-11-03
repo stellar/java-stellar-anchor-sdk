@@ -14,6 +14,7 @@ import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.client.ClientFinder;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
@@ -39,6 +40,8 @@ import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
+import org.stellar.anchor.sep6.ExchangeAmountsCalculator;
+import org.stellar.anchor.sep6.RequestValidator;
 import org.stellar.anchor.sep6.Sep6Service;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
@@ -53,12 +56,6 @@ public class SepBeans {
   @ConfigurationProperties(prefix = "sep1")
   Sep1Config sep1Config() {
     return new PropertySep1Config();
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "sep6")
-  Sep6Config sep6Config() {
-    return new PropertySep6Config();
   }
 
   @Bean
@@ -96,6 +93,10 @@ public class SepBeans {
       JwtService jwtService, Sep38Config sep38Config) {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10JwtFilter(jwtService));
+    registrationBean.addUrlPatterns("/sep6/deposit/*");
+    registrationBean.addUrlPatterns("/sep6/deposit-exchange/*");
+    registrationBean.addUrlPatterns("/sep6/withdraw/*");
+    registrationBean.addUrlPatterns("/sep6/withdraw-exchange/*");
     registrationBean.addUrlPatterns("/sep6/transaction");
     registrationBean.addUrlPatterns("/sep6/transactions*");
     registrationBean.addUrlPatterns("/sep6/transactions/*");
@@ -122,10 +123,29 @@ public class SepBeans {
   }
 
   @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep6", "sep24"})
+  ClientFinder clientFinder(Sep10Config sep10Config, ClientsConfig clientsConfig) {
+    return new ClientFinder(sep10Config, clientsConfig);
+  }
+
+  @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep6"})
   Sep6Service sep6Service(
-      Sep6Config sep6Config, AssetService assetService, Sep6TransactionStore txnStore) {
-    return new Sep6Service(sep6Config, assetService, txnStore);
+      Sep6Config sep6Config,
+      AssetService assetService,
+      Sep6TransactionStore txnStore,
+      EventService eventService,
+      Sep38QuoteStore sep38QuoteStore) {
+    RequestValidator requestValidator = new RequestValidator(assetService);
+    ExchangeAmountsCalculator exchangeAmountsCalculator =
+        new ExchangeAmountsCalculator(sep38QuoteStore);
+    return new Sep6Service(
+        sep6Config,
+        assetService,
+        requestValidator,
+        txnStore,
+        exchangeAmountsCalculator,
+        eventService);
   }
 
   @Bean
@@ -141,8 +161,11 @@ public class SepBeans {
 
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep12"})
-  Sep12Service sep12Service(CustomerIntegration customerIntegration, AssetService assetService) {
-    return new Sep12Service(customerIntegration, assetService);
+  Sep12Service sep12Service(
+      CustomerIntegration customerIntegration,
+      AssetService assetService,
+      EventService eventService) {
+    return new Sep12Service(customerIntegration, assetService, eventService);
   }
 
   @Bean

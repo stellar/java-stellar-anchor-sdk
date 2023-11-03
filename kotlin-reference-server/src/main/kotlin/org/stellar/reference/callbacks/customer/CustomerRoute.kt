@@ -10,7 +10,7 @@ import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.callbacks.BadRequestException
-import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
+import org.stellar.reference.di.AUTH_CONFIG_ENDPOINT
 
 /**
  * Defines the routes related to the customer callback API. See

@@ -5,8 +5,17 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.rpc.method.DoStellarRefundRequest;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.sep6.Sep6Transaction;
 
 public interface CustodyService {
+
+  /**
+   * Create custody transaction for SEP6 transaction
+   *
+   * @param txn SEP6 transaction
+   * @throws AnchorException if error happens
+   */
+  void createTransaction(Sep6Transaction txn) throws AnchorException;
 
   /**
    * Create custody transaction for SEP24 transaction

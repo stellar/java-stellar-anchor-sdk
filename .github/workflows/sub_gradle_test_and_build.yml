@@ -42,7 +42,7 @@ jobs:
 
       # Prepare Stellar Validation Tests
       - name: Pull Stellar Validation Tests Docker Image
-        run: docker pull stellar/anchor-tests:v0.6.5 &
+        run: docker pull stellar/anchor-tests:v0.6.9 &
 
       # Set up JDK 11
       - name: Set up JDK 11
@@ -109,7 +109,7 @@ jobs:
 
       - name: Run Stellar validation tool
         run: |
-          docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.6.5 --home-domain http://host.docker.internal:8080 --seps 1 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
+          docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.6.9 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
 
       - name: Upload Artifacts
         if: always()

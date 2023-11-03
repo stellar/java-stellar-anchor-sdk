@@ -95,6 +95,7 @@ sep31.enabled:
 sep31.payment_type:
 sep38.enabled:
 sep38.sep10_enforced:
+sep6.deposit_info_generator_type:
 sep6.enabled:
 sep6.features.account_creation:
 sep6.features.claimable_balances:
