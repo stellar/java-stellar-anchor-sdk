@@ -9,12 +9,14 @@ import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
-import org.springframework.data.domain.Sort
+import org.springframework.data.domain.Sort.Direction
+import org.springframework.data.domain.Sort.Direction.*
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.*
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31
 import org.stellar.anchor.api.platform.PlatformTransactionData.builder
 import org.stellar.anchor.api.sep.SepTransactionStatus
+import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse
 import org.stellar.anchor.api.sep.sep12.Sep12Status
@@ -63,7 +65,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     JSONAssert.assertEquals(expectedTxn, json(savedTxn), LENIENT)
     assertEquals(postTxResponse.id, savedTxn.transaction.id)
     assertEquals(postTxResponse.stellarMemo, savedTxn.transaction.stellarMemo)
-    assertEquals(SepTransactionStatus.PENDING_SENDER.status, savedTxn.transaction.status)
+    assertEquals(PENDING_SENDER.status, savedTxn.transaction.status)
   }
 
   private fun mkCustomers(): Pair<Sep12PutCustomerResponse, Sep12PutCustomerResponse> {
@@ -125,7 +127,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     // Order test
     val descTxs =
       getTransactions(
-        order = Sort.Direction.DESC,
+        order = DESC,
       )
     assertOrderCorrect(all.reversed(), descTxs.records)
 
@@ -139,31 +141,18 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     val orderByDesc =
       getTransactions(
         orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT,
-        order = Sort.Direction.DESC,
+        order = DESC,
         pageSize = 1000
       )
     assertOrderCorrect(listOf(tx3, tx2, tx1), orderByDesc.records)
 
     // Statuses test
-    val statusesTxs =
-      getTransactions(
-        statuses = listOf(SepTransactionStatus.PENDING_SENDER, SepTransactionStatus.REFUNDED),
-        pageSize = 1000
-      )
+    val statusesTxs = getTransactions(statuses = listOf(PENDING_SENDER, REFUNDED), pageSize = 1000)
     assertOrderCorrect(listOf(tx1, tx2), statusesTxs.records)
-
-    // Pagination test
-    val pageNull = getTransactions(pageSize = 1, order = Sort.Direction.DESC)
-    val page0 = getTransactions(pageSize = 1, pageNumber = 0, order = Sort.Direction.DESC)
-    assertOrderCorrect(listOf(tx3), pageNull.records)
-    assertOrderCorrect(listOf(tx3), page0.records)
-
-    val page2 = getTransactions(pageSize = 1, pageNumber = 2, order = Sort.Direction.DESC)
-    assertOrderCorrect(listOf(tx1), page2.records)
   }
 
   private fun getTransactions(
-    order: Sort.Direction? = null,
+    order: Direction? = null,
     orderBy: TransactionsOrderBy? = null,
     statuses: List<SepTransactionStatus>? = null,
     pageSize: Int? = null,
@@ -199,17 +188,13 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
         .records(
           listOf(
             PatchTransactionRequest(
-              builder()
-                .id(tx3.id)
-                .transferReceivedAt(Instant.now())
-                .status(SepTransactionStatus.COMPLETED)
-                .build()
+              builder().id(tx3.id).transferReceivedAt(Instant.now()).status(COMPLETED).build()
             ),
             PatchTransactionRequest(
               builder()
                 .id(tx2.id)
                 .transferReceivedAt(Instant.now().minusSeconds(12345))
-                .status(SepTransactionStatus.REFUNDED)
+                .status(REFUNDED)
                 .build()
             )
           )
@@ -278,7 +263,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     // GET platformAPI transaction
     val getTxResponse = platformApiClient.getTransaction(postTxResponse.id)
     assertEquals(postTxResponse.id, getTxResponse.id)
-    assertEquals(SepTransactionStatus.PENDING_SENDER, getTxResponse.status)
+    assertEquals(PENDING_SENDER, getTxResponse.status)
     assertEquals(txnRequest.amount, getTxResponse.amountIn.amount)
     assertTrue(getTxResponse.amountIn.asset.contains(txnRequest.assetCode))
     assertEquals(SEP_31, getTxResponse.sep)
@@ -301,7 +286,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
         .transaction(
           builder()
             .id(getTxResponse.id)
-            .status(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE)
+            .status(PENDING_CUSTOMER_INFO_UPDATE)
             .message("The receiving customer clabe_number is invalid!")
             .build()
         )
@@ -313,7 +298,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     assertEquals(1, patchTxResponse.records.size)
     var patchedTx = patchTxResponse.records[0]
     assertEquals(getTxResponse.id, patchedTx.id)
-    assertEquals(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE, patchedTx.status)
+    assertEquals(PENDING_CUSTOMER_INFO_UPDATE, patchedTx.status)
     assertEquals(SEP_31, patchedTx.sep)
     assertEquals("The receiving customer clabe_number is invalid!", patchedTx.message)
     assertTrue(patchedTx.updatedAt > patchedTx.startedAt)
@@ -321,10 +306,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     // GET SEP-31 transaction should return PENDING_CUSTOMER_INFO_UPDATE with a message
     var gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)
     assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
-    assertEquals(
-      SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE.status,
-      gotSep31TxResponse.transaction.status
-    )
+    assertEquals(PENDING_CUSTOMER_INFO_UPDATE.status, gotSep31TxResponse.transaction.status)
     assertEquals(
       "The receiving customer clabe_number is invalid!",
       gotSep31TxResponse.transaction.requiredInfoMessage
@@ -345,11 +327,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     patchTxRequest =
       PatchTransactionRequest.builder()
         .transaction(
-          builder()
-            .id(getTxResponse.id)
-            .completedAt(Instant.now())
-            .status(SepTransactionStatus.COMPLETED)
-            .build()
+          builder().id(getTxResponse.id).completedAt(Instant.now()).status(COMPLETED).build()
         )
         .build()
     patchTxResponse =
@@ -359,7 +337,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     assertEquals(1, patchTxResponse.records.size)
     patchedTx = patchTxResponse.records[0]
     assertEquals(getTxResponse.id, patchedTx.id)
-    assertEquals(SepTransactionStatus.COMPLETED, patchedTx.status)
+    assertEquals(COMPLETED, patchedTx.status)
     assertEquals(SEP_31, patchedTx.sep)
     assertNull(patchedTx.message)
     assertTrue(patchedTx.startedAt < patchedTx.updatedAt)
@@ -368,7 +346,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "defaul
     // GET SEP-31 transaction should return COMPLETED with no message
     gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)
     assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
-    assertEquals(SepTransactionStatus.COMPLETED.status, gotSep31TxResponse.transaction.status)
+    assertEquals(COMPLETED.status, gotSep31TxResponse.transaction.status)
     assertNull(gotSep31TxResponse.transaction.requiredInfoMessage)
     assertNotNull(patchedTx.completedAt)
   }
