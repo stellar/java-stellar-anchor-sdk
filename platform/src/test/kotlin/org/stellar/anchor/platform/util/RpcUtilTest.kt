@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.util
+package org.stellar.anchor.platform.util
 
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -37,11 +37,7 @@ class RpcUtilTest {
 
   @Test
   fun `test get rpc success response`() {
-    val response =
-      _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.getRpcSuccessResponse(
-        RPC_ID,
-        RPC_RESULT
-      )
+    val response = RpcUtil.getRpcSuccessResponse(RPC_ID, RPC_RESULT)
     assertNotNull(response)
     assertNull(response.error)
     assertEquals(RPC_ID, response.id)
@@ -51,11 +47,7 @@ class RpcUtilTest {
 
   @Test
   fun `test get rpc invalid request response`() {
-    val response =
-      _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.getRpcErrorResponse(
-        rpcRequest,
-        InvalidRequestException(ERROR_MSG)
-      )
+    val response = RpcUtil.getRpcErrorResponse(rpcRequest, InvalidRequestException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
     assertEquals(RpcErrorCode.INVALID_REQUEST.errorCode, response.error.code)
@@ -63,11 +55,7 @@ class RpcUtilTest {
 
   @Test
   fun `test get rpc internal error response`() {
-    val response =
-      _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.getRpcErrorResponse(
-        rpcRequest,
-        InternalErrorException(ERROR_MSG)
-      )
+    val response = RpcUtil.getRpcErrorResponse(rpcRequest, InternalErrorException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
     assertEquals(TXN_ID, response.error.id)
@@ -76,11 +64,7 @@ class RpcUtilTest {
 
   @Test
   fun `test get rpc method not found response`() {
-    val response =
-      _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.getRpcErrorResponse(
-        rpcRequest,
-        MethodNotFoundException(ERROR_MSG)
-      )
+    val response = RpcUtil.getRpcErrorResponse(rpcRequest, MethodNotFoundException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
     assertEquals(TXN_ID, response.error.id)
@@ -89,11 +73,7 @@ class RpcUtilTest {
 
   @Test
   fun `test get rpc invalid params response`() {
-    val response =
-      _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.getRpcErrorResponse(
-        rpcRequest,
-        InvalidParamsException(ERROR_MSG)
-      )
+    val response = RpcUtil.getRpcErrorResponse(rpcRequest, InvalidParamsException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
     assertEquals(TXN_ID, response.error.id)
@@ -102,11 +82,7 @@ class RpcUtilTest {
 
   @Test
   fun `test get rpc bad request response`() {
-    val response =
-      _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.getRpcErrorResponse(
-        rpcRequest,
-        BadRequestException(ERROR_MSG)
-      )
+    val response = RpcUtil.getRpcErrorResponse(rpcRequest, BadRequestException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
     assertEquals(TXN_ID, response.error.id)
@@ -118,10 +94,7 @@ class RpcUtilTest {
   fun `test validate unsupported JSON-RPC protocol`(protocolVersion: String) {
     val rpcRequest =
       RpcRequest.builder().id(RPC_ID).jsonrpc(protocolVersion).method(RPC_METHOD).build()
-    val exception =
-      assertThrows<InvalidRequestException> {
-        _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest(rpcRequest)
-      }
+    val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals(
       java.lang.String.format("Unsupported JSON-RPC protocol version[%s]", protocolVersion),
       exception.message
@@ -131,20 +104,14 @@ class RpcUtilTest {
   @Test
   fun `test validate NULL method name`() {
     val rpcRequest = RpcRequest.builder().id(RPC_ID).jsonrpc(JSON_RPC_VERSION).build()
-    val exception =
-      assertThrows<InvalidRequestException> {
-        _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest(rpcRequest)
-      }
+    val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals("Method name can't be NULL or empty", exception.message)
   }
 
   @Test
   fun `test validate NULL id`() {
     val rpcRequest = RpcRequest.builder().jsonrpc(JSON_RPC_VERSION).method(RPC_METHOD).build()
-    val exception =
-      assertThrows<InvalidRequestException> {
-        _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest(rpcRequest)
-      }
+    val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals("Id can't be NULL", exception.message)
   }
 
@@ -152,10 +119,7 @@ class RpcUtilTest {
   fun `test validate empty method name`() {
     val rpcRequest =
       RpcRequest.builder().id(RPC_ID).jsonrpc(JSON_RPC_VERSION).method(StringUtils.EMPTY).build()
-    val exception =
-      assertThrows<InvalidRequestException> {
-        _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest(rpcRequest)
-      }
+    val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals("Method name can't be NULL or empty", exception.message)
   }
 
@@ -163,10 +127,7 @@ class RpcUtilTest {
   fun `test validate invalid id type`() {
     val rpcRequest =
       RpcRequest.builder().jsonrpc(JSON_RPC_VERSION).method(RPC_METHOD).id(true).build()
-    val exception =
-      assertThrows<InvalidRequestException> {
-        _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest(rpcRequest)
-      }
+    val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals("An identifier MUST contain a String or a Number", exception.message)
   }
 

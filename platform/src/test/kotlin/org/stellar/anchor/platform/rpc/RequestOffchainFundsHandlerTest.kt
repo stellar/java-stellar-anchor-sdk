@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.rpc
+package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
 import io.mockk.*
@@ -64,9 +64,7 @@ class RequestOffchainFundsHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true)
-  private lateinit var requestValidator:
-    _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator
+  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -78,8 +76,7 @@ class RequestOffchainFundsHandlerTest {
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
-  private lateinit var handler:
-    _root_ide_package_.org.stellar.anchor.platform.rpc.RequestOffchainFundsHandler
+  private lateinit var handler: RequestOffchainFundsHandler
 
   @BeforeEach
   fun setup() {
@@ -87,7 +84,7 @@ class RequestOffchainFundsHandlerTest {
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
-      _root_ide_package_.org.stellar.anchor.platform.rpc.RequestOffchainFundsHandler(
+      RequestOffchainFundsHandler(
         txn6Store,
         txn24Store,
         txn31Store,
@@ -101,7 +98,7 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_unsupportedProtocol() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     val spyTxn24 = spyk(txn24)
@@ -126,7 +123,7 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_unsupportedStatus() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_EXTERNAL.toString()
     txn24.kind = DEPOSIT.kind
 
@@ -149,7 +146,7 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_invalidRequest() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
 
@@ -171,11 +168,10 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_withoutAmounts_amountsAbsent() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -194,13 +190,12 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_withoutAmounts_amount_out_absent() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     txn24.amountIn = "1"
     txn24.amountInAsset = FIAT_USD
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -219,15 +214,14 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_withoutAmounts_amount_fee_absent() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     txn24.amountIn = "1"
     txn24.amountInAsset = FIAT_USD
     txn24.amountOut = "0.9"
     txn24.amountOutAsset = STELLAR_USDC
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -251,11 +245,10 @@ class RequestOffchainFundsHandlerTest {
         .amountOut(AmountAssetRequest("1", FIAT_USD))
         .transactionId(TX_ID)
         .build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -284,12 +277,11 @@ class RequestOffchainFundsHandlerTest {
         .amountFee(AmountAssetRequest("1", FIAT_USD))
         .amountExpected(AmountRequest("1"))
         .build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = FIAT_USD_CODE
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -331,12 +323,11 @@ class RequestOffchainFundsHandlerTest {
         .amountFee(AmountAssetRequest("1", FIAT_USD))
         .amountExpected(AmountRequest("1"))
         .build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = FIAT_USD_CODE
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -366,7 +357,7 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_sep24_transferReceived() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = Instant.now()
@@ -390,7 +381,7 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_sep24_unsupportedKind() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = WITHDRAWAL.kind
 
@@ -420,12 +411,11 @@ class RequestOffchainFundsHandlerTest {
         .amountFee(AmountAssetRequest("0.1", FIAT_USD))
         .amountExpected(AmountRequest("1"))
         .build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = FIAT_USD_CODE
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -444,8 +434,7 @@ class RequestOffchainFundsHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep24Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -507,12 +496,11 @@ class RequestOffchainFundsHandlerTest {
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
         .amountFee(AmountAssetRequest("0.1", FIAT_USD))
         .build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = FIAT_USD_CODE
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -530,8 +518,7 @@ class RequestOffchainFundsHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep24Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -587,7 +574,7 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_sep24_ok_withoutAmounts_amountsPresent() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = FIAT_USD_CODE
@@ -598,8 +585,7 @@ class RequestOffchainFundsHandlerTest {
     txn24.amountFee = "0.1"
     txn24.amountFeeAsset = STELLAR_USDC
     txn24.amountExpected = "1"
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -618,8 +604,7 @@ class RequestOffchainFundsHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep24Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -675,7 +660,7 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_sep6_transferReceived() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_ANCHOR.toString()
     txn6.kind = DEPOSIT.kind
     txn6.transferReceivedAt = Instant.now()
@@ -700,7 +685,7 @@ class RequestOffchainFundsHandlerTest {
   @ParameterizedTest
   fun test_handle_sep6_unsupportedKind(kind: String) {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = INCOMPLETE.toString()
     txn6.kind = kind
 
@@ -742,12 +727,11 @@ class RequestOffchainFundsHandlerTest {
         .amountExpected(AmountRequest("1"))
         .instructions(mapOf("first_name" to InstructionField.builder().build()))
         .build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = status
     txn6.kind = kind
     txn6.requestAssetCode = FIAT_USD_CODE
-    val sep6TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
@@ -766,7 +750,7 @@ class RequestOffchainFundsHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val expectedSep6Txn = JdbcSep6Transaction()
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_USR_TRANSFER_START.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
@@ -843,12 +827,11 @@ class RequestOffchainFundsHandlerTest {
         .amountFee(AmountAssetRequest("0.1", FIAT_USD))
         .instructions(mapOf("first_name" to InstructionField.builder().build()))
         .build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = status
     txn6.kind = kind
     txn6.requestAssetCode = FIAT_USD_CODE
-    val sep6TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
@@ -866,7 +849,7 @@ class RequestOffchainFundsHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val expectedSep6Txn = JdbcSep6Transaction()
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_USR_TRANSFER_START.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
@@ -940,7 +923,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .instructions(mapOf("first_name" to InstructionField.builder().build()))
         .build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = status
     txn6.kind = kind
     txn6.requestAssetCode = FIAT_USD_CODE
@@ -951,8 +934,7 @@ class RequestOffchainFundsHandlerTest {
     txn6.amountFee = "0.1"
     txn6.amountFeeAsset = STELLAR_USDC
     txn6.amountExpected = "1"
-    val sep6TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
@@ -971,7 +953,7 @@ class RequestOffchainFundsHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val expectedSep6Txn = JdbcSep6Transaction()
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_USR_TRANSFER_START.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt

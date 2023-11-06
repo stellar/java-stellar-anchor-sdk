@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.event
+package org.stellar.anchor.platform.event
 
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -20,7 +20,6 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.platform.config.PropertySecretConfig
-import org.stellar.anchor.platform.event.ClientStatusCallbackHandler
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.sep24.Sep24Helper
 import org.stellar.anchor.sep24.Sep24Helper.fromTxn

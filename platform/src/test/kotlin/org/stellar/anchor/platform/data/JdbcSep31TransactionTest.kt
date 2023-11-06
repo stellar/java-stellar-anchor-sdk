@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.data
+package org.stellar.anchor.platform.data
 
 class JdbcSep31TransactionTest {
   private val refundsJsonNoRefundPayment =

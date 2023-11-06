@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package org.stellar.anchor.client
+package org.stellar.anchor.platform
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK

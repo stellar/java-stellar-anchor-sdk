@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -8,7 +8,6 @@ import org.springframework.validation.Errors
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
-import org.stellar.anchor.platform.config.PropertyClientsConfig
 
 class PropertyClientsConfigTest {
   private lateinit var configs: PropertyClientsConfig

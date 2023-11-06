@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.configurator
+package org.stellar.anchor.platform.configurator
 
 import io.mockk.*
 import kotlin.test.assertNull
@@ -11,12 +11,8 @@ import org.springframework.core.io.ClassPathResource
 import org.stellar.anchor.LockAndMockStatic
 import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.api.exception.InvalidConfigException
-import org.stellar.anchor.platform.configurator.ConfigEnvironment
-import org.stellar.anchor.platform.configurator.ConfigHelper
-import org.stellar.anchor.platform.configurator.ConfigManager
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.DEFAULT
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.FILE
-import org.stellar.anchor.platform.configurator.ConfigReader
 
 @ExtendWith(LockAndMockTest::class)
 class ConfigManagerTest {
@@ -86,14 +82,14 @@ class ConfigManagerTestExt {
 
     every { ConfigHelper.loadDefaultConfig() } returns
       ConfigHelper.loadConfig(
-        ClassPathResource("org/stellar/anchor/client/configurator/def/config-defaults-v3.yaml"),
+        ClassPathResource("org/stellar/anchor/platform/configurator/def/config-defaults-v3.yaml"),
         DEFAULT
       )
 
     every { ConfigReader.getVersionSchemaFile(any()) } answers
       {
         String.format(
-          "org/stellar/anchor/client/configurator/def/config-def-v%d.yaml",
+          "org/stellar/anchor/platform/configurator/def/config-def-v%d.yaml",
           firstArg<Int>()
         )
       }
@@ -106,12 +102,12 @@ class ConfigManagerTestExt {
     `add default config mocks`()
     every { configManager.getConfigFileAsResource(any()) } answers
       {
-        ClassPathResource("org/stellar/anchor/client/configurator/scene-1/test.yaml")
+        ClassPathResource("org/stellar/anchor/platform/configurator/scene-1/test.yaml")
       }
 
     val wantedConfig =
       ConfigHelper.loadConfig(
-        ClassPathResource("org/stellar/anchor/client/configurator/scene-1/wanted.yaml"),
+        ClassPathResource("org/stellar/anchor/platform/configurator/scene-1/wanted.yaml"),
         FILE
       )
     val gotConfig = configManager.processConfigurations(null)
@@ -126,7 +122,7 @@ class ConfigManagerTestExt {
     `add default config mocks`()
     every { configManager.getConfigFileAsResource(any()) } answers
       {
-        ClassPathResource("org/stellar/anchor/client/configurator/scene-2/test.bad.yaml")
+        ClassPathResource("org/stellar/anchor/platform/configurator/scene-2/test.bad.yaml")
       }
     val ex = assertThrows<InvalidConfigException> { configManager.processConfigurations(null) }
     assertEquals(2, ex.messages.size)
@@ -141,7 +137,7 @@ class ConfigManagerTestExt {
     `add default config mocks`()
     every { configManager.getConfigFileAsResource(any()) } answers
       {
-        ClassPathResource("org/stellar/anchor/client/configurator/scene-3/test.yaml")
+        ClassPathResource("org/stellar/anchor/platform/configurator/scene-3/test.yaml")
       }
 
     System.setProperty("stellar.bianca", "white")
@@ -151,7 +147,7 @@ class ConfigManagerTestExt {
 
     val wantedConfig =
       ConfigHelper.loadConfig(
-        ClassPathResource("org/stellar/anchor/client/configurator/scene-3/wanted.yaml"),
+        ClassPathResource("org/stellar/anchor/platform/configurator/scene-3/wanted.yaml"),
         FILE
       )
     val gotConfig = configManager.processConfigurations(null)

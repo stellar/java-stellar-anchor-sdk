@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.utils
+package org.stellar.anchor.platform.utils
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -32,96 +32,50 @@ class AssetValidationUtilsTest {
     var assetAmount = AmountAssetRequest(null, null)
     var ex =
       assertThrows<AnchorException> {
-        _root_ide_package_.org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset(
-          "amount_in",
-          assetAmount,
-          assetService
-        )
+        AssetValidationUtils.validateAsset("amount_in", assetAmount, assetService)
       }
     Assertions.assertInstanceOf(BadRequestException::class.java, ex)
     Assertions.assertEquals("amount_in.amount cannot be empty", ex.message)
 
     // fails if amount_in.amount is empty
     assetAmount = AmountAssetRequest("", null)
-    ex = assertThrows {
-      _root_ide_package_.org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset(
-        "amount_in",
-        assetAmount,
-        assetService
-      )
-    }
+    ex = assertThrows { AssetValidationUtils.validateAsset("amount_in", assetAmount, assetService) }
     Assertions.assertInstanceOf(BadRequestException::class.java, ex)
     Assertions.assertEquals("amount_in.amount cannot be empty", ex.message)
 
     // fails if amount_in.amount is invalid
     assetAmount = AmountAssetRequest("abc", null)
-    ex = assertThrows {
-      _root_ide_package_.org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset(
-        "amount_in",
-        assetAmount,
-        assetService
-      )
-    }
+    ex = assertThrows { AssetValidationUtils.validateAsset("amount_in", assetAmount, assetService) }
     Assertions.assertInstanceOf(BadRequestException::class.java, ex)
     Assertions.assertEquals("amount_in.amount is invalid", ex.message)
 
     // fails if amount_in.amount is negative
     assetAmount = AmountAssetRequest("-1", null)
-    ex = assertThrows {
-      _root_ide_package_.org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset(
-        "amount_in",
-        assetAmount,
-        assetService
-      )
-    }
+    ex = assertThrows { AssetValidationUtils.validateAsset("amount_in", assetAmount, assetService) }
     Assertions.assertInstanceOf(BadRequestException::class.java, ex)
     Assertions.assertEquals("amount_in.amount should be positive", ex.message)
 
     // fails if amount_in.amount is zero
     assetAmount = AmountAssetRequest("0", null)
-    ex = assertThrows {
-      _root_ide_package_.org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset(
-        "amount_in",
-        assetAmount,
-        assetService
-      )
-    }
+    ex = assertThrows { AssetValidationUtils.validateAsset("amount_in", assetAmount, assetService) }
     Assertions.assertInstanceOf(BadRequestException::class.java, ex)
     Assertions.assertEquals("amount_in.amount should be positive", ex.message)
 
     // fails if amount_in.asset is empty
     assetAmount = AmountAssetRequest("10", "")
-    ex = assertThrows {
-      _root_ide_package_.org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset(
-        "amount_in",
-        assetAmount,
-        assetService
-      )
-    }
+    ex = assertThrows { AssetValidationUtils.validateAsset("amount_in", assetAmount, assetService) }
     Assertions.assertInstanceOf(BadRequestException::class.java, ex)
     Assertions.assertEquals("amount_in.asset cannot be empty", ex.message)
 
     // fails if listAllAssets is empty
     every { assetService.listAllAssets() } returns listOf()
     val mockAsset = AmountAssetRequest("10", fiatUSD)
-    ex = assertThrows {
-      _root_ide_package_.org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset(
-        "amount_in",
-        mockAsset,
-        assetService
-      )
-    }
+    ex = assertThrows { AssetValidationUtils.validateAsset("amount_in", mockAsset, assetService) }
     Assertions.assertInstanceOf(BadRequestException::class.java, ex)
     Assertions.assertEquals("'${fiatUSD}' is not a supported asset.", ex.message)
 
     // fails if listAllAssets does not contain the desired asset
-    ex = assertThrows {
-      _root_ide_package_.org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset(
-        "amount_in",
-        mockAsset,
-        assetService
-      )
-    }
+    ex = assertThrows { AssetValidationUtils.validateAsset("amount_in", mockAsset, assetService) }
     Assertions.assertInstanceOf(BadRequestException::class.java, ex)
     Assertions.assertEquals("'${fiatUSD}' is not a supported asset.", ex.message)
   }
@@ -131,21 +85,13 @@ class AssetValidationUtilsTest {
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     val mockAsset = AmountAssetRequest("10", fiatUSD)
     Assertions.assertDoesNotThrow {
-      _root_ide_package_.org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset(
-        "amount_in",
-        mockAsset,
-        assetService
-      )
+      AssetValidationUtils.validateAsset("amount_in", mockAsset, assetService)
     }
     val mockAssetWrongAmount = AmountAssetRequest("10.001", fiatUSD)
 
     val ex =
       assertThrows<AnchorException> {
-        _root_ide_package_.org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset(
-          "amount_in",
-          mockAssetWrongAmount,
-          assetService
-        )
+        AssetValidationUtils.validateAsset("amount_in", mockAssetWrongAmount, assetService)
       }
     Assertions.assertInstanceOf(BadRequestException::class.java, ex)
   }

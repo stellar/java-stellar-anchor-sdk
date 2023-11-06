@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.rpc
+package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
 import io.mockk.*
@@ -54,9 +54,7 @@ class RequestCustomerInfoUpdateHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true)
-  private lateinit var requestValidator:
-    _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator
+  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -68,8 +66,7 @@ class RequestCustomerInfoUpdateHandlerTest {
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
-  private lateinit var handler:
-    _root_ide_package_.org.stellar.anchor.platform.rpc.RequestCustomerInfoUpdateHandler
+  private lateinit var handler: RequestCustomerInfoUpdateHandler
 
   @BeforeEach
   fun setup() {
@@ -77,7 +74,7 @@ class RequestCustomerInfoUpdateHandlerTest {
     every { eventService.createSession(any(), EventService.EventQueue.TRANSACTION) } returns
       eventSession
     this.handler =
-      _root_ide_package_.org.stellar.anchor.platform.rpc.RequestCustomerInfoUpdateHandler(
+      RequestCustomerInfoUpdateHandler(
         txn6Store,
         txn24Store,
         txn31Store,
@@ -91,7 +88,7 @@ class RequestCustomerInfoUpdateHandlerTest {
   @Test
   fun test_handle_unsupportedProtocol() {
     val request = RequestCustomerInfoUpdateRequest.builder().transactionId(TX_ID).build()
-    val txn31 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val txn31 = JdbcSep31Transaction()
     txn31.status = PENDING_RECEIVER.toString()
     val spyTxn31 = spyk(txn31)
 
@@ -115,7 +112,7 @@ class RequestCustomerInfoUpdateHandlerTest {
   @Test
   fun test_handle_invalidRequest() {
     val request = RequestCustomerInfoUpdateRequest.builder().transactionId(TX_ID).build()
-    val txn31 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val txn31 = JdbcSep31Transaction()
     txn31.status = PENDING_RECEIVER.toString()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -136,7 +133,7 @@ class RequestCustomerInfoUpdateHandlerTest {
   @Test
   fun test_handle_sep31_unsupportedStatus() {
     val request = RequestCustomerInfoUpdateRequest.builder().transactionId(TX_ID).build()
-    val txn31 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val txn31 = JdbcSep31Transaction()
     txn31.status = INCOMPLETE.toString()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -158,24 +155,17 @@ class RequestCustomerInfoUpdateHandlerTest {
   @Test
   fun test_handle_sep31_ok() {
     val request = RequestCustomerInfoUpdateRequest.builder().transactionId(TX_ID).build()
-    val txn31 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val txn31 = JdbcSep31Transaction()
     txn31.status = PENDING_RECEIVER.toString()
-    val sep31TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction>()
+    val sep31TxnCapture = slot<JdbcSep31Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
     every { txn31Store.save(capture(sep31TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every {
-      metricsService.counter(
-        _root_ide_package_.org.stellar.anchor.platform.service.AnchorMetrics
-          .PLATFORM_RPC_TRANSACTION,
-        "SEP",
-        "sep31"
-      )
-    } returns sepTransactionCounter
+    every { metricsService.counter(AnchorMetrics.PLATFORM_RPC_TRANSACTION, "SEP", "sep31") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -184,8 +174,7 @@ class RequestCustomerInfoUpdateHandlerTest {
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep31Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val expectedSep31Txn = JdbcSep31Transaction()
     expectedSep31Txn.status = PENDING_CUSTOMER_INFO_UPDATE.toString()
     expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
 
@@ -237,7 +226,7 @@ class RequestCustomerInfoUpdateHandlerTest {
         .transactionId(TX_ID)
         .requiredCustomerInfoUpdates(listOf("email_address", "family_name", "given_name"))
         .build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_USR_TRANSFER_START.toString()
     txn6.kind = DEPOSIT.toString()
 
@@ -281,11 +270,10 @@ class RequestCustomerInfoUpdateHandlerTest {
         .transactionId(TX_ID)
         .requiredCustomerInfoUpdates(listOf("email_address", "family_name", "given_name"))
         .build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = status
     txn6.kind = kind
-    val sep6TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
@@ -293,14 +281,8 @@ class RequestCustomerInfoUpdateHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn6Store.save(capture(sep6TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every {
-      metricsService.counter(
-        _root_ide_package_.org.stellar.anchor.platform.service.AnchorMetrics
-          .PLATFORM_RPC_TRANSACTION,
-        "SEP",
-        "sep6"
-      )
-    } returns sepTransactionCounter
+    every { metricsService.counter(AnchorMetrics.PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -309,7 +291,7 @@ class RequestCustomerInfoUpdateHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val expectedSep6Txn = JdbcSep6Transaction()
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_CUSTOMER_INFO_UPDATE.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt

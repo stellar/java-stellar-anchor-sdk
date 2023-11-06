@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.callback
+package org.stellar.anchor.platform.callback
 
 import io.mockk.MockKAnnotations
 import java.util.concurrent.TimeUnit
@@ -25,7 +25,6 @@ import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.shared.CustomerField
 import org.stellar.anchor.api.shared.ProvidedCustomerField
 import org.stellar.anchor.auth.AuthHelper
-import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.util.GsonUtils
 
 class RestCustomerIntegrationTest {

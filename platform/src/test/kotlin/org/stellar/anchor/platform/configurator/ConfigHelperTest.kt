@@ -1,11 +1,10 @@
-package org.stellar.anchor.client.configurator
+package org.stellar.anchor.platform.configurator
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
-import org.stellar.anchor.platform.configurator.ConfigHelper
 
 class ConfigHelperTest {
   @ParameterizedTest

@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.custody.fireblocks
+package org.stellar.anchor.platform.custody.fireblocks
 
 import io.jsonwebtoken.Jwts
 import io.mockk.MockKAnnotations
@@ -28,7 +28,6 @@ import org.stellar.anchor.api.exception.FireblocksException
 import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.platform.config.FireblocksConfig
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
 class FireblocksApiClientTest {

@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.custody
+package org.stellar.anchor.platform.custody
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -6,10 +6,6 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.platform.custody.CustodyEventService
-import org.stellar.anchor.platform.custody.CustodyPayment
-import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler
-import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
 

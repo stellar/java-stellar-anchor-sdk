@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.service
+package org.stellar.anchor.platform.service
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -34,9 +34,7 @@ class SimpleMoreInfoUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
-  @MockK(relaxed = true)
-  private lateinit var clientsConfig:
-    _root_ide_package_.org.stellar.anchor.platform.config.PropertyClientsConfig
+  @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig
   @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
 
   private lateinit var jwtService: JwtService
@@ -82,23 +80,9 @@ class SimpleMoreInfoUrlConstructorTest {
   @LockStatic([Calendar::class])
   fun `test correct config`() {
     val config =
-      gson.fromJson(
-        SIMPLE_CONFIG_JSON,
-        _root_ide_package_.org.stellar.anchor.platform.config.PropertySep24Config
-            .MoreInfoUrlConfig::class
-          .java
-      )
-    val constructor =
-      _root_ide_package_.org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor(
-        clientsConfig,
-        config,
-        jwtService
-      )
-    val txn =
-      gson.fromJson(
-        TXN_JSON,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
+    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     val url = constructor.construct(txn)
 
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
@@ -116,23 +100,9 @@ class SimpleMoreInfoUrlConstructorTest {
   @LockStatic([Calendar::class])
   fun `test unknown client domain`() {
     val config =
-      gson.fromJson(
-        SIMPLE_CONFIG_JSON,
-        _root_ide_package_.org.stellar.anchor.platform.config.PropertySep24Config
-            .MoreInfoUrlConfig::class
-          .java
-      )
-    val constructor =
-      _root_ide_package_.org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor(
-        clientsConfig,
-        config,
-        jwtService
-      )
-    val txn =
-      gson.fromJson(
-        TXN_JSON,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
+    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     txn.clientDomain = "unknown.com"
     txn.sep10AccountMemo = null
 
@@ -152,23 +122,9 @@ class SimpleMoreInfoUrlConstructorTest {
   @LockStatic([Calendar::class])
   fun `test custodial wallet`() {
     val config =
-      gson.fromJson(
-        SIMPLE_CONFIG_JSON,
-        _root_ide_package_.org.stellar.anchor.platform.config.PropertySep24Config
-            .MoreInfoUrlConfig::class
-          .java
-      )
-    val constructor =
-      _root_ide_package_.org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor(
-        clientsConfig,
-        config,
-        jwtService
-      )
-    val txn =
-      gson.fromJson(
-        TXN_JSON,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
+    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     txn.sep10Account = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     txn.clientDomain = null
 
@@ -189,23 +145,9 @@ class SimpleMoreInfoUrlConstructorTest {
   @LockStatic([Calendar::class])
   fun `test non-custodial wallet with missing client domain`() {
     val config =
-      gson.fromJson(
-        SIMPLE_CONFIG_JSON,
-        _root_ide_package_.org.stellar.anchor.platform.config.PropertySep24Config
-            .MoreInfoUrlConfig::class
-          .java
-      )
-    val constructor =
-      _root_ide_package_.org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor(
-        clientsConfig,
-        config,
-        jwtService
-      )
-    val txn =
-      gson.fromJson(
-        TXN_JSON,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
+    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     txn.clientDomain = null
 
     assertThrows<SepValidationException> { constructor.construct(txn) }

@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.rpc
+package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
 import io.mockk.*
@@ -56,9 +56,7 @@ class RequestTrustlineHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true)
-  private lateinit var requestValidator:
-    _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator
+  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -72,15 +70,14 @@ class RequestTrustlineHandlerTest {
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
-  private lateinit var handler:
-    _root_ide_package_.org.stellar.anchor.platform.rpc.RequestTrustlineHandler
+  private lateinit var handler: RequestTrustlineHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.handler =
-      _root_ide_package_.org.stellar.anchor.platform.rpc.RequestTrustlineHandler(
+      RequestTrustlineHandler(
         txn6Store,
         txn24Store,
         txn31Store,
@@ -95,7 +92,7 @@ class RequestTrustlineHandlerTest {
   @Test
   fun test_handle_unsupportedProtocol() {
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = Instant.now()
@@ -121,7 +118,7 @@ class RequestTrustlineHandlerTest {
   @Test
   fun test_handle_custodyIntegrationEnabled() {
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = Instant.now()
@@ -143,7 +140,7 @@ class RequestTrustlineHandlerTest {
   @Test
   fun test_handle_invalidRequest() {
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = Instant.now()
@@ -166,7 +163,7 @@ class RequestTrustlineHandlerTest {
   @Test
   fun test_handle_sep24_transferNotReceived() {
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
@@ -190,7 +187,7 @@ class RequestTrustlineHandlerTest {
   @Test
   fun test_handle_sep24_unsupportedStatus() {
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_TRUST.toString()
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = Instant.now()
@@ -215,12 +212,11 @@ class RequestTrustlineHandlerTest {
   fun test_handle_sep24_ok() {
     val transferReceivedAt = Instant.now()
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = transferReceivedAt
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -229,14 +225,8 @@ class RequestTrustlineHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every {
-      metricsService.counter(
-        _root_ide_package_.org.stellar.anchor.platform.service.AnchorMetrics
-          .PLATFORM_RPC_TRANSACTION,
-        "SEP",
-        "sep24"
-      )
-    } returns sepTransactionCounter
+    every { metricsService.counter(AnchorMetrics.PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -246,8 +236,7 @@ class RequestTrustlineHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep24Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_TRUST.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -294,7 +283,7 @@ class RequestTrustlineHandlerTest {
   @ParameterizedTest
   fun test_handle_sep6_transferNotReceived(kind: String) {
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_ANCHOR.toString()
     txn6.kind = kind
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
@@ -319,7 +308,7 @@ class RequestTrustlineHandlerTest {
   @ParameterizedTest
   fun test_handle_sep6_unsupportedKind(kind: String) {
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_TRUST.toString()
     txn6.kind = kind
     txn6.transferReceivedAt = Instant.now()
@@ -344,7 +333,7 @@ class RequestTrustlineHandlerTest {
   @ParameterizedTest
   fun test_handle_sep6_unsupportedStatus(kind: String) {
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_TRUST.toString()
     txn6.kind = kind
     txn6.transferReceivedAt = Instant.now()
@@ -370,12 +359,11 @@ class RequestTrustlineHandlerTest {
   fun test_handle_sep6_ok(kind: String) {
     val transferReceivedAt = Instant.now()
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_ANCHOR.toString()
     txn6.kind = kind
     txn6.transferReceivedAt = transferReceivedAt
-    val sep6TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(any()) } returns txn6
@@ -384,14 +372,8 @@ class RequestTrustlineHandlerTest {
     every { txn6Store.save(capture(sep6TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every {
-      metricsService.counter(
-        _root_ide_package_.org.stellar.anchor.platform.service.AnchorMetrics
-          .PLATFORM_RPC_TRANSACTION,
-        "SEP",
-        "sep6"
-      )
-    } returns sepTransactionCounter
+    every { metricsService.counter(AnchorMetrics.PLATFORM_RPC_TRANSACTION, "SEP", "sep6") } returns
+      sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -401,7 +383,7 @@ class RequestTrustlineHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val expectedSep6Txn = JdbcSep6Transaction()
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_TRUST.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt

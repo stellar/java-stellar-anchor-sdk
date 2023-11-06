@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package org.stellar.anchor.client.observer.stellar
+package org.stellar.anchor.platform.observer.stellar
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -12,8 +12,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.platform.data.PaymentObservingAccount
-import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
-import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager.AccountType.RESIDENTIAL
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager.AccountType.TRANSIENT
 

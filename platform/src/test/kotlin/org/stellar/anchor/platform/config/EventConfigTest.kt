@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import java.util.stream.Stream
 import kotlin.test.assertEquals

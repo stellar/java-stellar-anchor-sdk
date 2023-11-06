@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
@@ -12,8 +12,6 @@ import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.auth.AuthConfig
 import org.stellar.anchor.auth.AuthType.JWT
-import org.stellar.anchor.platform.config.CallbackApiConfig
-import org.stellar.anchor.platform.config.PropertySecretConfig
 
 class CallbackApiConfigTest {
   lateinit var config: CallbackApiConfig

@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package org.stellar.anchor.client.service
+package org.stellar.anchor.platform.service
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -17,6 +17,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.platform.config.RpcConfig
+import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.platform.observer.ObservedPayment
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Asset
@@ -24,21 +25,13 @@ import org.stellar.sdk.Asset.create
 import org.stellar.sdk.AssetTypeNative
 
 class PaymentOperationToEventListenerTest {
-  @MockK(relaxed = true)
-  private lateinit var sep31TransactionStore:
-    _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31TransactionStore
-  @MockK(relaxed = true)
-  private lateinit var sep24TransactionStore:
-    _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24TransactionStore
-  @MockK(relaxed = true)
-  private lateinit var sep6TransactionStore:
-    _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6TransactionStore
+  @MockK(relaxed = true) private lateinit var sep31TransactionStore: JdbcSep31TransactionStore
+  @MockK(relaxed = true) private lateinit var sep24TransactionStore: JdbcSep24TransactionStore
+  @MockK(relaxed = true) private lateinit var sep6TransactionStore: JdbcSep6TransactionStore
   @MockK(relaxed = true) private lateinit var platformApiClient: PlatformApiClient
-  @MockK(relaxed = true)
-  private lateinit var rpcConfig: _root_ide_package_.org.stellar.anchor.platform.config.RpcConfig
+  @MockK(relaxed = true) private lateinit var rpcConfig: RpcConfig
 
-  private lateinit var paymentOperationToEventListener:
-    _root_ide_package_.org.stellar.anchor.platform.service.PaymentOperationToEventListener
+  private lateinit var paymentOperationToEventListener: PaymentOperationToEventListener
   private val gson = GsonUtils.getInstance()
 
   @BeforeEach
@@ -46,7 +39,7 @@ class PaymentOperationToEventListenerTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
     paymentOperationToEventListener =
-      _root_ide_package_.org.stellar.anchor.platform.service.PaymentOperationToEventListener(
+      PaymentOperationToEventListener(
         sep31TransactionStore,
         sep24TransactionStore,
         sep6TransactionStore,
@@ -58,8 +51,7 @@ class PaymentOperationToEventListenerTest {
   @Test
   fun test_onReceiver_failValidation() {
     // Payment missing txHash shouldn't trigger an event nor reach the DB
-    val p =
-      _root_ide_package_.org.stellar.anchor.platform.observer.ObservedPayment.builder().build()
+    val p = ObservedPayment.builder().build()
     p.transactionHash = null
     p.transactionMemoType = "text"
     p.transactionMemo = "my_memo_1"
@@ -147,7 +139,7 @@ class PaymentOperationToEventListenerTest {
     slotMemo = slot()
     p.transactionMemo = "my_memo_4"
     p.assetCode = "FOO"
-    val sep31TxMock = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.amountInAsset = "BAR"
     sep31TxMock.amountIn = "1"
     every {
@@ -193,7 +185,7 @@ class PaymentOperationToEventListenerTest {
     val outAsset = createAsset(outAssetType, outAssetCode, outAssetIssuer)
 
     val p =
-      _root_ide_package_.org.stellar.anchor.platform.observer.ObservedPayment.builder()
+      ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
         .transactionMemoType("hash")
@@ -205,9 +197,7 @@ class PaymentOperationToEventListenerTest {
         .sourceAccount("GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4")
         .from("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
         .to("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-        .type(
-          _root_ide_package_.org.stellar.anchor.platform.observer.ObservedPayment.Type.PATH_PAYMENT
-        )
+        .type(ObservedPayment.Type.PATH_PAYMENT)
         .createdAt(transferReceivedAtStr)
         .transactionEnvelope(
           "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
@@ -221,7 +211,7 @@ class PaymentOperationToEventListenerTest {
     val slotAccountId = slot<String>()
     val slotMemo = slot<String>()
     val slotStatus = slot<String>()
-    val sep31TxMock = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep31TxMock.amountExpected = "10"
     sep31TxMock.amountIn = "10"
@@ -244,11 +234,7 @@ class PaymentOperationToEventListenerTest {
         .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
         .build()
 
-    val sep31TxCopy =
-      gson.fromJson(
-        gson.toJson(sep31TxMock),
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction::class.java
-      )
+    val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
     every {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         capture(slotAccountId),
@@ -296,7 +282,7 @@ class PaymentOperationToEventListenerTest {
     val barAsset = "stellar:BAR:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
 
     val p =
-      _root_ide_package_.org.stellar.anchor.platform.observer.ObservedPayment.builder()
+      ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
         .transactionMemoType("hash")
@@ -308,7 +294,7 @@ class PaymentOperationToEventListenerTest {
         .sourceAccount("GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4")
         .from("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
         .to("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-        .type(_root_ide_package_.org.stellar.anchor.platform.observer.ObservedPayment.Type.PAYMENT)
+        .type(ObservedPayment.Type.PAYMENT)
         .createdAt(transferReceivedAtStr)
         .transactionEnvelope(
           "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
@@ -321,7 +307,7 @@ class PaymentOperationToEventListenerTest {
 
     val slotMemo = slot<String>()
     val slotStatus = slot<String>()
-    val sep31TxMock = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep31TxMock.amountExpected = "10"
     sep31TxMock.amountIn = "10"
@@ -344,11 +330,7 @@ class PaymentOperationToEventListenerTest {
         .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
         .build()
 
-    val sep31TxCopy =
-      gson.fromJson(
-        gson.toJson(sep31TxMock),
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction::class.java
-      )
+    val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
     every {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -405,7 +387,7 @@ class PaymentOperationToEventListenerTest {
     val asset = createAsset(assetType, assetCode, assetIssuer)
 
     val p =
-      _root_ide_package_.org.stellar.anchor.platform.observer.ObservedPayment.builder()
+      ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
         .transactionMemoType("hash")
@@ -417,7 +399,7 @@ class PaymentOperationToEventListenerTest {
         .sourceAccount("GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4")
         .from("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
         .to("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-        .type(_root_ide_package_.org.stellar.anchor.platform.observer.ObservedPayment.Type.PAYMENT)
+        .type(ObservedPayment.Type.PAYMENT)
         .createdAt(transferReceivedAtStr)
         .transactionEnvelope(
           "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
@@ -427,7 +409,7 @@ class PaymentOperationToEventListenerTest {
 
     val slotMemo = slot<String>()
     val slotStatus = slot<String>()
-    val sep24TxMock = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val sep24TxMock = JdbcSep24Transaction()
     sep24TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep24TxMock.requestAssetCode = assetCode
     sep24TxMock.requestAssetIssuer = assetIssuer
@@ -444,11 +426,7 @@ class PaymentOperationToEventListenerTest {
       sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
     } returns null
 
-    val sep24TxnCopy =
-      gson.fromJson(
-        gson.toJson(sep24TxMock),
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+    val sep24TxnCopy = gson.fromJson(gson.toJson(sep24TxMock), JdbcSep24Transaction::class.java)
     every {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
@@ -505,7 +483,7 @@ class PaymentOperationToEventListenerTest {
     val asset = createAsset(assetType, assetCode, assetIssuer)
 
     val p =
-      _root_ide_package_.org.stellar.anchor.platform.observer.ObservedPayment.builder()
+      ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
         .transactionMemoType("hash")
@@ -517,7 +495,7 @@ class PaymentOperationToEventListenerTest {
         .sourceAccount("GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4")
         .from("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
         .to("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-        .type(_root_ide_package_.org.stellar.anchor.platform.observer.ObservedPayment.Type.PAYMENT)
+        .type(ObservedPayment.Type.PAYMENT)
         .createdAt(transferReceivedAtStr)
         .transactionEnvelope(
           "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
@@ -527,7 +505,7 @@ class PaymentOperationToEventListenerTest {
 
     val slotMemo = slot<String>()
     val slotStatus = slot<String>()
-    val sep6TxMock = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val sep6TxMock = JdbcSep6Transaction()
     sep6TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep6TxMock.requestAssetCode = assetCode
     sep6TxMock.requestAssetIssuer = assetIssuer
@@ -543,11 +521,7 @@ class PaymentOperationToEventListenerTest {
     every { sep24TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
       null
 
-    val sep6TxnCopy =
-      gson.fromJson(
-        gson.toJson(sep6TxMock),
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction::class.java
-      )
+    val sep6TxnCopy = gson.fromJson(gson.toJson(sep6TxMock), JdbcSep6Transaction::class.java)
     every {
       sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",

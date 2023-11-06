@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import java.net.URL
 import java.nio.file.Paths
@@ -12,7 +12,6 @@ import org.springframework.validation.ValidationUtils
 import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.config.Sep1Config.TomlType.FILE
 import org.stellar.anchor.config.Sep1Config.TomlType.fromString
-import org.stellar.anchor.platform.config.PropertySep1Config
 import org.stellar.anchor.platform.config.PropertySep1Config.TomlConfig
 
 class Sep1ConfigTest {
@@ -21,7 +20,7 @@ class Sep1ConfigTest {
       val resource: URL =
         Sep1ConfigTest::class
           .java
-          .getResource("/org/stellar/anchor/client/config/sep1-stellar-test.toml") as URL
+          .getResource("/org/stellar/anchor/platform/config/sep1-stellar-test.toml") as URL
       return Paths.get(resource.toURI()).toFile().absolutePath
     }
 
@@ -29,7 +28,7 @@ class Sep1ConfigTest {
       val resource: URL =
         Sep1ConfigTest::class
           .java
-          .getResource("/org/stellar/anchor/client/config/sep1-stellar-test.toml") as URL
+          .getResource("/org/stellar/anchor/platform/config/sep1-stellar-test.toml") as URL
       return resource.toString()
     }
 

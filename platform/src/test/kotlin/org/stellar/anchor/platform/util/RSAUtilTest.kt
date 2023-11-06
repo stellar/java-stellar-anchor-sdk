@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.util
+package org.stellar.anchor.platform.util
 
 import com.google.common.io.BaseEncoding
 import com.google.gson.GsonBuilder

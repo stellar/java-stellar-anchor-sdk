@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.custody
+package org.stellar.anchor.platform.custody
 
 import io.mockk.MockKAnnotations
 import io.mockk.every

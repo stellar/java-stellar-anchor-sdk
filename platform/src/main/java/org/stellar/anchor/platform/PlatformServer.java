@@ -18,13 +18,13 @@ import org.stellar.anchor.platform.configurator.PlatformConfigManager;
 import org.stellar.anchor.platform.configurator.SecretManager;
 
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = {"org.stellar.anchor.client.data"})
+@EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {
-      "org.stellar.anchor.client.controller.platform",
-      "org.stellar.anchor.client.component.platform",
-      "org.stellar.anchor.client.component.share"
+      "org.stellar.anchor.platform.controller.platform",
+      "org.stellar.anchor.platform.component.platform",
+      "org.stellar.anchor.platform.component.share"
     })
 @EnableScheduling
 @EnableConfigurationProperties

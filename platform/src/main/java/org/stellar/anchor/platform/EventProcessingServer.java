@@ -17,12 +17,12 @@ import org.stellar.anchor.platform.configurator.EventProcessorConfigManager;
 import org.stellar.anchor.platform.configurator.SecretManager;
 
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = {"org.stellar.anchor.client.data"})
+@EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {
-      "org.stellar.anchor.client.component.eventprocessor",
-      "org.stellar.anchor.client.component.share"
+      "org.stellar.anchor.platform.component.eventprocessor",
+      "org.stellar.anchor.platform.component.share"
     })
 @EnableConfigurationProperties
 public class EventProcessingServer extends AbstractPlatformServer implements WebMvcConfigurer {

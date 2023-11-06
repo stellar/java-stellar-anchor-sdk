@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
@@ -10,7 +10,6 @@ import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType
-import org.stellar.anchor.platform.config.PropertySep31Config
 
 class Sep31ConfigTest {
   lateinit var config: PropertySep31Config

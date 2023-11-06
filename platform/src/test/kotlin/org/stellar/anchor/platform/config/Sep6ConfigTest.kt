@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -12,7 +12,6 @@ import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.Sep6Config
-import org.stellar.anchor.platform.config.PropertySep6Config
 
 class Sep6ConfigTest {
   @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig

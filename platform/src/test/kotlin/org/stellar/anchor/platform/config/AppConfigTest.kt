@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import java.util.stream.Stream
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -10,7 +10,6 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
-import org.stellar.anchor.platform.config.PropertyAppConfig
 
 class AppConfigTest {
   private lateinit var config: PropertyAppConfig

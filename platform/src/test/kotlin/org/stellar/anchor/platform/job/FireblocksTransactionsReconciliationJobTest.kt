@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.job
+package org.stellar.anchor.platform.job
 
 import io.mockk.MockKAnnotations
 import io.mockk.Runs

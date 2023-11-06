@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.rpc
+package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
 import io.mockk.*
@@ -39,7 +39,6 @@ import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep6Transaction
-import org.stellar.anchor.platform.rpc.NotifyOffchainFundsReceivedHandler
 import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24Transaction

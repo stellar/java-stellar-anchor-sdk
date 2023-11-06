@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.custody.fireblocks
+package org.stellar.anchor.platform.custody.fireblocks
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -14,8 +14,6 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.FireblocksException
 import org.stellar.anchor.platform.config.FireblocksConfig
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksPaymentService
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.util.GsonUtils
 

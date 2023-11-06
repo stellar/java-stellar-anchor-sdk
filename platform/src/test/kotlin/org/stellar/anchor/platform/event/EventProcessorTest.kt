@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.event
+package org.stellar.anchor.platform.event
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -12,7 +12,6 @@ import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue
-import org.stellar.anchor.platform.event.EventHandler
 import org.stellar.anchor.platform.event.EventProcessorManager.EventProcessor
 import org.stellar.anchor.util.ExponentialBackoffTimer
 

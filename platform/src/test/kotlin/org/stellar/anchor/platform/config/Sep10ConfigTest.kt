@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
@@ -14,9 +14,6 @@ import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
-import org.stellar.anchor.platform.config.PropertyClientsConfig
-import org.stellar.anchor.platform.config.PropertySecretConfig
-import org.stellar.anchor.platform.config.PropertySep10Config
 
 class Sep10ConfigTest {
   lateinit var config: PropertySep10Config

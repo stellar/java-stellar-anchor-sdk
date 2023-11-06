@@ -15,7 +15,6 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.client.ClientFinder;
-import org.stellar.anchor.client.config.*;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;

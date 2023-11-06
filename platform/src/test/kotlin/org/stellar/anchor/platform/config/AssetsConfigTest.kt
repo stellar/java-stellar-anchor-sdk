@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import java.nio.file.Paths
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -11,7 +11,6 @@ import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.AssetsConfig.AssetConfigType.*
-import org.stellar.anchor.platform.config.PropertyAssetsConfig
 import org.stellar.anchor.util.FileUtil
 
 class AssetsConfigTest {

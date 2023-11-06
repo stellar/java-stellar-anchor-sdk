@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.service
+package org.stellar.anchor.platform.service
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -21,12 +21,12 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.*
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
-import org.stellar.anchor.client.callback.PlatformIntegrationHelperTest.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
+import org.stellar.anchor.platform.callback.PlatformIntegrationHelperTest.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.platform.config.PropertyClientsConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
@@ -44,19 +44,16 @@ class SimpleInteractiveUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
-  @MockK(relaxed = true)
-  private lateinit var clientsConfig:
-    _root_ide_package_.org.stellar.anchor.platform.config.PropertyClientsConfig
+  @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig
   @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var testAsset: AssetInfo
   @MockK(relaxed = true) private lateinit var sep10Jwt: Sep10Jwt
 
   private lateinit var jwtService: JwtService
-  private lateinit var sep24Config:
-    _root_ide_package_.org.stellar.anchor.platform.config.PropertySep24Config
+  private lateinit var sep24Config: PropertySep24Config
   private lateinit var request: HashMap<String, String>
-  private lateinit var txn: _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction
+  private lateinit var txn: JdbcSep24Transaction
 
   @BeforeEach
   fun setup() {
@@ -96,41 +93,20 @@ class SimpleInteractiveUrlConstructorTest {
     every { sep10Jwt.homeDomain } returns TEST_HOME_DOMAIN
 
     jwtService = JwtService(secretConfig, custodySecretConfig)
-    sep24Config =
-      gson.fromJson(
-        SEP24_CONFIG_JSON_1,
-        _root_ide_package_.org.stellar.anchor.platform.config.PropertySep24Config::class.java
-      )
+    sep24Config = gson.fromJson(SEP24_CONFIG_JSON_1, PropertySep24Config::class.java)
     request = gson.fromJson(REQUEST_JSON_1, HashMap::class.java) as HashMap<String, String>
-    txn =
-      gson.fromJson(
-        TXN_JSON_1,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+    txn = gson.fromJson(TXN_JSON_1, JdbcSep24Transaction::class.java)
   }
 
   @ParameterizedTest
   @MethodSource("constructorTestValues")
   fun `test correct constructor`(configJson: String, requestJson: String, txnJson: String) {
-    val testConfig =
-      gson.fromJson(
-        configJson,
-        _root_ide_package_.org.stellar.anchor.platform.config.PropertySep24Config::class.java
-      )
+    val testConfig = gson.fromJson(configJson, PropertySep24Config::class.java)
     val testRequest = gson.fromJson(requestJson, HashMap::class.java)
-    val testTxn =
-      gson.fromJson(
-        txnJson,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+    val testTxn = gson.fromJson(txnJson, JdbcSep24Transaction::class.java)
 
     val constructor =
-      _root_ide_package_.org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor(
-        clientsConfig,
-        testConfig,
-        customerIntegration,
-        jwtService
-      )
+      SimpleInteractiveUrlConstructor(clientsConfig, testConfig, customerIntegration, jwtService)
 
     var jwt =
       parseJwtFromUrl(
@@ -169,25 +145,12 @@ class SimpleInteractiveUrlConstructorTest {
 
   @Test
   fun `test non-custodial wallet with missing client domain`() {
-    val testConfig =
-      gson.fromJson(
-        SEP24_CONFIG_JSON_1,
-        _root_ide_package_.org.stellar.anchor.platform.config.PropertySep24Config::class.java
-      )
+    val testConfig = gson.fromJson(SEP24_CONFIG_JSON_1, PropertySep24Config::class.java)
     val testRequest = gson.fromJson(REQUEST_JSON_1, HashMap::class.java)
-    val testTxn =
-      gson.fromJson(
-        TXN_JSON_1,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+    val testTxn = gson.fromJson(TXN_JSON_1, JdbcSep24Transaction::class.java)
 
     val constructor =
-      _root_ide_package_.org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor(
-        clientsConfig,
-        testConfig,
-        customerIntegration,
-        jwtService
-      )
+      SimpleInteractiveUrlConstructor(clientsConfig, testConfig, customerIntegration, jwtService)
 
     testTxn.clientDomain = null
     assertThrows<SepValidationException> {
@@ -202,12 +165,7 @@ class SimpleInteractiveUrlConstructorTest {
     every { customerIntegration.putCustomer(capture(capturedPutCustomerRequest)) } returns
       PutCustomerResponse()
     val constructor =
-      _root_ide_package_.org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor(
-        clientsConfig,
-        sep24Config,
-        customerIntegration,
-        jwtService
-      )
+      SimpleInteractiveUrlConstructor(clientsConfig, sep24Config, customerIntegration, jwtService)
     sep24Config.kycFieldsForwarding.isEnabled = true
     every { sep10Jwt.account }.returns("test_account")
     every { sep10Jwt.accountMemo }.returns("123")
@@ -225,12 +183,7 @@ class SimpleInteractiveUrlConstructorTest {
   fun `when kycFieldsForwarding is disabled, the customerIntegration should not receive the kyc fields`() {
     val customerIntegration: CustomerIntegration = mockk()
     val constructor =
-      _root_ide_package_.org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor(
-        clientsConfig,
-        sep24Config,
-        customerIntegration,
-        jwtService
-      )
+      SimpleInteractiveUrlConstructor(clientsConfig, sep24Config, customerIntegration, jwtService)
     sep24Config.kycFieldsForwarding.isEnabled = false
     constructor.construct(
       txn,

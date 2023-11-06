@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.job
+package org.stellar.anchor.platform.job
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -14,7 +14,6 @@ import org.stellar.anchor.platform.config.PropertyCustodyConfig
 import org.stellar.anchor.platform.config.PropertyCustodyConfig.Trustline
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrust
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo
-import org.stellar.anchor.platform.job.TrustlineCheckJob
 import org.stellar.anchor.platform.rpc.NotifyTrustSetHandler
 import org.stellar.anchor.util.GsonUtils
 

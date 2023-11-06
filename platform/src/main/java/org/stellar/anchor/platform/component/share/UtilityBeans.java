@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.client.config.*;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.horizon.Horizon;

@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.util
+package org.stellar.anchor.platform.util
 
 import com.google.gson.annotations.SerializedName
 import kotlin.test.assertEquals
@@ -31,6 +31,4 @@ enum class TestEnumMismatchName() {
 }
 
 class TestEnumMismatchNameConverter :
-  _root_ide_package_.org.stellar.anchor.platform.utils.StringEnumConverter<TestEnumMismatchName>(
-    TestEnumMismatchName::class.java
-  ) {}
+  StringEnumConverter<TestEnumMismatchName>(TestEnumMismatchName::class.java) {}

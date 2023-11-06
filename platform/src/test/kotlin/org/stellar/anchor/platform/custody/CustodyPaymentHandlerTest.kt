@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.custody
+package org.stellar.anchor.platform.custody
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -7,8 +7,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
-import org.stellar.anchor.platform.custody.CustodyPayment
-import org.stellar.anchor.platform.custody.CustodyPaymentHandler
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
 import org.stellar.anchor.util.GsonUtils

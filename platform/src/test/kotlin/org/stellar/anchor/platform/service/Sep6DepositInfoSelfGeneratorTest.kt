@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.service
+package org.stellar.anchor.platform.service
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -23,8 +23,7 @@ class Sep6DepositInfoSelfGeneratorTest {
 
   @MockK(relaxed = true) lateinit var assetService: AssetService
 
-  private lateinit var generator:
-    _root_ide_package_.org.stellar.anchor.platform.service.Sep6DepositInfoSelfGenerator
+  private lateinit var generator: Sep6DepositInfoSelfGenerator
 
   @BeforeEach
   fun setup() {
@@ -32,15 +31,12 @@ class Sep6DepositInfoSelfGeneratorTest {
     val asset = mockk<AssetInfo>()
     every { asset.distributionAccount } returns DISTRIBUTION_ACCOUNT
     every { assetService.getAsset(ASSET_CODE, ASSET_ISSUER) } returns asset
-    generator =
-      _root_ide_package_.org.stellar.anchor.platform.service.Sep6DepositInfoSelfGenerator(
-        assetService
-      )
+    generator = Sep6DepositInfoSelfGenerator(assetService)
   }
 
   @Test
   fun test_sep6_custodyGenerator_success() {
-    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn = JdbcSep6Transaction()
     txn.id = TXN_ID
     txn.requestAssetCode = ASSET_CODE
     txn.requestAssetIssuer = ASSET_ISSUER

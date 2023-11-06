@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.validator
+package org.stellar.anchor.platform.validator
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -16,14 +16,12 @@ class RequestValidatorTest {
 
   @MockK(relaxed = true) private lateinit var validator: Validator
 
-  private lateinit var requestValidator:
-    _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator
+  private lateinit var requestValidator: RequestValidator
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    this.requestValidator =
-      _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator(validator)
+    this.requestValidator = RequestValidator(validator)
   }
 
   @Test

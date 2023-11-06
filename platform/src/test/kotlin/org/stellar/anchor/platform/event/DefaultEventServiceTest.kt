@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.event
+package org.stellar.anchor.platform.event
 
 import org.apache.commons.lang3.NotImplementedException
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -8,8 +8,6 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.config.event.QueueConfig.QueueType.*
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.platform.config.PropertyEventConfig
-import org.stellar.anchor.platform.event.DefaultEventService
-import org.stellar.anchor.platform.event.KafkaSession
 import org.stellar.anchor.util.GsonUtils
 
 internal class DefaultEventServiceTest {

@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.service
+package org.stellar.anchor.platform.service
 
 import io.mockk.every
 import io.mockk.mockk
@@ -20,15 +20,10 @@ class Sep31DepositInfoCustodyGeneratorTest {
 
   @Test
   fun test_sep31_custodyGenerator_success() {
-    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val txn = JdbcSep31Transaction()
     txn.amountInAsset = ASSET_ID
-    val custodyApiClient:
-      _root_ide_package_.org.stellar.anchor.platform.apiclient.CustodyApiClient =
-      mockk()
-    val generator =
-      _root_ide_package_.org.stellar.anchor.platform.service.Sep31DepositInfoCustodyGenerator(
-        custodyApiClient
-      )
+    val custodyApiClient: CustodyApiClient = mockk()
+    val generator = Sep31DepositInfoCustodyGenerator(custodyApiClient)
     val depositAddress = GenerateDepositAddressResponse(ADDRESS, MEMO, MEMO_TYPE)
 
     every { custodyApiClient.generateDepositAddress(ASSET_ID) } returns depositAddress

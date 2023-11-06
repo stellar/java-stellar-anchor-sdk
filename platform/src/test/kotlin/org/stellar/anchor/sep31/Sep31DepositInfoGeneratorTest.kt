@@ -90,11 +90,7 @@ class Sep31DepositInfoGeneratorTest {
         custodyConfig
       )
 
-    txn =
-      gson.fromJson(
-        txnJson,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction::class.java
-      )
+    txn = gson.fromJson(txnJson, JdbcSep31Transaction::class.java)
   }
 
   @Test
@@ -105,7 +101,7 @@ class Sep31DepositInfoGeneratorTest {
         sep10Config,
         sep31Config,
         txnStore,
-        _root_ide_package_.org.stellar.anchor.platform.service
+        org.stellar.anchor.platform.service
           .Sep31DepositInfoSelfGenerator(), // set deposit info generator
         quoteStore,
         clientsConfig,

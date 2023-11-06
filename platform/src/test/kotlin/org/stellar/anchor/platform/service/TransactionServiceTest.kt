@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.service
+package org.stellar.anchor.platform.service
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -33,6 +33,7 @@ import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
+import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator
 import org.stellar.anchor.sep24.Sep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -67,15 +68,14 @@ class TransactionServiceTest {
   @MockK(relaxed = true) private lateinit var custodyService: CustodyService
   @MockK(relaxed = true) private lateinit var custodyConfig: CustodyConfig
 
-  private lateinit var transactionService:
-    _root_ide_package_.org.stellar.anchor.platform.service.TransactionService
+  private lateinit var transactionService: TransactionService
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     transactionService =
-      _root_ide_package_.org.stellar.anchor.platform.service.TransactionService(
+      TransactionService(
         sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,
@@ -114,20 +114,11 @@ class TransactionServiceTest {
   fun `test get SEP31 transaction`() {
     // Mock the store
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
-    every { sep31TransactionStore.newTransaction() } returns
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
-    every { sep31TransactionStore.newRefunds() } returns
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Refunds()
-    every { sep31TransactionStore.newRefundPayment() } answers
-      {
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31RefundPayment()
-      }
+    every { sep31TransactionStore.newTransaction() } returns JdbcSep31Transaction()
+    every { sep31TransactionStore.newRefunds() } returns JdbcSep31Refunds()
+    every { sep31TransactionStore.newRefundPayment() } answers { JdbcSep31RefundPayment() }
 
-    val mockSep31Transaction =
-      gson.fromJson(
-        jsonSep31Transaction,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction::class.java
-      )
+    val mockSep31Transaction = gson.fromJson(jsonSep31Transaction, JdbcSep31Transaction::class.java)
 
     every { sep31TransactionStore.findByTransactionId(TEST_TXN_ID) } returns mockSep31Transaction
     val gotGetTransactionResponse = transactionService.findTransaction(TEST_TXN_ID)
@@ -144,20 +135,11 @@ class TransactionServiceTest {
     // Mock the store
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep6TransactionStore.findByTransactionId(any()) } returns null
-    every { sep24TransactionStore.newInstance() } returns
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
-    every { sep24TransactionStore.newRefunds() } returns
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Refunds()
-    every { sep24TransactionStore.newRefundPayment() } answers
-      {
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24RefundPayment()
-      }
+    every { sep24TransactionStore.newInstance() } returns JdbcSep24Transaction()
+    every { sep24TransactionStore.newRefunds() } returns JdbcSep24Refunds()
+    every { sep24TransactionStore.newRefundPayment() } answers { JdbcSep24RefundPayment() }
 
-    val mockSep24Transaction =
-      gson.fromJson(
-        jsonSep24Transaction,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+    val mockSep24Transaction = gson.fromJson(jsonSep24Transaction, JdbcSep24Transaction::class.java)
 
     every { sep24TransactionStore.findByTransactionId(TEST_TXN_ID) } returns mockSep24Transaction
     val gotGetTransactionResponse = transactionService.findTransaction(TEST_TXN_ID)
@@ -174,16 +156,11 @@ class TransactionServiceTest {
     // Mock the store
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
-    every { sep6TransactionStore.newInstance() } returns
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    every { sep6TransactionStore.newInstance() } returns JdbcSep6Transaction()
     every { sep6TransactionStore.newRefunds() } returns Refunds()
     every { sep6TransactionStore.newRefundPayment() } answers { RefundPayment() }
 
-    val mockSep6Transaction =
-      gson.fromJson(
-        jsonSep6Transaction,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction::class.java
-      )
+    val mockSep6Transaction = gson.fromJson(jsonSep6Transaction, JdbcSep6Transaction::class.java)
 
     every { sep6TransactionStore.findByTransactionId(TEST_TXN_ID) } returns mockSep6Transaction
     val gotGetTransactionResponse = transactionService.findTransaction(TEST_TXN_ID)
@@ -252,7 +229,7 @@ class TransactionServiceTest {
   fun test_validateAsset() {
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     transactionService =
-      _root_ide_package_.org.stellar.anchor.platform.service.TransactionService(
+      TransactionService(
         sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,
@@ -306,7 +283,7 @@ class TransactionServiceTest {
   @Test
   fun test_patchTransaction_sep24DepositPendingUserTransferStart() {
     val txId = "testTxId"
-    val tx = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val tx = JdbcSep24Transaction()
     tx.status = SepTransactionStatus.INCOMPLETE.toString()
     tx.kind = "deposit"
     val data = PlatformTransactionData()
@@ -331,7 +308,7 @@ class TransactionServiceTest {
   @Test
   fun test_patchTransaction_sep24WithdrawalPendingAnchor() {
     val txId = "testTxId"
-    val tx = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val tx = JdbcSep24Transaction()
     tx.status = SepTransactionStatus.INCOMPLETE.toString()
     tx.kind = "withdrawal"
     val data = PlatformTransactionData()
@@ -356,7 +333,7 @@ class TransactionServiceTest {
   @Test
   fun test_patchTransaction_sep24DepositPendingAnchor() {
     val txId = "testTxId"
-    val tx = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val tx = JdbcSep24Transaction()
     tx.status = SepTransactionStatus.INCOMPLETE.toString()
     tx.kind = "deposit"
     val data = PlatformTransactionData()
@@ -382,7 +359,7 @@ class TransactionServiceTest {
   @Test
   fun test_patchTransaction_sep24WithdrawalPendingUserTransferStart() {
     val txId = "testTxId"
-    val tx = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val tx = JdbcSep24Transaction()
     tx.status = SepTransactionStatus.INCOMPLETE.toString()
     tx.kind = "withdrawal"
     tx.withdrawAnchorAccount = null
@@ -411,7 +388,7 @@ class TransactionServiceTest {
   @Test
   fun test_patchTransaction_sep24WithdrawalPendingUserTransferStart_statusNotChanged() {
     val txId = "testTxId"
-    val tx = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val tx = JdbcSep24Transaction()
     tx.status = SepTransactionStatus.PENDING_USR_TRANSFER_START.toString()
     tx.kind = "withdrawal"
     val data = PlatformTransactionData()
@@ -437,7 +414,7 @@ class TransactionServiceTest {
   @ParameterizedTest
   fun test_patchTransaction_sep6DepositPendingUserTransferStart(kind: String) {
     val txId = "testTxId"
-    val tx = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val tx = JdbcSep6Transaction()
     tx.status = SepTransactionStatus.INCOMPLETE.toString()
     tx.kind = kind
     val data = PlatformTransactionData()
@@ -463,7 +440,7 @@ class TransactionServiceTest {
   @ParameterizedTest
   fun test_patchTransaction_sep6WithdrawalPendingAnchor(kind: String) {
     val txId = "testTxId"
-    val tx = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val tx = JdbcSep6Transaction()
     tx.status = SepTransactionStatus.INCOMPLETE.toString()
     tx.kind = kind
     val data = PlatformTransactionData()
@@ -489,7 +466,7 @@ class TransactionServiceTest {
   @ParameterizedTest
   fun test_patchTransaction_sep6DepositPendingAnchor(kind: String) {
     val txId = "testTxId"
-    val tx = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val tx = JdbcSep6Transaction()
     tx.status = SepTransactionStatus.INCOMPLETE.toString()
     tx.kind = kind
     val data = PlatformTransactionData()
@@ -516,7 +493,7 @@ class TransactionServiceTest {
   @ParameterizedTest
   fun test_patchTransaction_sep6WithdrawalPendingUserTransferStart(kind: String) {
     val txId = "testTxId"
-    val tx = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val tx = JdbcSep6Transaction()
     tx.status = SepTransactionStatus.INCOMPLETE.toString()
     tx.kind = kind
     val data = PlatformTransactionData()
@@ -543,7 +520,7 @@ class TransactionServiceTest {
   @ParameterizedTest
   fun test_patchTransaction_sep6WithdrawalPendingUserTransferStart_statusNotChanged(kind: String) {
     val txId = "testTxId"
-    val tx = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val tx = JdbcSep6Transaction()
     tx.status = SepTransactionStatus.PENDING_USR_TRANSFER_START.toString()
     tx.kind = kind
     val data = PlatformTransactionData()
@@ -649,10 +626,10 @@ class TransactionServiceTest {
                 "transfer_received_at": "2023-01-19T01:51:47.648850500Z"
               }          
             """,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction::class.java
+        JdbcSep31Transaction::class.java
       )
 
-    val testSep38Quote = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep38Quote()
+    val testSep38Quote = JdbcSep38Quote()
     testSep38Quote.id = "my-quote-id"
     testSep38Quote.sellAmount = "100"
     testSep38Quote.sellAsset = fiatUSD
@@ -666,7 +643,7 @@ class TransactionServiceTest {
 
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     transactionService =
-      _root_ide_package_.org.stellar.anchor.platform.service.TransactionService(
+      TransactionService(
         sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,
@@ -712,7 +689,7 @@ class TransactionServiceTest {
         
       """
           .trimIndent(),
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction::class.java
+        JdbcSep31Transaction::class.java
       )
 
     JSONAssert.assertEquals(

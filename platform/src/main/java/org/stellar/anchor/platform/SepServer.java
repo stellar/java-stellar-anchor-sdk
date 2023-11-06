@@ -17,13 +17,13 @@ import org.stellar.anchor.platform.configurator.SecretManager;
 import org.stellar.anchor.platform.configurator.SepConfigManager;
 
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = {"org.stellar.anchor.client.data"})
+@EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {
-      "org.stellar.anchor.client.controller.sep",
-      "org.stellar.anchor.client.component.sep",
-      "org.stellar.anchor.client.component.share"
+      "org.stellar.anchor.platform.controller.sep",
+      "org.stellar.anchor.platform.component.sep",
+      "org.stellar.anchor.platform.component.share"
     })
 @EnableConfigurationProperties
 public class SepServer extends AbstractPlatformServer implements WebMvcConfigurer {

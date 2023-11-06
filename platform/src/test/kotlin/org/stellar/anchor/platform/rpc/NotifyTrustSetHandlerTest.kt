@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.rpc
+package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
 import io.mockk.*
@@ -57,15 +57,11 @@ class NotifyTrustSetHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true)
-  private lateinit var requestValidator:
-    _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator
+  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
-  @MockK(relaxed = true)
-  private lateinit var custodyConfig:
-    _root_ide_package_.org.stellar.anchor.platform.config.PropertyCustodyConfig
+  @MockK(relaxed = true) private lateinit var custodyConfig: PropertyCustodyConfig
 
   @MockK(relaxed = true) private lateinit var custodyService: CustodyService
 
@@ -77,15 +73,14 @@ class NotifyTrustSetHandlerTest {
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
-  private lateinit var handler:
-    _root_ide_package_.org.stellar.anchor.platform.rpc.NotifyTrustSetHandler
+  private lateinit var handler: NotifyTrustSetHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.handler =
-      _root_ide_package_.org.stellar.anchor.platform.rpc.NotifyTrustSetHandler(
+      NotifyTrustSetHandler(
         txn6Store,
         txn24Store,
         txn31Store,
@@ -101,7 +96,7 @@ class NotifyTrustSetHandlerTest {
   @Test
   fun test_handle_unsupportedProtocol() {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_TRUST.toString()
     txn24.kind = DEPOSIT.kind
     val spyTxn24 = spyk(txn24)
@@ -126,7 +121,7 @@ class NotifyTrustSetHandlerTest {
   @Test
   fun test_handle_invalidRequest() {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_TRUST.toString()
     txn24.kind = DEPOSIT.kind
 
@@ -148,7 +143,7 @@ class NotifyTrustSetHandlerTest {
   @Test
   fun test_handle_sep24_unsupportedStatus() {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
 
@@ -171,7 +166,7 @@ class NotifyTrustSetHandlerTest {
   @Test
   fun test_handle_sep24_unsupportedKind() {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = WITHDRAWAL.kind
 
@@ -194,11 +189,10 @@ class NotifyTrustSetHandlerTest {
   @Test
   fun test_handle_sep24_ok_custodyIntegrationDisabled() {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_TRUST.toString()
     txn24.kind = DEPOSIT.kind
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -216,8 +210,7 @@ class NotifyTrustSetHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep24Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -248,12 +241,11 @@ class NotifyTrustSetHandlerTest {
   @Test
   fun test_handle_sep24_ok_custodyIntegrationEnabled_success() {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).success(true).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.id = TX_ID
     txn24.status = PENDING_TRUST.toString()
     txn24.kind = DEPOSIT.kind
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -272,8 +264,7 @@ class NotifyTrustSetHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep24Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.id = TX_ID
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_STELLAR.toString()
@@ -306,11 +297,10 @@ class NotifyTrustSetHandlerTest {
   @Test
   fun test_handle_sep24_ok_custodyIntegrationEnabled_fail() {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).success(false).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_TRUST.toString()
     txn24.kind = DEPOSIT.kind
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -329,8 +319,7 @@ class NotifyTrustSetHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep24Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -361,11 +350,10 @@ class NotifyTrustSetHandlerTest {
   @Test
   fun test_handle_sep24_ok() {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_TRUST.toString()
     txn24.kind = DEPOSIT.kind
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -385,8 +373,7 @@ class NotifyTrustSetHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep24Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -432,7 +419,7 @@ class NotifyTrustSetHandlerTest {
   @ParameterizedTest
   fun test_handle_sep6_unsupportedStatus(kind: String) {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_ANCHOR.toString()
     txn6.kind = kind
 
@@ -456,7 +443,7 @@ class NotifyTrustSetHandlerTest {
   @ParameterizedTest
   fun test_handle_sep6_unsupportedKind(kind: String) {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_ANCHOR.toString()
     txn6.kind = kind
 
@@ -480,11 +467,10 @@ class NotifyTrustSetHandlerTest {
   @ParameterizedTest
   fun test_handle_sep6_ok_custodyIntegrationDisabled(kind: String) {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_TRUST.toString()
     txn6.kind = kind
-    val sep6TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
     every { txn24Store.findByTransactionId(any()) } returns null
@@ -502,7 +488,7 @@ class NotifyTrustSetHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val expectedSep6Txn = JdbcSep6Transaction()
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_ANCHOR.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
@@ -535,12 +521,11 @@ class NotifyTrustSetHandlerTest {
   @ParameterizedTest
   fun test_handle_sep6_ok_custodyIntegrationEnabled_success(kind: String) {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).success(true).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.id = TX_ID
     txn6.status = PENDING_TRUST.toString()
     txn6.kind = kind
-    val sep6TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
     every { txn24Store.findByTransactionId(any()) } returns null
@@ -559,7 +544,7 @@ class NotifyTrustSetHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val expectedSep6Txn = JdbcSep6Transaction()
     expectedSep6Txn.id = TX_ID
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_STELLAR.toString()
@@ -594,11 +579,10 @@ class NotifyTrustSetHandlerTest {
   @ParameterizedTest
   fun test_handle_sep6_ok_custodyIntegrationEnabled_fail(kind: String) {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).success(false).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_TRUST.toString()
     txn6.kind = kind
-    val sep6TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
     every { txn24Store.findByTransactionId(any()) } returns null
@@ -617,7 +601,7 @@ class NotifyTrustSetHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val expectedSep6Txn = JdbcSep6Transaction()
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_ANCHOR.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
@@ -650,11 +634,10 @@ class NotifyTrustSetHandlerTest {
   @ParameterizedTest
   fun test_handle_sep6_ok(kind: String) {
     val request = NotifyTrustSetRequest.builder().transactionId(TX_ID).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_TRUST.toString()
     txn6.kind = kind
-    val sep6TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
@@ -674,7 +657,7 @@ class NotifyTrustSetHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val expectedSep6Txn = JdbcSep6Transaction()
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_ANCHOR.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt

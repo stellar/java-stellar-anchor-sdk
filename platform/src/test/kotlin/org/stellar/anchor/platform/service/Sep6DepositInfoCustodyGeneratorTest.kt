@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.service
+package org.stellar.anchor.platform.service
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -19,25 +19,19 @@ class Sep6DepositInfoCustodyGeneratorTest {
     private const val ASSET_ID = "USDC"
   }
 
-  @MockK(relaxed = true)
-  lateinit var custodyApiClient:
-    _root_ide_package_.org.stellar.anchor.platform.apiclient.CustodyApiClient
+  @MockK(relaxed = true) lateinit var custodyApiClient: CustodyApiClient
 
-  private lateinit var generator:
-    _root_ide_package_.org.stellar.anchor.platform.service.Sep6DepositInfoCustodyGenerator
+  private lateinit var generator: Sep6DepositInfoCustodyGenerator
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    generator =
-      _root_ide_package_.org.stellar.anchor.platform.service.Sep6DepositInfoCustodyGenerator(
-        custodyApiClient
-      )
+    generator = Sep6DepositInfoCustodyGenerator(custodyApiClient)
   }
 
   @Test
   fun test_sep6_custodyGenerator_success() {
-    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn = JdbcSep6Transaction()
     txn.amountInAsset = ASSET_ID
 
     every { custodyApiClient.generateDepositAddress(ASSET_ID) } returns

@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.custody.fireblocks
+package org.stellar.anchor.platform.custody.fireblocks
 
 import com.google.gson.reflect.TypeToken
 import io.mockk.every
@@ -29,7 +29,6 @@ import org.stellar.anchor.platform.config.PropertyCustodySecretConfig
 import org.stellar.anchor.platform.custody.CustodyPayment
 import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler
 import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo

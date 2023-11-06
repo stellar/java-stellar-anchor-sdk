@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.component.share;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.client.data.*;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.platform.observer.stellar.JdbcStellarPaymentStreamerCursorStore;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore;

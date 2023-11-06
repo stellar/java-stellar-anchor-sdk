@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
@@ -14,8 +14,6 @@ import org.stellar.anchor.auth.AuthConfig
 import org.stellar.anchor.auth.AuthType.JWT
 import org.stellar.anchor.auth.AuthType.NONE
 import org.stellar.anchor.config.CustodySecretConfig
-import org.stellar.anchor.platform.config.CustodyApiConfig
-import org.stellar.anchor.platform.config.HttpClientConfig
 
 class CustodyApiConfigTest {
 

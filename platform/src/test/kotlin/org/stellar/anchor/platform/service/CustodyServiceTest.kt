@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.service
+package org.stellar.anchor.platform.service
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -34,30 +34,20 @@ class CustodyServiceTest {
     private val REQUEST_BODY = "{}"
   }
 
-  @MockK(relaxed = true)
-  private lateinit var custodyApiClient:
-    _root_ide_package_.org.stellar.anchor.platform.apiclient.CustodyApiClient
+  @MockK(relaxed = true) private lateinit var custodyApiClient: CustodyApiClient
   private lateinit var custodyService: CustodyService
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    custodyService =
-      _root_ide_package_.org.stellar.anchor.platform.service.CustodyServiceImpl(
-        Optional.of(custodyApiClient)
-      )
+    custodyService = CustodyServiceImpl(Optional.of(custodyApiClient))
   }
 
   @CsvSource(value = ["deposit", "deposit-exchange"])
   @ParameterizedTest
   fun test_createTransaction_sep6Deposit(kind: String) {
     val txn =
-      gson
-        .fromJson(
-          sep6DepositEntity,
-          _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction::class.java
-        )
-        .apply { this.kind = kind }
+      gson.fromJson(sep6DepositEntity, JdbcSep6Transaction::class.java).apply { this.kind = kind }
     val requestCapture = slot<CreateCustodyTransactionRequest>()
 
     every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs
@@ -75,12 +65,9 @@ class CustodyServiceTest {
   @ParameterizedTest
   fun test_createTransaction_sep6Withdrawal(kind: String) {
     val txn =
-      gson
-        .fromJson(
-          sep6WithdrawalEntity,
-          _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction::class.java
-        )
-        .apply { this.kind = kind }
+      gson.fromJson(sep6WithdrawalEntity, JdbcSep6Transaction::class.java).apply {
+        this.kind = kind
+      }
     val requestCapture = slot<CreateCustodyTransactionRequest>()
 
     every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs
@@ -98,11 +85,8 @@ class CustodyServiceTest {
 
   @Test
   fun test_createTransaction_sep24Deposit() {
-    val txn =
-      gson.fromJson(
-        sep24DepositEntity,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+    val txn = gson.fromJson(sep24DepositEntity, JdbcSep24Transaction::class.java)
+
     val requestCapture = slot<CreateCustodyTransactionRequest>()
 
     every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs
@@ -118,11 +102,7 @@ class CustodyServiceTest {
 
   @Test
   fun test_createTransaction_sep24Withdrawal() {
-    val txn =
-      gson.fromJson(
-        sep24WithdrawalEntity,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction::class.java
-      )
+    val txn = gson.fromJson(sep24WithdrawalEntity, JdbcSep24Transaction::class.java)
     val requestCapture = slot<CreateCustodyTransactionRequest>()
 
     every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs
@@ -138,11 +118,7 @@ class CustodyServiceTest {
 
   @Test
   fun test_createTransaction_sep31() {
-    val txn =
-      gson.fromJson(
-        sep31Entity,
-        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction::class.java
-      )
+    val txn = gson.fromJson(sep31Entity, JdbcSep31Transaction::class.java)
     val requestCapture = slot<CreateCustodyTransactionRequest>()
 
     every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs
@@ -158,8 +134,7 @@ class CustodyServiceTest {
 
   @Test
   fun test_createTransactionPayment_custody_integration_not_enabled() {
-    custodyService =
-      _root_ide_package_.org.stellar.anchor.platform.service.CustodyServiceImpl(Optional.empty())
+    custodyService = CustodyServiceImpl(Optional.empty())
 
     val ex =
       assertThrows<InvalidConfigException> {
@@ -181,8 +156,7 @@ class CustodyServiceTest {
 
   @Test
   fun test_createTransactionPayment_custody_integration_disabled() {
-    custodyService =
-      _root_ide_package_.org.stellar.anchor.platform.service.CustodyServiceImpl(Optional.empty())
+    custodyService = CustodyServiceImpl(Optional.empty())
 
     val exception =
       assertThrows<InvalidConfigException> {

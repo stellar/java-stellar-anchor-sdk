@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.component
+package org.stellar.anchor.platform.component
 
 import io.mockk.every
 import io.mockk.impl.annotations.MockK

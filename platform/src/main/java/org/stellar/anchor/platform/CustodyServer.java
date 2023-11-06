@@ -23,9 +23,9 @@ import org.stellar.anchor.platform.configurator.SecretManager;
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {
-      "org.stellar.anchor.client.controller.custody",
-      "org.stellar.anchor.client.component.custody",
-      "org.stellar.anchor.client.component.share"
+      "org.stellar.anchor.platform.controller.custody",
+      "org.stellar.anchor.platform.component.custody",
+      "org.stellar.anchor.platform.component.share"
     })
 @EnableRetry
 @EnableScheduling

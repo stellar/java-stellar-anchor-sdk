@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.rpc
+package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
 import io.mockk.*
@@ -55,9 +55,7 @@ class NotifyTransactionExpiredHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true)
-  private lateinit var requestValidator:
-    _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator
+  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -68,20 +66,18 @@ class NotifyTransactionExpiredHandlerTest {
   @MockK(relaxed = true) private lateinit var eventSession: Session
 
   @MockK(relaxed = true)
-  private lateinit var transactionPendingTrustRepo:
-    _root_ide_package_.org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo
+  private lateinit var transactionPendingTrustRepo: JdbcTransactionPendingTrustRepo
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
-  private lateinit var handler:
-    _root_ide_package_.org.stellar.anchor.platform.rpc.NotifyTransactionExpiredHandler
+  private lateinit var handler: NotifyTransactionExpiredHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.handler =
-      _root_ide_package_.org.stellar.anchor.platform.rpc.NotifyTransactionExpiredHandler(
+      NotifyTransactionExpiredHandler(
         txn6Store,
         txn24Store,
         txn31Store,
@@ -96,7 +92,7 @@ class NotifyTransactionExpiredHandlerTest {
   @Test
   fun test_handle_unsupportedProtocol() {
     val request = NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = ERROR.toString()
     val spyTxn24 = spyk(txn24)
 
@@ -120,7 +116,7 @@ class NotifyTransactionExpiredHandlerTest {
   @Test
   fun test_handle_unsupportedStatus_errorStatus() {
     val request = NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = EXPIRED.toString()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -142,7 +138,7 @@ class NotifyTransactionExpiredHandlerTest {
   @Test
   fun test_handle_unsupportedStatus_finalStatus() {
     val request = NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = COMPLETED.toString()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -164,7 +160,7 @@ class NotifyTransactionExpiredHandlerTest {
   @Test
   fun test_handle_missingMessage() {
     val request = NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -184,7 +180,7 @@ class NotifyTransactionExpiredHandlerTest {
   fun test_handle_set_expired_after_receiving_funds() {
     val request =
       NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.transferReceivedAt = Instant.now()
 
@@ -207,7 +203,7 @@ class NotifyTransactionExpiredHandlerTest {
   @Test
   fun test_handle_invalidRequest() {
     val request = NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
 
@@ -230,12 +226,11 @@ class NotifyTransactionExpiredHandlerTest {
   fun test_handle_ok_sep24() {
     val request =
       NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
-    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.id = TX_ID
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
-    val sep24TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -257,8 +252,7 @@ class NotifyTransactionExpiredHandlerTest {
     verify(exactly = 1) { transactionPendingTrustRepo.deleteById(TX_ID) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep24Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
+    val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.id = TX_ID
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = EXPIRED.toString()
@@ -308,10 +302,9 @@ class NotifyTransactionExpiredHandlerTest {
   fun test_handle_sep31_ok() {
     val request =
       NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
-    val txn31 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val txn31 = JdbcSep31Transaction()
     txn31.status = PENDING_ANCHOR.toString()
-    val sep31TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction>()
+    val sep31TxnCapture = slot<JdbcSep31Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -327,8 +320,7 @@ class NotifyTransactionExpiredHandlerTest {
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
 
-    val expectedSep31Txn =
-      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
+    val expectedSep31Txn = JdbcSep31Transaction()
     expectedSep31Txn.status = EXPIRED.toString()
     expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedSep31Txn.requiredInfoMessage = TX_MESSAGE
@@ -379,12 +371,11 @@ class NotifyTransactionExpiredHandlerTest {
   fun test_handle_ok_sep6() {
     val request =
       NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
-    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val txn6 = JdbcSep6Transaction()
     txn6.id = TX_ID
     txn6.status = PENDING_ANCHOR.toString()
     txn6.kind = DEPOSIT.kind
-    val sep6TxnCapture =
-      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
@@ -406,7 +397,7 @@ class NotifyTransactionExpiredHandlerTest {
     verify(exactly = 1) { transactionPendingTrustRepo.deleteById(TX_ID) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
+    val expectedSep6Txn = JdbcSep6Transaction()
     expectedSep6Txn.id = TX_ID
     expectedSep6Txn.kind = DEPOSIT.kind
     expectedSep6Txn.status = EXPIRED.toString()

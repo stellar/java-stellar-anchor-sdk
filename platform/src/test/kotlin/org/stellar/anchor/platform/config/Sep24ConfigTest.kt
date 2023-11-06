@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
@@ -15,7 +15,6 @@ import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config.DepositInfoGeneratorType
 import org.stellar.anchor.config.Sep24Config.Features
-import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig
 import org.stellar.anchor.platform.config.PropertySep24Config.MoreInfoUrlConfig
 

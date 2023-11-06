@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.custody
+package org.stellar.anchor.platform.custody
 
 import io.micrometer.core.instrument.Counter
 import io.mockk.MockKAnnotations
@@ -13,8 +13,6 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.config.RpcConfig
-import org.stellar.anchor.platform.custody.CustodyPayment
-import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
 import org.stellar.anchor.platform.service.AnchorMetrics.PAYMENT_RECEIVED

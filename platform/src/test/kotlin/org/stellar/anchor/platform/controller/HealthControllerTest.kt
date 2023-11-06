@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package org.stellar.anchor.client.controller
+package org.stellar.anchor.platform.controller
 
 import io.mockk.MockKAnnotations
 import io.mockk.every

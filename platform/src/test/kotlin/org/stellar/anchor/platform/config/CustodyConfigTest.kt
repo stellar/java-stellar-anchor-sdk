@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.config
+package org.stellar.anchor.platform.config
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
@@ -11,8 +11,6 @@ import org.springframework.validation.Errors
 import org.stellar.anchor.config.CustodyConfig.CustodyType
 import org.stellar.anchor.config.CustodyConfig.CustodyType.FIREBLOCKS
 import org.stellar.anchor.config.CustodyConfig.CustodyType.NONE
-import org.stellar.anchor.platform.config.HttpClientConfig
-import org.stellar.anchor.platform.config.PropertyCustodyConfig
 import org.stellar.anchor.platform.config.PropertyCustodyConfig.Trustline
 
 class PropertyCustodyConfigTest {

@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.component.share;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.client.event.*;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.PropertyEventConfig;
 import org.stellar.anchor.platform.event.DefaultEventService;

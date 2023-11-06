@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package org.stellar.anchor.client.observer.stellar
+package org.stellar.anchor.platform.observer.stellar
 
 import com.google.gson.reflect.TypeToken
 import io.mockk.*
@@ -14,10 +14,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.platform.HealthCheckStatus.RED
 import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig
-import org.stellar.anchor.platform.observer.stellar.ObserverStatus
-import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
-import org.stellar.anchor.platform.observer.stellar.StellarPaymentObserver
-import org.stellar.anchor.platform.observer.stellar.StellarPaymentStreamerCursorStore
 import org.stellar.sdk.Server
 import org.stellar.sdk.requests.RequestBuilder
 import org.stellar.sdk.requests.SSEStream

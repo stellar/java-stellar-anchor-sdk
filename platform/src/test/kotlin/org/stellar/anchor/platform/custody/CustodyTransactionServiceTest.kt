@@ -1,4 +1,4 @@
-package org.stellar.anchor.client.custody
+package org.stellar.anchor.platform.custody
 
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -22,8 +22,6 @@ import org.stellar.anchor.api.exception.custody.CustodyBadRequestException
 import org.stellar.anchor.api.exception.custody.CustodyNotFoundException
 import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException
-import org.stellar.anchor.platform.custody.CustodyPaymentService
-import org.stellar.anchor.platform.custody.CustodyTransactionService
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType.PAYMENT
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
