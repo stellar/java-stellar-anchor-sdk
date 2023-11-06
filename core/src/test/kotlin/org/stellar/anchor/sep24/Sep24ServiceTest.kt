@@ -8,7 +8,6 @@ import java.net.URI
 import java.nio.charset.Charset
 import java.time.Instant
 import org.apache.http.client.utils.URLEncodedUtils
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -97,9 +96,9 @@ internal class Sep24ServiceTest {
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
     jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
-    testInteractiveUrlJwt = createTestInteractiveJwt(TEST_ACCOUNT, null)
+    testInteractiveUrlJwt = createTestInteractiveJwt(null)
     val strToken = jwtService.encode(testInteractiveUrlJwt)
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     every { moreInfoUrlConstructor.construct(any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
@@ -120,16 +119,10 @@ internal class Sep24ServiceTest {
       )
   }
 
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
-  }
-
   @Test
   fun `test withdraw`() {
-    val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, null))
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    val strToken = jwtService.encode(createTestInteractiveJwt(null))
+    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
 
     val slotTxn = slot<Sep24Transaction>()
@@ -172,8 +165,8 @@ internal class Sep24ServiceTest {
 
   @Test
   fun `test withdraw with token memo`() {
-    val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, TEST_MEMO))
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    val strToken = jwtService.encode(createTestInteractiveJwt(TEST_MEMO))
+    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     val slotTxn = slot<Sep24Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
@@ -257,8 +250,8 @@ internal class Sep24ServiceTest {
   @ParameterizedTest
   @ValueSource(strings = ["true", "false"])
   fun `test deposit`(claimableBalanceSupported: String) {
-    val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, null))
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    val strToken = jwtService.encode(createTestInteractiveJwt(null))
+    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
 
     val slotTxn = slot<Sep24Transaction>()
@@ -285,8 +278,8 @@ internal class Sep24ServiceTest {
 
   @Test
   fun `test deposit with token memo`() {
-    val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, TEST_MEMO))
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    val strToken = jwtService.encode(createTestInteractiveJwt(TEST_MEMO))
+    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     val slotTxn = slot<Sep24Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
@@ -342,8 +335,8 @@ internal class Sep24ServiceTest {
 
   @Test
   fun `test deposit to whitelisted account`() {
-    val strToken = jwtService.encode(createTestInteractiveJwt(TEST_ACCOUNT, null))
-    every { interactiveUrlConstructor.construct(any(), any()) } returns
+    val strToken = jwtService.encode(createTestInteractiveJwt(null))
+    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     val slotTxn = slot<Sep24Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
@@ -577,17 +570,15 @@ internal class Sep24ServiceTest {
     return TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
   }
 
-  private fun createTestInteractiveJwt(
-    account: String?,
-    accountMemo: String?
-  ): Sep24InteractiveUrlJwt {
+  private fun createTestInteractiveJwt(accountMemo: String?): Sep24InteractiveUrlJwt {
     val jwt =
       Sep24InteractiveUrlJwt(
-        if (accountMemo == null) account else "$account:$accountMemo",
+        if (accountMemo == null) TEST_ACCOUNT else "$TEST_ACCOUNT:$accountMemo",
         TEST_TRANSACTION_ID_0,
         Instant.now().epochSecond + 1000,
         TEST_CLIENT_DOMAIN,
         TEST_CLIENT_NAME,
+        TEST_HOME_DOMAIN
       )
     jwt.claim("asset", "stellar:${TEST_ASSET}:${TEST_ASSET_ISSUER_ACCOUNT_ID}")
     return jwt

@@ -7,15 +7,14 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
+import static org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION;
 import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.util.MetricConstants.*;
 
 import com.google.gson.Gson;
-import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
-import org.springframework.transaction.annotation.Transactional;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -29,42 +28,51 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.Session;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
+import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
+import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.GsonUtils;
 
 public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
 
   private static final Gson gson = GsonUtils.getInstance();
 
+  protected final Sep6TransactionStore txn6Store;
   protected final Sep24TransactionStore txn24Store;
   protected final Sep31TransactionStore txn31Store;
   protected final AssetService assetService;
   private final RequestValidator requestValidator;
+  private final MetricsService metricsService;
   private final Class<T> requestType;
   private final Session eventSession;
 
   public RpcMethodHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
       EventService eventService,
+      MetricsService metricsService,
       Class<T> requestType) {
+    this.txn6Store = txn6Store;
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.requestValidator = requestValidator;
     this.assetService = assetService;
+    this.metricsService = metricsService;
     this.requestType = requestType;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
   }
 
-  @Transactional
   public GetTransactionResponse handle(Object requestParams) throws AnchorException {
     T request = gson.fromJson(gson.toJson(requestParams), requestType);
     JdbcSepTransaction txn = getTransaction(request.getTransactionId());
@@ -77,6 +85,9 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     if (!getSupportedStatuses(txn).contains(SepTransactionStatus.from(txn.getStatus()))) {
       String kind;
       switch (Sep.from(txn.getProtocol())) {
+        case SEP_6:
+          kind = ((JdbcSep6Transaction) txn).getKind();
+          break;
         case SEP_24:
           JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
           kind = txn24.getKind();
@@ -123,7 +134,11 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     if (txn31 != null) {
       return (JdbcSep31Transaction) txn31;
     }
-    return (JdbcSep24Transaction) txn24Store.findByTransactionId(transactionId);
+    Sep24Transaction txn24 = txn24Store.findByTransactionId(transactionId);
+    if (txn24 != null) {
+      return (JdbcSep24Transaction) txn24;
+    }
+    return (JdbcSep6Transaction) txn6Store.findByTransactionId(transactionId);
   }
 
   protected void validate(JdbcSepTransaction txn, T request)
@@ -153,6 +168,15 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     }
 
     switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+        if (request.getMessage() != null) {
+          txn6.setMessage(request.getMessage());
+        } else if (shouldClearMessageStatus) {
+          txn6.setMessage(null);
+        }
+        txn6Store.save(txn6);
+        break;
       case SEP_24:
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
         if (request.getMessage() != null) {
@@ -190,11 +214,14 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
 
   private void updateMetrics(JdbcSepTransaction txn) {
     switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        metricsService.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP6).increment();
+        break;
       case SEP_24:
-        Metrics.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP24).increment();
+        metricsService.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP24).increment();
         break;
       case SEP_31:
-        Metrics.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP31).increment();
+        metricsService.counter(PLATFORM_RPC_TRANSACTION, SEP, TV_SEP31).increment();
         break;
     }
   }

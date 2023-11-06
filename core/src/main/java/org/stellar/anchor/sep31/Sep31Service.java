@@ -184,6 +184,7 @@ public class Sep31Service {
     StellarId creatorStellarId =
         StellarId.builder()
             .account(Objects.requireNonNullElse(sep10Jwt.getMuxedAccount(), sep10Jwt.getAccount()))
+            .memo(sep10Jwt.getAccountMemo())
             .build();
 
     Amount fee = Context.get().getFee();
@@ -213,7 +214,7 @@ public class Sep31Service {
             // updateAmounts will update these ⬇️
             .amountExpected(request.getAmount())
             .amountIn(request.getAmount())
-            .amountInAsset(assetInfo.getAssetName())
+            .amountInAsset(assetInfo.getSep38AssetName())
             .amountOut(null)
             .amountOutAsset(null)
             // updateDepositInfo will update these ⬇️
@@ -324,7 +325,7 @@ public class Sep31Service {
     }
     debugF("Updating transaction ({}) with fee ({}) - reqAsset ({})", txn.getId(), fee, reqAsset);
 
-    String amountInAsset = reqAsset.getAssetName();
+    String amountInAsset = reqAsset.getSep38AssetName();
     String amountOutAsset = request.getDestinationAsset();
 
     boolean isSimpleQuote = Objects.equals(amountInAsset, amountOutAsset);
@@ -511,7 +512,7 @@ public class Sep31Service {
     }
 
     // Check quote asset: `post_transaction.asset == quote.sell_asset`
-    String assetName = Context.get().getAsset().getAssetName();
+    String assetName = Context.get().getAsset().getSep38AssetName();
     if (!assetName.equals(quote.getSellAsset())) {
       infoF(
           "Quote ({}) - sellAsset ({}) is different from the SEP-31 transaction asset ({})",
@@ -549,7 +550,7 @@ public class Sep31Service {
 
     Sep31PostTransactionRequest request = Context.get().getRequest();
     Sep10Jwt token = Context.get().getSep10Jwt();
-    String assetName = Context.get().getAsset().getAssetName();
+    String assetName = Context.get().getAsset().getSep38AssetName();
     infoF("Requesting fee for request ({})", request);
     Amount fee =
         feeIntegration

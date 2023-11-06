@@ -16,6 +16,7 @@ public final class ConfigHelper {
    * @param clientDomain domain to use for the lookup
    * @param sep10Account SEP-10 authenticated account to use for lookup
    * @return client config by the predicate. If not found, returns null.
+   * @throws SepValidationException if the client config failed to validate.
    */
   public static ClientsConfig.ClientConfig getClientConfig(
       ClientsConfig clientsConfig, String clientDomain, String sep10Account)

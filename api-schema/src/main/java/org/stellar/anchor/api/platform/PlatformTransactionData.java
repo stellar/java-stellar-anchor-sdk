@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -28,6 +29,8 @@ public class PlatformTransactionData {
   Sep sep;
   Kind kind;
   SepTransactionStatus status;
+
+  String type;
 
   @SerializedName("amount_expected")
   Amount amountExpected;
@@ -83,10 +86,29 @@ public class PlatformTransactionData {
   @SerializedName("refund_memo_type")
   String refundMemoType;
 
+  @SerializedName("withdraw_anchor_account")
+  String withdrawAnchorAccount;
+
   Customers customers;
   StellarId creator;
 
+  @SerializedName("required_info_message")
+  String requiredInfoMessage;
+
+  @SerializedName("required_info_updates")
+  List<String> requiredInfoUpdates;
+
+  @SerializedName("required_customer_info_message")
+  String requiredCustomerInfoMessage;
+
+  @SerializedName("required_customer_info_updates")
+  List<String> requiredCustomerInfoUpdates;
+
+  Map<String, InstructionField> instructions;
+
   public enum Sep {
+    @SerializedName("6")
+    SEP_6(6),
     @SuppressWarnings("unused")
     @SerializedName("24")
     SEP_24(24),
@@ -124,8 +146,13 @@ public class PlatformTransactionData {
     RECEIVE("receive"),
     @SerializedName("deposit")
     DEPOSIT("deposit"),
+    @SerializedName("deposit-exchange")
+    DEPOSIT_EXCHANGE("deposit-exchange"),
     @SerializedName("withdrawal")
-    WITHDRAWAL("withdrawal");
+    WITHDRAWAL("withdrawal"),
+
+    @SerializedName("withdrawal-exchange")
+    WITHDRAWAL_EXCHANGE("withdrawal-exchange");
 
     public final String kind;
 

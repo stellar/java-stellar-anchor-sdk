@@ -123,6 +123,10 @@ subprojects {
 
     test {
       useJUnitPlatform()
+      systemProperty(
+        "junit.jupiter.testclass.order.default",
+        "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation"
+      )
 
       exclude("**/AnchorPlatformCustodyEnd2EndTest**")
       exclude("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
@@ -170,7 +174,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.3.0"
+  version = "2.4.0"
 
   tasks.jar {
     manifest {
@@ -181,6 +185,4 @@ allprojects {
   }
 }
 
-tasks.register("printVersionName") {
-  println(rootProject.version.toString())
-}
+tasks.register("printVersionName") { println(rootProject.version.toString()) }

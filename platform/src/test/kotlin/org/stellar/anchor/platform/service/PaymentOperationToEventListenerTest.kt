@@ -6,7 +6,6 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.time.format.DateTimeFormatter
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,13 +14,10 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.SepTransactionStatus
-import org.stellar.anchor.api.shared.*
+import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.platform.config.RpcConfig
-import org.stellar.anchor.platform.data.JdbcSep24Transaction
-import org.stellar.anchor.platform.data.JdbcSep24TransactionStore
-import org.stellar.anchor.platform.data.JdbcSep31Transaction
-import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
+import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.platform.observer.ObservedPayment
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Asset
@@ -31,6 +27,7 @@ import org.stellar.sdk.AssetTypeNative
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: JdbcSep31TransactionStore
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: JdbcSep24TransactionStore
+  @MockK(relaxed = true) private lateinit var sep6TransactionStore: JdbcSep6TransactionStore
   @MockK(relaxed = true) private lateinit var platformApiClient: PlatformApiClient
   @MockK(relaxed = true) private lateinit var rpcConfig: RpcConfig
 
@@ -45,15 +42,10 @@ class PaymentOperationToEventListenerTest {
       PaymentOperationToEventListener(
         sep31TransactionStore,
         sep24TransactionStore,
+        sep6TransactionStore,
         platformApiClient,
         rpcConfig
       )
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test
@@ -65,12 +57,16 @@ class PaymentOperationToEventListenerTest {
     p.transactionMemo = "my_memo_1"
     paymentOperationToEventListener.onReceived(p)
     verify { sep31TransactionStore wasNot Called }
+    verify { sep24TransactionStore wasNot Called }
+    verify { sep6TransactionStore wasNot Called }
 
     // Payment missing txMemo shouldn't trigger an event nor reach the DB
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     p.transactionMemo = null
     paymentOperationToEventListener.onReceived(p)
     verify { sep31TransactionStore wasNot Called }
+    verify { sep24TransactionStore wasNot Called }
+    verify { sep6TransactionStore wasNot Called }
 
     // Asset types different from "native", "credit_alphanum4" and "credit_alphanum12" shouldn't
     // trigger an event nor reach the DB
@@ -79,6 +75,8 @@ class PaymentOperationToEventListenerTest {
     p.assetType = "liquidity_pool_shares"
     paymentOperationToEventListener.onReceived(p)
     verify { sep31TransactionStore wasNot Called }
+    verify { sep24TransactionStore wasNot Called }
+    verify { sep6TransactionStore wasNot Called }
 
     // Payment whose memo is not in the DB shouldn't trigger event
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
@@ -100,6 +98,9 @@ class PaymentOperationToEventListenerTest {
     } returns null
     every { sep24TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
       null
+    every {
+      sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
+    } returns null
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
@@ -421,6 +422,9 @@ class PaymentOperationToEventListenerTest {
     every {
       sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
     } returns null
+    every {
+      sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
+    } returns null
 
     val sep24TxnCopy = gson.fromJson(gson.toJson(sep24TxMock), JdbcSep24Transaction::class.java)
     every {
@@ -456,6 +460,101 @@ class PaymentOperationToEventListenerTest {
     }
 
     assertEquals(sep24TxMock.id, txnIdCapture.captured)
+    assertEquals(p.transactionHash, stellarTxnIdCapture.captured)
+    assertEquals(p.amount, amountCapture.captured)
+    assertEquals("payment received", messageCapture.captured)
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    value =
+      [
+        "native,native,",
+        "credit_alphanum4,USD,GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+      ]
+  )
+  fun `test SEP-6 onReceived with sufficient payment patches the transaction`(
+    assetType: String,
+    assetCode: String,
+    assetIssuer: String?
+  ) {
+    val transferReceivedAt = Instant.now()
+    val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
+    val asset = createAsset(assetType, assetCode, assetIssuer)
+
+    val p =
+      ObservedPayment.builder()
+        .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
+        .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
+        .transactionMemoType("hash")
+        .assetType(assetType)
+        .assetCode(assetCode)
+        .assetName(asset.toString())
+        .assetIssuer(assetIssuer)
+        .amount("10.0000000")
+        .sourceAccount("GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4")
+        .from("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
+        .to("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
+        .type(ObservedPayment.Type.PAYMENT)
+        .createdAt(transferReceivedAtStr)
+        .transactionEnvelope(
+          "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
+        )
+        .id("755914248193")
+        .build()
+
+    val slotMemo = slot<String>()
+    val slotStatus = slot<String>()
+    val sep6TxMock = JdbcSep6Transaction()
+    sep6TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
+    sep6TxMock.requestAssetCode = assetCode
+    sep6TxMock.requestAssetIssuer = assetIssuer
+    sep6TxMock.amountExpected = "10.0000000"
+    sep6TxMock.memo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ"
+    sep6TxMock.memoType = "hash"
+    sep6TxMock.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
+
+    // TODO: this shouldn't be necessary
+    every {
+      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
+    } returns null
+    every { sep24TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      null
+
+    val sep6TxnCopy = gson.fromJson(gson.toJson(sep6TxMock), JdbcSep6Transaction::class.java)
+    every {
+      sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        capture(slotMemo),
+        capture(slotStatus)
+      )
+    } returns sep6TxnCopy
+
+    val txnIdCapture = slot<String>()
+    val stellarTxnIdCapture = slot<String>()
+    val amountCapture = slot<String>()
+    val messageCapture = slot<String>()
+
+    every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
+    every {
+      platformApiClient.notifyOnchainFundsReceived(
+        capture(txnIdCapture),
+        capture(stellarTxnIdCapture),
+        capture(amountCapture),
+        capture(messageCapture)
+      )
+    } just Runs
+
+    paymentOperationToEventListener.onReceived(p)
+    verify(exactly = 1) {
+      sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
+        "pending_user_transfer_start"
+      )
+    }
+
+    assertEquals(sep6TxMock.id, txnIdCapture.captured)
     assertEquals(p.transactionHash, stellarTxnIdCapture.captured)
     assertEquals(p.amount, amountCapture.captured)
     assertEquals("payment received", messageCapture.captured)

@@ -84,12 +84,6 @@ class Sep38ServiceTest {
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
   }
 
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
-  }
-
   @Test
   fun `test GET info`() {
     val infoResponse = sep38Service.info

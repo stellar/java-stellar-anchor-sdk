@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
@@ -30,6 +31,7 @@ import org.stellar.anchor.util.GsonUtils;
 import org.stellar.sdk.xdr.MemoType;
 
 /** Fireblocks implementation of payment service */
+@Getter
 public class FireblocksPaymentService implements CustodyPaymentService<TransactionDetails> {
 
   private static final Gson gson = GsonUtils.getInstance();
@@ -46,17 +48,28 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
   private static final String QUERY_PARAM_SORT = "sort";
   private static final String TRANSACTIONS_ORDER_BY = "createdAt";
   private static final String TRANSACTIONS_SORT = "ASC";
-  public static int TRANSACTIONS_LIMIT = 500;
+  private static final int DEFAULT_TRANSACTION_LIMIT = 500;
 
   private final FireblocksApiClient fireblocksApiClient;
   private final FireblocksConfig fireblocksConfig;
   private final Type transactionDetailsListType;
+  private int transactionLimit = DEFAULT_TRANSACTION_LIMIT;
 
   public FireblocksPaymentService(
       FireblocksApiClient fireblocksApiClient, FireblocksConfig fireblocksConfig) {
     this.fireblocksApiClient = fireblocksApiClient;
     this.fireblocksConfig = fireblocksConfig;
     this.transactionDetailsListType = new TypeToken<ArrayList<TransactionDetails>>() {}.getType();
+  }
+
+  public FireblocksPaymentService(
+      FireblocksApiClient fireblocksApiClient,
+      FireblocksConfig fireblocksConfig,
+      int transactionLimit) {
+    this.fireblocksApiClient = fireblocksApiClient;
+    this.fireblocksConfig = fireblocksConfig;
+    this.transactionDetailsListType = new TypeToken<ArrayList<TransactionDetails>>() {}.getType();
+    this.transactionLimit = transactionLimit;
   }
 
   /**
@@ -136,19 +149,20 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
             Map.of(
                 QUERY_PARAM_AFTER, String.valueOf(startTime.toEpochMilli()),
                 QUERY_PARAM_BEFORE, String.valueOf(endTime.toEpochMilli()),
-                QUERY_PARAM_LIMIT, String.valueOf(TRANSACTIONS_LIMIT),
+                QUERY_PARAM_LIMIT, String.valueOf(transactionLimit),
                 QUERY_PARAM_ORDER_BY, TRANSACTIONS_ORDER_BY,
                 QUERY_PARAM_SORT, TRANSACTIONS_SORT));
 
     List<TransactionDetails> transactions = new ArrayList<>(getTransactions(queryParams));
 
-    while (transactions.size() % TRANSACTIONS_LIMIT == 0) {
+    while (transactions.size() % transactionLimit == 0) {
       Long maxCreatedAt =
           transactions.stream()
               .map(TransactionDetails::getCreatedAt)
               .reduce(Long.MIN_VALUE, Long::max);
 
       queryParams.put(QUERY_PARAM_AFTER, String.valueOf(maxCreatedAt));
+
       List<TransactionDetails> retrievedTransactions = getTransactions(queryParams);
       if (retrievedTransactions == null) {
         return transactions;

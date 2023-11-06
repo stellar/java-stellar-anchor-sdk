@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -20,34 +19,30 @@ import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
-import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
-import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE
-import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
-import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
-import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31
-import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.*
 import org.stellar.anchor.api.rpc.method.AmountAssetRequest
 import org.stellar.anchor.api.rpc.method.NotifyRefundSentRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
-import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.Customers
-import org.stellar.anchor.api.shared.RefundPayment
-import org.stellar.anchor.api.shared.Refunds
-import org.stellar.anchor.api.shared.StellarId
+import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
+import org.stellar.anchor.metrics.MetricsService
+import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep24Refunds
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
 class NotifyRefundSentHandlerTest {
@@ -61,6 +56,8 @@ class NotifyRefundSentHandlerTest {
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
+  @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
+
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
@@ -70,6 +67,8 @@ class NotifyRefundSentHandlerTest {
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
   @MockK(relaxed = true) private lateinit var eventService: EventService
+
+  @MockK(relaxed = true) private lateinit var metricsService: MetricsService
 
   @MockK(relaxed = true) private lateinit var eventSession: Session
 
@@ -83,7 +82,15 @@ class NotifyRefundSentHandlerTest {
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
-      NotifyRefundSentHandler(txn24Store, txn31Store, requestValidator, assetService, eventService)
+      NotifyRefundSentHandler(
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService
+      )
   }
 
   @Test
@@ -293,13 +300,11 @@ class NotifyRefundSentHandlerTest {
     payment.amount = request.refund.amount.amount
     payment.fee = request.refund.amountFee.amount
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -412,13 +417,11 @@ class NotifyRefundSentHandlerTest {
     refunds.payments = listOf(payment1)
     txn24.refunds = refunds
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -532,13 +535,11 @@ class NotifyRefundSentHandlerTest {
     payment.amount = "1"
     payment.fee = "0"
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -682,13 +683,11 @@ class NotifyRefundSentHandlerTest {
     refunds.payments = listOf(payment)
     txn24.refunds = refunds
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -801,13 +800,11 @@ class NotifyRefundSentHandlerTest {
     refunds.payments = listOf(payment1, payment2)
     txn24.refunds = refunds
 
-    mockkStatic(Metrics::class)
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep24") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep24") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
@@ -1017,7 +1014,7 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.amountFee = Amount("0", STELLAR_USDC)
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
-    expectedResponse.customers = Customers(StellarId(null, null), StellarId(null, null))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn31.amountInAsset)

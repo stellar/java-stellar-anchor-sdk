@@ -49,7 +49,7 @@ public class AssetValidationUtils {
 
     List<AssetInfo> allAssets =
         assetService.listAllAssets().stream()
-            .filter(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))
+            .filter(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))
             .collect(toList());
 
     // asset name needs to be supported

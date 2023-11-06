@@ -1,4 +1,21 @@
 {
+  "6": {
+    "deposit": {
+      "transactionFields": {
+        "type": "SWIFT"
+      }
+    },
+    "withdraw": {
+      "types": {
+        "cash": {
+          "transactionFields": {}
+        },
+        "bank_account": {
+          "transactionFields": {}
+        }
+      }
+    }
+  },
   "12": {
     "customers": {
       "toBeCreated": {
@@ -31,7 +48,10 @@
     },
     "createCustomer": "toBeCreated",
     "deleteCustomer": "toBeDeleted",
-    "sameAccountDifferentMemos": ["sendingClient", "receivingClient"]
+    "sameAccountDifferentMemos": [
+      "sendingClient",
+      "receivingClient"
+    ]
   },
   "31": {
     "sendingAnchorClientSecret": "SB7E7M6VLBXXIEDJ4RXP7E4SS4CFDMFMIMWERJVY3MSRGNN5ROANA5OJ",
@@ -44,6 +64,8 @@
     }
   },
   "38": {
-    "contexts": ["sep31"]
+    "contexts": [
+      "sep31"
+    ]
   }
 }

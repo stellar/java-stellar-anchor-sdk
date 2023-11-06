@@ -9,13 +9,11 @@ import static org.stellar.anchor.util.MathHelper.formatAmount;
 import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.codec.DecoderException;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.platform.config.RpcConfig;
@@ -30,16 +28,19 @@ public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore sep31TransactionStore;
 
   final JdbcSep24TransactionStore sep24TransactionStore;
+  final JdbcSep6TransactionStore sep6TransactionStore;
   private final PlatformApiClient platformApiClient;
   private final RpcConfig rpcConfig;
 
   public PaymentOperationToEventListener(
       JdbcSep31TransactionStore sep31TransactionStore,
       JdbcSep24TransactionStore sep24TransactionStore,
+      JdbcSep6TransactionStore sep6TransactionStore,
       PlatformApiClient platformApiClient,
       RpcConfig rpcConfig) {
     this.sep31TransactionStore = sep31TransactionStore;
     this.sep24TransactionStore = sep24TransactionStore;
+    this.sep6TransactionStore = sep6TransactionStore;
     this.platformApiClient = platformApiClient;
     this.rpcConfig = rpcConfig;
   }
@@ -111,6 +112,25 @@ public class PaymentOperationToEventListener implements PaymentListener {
         errorEx(aex);
       }
     }
+
+    // Find a transaction matching the memo, assumes transactions are unique to account+memo
+    JdbcSep6Transaction sep6Txn;
+    try {
+      sep6Txn =
+          sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(
+              payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
+    } catch (Exception ex) {
+      errorEx(ex);
+      return;
+    }
+    if (sep6Txn != null) {
+      try {
+        handleSep6Transaction(payment, sep6Txn);
+      } catch (AnchorException aex) {
+        warnF("Error handling the SEP6 transaction id={}.", sep6Txn.getId());
+        errorEx(aex);
+      }
+    }
   }
 
   @Override
@@ -162,13 +182,14 @@ public class PaymentOperationToEventListener implements PaymentListener {
   void handleSep24Transaction(ObservedPayment payment, JdbcSep24Transaction txn)
       throws AnchorException, IOException {
     // Compare asset code
-    String paymentAssetName = "stellar:" + payment.getAssetName();
-    String txnAssetName = "stellar:" + txn.getRequestAssetName();
-    if (!txnAssetName.equals(paymentAssetName)) {
+    String assetName =
+        AssetInfo.makeSep11AssetName(payment.getAssetCode(), payment.getAssetIssuer());
+    if (!payment.getAssetName().equals(assetName)) {
       warnF(
           "Payment asset {} does not match the expected asset {}.",
           payment.getAssetCode(),
-          txn.getAmountInAsset());
+          assetName);
+      return;
     }
 
     // Check if the payment contains the expected amount (or greater)
@@ -208,13 +229,34 @@ public class PaymentOperationToEventListener implements PaymentListener {
         .increment(Double.parseDouble(payment.getAmount()));
   }
 
-  public static Instant parsePaymentTime(String paymentTimeStr) {
-    try {
-      return DateTimeFormatter.ISO_INSTANT.parse(paymentTimeStr, Instant::from);
-    } catch (DateTimeParseException | NullPointerException ex) {
-      Log.errorF("Error parsing paymentTimeStr {}.", paymentTimeStr);
-      ex.printStackTrace();
-      return null;
+  void handleSep6Transaction(ObservedPayment payment, JdbcSep6Transaction txn)
+      throws AnchorException, IOException {
+    String assetName =
+        AssetInfo.makeSep11AssetName(payment.getAssetCode(), payment.getAssetIssuer());
+    if (!payment.getAssetName().equals(assetName)) {
+      warnF(
+          "Payment asset {} does not match the expected asset {}.",
+          payment.getAssetCode(),
+          assetName);
+      return;
     }
+
+    BigDecimal amountExpected = decimal(txn.getAmountExpected());
+    BigDecimal gotAmount = decimal(payment.getAmount());
+    if (gotAmount.compareTo(amountExpected) >= 0) {
+      Log.infoF("Incoming payment for SEP-6 transaction {}.", txn.getId());
+    } else {
+      Log.warnF(
+          "The incoming payment amount for SEP-6 transaction {} was insufficient! Expected: \"{}\", Received: \"{}\"",
+          txn.getId(),
+          formatAmount(amountExpected),
+          formatAmount(gotAmount));
+    }
+
+    platformApiClient.notifyOnchainFundsReceived(
+        txn.getId(),
+        payment.getTransactionHash(),
+        payment.getAmount(),
+        rpcConfig.getCustomMessages().getIncomingPaymentReceived());
   }
 }

@@ -4,28 +4,26 @@ import io.mockk.*
 import java.util.*
 import kotlin.test.assertEquals
 import okhttp3.Request
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.stellar.anchor.LockAndMockStatic
+import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.auth.*
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.auth.JwtService
 
+@ExtendWith(LockAndMockTest::class)
 class PlatformIntegrationHelperTest {
   companion object {
     const val JWT_EXPIRATION_MILLISECONDS: Long = 90000
-    const val TEST_HOME_DOMAIN = "http://localhost:8080"
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
+    const val TEST_HOME_DOMAIN = "https://test.stellar.org"
   }
 
   @ParameterizedTest
   @EnumSource(AuthType::class)
+  @LockAndMockStatic([Calendar::class])
   fun test_getRequestBuilder(authType: AuthType) {
     when (authType) {
       JWT -> {
@@ -35,7 +33,6 @@ class PlatformIntegrationHelperTest {
         mockkObject(calendarSingleton)
         every { calendarSingleton.timeInMillis } returns currentTimeMilliseconds
         every { calendarSingleton.timeInMillis = any() } answers { callOriginal() }
-        mockkStatic(Calendar::class)
         every { Calendar.getInstance() } returns calendarSingleton
 
         // mock jwt token based on the mocked calendar

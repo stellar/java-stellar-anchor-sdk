@@ -2,13 +2,12 @@ package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
+import java.util.stream.Stream
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.NullSource
-import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.params.provider.*
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.config.AppConfig
@@ -216,5 +215,39 @@ class Sep10ConfigTest {
     config.homeDomain = "www.stellar.org"
     config.postConstruct()
     assertEquals("localhost:8080", config.webAuthDomain)
+  }
+
+  @ParameterizedTest
+  @MethodSource("generatedHomeDomainsTestConfig")
+  fun `test web_auth_domain, home_domain and home_domains in valid config format`(
+    webAuthDomain: String?,
+    homeDomain: String?,
+    homeDomains: List<String>?,
+    hasError: Boolean,
+    numberOfHomeDomains: Int
+  ) {
+    config.webAuthDomain = webAuthDomain
+    config.homeDomain = homeDomain
+    config.homeDomains = homeDomains
+
+    config.validateConfig(errors)
+    assertEquals(hasError, errors.hasErrors())
+
+    if (!hasError) {
+      config.postConstruct()
+      assertEquals(numberOfHomeDomains, config.homeDomains.size)
+    }
+  }
+
+  companion object {
+    @JvmStatic
+    fun generatedHomeDomainsTestConfig(): Stream<Arguments> {
+      return Stream.of(
+        Arguments.of(null, null, null, true, 0),
+        Arguments.of(null, "www.stellar.org", listOf("www.stellar.org", "www.losbstr.co"), true, 0),
+        Arguments.of(null, "www.stellar.org", emptyList<String>(), false, 1),
+        Arguments.of("localhost:8080", "", listOf("www.stellar.org", "www.losbstr.co"), false, 2),
+      )
+    }
   }
 }

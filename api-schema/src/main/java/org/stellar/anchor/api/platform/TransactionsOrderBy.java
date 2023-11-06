@@ -1,4 +1,4 @@
-package org.stellar.anchor.apiclient;
+package org.stellar.anchor.api.platform;
 
 public enum TransactionsOrderBy {
   CREATED_AT("started_at"),

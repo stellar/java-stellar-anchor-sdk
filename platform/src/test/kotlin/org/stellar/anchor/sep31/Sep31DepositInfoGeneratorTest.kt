@@ -4,13 +4,14 @@ package org.stellar.anchor.sep31
 
 import com.google.gson.Gson
 import io.mockk.MockKAnnotations
-import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.unmockkAll
 import java.util.*
 import org.apache.commons.lang3.StringUtils
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.callback.CustomerIntegration
@@ -18,11 +19,7 @@ import org.stellar.anchor.api.callback.FeeIntegration
 import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
-import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.config.ClientsConfig
-import org.stellar.anchor.config.CustodyConfig
-import org.stellar.anchor.config.Sep10Config
-import org.stellar.anchor.config.Sep31Config
+import org.stellar.anchor.config.*
 import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
@@ -94,12 +91,6 @@ class Sep31DepositInfoGeneratorTest {
       )
 
     txn = gson.fromJson(txnJson, JdbcSep31Transaction::class.java)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

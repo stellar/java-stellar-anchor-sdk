@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.rpc
 
 import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -27,10 +26,13 @@ import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.Session
+import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
 class NotifyCustomerInfoUpdatedHandlerTest {
@@ -41,6 +43,8 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
+  @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
+
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
@@ -50,6 +54,8 @@ class NotifyCustomerInfoUpdatedHandlerTest {
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
   @MockK(relaxed = true) private lateinit var eventService: EventService
+
+  @MockK(relaxed = true) private lateinit var metricsService: MetricsService
 
   @MockK(relaxed = true) private lateinit var eventSession: Session
 
@@ -64,11 +70,13 @@ class NotifyCustomerInfoUpdatedHandlerTest {
       eventSession
     this.handler =
       NotifyCustomerInfoUpdatedHandler(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
-        eventService
+        eventService,
+        metricsService
       )
   }
 
@@ -79,6 +87,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     txn31.status = PENDING_CUSTOMER_INFO_UPDATE.toString()
     val spyTxn31 = spyk(txn31)
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns spyTxn31
     every { spyTxn31.protocol } returns SEP_38.sep.toString()
@@ -89,6 +98,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
       ex.message
     )
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -100,6 +110,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val txn31 = JdbcSep31Transaction()
     txn31.status = INCOMPLETE.toString()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
 
@@ -109,6 +120,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
       ex.message
     )
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -120,6 +132,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val txn31 = JdbcSep31Transaction()
     txn31.status = PENDING_CUSTOMER_INFO_UPDATE.toString()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
     every { requestValidator.validate(request) } throws
@@ -128,6 +141,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 0) { sepTransactionCounter.increment() }
@@ -141,19 +155,19 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
-    mockkStatic(Metrics::class)
-
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
     every { txn31Store.save(capture(sep31TxnCapture)) } returns null
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
-    every { Metrics.counter("platform_server.rpc_transaction", "SEP", "sep31") } returns
+    every { metricsService.counter(PLATFORM_RPC_TRANSACTION, "SEP", "sep31") } returns
       sepTransactionCounter
 
     val startDate = Instant.now()
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 

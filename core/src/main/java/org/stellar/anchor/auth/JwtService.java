@@ -1,10 +1,12 @@
 package org.stellar.anchor.auth;
 
+import static java.util.Date.*;
+
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
+import java.time.Instant;
 import java.util.Map;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
@@ -20,6 +22,7 @@ import org.stellar.anchor.config.SecretConfig;
 public class JwtService {
   // SEP-24 specific claims
   public static final String CLIENT_DOMAIN = "client_domain";
+  public static final String HOME_DOMAIN = "home_domain";
   public static final String CLIENT_NAME = "client_name";
 
   String sep10JwtSecret;
@@ -56,23 +59,23 @@ public class JwtService {
   }
 
   public String encode(Sep10Jwt token) {
-    Calendar calIat = Calendar.getInstance();
-    calIat.setTimeInMillis(1000L * token.getIat());
-
-    Calendar calExp = Calendar.getInstance();
-    calExp.setTimeInMillis(1000L * token.getExp());
-
+    Instant timeExp = Instant.ofEpochSecond(token.getExp());
+    Instant timeIat = Instant.ofEpochSecond(token.getIat());
     JwtBuilder builder =
         Jwts.builder()
             .setId(token.getJti())
             .setIssuer(token.getIss())
             .setSubject(token.getSub())
-            .setIssuedAt(calIat.getTime())
-            .setExpiration(calExp.getTime())
+            .setIssuedAt(from(timeIat))
+            .setExpiration(from(timeExp))
             .setSubject(token.getSub());
 
     if (token.getClientDomain() != null) {
       builder.claim(CLIENT_DOMAIN, token.getClientDomain());
+    }
+
+    if (token.getHomeDomain() != null) {
+      builder.claim(HOME_DOMAIN, token.getHomeDomain());
     }
 
     return builder.signWith(SignatureAlgorithm.HS256, sep10JwtSecret).compact();
@@ -83,12 +86,11 @@ public class JwtService {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for Sep24 interactive url");
     }
-    Calendar calExp = Calendar.getInstance();
-    calExp.setTimeInMillis(1000L * token.getExp());
+    Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
         Jwts.builder()
             .setId(token.getJti())
-            .setExpiration(calExp.getTime())
+            .setExpiration(from(timeExp))
             .setSubject(token.getSub());
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
@@ -102,12 +104,11 @@ public class JwtService {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for more_info_url");
     }
-    Calendar calExp = Calendar.getInstance();
-    calExp.setTimeInMillis(1000L * token.getExp());
+    Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
         Jwts.builder()
             .setId(token.getJti())
-            .setExpiration(calExp.getTime())
+            .setExpiration(from(timeExp))
             .setSubject(token.getSub());
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
@@ -134,11 +135,9 @@ public class JwtService {
           "Please provide the secret before encoding JWT for API Authentication");
     }
 
-    Calendar calNow = Calendar.getInstance();
-    Calendar calExp = Calendar.getInstance();
-    calExp.setTimeInMillis(1000L * token.getExp());
-    JwtBuilder builder =
-        Jwts.builder().setIssuedAt(calNow.getTime()).setExpiration(calExp.getTime());
+    Instant timeExp = Instant.ofEpochSecond(token.getExp());
+    Instant timeIat = Instant.ofEpochSecond(token.getIat());
+    JwtBuilder builder = Jwts.builder().setIssuedAt(from(timeIat)).setExpiration(from(timeExp));
 
     return builder.signWith(SignatureAlgorithm.HS256, secret).compact();
   }

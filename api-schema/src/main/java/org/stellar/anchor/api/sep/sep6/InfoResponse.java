@@ -69,6 +69,14 @@ public class InfoResponse {
     @SerializedName("authentication_required")
     Boolean authenticationRequired;
 
+    /** The minimum amount that can be deposited. */
+    @SerializedName("min_amount")
+    Long minAmount;
+
+    /** The maximum amount that can be deposited. */
+    @SerializedName("max_amount")
+    Long maxAmount;
+
     /**
      * The fields required to initiate a deposit.
      *
@@ -93,6 +101,14 @@ public class InfoResponse {
     @SerializedName("authentication_required")
     Boolean authenticationRequired;
 
+    /** The minimum amount that can be withdrawn. */
+    @SerializedName("min_amount")
+    Long minAmount;
+
+    /** The maximum amount that can be withdrawn. */
+    @SerializedName("max_amount")
+    Long maxAmount;
+
     /**
      * The types of withdrawal methods supported and their fields.
      *
@@ -100,7 +116,15 @@ public class InfoResponse {
      * account and KYC information is supplied asynchronously through PATCH requests and SEP-12
      * requests respectively.
      */
-    Map<String, Map<String, AssetInfo.Field>> types;
+    Map<String, WithdrawType> types;
+  }
+
+  /** Withdrawal type configuration. */
+  @Data
+  @Builder
+  public static class WithdrawType {
+    /** The fields required for initiating a withdrawal. */
+    Map<String, AssetInfo.Field> fields;
   }
 
   /** Fee endpoint configuration */

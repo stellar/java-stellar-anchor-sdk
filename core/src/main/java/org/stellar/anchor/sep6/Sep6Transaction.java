@@ -1,7 +1,10 @@
 package org.stellar.anchor.sep6;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import org.stellar.anchor.SepTransaction;
+import org.stellar.anchor.api.shared.InstructionField;
 import org.stellar.anchor.api.shared.Refunds;
 
 public interface Sep6Transaction extends SepTransaction {
@@ -99,6 +102,15 @@ public interface Sep6Transaction extends SepTransaction {
   Instant getCompletedAt();
 
   void setCompletedAt(Instant completedAt);
+
+  /**
+   * The date and time the user funds were received.
+   *
+   * @return the transfer received at timestamp.
+   */
+  Instant getTransferReceivedAt();
+
+  void setTransferReceivedAt(Instant transferReceivedAt);
 
   /**
    * The deposit or withdrawal method used. E.g. <code>bank_account</code>, <code>cash</code>
@@ -326,9 +338,38 @@ public interface Sep6Transaction extends SepTransaction {
    *
    * @return the required info updates.
    */
-  String getRequiredInfoUpdates();
+  List<String> getRequiredInfoUpdates();
 
-  void setRequiredInfoUpdates(String requiredInfoUpdates);
+  void setRequiredInfoUpdates(List<String> requiredInfoUpdates);
+
+  /**
+   * A human-readable message indicating why the SEP-12 information provided by the user is not
+   * sufficient to complete the transaction.
+   *
+   * @return the required customer info message.
+   */
+  String getRequiredCustomerInfoMessage();
+
+  void setRequiredCustomerInfoMessage(String requiredCustomerInfoMessage);
+
+  /**
+   * A set of SEP-9 fields that require update from the user via SEP-12. This field is only relevant
+   * when `status` is `pending_customer_info_update`.
+   *
+   * @return the required customer info updates.
+   */
+  List<String> getRequiredCustomerInfoUpdates();
+
+  void setRequiredCustomerInfoUpdates(List<String> requiredCustomerInfoUpdates);
+
+  /**
+   * Describes how to complete the off-chain deposit.
+   *
+   * @return the deposit instructions.
+   */
+  Map<String, InstructionField> getInstructions();
+
+  void setInstructions(Map<String, InstructionField> instructions);
 
   enum Kind {
     DEPOSIT("deposit"),
@@ -346,6 +387,14 @@ public interface Sep6Transaction extends SepTransaction {
     @Override
     public String toString() {
       return name;
+    }
+
+    public boolean isDeposit() {
+      return this.equals(DEPOSIT) || this.equals(DEPOSIT_EXCHANGE);
+    }
+
+    public boolean isWithdrawal() {
+      return this.equals(WITHDRAWAL) || this.equals(WITHDRAWAL_EXCHANGE);
     }
   }
 }

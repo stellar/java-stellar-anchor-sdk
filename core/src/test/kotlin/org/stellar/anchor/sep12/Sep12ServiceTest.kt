@@ -5,18 +5,25 @@ package org.stellar.anchor.sep12
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.*
+import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.*
-import org.stellar.anchor.api.sep.sep12.*
+import org.stellar.anchor.api.platform.CustomerUpdatedResponse
+import org.stellar.anchor.api.sep.sep12.Sep12CustomerRequestBase
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.shared.CustomerField
 import org.stellar.anchor.api.shared.ProvidedCustomerField
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.Sep10Jwt
+import org.stellar.anchor.event.EventService
 import org.stellar.anchor.util.StringHelper.json
 
 class Sep12ServiceTest {
@@ -77,6 +84,8 @@ class Sep12ServiceTest {
   private lateinit var sep12Service: Sep12Service
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var assetService: AssetService
+  @MockK(relaxed = true) private lateinit var eventService: EventService
+  @MockK(relaxed = true) private lateinit var eventSession: EventService.Session
 
   @BeforeEach
   fun setup() {
@@ -86,14 +95,9 @@ class Sep12ServiceTest {
     val assets = rjas.listAllAssets()
 
     every { assetService.listAllAssets() } returns assets
+    every { eventService.createSession(any(), any()) } returns eventSession
 
-    sep12Service = Sep12Service(customerIntegration, assetService)
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
+    sep12Service = Sep12Service(customerIntegration, assetService, eventService)
   }
 
   @Test
@@ -224,10 +228,12 @@ class Sep12ServiceTest {
   fun `Test put customer request ok`() {
     // mock `PUT {callbackApi}/customer` response
     val callbackApiPutRequestSlot = slot<PutCustomerRequest>()
+    val kycUpdateEventSlot = slot<AnchorEvent>()
     val mockCallbackApiPutCustomerResponse = PutCustomerResponse()
     mockCallbackApiPutCustomerResponse.id = "customer-id"
     every { customerIntegration.putCustomer(capture(callbackApiPutRequestSlot)) } returns
       mockCallbackApiPutCustomerResponse
+    every { eventSession.publish(capture(kycUpdateEventSlot)) } returns Unit
 
     // Execute the request
     val mockPutRequest =
@@ -252,9 +258,51 @@ class Sep12ServiceTest {
         .build()
     assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
 
+    // validate the published event
+    assertNotNull(kycUpdateEventSlot.captured.id)
+    assertEquals("12", kycUpdateEventSlot.captured.sep)
+    assertEquals(AnchorEvent.Type.CUSTOMER_UPDATED, kycUpdateEventSlot.captured.type)
+    assertEquals(
+      CustomerUpdatedResponse(mockCallbackApiPutCustomerResponse.id),
+      kycUpdateEventSlot.captured.customer
+    )
+
     // validate the response
     verify(exactly = 1) { customerIntegration.putCustomer(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
     assertEquals(TEST_ACCOUNT, mockPutRequest.account)
+  }
+
+  @Test
+  fun `Test put customer request failure`() {
+    val callbackApiPutRequestSlot = slot<PutCustomerRequest>()
+    every { customerIntegration.putCustomer(capture(callbackApiPutRequestSlot)) } throws
+      ServerErrorException("some error")
+
+    val mockPutRequest =
+      Sep12PutCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sending_user")
+        .firstName("John")
+        .build()
+    val jwtToken = createJwtToken(TEST_ACCOUNT)
+    assertThrows<AnchorException> { sep12Service.putCustomer(jwtToken, mockPutRequest) }
+
+    // validate the request
+    val wantCallbackApiPutRequest =
+      PutCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sending_user")
+        .firstName("John")
+        .build()
+    assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
+
+    verify(exactly = 1) { customerIntegration.putCustomer(any()) }
+    verify { eventSession wasNot Called }
   }
 
   @Test

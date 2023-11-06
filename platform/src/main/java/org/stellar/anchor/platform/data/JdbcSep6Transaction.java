@@ -2,6 +2,8 @@ package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
 import com.vladmihalcea.hibernate.type.json.JsonType;
+import java.util.List;
+import java.util.Map;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,6 +11,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.BeanUtils;
+import org.stellar.anchor.api.shared.InstructionField;
 import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.sep6.Sep6Transaction;
 
@@ -16,6 +19,7 @@ import org.stellar.anchor.sep6.Sep6Transaction;
 @Setter
 @Entity
 @Access(AccessType.FIELD)
+@Table(name = "sep6_transaction")
 @TypeDef(name = "json", typeClass = JsonType.class)
 @NoArgsConstructor
 public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Transaction {
@@ -122,5 +126,19 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
 
   @SerializedName("required_info_updates")
   @Column(name = "required_info_updates")
-  String requiredInfoUpdates;
+  @Type(type = "json")
+  List<String> requiredInfoUpdates;
+
+  @SerializedName("required_customer_info_message")
+  @Column(name = "required_customer_info_message")
+  String requiredCustomerInfoMessage;
+
+  @SerializedName("required_customer_info_updates")
+  @Column(name = "required_customer_info_updates")
+  @Type(type = "json")
+  List<String> requiredCustomerInfoUpdates;
+
+  @Column(name = "instructions")
+  @Type(type = "json")
+  Map<String, InstructionField> instructions;
 }

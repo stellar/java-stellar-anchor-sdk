@@ -27,4 +27,12 @@ class AnchorPlatformEnd2EndTest : AbstractIntegrationTest(TestConfig(testProfile
   fun runSep24Test() {
     singleton.sep24E2eTests.testAll()
   }
+
+  @Test
+  @Order(2)
+  fun runSep6Test() {
+    // The SEP-6 reference server implementation only implements RPC, so technically this test
+    // should be in the RPC test suite.
+    singleton.sep6E2eTests.testAll()
+  }
 }

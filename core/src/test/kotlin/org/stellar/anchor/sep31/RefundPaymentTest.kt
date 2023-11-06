@@ -3,13 +3,10 @@
 package org.stellar.anchor.sep31
 
 import io.mockk.MockKAnnotations
-import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.unmockkAll
 import java.time.Instant
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
@@ -27,12 +24,6 @@ class RefundPaymentTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { sep31TransactionStore.newRefundPayment() } answers { PojoSep31RefundPayment() }
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

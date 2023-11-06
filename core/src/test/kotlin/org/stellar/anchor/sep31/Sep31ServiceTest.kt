@@ -840,7 +840,8 @@ class Sep31ServiceTest {
       "receiverId":"137938d4-43a7-4252-a452-842adcee474c",
       "senderId":"d2bd1412-e2f6-4047-ad70-a1a2f133b25c",
       "creator": {
-        "account": "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
+        "account": "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2",
+        "memo": "123456"
       }
     }"""
         .trimMargin()

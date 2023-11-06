@@ -74,6 +74,7 @@ sep10.client_allow_list:
 sep10.client_attribution_required:
 sep10.enabled:
 sep10.home_domain:
+sep10.home_domains:
 sep10.jwt_timeout:
 sep10.known_custodial_account_required:
 sep10.web_auth_domain:
@@ -94,6 +95,7 @@ sep31.enabled:
 sep31.payment_type:
 sep38.enabled:
 sep38.sep10_enforced:
+sep6.deposit_info_generator_type:
 sep6.enabled:
 sep6.features.account_creation:
 sep6.features.claimable_balances:
