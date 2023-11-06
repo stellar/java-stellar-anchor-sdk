@@ -4,6 +4,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
   java
+  `java-test-fixtures`
   alias(libs.plugins.spotless)
   alias(libs.plugins.kotlin.jvm) apply false
   jacoco
@@ -27,6 +28,7 @@ subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
   apply(plugin = "jacoco")
+  apply(plugin = "java-test-fixtures")
 
   repositories {
     mavenLocal()
@@ -45,12 +47,10 @@ subprojects {
       logger.warn("!!! WARNING !!!")
       logger.warn("=================")
       logger.warn(
-        "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
-        javaVersion
-      )
+          "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
+          javaVersion)
       logger.warn(
-        "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM"
-      )
+          "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM")
     }
 
     if (javaVersion < "11") {
@@ -102,6 +102,9 @@ subprojects {
     testImplementation(rootProject.libs.bundles.junit)
     testImplementation(rootProject.libs.jsonassert)
 
+    testFixturesImplementation(rootProject.libs.bundles.junit)
+    testFixturesImplementation(rootProject.libs.jsonassert)
+
     testAnnotationProcessor(rootProject.libs.lombok)
   }
 
@@ -124,9 +127,8 @@ subprojects {
     test {
       useJUnitPlatform()
       systemProperty(
-        "junit.jupiter.testclass.order.default",
-        "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation"
-      )
+          "junit.jupiter.testclass.order.default",
+          "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation")
 
       exclude("**/AnchorPlatformCustodyEnd2EndTest**")
       exclude("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
@@ -179,8 +181,8 @@ allprojects {
   tasks.jar {
     manifest {
       attributes(
-        mapOf("Implementation-Title" to project.name, "Implementation-Version" to project.version)
-      )
+          mapOf(
+              "Implementation-Title" to project.name, "Implementation-Version" to project.version))
     }
   }
 }

@@ -47,7 +47,7 @@ dependencies {
 
   // From projects
   implementation(project(":api-schema"))
-  implementation(project(":test-lib"))
+  implementation(project(":lib-util"))
   implementation(project(":core"))
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")

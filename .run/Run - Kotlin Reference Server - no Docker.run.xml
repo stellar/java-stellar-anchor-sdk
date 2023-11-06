@@ -4,7 +4,7 @@
       <env name="app.enableTest" value="true" />
       <env name="TEST_PROFILE_NAME" value="default" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunKotlinReferenceServer" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.client.run_profiles.RunKotlinReferenceServer" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
     <shortenClasspath name="ARGS_FILE" />
     <method v="2">

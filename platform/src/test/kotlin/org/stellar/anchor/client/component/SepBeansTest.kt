@@ -1,0 +1,44 @@
+package org.stellar.anchor.client.component
+
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.mockk
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.client.component.sep.SepBeans
+import org.stellar.anchor.config.*
+
+class SepBeansTest {
+  @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
+  @MockK(relaxed = true) lateinit var custodySecretConfig: CustodySecretConfig
+  @MockK(relaxed = true) lateinit var sep38Config: Sep38Config
+  private lateinit var jwtService: JwtService
+  private lateinit var sepBeans: SepBeans
+
+  @BeforeEach
+  fun setUp() {
+    secretConfig = mockk(relaxed = true)
+    custodySecretConfig = mockk(relaxed = true)
+    sep38Config = mockk(relaxed = true)
+    jwtService = JwtService(secretConfig, custodySecretConfig)
+    sepBeans = SepBeans()
+  }
+
+  @Test
+  fun `test info, price, prices were excluded in filter when auth not required`() {
+    val sep10TokenFilter = sepBeans.sep10TokenFilter(jwtService, sep38Config)
+    assert(!sep10TokenFilter.urlPatterns.contains("/sep38/info"))
+    assert(!sep10TokenFilter.urlPatterns.contains("/sep38/price"))
+    assert(!sep10TokenFilter.urlPatterns.contains("/sep38/prices"))
+  }
+
+  @Test
+  fun `test info, price, prices endpoints were included in filter when auth required`() {
+    every { sep38Config.isSep10Enforced } returns true
+    val sep10TokenFilter = sepBeans.sep10TokenFilter(jwtService, sep38Config)
+    assert(sep10TokenFilter.urlPatterns.contains("/sep38/info"))
+    assert(sep10TokenFilter.urlPatterns.contains("/sep38/price"))
+    assert(sep10TokenFilter.urlPatterns.contains("/sep38/prices"))
+  }
+}

@@ -3,7 +3,7 @@
     <envs>
       <env name="app.enableTest" value="true" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunAllServers" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.client.run_profiles.RunAllServers" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
     <shortenClasspath name="ARGS_FILE" />
     <method v="2">

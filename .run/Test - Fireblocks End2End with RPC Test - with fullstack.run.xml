@@ -4,7 +4,7 @@
     <shortenClasspath name="ARGS_FILE" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="org.stellar.anchor.platform.*" />
+        <option name="PATTERN" value="org.stellar.anchor.client.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
@@ -18,8 +18,8 @@
         <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
       </ENTRIES>
     </extension>
-    <option name="PACKAGE_NAME" value="org.stellar.anchor.platform" />
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.AnchorPlatformCustodyApiRpcEnd2EndTest" />
+    <option name="PACKAGE_NAME" value="org.stellar.anchor.client" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.client.AnchorPlatformCustodyApiRpcEnd2EndTest" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <envs>
