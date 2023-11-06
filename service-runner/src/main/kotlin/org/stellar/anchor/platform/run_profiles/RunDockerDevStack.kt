@@ -5,7 +5,6 @@ package org.stellar.anchor.platform.run_profiles
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.stellar.anchor.client.*
 import org.stellar.anchor.platform.*
 
 fun main() = runBlocking {
