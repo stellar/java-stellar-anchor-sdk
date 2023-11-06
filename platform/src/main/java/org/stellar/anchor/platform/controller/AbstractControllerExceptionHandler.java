@@ -14,6 +14,7 @@ import org.stellar.anchor.api.exception.custody.CustodyBadRequestException;
 import org.stellar.anchor.api.exception.custody.CustodyNotFoundException;
 import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException;
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
+import org.stellar.anchor.api.sep.CustomerInfoNeededResponse;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 
 public abstract class AbstractControllerExceptionHandler {
@@ -44,6 +45,12 @@ public abstract class AbstractControllerExceptionHandler {
   public SepExceptionResponse handleAuthError(SepException ex) {
     errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());
+  }
+
+  @ExceptionHandler(SepCustomerInfoNeededException.class)
+  @ResponseStatus(value = HttpStatus.FORBIDDEN)
+  public CustomerInfoNeededResponse handle(SepCustomerInfoNeededException ex) {
+    return new CustomerInfoNeededResponse(ex.getFields());
   }
 
   @ExceptionHandler({SepNotFoundException.class, NotFoundException.class})

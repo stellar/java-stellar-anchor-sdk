@@ -2,11 +2,13 @@ package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT_EXCHANGE;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.REQUEST_TRUST;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
@@ -19,29 +21,36 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class RequestTrustlineHandler extends RpcMethodHandler<RequestTrustRequest> {
 
   private final CustodyConfig custodyConfig;
 
   public RequestTrustlineHandler(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
       CustodyConfig custodyConfig,
-      EventService eventService) {
+      EventService eventService,
+      MetricsService metricsService) {
     super(
+        txn6Store,
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
         eventService,
+        metricsService,
         RequestTrustRequest.class);
     this.custodyConfig = custodyConfig;
   }
@@ -70,13 +79,22 @@ public class RequestTrustlineHandler extends RpcMethodHandler<RequestTrustReques
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    if (SEP_24 == Sep.from(txn.getProtocol())) {
-      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-      if (DEPOSIT == Kind.from(txn24.getKind())) {
-        if (areFundsReceived(txn24)) {
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+        if (ImmutableSet.of(DEPOSIT, DEPOSIT_EXCHANGE).contains(Kind.from(txn6.getKind()))
+            && areFundsReceived(txn6)) {
           return Set.of(PENDING_ANCHOR);
         }
-      }
+        break;
+      case SEP_24:
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        if (DEPOSIT == Kind.from(txn24.getKind()) && areFundsReceived(txn24)) {
+          return Set.of(PENDING_ANCHOR);
+        }
+        break;
+      default:
+        break;
     }
     return emptySet();
   }

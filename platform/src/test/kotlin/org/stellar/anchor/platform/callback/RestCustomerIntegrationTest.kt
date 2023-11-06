@@ -1,8 +1,6 @@
 package org.stellar.anchor.platform.callback
 
 import io.mockk.MockKAnnotations
-import io.mockk.clearAllMocks
-import io.mockk.unmockkAll
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import okhttp3.OkHttpClient
@@ -10,7 +8,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -56,12 +53,6 @@ class RestCustomerIntegrationTest {
 
     MockKAnnotations.init(this, relaxUnitFun = true)
     customerIntegration = RestCustomerIntegration(mockAnchorUrl, httpClient, authHelper, gson)
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test

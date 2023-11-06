@@ -34,6 +34,9 @@ import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.RefundPayment;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.sep6.Sep6Transaction;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
+import org.stellar.anchor.sep6.Sep6TransactionUtils;
 import org.stellar.sdk.KeyPair;
 
 public class ClientStatusCallbackHandler extends EventHandler {
@@ -46,18 +49,21 @@ public class ClientStatusCallbackHandler extends EventHandler {
           .build();
   private final SecretConfig secretConfig;
   private final ClientConfig clientConfig;
+  private final Sep6TransactionStore sep6TransactionStore;
   private final AssetService assetService;
   private final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
   public ClientStatusCallbackHandler(
       SecretConfig secretConfig,
       ClientConfig clientConfig,
+      Sep6TransactionStore sep6TransactionStore,
       AssetService assetService,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
     super();
     this.secretConfig = secretConfig;
     this.clientConfig = clientConfig;
     this.assetService = assetService;
+    this.sep6TransactionStore = sep6TransactionStore;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
 
@@ -105,6 +111,14 @@ public class ClientStatusCallbackHandler extends EventHandler {
   private String getPayload(AnchorEvent event)
       throws AnchorException, MalformedURLException, URISyntaxException {
     switch (event.getTransaction().getSep()) {
+      case SEP_6:
+        // TODO: remove dependence on the transaction store
+        Sep6Transaction sep6Txn =
+            sep6TransactionStore.findByTransactionId(event.getTransaction().getId());
+        org.stellar.anchor.api.sep.sep6.GetTransactionResponse sep6TxnRes =
+            new org.stellar.anchor.api.sep.sep6.GetTransactionResponse(
+                Sep6TransactionUtils.fromTxn(sep6Txn));
+        return json(sep6TxnRes);
       case SEP_24:
         Sep24Transaction sep24Txn = fromSep24Txn(event.getTransaction());
         Sep24GetTransactionResponse txn24Response =
@@ -114,7 +128,8 @@ public class ClientStatusCallbackHandler extends EventHandler {
         Sep31Transaction sep31Txn = fromSep31Txn(event.getTransaction());
         return json(sep31Txn.toSep31GetTransactionResponse());
       default:
-        throw new SepException("Only SEP-24 and SEP-31 are supported");
+        throw new SepException(
+            String.format("Unsupported SEP: %s", event.getTransaction().getSep()));
     }
   }
 

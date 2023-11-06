@@ -2,6 +2,7 @@ package org.stellar.anchor.api.event;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.*;
+import org.stellar.anchor.api.platform.CustomerUpdatedResponse;
 import org.stellar.anchor.api.platform.GetQuoteResponse;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 
@@ -13,8 +14,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse;
  *     Schema</a>
  */
 @Builder
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class AnchorEvent {
@@ -23,6 +23,7 @@ public class AnchorEvent {
   String sep;
   GetTransactionResponse transaction;
   GetQuoteResponse quote;
+  CustomerUpdatedResponse customer;
 
   public enum Type {
     @SerializedName("transaction_created")
@@ -32,7 +33,9 @@ public class AnchorEvent {
     @SerializedName("transaction_error")
     TRANSACTION_ERROR("transaction_error"),
     @SerializedName("quote_created")
-    QUOTE_CREATED("quote_created");
+    QUOTE_CREATED("quote_created"),
+    @SerializedName("customer_updated")
+    CUSTOMER_UPDATED("customer_updated");
 
     public final String type;
 

@@ -5,9 +5,10 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventResponse
-import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.anchor.util.GsonUtils
 
 class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
@@ -30,7 +31,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
     return gson.fromJson(response.body<String>(), SendEventResponse::class.java)
   }
 
-  suspend fun <T> getCallbackHistory(txnId: String? = null, responseType: Class<T>): List<T> {
+  suspend fun <T> getCallbacks(txnId: String? = null, responseType: Class<T>): List<T> {
     val response =
       client.get {
         url {
@@ -42,14 +43,28 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
         }
       }
 
-    // Parse the JSON string into a list of Person objects
     return gson.fromJson(
       response.body<String>(),
       TypeToken.getParameterized(List::class.java, responseType).type
     )
   }
 
-  suspend fun getLatestCallback(): Sep24GetTransactionResponse? {
+  suspend fun <T> pollCallbacks(txnId: String?, expected: Int, responseType: Class<T>): List<T> {
+    var retries = 5
+    var callbacks: List<T> = listOf()
+    while (retries > 0) {
+      // TODO: remove when callbacks are de-duped
+      callbacks = getCallbacks(txnId, responseType).distinct()
+      if (callbacks.size >= expected) {
+        return callbacks
+      }
+      delay(5.seconds)
+      retries--
+    }
+    return callbacks
+  }
+
+  suspend fun <T> getLatestCallback(): T? {
     val response =
       client.get {
         url {
@@ -59,7 +74,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
           encodedPath = "/callbacks/latest"
         }
       }
-    return gson.fromJson(response.body<String>(), Sep24GetTransactionResponse::class.java)
+    return gson.fromJson(response.body<String>(), object : TypeToken<T>() {}.type)
   }
 
   suspend fun clearCallbacks() {

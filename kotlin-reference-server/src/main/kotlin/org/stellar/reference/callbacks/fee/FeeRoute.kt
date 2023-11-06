@@ -7,7 +7,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.reference.plugins.AUTH_CONFIG_ENDPOINT
+import org.stellar.reference.di.AUTH_CONFIG_ENDPOINT
 
 /**
  * Defines the routes related to the fee callback API. See

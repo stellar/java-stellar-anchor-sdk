@@ -10,6 +10,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
+import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
@@ -22,14 +23,12 @@ import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.job.TrustlineCheckJob;
 import org.stellar.anchor.platform.rpc.NotifyTrustSetHandler;
-import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
-import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
-import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
-import org.stellar.anchor.platform.service.TransactionService;
+import org.stellar.anchor.platform.service.*;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 @Configuration
@@ -84,6 +83,25 @@ public class PlatformServerBeans {
   }
 
   @Bean
+  Sep6DepositInfoGenerator sep6DepositInfoGenerator(
+      Sep6Config sep6Config, AssetService assetService, Optional<CustodyApiClient> custodyApiClient)
+      throws InvalidConfigException {
+    switch (sep6Config.getDepositInfoGeneratorType()) {
+      case SELF:
+        return new Sep6DepositInfoSelfGenerator(assetService);
+      case CUSTODY:
+        return new Sep6DepositInfoCustodyGenerator(
+            custodyApiClient.orElseThrow(
+                () ->
+                    new InvalidConfigException("Integration with custody service is not enabled")));
+      case NONE:
+        return new Sep6DepositInfoNoneGenerator();
+      default:
+        throw new RuntimeException("Not supported");
+    }
+  }
+
+  @Bean
   TransactionService transactionService(
       Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
@@ -91,6 +109,7 @@ public class PlatformServerBeans {
       Sep38QuoteStore quoteStore,
       AssetService assetService,
       EventService eventService,
+      Sep6DepositInfoGenerator sep6DepositInfoGenerator,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
@@ -101,6 +120,7 @@ public class PlatformServerBeans {
         quoteStore,
         assetService,
         eventService,
+        sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
         custodyService,
         custodyConfig);

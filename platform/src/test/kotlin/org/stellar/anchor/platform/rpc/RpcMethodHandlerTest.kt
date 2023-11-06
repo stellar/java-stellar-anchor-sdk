@@ -1,7 +1,9 @@
 package org.stellar.anchor.platform.rpc
 
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.verify
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -17,28 +19,34 @@ import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSepTransaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
 
 class RpcMethodHandlerTest {
 
   // test implementation
   class RpcMethodHandlerTestImpl(
+    txn6Store: Sep6TransactionStore,
     txn24Store: Sep24TransactionStore,
     txn31Store: Sep31TransactionStore,
     requestValidator: RequestValidator,
     assetService: AssetService,
-    eventService: EventService
+    eventService: EventService,
+    metricsService: MetricsService
   ) :
     RpcMethodHandler<NotifyInteractiveFlowCompletedRequest>(
+      txn6Store,
       txn24Store,
       txn31Store,
       requestValidator,
       assetService,
       eventService,
+      metricsService,
       NotifyInteractiveFlowCompletedRequest::class.java
     ) {
     override fun getRpcMethod(): RpcMethod {
@@ -66,6 +74,8 @@ class RpcMethodHandlerTest {
     private const val TX_ID = "testId"
   }
 
+  @MockK(relaxed = true) private lateinit var txn6Store: Sep6TransactionStore
+
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
@@ -76,13 +86,23 @@ class RpcMethodHandlerTest {
 
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
+  @MockK(relaxed = true) private lateinit var metricsService: MetricsService
+
   private lateinit var handler: RpcMethodHandler<NotifyInteractiveFlowCompletedRequest>
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.handler =
-      RpcMethodHandlerTestImpl(txn24Store, txn31Store, requestValidator, assetService, eventService)
+      RpcMethodHandlerTestImpl(
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService
+      )
   }
 
   @Test
@@ -91,12 +111,14 @@ class RpcMethodHandlerTest {
     val tnx24 = JdbcSep24Transaction()
     tnx24.status = INCOMPLETE.toString()
 
+    every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(any()) } returns null
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals("Transaction with id[testId] is not found", ex.message)
 
+    verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
   }

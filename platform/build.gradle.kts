@@ -47,6 +47,7 @@ dependencies {
 
   // From projects
   implementation(project(":api-schema"))
+  implementation(project(":test-lib"))
   implementation(project(":core"))
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -54,9 +55,12 @@ dependencies {
   testImplementation(libs.okhttp3.tls)
 }
 
+apply(from = "$rootDir/scripts.gradle.kts")
+@Suppress("UNCHECKED_CAST")
+val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
+
 tasks.test {
-  // Enable parallel test execution
-  systemProperty("junit.jupiter.execution.parallel.enabled", false)
+  enableTestConcurrency(this)
   testLogging {
     exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     events = setOf(org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED)

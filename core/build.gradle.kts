@@ -22,7 +22,7 @@ dependencies {
   implementation(
     libs.scala.library
   ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
-    // one.
+  // one.
   implementation(libs.bundles.kafka)
 
   // TODO: Consider to simplify
@@ -45,10 +45,12 @@ dependencies {
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(project(":api-schema"))
+  implementation(project(":test-lib"))
 
   testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)
+  testImplementation(libs.coroutines.core)
 }
 
 publishing {
@@ -117,26 +119,9 @@ publishing {
   configure<SigningExtension> { sign(publishing.publications) }
 }
 
-// TODO: when we enable parallelization for all sub-projects, we can extract the following block.
-tasks.test {
-  // Enable parallel test execution
-  systemProperty("junit.jupiter.execution.parallel.enabled", false)
-  // Allocate thread count based on available processors
-  systemProperty("junit.jupiter.execution.parallel.config.strategy", "dynamic")
-  // Set default parallel mode to same thread. All tests within a class are run in sequence.
-  systemProperty("junit.jupiter.execution.parallel.mode.default", "same_thread")
-  // Set default parallel mode for classes to concurrent. All test classes are run in parallel.
-  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+apply(from = "$rootDir/scripts.gradle.kts")
 
-  // Set default test class order to order annotation. All test classes are run in parallel.
-  // Some tests take longer to run. Enabling the order will execute long-running tests first to
-  // shorten the overall test time.
-  systemProperty(
-    "junit.jupiter.testclass.order.default",
-    "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation"
-  )
-  maxParallelForks =
-    (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1).also {
-      println("junit5 ... setting maxParallelForks to $it")
-    }
-}
+@Suppress("UNCHECKED_CAST")
+val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
+
+tasks.test { enableTestConcurrency(this) }

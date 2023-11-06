@@ -156,6 +156,7 @@ public class Sep24Service {
 
     // Verify that the asset code exists in our database, with withdraw enabled.
     AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
+    debugF("Asset: {}", asset);
     if (asset == null || !asset.getWithdraw().getEnabled() || !asset.getSep24Enabled()) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
@@ -267,7 +268,7 @@ public class Sep24Service {
     InteractiveTransactionResponse response =
         new InteractiveTransactionResponse(
             "interactive_customer_info_needed",
-            interactiveUrlConstructor.construct(txn, withdrawRequest),
+            interactiveUrlConstructor.construct(txn, withdrawRequest, asset, token),
             txn.getTransactionId());
 
     // increment counter
@@ -428,7 +429,7 @@ public class Sep24Service {
     InteractiveTransactionResponse response =
         new InteractiveTransactionResponse(
             "interactive_customer_info_needed",
-            interactiveUrlConstructor.construct(txn, depositRequest),
+            interactiveUrlConstructor.construct(txn, depositRequest, asset, token),
             txn.getTransactionId());
     // increment counter
     sep24DepositCounter.increment();

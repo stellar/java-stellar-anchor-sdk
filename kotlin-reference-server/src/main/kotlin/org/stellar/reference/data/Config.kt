@@ -8,6 +8,7 @@ data class LocationConfig(val ktReferenceServerConfig: String)
 data class Config(
   @ConfigAlias("app") val appSettings: AppSettings,
   @ConfigAlias("auth") val authSettings: AuthSettings,
+  @ConfigAlias("event") val eventSettings: EventSettings,
   val sep24: Sep24
 )
 
@@ -26,7 +27,8 @@ data class AppSettings(
   val distributionWalletMemoType: String,
   val custodyEnabled: Boolean,
   val rpcEnabled: Boolean,
-  val enableTest: Boolean
+  val enableTest: Boolean,
+  val secret: String
 )
 
 data class AuthSettings(
@@ -41,3 +43,5 @@ data class AuthSettings(
     JWT
   }
 }
+
+data class EventSettings(val enabled: Boolean, val bootstrapServer: String, val topic: String)

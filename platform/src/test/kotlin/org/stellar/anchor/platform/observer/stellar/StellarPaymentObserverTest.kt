@@ -8,7 +8,6 @@ import io.mockk.impl.annotations.MockK
 import java.io.IOException
 import java.util.*
 import javax.net.ssl.SSLProtocolException
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
@@ -35,12 +34,6 @@ class StellarPaymentObserverTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxed = true)
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
   }
 
   @Test
