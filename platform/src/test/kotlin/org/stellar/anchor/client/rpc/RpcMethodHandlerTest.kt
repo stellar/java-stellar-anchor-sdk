@@ -18,11 +18,11 @@ import org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_INTERACTIVE_FLOW_COMPL
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.client.data.JdbcSep24Transaction
-import org.stellar.anchor.client.data.JdbcSepTransaction
-import org.stellar.anchor.client.validator.RequestValidator
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.metrics.MetricsService
+import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcSepTransaction
+import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep6.Sep6TransactionStore
@@ -34,12 +34,14 @@ class RpcMethodHandlerTest {
     txn6Store: Sep6TransactionStore,
     txn24Store: Sep24TransactionStore,
     txn31Store: Sep31TransactionStore,
-    requestValidator: RequestValidator,
+    requestValidator: _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator,
     assetService: AssetService,
     eventService: EventService,
     metricsService: MetricsService
   ) :
-    RpcMethodHandler<NotifyInteractiveFlowCompletedRequest>(
+    _root_ide_package_.org.stellar.anchor.platform.rpc.RpcMethodHandler<
+      NotifyInteractiveFlowCompletedRequest
+    >(
       txn6Store,
       txn24Store,
       txn31Store,
@@ -53,17 +55,19 @@ class RpcMethodHandlerTest {
       return NOTIFY_INTERACTIVE_FLOW_COMPLETED
     }
 
-    override fun getSupportedStatuses(txn: JdbcSepTransaction?): Set<SepTransactionStatus> {
+    override fun getSupportedStatuses(
+      txn: _root_ide_package_.org.stellar.anchor.platform.data.JdbcSepTransaction?
+    ): Set<SepTransactionStatus> {
       return setOf(INCOMPLETE, ERROR)
     }
 
     override fun updateTransactionWithRpcRequest(
-      txn: JdbcSepTransaction?,
+      txn: _root_ide_package_.org.stellar.anchor.platform.data.JdbcSepTransaction?,
       request: NotifyInteractiveFlowCompletedRequest?
     ) {}
 
     override fun getNextStatus(
-      txn: JdbcSepTransaction?,
+      txn: _root_ide_package_.org.stellar.anchor.platform.data.JdbcSepTransaction?,
       request: NotifyInteractiveFlowCompletedRequest?
     ): SepTransactionStatus {
       return PENDING_ANCHOR
@@ -80,7 +84,9 @@ class RpcMethodHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
+  @MockK(relaxed = true)
+  private lateinit var requestValidator:
+    _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -88,7 +94,10 @@ class RpcMethodHandlerTest {
 
   @MockK(relaxed = true) private lateinit var metricsService: MetricsService
 
-  private lateinit var handler: RpcMethodHandler<NotifyInteractiveFlowCompletedRequest>
+  private lateinit var handler:
+    _root_ide_package_.org.stellar.anchor.platform.rpc.RpcMethodHandler<
+      NotifyInteractiveFlowCompletedRequest
+    >
 
   @BeforeEach
   fun setup() {
@@ -108,7 +117,7 @@ class RpcMethodHandlerTest {
   @Test
   fun test_handle_transactionIsNotFound() {
     val request = NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build()
-    val tnx24 = JdbcSep24Transaction()
+    val tnx24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     tnx24.status = INCOMPLETE.toString()
 
     every { txn6Store.findByTransactionId(any()) } returns null

@@ -24,12 +24,13 @@ import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.Customers
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.client.data.JdbcSep31Transaction
-import org.stellar.anchor.client.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
-import org.stellar.anchor.client.validator.RequestValidator
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.metrics.MetricsService
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.rpc.NotifyCustomerInfoUpdatedHandler
+import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
+import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep6.Sep6TransactionStore

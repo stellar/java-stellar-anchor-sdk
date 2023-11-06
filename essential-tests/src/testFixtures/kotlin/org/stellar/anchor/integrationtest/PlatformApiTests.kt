@@ -22,7 +22,7 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.client.Sep12Client
 import org.stellar.anchor.client.Sep24Client
 import org.stellar.anchor.client.Sep31Client
-import org.stellar.anchor.client.TestConfig
+import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 
 class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {

@@ -9,9 +9,9 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse
 import org.stellar.anchor.api.exception.CustodyException
 import org.stellar.anchor.api.shared.SepDepositInfo
-import org.stellar.anchor.client.apiclient.CustodyApiClient
-import org.stellar.anchor.client.data.JdbcSep24Transaction
-import org.stellar.anchor.client.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.apiclient.CustodyApiClient
+import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
 
 class DepositInfoGeneratorTest {
 
@@ -25,10 +25,11 @@ class DepositInfoGeneratorTest {
 
   @Test
   fun test_sep24_selfGenerator_success() {
-    val txn = JdbcSep24Transaction()
+    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     txn.id = TX_ID
     txn.toAccount = ADDRESS
-    val generator = Sep24DepositInfoSelfGenerator()
+    val generator =
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator()
 
     val actualInfo = generator.generate(txn)
 
@@ -39,10 +40,15 @@ class DepositInfoGeneratorTest {
 
   @Test
   fun test_sep24_custodyGenerator_success() {
-    val txn = JdbcSep24Transaction()
+    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     txn.amountInAsset = ASSET_ID
-    val custodyApiClient: CustodyApiClient = mockk()
-    val generator = Sep24DepositInfoCustodyGenerator(custodyApiClient)
+    val custodyApiClient:
+      _root_ide_package_.org.stellar.anchor.platform.apiclient.CustodyApiClient =
+      mockk()
+    val generator =
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator(
+        custodyApiClient
+      )
 
     val depositAddress = GenerateDepositAddressResponse(ADDRESS, MEMO, MEMO_TYPE)
 
@@ -57,10 +63,15 @@ class DepositInfoGeneratorTest {
 
   @Test
   fun test_sep24_custodyGenerator_error() {
-    val txn = JdbcSep24Transaction()
+    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     txn.amountInAsset = ASSET_ID
-    val custodyApiClient: CustodyApiClient = mockk()
-    val generator = Sep24DepositInfoCustodyGenerator(custodyApiClient)
+    val custodyApiClient:
+      _root_ide_package_.org.stellar.anchor.platform.apiclient.CustodyApiClient =
+      mockk()
+    val generator =
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator(
+        custodyApiClient
+      )
 
     every { custodyApiClient.generateDepositAddress(ASSET_ID) } throws
       CustodyException("Custody exception")
@@ -72,10 +83,11 @@ class DepositInfoGeneratorTest {
 
   @Test
   fun test_sep31_selfGenerator_success() {
-    val txn = JdbcSep31Transaction()
+    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
     txn.id = TX_ID
     txn.stellarAccountId = ADDRESS
-    val generator = Sep31DepositInfoSelfGenerator()
+    val generator =
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep31DepositInfoSelfGenerator()
 
     val actualInfo = generator.generate(txn)
 
@@ -86,10 +98,15 @@ class DepositInfoGeneratorTest {
 
   @Test
   fun test_sep31_selfCustody_success() {
-    val txn = JdbcSep31Transaction()
+    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
     txn.amountInAsset = ASSET_ID
-    val custodyApiClient: CustodyApiClient = mockk()
-    val generator = Sep31DepositInfoCustodyGenerator(custodyApiClient)
+    val custodyApiClient:
+      _root_ide_package_.org.stellar.anchor.platform.apiclient.CustodyApiClient =
+      mockk()
+    val generator =
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep31DepositInfoCustodyGenerator(
+        custodyApiClient
+      )
     val depositAddress = GenerateDepositAddressResponse(ADDRESS, MEMO, MEMO_TYPE)
 
     every { custodyApiClient.generateDepositAddress(ASSET_ID) } returns depositAddress
@@ -103,10 +120,15 @@ class DepositInfoGeneratorTest {
 
   @Test
   fun test_sep31_custodyGenerator_error() {
-    val txn = JdbcSep31Transaction()
+    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
     txn.amountInAsset = ASSET_ID
-    val custodyApiClient: CustodyApiClient = mockk()
-    val generator = Sep31DepositInfoCustodyGenerator(custodyApiClient)
+    val custodyApiClient:
+      _root_ide_package_.org.stellar.anchor.platform.apiclient.CustodyApiClient =
+      mockk()
+    val generator =
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep31DepositInfoCustodyGenerator(
+        custodyApiClient
+      )
 
     every { custodyApiClient.generateDepositAddress(ASSET_ID) } throws
       CustodyException("Custody exception")

@@ -3,10 +3,10 @@ package org.stellar.anchor.integrationtest
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.AbstractIntegrationTests
 import org.stellar.anchor.api.event.AnchorEvent
-import org.stellar.anchor.client.TestConfig
-import org.stellar.anchor.client.config.PropertyEventConfig
-import org.stellar.anchor.client.event.DefaultEventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.config.PropertyEventConfig
+import org.stellar.anchor.platform.event.DefaultEventService
 import org.stellar.anchor.util.GsonUtils
 
 class EventProcessingServerTests :

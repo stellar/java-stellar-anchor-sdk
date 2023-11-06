@@ -9,9 +9,9 @@ import org.stellar.anchor.AbstractIntegrationTests
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.client.Sep38Client
-import org.stellar.anchor.client.TestConfig
-import org.stellar.anchor.client.printRequest
-import org.stellar.anchor.client.printResponse
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.printRequest
+import org.stellar.anchor.platform.printResponse
 
 class Sep38Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   private val sep38Client: Sep38Client =

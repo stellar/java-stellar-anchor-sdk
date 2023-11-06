@@ -25,15 +25,15 @@ import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.Customers
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.client.data.JdbcSep24Transaction
-import org.stellar.anchor.client.data.JdbcSep31Transaction
-import org.stellar.anchor.client.data.JdbcSep6Transaction
-import org.stellar.anchor.client.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
-import org.stellar.anchor.client.validator.RequestValidator
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.metrics.MetricsService
+import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.data.JdbcSep6Transaction
+import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
+import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep6.Sep6TransactionStore
@@ -54,7 +54,9 @@ class NotifyTransactionRecoveryHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
+  @MockK(relaxed = true)
+  private lateinit var requestValidator:
+    _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -66,14 +68,15 @@ class NotifyTransactionRecoveryHandlerTest {
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
-  private lateinit var handler: NotifyTransactionRecoveryHandler
+  private lateinit var handler:
+    _root_ide_package_.org.stellar.anchor.platform.rpc.NotifyTransactionRecoveryHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.handler =
-      NotifyTransactionRecoveryHandler(
+      _root_ide_package_.org.stellar.anchor.platform.rpc.NotifyTransactionRecoveryHandler(
         txn6Store,
         txn24Store,
         txn31Store,
@@ -87,7 +90,7 @@ class NotifyTransactionRecoveryHandlerTest {
   @Test
   fun test_handle_unsupportedProtocol() {
     val request = NotifyTransactionRecoveryRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
+    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     txn24.status = ERROR.toString()
     txn24.transferReceivedAt = Instant.now()
     val spyTxn24 = spyk(txn24)
@@ -112,7 +115,7 @@ class NotifyTransactionRecoveryHandlerTest {
   @Test
   fun test_handle_unsupportedStatus() {
     val request = NotifyTransactionRecoveryRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
+    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.transferReceivedAt = Instant.now()
 
@@ -135,7 +138,7 @@ class NotifyTransactionRecoveryHandlerTest {
   @Test
   fun test_handle_transferNotReceived() {
     val request = NotifyTransactionRecoveryRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
+    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     txn24.status = ERROR.toString()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -157,7 +160,7 @@ class NotifyTransactionRecoveryHandlerTest {
   @Test
   fun test_handle_invalidRequest() {
     val request = NotifyTransactionRecoveryRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
+    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     txn24.status = ERROR.toString()
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = Instant.now()
@@ -181,12 +184,13 @@ class NotifyTransactionRecoveryHandlerTest {
   fun test_handle_ok_sep24() {
     val transferReceivedAt = Instant.now()
     val request = NotifyTransactionRecoveryRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
+    val txn24 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     txn24.status = ERROR.toString()
     txn24.kind = DEPOSIT.kind
     txn24.message = TX_MESSAGE
     txn24.transferReceivedAt = transferReceivedAt
-    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val sep24TxnCapture =
+      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -205,7 +209,8 @@ class NotifyTransactionRecoveryHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep24Txn = JdbcSep24Transaction()
+    val expectedSep24Txn =
+      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -252,11 +257,12 @@ class NotifyTransactionRecoveryHandlerTest {
   fun test_handle_sep31_ok() {
     val transferReceivedAt = Instant.now()
     val request = NotifyTransactionRecoveryRequest.builder().transactionId(TX_ID).build()
-    val txn31 = JdbcSep31Transaction()
+    val txn31 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
     txn31.status = ERROR.toString()
     txn31.transferReceivedAt = transferReceivedAt
     txn31.requiredInfoMessage = TX_MESSAGE
-    val sep31TxnCapture = slot<JdbcSep31Transaction>()
+    val sep31TxnCapture =
+      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(any()) } returns null
@@ -270,7 +276,8 @@ class NotifyTransactionRecoveryHandlerTest {
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
 
-    val expectedSep31Txn = JdbcSep31Transaction()
+    val expectedSep31Txn =
+      _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
     expectedSep31Txn.status = PENDING_RECEIVER.toString()
     expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedSep31Txn.transferReceivedAt = transferReceivedAt
@@ -307,12 +314,13 @@ class NotifyTransactionRecoveryHandlerTest {
   fun test_handle_ok_sep6() {
     val transferReceivedAt = Instant.now()
     val request = NotifyTransactionRecoveryRequest.builder().transactionId(TX_ID).build()
-    val txn6 = JdbcSep6Transaction()
+    val txn6 = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
     txn6.status = ERROR.toString()
     txn6.kind = DEPOSIT.kind
     txn6.message = TX_MESSAGE
     txn6.transferReceivedAt = transferReceivedAt
-    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+    val sep6TxnCapture =
+      slot<_root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
@@ -331,7 +339,7 @@ class NotifyTransactionRecoveryHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
-    val expectedSep6Txn = JdbcSep6Transaction()
+    val expectedSep6Txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
     expectedSep6Txn.kind = DEPOSIT.kind
     expectedSep6Txn.status = PENDING_ANCHOR.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt

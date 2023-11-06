@@ -21,8 +21,8 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest
 import org.stellar.anchor.api.exception.CustodyException
 import org.stellar.anchor.auth.AuthHelper
-import org.stellar.anchor.client.apiclient.CustodyApiClient
-import org.stellar.anchor.client.config.CustodyApiConfig
+import org.stellar.anchor.platform.apiclient.CustodyApiClient
+import org.stellar.anchor.platform.config.CustodyApiConfig
 import org.stellar.anchor.util.AuthHeader
 import org.stellar.anchor.util.GsonUtils
 

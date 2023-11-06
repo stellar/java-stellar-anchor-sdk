@@ -21,10 +21,10 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
-import org.stellar.anchor.client.TestConfig
-import org.stellar.anchor.client.gson
-import org.stellar.anchor.client.printRequest
-import org.stellar.anchor.client.printResponse
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.gson
+import org.stellar.anchor.platform.printRequest
+import org.stellar.anchor.platform.printResponse
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.StringHelper.json
 import org.stellar.walletsdk.anchor.IncompleteDepositTransaction

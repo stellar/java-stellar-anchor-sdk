@@ -3,7 +3,7 @@ package org.stellar.anchor.integrationtest
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.client.event.ClientStatusCallbackHandler
+import org.stellar.anchor.platform.event.ClientStatusCallbackHandler
 import org.stellar.reference.wallet.CallbackService.Companion.verifySignature
 import org.stellar.sdk.KeyPair
 import org.stellar.sdk.KeyPair.*

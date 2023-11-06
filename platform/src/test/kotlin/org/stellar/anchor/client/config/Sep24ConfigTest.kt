@@ -11,12 +11,13 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
-import org.stellar.anchor.client.config.PropertySep24Config.InteractiveUrlConfig
-import org.stellar.anchor.client.config.PropertySep24Config.MoreInfoUrlConfig
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config.DepositInfoGeneratorType
 import org.stellar.anchor.config.Sep24Config.Features
+import org.stellar.anchor.platform.config.PropertySep24Config
+import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig
+import org.stellar.anchor.platform.config.PropertySep24Config.MoreInfoUrlConfig
 
 class Sep24ConfigTest {
   lateinit var config: PropertySep24Config

@@ -13,6 +13,7 @@ import org.stellar.anchor.auth.*
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.platform.callback.PlatformIntegrationHelper
 
 @ExtendWith(LockAndMockTest::class)
 class PlatformIntegrationHelperTest {

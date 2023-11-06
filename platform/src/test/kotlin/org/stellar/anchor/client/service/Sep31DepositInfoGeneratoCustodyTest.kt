@@ -3,7 +3,7 @@ package org.stellar.anchor.client.service
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.shared.SepDepositInfo
-import org.stellar.anchor.client.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
 
 class Sep31DepositInfoGeneratoCustodyTest {
 
@@ -16,10 +16,11 @@ class Sep31DepositInfoGeneratoCustodyTest {
 
   @Test
   fun test_sep31_selfGenerator_success() {
-    val txn = JdbcSep31Transaction()
+    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction()
     txn.id = TX_ID
     txn.stellarAccountId = ADDRESS
-    val generator = Sep31DepositInfoSelfGenerator()
+    val generator =
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep31DepositInfoSelfGenerator()
 
     val actualInfo = generator.generate(txn)
 

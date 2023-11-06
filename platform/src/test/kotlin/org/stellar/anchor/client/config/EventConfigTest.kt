@@ -11,6 +11,7 @@ import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.springframework.validation.ValidationUtils
 import org.stellar.anchor.config.event.QueueConfig.QueueType.*
+import org.stellar.anchor.platform.config.*
 
 class EventConfigTest {
   lateinit var config: PropertyEventConfig

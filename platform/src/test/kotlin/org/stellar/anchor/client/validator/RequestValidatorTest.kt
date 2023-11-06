@@ -16,12 +16,14 @@ class RequestValidatorTest {
 
   @MockK(relaxed = true) private lateinit var validator: Validator
 
-  private lateinit var requestValidator: RequestValidator
+  private lateinit var requestValidator:
+    _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    this.requestValidator = RequestValidator(validator)
+    this.requestValidator =
+      _root_ide_package_.org.stellar.anchor.platform.validator.RequestValidator(validator)
   }
 
   @Test

@@ -10,9 +10,10 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
 import org.stellar.anchor.api.exception.InvalidConfigException
-import org.stellar.anchor.client.config.PropertySep1Config.TomlConfig
 import org.stellar.anchor.config.Sep1Config.TomlType.FILE
 import org.stellar.anchor.config.Sep1Config.TomlType.fromString
+import org.stellar.anchor.platform.config.PropertySep1Config
+import org.stellar.anchor.platform.config.PropertySep1Config.TomlConfig
 
 class Sep1ConfigTest {
   companion object {

@@ -12,10 +12,10 @@ import org.springframework.http.HttpStatus
 import org.stellar.anchor.api.platform.HealthCheckResult
 import org.stellar.anchor.api.platform.HealthCheckStatus
 import org.stellar.anchor.api.platform.HealthCheckStatus.*
-import org.stellar.anchor.client.controller.sep.SepHealthController
-import org.stellar.anchor.client.observer.stellar.StellarPaymentObserver
-import org.stellar.anchor.client.service.HealthCheckService
 import org.stellar.anchor.healthcheck.HealthCheckable
+import org.stellar.anchor.platform.controller.sep.SepHealthController
+import org.stellar.anchor.platform.observer.stellar.StellarPaymentObserver
+import org.stellar.anchor.platform.service.HealthCheckService
 
 class HealthControllerTest {
   @MockK private lateinit var stellarPaymentObserver: StellarPaymentObserver

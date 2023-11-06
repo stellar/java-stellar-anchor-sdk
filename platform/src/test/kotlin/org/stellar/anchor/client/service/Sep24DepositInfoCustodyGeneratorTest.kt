@@ -6,8 +6,8 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse
 import org.stellar.anchor.api.shared.SepDepositInfo
-import org.stellar.anchor.client.apiclient.CustodyApiClient
-import org.stellar.anchor.client.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.apiclient.CustodyApiClient
+import org.stellar.anchor.platform.data.JdbcSep24Transaction
 
 class Sep24DepositInfoCustodyGeneratorTest {
 
@@ -20,10 +20,15 @@ class Sep24DepositInfoCustodyGeneratorTest {
 
   @Test
   fun test_sep24_custodyGenerator_success() {
-    val txn = JdbcSep24Transaction()
+    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep24Transaction()
     txn.amountInAsset = ASSET_ID
-    val custodyApiClient: CustodyApiClient = mockk()
-    val generator = Sep24DepositInfoCustodyGenerator(custodyApiClient)
+    val custodyApiClient:
+      _root_ide_package_.org.stellar.anchor.platform.apiclient.CustodyApiClient =
+      mockk()
+    val generator =
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator(
+        custodyApiClient
+      )
 
     val depositAddress = GenerateDepositAddressResponse(ADDRESS, MEMO, MEMO_TYPE)
 

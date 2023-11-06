@@ -26,8 +26,9 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.FireblocksException
 import org.stellar.anchor.api.exception.InvalidConfigException
-import org.stellar.anchor.client.config.FireblocksConfig
 import org.stellar.anchor.config.CustodySecretConfig
+import org.stellar.anchor.platform.config.FireblocksConfig
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
 class FireblocksApiClientTest {

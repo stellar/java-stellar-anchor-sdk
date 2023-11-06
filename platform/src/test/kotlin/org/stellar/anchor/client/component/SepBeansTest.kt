@@ -6,8 +6,8 @@ import io.mockk.mockk
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.client.component.sep.SepBeans
 import org.stellar.anchor.config.*
+import org.stellar.anchor.platform.component.sep.SepBeans
 
 class SepBeansTest {
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig

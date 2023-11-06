@@ -19,15 +19,15 @@ import org.stellar.anchor.api.custody.fireblocks.TransactionDetails
 import org.stellar.anchor.api.custody.fireblocks.TransactionStatus
 import org.stellar.anchor.api.exception.FireblocksException
 import org.stellar.anchor.api.platform.PlatformTransactionData
-import org.stellar.anchor.client.config.FireblocksConfig
-import org.stellar.anchor.client.custody.CustodyPayment
-import org.stellar.anchor.client.custody.CustodyPaymentService
-import org.stellar.anchor.client.custody.CustodyTransactionService
-import org.stellar.anchor.client.custody.fireblocks.FireblocksEventService
-import org.stellar.anchor.client.data.CustodyTransactionStatus
-import org.stellar.anchor.client.data.JdbcCustodyTransaction
-import org.stellar.anchor.client.data.JdbcCustodyTransactionRepo
-import org.stellar.anchor.client.fireblocks.job.FireblocksTransactionsReconciliationJob
+import org.stellar.anchor.platform.config.FireblocksConfig
+import org.stellar.anchor.platform.custody.CustodyPayment
+import org.stellar.anchor.platform.custody.CustodyPaymentService
+import org.stellar.anchor.platform.custody.CustodyTransactionService
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService
+import org.stellar.anchor.platform.data.CustodyTransactionStatus
+import org.stellar.anchor.platform.data.JdbcCustodyTransaction
+import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
+import org.stellar.anchor.platform.fireblocks.job.FireblocksTransactionsReconciliationJob
 
 class FireblocksTransactionsReconciliationJobTest {
 

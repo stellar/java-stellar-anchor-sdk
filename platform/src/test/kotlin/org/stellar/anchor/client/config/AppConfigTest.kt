@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.platform.config.PropertyAppConfig
 
 class AppConfigTest {
   private lateinit var config: PropertyAppConfig

@@ -11,9 +11,11 @@ import java.time.temporal.ChronoUnit.HOURS
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.client.data.PaymentObservingAccount
-import org.stellar.anchor.client.observer.stellar.PaymentObservingAccountsManager.AccountType.RESIDENTIAL
-import org.stellar.anchor.client.observer.stellar.PaymentObservingAccountsManager.AccountType.TRANSIENT
+import org.stellar.anchor.platform.data.PaymentObservingAccount
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager.AccountType.RESIDENTIAL
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager.AccountType.TRANSIENT
 
 class PaymentObservingAccountsManagerTest {
   @MockK private lateinit var paymentObservingAccountStore: PaymentObservingAccountStore

@@ -8,8 +8,8 @@ import org.stellar.anchor.CLIENT_WALLET_ACCOUNT
 import org.stellar.anchor.api.sep.sep38.Sep38Context
 import org.stellar.anchor.client.Sep38Client
 import org.stellar.anchor.client.Sep6Client
-import org.stellar.anchor.client.TestConfig
-import org.stellar.anchor.client.gson
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.Log
 
 class Sep6Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {

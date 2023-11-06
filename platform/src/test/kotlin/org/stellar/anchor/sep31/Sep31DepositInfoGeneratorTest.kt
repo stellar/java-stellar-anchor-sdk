@@ -19,11 +19,11 @@ import org.stellar.anchor.api.callback.FeeIntegration
 import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
-import org.stellar.anchor.client.data.JdbcSep31Transaction
-import org.stellar.anchor.client.service.Sep31DepositInfoSelfGenerator
 import org.stellar.anchor.config.*
 import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.service.Sep31DepositInfoSelfGenerator
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
 
@@ -90,7 +90,11 @@ class Sep31DepositInfoGeneratorTest {
         custodyConfig
       )
 
-    txn = gson.fromJson(txnJson, JdbcSep31Transaction::class.java)
+    txn =
+      gson.fromJson(
+        txnJson,
+        _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31Transaction::class.java
+      )
   }
 
   @Test
@@ -101,7 +105,8 @@ class Sep31DepositInfoGeneratorTest {
         sep10Config,
         sep31Config,
         txnStore,
-        Sep31DepositInfoSelfGenerator(), // set deposit info generator
+        _root_ide_package_.org.stellar.anchor.platform.service
+          .Sep31DepositInfoSelfGenerator(), // set deposit info generator
         quoteStore,
         clientsConfig,
         assetService,

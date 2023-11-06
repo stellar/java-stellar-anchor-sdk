@@ -22,12 +22,12 @@ import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.client.Sep12Client
-import org.stellar.anchor.client.TestConfig
-import org.stellar.anchor.client.callback.RestCustomerIntegration
-import org.stellar.anchor.client.callback.RestFeeIntegration
-import org.stellar.anchor.client.callback.RestRateIntegration
 import org.stellar.anchor.integrationtest.Sep12Tests.Companion.testCustomer1Json
 import org.stellar.anchor.integrationtest.Sep12Tests.Companion.testCustomer2Json
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.callback.RestCustomerIntegration
+import org.stellar.anchor.platform.callback.RestFeeIntegration
+import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.util.GsonUtils
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -112,7 +112,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
       }
     }"""
         .trimMargin()
-    JSONAssert.assertEquals(wantBody, org.stellar.anchor.client.gson.toJson(result), true)
+    JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(result), true)
   }
 
   @Test
@@ -175,7 +175,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
       }
     }"""
         .trimMargin()
-    JSONAssert.assertEquals(wantBody, org.stellar.anchor.client.gson.toJson(gotQuote), true)
+    JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(gotQuote), true)
   }
 
   @Test
@@ -204,7 +204,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
 
     Assertions.assertNotNull(result)
     JSONAssert.assertEquals(
-      org.stellar.anchor.client.gson.toJson(result),
+      org.stellar.anchor.platform.gson.toJson(result),
       """{
           "fee": {
             "asset": "USDC",

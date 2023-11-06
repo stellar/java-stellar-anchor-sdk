@@ -14,6 +14,8 @@ import org.stellar.anchor.auth.AuthConfig
 import org.stellar.anchor.auth.AuthType.JWT
 import org.stellar.anchor.auth.AuthType.NONE
 import org.stellar.anchor.config.CustodySecretConfig
+import org.stellar.anchor.platform.config.CustodyApiConfig
+import org.stellar.anchor.platform.config.HttpClientConfig
 
 class CustodyApiConfigTest {
 

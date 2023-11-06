@@ -6,8 +6,8 @@ import okhttp3.Request
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.AbstractIntegrationTests
-import org.stellar.anchor.client.TestConfig
-import org.stellar.anchor.client.gson
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.gson
 
 class StellarObserverTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   companion object {

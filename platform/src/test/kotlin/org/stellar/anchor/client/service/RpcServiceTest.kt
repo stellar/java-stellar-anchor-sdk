@@ -18,10 +18,10 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.method.NotifyInteractiveFlowCompletedRequest
 import org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED
-import org.stellar.anchor.client.config.RpcConfig
-import org.stellar.anchor.client.rpc.RpcMethodHandler
-import org.stellar.anchor.client.utils.RpcUtil
-import org.stellar.anchor.client.utils.RpcUtil.JSON_RPC_VERSION
+import org.stellar.anchor.platform.config.RpcConfig
+import org.stellar.anchor.platform.rpc.RpcMethodHandler
+import org.stellar.anchor.platform.utils.RpcUtil
+import org.stellar.anchor.platform.utils.RpcUtil.JSON_RPC_VERSION
 import org.stellar.anchor.util.GsonUtils
 
 @ExtendWith(LockAndMockTest::class)
@@ -38,10 +38,14 @@ class RpcServiceTest {
   }
 
   @MockK(relaxed = true)
-  private lateinit var rpcMethodHandler: RpcMethodHandler<NotifyInteractiveFlowCompletedRequest>
-  @MockK(relaxed = true) private lateinit var rpcConfig: RpcConfig
+  private lateinit var rpcMethodHandler:
+    _root_ide_package_.org.stellar.anchor.platform.rpc.RpcMethodHandler<
+      NotifyInteractiveFlowCompletedRequest
+    >
+  @MockK(relaxed = true)
+  private lateinit var rpcConfig: _root_ide_package_.org.stellar.anchor.platform.config.RpcConfig
 
-  private lateinit var rpcService: RpcService
+  private lateinit var rpcService: _root_ide_package_.org.stellar.anchor.platform.service.RpcService
 
   private val gson = GsonUtils.getInstance()
 
@@ -52,7 +56,11 @@ class RpcServiceTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { rpcMethodHandler.rpcMethod } returns NOTIFY_INTERACTIVE_FLOW_COMPLETED
-    rpcService = RpcService(listOf(rpcMethodHandler), rpcConfig)
+    rpcService =
+      _root_ide_package_.org.stellar.anchor.platform.service.RpcService(
+        listOf(rpcMethodHandler),
+        rpcConfig
+      )
   }
 
   @Test
@@ -283,13 +291,15 @@ class RpcServiceTest {
   }
 
   @Test
-  @LockAndMockStatic([RpcUtil::class])
+  @LockAndMockStatic([_root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil::class])
   fun `test handle internal exception`() {
     // Given
     val rpcRequest = RpcRequest.builder().build()
 
     every { rpcConfig.batchSizeLimit } returns BATCH_SIZE_LIMIT
-    every { RpcUtil.validateRpcRequest(rpcRequest) } throws NullPointerException(ERROR_MSG)
+    every {
+      _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest(rpcRequest)
+    } throws NullPointerException(ERROR_MSG)
 
     // When
     val response = rpcService.handle(listOf(rpcRequest))
@@ -315,13 +325,15 @@ class RpcServiceTest {
   }
 
   @Test
-  @LockAndMockStatic([RpcUtil::class])
+  @LockAndMockStatic([_root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil::class])
   fun `test handle bad request exception`() {
     val rpcRequest = RpcRequest.builder().build()
 
     every { rpcConfig.batchSizeLimit } returns BATCH_SIZE_LIMIT
 
-    every { RpcUtil.validateRpcRequest(rpcRequest) } throws BadRequestException(ERROR_MSG)
+    every {
+      _root_ide_package_.org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest(rpcRequest)
+    } throws BadRequestException(ERROR_MSG)
 
     val response = rpcService.handle(listOf(rpcRequest))
 

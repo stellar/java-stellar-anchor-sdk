@@ -13,8 +13,10 @@ import org.junit.jupiter.api.*
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.FireblocksException
-import org.stellar.anchor.client.config.FireblocksConfig
-import org.stellar.anchor.client.data.JdbcCustodyTransaction
+import org.stellar.anchor.platform.config.FireblocksConfig
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksPaymentService
+import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.util.GsonUtils
 
 class FireblocksPaymentServiceTest {

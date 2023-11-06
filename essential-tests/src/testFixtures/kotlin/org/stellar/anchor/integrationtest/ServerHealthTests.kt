@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
-import org.stellar.anchor.client.TestConfig
+import org.stellar.anchor.platform.TestConfig
 
 class PlatformServerHealthTests {
   val config = TestConfig(testProfileName = "default")

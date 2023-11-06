@@ -15,7 +15,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.sep.sep6.GetTransactionResponse
 import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.client.Sep6Client
-import org.stellar.anchor.client.TestConfig
+import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log
 import org.stellar.reference.client.AnchorReferenceServerClient

@@ -8,8 +8,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse
 import org.stellar.anchor.api.shared.SepDepositInfo
-import org.stellar.anchor.client.apiclient.CustodyApiClient
-import org.stellar.anchor.client.data.JdbcSep6Transaction
+import org.stellar.anchor.platform.apiclient.CustodyApiClient
+import org.stellar.anchor.platform.data.JdbcSep6Transaction
 
 class Sep6DepositInfoCustodyGeneratorTest {
   companion object {
@@ -19,19 +19,25 @@ class Sep6DepositInfoCustodyGeneratorTest {
     private const val ASSET_ID = "USDC"
   }
 
-  @MockK(relaxed = true) lateinit var custodyApiClient: CustodyApiClient
+  @MockK(relaxed = true)
+  lateinit var custodyApiClient:
+    _root_ide_package_.org.stellar.anchor.platform.apiclient.CustodyApiClient
 
-  private lateinit var generator: Sep6DepositInfoCustodyGenerator
+  private lateinit var generator:
+    _root_ide_package_.org.stellar.anchor.platform.service.Sep6DepositInfoCustodyGenerator
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    generator = Sep6DepositInfoCustodyGenerator(custodyApiClient)
+    generator =
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep6DepositInfoCustodyGenerator(
+        custodyApiClient
+      )
   }
 
   @Test
   fun test_sep6_custodyGenerator_success() {
-    val txn = JdbcSep6Transaction()
+    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
     txn.amountInAsset = ASSET_ID
 
     every { custodyApiClient.generateDepositAddress(ASSET_ID) } returns

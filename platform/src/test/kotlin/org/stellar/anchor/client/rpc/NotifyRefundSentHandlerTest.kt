@@ -13,7 +13,6 @@ import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
-import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
@@ -27,18 +26,14 @@ import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
-import org.stellar.anchor.client.data.*
-import org.stellar.anchor.client.data.JdbcSep24RefundPayment
-import org.stellar.anchor.client.data.JdbcSep24Refunds
-import org.stellar.anchor.client.data.JdbcSep24Transaction
-import org.stellar.anchor.client.data.JdbcSep31Refunds
-import org.stellar.anchor.client.data.JdbcSep31Transaction
-import org.stellar.anchor.client.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
-import org.stellar.anchor.client.validator.RequestValidator
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.metrics.MetricsService
+import org.stellar.anchor.platform.data.*
+import org.stellar.anchor.platform.rpc.NotifyRefundSentHandler
+import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
+import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep6.Sep6TransactionStore
@@ -73,7 +68,8 @@ class NotifyRefundSentHandlerTest {
 
   @MockK(relaxed = true) private lateinit var sepTransactionCounter: Counter
 
-  private lateinit var handler: NotifyRefundSentHandler
+  private lateinit var handler:
+    _root_ide_package_.org.stellar.anchor.platform.rpc.NotifyRefundSentHandler
 
   @BeforeEach
   fun setup() {
@@ -81,7 +77,7 @@ class NotifyRefundSentHandlerTest {
     every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
-      NotifyRefundSentHandler(
+      _root_ide_package_.org.stellar.anchor.platform.rpc.NotifyRefundSentHandler(
         txn6Store,
         txn24Store,
         txn31Store,
@@ -960,7 +956,7 @@ class NotifyRefundSentHandlerTest {
     txn31.amountFeeAsset = STELLAR_USDC
     txn31.amountFee = "0"
 
-    val payment = JdbcSep31RefundPayment()
+    val payment = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31RefundPayment()
     payment.id = "1"
     payment.amount = "1"
     payment.fee = "0"
@@ -1082,7 +1078,7 @@ class NotifyRefundSentHandlerTest {
     val txn31 = JdbcSep31Transaction()
     txn31.status = PENDING_RECEIVER.toString()
 
-    val payment = JdbcSep31RefundPayment()
+    val payment = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep31RefundPayment()
     payment.id = "1"
     payment.amount = "0.1"
     payment.fee = "0.1"

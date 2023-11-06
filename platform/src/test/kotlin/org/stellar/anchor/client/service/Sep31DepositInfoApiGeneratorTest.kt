@@ -14,8 +14,8 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.callback.GetUniqueAddressResponse
 import org.stellar.anchor.api.callback.UniqueAddressIntegration
 import org.stellar.anchor.api.exception.HttpException
-import org.stellar.anchor.client.observer.stellar.PaymentObservingAccountStore
-import org.stellar.anchor.client.observer.stellar.PaymentObservingAccountsManager
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
 import org.stellar.anchor.sep31.Sep31Transaction
 
 class Sep31DepositInfoApiGeneratorTest {
@@ -23,10 +23,13 @@ class Sep31DepositInfoApiGeneratorTest {
 
   @MockK(relaxed = true) private lateinit var txn: Sep31Transaction
 
-  @MockK private lateinit var paymentObservingAccountStore: PaymentObservingAccountStore
+  @MockK
+  private lateinit var paymentObservingAccountStore:
+    _root_ide_package_.org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
 
   // Do not mock the manager
-  private lateinit var paymentObservingAccountsManager: PaymentObservingAccountsManager
+  private lateinit var paymentObservingAccountsManager:
+    _root_ide_package_.org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
 
   val txnId = "this_is_a_transaction_id"
   val stellarAddress = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
@@ -34,7 +37,9 @@ class Sep31DepositInfoApiGeneratorTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    paymentObservingAccountsManager = PaymentObservingAccountsManager(paymentObservingAccountStore)
+    paymentObservingAccountsManager =
+      _root_ide_package_.org.stellar.anchor.platform.observer.stellar
+        .PaymentObservingAccountsManager(paymentObservingAccountStore)
   }
 
   @ParameterizedTest
@@ -58,7 +63,10 @@ class Sep31DepositInfoApiGeneratorTest {
     every { uniqueAddressIntegration.getUniqueAddress(any()) } returns uniqueAddressResponse
 
     val generator =
-      Sep31DepositInfoApiGenerator(uniqueAddressIntegration, paymentObservingAccountsManager)
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator(
+        uniqueAddressIntegration,
+        paymentObservingAccountsManager
+      )
     val depositInfo = generator.generate(txn)
     assertEquals(stellarAddress, depositInfo.stellarAddress)
     assertEquals(memo, depositInfo.memo)
@@ -84,7 +92,10 @@ class Sep31DepositInfoApiGeneratorTest {
     every { uniqueAddressIntegration.getUniqueAddress(any()) } returns uniqueAddressResponse
 
     val generator =
-      Sep31DepositInfoApiGenerator(uniqueAddressIntegration, paymentObservingAccountsManager)
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator(
+        uniqueAddressIntegration,
+        paymentObservingAccountsManager
+      )
     assertThrows<Exception> { generator.generate(txn) }
 
     // Make sure the address does not go into manager when exception happens
@@ -98,7 +109,10 @@ class Sep31DepositInfoApiGeneratorTest {
     every { uniqueAddressIntegration.getUniqueAddress(any()) } throws HttpException(statusCode)
 
     val generator =
-      Sep31DepositInfoApiGenerator(uniqueAddressIntegration, paymentObservingAccountsManager)
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator(
+        uniqueAddressIntegration,
+        paymentObservingAccountsManager
+      )
     val ex = assertThrows<HttpException> { generator.generate(txn) }
     assertEquals(statusCode, ex.statusCode)
   }

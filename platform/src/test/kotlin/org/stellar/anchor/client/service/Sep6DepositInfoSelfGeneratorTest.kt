@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.client.data.JdbcSep6Transaction
+import org.stellar.anchor.platform.data.JdbcSep6Transaction
 
 class Sep6DepositInfoSelfGeneratorTest {
 
@@ -23,7 +23,8 @@ class Sep6DepositInfoSelfGeneratorTest {
 
   @MockK(relaxed = true) lateinit var assetService: AssetService
 
-  private lateinit var generator: Sep6DepositInfoSelfGenerator
+  private lateinit var generator:
+    _root_ide_package_.org.stellar.anchor.platform.service.Sep6DepositInfoSelfGenerator
 
   @BeforeEach
   fun setup() {
@@ -31,12 +32,15 @@ class Sep6DepositInfoSelfGeneratorTest {
     val asset = mockk<AssetInfo>()
     every { asset.distributionAccount } returns DISTRIBUTION_ACCOUNT
     every { assetService.getAsset(ASSET_CODE, ASSET_ISSUER) } returns asset
-    generator = Sep6DepositInfoSelfGenerator(assetService)
+    generator =
+      _root_ide_package_.org.stellar.anchor.platform.service.Sep6DepositInfoSelfGenerator(
+        assetService
+      )
   }
 
   @Test
   fun test_sep6_custodyGenerator_success() {
-    val txn = JdbcSep6Transaction()
+    val txn = _root_ide_package_.org.stellar.anchor.platform.data.JdbcSep6Transaction()
     txn.id = TXN_ID
     txn.requestAssetCode = ASSET_CODE
     txn.requestAssetIssuer = ASSET_ISSUER

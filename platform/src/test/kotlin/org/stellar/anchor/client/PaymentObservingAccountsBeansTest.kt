@@ -11,14 +11,14 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
-import org.stellar.anchor.client.component.observer.PaymentObserverBeans
-import org.stellar.anchor.client.config.PaymentObserverConfig
-import org.stellar.anchor.client.config.PaymentObserverConfig.StellarPaymentObserverConfig
-import org.stellar.anchor.client.observer.PaymentListener
-import org.stellar.anchor.client.observer.stellar.PaymentObservingAccountStore
-import org.stellar.anchor.client.observer.stellar.PaymentObservingAccountsManager
-import org.stellar.anchor.client.observer.stellar.StellarPaymentStreamerCursorStore
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.platform.component.observer.PaymentObserverBeans
+import org.stellar.anchor.platform.config.PaymentObserverConfig
+import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig
+import org.stellar.anchor.platform.observer.PaymentListener
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
+import org.stellar.anchor.platform.observer.stellar.StellarPaymentStreamerCursorStore
 
 class PaymentObservingAccountsBeansTest {
   @MockK private lateinit var paymentStreamerCursorStore: StellarPaymentStreamerCursorStore

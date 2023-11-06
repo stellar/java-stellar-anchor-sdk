@@ -14,8 +14,10 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.api.exception.InvalidConfigException
-import org.stellar.anchor.client.config.FireblocksConfig.Reconciliation
-import org.stellar.anchor.client.config.FireblocksConfig.RetryConfig
+import org.stellar.anchor.platform.config.FireblocksConfig
+import org.stellar.anchor.platform.config.FireblocksConfig.Reconciliation
+import org.stellar.anchor.platform.config.FireblocksConfig.RetryConfig
+import org.stellar.anchor.platform.config.PropertyCustodySecretConfig
 import org.stellar.anchor.util.FileUtil
 
 class FireblocksConfigTest {

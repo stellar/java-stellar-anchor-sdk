@@ -11,8 +11,12 @@ import org.springframework.core.io.ClassPathResource
 import org.stellar.anchor.LockAndMockStatic
 import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.api.exception.InvalidConfigException
-import org.stellar.anchor.client.configurator.ConfigMap.ConfigSource.DEFAULT
-import org.stellar.anchor.client.configurator.ConfigMap.ConfigSource.FILE
+import org.stellar.anchor.platform.configurator.ConfigEnvironment
+import org.stellar.anchor.platform.configurator.ConfigHelper
+import org.stellar.anchor.platform.configurator.ConfigManager
+import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.DEFAULT
+import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.FILE
+import org.stellar.anchor.platform.configurator.ConfigReader
 
 @ExtendWith(LockAndMockTest::class)
 class ConfigManagerTest {

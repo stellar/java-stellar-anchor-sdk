@@ -10,9 +10,10 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.SepException
-import org.stellar.anchor.client.event.EventProcessorManager.EventProcessor
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue
+import org.stellar.anchor.platform.event.EventHandler
+import org.stellar.anchor.platform.event.EventProcessorManager.EventProcessor
 import org.stellar.anchor.util.ExponentialBackoffTimer
 
 class EventProcessorTest {

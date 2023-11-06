@@ -6,8 +6,12 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.client.data.JdbcCustodyTransaction
-import org.stellar.anchor.client.data.JdbcCustodyTransactionRepo
+import org.stellar.anchor.platform.custody.CustodyEventService
+import org.stellar.anchor.platform.custody.CustodyPayment
+import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler
+import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler
+import org.stellar.anchor.platform.data.JdbcCustodyTransaction
+import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
 
 class CustodyEventServiceTest {
 

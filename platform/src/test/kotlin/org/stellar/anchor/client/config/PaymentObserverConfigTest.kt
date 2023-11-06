@@ -7,8 +7,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
-import org.stellar.anchor.client.config.PaymentObserverConfig.PaymentObserverType.STELLAR
-import org.stellar.anchor.client.config.PaymentObserverConfig.StellarPaymentObserverConfig
+import org.stellar.anchor.platform.config.PaymentObserverConfig
+import org.stellar.anchor.platform.config.PaymentObserverConfig.PaymentObserverType.STELLAR
+import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig
 
 class PaymentObserverConfigTest {
   lateinit var config: PaymentObserverConfig

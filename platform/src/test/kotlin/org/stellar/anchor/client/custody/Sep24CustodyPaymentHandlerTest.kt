@@ -11,12 +11,14 @@ import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.apiclient.PlatformApiClient
-import org.stellar.anchor.client.config.RpcConfig
-import org.stellar.anchor.client.data.JdbcCustodyTransaction
-import org.stellar.anchor.client.data.JdbcCustodyTransactionRepo
-import org.stellar.anchor.client.service.AnchorMetrics.PAYMENT_RECEIVED
-import org.stellar.anchor.client.service.AnchorMetrics.PAYMENT_SENT
 import org.stellar.anchor.metrics.MetricsService
+import org.stellar.anchor.platform.config.RpcConfig
+import org.stellar.anchor.platform.custody.CustodyPayment
+import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler
+import org.stellar.anchor.platform.data.JdbcCustodyTransaction
+import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
+import org.stellar.anchor.platform.service.AnchorMetrics.PAYMENT_RECEIVED
+import org.stellar.anchor.platform.service.AnchorMetrics.PAYMENT_SENT
 import org.stellar.anchor.util.GsonUtils
 
 class Sep24CustodyPaymentHandlerTest {

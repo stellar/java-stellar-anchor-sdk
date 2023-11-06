@@ -6,7 +6,7 @@ import org.stellar.anchor.*
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.client.Sep10Client
-import org.stellar.anchor.client.TestConfig
+import org.stellar.anchor.platform.TestConfig
 
 class Sep10Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   lateinit var sep10Client: Sep10Client

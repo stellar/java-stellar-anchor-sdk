@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.platform.TransactionsOrderBy
-import org.stellar.anchor.client.utils.StringEnumConverter
-import org.stellar.anchor.client.utils.StringEnumConverter.TransactionsOrderByConverter
+import org.stellar.anchor.platform.utils.StringEnumConverter
+import org.stellar.anchor.platform.utils.StringEnumConverter.TransactionsOrderByConverter
 
 class EnumConverterTest {
   @Test
@@ -31,4 +31,6 @@ enum class TestEnumMismatchName() {
 }
 
 class TestEnumMismatchNameConverter :
-  StringEnumConverter<TestEnumMismatchName>(TestEnumMismatchName::class.java) {}
+  _root_ide_package_.org.stellar.anchor.platform.utils.StringEnumConverter<TestEnumMismatchName>(
+    TestEnumMismatchName::class.java
+  ) {}

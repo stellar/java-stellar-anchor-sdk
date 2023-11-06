@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.AbstractIntegrationTests
 import org.stellar.anchor.api.sep.sep12.Sep12Status
-import org.stellar.anchor.client.TestConfig
-import org.stellar.anchor.client.printRequest
-import org.stellar.anchor.client.printResponse
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.printRequest
+import org.stellar.anchor.platform.printResponse
 import org.stellar.sdk.KeyPair
 import org.stellar.walletsdk.anchor.auth
 import org.stellar.walletsdk.horizon.SigningKeyPair

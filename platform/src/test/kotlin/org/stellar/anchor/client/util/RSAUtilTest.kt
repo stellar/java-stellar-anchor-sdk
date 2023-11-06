@@ -17,7 +17,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.exception.SepNotFoundException
-import org.stellar.anchor.client.utils.RSAUtil.*
+import org.stellar.anchor.platform.utils.RSAUtil.*
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
 class RSAUtilTest {

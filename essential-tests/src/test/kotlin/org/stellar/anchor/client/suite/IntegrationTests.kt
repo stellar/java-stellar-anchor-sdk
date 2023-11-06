@@ -1,6 +1,0 @@
-package org.stellar.anchor.client.suite
-
-import org.junit.platform.suite.api.SelectPackages
-import org.junit.platform.suite.api.Suite
-
-@Suite @SelectPackages("org.stellar.anchor.platform.integrationtest") class IntegrationTests

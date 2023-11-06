@@ -8,10 +8,12 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
-import org.stellar.anchor.client.config.PropertyCustodyConfig.Trustline
 import org.stellar.anchor.config.CustodyConfig.CustodyType
 import org.stellar.anchor.config.CustodyConfig.CustodyType.FIREBLOCKS
 import org.stellar.anchor.config.CustodyConfig.CustodyType.NONE
+import org.stellar.anchor.platform.config.HttpClientConfig
+import org.stellar.anchor.platform.config.PropertyCustodyConfig
+import org.stellar.anchor.platform.config.PropertyCustodyConfig.Trustline
 
 class PropertyCustodyConfigTest {
 

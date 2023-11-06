@@ -29,6 +29,9 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.client.*
 import org.stellar.anchor.integrationtest.Sep12Tests.Companion.testCustomer1Json
 import org.stellar.anchor.integrationtest.Sep12Tests.Companion.testCustomer2Json
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.gson
+import org.stellar.anchor.platform.printRequest
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.StringHelper.json
 

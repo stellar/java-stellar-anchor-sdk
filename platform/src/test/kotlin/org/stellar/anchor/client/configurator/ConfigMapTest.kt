@@ -6,7 +6,8 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.exception.InvalidConfigException
-import org.stellar.anchor.client.configurator.ConfigMap.ConfigEntry
+import org.stellar.anchor.platform.configurator.ConfigMap
+import org.stellar.anchor.platform.configurator.ConfigMap.ConfigEntry
 
 class ConfigMapTest {
   @Test
