@@ -56,7 +56,7 @@ jobs:
       - name: Gradle Build. (unit tests only)
         env:
           run_docker: false
-        run: ./gradlew clean build jacocoTestReport -x integration-tests:test --no-daemon --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
+        run: ./gradlew clean build jacocoTestReport -x essential-tests:test -x extended-tests:test --no-daemon --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar
 
       - name: Run sep server, platform server, observer, and reference servers for integration tests
         env:
@@ -89,7 +89,7 @@ jobs:
           run_docker: false
           ANCHOR_DOMAIN: http://host.docker.internal:8080
 
-        run: ./gradlew integration-tests:test
+        run: ./gradlew essential-tests:test
 
       - name: Run Stellar validation tool
         run: |
@@ -117,7 +117,7 @@ jobs:
             /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/api-schema/build/reports/
             /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/
             /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/
-            /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/integration-tests/build/reports/
+            /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/essential-tests/build/reports/
 
   analyze:
     name: CodeQL Analysis
