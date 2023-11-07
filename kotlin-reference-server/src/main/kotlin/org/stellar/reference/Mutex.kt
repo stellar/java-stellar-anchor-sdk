@@ -10,11 +10,15 @@ import kotlinx.coroutines.sync.withLock
 // This is to make sure transaction submission is mutual exclusive to avoid failures
 internal val submissionLock = Mutex()
 
-suspend fun transactionWithRetry(transactionLogic: suspend () -> Unit) =
+suspend fun transactionWithRetry(
+  maxAttempts: Int = 5,
+  delay: Int = 5,
+  transactionLogic: suspend () -> Unit
+) =
   flow<Unit> { submissionLock.withLock { transactionLogic() } }
     .retryWhen { _, attempt ->
-      if (attempt < 5) {
-        delay((5 + (1..5).random()).seconds)
+      if (attempt < maxAttempts) {
+        delay((delay + (1..5).random()).seconds)
         return@retryWhen true
       } else {
         return@retryWhen false
