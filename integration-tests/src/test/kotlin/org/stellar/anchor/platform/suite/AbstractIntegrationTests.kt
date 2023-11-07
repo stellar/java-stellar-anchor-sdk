@@ -19,7 +19,6 @@ import org.stellar.walletsdk.StellarConfiguration
 import org.stellar.walletsdk.Wallet
 import org.stellar.walletsdk.anchor.auth
 import org.stellar.walletsdk.auth.AuthToken
-import org.stellar.walletsdk.exception.TransactionSubmitFailedException
 import org.stellar.walletsdk.horizon.SigningKeyPair
 
 abstract class AbstractIntegrationTests(val config: TestConfig) {
@@ -33,12 +32,12 @@ abstract class AbstractIntegrationTests(val config: TestConfig) {
   var walletKeyPair = SigningKeyPair.fromSecret(CLIENT_WALLET_SECRET)
   var anchor = wallet.anchor(config.env["anchor.domain"]!!)
   var token: AuthToken
-  val submissionLock = Mutex()
+  private val submissionLock = Mutex()
 
   suspend fun transactionWithRetry(transactionLogic: suspend () -> Unit) =
     flow<Unit> { submissionLock.withLock { transactionLogic() } }
-      .retryWhen { cause, attempt ->
-        if (cause is TransactionSubmitFailedException && attempt < 5) {
+      .retryWhen { _, attempt ->
+        if (attempt < 5) {
           delay((5 + (1..5).random()).seconds)
           return@retryWhen true
         } else {

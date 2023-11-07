@@ -3,7 +3,6 @@ package org.stellar.reference.event.processor
 import java.time.Instant
 import java.util.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.withLock
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.*
@@ -15,7 +14,7 @@ import org.stellar.reference.client.PlatformClient
 import org.stellar.reference.data.*
 import org.stellar.reference.log
 import org.stellar.reference.service.SepHelper
-import org.stellar.reference.submissionLock
+import org.stellar.reference.transactionWithRetry
 import org.stellar.sdk.*
 
 class Sep6EventProcessor(
@@ -77,7 +76,7 @@ class Sep6EventProcessor(
         runBlocking {
           val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
           lateinit var txnId: String
-          submissionLock.withLock {
+          transactionWithRetry {
             txnId =
               submitStellarTransaction(
                 keypair.accountId,

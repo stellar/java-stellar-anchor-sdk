@@ -2,11 +2,10 @@ package org.stellar.reference.sep24
 
 import java.math.BigDecimal
 import java.math.RoundingMode
-import kotlinx.coroutines.sync.withLock
 import mu.KotlinLogging
 import org.stellar.reference.data.*
 import org.stellar.reference.service.SepHelper
-import org.stellar.reference.submissionLock
+import org.stellar.reference.transactionWithRetry
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
 
 private val log = KotlinLogging.logger {}
@@ -40,18 +39,16 @@ class DepositService(private val cfg: Config) {
       log.info { "Transaction status changed: $transaction" }
 
       if (cfg.appSettings.custodyEnabled) {
-        submissionLock.withLock {
-          // 5. Send Stellar transaction using Custody Server
-          sendCustodyStellarTransaction(transactionId)
+        // 5. Send Stellar transaction using Custody Server
+        sendCustodyStellarTransaction(transactionId)
 
-          // 6. Wait for Stellar transaction
-          sep24.waitStellarTransaction(transactionId, "completed")
+        // 6. Wait for Stellar transaction
+        sep24.waitStellarTransaction(transactionId, "completed")
 
-          // 7. Finalize custody Stellar anchor transaction
-          finalizeCustodyStellarTransaction(transactionId)
-        }
+        // 7. Finalize custody Stellar anchor transaction
+        finalizeCustodyStellarTransaction(transactionId)
       } else {
-        submissionLock.withLock {
+        transactionWithRetry {
           // 5. Sign and send transaction
           val txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
 
