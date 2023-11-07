@@ -337,7 +337,9 @@ class Sep6EventProcessor(
     val transaction =
       TransactionBuilder(account, Network.TESTNET)
         .setBaseFee(100)
-        .setTimeout(60L)
+        .addPreconditions(
+          TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(60)).build()
+        )
         .addOperation(PaymentOperation.Builder(destination, asset, amount).build())
         .build()
     transaction.sign(KeyPair.fromSecretSeed(config.appSettings.secret))

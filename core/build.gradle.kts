@@ -30,7 +30,6 @@ dependencies {
   implementation(libs.javax.transaction.api)
 
   implementation(libs.commons.beanutils)
-  implementation(libs.commons.text)
   implementation(libs.commons.io)
   implementation(libs.apache.commons.lang3)
   implementation(libs.log4j2.core)
@@ -45,7 +44,7 @@ dependencies {
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(project(":api-schema"))
-  implementation(project(":test-lib"))
+  implementation(project(":lib-util"))
 
   testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)

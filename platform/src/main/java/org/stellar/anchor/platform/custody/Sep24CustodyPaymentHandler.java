@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.custody;
 
-import static org.stellar.anchor.platform.data.CustodyTransactionStatus.FAILED;
 import static org.stellar.anchor.util.Log.infoF;
 
 import java.io.IOException;
@@ -10,7 +9,6 @@ import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
-import org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 import org.stellar.anchor.platform.service.AnchorMetrics;
 
@@ -47,11 +45,11 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
     validatePayment(txn, payment);
     updateTransaction(txn, payment);
 
-    if (FAILED == CustodyTransactionStatus.from(txn.getStatus())) {
+    if (CustodyTransactionStatus.FAILED == CustodyTransactionStatus.from(txn.getStatus())) {
       platformApiClient.notifyTransactionError(
           txn.getSepTxId(), rpcConfig.getCustomMessages().getCustodyTransactionFailed());
     } else {
-      switch (PaymentType.from(txn.getType())) {
+      switch (JdbcCustodyTransaction.PaymentType.from(txn.getType())) {
         case PAYMENT:
           platformApiClient.notifyOnchainFundsReceived(
               txn.getSepTxId(),
@@ -91,7 +89,7 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
     validatePayment(txn, payment);
     updateTransaction(txn, payment);
 
-    if (FAILED == CustodyTransactionStatus.from(txn.getStatus())) {
+    if (CustodyTransactionStatus.FAILED == CustodyTransactionStatus.from(txn.getStatus())) {
       platformApiClient.notifyTransactionError(
           txn.getSepTxId(), rpcConfig.getCustomMessages().getCustodyTransactionFailed());
     } else {

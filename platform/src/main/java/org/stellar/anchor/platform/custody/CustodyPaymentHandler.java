@@ -1,8 +1,5 @@
 package org.stellar.anchor.platform.custody;
 
-import static org.stellar.anchor.platform.custody.CustodyPayment.CustodyPaymentStatus.SUCCESS;
-import static org.stellar.anchor.platform.data.CustodyTransactionStatus.COMPLETED;
-import static org.stellar.anchor.platform.data.CustodyTransactionStatus.FAILED;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.warnF;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -12,7 +9,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Set;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.platform.custody.CustodyPayment.CustodyPaymentStatus;
 import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
@@ -64,7 +60,7 @@ public abstract class CustodyPaymentHandler {
   }
 
   protected void validatePayment(JdbcCustodyTransaction txn, CustodyPayment payment) {
-    if (SUCCESS != payment.getStatus()) {
+    if (CustodyPayment.CustodyPaymentStatus.SUCCESS != payment.getStatus()) {
       return;
     }
 
@@ -102,12 +98,12 @@ public abstract class CustodyPaymentHandler {
   }
 
   protected CustodyTransactionStatus getCustodyTransactionStatus(
-      CustodyPaymentStatus custodyPaymentStatus) {
+      CustodyPayment.CustodyPaymentStatus custodyPaymentStatus) {
     switch (custodyPaymentStatus) {
       case SUCCESS:
-        return COMPLETED;
+        return CustodyTransactionStatus.COMPLETED;
       case ERROR:
-        return FAILED;
+        return CustodyTransactionStatus.FAILED;
       default:
         throw new RuntimeException(
             String.format("Unsupported custody transaction status[%s]", custodyPaymentStatus));

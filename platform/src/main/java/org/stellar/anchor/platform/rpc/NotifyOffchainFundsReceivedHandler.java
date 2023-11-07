@@ -2,8 +2,6 @@ package org.stellar.anchor.platform.rpc;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT_EXCHANGE;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;

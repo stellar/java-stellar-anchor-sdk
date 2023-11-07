@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.configurator;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
-import static org.stellar.anchor.platform.configurator.ConfigHelper.*;
 import static org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.FILE;
 import static org.stellar.anchor.util.Log.*;
 
@@ -21,7 +20,6 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
-import org.stellar.anchor.util.Log;
 
 public abstract class ConfigManager
     implements ApplicationContextInitializer<ConfigurableApplicationContext>, HealthCheckable {
@@ -53,7 +51,7 @@ public abstract class ConfigManager
         .forEach(
             var -> {
               if (configMap.get(var) != null) {
-                Log.warnF(
+                warnF(
                     "Possible secret leak of config[{}]. Please remove the secret from configuration.",
                     var);
                 configMap.remove(var);
@@ -97,7 +95,7 @@ public abstract class ConfigManager
       throws IOException, InvalidConfigException {
     info("reading default configuration values");
     // Load default values
-    ConfigMap latestConfig = loadDefaultConfig();
+    ConfigMap latestConfig = ConfigHelper.loadDefaultConfig();
 
     infoF("default configuration version={}", latestConfig.getVersion());
     // Check if default config is consistent with the definition
@@ -110,12 +108,12 @@ public abstract class ConfigManager
     Resource configFileResource = getConfigFileAsResource(applicationContext);
     if (configFileResource != null) {
       infoF("reading configuration file from {}", configFileResource.getURL());
-      ConfigMap yamlConfig = loadConfig(configFileResource, FILE);
+      ConfigMap yamlConfig = ConfigHelper.loadConfig(configFileResource, FILE);
       latestConfig.merge(updateToLatestConfig(latestConfig, yamlConfig));
     }
 
     // Read and process the environment variable
-    ConfigMap envConfig = loadConfigFromEnv(latestConfig.getVersion());
+    ConfigMap envConfig = ConfigHelper.loadConfigFromEnv(latestConfig.getVersion());
     if (envConfig != null) {
       info("Processing system environment variables");
       latestConfig.merge(updateToLatestConfig(latestConfig, envConfig));

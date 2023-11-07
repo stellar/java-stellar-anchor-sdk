@@ -1,9 +1,5 @@
 package org.stellar.anchor.platform.configurator;
 
-import static org.stellar.anchor.platform.config.PropertyCustodySecretConfig.SECRET_CUSTODY_SERVER_AUTH_SECRET;
-import static org.stellar.anchor.platform.config.PropertyCustodySecretConfig.SECRET_FIREBLOCKS_API_KEY;
-import static org.stellar.anchor.platform.config.PropertyCustodySecretConfig.SECRET_FIREBLOCKS_SECRET_KEY;
-import static org.stellar.anchor.platform.config.PropertySecretConfig.*;
 import static org.stellar.anchor.util.Log.info;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
@@ -14,22 +10,24 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
+import org.stellar.anchor.platform.config.PropertyCustodySecretConfig;
+import org.stellar.anchor.platform.config.PropertySecretConfig;
 
 public class SecretManager
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
   final List<String> secretVars =
       Arrays.asList(
-          SECRET_SEP_10_JWT_SECRET,
-          SECRET_SEP_10_SIGNING_SEED,
-          SECRET_SEP_24_INTERACTIVE_URL_JWT_SECRET,
-          SECRET_SEP_24_MORE_INFO_URL_JWT_SECRET,
-          SECRET_CALLBACK_API_AUTH_SECRET,
-          SECRET_PLATFORM_API_AUTH_SECRET,
-          SECRET_CUSTODY_SERVER_AUTH_SECRET,
-          SECRET_DATA_USERNAME,
-          SECRET_DATA_PASSWORD,
-          SECRET_FIREBLOCKS_SECRET_KEY,
-          SECRET_FIREBLOCKS_API_KEY);
+          PropertySecretConfig.SECRET_SEP_10_JWT_SECRET,
+          PropertySecretConfig.SECRET_SEP_10_SIGNING_SEED,
+          PropertySecretConfig.SECRET_SEP_24_INTERACTIVE_URL_JWT_SECRET,
+          PropertySecretConfig.SECRET_SEP_24_MORE_INFO_URL_JWT_SECRET,
+          PropertySecretConfig.SECRET_CALLBACK_API_AUTH_SECRET,
+          PropertySecretConfig.SECRET_PLATFORM_API_AUTH_SECRET,
+          PropertyCustodySecretConfig.SECRET_CUSTODY_SERVER_AUTH_SECRET,
+          PropertySecretConfig.SECRET_DATA_USERNAME,
+          PropertySecretConfig.SECRET_DATA_PASSWORD,
+          PropertyCustodySecretConfig.SECRET_FIREBLOCKS_SECRET_KEY,
+          PropertyCustodySecretConfig.SECRET_FIREBLOCKS_API_KEY);
 
   final Properties props = new Properties();
 

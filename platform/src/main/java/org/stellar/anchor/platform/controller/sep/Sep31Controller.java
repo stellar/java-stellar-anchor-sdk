@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.controller.sep;
 
-import static org.stellar.anchor.platform.controller.sep.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.errorEx;
 
@@ -47,7 +46,7 @@ public class Sep31Controller {
   public Sep31PostTransactionResponse postTransaction(
       HttpServletRequest servletRequest, @RequestBody Sep31PostTransactionRequest request)
       throws AnchorException {
-    Sep10Jwt sep10Jwt = getSep10Token(servletRequest);
+    Sep10Jwt sep10Jwt = Sep10Helper.getSep10Token(servletRequest);
     debugF("POST /transactions request={}", request);
     return sep31Service.postTransaction(sep10Jwt, request);
   }

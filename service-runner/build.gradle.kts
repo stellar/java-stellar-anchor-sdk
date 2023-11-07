@@ -25,6 +25,7 @@ dependencies {
 
   // From projects
   implementation(project(":api-schema"))
+  implementation(project(":lib-util"))
   implementation(project(":core"))
   implementation(project(":platform"))
   implementation(project(":kotlin-reference-server"))

@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.callback;
 
-import static org.stellar.anchor.platform.callback.PlatformIntegrationHelper.*;
-
 import com.google.gson.Gson;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,12 +42,13 @@ public class RestUniqueAddressIntegration implements UniqueAddressIntegration {
             .addQueryParameter("transaction_id", transactionId)
             .addPathSegment("unique_address")
             .build();
-    Request request = getRequestBuilder(authHelper).url(url).get().build();
-    Response response = call(httpClient, request);
-    String content = getContent(response);
+    Request request =
+        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build();
+    Response response = PlatformIntegrationHelper.call(httpClient, request);
+    String content = PlatformIntegrationHelper.getContent(response);
 
     if (!List.of(HttpStatus.OK.value(), HttpStatus.NO_CONTENT.value()).contains(response.code())) {
-      throw httpError(content, response.code(), gson);
+      throw PlatformIntegrationHelper.httpError(content, response.code(), gson);
     }
     return gson.fromJson(content, GetUniqueAddressResponse.class);
   }

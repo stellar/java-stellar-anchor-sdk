@@ -86,6 +86,7 @@ class CustodyServiceTest {
   @Test
   fun test_createTransaction_sep24Deposit() {
     val txn = gson.fromJson(sep24DepositEntity, JdbcSep24Transaction::class.java)
+
     val requestCapture = slot<CreateCustodyTransactionRequest>()
 
     every { custodyApiClient.createTransaction(capture(requestCapture)) } just Runs

@@ -45,7 +45,8 @@ contribute to this project.
 - __wallet_reference_server__: Contains the wallet's reference server implementation in Kotlin.
 - __service_runner__: Contains the service runner implementation that runs services, such as SEP, platform, payment
   observer, and reference servers, etc. It also contains the main entry point of the Anchor Platform.
-- __integration-tests__: Contains the integration tests and end-2-end tests for the Anchor Platform.
+- __essential-tests__: Contains the essential integration tests and end-2-end tests for the Anchor Platform.
+- __extended-tests__: Contains the extended integration tests and end-2-end tests for the Anchor Platform.
 
 ## References
 [SEP-1](https://stellar.org/protocol/sep-6): Stellar Info File

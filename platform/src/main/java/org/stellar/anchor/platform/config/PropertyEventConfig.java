@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.config;
 
-import static org.stellar.anchor.config.event.QueueConfig.*;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import lombok.Data;

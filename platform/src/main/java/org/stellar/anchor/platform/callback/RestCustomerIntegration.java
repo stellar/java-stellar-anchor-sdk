@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.callback;
 
 import static okhttp3.HttpUrl.get;
-import static org.stellar.anchor.platform.callback.PlatformIntegrationHelper.*;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -56,11 +55,14 @@ public class RestCustomerIntegration implements CustomerIntegration {
     HttpUrl url = urlBuilder.build();
 
     // Make request
-    Response response = call(httpClient, getRequestBuilder(authHelper).url(url).get().build());
-    String responseContent = getContent(response);
+    Response response =
+        PlatformIntegrationHelper.call(
+            httpClient,
+            PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build());
+    String responseContent = PlatformIntegrationHelper.getContent(response);
 
     if (response.code() != HttpStatus.OK.value()) {
-      throw httpError(responseContent, response.code(), gson);
+      throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
     }
 
     GetCustomerResponse getCustomerResponse;
@@ -85,15 +87,16 @@ public class RestCustomerIntegration implements CustomerIntegration {
 
     RequestBody requestBody =
         RequestBody.create(gson.toJson(putCustomerRequest), MediaType.get("application/json"));
-    Request callbackRequest = getRequestBuilder(authHelper).url(url).put(requestBody).build();
+    Request callbackRequest =
+        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).put(requestBody).build();
 
     // Call anchor
-    Response response = call(httpClient, callbackRequest);
-    String responseContent = getContent(response);
+    Response response = PlatformIntegrationHelper.call(httpClient, callbackRequest);
+    String responseContent = PlatformIntegrationHelper.getContent(response);
 
     if (!List.of(HttpStatus.OK.value(), HttpStatus.CREATED.value(), HttpStatus.ACCEPTED.value())
         .contains(response.code())) {
-      throw httpError(responseContent, response.code(), gson);
+      throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
     }
 
     try {
@@ -106,14 +109,15 @@ public class RestCustomerIntegration implements CustomerIntegration {
   @Override
   public void deleteCustomer(String id) throws AnchorException {
     HttpUrl url = getCustomerUrlBuilder().addPathSegment(id).build();
-    Request callbackRequest = getRequestBuilder(authHelper).url(url).delete().build();
+    Request callbackRequest =
+        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).delete().build();
 
     // Call anchor
-    Response response = call(httpClient, callbackRequest);
-    String responseContent = getContent(response);
+    Response response = PlatformIntegrationHelper.call(httpClient, callbackRequest);
+    String responseContent = PlatformIntegrationHelper.getContent(response);
 
     if (!List.of(HttpStatus.OK.value(), HttpStatus.NO_CONTENT.value()).contains(response.code())) {
-      throw httpError(responseContent, response.code(), gson);
+      throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
     }
   }
 
