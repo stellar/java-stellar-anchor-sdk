@@ -19,7 +19,7 @@ import org.stellar.anchor.platform.configurator.CustodyConfigManager;
 import org.stellar.anchor.platform.configurator.SecretManager;
 
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = {"org.stellar.anchor.client.data"})
+@EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {

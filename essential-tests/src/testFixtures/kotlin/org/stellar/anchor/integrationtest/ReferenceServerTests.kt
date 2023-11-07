@@ -1,40 +1,19 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.integrationtest
 
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import org.stellar.anchor.AbstractIntegrationTests
 import org.stellar.anchor.api.callback.SendEventRequest
-import org.stellar.anchor.platform.*
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.StringHelper.json
 import org.stellar.reference.client.AnchorReferenceServerClient
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-// Temporarily disable this test because we can only run test server in the default profile at this
-// moment. This will be moved to extended tests.
-@Disabled
-internal class KotlinReferenceServerIntegrationTest {
-  private val testProfileRunner =
-    TestProfileExecutor(
-      TestConfig("default").also {
-        it.env[RUN_DOCKER] = "false"
-        it.env[RUN_ALL_SERVERS] = "false"
-        it.env[RUN_KOTLIN_REFERENCE_SERVER] = "true"
-      }
-    )
-
-  @BeforeAll
-  fun setup() {
-    println("Running KotlinReferenceServerIntegrationTest")
-    testProfileRunner.start()
-  }
-
-  @AfterAll
-  fun destroy() {
-    testProfileRunner.shutdown()
-  }
-
+class ReferenceServerTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   @Test
   fun `test if the reference server records the events sent by sendEvent() method`() {
     val client = AnchorReferenceServerClient(Url("http://localhost:8091"))

@@ -30,20 +30,27 @@ import org.stellar.reference.sep24.testSep24
 const val AUTH_CONFIG_ENDPOINT = "endpoint-auth"
 
 object ReferenceServerContainer {
-  private val config = ConfigContainer.getInstance().config
-  val server =
-    embeddedServer(Netty, port = config.appSettings.port) {
-      install(ContentNegotiation) { json() }
-      configureAuth()
-      configureRouting()
-      install(CORS) {
-        anyHost()
-        allowHeader(HttpHeaders.Authorization)
-        allowHeader(HttpHeaders.ContentType)
+  lateinit var server: NettyApplicationEngine
+
+  fun startServer(wait: Boolean): NettyApplicationEngine {
+    server =
+      embeddedServer(Netty, port = config.appSettings.port) {
+        install(ContentNegotiation) { json() }
+        configureAuth()
+        configureRouting()
+        install(CORS) {
+          anyHost()
+          allowHeader(HttpHeaders.Authorization)
+          allowHeader(HttpHeaders.ContentType)
+        }
+        install(RequestLoggerPlugin)
+        install(RequestExceptionHandlerPlugin)
       }
-      install(RequestLoggerPlugin)
-      install(RequestExceptionHandlerPlugin)
-    }
+
+    return server.start(wait = wait)
+  }
+
+  private val config = ConfigContainer.getInstance().config
 
   private fun Application.configureRouting() = routing {
     sep24(

@@ -4,12 +4,12 @@
     <shortenClasspath name="ARGS_FILE" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="org.stellar.anchor.client.*" />
+        <option name="PATTERN" value="org.stellar.anchor.platform.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
-    <option name="PACKAGE_NAME" value="org.stellar.anchor.client" />
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.client.KotlinReferenceServerIntegrationTest" />
+    <option name="PACKAGE_NAME" value="org.stellar.anchor.platform" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.KotlinReferenceServerIntegrationTest" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <method v="2">

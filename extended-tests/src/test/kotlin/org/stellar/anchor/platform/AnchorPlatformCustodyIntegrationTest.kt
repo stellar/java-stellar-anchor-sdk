@@ -5,11 +5,20 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-// Temporarily disable this test because we can only run test server in the default profile at this
-// moment. This will be moved to extended tests.
-@Disabled
 class AnchorPlatformCustodyIntegrationTest :
-  AbstractIntegrationTest(TestConfig(testProfileName = "default-custody")) {
+  AbstractIntegrationTest(
+    TestConfig(testProfileName = "default-custody").also {
+      it.env[RUN_DOCKER] = "true"
+      it.env[RUN_ALL_SERVERS] = "false"
+      it.env[RUN_SEP_SERVER] = "true"
+      it.env[RUN_PLATFORM_SERVER] = "true"
+      it.env[RUN_EVENT_PROCESSING_SERVER] = "true"
+      it.env[RUN_PAYMENT_OBSERVER] = "true"
+      it.env[RUN_CUSTODY_SERVER] = "true"
+      it.env[RUN_KOTLIN_REFERENCE_SERVER] = "true"
+      it.env[RUN_WALLET_SERVER] = "false"
+    }
+  ) {
   companion object {
     private val singleton = AnchorPlatformCustodyIntegrationTest()
     private val custodyMockServer = MockWebServer()

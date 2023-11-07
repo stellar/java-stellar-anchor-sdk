@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run - Java Reference Server - no Docker" type="JetRunConfigurationType">
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.client.run_profiles.RunSEP24NoFrontend" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunSEP24NoFrontend" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
     <shortenClasspath name="ARGS_FILE" />
     <method v="2">
