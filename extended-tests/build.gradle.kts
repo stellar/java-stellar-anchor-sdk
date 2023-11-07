@@ -40,6 +40,7 @@ apply(from = "$rootDir/scripts.gradle.kts")
 val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
 
 tasks.test {
+// Useful exclusions for debugging tests
 //  exclude("**/org/stellar/anchor/platform/AnchorPlatformApiRpcEnd2EndTest**")
 //  exclude("**/org/stellar/anchor/platform/AnchorPlatformCustodyApiRpcEnd2EndTest**")
 //  exclude("**/org/stellar/anchor/platform/AnchorPlatformCustodyEnd2EndTest**")

@@ -75,7 +75,7 @@ jobs:
           pwd
           cp service-runner/build/libs/anchor-platform-runner-*.jar service-runner/build/libs/anchor-platform-runner.jar
           java -jar service-runner/build/libs/anchor-platform-runner.jar -t &
-          PID=$!
+          echo "PID=$!" >> $GITHUB_ENV
 
       - name: Wait for the sep server to start and get ready
         uses: mydea/action-wait-for-api@v1
@@ -96,6 +96,12 @@ jobs:
         run: |
           docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.6.9 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
 
+      - name: Stop docker containers
+        env:
+          TEST_PROFILE_NAME: default
+        run: docker-compose -f service-runner/src/main/resources/docker-compose-test.yaml down
+
+      # The following step is to be moved to another workflow.
       - name: Run the extended tests
         run: |
           kill -9 $PID
