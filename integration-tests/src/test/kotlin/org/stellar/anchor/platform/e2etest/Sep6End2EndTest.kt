@@ -18,7 +18,6 @@ import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.platform.Sep6Client
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.suite.AbstractIntegrationTests
-import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
@@ -193,17 +192,16 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
     expectedStatus: SepTransactionStatus,
     sep6Client: Sep6Client
   ) {
+    var status: String? = null
     for (i in 0..maxTries) {
       val transaction = sep6Client.getTransaction(mapOf("id" to id))
-      if (expectedStatus.status != transaction.transaction.status) {
+      if (!status.equals(transaction.transaction.status)) {
+        status = transaction.transaction.status
         Log.info(
-          "Transaction status: ${transaction.transaction.status}. Message: ${transaction.transaction.message}"
+          "Transaction(${transaction.transaction.id}) status changed to ${status}. Message: ${transaction.transaction.message}"
         )
-      } else {
-        Log.info(GsonUtils.getInstance().toJson(transaction))
-        Log.info(
-          "Transaction status ${transaction.transaction.status} matched expected status $expectedStatus"
-        )
+      }
+      if (transaction.transaction.status == expectedStatus.status) {
         return
       }
       delay(1.seconds)

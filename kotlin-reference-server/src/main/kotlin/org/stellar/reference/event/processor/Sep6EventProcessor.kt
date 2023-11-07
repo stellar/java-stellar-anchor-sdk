@@ -195,67 +195,65 @@ class Sep6EventProcessor(
         val customer = transaction.customers.sender
         when (transaction.kind) {
           Kind.DEPOSIT -> {
-            if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isNotEmpty()) {
-              return
-            }
-            runBlocking {
-              sepHelper.rpcAction(
-                "request_offchain_funds",
-                RequestOffchainFundsRequest(
-                  transactionId = transaction.id,
-                  message = "Please deposit the amount to the following bank account",
-                  amountIn =
-                    AmountAssetRequest(
-                      asset = "iso4217:USD",
-                      amount = transaction.amountExpected.amount
-                    ),
-                  amountOut =
-                    AmountAssetRequest(
-                      asset = transaction.amountOut.asset,
-                      amount = transaction.amountOut.amount
-                    ),
-                  amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
-                  instructions =
-                    mapOf(
-                      "organization.bank_number" to
-                        InstructionField(
-                          value = "121122676",
-                          description = "US Bank routing number"
-                        ),
-                      "organization.bank_account_number" to
-                        InstructionField(
-                          value = "13719713158835300",
-                          description = "US Bank account number"
-                        ),
-                    )
+            if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isEmpty()) {
+              runBlocking {
+                sepHelper.rpcAction(
+                  "request_offchain_funds",
+                  RequestOffchainFundsRequest(
+                    transactionId = transaction.id,
+                    message = "Please deposit the amount to the following bank account",
+                    amountIn =
+                      AmountAssetRequest(
+                        asset = "iso4217:USD",
+                        amount = transaction.amountExpected.amount
+                      ),
+                    amountOut =
+                      AmountAssetRequest(
+                        asset = transaction.amountOut.asset,
+                        amount = transaction.amountOut.amount
+                      ),
+                    amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                    instructions =
+                      mapOf(
+                        "organization.bank_number" to
+                          InstructionField(
+                            value = "121122676",
+                            description = "US Bank routing number"
+                          ),
+                        "organization.bank_account_number" to
+                          InstructionField(
+                            value = "13719713158835300",
+                            description = "US Bank account number"
+                          ),
+                      )
+                  )
                 )
-              )
+              }
             }
           }
           Kind.WITHDRAWAL -> {
-            if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isNotEmpty()) {
-              return
-            }
-            runBlocking {
-              sepHelper.rpcAction(
-                "request_onchain_funds",
-                RequestOnchainFundsRequest(
-                  transactionId = transaction.id,
-                  message = "Please deposit the amount to the following address",
-                  amountIn =
-                    AmountAssetRequest(
-                      asset = transaction.amountExpected.asset,
-                      amount = transaction.amountExpected.amount
-                    ),
-                  amountOut =
-                    AmountAssetRequest(
-                      asset = "iso4217:USD",
-                      amount = transaction.amountExpected.amount
-                    ),
-                  amountFee =
-                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
+            if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isEmpty()) {
+              runBlocking {
+                sepHelper.rpcAction(
+                  "request_onchain_funds",
+                  RequestOnchainFundsRequest(
+                    transactionId = transaction.id,
+                    message = "Please deposit the amount to the following address",
+                    amountIn =
+                      AmountAssetRequest(
+                        asset = transaction.amountExpected.asset,
+                        amount = transaction.amountExpected.amount
+                      ),
+                    amountOut =
+                      AmountAssetRequest(
+                        asset = "iso4217:USD",
+                        amount = transaction.amountExpected.amount
+                      ),
+                    amountFee =
+                      AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
+                  )
                 )
-              )
+              }
             }
           }
           else -> {
