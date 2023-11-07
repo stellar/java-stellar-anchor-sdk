@@ -34,11 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import org.stellar.anchor.api.event.AnchorEvent;
-import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.exception.SepNotAuthorizedException;
-import org.stellar.anchor.api.exception.SepNotFoundException;
-import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.GetTransactionRequest;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
@@ -55,6 +51,8 @@ import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.sep38.Sep38Quote;
+import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.ConfigHelper;
 import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.MetricConstants;
@@ -74,6 +72,8 @@ public class Sep24Service {
   final InteractiveUrlConstructor interactiveUrlConstructor;
   final MoreInfoUrlConstructor moreInfoUrlConstructor;
   final CustodyConfig custodyConfig;
+
+  final Sep38QuoteStore sep38QuoteStore;
 
   final Counter sep24TransactionRequestedCounter =
       counter(MetricConstants.SEP24_TRANSACTION_REQUESTED);
@@ -103,7 +103,8 @@ public class Sep24Service {
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
       MoreInfoUrlConstructor moreInfoUrlConstructor,
-      CustodyConfig custodyConfig) {
+      CustodyConfig custodyConfig,
+      Sep38QuoteStore sep38QuoteStore) {
     debug("appConfig:", appConfig);
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
@@ -116,6 +117,7 @@ public class Sep24Service {
     this.interactiveUrlConstructor = interactiveUrlConstructor;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
     this.custodyConfig = custodyConfig;
+    this.sep38QuoteStore = sep38QuoteStore;
     info("Sep24Service initialized.");
   }
 
@@ -247,6 +249,8 @@ public class Sep24Service {
       builder.refundMemo(refundMemo.toString());
       builder.refundMemoType(memoTypeString(memoType(refundMemo)));
     }
+
+    this.populateQuoteInfo(withdrawRequest, txnId, builder);
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
@@ -408,6 +412,8 @@ public class Sep24Service {
       builder.memoType(memoTypeString(memoType(memo)));
     }
 
+    this.populateQuoteInfo(depositRequest, txnId, builder);
+
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
 
@@ -554,5 +560,28 @@ public class Sep24Service {
                 sep24Config.getFeatures().getAccountCreation(),
                 sep24Config.getFeatures().getClaimableBalances()))
         .build();
+  }
+
+  private void populateQuoteInfo(
+      Map<String, String> request, String txnId, Sep24TransactionBuilder builder)
+      throws BadRequestException {
+    String quoteId = request.get("quote_id");
+    if (quoteId != null) {
+      Sep38Quote quote = sep38QuoteStore.findByQuoteId(quoteId);
+      if (quote == null) {
+        infoF("Quote ({}) was not found", quoteId);
+        throw new BadRequestException(String.format("quote(id=%s) was not found.", quoteId));
+      }
+
+      debugF("Updating transaction ({}) with quote ({})", txnId, quoteId);
+      builder.quoteId(quoteId);
+      builder.sourceAsset(quote.getSellAsset());
+      builder.amountInAsset(quote.getSellAsset());
+      builder.amountIn(quote.getSellAmount());
+      builder.amountOutAsset(quote.getBuyAsset());
+      builder.amountOut(quote.getBuyAmount());
+      builder.amountFeeAsset(quote.getFee().getAsset());
+      builder.amountFee(quote.getFee().getTotal());
+    }
   }
 }
