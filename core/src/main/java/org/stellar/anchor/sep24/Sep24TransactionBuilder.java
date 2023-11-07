@@ -135,6 +135,14 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
+  public void sourceAsset(String sourceAsset) {
+    txn.setSourceAsset(sourceAsset);
+  }
+
+  public void quoteId(String quoteId) {
+    txn.setQuoteId(quoteId);
+  }
+
   public Sep24Transaction build() {
     return txn;
   }

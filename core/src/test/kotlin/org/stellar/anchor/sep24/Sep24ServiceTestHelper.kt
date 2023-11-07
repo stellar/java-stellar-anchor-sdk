@@ -11,7 +11,8 @@ fun createTestTransactionRequest(): MutableMap<String, String> {
     "amount" to "123.4",
     "email_address" to "jamie@stellar.org",
     "first_name" to "Jamie",
-    "last_name" to "Li"
+    "last_name" to "Li",
+    "quote_id" to "test-quote-id",
   )
 }
 

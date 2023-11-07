@@ -40,6 +40,9 @@ import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.*
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.sep31.Sep31ServiceTest
+import org.stellar.anchor.sep38.PojoSep38Quote
+import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
@@ -53,6 +56,42 @@ internal class Sep24ServiceTest {
     const val TEST_SEP24_MORE_INFO_URL = "https://test-anchor.stellar.org/more_info_url"
     val TEST_STARTED_AT: Instant = Instant.now()
     val TEST_COMPLETED_AT: Instant = Instant.now().plusSeconds(100)
+    val DEPOSIT_QUOTE_JSON =
+      """
+       {
+        "id": "test-deposit-quote-id",
+        "expires_at": "2021-04-30T07:42:23",
+        "total_price": "5.42",
+        "price": "5.00",
+        "sell_asset": "iso4217:BRL",
+        "sell_amount": "542",
+        "buy_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+        "buy_amount": "100",
+        "fee": {
+          "total": "42.00",
+          "asset": "iso4217:BRL"
+        }
+      }
+      """
+        .trimIndent()
+    val WITHDRAW_QUOTE_JSON =
+      """
+      {
+        "id": "test-withdraw-quote-id",
+        "expires_at": "2021-04-30T07:42:23",
+        "total_price": "0.20",
+        "price": "0.18",
+        "sell_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+        "sell_amount": "100",
+        "buy_asset": "iso4217:BRL",
+        "buy_amount": "500",
+        "fee": {
+          "total": "10.00",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        }
+      }
+    """
+        .trimIndent()
   }
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
@@ -78,11 +117,15 @@ internal class Sep24ServiceTest {
 
   @MockK(relaxed = true) lateinit var clientConfig: ClientsConfig.ClientConfig
 
+  @MockK(relaxed = true) lateinit var sep38QuoteStore: Sep38QuoteStore
+
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
   private lateinit var jwtService: JwtService
   private lateinit var sep24Service: Sep24Service
   private lateinit var testInteractiveUrlJwt: Sep24InteractiveUrlJwt
+  private lateinit var depositQuote: PojoSep38Quote
+  private lateinit var withdrawQuote: PojoSep38Quote
 
   private val gson = GsonUtils.getInstance()
 
@@ -115,8 +158,11 @@ internal class Sep24ServiceTest {
         eventService,
         interactiveUrlConstructor,
         moreInfoUrlConstructor,
-        custodyConfig
+        custodyConfig,
+        sep38QuoteStore
       )
+    depositQuote = Sep31ServiceTest.gson.fromJson(DEPOSIT_QUOTE_JSON, PojoSep38Quote::class.java)
+    withdrawQuote = Sep31ServiceTest.gson.fromJson(WITHDRAW_QUOTE_JSON, PojoSep38Quote::class.java)
   }
 
   @Test
@@ -128,6 +174,7 @@ internal class Sep24ServiceTest {
     val slotTxn = slot<Sep24Transaction>()
 
     every { txnStore.save(capture(slotTxn)) } returns null
+    every { sep38QuoteStore.findByQuoteId(any()) } returns withdrawQuote
 
     val response = sep24Service.withdraw(createTestSep10JwtToken(), createTestTransactionRequest())
 
@@ -146,6 +193,7 @@ internal class Sep24ServiceTest {
     )
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals(withdrawQuote.id, slotTxn.captured.quoteId)
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
@@ -257,6 +305,7 @@ internal class Sep24ServiceTest {
     val slotTxn = slot<Sep24Transaction>()
 
     every { txnStore.save(capture(slotTxn)) } returns null
+    every { sep38QuoteStore.findByQuoteId(any()) } returns depositQuote
 
     val request = createTestTransactionRequest()
     request["claimable_balance_supported"] = claimableBalanceSupported
@@ -274,6 +323,7 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ASSET_ISSUER_ACCOUNT_ID, slotTxn.captured.requestAssetIssuer)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals(depositQuote.id, slotTxn.captured.quoteId)
   }
 
   @Test
