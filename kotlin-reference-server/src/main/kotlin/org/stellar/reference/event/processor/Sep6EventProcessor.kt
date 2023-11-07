@@ -3,6 +3,7 @@ package org.stellar.reference.event.processor
 import java.time.Instant
 import java.util.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.withLock
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.*
@@ -14,6 +15,7 @@ import org.stellar.reference.client.PlatformClient
 import org.stellar.reference.data.*
 import org.stellar.reference.log
 import org.stellar.reference.service.SepHelper
+import org.stellar.reference.submissionLock
 import org.stellar.sdk.*
 
 class Sep6EventProcessor(
@@ -74,13 +76,16 @@ class Sep6EventProcessor(
         }
         runBlocking {
           val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
-          val txnId =
-            submitStellarTransaction(
-              keypair.accountId,
-              transaction.destinationAccount,
-              Asset.create(transaction.amountExpected.asset.toAssetId()),
-              transaction.amountExpected.amount
-            )
+          lateinit var txnId: String
+          submissionLock.withLock {
+            txnId =
+              submitStellarTransaction(
+                keypair.accountId,
+                transaction.destinationAccount,
+                Asset.create(transaction.amountExpected.asset.toAssetId()),
+                transaction.amountExpected.amount
+              )
+          }
           onchainPayments[transaction.id] = txnId
           // TODO: manually submit the transaction until custody service is implemented
           patchTransaction(
@@ -266,7 +271,11 @@ class Sep6EventProcessor(
   private fun verifyKyc(sep10Account: String, sep10AccountMemo: String?, kind: Kind): List<String> {
     val customer =
       customerService.getCustomer(
-        GetCustomerRequest.builder().account(sep10Account).memo(sep10AccountMemo).build()
+        GetCustomerRequest.builder()
+          .account(sep10Account)
+          .memo(sep10AccountMemo)
+          .memoType("id")
+          .build()
       )
     val providedFields = customer.providedFields.keys
     return requiredKyc

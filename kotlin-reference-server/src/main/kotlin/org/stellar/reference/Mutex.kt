@@ -1,4 +1,4 @@
-package org.stellar.reference.sep24
+package org.stellar.reference
 
 import kotlinx.coroutines.sync.Mutex
 

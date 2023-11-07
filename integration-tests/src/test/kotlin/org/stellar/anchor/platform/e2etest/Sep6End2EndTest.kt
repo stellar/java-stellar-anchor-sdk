@@ -7,8 +7,10 @@ import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.sep.sep6.GetTransactionResponse
@@ -26,7 +28,8 @@ import org.stellar.walletsdk.anchor.customer
 import org.stellar.walletsdk.asset.IssuedAssetId
 import org.stellar.walletsdk.horizon.sign
 
-@Disabled
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Execution(ExecutionMode.CONCURRENT)
 class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
   private val maxTries = 30
   private val anchorReferenceServerClient =
@@ -57,12 +60,13 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
 
   @Test
   fun `test typical deposit end-to-end flow`() = runBlocking {
-    val token = anchor.auth().authenticate(walletKeyPair)
+    val memo = (10000..20000).random().toULong()
+    val token = anchor.auth().authenticate(walletKeyPair, memoId = memo)
     // TODO: migrate this to wallet-sdk when it's available
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! })
+    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
 
     val deposit =
       sep6Client.deposit(
@@ -78,7 +82,7 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
     // Supply missing KYC info to continue with the transaction
     val additionalRequiredFields =
       sep6Client.getTransaction(mapOf("id" to deposit.id)).transaction.requiredCustomerInfoUpdates
-    anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! })
+    anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! }, memo)
     waitStatus(deposit.id, COMPLETED, sep6Client)
 
     val completedDepositTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))
@@ -119,12 +123,13 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
 
   @Test
   fun `test typical withdraw end-to-end flow`() = runBlocking {
-    val token = anchor.auth().authenticate(walletKeyPair)
+    val memo = (30000..40000).random().toULong()
+    val token = anchor.auth().authenticate(walletKeyPair, memoId = memo)
     // TODO: migrate this to wallet-sdk when it's available
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! })
+    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
 
     val withdraw =
       sep6Client.withdraw(
@@ -135,12 +140,11 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
     // Supply missing financial account info to continue with the transaction
     val additionalRequiredFields =
       sep6Client.getTransaction(mapOf("id" to withdraw.id)).transaction.requiredCustomerInfoUpdates
-    anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! })
+    anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! }, memo)
     waitStatus(withdraw.id, PENDING_USR_TRANSFER_START, sep6Client)
 
     val withdrawTxn = sep6Client.getTransaction(mapOf("id" to withdraw.id)).transaction
 
-    // Transfer the withdrawal amount to the Anchor
     val transfer =
       wallet
         .stellar()
@@ -148,7 +152,7 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
         .transfer(withdrawTxn.withdrawAnchorAccount, USDC, "1")
         .build()
     transfer.sign(walletKeyPair)
-    wallet.stellar().submitTransaction(transfer)
+    transactionWithRetry { wallet.stellar().submitTransaction(transfer) }
     waitStatus(withdraw.id, COMPLETED, sep6Client)
 
     val expectedStatuses =
@@ -192,9 +196,11 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
     for (i in 0..maxTries) {
       val transaction = sep6Client.getTransaction(mapOf("id" to id))
       if (expectedStatus.status != transaction.transaction.status) {
-        Log.info("Transaction status: ${transaction.transaction.status}")
+        Log.info(
+          "Transaction status: ${transaction.transaction.status}. Message: ${transaction.transaction.message}"
+        )
       } else {
-        Log.info("${GsonUtils.getInstance().toJson(transaction)}")
+        Log.info(GsonUtils.getInstance().toJson(transaction))
         Log.info(
           "Transaction status ${transaction.transaction.status} matched expected status $expectedStatus"
         )

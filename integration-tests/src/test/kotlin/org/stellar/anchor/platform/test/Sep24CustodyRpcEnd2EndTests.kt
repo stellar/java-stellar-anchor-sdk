@@ -37,7 +37,6 @@ import org.stellar.walletsdk.asset.XLM
 import org.stellar.walletsdk.auth.AuthToken
 import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
-import org.stellar.walletsdk.horizon.transaction.transferWithdrawalTransaction
 
 class Sep24CustodyRpcEnd2EndTests(config: TestConfig, val jwt: String) {
   private val walletSecretKey = System.getenv("WALLET_SECRET_KEY") ?: CLIENT_WALLET_SECRET
@@ -315,7 +314,7 @@ class Sep24CustodyRpcEnd2EndTests(config: TestConfig, val jwt: String) {
         waitForTxnStatus(txnId, COMPLETED, token)
         txnId
       }
-    val history = anchor.interactive().getHistory(asset, token)
+    val history = anchor.interactive().getTransactionsForAsset(asset, token)
 
     Assertions.assertThat(history).allMatch { deposits.contains(it.id) }
   }
