@@ -10,15 +10,9 @@ plugins {
 repositories { maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") } }
 
 dependencies {
-  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-
-  testImplementation(libs.google.gson)
   testImplementation(libs.stellar.wallet.sdk)
   testImplementation(libs.okhttp3.mockserver)
-  testImplementation(libs.docker.compose.rule)
-  testImplementation(libs.dotenv)
-
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.assertj.core)
   testImplementation("org.springframework.boot:spring-boot-starter-web")
 
   // project dependencies
@@ -34,8 +28,8 @@ dependencies {
 
 tasks { bootJar { enabled = false } }
 
+// The following is to enable test concurrency
 apply(from = "$rootDir/scripts.gradle.kts")
-
 @Suppress("UNCHECKED_CAST")
 val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
 

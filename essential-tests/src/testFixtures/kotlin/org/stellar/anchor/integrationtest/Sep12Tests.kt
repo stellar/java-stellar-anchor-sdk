@@ -38,10 +38,10 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig(testProfileName = "d
 
     // make sure the customer was uploaded correctly.
     printRequest("Calling GET /customer", customer)
-    var gr = anchor.sep12(token).getByIdAndType(pr!!.id, "sep24")
+    var gr = anchor.sep12(token).getByIdAndType(pr.id, "sep24")
     printResponse(gr)
 
-    assertEquals(pr.id, gr?.id)
+    assertEquals(pr.id, gr.id)
 
     customer["emailAddress"] = "john.doe@stellar.org"
 
@@ -52,7 +52,7 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig(testProfileName = "d
 
     // Make sure the customer is modified correctly.
     printRequest("Calling GET /customer", customer)
-    gr = anchor.sep12(token).getByIdAndType(pr!!.id, "sep31-receiver")
+    gr = anchor.sep12(token).getByIdAndType(pr.id, "sep31-receiver")
     printResponse(gr)
 
     assertEquals(pr.id, gr.id)
