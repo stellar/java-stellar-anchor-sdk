@@ -1,11 +1,8 @@
-package org.stellar.anchor
+package org.stellar.anchor.platform
 
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
-import org.stellar.anchor.client.*
-import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.platform.resourceAsString
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 import org.stellar.anchor.util.Sep1Helper.parse
 import org.stellar.walletsdk.ApplicationConfiguration

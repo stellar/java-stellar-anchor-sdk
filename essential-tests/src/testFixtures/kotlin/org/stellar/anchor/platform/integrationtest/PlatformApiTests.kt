@@ -1,4 +1,4 @@
-package org.stellar.anchor.integrationtest
+package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.reflect.TypeToken
 import org.apache.http.HttpStatus.SC_OK
@@ -8,7 +8,6 @@ import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
-import org.stellar.anchor.AbstractIntegrationTests
 import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.method.NotifyOffchainFundsReceivedRequest
 import org.stellar.anchor.api.rpc.method.RequestOffchainFundsRequest
@@ -22,6 +21,7 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.client.Sep12Client
 import org.stellar.anchor.client.Sep24Client
 import org.stellar.anchor.client.Sep31Client
+import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 

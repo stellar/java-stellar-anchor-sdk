@@ -1,4 +1,4 @@
-package org.stellar.anchor.integrationtest
+package org.stellar.anchor.platform.integrationtest
 
 import java.time.Instant
 import kotlin.streams.toList
@@ -11,7 +11,6 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.springframework.data.domain.Sort.Direction
 import org.springframework.data.domain.Sort.Direction.*
-import org.stellar.anchor.AbstractIntegrationTests
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.*
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31
@@ -27,10 +26,11 @@ import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.client.*
-import org.stellar.anchor.integrationtest.Sep12Tests.Companion.testCustomer1Json
-import org.stellar.anchor.integrationtest.Sep12Tests.Companion.testCustomer2Json
+import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
+import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer1Json
+import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
 import org.stellar.anchor.platform.printRequest
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.StringHelper.json

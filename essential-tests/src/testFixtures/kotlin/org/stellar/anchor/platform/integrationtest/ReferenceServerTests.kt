@@ -1,4 +1,4 @@
-package org.stellar.anchor.integrationtest
+package org.stellar.anchor.platform.integrationtest
 
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import org.stellar.anchor.AbstractIntegrationTests
 import org.stellar.anchor.api.callback.SendEventRequest
+import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.StringHelper.json
