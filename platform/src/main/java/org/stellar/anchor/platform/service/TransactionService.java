@@ -7,7 +7,6 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
-import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -30,7 +29,6 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.api.exception.NotFoundException;
-import org.stellar.anchor.api.platform.*;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.GetTransactionsResponse;
 import org.stellar.anchor.api.platform.PatchTransactionRequest;
@@ -52,6 +50,7 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.utils.PlatformTransactionHelper;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -167,7 +166,7 @@ public class TransactionService {
           findUnknownTransactionCounter.increment();
       }
 
-      return toGetTransactionResponse(txn, assetService);
+      return PlatformTransactionHelper.toGetTransactionResponse(txn, assetService);
     } else {
       throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
     }
@@ -196,7 +195,10 @@ public class TransactionService {
 
     return new GetTransactionsResponse(
         txn.stream()
-            .map(t -> toGetTransactionResponse((JdbcSepTransaction) t, assetService))
+            .map(
+                t ->
+                    PlatformTransactionHelper.toGetTransactionResponse(
+                        (JdbcSepTransaction) t, assetService))
             .collect(Collectors.toList()));
   }
 
@@ -335,7 +337,7 @@ public class TransactionService {
         break;
     }
 
-    return toGetTransactionResponse(txn, assetService);
+    return PlatformTransactionHelper.toGetTransactionResponse(txn, assetService);
   }
 
   void updateSepTransaction(PlatformTransactionData patch, JdbcSepTransaction txn)

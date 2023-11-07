@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.config
 import java.net.URL
 import java.nio.file.Paths
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource

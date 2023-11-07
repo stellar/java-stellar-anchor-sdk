@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.configurator;
 
-import static org.stellar.anchor.platform.configurator.ConfigHelper.loadConfig;
-import static org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.VERSION_SCHEMA;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.io.IOException;
@@ -11,7 +9,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.core.io.ClassPathResource;
 import org.stellar.anchor.api.exception.InvalidConfigException;
-import org.stellar.anchor.platform.configurator.ConfigMap.ConfigEntry;
 import org.stellar.anchor.util.Log;
 
 public class ConfigReader {
@@ -21,7 +18,9 @@ public class ConfigReader {
   public ConfigReader(int version) throws InvalidConfigException {
     try {
       configSchema =
-          loadConfig(new ClassPathResource(getVersionSchemaFile(version)), VERSION_SCHEMA);
+          ConfigHelper.loadConfig(
+              new ClassPathResource(getVersionSchemaFile(version)),
+              ConfigMap.ConfigSource.VERSION_SCHEMA);
       this.version = version;
     } catch (IOException e) {
       throw new InvalidConfigException(String.format("version:%s is not a defined", version));
@@ -82,7 +81,7 @@ public class ConfigReader {
         .names()
         .forEach(
             key -> {
-              ConfigEntry entry = configMap.get(key);
+              ConfigMap.ConfigEntry entry = configMap.get(key);
               String value = entry.getValue();
               String configLocation = configSchema.getString(key);
               if (configLocation != null) {

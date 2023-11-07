@@ -92,7 +92,9 @@ class SepHelper(private val cfg: Config) {
     val transactionBuilder =
       TransactionBuilder(myAccount, Network.TESTNET)
         .setBaseFee(100)
-        .setTimeout(60)
+        .addPreconditions(
+          TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(60)).build()
+        )
         .addOperation(
           PaymentOperation.Builder(destinationAddress, asset, amount.toPlainString()).build()
         )

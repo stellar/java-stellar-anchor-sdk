@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.PropertyEventConfig;
-import org.stellar.anchor.platform.event.*;
+import org.stellar.anchor.platform.event.DefaultEventService;
 
 @Configuration
 public class EventBeans {

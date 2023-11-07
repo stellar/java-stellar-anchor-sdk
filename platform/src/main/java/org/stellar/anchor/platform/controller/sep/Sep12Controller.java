@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.controller.sep;
 
-import static org.stellar.anchor.platform.controller.sep.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.*;
 
 import com.google.gson.Gson;
@@ -49,7 +48,7 @@ public class Sep12Controller {
         memo,
         memoType,
         lang);
-    Sep10Jwt sep10Jwt = getSep10Token(request);
+    Sep10Jwt sep10Jwt = Sep10Helper.getSep10Token(request);
     Sep12GetCustomerRequest getCustomerRequest =
         Sep12GetCustomerRequest.builder()
             .type(type)
@@ -73,7 +72,7 @@ public class Sep12Controller {
   public Sep12PutCustomerResponse putCustomer(
       HttpServletRequest request, @RequestBody Sep12PutCustomerRequest putCustomerRequest) {
     debug("PUT /customer details:", putCustomerRequest);
-    Sep10Jwt sep10Jwt = getSep10Token(request);
+    Sep10Jwt sep10Jwt = Sep10Helper.getSep10Token(request);
     return sep12Service.putCustomer(sep10Jwt, putCustomerRequest);
   }
 
@@ -93,7 +92,7 @@ public class Sep12Controller {
     }
     Sep12PutCustomerRequest putCustomerRequest =
         gson.fromJson(gson.toJson(requestData), Sep12PutCustomerRequest.class);
-    Sep10Jwt sep10Jwt = getSep10Token(request);
+    Sep10Jwt sep10Jwt = Sep10Helper.getSep10Token(request);
     return sep12Service.putCustomer(sep10Jwt, putCustomerRequest);
   }
 
@@ -108,7 +107,7 @@ public class Sep12Controller {
       HttpServletRequest request,
       @PathVariable String account,
       @RequestBody(required = false) Sep12DeleteCustomerRequest body) {
-    Sep10Jwt sep10Jwt = getSep10Token(request);
+    Sep10Jwt sep10Jwt = Sep10Helper.getSep10Token(request);
     String memo = body != null ? body.getMemo() : null;
     String memoType = body != null ? body.getMemoType() : null;
     debugF(
@@ -131,7 +130,7 @@ public class Sep12Controller {
       @PathVariable String account,
       @RequestParam(required = false) String memo,
       @RequestParam(required = false, name = "memo_type") String memoType) {
-    Sep10Jwt sep10Jwt = getSep10Token(request);
+    Sep10Jwt sep10Jwt = Sep10Helper.getSep10Token(request);
     debugF("DELETE /customer requestURI={} account={}", request.getRequestURI(), account);
     sep12Service.deleteCustomer(sep10Jwt, account, memo, memoType);
   }

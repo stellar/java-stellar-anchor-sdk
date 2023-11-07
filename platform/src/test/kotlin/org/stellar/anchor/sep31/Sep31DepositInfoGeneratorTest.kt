@@ -101,7 +101,8 @@ class Sep31DepositInfoGeneratorTest {
         sep10Config,
         sep31Config,
         txnStore,
-        Sep31DepositInfoSelfGenerator(), // set deposit info generator
+        org.stellar.anchor.platform.service
+          .Sep31DepositInfoSelfGenerator(), // set deposit info generator
         quoteStore,
         clientsConfig,
         assetService,
