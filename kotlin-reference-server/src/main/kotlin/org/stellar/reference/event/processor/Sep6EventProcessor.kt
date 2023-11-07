@@ -273,7 +273,7 @@ class Sep6EventProcessor(
         GetCustomerRequest.builder()
           .account(sep10Account)
           .memo(sep10AccountMemo)
-          .memoType("id")
+          .memoType(if (sep10AccountMemo != null) "id" else null)
           .build()
       )
     val providedFields = customer.providedFields.keys
