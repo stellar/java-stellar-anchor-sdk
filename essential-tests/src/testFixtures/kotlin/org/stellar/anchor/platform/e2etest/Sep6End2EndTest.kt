@@ -1,4 +1,4 @@
-package org.stellar.anchor.e2etest
+package org.stellar.anchor.platform.e2etest
 
 import io.ktor.http.*
 import kotlin.test.DefaultAsserter.fail
@@ -11,12 +11,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
-import org.stellar.anchor.AbstractIntegrationTests
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.sep.sep6.GetTransactionResponse
 import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.client.Sep6Client
+import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.Log
 import org.stellar.reference.client.AnchorReferenceServerClient

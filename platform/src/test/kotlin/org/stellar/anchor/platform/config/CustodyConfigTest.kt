@@ -2,9 +2,9 @@ package org.stellar.anchor.platform.config
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
@@ -35,10 +35,8 @@ class PropertyCustodyConfigTest {
     assertFalse(errors.hasErrors())
   }
 
-  @ParameterizedTest
-  @NullSource
-  @ValueSource(strings = [""])
-  fun `test empty type`(type: String?) {
+  @Test
+  fun `test empty type`() {
     config.type = null
     config.validate(config, errors)
     assertErrorCode(errors, "custody-type-empty")
