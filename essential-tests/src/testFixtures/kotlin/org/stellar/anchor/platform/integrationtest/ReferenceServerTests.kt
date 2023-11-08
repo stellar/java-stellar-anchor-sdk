@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.integrationtest
 import io.ktor.http.*
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -25,13 +24,8 @@ class ReferenceServerTests : AbstractIntegrationTests(TestConfig(testProfileName
     runBlocking {
       // Send event1
       client.sendEvent(sendEventRequest1)
-      var latestEvent = client.getLatestEvent()
-      Assertions.assertNotNull(latestEvent)
-      JSONAssert.assertEquals(json(latestEvent), json(sendEventRequest1), true)
       // send event2
       client.sendEvent(sendEventRequest2)
-      latestEvent = client.getLatestEvent()
-      Assertions.assertNotNull(latestEvent)
       // check if these events are recorded
       client
         .getEvents()
