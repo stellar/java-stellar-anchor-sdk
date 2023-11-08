@@ -176,7 +176,11 @@ internal class Sep24ServiceTest {
     every { txnStore.save(capture(slotTxn)) } returns null
     every { sep38QuoteStore.findByQuoteId(any()) } returns withdrawQuote
 
-    val response = sep24Service.withdraw(createTestSep10JwtToken(), createTestTransactionRequest())
+    val response =
+      sep24Service.withdraw(
+        createTestSep10JwtToken(),
+        createTestTransactionRequest(withdrawQuote.id)
+      )
 
     verify(exactly = 1) { txnStore.save(any()) }
 
@@ -194,6 +198,8 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals(withdrawQuote.id, slotTxn.captured.quoteId)
+    assertEquals(withdrawQuote.sellAmount, slotTxn.captured.amountIn)
+    assertEquals(withdrawQuote.buyAmount, slotTxn.captured.amountOut)
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
@@ -307,7 +313,7 @@ internal class Sep24ServiceTest {
     every { txnStore.save(capture(slotTxn)) } returns null
     every { sep38QuoteStore.findByQuoteId(any()) } returns depositQuote
 
-    val request = createTestTransactionRequest()
+    val request = createTestTransactionRequest(depositQuote.id)
     request["claimable_balance_supported"] = claimableBalanceSupported
     val response = sep24Service.deposit(createTestSep10JwtToken(), request)
 
@@ -324,6 +330,8 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals(depositQuote.id, slotTxn.captured.quoteId)
+    assertEquals(depositQuote.sellAmount, slotTxn.captured.amountIn)
+    assertEquals(depositQuote.buyAmount, slotTxn.captured.amountOut)
   }
 
   @Test
