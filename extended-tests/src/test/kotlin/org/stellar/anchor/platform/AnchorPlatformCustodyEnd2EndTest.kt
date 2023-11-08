@@ -3,7 +3,6 @@ package org.stellar.anchor.platform
 import org.junit.jupiter.api.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-@Disabled
 class AnchorPlatformCustodyEnd2EndTest :
   AbstractIntegrationTest(
     TestConfig(testProfileName = "default-custody").also {
