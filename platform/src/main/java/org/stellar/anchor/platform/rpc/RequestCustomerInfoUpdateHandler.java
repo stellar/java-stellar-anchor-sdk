@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;

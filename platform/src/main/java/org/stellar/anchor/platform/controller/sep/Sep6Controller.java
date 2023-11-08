@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.controller.sep;
 
-import static org.stellar.anchor.platform.controller.sep.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.debugF;
 
 import javax.servlet.http.HttpServletRequest;
@@ -53,7 +52,7 @@ public class Sep6Controller {
           Boolean claimableBalancesSupported)
       throws AnchorException {
     debugF("GET /deposit");
-    Sep10Jwt token = getSep10Token(request);
+    Sep10Jwt token = Sep10Helper.getSep10Token(request);
     StartDepositRequest startDepositRequest =
         StartDepositRequest.builder()
             .assetCode(assetCode)
@@ -92,7 +91,7 @@ public class Sep6Controller {
           Boolean claimableBalancesSupported)
       throws AnchorException {
     debugF("GET /deposit-exchange");
-    Sep10Jwt token = getSep10Token(request);
+    Sep10Jwt token = Sep10Helper.getSep10Token(request);
     StartDepositExchangeRequest startDepositExchangeRequest =
         StartDepositExchangeRequest.builder()
             .destinationAsset(destinationAsset)
@@ -124,7 +123,7 @@ public class Sep6Controller {
       @RequestParam(value = "refundMemoType", required = false) String refundMemoType)
       throws AnchorException {
     debugF("GET /withdraw");
-    Sep10Jwt token = getSep10Token(request);
+    Sep10Jwt token = Sep10Helper.getSep10Token(request);
     StartWithdrawRequest startWithdrawRequest =
         StartWithdrawRequest.builder()
             .assetCode(assetCode)
@@ -153,7 +152,7 @@ public class Sep6Controller {
       @RequestParam(value = "refund_memo_type", required = false) String refundMemoType)
       throws AnchorException {
     debugF("GET /withdraw-exchange");
-    Sep10Jwt token = getSep10Token(request);
+    Sep10Jwt token = Sep10Helper.getSep10Token(request);
     StartWithdrawExchangeRequest startWithdrawExchangeRequest =
         StartWithdrawExchangeRequest.builder()
             .sourceAsset(sourceAsset)
@@ -190,7 +189,7 @@ public class Sep6Controller {
         pagingId,
         noOlderThan,
         lang);
-    Sep10Jwt token = getSep10Token(request);
+    Sep10Jwt token = Sep10Helper.getSep10Token(request);
     GetTransactionsRequest getTransactionsRequest =
         GetTransactionsRequest.builder()
             .assetCode(assetCode)
@@ -222,7 +221,7 @@ public class Sep6Controller {
         stellarTransactionId,
         externalTransactionId,
         lang);
-    Sep10Jwt token = getSep10Token(request);
+    Sep10Jwt token = Sep10Helper.getSep10Token(request);
     GetTransactionRequest getTransactionRequest =
         GetTransactionRequest.builder()
             .id(id)

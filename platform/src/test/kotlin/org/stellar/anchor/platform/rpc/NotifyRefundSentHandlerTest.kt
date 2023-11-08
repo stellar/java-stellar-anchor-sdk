@@ -32,12 +32,6 @@ import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.*
-import org.stellar.anchor.platform.data.JdbcSep24RefundPayment
-import org.stellar.anchor.platform.data.JdbcSep24Refunds
-import org.stellar.anchor.platform.data.JdbcSep24Transaction
-import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
-import org.stellar.anchor.platform.data.JdbcSep31Refunds
-import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore

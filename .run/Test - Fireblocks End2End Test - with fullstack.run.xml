@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Test - Fireblocks End2End Test - with fullstack" type="JUnit" factoryName="JUnit">
-    <module name="java-stellar-anchor-sdk.integration-tests.test" />
+    <module name="java-stellar-anchor-sdk.essential-tests.test" />
     <shortenClasspath name="ARGS_FILE" />
     <extension name="coverage">
       <pattern>

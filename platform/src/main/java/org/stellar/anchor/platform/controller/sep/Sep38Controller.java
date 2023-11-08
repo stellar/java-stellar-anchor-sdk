@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.controller.sep;
 
-import static org.stellar.anchor.platform.controller.sep.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.errorEx;
 
@@ -77,7 +76,7 @@ public class Sep38Controller {
         gson.fromJson(gson.toJson(params), Sep38GetPriceRequest.class);
     Sep10Jwt sep10Jwt;
     try {
-      sep10Jwt = getSep10Token(request);
+      sep10Jwt = Sep10Helper.getSep10Token(request);
     } catch (SepValidationException svex) {
       sep10Jwt = null;
     }
@@ -93,7 +92,7 @@ public class Sep38Controller {
       method = {RequestMethod.POST})
   public Sep38QuoteResponse postQuote(
       HttpServletRequest request, @RequestBody Sep38PostQuoteRequest postQuoteRequest) {
-    Sep10Jwt sep10Jwt = getSep10Token(request);
+    Sep10Jwt sep10Jwt = Sep10Helper.getSep10Token(request);
     debugF("POSTS /quote request={}", postQuoteRequest);
     return sep38Service.postQuote(sep10Jwt, postQuoteRequest);
   }
@@ -106,7 +105,7 @@ public class Sep38Controller {
       method = {RequestMethod.GET})
   public Sep38QuoteResponse getQuote(
       HttpServletRequest request, @PathVariable(name = "quote_id") String quoteId) {
-    Sep10Jwt sep10Jwt = getSep10Token(request);
+    Sep10Jwt sep10Jwt = Sep10Helper.getSep10Token(request);
     debugF("GET /quote id={}", quoteId);
     return sep38Service.getQuote(sep10Jwt, quoteId);
   }
