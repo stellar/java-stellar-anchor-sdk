@@ -2,18 +2,24 @@ package org.stellar.anchor.sep24
 
 import org.stellar.anchor.TestConstants
 
-fun createTestTransactionRequest(): MutableMap<String, String> {
-  return mutableMapOf(
-    "lang" to "en",
-    "asset_code" to TestConstants.TEST_ASSET,
-    "asset_issuer" to TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID,
-    "account" to TestConstants.TEST_ACCOUNT,
-    "amount" to "123.4",
-    "email_address" to "jamie@stellar.org",
-    "first_name" to "Jamie",
-    "last_name" to "Li",
-    "quote_id" to "test-quote-id",
-  )
+fun createTestTransactionRequest(
+  quoteID: String? = null,
+): MutableMap<String, String> {
+  val request =
+    mutableMapOf(
+      "lang" to "en",
+      "asset_code" to TestConstants.TEST_ASSET,
+      "asset_issuer" to TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID,
+      "account" to TestConstants.TEST_ACCOUNT,
+      "amount" to "123.4",
+      "email_address" to "jamie@stellar.org",
+      "first_name" to "Jamie",
+      "last_name" to "Li",
+    )
+  if (quoteID != null) {
+    request["quote_id"] = quoteID
+  }
+  return request
 }
 
 fun createTestTransaction(kind: String): Sep24Transaction {
