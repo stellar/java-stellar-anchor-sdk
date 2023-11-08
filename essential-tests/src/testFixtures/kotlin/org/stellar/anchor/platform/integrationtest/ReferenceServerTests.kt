@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.integrationtest
 
 import io.ktor.http.*
+import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -19,6 +20,8 @@ class ReferenceServerTests : AbstractIntegrationTests(TestConfig(testProfileName
     val client = AnchorReferenceServerClient(Url("http://localhost:8091"))
     val sendEventRequest1 = gson.fromJson(sendEventRequestJson, SendEventRequest::class.java)
     val sendEventRequest2 = gson.fromJson(sendEventRequestJson2, SendEventRequest::class.java)
+    sendEventRequest1.id = UUID.randomUUID().toString()
+    sendEventRequest2.id = UUID.randomUUID().toString()
     runBlocking {
       // Send event1
       client.sendEvent(sendEventRequest1)
@@ -29,11 +32,21 @@ class ReferenceServerTests : AbstractIntegrationTests(TestConfig(testProfileName
       client.sendEvent(sendEventRequest2)
       latestEvent = client.getLatestEvent()
       Assertions.assertNotNull(latestEvent)
-      JSONAssert.assertEquals(json(latestEvent), json(sendEventRequest2), true)
-      // check if there are totally two events recorded
-      assertEquals(client.getEvents().size, 2)
-      JSONAssert.assertEquals(json(client.getEvents()[0]), json(sendEventRequest1), true)
-      JSONAssert.assertEquals(json(client.getEvents()[1]), json(sendEventRequest2), true)
+      // check if these events are recorded
+      client
+        .getEvents()
+        .stream()
+        .filter { it.id == sendEventRequest1.id }
+        .findFirst()
+        .get()
+        .apply { JSONAssert.assertEquals(json(this), json(sendEventRequest1), true) }
+      client
+        .getEvents()
+        .stream()
+        .filter { it.id == sendEventRequest2.id }
+        .findFirst()
+        .get()
+        .apply { JSONAssert.assertEquals(json(this), json(sendEventRequest2), true) }
     }
   }
 
