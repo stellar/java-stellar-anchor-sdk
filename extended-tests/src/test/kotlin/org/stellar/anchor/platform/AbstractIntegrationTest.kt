@@ -3,7 +3,6 @@ package org.stellar.anchor.platform
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
-import org.stellar.anchor.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.test.*
 import org.stellar.anchor.util.Sep1Helper
 import org.stellar.walletsdk.ApplicationConfiguration

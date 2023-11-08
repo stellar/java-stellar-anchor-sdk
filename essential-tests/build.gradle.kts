@@ -31,6 +31,8 @@ dependencies {
   testFixturesImplementation(project(":wallet-reference-server"))
   testFixturesImplementation(project(":service-runner"))
   testFixturesImplementation(project(":lib-util"))
+
+  testImplementation(libs.stellar.wallet.sdk)
 }
 
 tasks { bootJar { enabled = false } }

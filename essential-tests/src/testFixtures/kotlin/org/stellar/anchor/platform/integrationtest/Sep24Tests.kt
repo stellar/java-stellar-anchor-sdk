@@ -1,4 +1,4 @@
-package org.stellar.anchor.integrationtest
+package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.runBlocking
@@ -13,7 +13,6 @@ import org.junit.jupiter.api.parallel.ExecutionMode.SAME_THREAD
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.springframework.web.util.UriComponentsBuilder
-import org.stellar.anchor.AbstractIntegrationTests
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.apiclient.PlatformApiClient
@@ -21,6 +20,7 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
+import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
 import org.stellar.anchor.platform.printRequest

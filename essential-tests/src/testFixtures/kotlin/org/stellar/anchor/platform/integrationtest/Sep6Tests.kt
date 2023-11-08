@@ -1,13 +1,13 @@
-package org.stellar.anchor.integrationtest
+package org.stellar.anchor.platform.integrationtest
 
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
-import org.stellar.anchor.AbstractIntegrationTests
-import org.stellar.anchor.CLIENT_WALLET_ACCOUNT
 import org.stellar.anchor.api.sep.sep38.Sep38Context
 import org.stellar.anchor.client.Sep38Client
 import org.stellar.anchor.client.Sep6Client
+import org.stellar.anchor.platform.AbstractIntegrationTests
+import org.stellar.anchor.platform.CLIENT_WALLET_ACCOUNT
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.Log
