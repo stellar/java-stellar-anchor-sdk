@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.config
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
@@ -34,7 +35,7 @@ class PropertyCustodyConfigTest {
     assertFalse(errors.hasErrors())
   }
 
-  @ParameterizedTest
+  @Test
   fun `test empty type`() {
     config.type = null
     config.validate(config, errors)
