@@ -9,7 +9,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.stellar.anchor.CLIENT_WALLET_SECRET
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventRequestPayload
 import org.stellar.anchor.api.event.AnchorEvent
@@ -24,9 +23,10 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.client.Sep12Client
 import org.stellar.anchor.client.Sep31Client
 import org.stellar.anchor.client.Sep38Client
-import org.stellar.anchor.integrationtest.Sep12Tests.Companion.testCustomer1Json
-import org.stellar.anchor.integrationtest.Sep12Tests.Companion.testCustomer2Json
+import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer1Json
+import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log.info
 import org.stellar.anchor.util.MemoHelper

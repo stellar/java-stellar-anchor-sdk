@@ -11,17 +11,16 @@ class ConfigHelperTest {
   @CsvSource(
     value =
       [
-        "clients[0]_name,clients,[0],name",
-        "clients[1]_name,clients,[1],name",
-        "clients[2]_name,clients,[2],name",
-        "clients[0]_type,clients,[0],type",
-        "clients[0]_callback_url,clients,[0],callback_url"
+        "clients[0]_name,clients,name",
+        "clients[1]_name,clients,name",
+        "clients[2]_name,clients,name",
+        "clients[0]_type,clients,type",
+        "clients[0]_callback_url,clients,callback_url"
       ]
   )
   fun `test the list name extraction if the name is a list`(
     name: String,
     listName: String,
-    index: String,
     elementName: String
   ) {
     val result = ConfigHelper.extractListNameIfAny(name)
