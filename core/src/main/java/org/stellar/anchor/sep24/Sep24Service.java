@@ -602,7 +602,6 @@ public class Sep24Service {
 
     // assetCode needs to match the on-chain asset code in the quote
     if (!assetCode.equals(onChainAsset[1])) {
-      System.out.println(onChainAsset[0] + " " + assetCode);
       infoF("Quote ({}) does not match asset code ({})", quoteId, assetCode);
       throw new BadRequestException(
           String.format("quote(id=%s) does not match asset code (%s).", quoteId, assetCode));
@@ -610,7 +609,8 @@ public class Sep24Service {
 
     // issuer, if provided, needs to match the on-chain asset issuer in the quote, except for native
     if (assetIssuer != null
-        && (!assetIssuer.equals(onChainAsset[2]) || !assetCode.equals("native"))) {
+        && !assetCode.equals("native")
+        && !assetIssuer.equals(onChainAsset[2])) {
       infoF("Quote ({}) does not match asset issuer ({})", quoteId, assetIssuer);
       throw new BadRequestException(
           String.format("quote(id=%s) does not match asset issuer (%s).", quoteId, assetIssuer));
@@ -628,7 +628,6 @@ public class Sep24Service {
 
     // amount, if provided, needs to match the sell_amount in the quote
     if (strAmount != null && !(decimal(strAmount).equals(decimal(quote.getSellAmount())))) {
-      System.out.println(quote.getSellAmount() + " " + strAmount);
       infoF("Quote ({}) does not match source amount ({})", quoteId, strAmount);
       throw new BadRequestException(
           String.format("quote(id=%s) does not match amount (%s).", quoteId, strAmount));
