@@ -11,7 +11,7 @@ fun createTestTransactionRequest(
       "asset_code" to TestConstants.TEST_ASSET,
       "asset_issuer" to TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID,
       "account" to TestConstants.TEST_ACCOUNT,
-      "amount" to "123.4",
+      "amount" to "542",
       "email_address" to "jamie@stellar.org",
       "first_name" to "Jamie",
       "last_name" to "Li",

@@ -7,7 +7,7 @@ import static org.stellar.anchor.api.sep.sep24.InfoResponse.FeatureFlagResponse;
 import static org.stellar.anchor.api.sep.sep24.InfoResponse.FeeResponse;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.sep24.Sep24Helper.fromTxn;
-import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.*;
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.info;
@@ -27,12 +27,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -250,7 +245,15 @@ public class Sep24Service {
       builder.refundMemoType(memoTypeString(memoType(refundMemo)));
     }
 
-    this.populateQuoteInfo(withdrawRequest, txnId, builder);
+    this.validatedAndPopulateQuote(
+        builder,
+        WITHDRAWAL.toString(),
+        txnId,
+        withdrawRequest.get("quote_id"),
+        assetCode,
+        assetIssuer,
+        withdrawRequest.get("destination_asset"),
+        strAmount);
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
@@ -387,7 +390,7 @@ public class Sep24Service {
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
             .status(INCOMPLETE.toString())
-            .kind(Sep24Transaction.Kind.DEPOSIT.toString())
+            .kind(DEPOSIT.toString())
             .assetCode(assetCode)
             .assetIssuer(depositRequest.get("asset_issuer"))
             .startedAt(Instant.now())
@@ -412,7 +415,15 @@ public class Sep24Service {
       builder.memoType(memoTypeString(memoType(memo)));
     }
 
-    this.populateQuoteInfo(depositRequest, txnId, builder);
+    this.validatedAndPopulateQuote(
+        builder,
+        DEPOSIT.toString(),
+        txnId,
+        depositRequest.get("quote_id"),
+        assetCode,
+        assetIssuer,
+        depositRequest.get("source_asset"),
+        strAmount);
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
@@ -562,26 +573,74 @@ public class Sep24Service {
         .build();
   }
 
-  private void populateQuoteInfo(
-      Map<String, String> request, String txnId, Sep24TransactionBuilder builder)
+  private void validatedAndPopulateQuote(
+      Sep24TransactionBuilder builder,
+      String kind,
+      String txnId,
+      String quoteId,
+      String assetCode,
+      String assetIssuer,
+      String sourceOrDestAsset,
+      String strAmount)
       throws BadRequestException {
-    String quoteId = request.get("quote_id");
-    if (quoteId != null) {
-      Sep38Quote quote = sep38QuoteStore.findByQuoteId(quoteId);
-      if (quote == null) {
-        infoF("Quote ({}) was not found", quoteId);
-        throw new BadRequestException(String.format("quote(id=%s) was not found.", quoteId));
-      }
+    if (quoteId == null) {
+      return;
+    }
 
-      debugF("Updating transaction ({}) with quote ({})", txnId, quoteId);
-      builder.quoteId(quoteId);
-      builder.sourceAsset(quote.getSellAsset());
-      builder.amountInAsset(quote.getSellAsset());
-      builder.amountIn(quote.getSellAmount());
-      builder.amountOutAsset(quote.getBuyAsset());
-      builder.amountOut(quote.getBuyAmount());
-      builder.amountFeeAsset(quote.getFee().getAsset());
-      builder.amountFee(quote.getFee().getTotal());
+    Sep38Quote quote = sep38QuoteStore.findByQuoteId(quoteId);
+    if (quote == null) {
+      infoF("Quote ({}) was not found", quoteId);
+      throw new BadRequestException(String.format("quote(id=%s) was not found.", quoteId));
+    }
+
+    String[] onChainAsset =
+        kind.equals(DEPOSIT.toString())
+            ? quote.getBuyAsset().split(":")
+            : quote.getSellAsset().split(":");
+    String offChainAsset =
+        kind.equals(DEPOSIT.toString()) ? quote.getSellAsset() : quote.getBuyAsset();
+
+    // assetCode needs to match the on-chain asset code in the quote
+    if (!assetCode.equals(onChainAsset[1])) {
+      System.out.println(onChainAsset[0] + " " + assetCode);
+      infoF("Quote ({}) does not match asset code ({})", quoteId, assetCode);
+      throw new BadRequestException(
+          String.format("quote(id=%s) does not match asset code (%s).", quoteId, assetCode));
+    }
+
+    // issuer, if provided, needs to match the on-chain asset issuer in the quote, except for native
+    if (assetIssuer != null
+        && (!assetIssuer.equals(onChainAsset[2]) || !assetCode.equals("native"))) {
+      infoF("Quote ({}) does not match asset issuer ({})", quoteId, assetIssuer);
+      throw new BadRequestException(
+          String.format("quote(id=%s) does not match asset issuer (%s).", quoteId, assetIssuer));
+    }
+
+    // source or destination asset, if provided, needs to match the off-chain asset in the quote
+    if (sourceOrDestAsset != null && !sourceOrDestAsset.equals(offChainAsset)) {
+      infoF(
+          "Quote ({}) does not match source or destination asset ({})", quoteId, sourceOrDestAsset);
+      throw new BadRequestException(
+          String.format(
+              "quote(id=%s) does not match source or destination asset (%s).",
+              quoteId, sourceOrDestAsset));
+    }
+
+    // amount, if provided, needs to match the sell_amount in the quote
+    if (strAmount != null && !(decimal(strAmount).equals(decimal(quote.getSellAmount())))) {
+      System.out.println(quote.getSellAmount() + " " + strAmount);
+      infoF("Quote ({}) does not match source amount ({})", quoteId, strAmount);
+      throw new BadRequestException(
+          String.format("quote(id=%s) does not match amount (%s).", quoteId, strAmount));
+    }
+
+    debugF("Updating transaction ({}) with quote ({})", txnId, quoteId);
+    builder.quoteId(quoteId);
+    builder.amountExpected(quote.getSellAmount());
+    if (kind.equals(DEPOSIT.toString())) {
+      builder.sourceAsset(offChainAsset);
+    } else {
+      builder.destinationAsset(offChainAsset);
     }
   }
 }

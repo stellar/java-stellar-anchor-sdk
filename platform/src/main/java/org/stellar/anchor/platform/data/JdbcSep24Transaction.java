@@ -143,4 +143,8 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @SerializedName("source_asset")
   @Column(name = "source_asset")
   String sourceAsset;
+
+  @SerializedName("destination_asset")
+  @Column(name = "destination_asset")
+  String destinationAsset;
 }

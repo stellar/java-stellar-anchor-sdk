@@ -244,6 +244,10 @@ public interface Sep24Transaction extends SepTransaction {
 
   void setSourceAsset(String sourceAsset);
 
+  String getDestinationAsset();
+
+  void setDestinationAsset(String sourceAsset);
+
   enum Kind {
     DEPOSIT("deposit"),
     WITHDRAWAL("withdrawal");

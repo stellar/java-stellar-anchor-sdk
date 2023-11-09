@@ -79,14 +79,14 @@ internal class Sep24ServiceTest {
       {
         "id": "test-withdraw-quote-id",
         "expires_at": "2021-04-30T07:42:23",
-        "total_price": "0.20",
-        "price": "0.18",
+        "total_price": "0.542",
+        "price": "0.5",
         "sell_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-        "sell_amount": "100",
+        "sell_amount": "542",
         "buy_asset": "iso4217:BRL",
-        "buy_amount": "500",
+        "buy_amount": "1000",
         "fee": {
-          "total": "10.00",
+          "total": "42",
           "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
         }
       }
@@ -198,8 +198,7 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals(withdrawQuote.id, slotTxn.captured.quoteId)
-    assertEquals(withdrawQuote.sellAmount, slotTxn.captured.amountIn)
-    assertEquals(withdrawQuote.buyAmount, slotTxn.captured.amountOut)
+    assertEquals(withdrawQuote.buyAsset, slotTxn.captured.destinationAsset)
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
@@ -330,8 +329,7 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals(depositQuote.id, slotTxn.captured.quoteId)
-    assertEquals(depositQuote.sellAmount, slotTxn.captured.amountIn)
-    assertEquals(depositQuote.buyAmount, slotTxn.captured.amountOut)
+    assertEquals(depositQuote.sellAsset, slotTxn.captured.sourceAsset)
   }
 
   @Test
