@@ -1,11 +1,11 @@
-package org.stellar.anchor.integrationtest
+package org.stellar.anchor.platform.integrationtest
 
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.AbstractIntegrationTests
+import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
 

@@ -1,4 +1,4 @@
-package org.stellar.anchor.e2etest
+package org.stellar.anchor.platform.e2etest
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
@@ -22,8 +22,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.web.util.UriComponentsBuilder
-import org.stellar.anchor.AbstractIntegrationTests
-import org.stellar.anchor.CLIENT_WALLET_SECRET
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventRequestPayload
 import org.stellar.anchor.api.event.AnchorEvent
@@ -33,6 +31,8 @@ import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
+import org.stellar.anchor.platform.AbstractIntegrationTests
+import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.Log.info
 import org.stellar.reference.client.AnchorReferenceServerClient

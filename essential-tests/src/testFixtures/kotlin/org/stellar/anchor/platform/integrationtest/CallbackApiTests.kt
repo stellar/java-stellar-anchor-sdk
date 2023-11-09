@@ -1,4 +1,4 @@
-package org.stellar.anchor.integrationtest
+package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.Gson
 import java.time.Instant
@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import org.skyscreamer.jsonassert.JSONAssert
-import org.stellar.anchor.AbstractIntegrationTests
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
@@ -22,12 +21,13 @@ import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.client.Sep12Client
-import org.stellar.anchor.integrationtest.Sep12Tests.Companion.testCustomer1Json
-import org.stellar.anchor.integrationtest.Sep12Tests.Companion.testCustomer2Json
+import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
+import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer1Json
+import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
 import org.stellar.anchor.util.GsonUtils
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
