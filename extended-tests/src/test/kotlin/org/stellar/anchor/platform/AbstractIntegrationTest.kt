@@ -3,7 +3,10 @@ package org.stellar.anchor.platform
 import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
-import org.stellar.anchor.platform.test.*
+import org.stellar.anchor.platform.test.CustodyApiTests
+import org.stellar.anchor.platform.test.PlatformApiCustodyTests
+import org.stellar.anchor.platform.test.Sep24BaseEnd2EndTest
+import org.stellar.anchor.platform.test.Sep31End2EndTests
 import org.stellar.anchor.util.Sep1Helper
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.StellarConfiguration
@@ -30,11 +33,11 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   val testProfileRunner = TestProfileExecutor(config)
   lateinit var platformApiCustodyTests: PlatformApiCustodyTests
   lateinit var custodyApiTests: CustodyApiTests
-  lateinit var sep24RpcE2eTests: Sep24RpcEnd2EndTests
-  lateinit var sep24CustodyE2eTests: Sep24CustodyEnd2EndTests
-  lateinit var sep24CustodyRpcE2eTests: Sep24CustodyRpcEnd2EndTests
-  lateinit var sep31RpcE2eTests: Sep31RpcEnd2EndTests
-  lateinit var sep31CustodyRpcE2eTests: Sep31CustodyRpcEnd2EndTests
+  lateinit var sep24RpcE2eTests: Sep24BaseEnd2EndTest
+  lateinit var sep24CustodyE2eTests: Sep24BaseEnd2EndTest
+  lateinit var sep24CustodyRpcE2eTests: Sep24BaseEnd2EndTest
+  lateinit var sep31RpcE2eTests: Sep31End2EndTests
+  lateinit var sep31CustodyRpcE2eTests: Sep31End2EndTests
 
   fun setUp(envMap: Map<String, String>) {
     envMap.forEach { (key, value) -> config.env[key] = value }
@@ -56,11 +59,11 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
 
     platformApiCustodyTests = PlatformApiCustodyTests(config, toml, jwt)
     custodyApiTests = CustodyApiTests(config, toml, jwt)
-    sep24CustodyE2eTests = Sep24CustodyEnd2EndTests(config, jwt)
-    sep24RpcE2eTests = Sep24RpcEnd2EndTests(config, jwt)
-    sep24CustodyRpcE2eTests = Sep24CustodyRpcEnd2EndTests(config, jwt)
-    sep31RpcE2eTests = Sep31RpcEnd2EndTests(config, toml, jwt)
-    sep31CustodyRpcE2eTests = Sep31CustodyRpcEnd2EndTests(config, toml, jwt)
+    sep24CustodyE2eTests = Sep24BaseEnd2EndTest(config, jwt)
+    sep24RpcE2eTests = Sep24BaseEnd2EndTest(config, jwt)
+    sep24CustodyRpcE2eTests = Sep24BaseEnd2EndTest(config, jwt)
+    sep31RpcE2eTests = Sep31End2EndTests(config, toml, jwt)
+    sep31CustodyRpcE2eTests = Sep31End2EndTests(config, toml, jwt)
   }
 
   private suspend fun auth(): String {
