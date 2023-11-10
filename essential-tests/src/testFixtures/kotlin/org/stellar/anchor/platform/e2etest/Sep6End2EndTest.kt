@@ -76,12 +76,15 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
           "type" to "SWIFT"
         )
       )
+    Log.info("Deposit initiated: ${deposit.id}")
     waitStatus(deposit.id, PENDING_CUSTOMER_INFO_UPDATE, sep6Client)
 
     // Supply missing KYC info to continue with the transaction
     val additionalRequiredFields =
       sep6Client.getTransaction(mapOf("id" to deposit.id)).transaction.requiredCustomerInfoUpdates
     anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! }, memo)
+    Log.info("Submitted additional KYC info: $additionalRequiredFields")
+    Log.info("Bank transfer complete")
     waitStatus(deposit.id, COMPLETED, sep6Client)
 
     val completedDepositTxn = sep6Client.getTransaction(mapOf("id" to deposit.id))
@@ -134,25 +137,32 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
       sep6Client.withdraw(
         mapOf("asset_code" to USDC.code, "amount" to "1", "type" to "bank_account")
       )
+    Log.info("Withdrawal initiated: ${withdraw.id}")
     waitStatus(withdraw.id, PENDING_CUSTOMER_INFO_UPDATE, sep6Client)
 
     // Supply missing financial account info to continue with the transaction
     val additionalRequiredFields =
       sep6Client.getTransaction(mapOf("id" to withdraw.id)).transaction.requiredCustomerInfoUpdates
     anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! }, memo)
+    Log.info("Submitted additional KYC info: $additionalRequiredFields")
+
     waitStatus(withdraw.id, PENDING_USR_TRANSFER_START, sep6Client)
 
     val withdrawTxn = sep6Client.getTransaction(mapOf("id" to withdraw.id)).transaction
 
     // Transfer the withdrawal amount to the Anchor
-    val transfer =
-      wallet
-        .stellar()
-        .transaction(walletKeyPair, memo = Pair(MemoType.HASH, withdrawTxn.withdrawMemo))
-        .transfer(withdrawTxn.withdrawAnchorAccount, USDC, "1")
-        .build()
-    transfer.sign(walletKeyPair)
-    transactionWithRetry { wallet.stellar().submitTransaction(transfer) }
+    Log.info("Transferring 1 USDC to Anchor account: ${withdrawTxn.withdrawAnchorAccount}")
+    transactionWithRetry {
+      val transfer =
+        wallet
+          .stellar()
+          .transaction(walletKeyPair, memo = Pair(MemoType.HASH, withdrawTxn.withdrawMemo))
+          .transfer(withdrawTxn.withdrawAnchorAccount, USDC, "1")
+          .build()
+      transfer.sign(walletKeyPair)
+      wallet.stellar().submitTransaction(transfer)
+    }
+    Log.info("Transfer complete")
     waitStatus(withdraw.id, COMPLETED, sep6Client)
 
     val expectedStatuses =
@@ -207,6 +217,6 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
       }
       delay(1.seconds)
     }
-    fail("Transaction status did not match expected status $expectedStatus")
+    fail("Transaction status $status did not match expected status $expectedStatus")
   }
 }

@@ -206,15 +206,17 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
     // Submit transfer transaction
     val walletTxn =
       (anchor.interactive().getTransaction(withdrawTxn.id, token) as WithdrawalTransaction)
-    val transfer =
-      wallet
-        .stellar()
-        .transaction(walletTxn.from!!)
-        .transferWithdrawalTransaction(walletTxn, asset)
-        .build()
-    transfer.sign(keypair)
+    transactionWithRetry {
+      val transfer =
+        wallet
+          .stellar()
+          .transaction(walletTxn.from!!)
+          .transferWithdrawalTransaction(walletTxn, asset)
+          .build()
+      transfer.sign(keypair)
 
-    transactionWithRetry { wallet.stellar().submitTransaction(transfer) }
+      wallet.stellar().submitTransaction(transfer)
+    }
     // Wait for the status to change to PENDING_USER_TRANSFER_END
     waitForTxnStatus(withdrawTxn.id, COMPLETED, token)
 
@@ -312,19 +314,21 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
     val keypair = SigningKeyPair.fromSecret(walletSecretKey)
     val newAcc = wallet.stellar().account().createKeyPair()
 
-    val tx =
-      wallet
-        .stellar()
-        .transaction(keypair)
-        .sponsoring(keypair, newAcc) {
-          createAccount(newAcc)
-          addAssetSupport(USDC)
-        }
-        .build()
-        .sign(keypair)
-        .sign(newAcc)
+    transactionWithRetry {
+      val tx =
+        wallet
+          .stellar()
+          .transaction(keypair)
+          .sponsoring(keypair, newAcc) {
+            createAccount(newAcc)
+            addAssetSupport(USDC)
+          }
+          .build()
+          .sign(keypair)
+          .sign(newAcc)
 
-    transactionWithRetry { wallet.stellar().submitTransaction(tx) }
+      wallet.stellar().submitTransaction(tx)
+    }
     delay(5000)
     val token = anchor.auth().authenticate(newAcc)
     val deposits =
