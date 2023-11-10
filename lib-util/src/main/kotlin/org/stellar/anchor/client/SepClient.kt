@@ -59,8 +59,6 @@ open class SepClient {
   fun handleResponse(response: Response): String? {
     val responseBody = response.body?.string()
 
-    println("statusCode: " + response.code)
-    println("responseBody: $responseBody")
     when (response.code) {
       HttpStatus.SC_OK,
       HttpStatus.SC_CREATED,
