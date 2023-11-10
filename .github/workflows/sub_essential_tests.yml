@@ -90,7 +90,7 @@ jobs:
           ANCHOR_DOMAIN: http://host.docker.internal:8080
         run: |
           cd /home/runner/java-stellar-anchor-sdk
-          ./gradlew test -x extended-tests:test jacocoTestReport --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar -x distTar -x distZip -x shadowJar -x shadowDistZip -x shadowDistTar -x bootDistTar -x bootDistZip
+          ./gradlew essential-tests:test --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar -x distTar -x distZip -x shadowJar -x shadowDistZip -x shadowDistTar -x bootDistTar -x bootDistZip
 
       - name: Run Stellar validation tool
         run: |
