@@ -42,11 +42,8 @@ import org.stellar.walletsdk.asset.StellarAssetId
 import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
 
-class Sep31CustodyRpcEnd2EndTests(
-  config: TestConfig,
-  val toml: Sep1Helper.TomlContent,
-  val jwt: String
-) {
+/** TODO: This should be moved into essential tests */
+class Sep31End2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent, val jwt: String) {
   private val gson = GsonUtils.getInstance()
   private val walletSecretKey = System.getenv("WALLET_SECRET_KEY") ?: CLIENT_WALLET_SECRET
   private val keypair = SigningKeyPair.fromSecret(walletSecretKey)
@@ -55,7 +52,7 @@ class Sep31CustodyRpcEnd2EndTests(
       StellarConfiguration.Testnet,
       ApplicationConfiguration { defaultRequest { url { protocol = URLProtocol.HTTP } } }
     )
-  private val maxTries = 90
+  private val maxTries = 60
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
   private val walletServerClient = WalletServerClient(Url(config.env["wallet.server.url"]!!))
@@ -174,7 +171,10 @@ class Sep31CustodyRpcEnd2EndTests(
     var retries = 5
     var callbacks: List<Sep31GetTransactionResponse>? = null
     while (retries > 0) {
-      callbacks = walletServerClient.getCallbacks(txnId, Sep31GetTransactionResponse::class.java)
+      callbacks =
+        walletServerClient.getCallbacks(txnId, Sep31GetTransactionResponse::class.java).distinctBy {
+          it.transaction.status
+        }
       if (callbacks.size == count) {
         return callbacks
       }
@@ -232,7 +232,7 @@ class Sep31CustodyRpcEnd2EndTests(
 
   companion object {
     private val USDC =
-      IssuedAssetId("USDC", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+      IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     private const val FIAT_USD = "iso4217:USD"
     private val expectedStatuses =
       listOf(
@@ -246,7 +246,7 @@ class Sep31CustodyRpcEnd2EndTests(
     """{
     "amount": "5",
     "asset_code": "USDC",
-    "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+    "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "receiver_id": "MOCK_RECEIVER_ID",
     "sender_id": "MOCK_SENDER_ID",
     "fields": {

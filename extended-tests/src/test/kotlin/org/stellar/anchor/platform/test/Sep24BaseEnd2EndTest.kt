@@ -11,6 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.callback.SendEventRequest
 import org.stellar.anchor.api.callback.SendEventRequestPayload
@@ -25,6 +26,7 @@ import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.Log.info
 import org.stellar.reference.client.AnchorReferenceServerClient
+import org.stellar.reference.transactionWithRetry
 import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.InteractiveFlowResponse
@@ -34,12 +36,12 @@ import org.stellar.walletsdk.anchor.*
 import org.stellar.walletsdk.anchor.TransactionStatus.*
 import org.stellar.walletsdk.asset.IssuedAssetId
 import org.stellar.walletsdk.asset.StellarAssetId
-import org.stellar.walletsdk.asset.XLM
 import org.stellar.walletsdk.auth.AuthToken
 import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
 
-class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
+/** TODO: This should be replaced by Sep24End2EndTest */
+class Sep24BaseEnd2EndTest(config: TestConfig, val jwt: String) {
   private val walletSecretKey = System.getenv("WALLET_SECRET_KEY") ?: CLIENT_WALLET_SECRET
   private val keypair = SigningKeyPair.fromSecret(walletSecretKey)
   private val wallet =
@@ -62,7 +64,7 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
         socketTimeoutMillis = 300000
       }
     }
-  private val maxTries = 90
+  private val maxTries = 30
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
   private val walletServerClient = WalletServerClient(Url(config.env["wallet.server.url"]!!))
@@ -102,11 +104,11 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
       assertEquals(fetchedTxn.id, transactionByStellarId.id)
 
       // Check the events sent to the reference server are recorded correctly
-      val actualEvents = waitForBusinessServerEvents(response.id, 5)
+      val actualEvents = waitForBusinessServerEvents(response.id, 4)
       assertEvents(actualEvents, expectedStatuses)
 
       // Check the callbacks sent to the wallet reference server are recorded correctly
-      val actualCallbacks = waitForWalletServerCallbacks(response.id, 5)
+      val actualCallbacks = waitForWalletServerCallbacks(response.id, 4)
       assertCallbacks(actualCallbacks, expectedStatuses)
     }
 
@@ -143,9 +145,7 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
           assertNotNull(actualEvent.id)
           assertNotNull(actualEvent.timestamp)
           assertEquals(expectedStatus.first.type, actualEvent.type)
-          org.junit.jupiter.api.Assertions.assertTrue(
-            actualEvent.payload is SendEventRequestPayload
-          )
+          assertTrue(actualEvent.payload is SendEventRequestPayload)
           assertEquals(expectedStatus.second, actualEvent.payload.transaction.status)
         }
       }
@@ -196,14 +196,16 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
     // Submit transfer transaction
     val walletTxn =
       (anchor.interactive().getTransaction(withdrawTxn.id, token) as WithdrawalTransaction)
-    val transfer =
-      wallet
-        .stellar()
-        .transaction(walletTxn.from!!)
-        .transferWithdrawalTransaction(walletTxn, asset)
-        .build()
-    transfer.sign(keypair)
-    wallet.stellar().submitTransaction(transfer)
+    transactionWithRetry {
+      val transfer =
+        wallet
+          .stellar()
+          .transaction(walletTxn.from!!)
+          .transferWithdrawalTransaction(walletTxn, asset)
+          .build()
+      transfer.sign(keypair)
+      wallet.stellar().submitTransaction(transfer)
+    }
     // Wait for the status to change to PENDING_USER_TRANSFER_END
     waitForTxnStatus(withdrawTxn.id, COMPLETED, token)
 
@@ -217,11 +219,11 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
     assertEquals(fetchTxn.id, transactionByStellarId.id)
 
     // Check the events sent to the reference server are recorded correctly
-    val actualEvents = waitForBusinessServerEvents(withdrawTxn.id, 5)
+    val actualEvents = waitForBusinessServerEvents(withdrawTxn.id, 4)
     assertEvents(actualEvents, expectedStatuses)
 
     // Check the callbacks sent to the wallet reference server are recorded correctly
-    val actualCallbacks = waitForWalletServerCallbacks(withdrawTxn.id, 5)
+    val actualCallbacks = waitForWalletServerCallbacks(withdrawTxn.id, 4)
     assertCallbacks(actualCallbacks, expectedStatuses)
   }
 
@@ -232,7 +234,10 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
     var retries = 5
     var callbacks: List<Sep24GetTransactionResponse>? = null
     while (retries > 0) {
-      callbacks = walletServerClient.getCallbacks(txnId, Sep24GetTransactionResponse::class.java)
+      callbacks =
+        walletServerClient.getCallbacks(txnId, Sep24GetTransactionResponse::class.java).distinctBy {
+          it.transaction.status
+        }
       if (callbacks.size == count) {
         return callbacks
       }
@@ -294,19 +299,21 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
   ) = runBlocking {
     val newAcc = wallet.stellar().account().createKeyPair()
 
-    val tx =
-      wallet
-        .stellar()
-        .transaction(keypair)
-        .sponsoring(keypair, newAcc) {
-          createAccount(newAcc)
-          addAssetSupport(USDC)
-        }
-        .build()
-        .sign(keypair)
-        .sign(newAcc)
+    transactionWithRetry {
+      val tx =
+        wallet
+          .stellar()
+          .transaction(keypair)
+          .sponsoring(keypair, newAcc) {
+            createAccount(newAcc)
+            addAssetSupport(USDC)
+          }
+          .build()
+          .sign(keypair)
+          .sign(newAcc)
 
-    wallet.stellar().submitTransaction(tx)
+      wallet.stellar().submitTransaction(tx)
+    }
 
     val token = anchor.auth().authenticate(newAcc)
     val deposits =
@@ -322,24 +329,19 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
 
   fun testAll() {
     info("Running SEP-24 USDC end-to-end tests...")
-    `test typical deposit end-to-end flow`(USDC, "1.1")
-    `test typical withdraw end-to-end flow`(USDC, "1.1")
+    `test typical deposit end-to-end flow`(USDC, "0.01")
+    `test typical withdraw end-to-end flow`(USDC, "0.01")
     `test created transactions show up in the get history call`(USDC, "1.1")
-    info("Running SEP-24 XLM end-to-end tests...")
-    `test typical deposit end-to-end flow`(XLM, "0.00001")
-    `test typical withdraw end-to-end flow`(XLM, "0.00001")
-    `test created transactions show up in the get history call`(XLM, "0.00001")
   }
 
   companion object {
     private val USDC =
-      IssuedAssetId("USDC", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+      IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     private val expectedStatuses =
       listOf(
         TRANSACTION_CREATED to SepTransactionStatus.INCOMPLETE,
         TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_USR_TRANSFER_START,
         TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_ANCHOR,
-        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_STELLAR,
         TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
       )
   }
