@@ -70,7 +70,7 @@ subprojects {
       reports {
         xml.required.set(true)
         csv.required.set(false)
-        html.required.set(true)
+        html.required.set(false)
       }
     }
   }
