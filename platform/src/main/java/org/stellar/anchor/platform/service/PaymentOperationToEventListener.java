@@ -86,6 +86,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     if (sep31Txn != null) {
       try {
         handleSep31Transaction(payment, sep31Txn);
+        return;
       } catch (AnchorException aex) {
         warnF("Error handling the SEP31 transaction id={}.", sep31Txn.getId());
         errorEx(aex);
@@ -105,6 +106,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     if (sep24Txn != null) {
       try {
         handleSep24Transaction(payment, sep24Txn);
+        return;
       } catch (AnchorException aex) {
         warnF("Error handling the SEP24 transaction id={}.", sep24Txn.getId());
         errorEx(aex);
@@ -123,6 +125,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     if (sep6Txn != null) {
       try {
         handleSep6Transaction(payment, sep6Txn);
+        return;
       } catch (AnchorException aex) {
         warnF("Error handling the SEP6 transaction id={}.", sep6Txn.getId());
         errorEx(aex);
