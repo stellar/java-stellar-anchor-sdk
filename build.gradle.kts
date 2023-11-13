@@ -144,9 +144,6 @@ subprojects {
     register<Test>("testFireblocksE2E") {
       useJUnitPlatform()
 
-      include("**/AnchorPlatformCustodyEnd2EndTest**")
-      include("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
-
       testLogging {
         events("SKIPPED", "FAILED")
         showExceptions = true
