@@ -26,6 +26,7 @@ import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.Log.info
 import org.stellar.reference.client.AnchorReferenceServerClient
+import org.stellar.reference.transactionWithRetry
 import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.InteractiveFlowResponse
@@ -38,7 +39,6 @@ import org.stellar.walletsdk.asset.StellarAssetId
 import org.stellar.walletsdk.auth.AuthToken
 import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
-import org.stellar.walletsdk.horizon.transaction.transferWithdrawalTransaction
 
 /** TODO: This should be replaced by Sep24End2EndTest */
 class Sep24BaseEnd2EndTest(config: TestConfig, val jwt: String) {
@@ -196,14 +196,16 @@ class Sep24BaseEnd2EndTest(config: TestConfig, val jwt: String) {
     // Submit transfer transaction
     val walletTxn =
       (anchor.interactive().getTransaction(withdrawTxn.id, token) as WithdrawalTransaction)
-    val transfer =
-      wallet
-        .stellar()
-        .transaction(walletTxn.from!!)
-        .transferWithdrawalTransaction(walletTxn, asset)
-        .build()
-    transfer.sign(keypair)
-    wallet.stellar().submitTransaction(transfer)
+    transactionWithRetry {
+      val transfer =
+        wallet
+          .stellar()
+          .transaction(walletTxn.from!!)
+          .transferWithdrawalTransaction(walletTxn, asset)
+          .build()
+      transfer.sign(keypair)
+      wallet.stellar().submitTransaction(transfer)
+    }
     // Wait for the status to change to PENDING_USER_TRANSFER_END
     waitForTxnStatus(withdrawTxn.id, COMPLETED, token)
 
@@ -297,19 +299,21 @@ class Sep24BaseEnd2EndTest(config: TestConfig, val jwt: String) {
   ) = runBlocking {
     val newAcc = wallet.stellar().account().createKeyPair()
 
-    val tx =
-      wallet
-        .stellar()
-        .transaction(keypair)
-        .sponsoring(keypair, newAcc) {
-          createAccount(newAcc)
-          addAssetSupport(USDC)
-        }
-        .build()
-        .sign(keypair)
-        .sign(newAcc)
+    transactionWithRetry {
+      val tx =
+        wallet
+          .stellar()
+          .transaction(keypair)
+          .sponsoring(keypair, newAcc) {
+            createAccount(newAcc)
+            addAssetSupport(USDC)
+          }
+          .build()
+          .sign(keypair)
+          .sign(newAcc)
 
-    wallet.stellar().submitTransaction(tx)
+      wallet.stellar().submitTransaction(tx)
+    }
 
     val token = anchor.auth().authenticate(newAcc)
     val deposits =

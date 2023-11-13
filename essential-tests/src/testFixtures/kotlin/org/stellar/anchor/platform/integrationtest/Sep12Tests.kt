@@ -33,12 +33,12 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig(testProfileName = "d
 
     // Upload a customer
     printRequest("Calling PUT /customer", customer)
-    var pr = anchor.sep12(token).add(customer, "sep24")
+    var pr = anchor.sep12(token).add(customer, type = "sep24")
     printResponse(pr)
 
     // make sure the customer was uploaded correctly.
     printRequest("Calling GET /customer", customer)
-    var gr = anchor.sep12(token).getByIdAndType(pr.id, "sep24")
+    var gr = anchor.sep12(token).get(pr.id, type = "sep24")
     printResponse(gr)
 
     assertEquals(pr.id, gr.id)
@@ -47,12 +47,12 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig(testProfileName = "d
 
     // Modify the customer
     printRequest("Calling PUT /customer", customer)
-    pr = anchor.sep12(token).add(customer, "sep31-receiver")
+    pr = anchor.sep12(token).add(customer, type = "sep31-receiver")
     printResponse(pr)
 
     // Make sure the customer is modified correctly.
     printRequest("Calling GET /customer", customer)
-    gr = anchor.sep12(token).getByIdAndType(pr.id, "sep31-receiver")
+    gr = anchor.sep12(token).get(pr.id, type = "sep31-receiver")
     printResponse(gr)
 
     assertEquals(pr.id, gr.id)
@@ -63,7 +63,7 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig(testProfileName = "d
     anchor.sep12(token).delete(walletKeyPair.address)
 
     val ex: ClientRequestException = assertThrows {
-      anchor.sep12(token).getByIdAndType(pr.id, "sep31-receiver")
+      anchor.sep12(token).get(pr.id, type = "sep31-receiver")
     }
     println(ex)
   }
