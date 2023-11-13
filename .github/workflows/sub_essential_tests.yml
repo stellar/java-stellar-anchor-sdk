@@ -1,0 +1,109 @@
+name: Run Essential Tests Workflow
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  essential_tests:
+    name: Run Essential Tests (Integration Tests, Faster End-2-End Tests, Unit Tests, and Stellar Validation Tools)
+    runs-on: ubuntu-latest-16-cores
+    #    runs-on: ubuntu-latest
+    steps:
+      #############################################
+      # Setup JDK 11
+      # Download, and Extract java-stellar-anchor-sdk.tar
+      # Setup hostnames (/etc/hosts)
+      #############################################
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Download java-stellar-anchor-sdk.tar
+        uses: actions/download-artifact@v3
+        with:
+          name: java-stellar-anchor-sdk-tar
+          path: /home/runner/
+
+      - name: Extract java-stellar-anchor-sdk.tar
+        run: |
+          cd /home/runner
+          tar -xf /home/runner/java-stellar-anchor-sdk.tar
+          cd /home/runner/java-stellar-anchor-sdk
+
+      - name: Set up hostnames (/etc/hosts)
+        run: |
+          sudo echo "127.0.0.1 db" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 zookeeper" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 kafka" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 sep24-reference-ui" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 reference-server" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 wallet-server" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 custody-server" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts 
+
+      #############################################
+
+
+      - name: Pull Stellar Validation Tests Docker Image
+        run: docker pull stellar/anchor-tests:v0.6.9 &
+
+      - name: Run Zookeeper, Kafka, Postgres, and Sep24 UI with docker-compose
+        env:
+          TEST_PROFILE_NAME: default
+        run: docker-compose -f /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/docker-compose-test.yaml up -d --build
+
+      - name: Run sep server, platform server, observer, and reference servers for integration tests
+        env:
+          RUN_DOCKER: false
+          RUN_ALL_SERVERS: false
+          RUN_SEP_SERVER: true
+          RUN_PLATFORM_SERVER: true
+          RUN_OBSERVER: true
+          RUN_KOTLIN_REFERENCE_SERVER: true
+          RUN_EVENT_PROCESSING_SERVER: true
+          RUN_WALLET_SERVER: true
+          SEP1_TOML_VALUE: /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/config/stellar.host.docker.internal.toml
+          SEP10_HOME_DOMAIN: host.docker.internal:8080
+        run: |
+          cp /home/runner/java-stellar-anchor-sdk/service-runner/build/libs/anchor-platform-runner-*.jar /home/runner/anchor-platform-runner.jar
+          java -jar /home/runner/anchor-platform-runner.jar -t &
+          echo "PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for the sep server to start and get ready
+        uses: mydea/action-wait-for-api@v1
+        with:
+          url: "http://localhost:8080/.well-known/stellar.toml"
+          expected-status: "200"
+          timeout: "300"
+          interval: "1"
+
+      #
+      # Run Essential Tests
+      #
+      - name: Run Essential Tests
+        env:
+          RUN_DOCKER: false
+          ANCHOR_DOMAIN: http://host.docker.internal:8080
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew essential-tests:test --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar -x distTar -x distZip -x shadowJar -x shadowDistZip -x shadowDistTar -x bootDistTar -x bootDistZip
+
+      - name: Run Stellar validation tool
+        run: |
+          docker run --network host -v /home/runner/java-stellar-anchor-sdk/platform/src/test/resources://config stellar/anchor-tests:v0.6.9 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
+
+      - name: Upload Essential Tests Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: essential-tests-report
+          path: |
+            /home/runner/java-stellar-anchor-sdk/api-schema/build/reports/
+            /home/runner/java-stellar-anchor-sdk/core/build/reports/
+            /home/runner/java-stellar-anchor-sdk/platform/build/reports/
+            /home/runner/java-stellar-anchor-sdk/essential-tests/build/reports/
+        
