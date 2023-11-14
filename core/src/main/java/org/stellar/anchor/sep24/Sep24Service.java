@@ -212,10 +212,13 @@ public class Sep24Service {
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
-            // TODO - jamie to add unique address generator
-            .withdrawAnchorAccount(asset.getDistributionAccount())
+
             .toAccount(asset.getDistributionAccount())
             .clientDomain(token.getClientDomain());
+
+    if (asset.getDistributionAccount() != null) {
+      builder.withdrawAnchorAccount(asset.getDistributionAccount());
+    }
 
     // TODO - jamie to look into memo vs withdrawal_memo
     if (memo != null) {

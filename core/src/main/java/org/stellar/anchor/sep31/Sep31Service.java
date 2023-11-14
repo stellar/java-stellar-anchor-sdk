@@ -217,11 +217,15 @@ public class Sep31Service {
             .amountInAsset(assetInfo.getSep38AssetName())
             .amountOut(null)
             .amountOutAsset(null)
-            // updateDepositInfo will update these ⬇️
             .stellarAccountId(assetInfo.getDistributionAccount())
             .stellarMemo(null)
             .stellarMemoType(null)
             .build();
+
+    // updateDepositInfo will update these ⬇️
+    if(assetInfo.getDistributionAccount() != null) {
+      txn.setStellarAccountId(assetInfo.getDistributionAccount());
+    }
 
     Context.get().setTransaction(txn);
     updateAmounts();
