@@ -212,7 +212,6 @@ public class Sep24Service {
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
-
             .toAccount(asset.getDistributionAccount())
             .clientDomain(token.getClientDomain());
 
