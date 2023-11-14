@@ -2,9 +2,11 @@ package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL_EXCHANGE;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_AMOUNTS_UPDATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
@@ -19,6 +21,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -84,7 +87,13 @@ public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsU
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     switch (Sep.from(txn.getProtocol())) {
       case SEP_6:
-        return Set.of(INCOMPLETE, PENDING_ANCHOR, PENDING_CUSTOMER_INFO_UPDATE);
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+        if (ImmutableSet.of(WITHDRAWAL, WITHDRAWAL_EXCHANGE).contains(Kind.from(txn6.getKind()))) {
+          if (areFundsReceived(txn6)) {
+            return Set.of(PENDING_ANCHOR);
+          }
+        }
+        return emptySet();
       case SEP_24:
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
         if (WITHDRAWAL == Kind.from(txn24.getKind())) {
