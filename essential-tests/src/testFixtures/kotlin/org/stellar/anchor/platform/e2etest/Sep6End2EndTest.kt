@@ -112,7 +112,6 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
     val expectedStatuses =
       listOf(
         INCOMPLETE,
-        PENDING_ANCHOR, // update amounts
         PENDING_CUSTOMER_INFO_UPDATE, // request KYC
         PENDING_USR_TRANSFER_START, // provide deposit instructions
         PENDING_ANCHOR, // deposit into user wallet
@@ -168,7 +167,6 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
     val expectedStatuses =
       listOf(
         INCOMPLETE,
-        PENDING_ANCHOR, // update amounts
         PENDING_CUSTOMER_INFO_UPDATE, // request KYC
         PENDING_USR_TRANSFER_START, // wait for onchain user transfer
         PENDING_ANCHOR, // funds available for pickup
