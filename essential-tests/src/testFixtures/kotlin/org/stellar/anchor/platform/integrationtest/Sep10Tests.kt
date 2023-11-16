@@ -7,7 +7,7 @@ import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.client.Sep10Client
 import org.stellar.anchor.platform.*
 
-class Sep10Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
   lateinit var sep10Client: Sep10Client
   lateinit var sep10ClientMultiSig: Sep10Client
 

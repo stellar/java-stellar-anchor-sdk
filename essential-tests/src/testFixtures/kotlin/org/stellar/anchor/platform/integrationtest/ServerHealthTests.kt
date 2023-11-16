@@ -7,7 +7,7 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.TestConfig
 
 class PlatformServerHealthTests {
-  val config = TestConfig(testProfileName = "default")
+  val config = TestConfig()
   private val platformApiClient =
     PlatformApiClient(AuthHelper.forNone(), config.env["sep.server.url"]!!)
 

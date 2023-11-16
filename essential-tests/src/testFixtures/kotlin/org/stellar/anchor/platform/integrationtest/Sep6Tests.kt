@@ -12,7 +12,7 @@ import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.Log
 
-class Sep6Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
   private val sep6Client = Sep6Client(toml.getString("TRANSFER_SERVER"), token.token)
   private val sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), this.token.token)
 

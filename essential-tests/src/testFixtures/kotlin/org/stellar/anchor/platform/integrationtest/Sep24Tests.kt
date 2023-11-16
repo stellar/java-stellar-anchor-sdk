@@ -36,7 +36,7 @@ import org.stellar.walletsdk.asset.IssuedAssetId
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(SAME_THREAD)
 @TestMethodOrder(OrderAnnotation::class)
-class Sep24Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class Sep24Tests : AbstractIntegrationTests(TestConfig()) {
   private val jwtService: JwtService =
     JwtService(
       config.env["secret.sep10.jwt_secret"]!!,

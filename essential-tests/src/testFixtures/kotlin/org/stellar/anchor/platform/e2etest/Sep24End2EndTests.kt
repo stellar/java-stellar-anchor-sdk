@@ -51,7 +51,7 @@ const val DEPOSIT_FUND_CLIENT_SECRET_2 = "SCW2SJEPTL4K7FFPFOFABFEFZJCG6LHULWVJX6
 
 @TestInstance(PER_CLASS)
 @Execution(CONCURRENT)
-class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   private val client = HttpClient {
     install(HttpTimeout) {
       requestTimeoutMillis = 300000
@@ -95,7 +95,7 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
     assertEquals(amount, (interactiveJwt.claims["data"] as Map<*, *>)["amount"], amount)
 
     // Wait for the status to change to COMPLETED
-    waitForTxnStatus(response.id, COMPLETED, token)
+    waitForTxnStatus(response.id, COMPLETED, ERROR, token)
 
     // Check if the transaction can be listed by stellar transaction id
     val fetchedTxn = anchor.interactive().getTransaction(response.id, token) as DepositTransaction
@@ -202,7 +202,7 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
     info("accessing ${withdrawTxn.url}...")
     assertEquals(200, resp.status.value)
     // Wait for the status to change to PENDING_USER_TRANSFER_START
-    waitForTxnStatus(withdrawTxn.id, PENDING_USER_TRANSFER_START, token)
+    waitForTxnStatus(withdrawTxn.id, PENDING_USER_TRANSFER_START, ERROR, token)
     // Submit transfer transaction
     val walletTxn =
       (anchor.interactive().getTransaction(withdrawTxn.id, token) as WithdrawalTransaction)
@@ -218,7 +218,7 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
       wallet.stellar().submitTransaction(transfer)
     }
     // Wait for the status to change to PENDING_USER_TRANSFER_END
-    waitForTxnStatus(withdrawTxn.id, COMPLETED, token)
+    waitForTxnStatus(withdrawTxn.id, COMPLETED, ERROR, token)
 
     // Check if the transaction can be listed by stellar transaction id
     val fetchTxn =
@@ -278,6 +278,7 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
   private suspend fun waitForTxnStatus(
     id: String,
     expectedStatus: TransactionStatus,
+    exitStatus: TransactionStatus,
     token: AuthToken
   ) {
     var status: TransactionStatus? = null
@@ -285,20 +286,18 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
     for (i in 0..maxTries) {
       // Get transaction info
       val transaction = anchor.interactive().getTransaction(id, token)
-
       if (status != transaction.status) {
         status = transaction.status
-
         info(
           "Transaction(id=${transaction.id}) status changed to $status. Message: ${transaction.message}"
         )
       }
 
-      delay(1.seconds)
+      if (transaction.status == expectedStatus) return
 
-      if (transaction.status == expectedStatus) {
-        return
-      }
+      if (transaction.status == exitStatus) break
+
+      delay(1.seconds)
     }
 
     fail("Transaction wasn't $expectedStatus in $maxTries tries, last status: $status")
@@ -334,7 +333,7 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
     val deposits =
       (0..1).map {
         val txnId = makeDeposit(asset, amount, token).id
-        waitForTxnStatus(txnId, COMPLETED, token)
+        waitForTxnStatus(txnId, COMPLETED, ERROR, token)
         txnId
       }
     val history = anchor.interactive().getTransactionsForAsset(asset, token)

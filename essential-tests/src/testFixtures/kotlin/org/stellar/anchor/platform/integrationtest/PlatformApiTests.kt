@@ -26,7 +26,7 @@ import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 
-class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   private val gson = GsonUtils.getInstance()
 
   private val platformApiClient =
