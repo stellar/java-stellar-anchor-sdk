@@ -51,6 +51,20 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
   }
 
   /**
+   * 1. incomplete -> request_offchain_funds
+   * 2. pending_user_transfer_start -> notify_offchain_funds_received
+   * 3. pending_anchor -> notify_onchain_funds_sent
+   * 4. completed
+   */
+  @Test
+  fun `SEP-6 deposit-exchange complete short flow`() {
+    `test sep6 deposit-exchange flow`(
+      SEP_6_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS,
+      SEP_6_DEPOSIT_EXCHANGE_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
    * 1. incomplete -> request_customer_info_update
    * 2. pending_customer_info_update -> request_offchain_funds
    * 3. pending_user_transfer_start -> notify_offchain_funds_received
@@ -110,6 +124,20 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
     `test sep6 withdraw flow`(
       SEP_6_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_REQUESTS,
       SEP_6_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> request_onchain_funds
+   * 2. pending_user_transfer_start -> notify_onchain_funds_received
+   * 3. pending_anchor -> notify_offchain_funds_sent
+   * 4. completed
+   */
+  @Test
+  fun `SEP-6 withdraw-exchange complete short flow`() {
+    `test sep6 withdraw-exchange flow`(
+      SEP_6_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_REQUESTS,
+      SEP_6_WITHDRAW_EXCHANGE_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
     )
   }
 
@@ -421,11 +449,29 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
     `test flow`(withdrawResponse.id, actionRequests, actionResponse)
   }
 
+  private fun `test sep6 withdraw-exchange flow`(actionRequests: String, actionResponse: String) {
+    val withdrawRequest = gson.fromJson(SEP_6_WITHDRAW_EXCHANGE_FLOW_REQUEST, HashMap::class.java)
+
+    @Suppress("UNCHECKED_CAST")
+    val withdrawResponse =
+      sep6Client.withdraw(withdrawRequest as HashMap<String, String>, exchange = true)
+    `test flow`(withdrawResponse.id, actionRequests, actionResponse)
+  }
+
   private fun `test sep6 deposit flow`(actionRequests: String, actionResponse: String) {
     val depositRequest = gson.fromJson(SEP_6_DEPOSIT_FLOW_REQUEST, HashMap::class.java)
 
     @Suppress("UNCHECKED_CAST")
     val depositResponse = sep6Client.deposit(depositRequest as HashMap<String, String>)
+    `test flow`(depositResponse.id, actionRequests, actionResponse)
+  }
+
+  private fun `test sep6 deposit-exchange flow`(actionRequests: String, actionResponse: String) {
+    val depositRequest = gson.fromJson(SEP_6_DEPOSIT_EXCHANGE_FLOW_REQUEST, HashMap::class.java)
+
+    @Suppress("UNCHECKED_CAST")
+    val depositResponse =
+      sep6Client.deposit(depositRequest as HashMap<String, String>, exchange = true)
     `test flow`(depositResponse.id, actionRequests, actionResponse)
   }
 
@@ -622,6 +668,135 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
               "started_at": "2023-11-15T21:42:15.946261Z",
               "updated_at": "2023-11-15T21:42:19.160375Z",
               "completed_at": "2023-11-15T21:42:19.160373Z",
+              "transfer_received_at": "2023-07-04T12:34:56Z",
+              "message": "test message 3",
+              "stellar_transactions": [
+                {
+                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+                  "created_at": "2023-06-22T08:46:56Z",
+                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "payments": [
+                    {
+                      "id": "563306435719169",
+                      "amount": {
+                        "amount": "4.5000000",
+                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                      },
+                      "payment_type": "payment",
+                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                    }
+                  ]
+                }
+              ],
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "external_transaction_id": "ext-123456",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              }
+            },
+            "id": "3"
+          }
+        ]
+      """
+
+    private const val SEP_6_DEPOSIT_EXCHANGE_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
+      """
+        [
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "TX_ID",
+              "sep": "6",
+              "kind": "deposit-exchange",
+              "status": "pending_user_transfer_start",
+              "type": "SWIFT",
+              "amount_expected": {
+                "amount": "100",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": { "amount": "100", "asset": "iso4217:USD" },
+              "amount_out": {
+                "amount": "95",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_fee": { "amount": "5", "asset": "iso4217:USD" },
+              "started_at": "2023-11-16T21:17:23.259258Z",
+              "updated_at": "2023-11-16T21:17:24.657547Z",
+              "message": "test message 1",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              }
+            },
+            "id": "1"
+          },
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "TX_ID",
+              "sep": "6",
+              "kind": "deposit-exchange",
+              "status": "pending_anchor",
+              "type": "SWIFT",
+              "amount_expected": {
+                "amount": "100",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": { "amount": "100", "asset": "iso4217:USD" },
+              "amount_out": {
+                "amount": "95",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_fee": { "amount": "5", "asset": "iso4217:USD" },
+              "started_at": "2023-11-16T21:17:23.259258Z",
+              "updated_at": "2023-11-16T21:17:25.712902Z",
+              "transfer_received_at": "2023-07-04T12:34:56Z",
+              "message": "test message 2",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "external_transaction_id": "ext-123456",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              }
+            },
+            "id": "2"
+          },
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "TX_ID",
+              "sep": "6",
+              "kind": "deposit-exchange",
+              "status": "completed",
+              "type": "SWIFT",
+              "amount_expected": {
+                "amount": "100",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": { "amount": "100", "asset": "iso4217:USD" },
+              "amount_out": {
+                "amount": "95",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_fee": { "amount": "5", "asset": "iso4217:USD" },
+              "started_at": "2023-11-16T21:17:23.259258Z",
+              "updated_at": "2023-11-16T21:17:26.934996Z",
+              "completed_at": "2023-11-16T21:17:26.934991Z",
               "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 3",
               "stellar_transactions": [
@@ -1797,6 +1972,168 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
               "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext-123456",
               "memo": "MmI1MjMzZDMtNzRmNS00ZjhiLTg5NGQtMWIwYTRiNzI\u003d",
+              "memo_type": "hash",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              }
+            },
+            "id": "3"
+          }
+        ]
+      """
+
+    private const val SEP_6_WITHDRAW_EXCHANGE_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
+      """
+        [
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "TX_ID",
+              "sep": "6",
+              "kind": "withdrawal-exchange",
+              "status": "pending_user_transfer_start",
+              "type": "bank_account",
+              "amount_expected": {
+                "amount": "100",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": {
+                "amount": "100",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_out": { "amount": "95", "asset": "iso4217:USD" },
+              "amount_fee": {
+                "amount": "5",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "started_at": "2023-11-16T21:18:15.453486Z",
+              "updated_at": "2023-11-16T21:18:16.521002Z",
+              "message": "test message 1",
+              "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "NjA0OTZjODgtNjc3ZC00ZmM2LThkYTktODQ2YWFhOWY\u003d",
+              "memo_type": "hash",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              }
+            },
+            "id": "1"
+          },
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "TX_ID",
+              "sep": "6",
+              "kind": "withdrawal-exchange",
+              "status": "pending_anchor",
+              "type": "bank_account",
+              "amount_expected": {
+                "amount": "100",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": {
+                "amount": "100",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_out": { "amount": "95", "asset": "iso4217:USD" },
+              "amount_fee": {
+                "amount": "5",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "started_at": "2023-11-16T21:18:15.453486Z",
+              "updated_at": "2023-11-16T21:18:17.599527Z",
+              "transfer_received_at": "2023-06-22T08:46:56Z",
+              "message": "test message 2",
+              "stellar_transactions": [
+                {
+                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+                  "created_at": "2023-06-22T08:46:56Z",
+                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "payments": [
+                    {
+                      "id": "563306435719169",
+                      "amount": {
+                        "amount": "4.5000000",
+                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                      },
+                      "payment_type": "payment",
+                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                    }
+                  ]
+                }
+              ],
+              "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "NjA0OTZjODgtNjc3ZC00ZmM2LThkYTktODQ2YWFhOWY\u003d",
+              "memo_type": "hash",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              }
+            },
+            "id": "2"
+          },
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "TX_ID",
+              "sep": "6",
+              "kind": "withdrawal-exchange",
+              "status": "completed",
+              "type": "bank_account",
+              "amount_expected": {
+                "amount": "100",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": {
+                "amount": "100",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_out": { "amount": "95", "asset": "iso4217:USD" },
+              "amount_fee": {
+                "amount": "5",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "started_at": "2023-11-16T21:18:15.453486Z",
+              "updated_at": "2023-11-16T21:18:18.643487Z",
+              "completed_at": "2023-11-16T21:18:18.643485Z",
+              "transfer_received_at": "2023-06-22T08:46:56Z",
+              "message": "test message 3",
+              "stellar_transactions": [
+                {
+                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+                  "created_at": "2023-06-22T08:46:56Z",
+                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "payments": [
+                    {
+                      "id": "563306435719169",
+                      "amount": {
+                        "amount": "4.5000000",
+                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                      },
+                      "payment_type": "payment",
+                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                    }
+                  ]
+                }
+              ],
+              "source_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "external_transaction_id": "ext-123456",
+              "memo": "NjA0OTZjODgtNjc3ZC00ZmM2LThkYTktODQ2YWFhOWY\u003d",
               "memo_type": "hash",
               "customers": {
                 "sender": {
@@ -6091,12 +6428,33 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "
         }
       """
 
+    private const val SEP_6_WITHDRAW_EXCHANGE_FLOW_REQUEST =
+      """
+        {
+          "destination_asset": "iso4217:USD",
+          "source_asset": "USDC",
+          "amount": "1",
+          "type": "bank_account"
+        }
+      """
+
     private const val SEP_6_DEPOSIT_FLOW_REQUEST =
       """
         {
           "asset_code": "USDC",
           "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
           "amount": "1",
+          "type": "SWIFT"
+        }
+      """
+
+    private const val SEP_6_DEPOSIT_EXCHANGE_FLOW_REQUEST =
+      """
+        {
+          "destination_asset": "USDC",
+          "source_asset": "iso4217:USD",
+          "amount": "1",
+          "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
           "type": "SWIFT"
         }
       """
