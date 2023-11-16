@@ -47,7 +47,7 @@ import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
-import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.ExchangeAmountsCalculator;
 import org.stellar.anchor.util.ConfigHelper;
 import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.MetricConstants;
@@ -67,8 +67,7 @@ public class Sep24Service {
   final InteractiveUrlConstructor interactiveUrlConstructor;
   final MoreInfoUrlConstructor moreInfoUrlConstructor;
   final CustodyConfig custodyConfig;
-
-  final Sep38QuoteStore sep38QuoteStore;
+  final ExchangeAmountsCalculator exchangeAmountsCalculator;
 
   final Counter sep24TransactionRequestedCounter =
       counter(MetricConstants.SEP24_TRANSACTION_REQUESTED);
@@ -99,7 +98,7 @@ public class Sep24Service {
       InteractiveUrlConstructor interactiveUrlConstructor,
       MoreInfoUrlConstructor moreInfoUrlConstructor,
       CustodyConfig custodyConfig,
-      Sep38QuoteStore sep38QuoteStore) {
+      ExchangeAmountsCalculator exchangeAmountsCalculator) {
     debug("appConfig:", appConfig);
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
@@ -112,7 +111,7 @@ public class Sep24Service {
     this.interactiveUrlConstructor = interactiveUrlConstructor;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
     this.custodyConfig = custodyConfig;
-    this.sep38QuoteStore = sep38QuoteStore;
+    this.exchangeAmountsCalculator = exchangeAmountsCalculator;
     info("Sep24Service initialized.");
   }
 
@@ -245,15 +244,13 @@ public class Sep24Service {
       builder.refundMemoType(memoTypeString(memoType(refundMemo)));
     }
 
-    this.validatedAndPopulateQuote(
-        builder,
-        WITHDRAWAL.toString(),
-        txnId,
-        withdrawRequest.get("quote_id"),
-        assetCode,
-        assetIssuer,
-        withdrawRequest.get("destination_asset"),
-        strAmount);
+    String quoteId = withdrawRequest.get("quote_id");
+    if (quoteId != null) {
+      System.out.println(asset.getSep38AssetName() + 1231231);
+      AssetInfo buyAsset = assetService.getAssetByName(withdrawRequest.get("destination_asset"));
+      this.validatedAndPopulateQuote(
+          quoteId, asset, buyAsset, strAmount, builder, WITHDRAWAL.toString(), txnId);
+    }
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
@@ -345,7 +342,7 @@ public class Sep24Service {
       }
     }
 
-    // Verify that the asset code exists in our database, with withdraw enabled.
+    // Verify that the asset code exists in our database, with deposit enabled.
     AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
     if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep24Enabled()) {
       infoF("invalid operation for asset {}", assetCode);
@@ -415,15 +412,12 @@ public class Sep24Service {
       builder.memoType(memoTypeString(memoType(memo)));
     }
 
-    this.validatedAndPopulateQuote(
-        builder,
-        DEPOSIT.toString(),
-        txnId,
-        depositRequest.get("quote_id"),
-        assetCode,
-        assetIssuer,
-        depositRequest.get("source_asset"),
-        strAmount);
+    String quoteId = depositRequest.get("quote_id");
+    if (quoteId != null) {
+      AssetInfo sellAsset = assetService.getAssetByName(depositRequest.get("source_asset"));
+      this.validatedAndPopulateQuote(
+          quoteId, sellAsset, asset, strAmount, builder, DEPOSIT.toString(), txnId);
+    }
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
@@ -573,73 +567,33 @@ public class Sep24Service {
         .build();
   }
 
-  private void validatedAndPopulateQuote(
+  public void validatedAndPopulateQuote(
+      String quoteId,
+      AssetInfo sellAsset,
+      AssetInfo buyAsset,
+      String strAmount,
       Sep24TransactionBuilder builder,
       String kind,
-      String txnId,
-      String quoteId,
-      String assetCode,
-      String assetIssuer,
-      String sourceOrDestAsset,
-      String strAmount)
-      throws BadRequestException {
-    if (quoteId == null) {
-      return;
-    }
-
-    Sep38Quote quote = sep38QuoteStore.findByQuoteId(quoteId);
-    if (quote == null) {
-      infoF("Quote ({}) was not found", quoteId);
-      throw new BadRequestException(String.format("quote(id=%s) was not found.", quoteId));
-    }
-
-    String[] onChainAsset =
-        kind.equals(DEPOSIT.toString())
-            ? quote.getBuyAsset().split(":")
-            : quote.getSellAsset().split(":");
-    String offChainAsset =
-        kind.equals(DEPOSIT.toString()) ? quote.getSellAsset() : quote.getBuyAsset();
-
-    // assetCode needs to match the on-chain asset code in the quote
-    if (!assetCode.equals(onChainAsset[1])) {
-      infoF("Quote ({}) does not match asset code ({})", quoteId, assetCode);
-      throw new BadRequestException(
-          String.format("quote(id=%s) does not match asset code (%s).", quoteId, assetCode));
-    }
-
-    // issuer, if provided, needs to match the on-chain asset issuer in the quote, except for native
-    if (assetIssuer != null
-        && !assetCode.equals("native")
-        && !assetIssuer.equals(onChainAsset[2])) {
-      infoF("Quote ({}) does not match asset issuer ({})", quoteId, assetIssuer);
-      throw new BadRequestException(
-          String.format("quote(id=%s) does not match asset issuer (%s).", quoteId, assetIssuer));
-    }
-
-    // source or destination asset, if provided, needs to match the off-chain asset in the quote
-    if (sourceOrDestAsset != null && !sourceOrDestAsset.equals(offChainAsset)) {
-      infoF(
-          "Quote ({}) does not match source or destination asset ({})", quoteId, sourceOrDestAsset);
-      throw new BadRequestException(
-          String.format(
-              "quote(id=%s) does not match source or destination asset (%s).",
-              quoteId, sourceOrDestAsset));
-    }
-
-    // amount, if provided, needs to match the sell_amount in the quote
-    if (strAmount != null && !(decimal(strAmount).equals(decimal(quote.getSellAmount())))) {
-      infoF("Quote ({}) does not match source amount ({})", quoteId, strAmount);
-      throw new BadRequestException(
-          String.format("quote(id=%s) does not match amount (%s).", quoteId, strAmount));
-    }
+      String txnId)
+      throws AnchorException {
+    Sep38Quote quote =
+        exchangeAmountsCalculator.validateQuoteAgainstRequestInfo(
+            quoteId, sellAsset, buyAsset, strAmount);
 
     debugF("Updating transaction ({}) with quote ({})", txnId, quoteId);
     builder.quoteId(quoteId);
     builder.amountExpected(quote.getSellAmount());
+    builder.amountIn(quote.getSellAmount());
+    builder.amountInAsset(quote.getSellAsset());
+    builder.amountOut(quote.getBuyAmount());
+    builder.amountOutAsset(quote.getBuyAsset());
+    builder.amountFee(quote.getFee().getTotal());
+    builder.amountFeeAsset(quote.getFee().getAsset());
+
     if (kind.equals(DEPOSIT.toString())) {
-      builder.sourceAsset(offChainAsset);
+      builder.sourceAsset(quote.getSellAsset());
     } else {
-      builder.destinationAsset(offChainAsset);
+      builder.destinationAsset(quote.getBuyAsset());
     }
   }
 }

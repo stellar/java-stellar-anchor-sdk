@@ -182,6 +182,8 @@ public class SepBeans {
       MoreInfoUrlConstructor moreInfoUrlConstructor,
       CustodyConfig custodyConfig,
       Sep38QuoteStore sep38QuoteStore) {
+    ExchangeAmountsCalculator exchangeAmountsCalculator =
+        new ExchangeAmountsCalculator(sep38QuoteStore);
     return new Sep24Service(
         appConfig,
         sep24Config,
@@ -193,7 +195,7 @@ public class SepBeans {
         interactiveUrlConstructor,
         moreInfoUrlConstructor,
         custodyConfig,
-        sep38QuoteStore);
+        exchangeAmountsCalculator);
   }
 
   @Bean
