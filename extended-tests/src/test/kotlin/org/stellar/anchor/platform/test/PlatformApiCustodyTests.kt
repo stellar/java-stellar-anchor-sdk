@@ -59,6 +59,8 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
 
     `SEP-24 deposit complete full`()
     `SEP-24 withdraw full refund`()
+    // TODO: This is temporarily disabled because of lacking support for debugging. This should be
+    // re-enabled once the tests are cleaned up.
     `SEP-31 refunded do_stellar_refund`()
   }
 

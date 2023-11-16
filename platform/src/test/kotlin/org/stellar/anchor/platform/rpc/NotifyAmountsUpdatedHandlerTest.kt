@@ -45,7 +45,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
-class NotifyAmountsUpdatedTest {
+class NotifyAmountsUpdatedHandlerTest {
 
   companion object {
     private val gson = GsonUtils.getInstance()
@@ -332,25 +332,58 @@ class NotifyAmountsUpdatedTest {
     assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 
+  @CsvSource(value = ["deposit", "deposit-exchange"])
   @ParameterizedTest
-  @CsvSource(
-    value =
-      [
-        "deposit, incomplete",
-        "deposit, pending_anchor",
-        "deposit, pending_customer_info_update",
-        "deposit-exchange, incomplete",
-        "deposit-exchange, pending_anchor",
-        "deposit-exchange, pending_customer_info_update",
-        "withdrawal, incomplete",
-        "withdrawal, pending_anchor",
-        "withdrawal, pending_customer_info_update",
-        "withdrawal-exchange, incomplete",
-        "withdrawal-exchange, pending_anchor",
-        "withdrawal-exchange, pending_customer_info_update"
-      ]
-  )
-  fun test_handle_sep6_ok(kind: String, status: String) {
+  fun test_handle_sep6_unsupportedKind(kind: String) {
+    val request = NotifyAmountsUpdatedRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = PENDING_ANCHOR.toString()
+    txn6.kind = kind
+    txn6.transferReceivedAt = Instant.now()
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "RPC method[notify_amounts_updated] is not supported. Status[pending_anchor], kind[$kind], protocol[6], funds received[true]",
+      ex.message
+    )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @Test
+  fun test_handle_sep6_transferNotReceived() {
+    val request = NotifyAmountsUpdatedRequest.builder().transactionId(TX_ID).build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.kind = WITHDRAWAL.kind
+    txn6.status = PENDING_ANCHOR.toString()
+
+    every { txn6Store.findByTransactionId(TX_ID) } returns txn6
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "RPC method[notify_amounts_updated] is not supported. Status[pending_anchor], kind[withdrawal], protocol[6], funds received[false]",
+      ex.message
+    )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = ["withdrawal", "withdrawal-exchange"])
+  fun test_handle_sep6_ok(kind: String) {
+    val transferReceivedAt = Instant.now()
     val request =
       NotifyAmountsUpdatedRequest.builder()
         .transactionId(TX_ID)
@@ -358,13 +391,14 @@ class NotifyAmountsUpdatedTest {
         .amountFee(AmountRequest("0.1"))
         .build()
     val txn6 = JdbcSep6Transaction()
-    txn6.status = status
+    txn6.status = PENDING_ANCHOR.toString()
     txn6.kind = kind
     txn6.requestAssetCode = FIAT_USD_CODE
     txn6.amountOutAsset = STELLAR_USDC
     txn6.amountOut = "1.8"
     txn6.amountFeeAsset = STELLAR_USDC
     txn6.amountFee = "0.2"
+    txn6.transferReceivedAt = transferReceivedAt
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -393,6 +427,7 @@ class NotifyAmountsUpdatedTest {
     expectedSep6Txn.amountOut = "0.9"
     expectedSep6Txn.amountFeeAsset = STELLAR_USDC
     expectedSep6Txn.amountFee = "0.1"
+    expectedSep6Txn.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -408,6 +443,7 @@ class NotifyAmountsUpdatedTest {
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(

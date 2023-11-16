@@ -43,7 +43,7 @@ class Sep6EventProcessor(
   override fun onTransactionCreated(event: AnchorEvent) {
     when (val kind = event.transaction.kind) {
       Kind.DEPOSIT,
-      Kind.WITHDRAWAL -> updateAmounts(event)
+      Kind.WITHDRAWAL -> requestKyc(event)
       else -> {
         log.warn("Received transaction created event with unsupported kind: $kind")
       }
@@ -209,8 +209,8 @@ class Sep6EventProcessor(
                       ),
                     amountOut =
                       AmountAssetRequest(
-                        asset = transaction.amountOut.asset,
-                        amount = transaction.amountOut.amount
+                        asset = transaction.amountExpected.asset,
+                        amount = transaction.amountExpected.amount
                       ),
                     amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
                     instructions =
@@ -278,25 +278,6 @@ class Sep6EventProcessor(
     return requiredKyc
       .plus(if (kind == Kind.DEPOSIT) depositRequiredKyc else withdrawRequiredKyc)
       .filter { !providedFields.contains(it) }
-  }
-
-  private fun updateAmounts(event: AnchorEvent) {
-    val asset =
-      when (event.transaction.kind) {
-        Kind.DEPOSIT -> event.transaction.amountExpected.asset
-        Kind.WITHDRAWAL -> "iso4217:USD"
-        else -> throw RuntimeException("Unsupported kind: ${event.transaction.kind}")
-      }
-    runBlocking {
-      sepHelper.rpcAction(
-        "notify_amounts_updated",
-        NotifyAmountsUpdatedRequest(
-          transactionId = event.transaction.id,
-          amountOut = AmountAssetRequest(asset, amount = event.transaction.amountExpected.amount),
-          amountFee = AmountAssetRequest(asset, amount = "0")
-        )
-      )
-    }
   }
 
   private fun requestKyc(event: AnchorEvent) {
