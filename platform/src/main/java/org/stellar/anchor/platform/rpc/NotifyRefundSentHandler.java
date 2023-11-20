@@ -1,20 +1,20 @@
 package org.stellar.anchor.platform.rpc;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_REFUND_SENT;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
+import static org.stellar.anchor.api.shared.RefundPayment.IdType.*;
 import static org.stellar.anchor.util.AssetHelper.getAssetCode;
-import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MathHelper.sum;
+import static org.stellar.anchor.util.MathHelper.*;
+import static org.stellar.anchor.util.MathHelper.formatAmount;
 
+import com.google.common.collect.ImmutableSet;
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
@@ -25,16 +25,12 @@ import org.stellar.anchor.api.rpc.method.NotifyRefundSentRequest;
 import org.stellar.anchor.api.rpc.method.RpcMethod;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
+import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.metrics.MetricsService;
-import org.stellar.anchor.platform.data.JdbcSep24RefundPayment;
-import org.stellar.anchor.platform.data.JdbcSep24Refunds;
-import org.stellar.anchor.platform.data.JdbcSep24Transaction;
-import org.stellar.anchor.platform.data.JdbcSep31RefundPayment;
-import org.stellar.anchor.platform.data.JdbcSep31Refunds;
-import org.stellar.anchor.platform.data.JdbcSep31Transaction;
-import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
@@ -73,6 +69,7 @@ public class NotifyRefundSentHandler extends RpcMethodHandler<NotifyRefundSentRe
 
     SepTransactionStatus currentStatus = SepTransactionStatus.from(txn.getStatus());
     switch (PlatformTransactionData.Sep.from(txn.getProtocol())) {
+      case SEP_6:
       case SEP_24:
         if (request.getRefund() == null && PENDING_ANCHOR == currentStatus) {
           throw new InvalidParamsException("refund is required");
@@ -139,6 +136,55 @@ public class NotifyRefundSentHandler extends RpcMethodHandler<NotifyRefundSentRe
 
     BigDecimal totalRefunded;
     switch (PlatformTransactionData.Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+        Refunds refunds = txn6.getRefunds();
+
+        if (refunds == null || refunds.getPayments() == null) {
+          totalRefunded =
+              sum(assetInfo, refund.getAmount().getAmount(), refund.getAmountFee().getAmount());
+        } else {
+          if (PENDING_ANCHOR == SepTransactionStatus.from(txn.getStatus())) {
+            totalRefunded =
+                sum(
+                    assetInfo,
+                    refunds.getAmountRefunded().getAmount(),
+                    refund.getAmount().getAmount(),
+                    refund.getAmountFee().getAmount());
+          } else {
+            if (refund == null) {
+              totalRefunded = decimal(refunds.getAmountRefunded().getAmount(), assetInfo);
+            } else {
+              org.stellar.anchor.api.shared.RefundPayment[] payments = refunds.getPayments();
+
+              // make sure refund, provided in request, was sent on refund_pending
+              Arrays.stream(payments)
+                  .map(org.stellar.anchor.api.shared.RefundPayment::getId)
+                  .filter(id -> id.equals(refund.getId()))
+                  .findFirst()
+                  .orElseThrow(() -> new InvalidParamsException("Invalid refund id"));
+
+              totalRefunded =
+                  Arrays.stream(payments)
+                      .map(
+                          payment -> {
+                            if (payment.getId().equals(request.getRefund().getId())) {
+                              return sum(
+                                  assetInfo,
+                                  refund.getAmount().getAmount(),
+                                  refund.getAmountFee().getAmount());
+                            } else {
+                              return sum(
+                                  assetInfo,
+                                  payment.getAmount().getAmount(),
+                                  payment.getFee().getAmount());
+                            }
+                          })
+                      .reduce(BigDecimal.ZERO, BigDecimal::add);
+            }
+          }
+        }
+        break;
       case SEP_24:
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
         Sep24Refunds sep24Refunds = txn24.getRefunds();
@@ -211,6 +257,25 @@ public class NotifyRefundSentHandler extends RpcMethodHandler<NotifyRefundSentRe
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
 
     switch (PlatformTransactionData.Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+        switch (Kind.from(txn6.getKind())) {
+          case DEPOSIT:
+          case DEPOSIT_EXCHANGE:
+            if (areFundsReceived(txn6)) {
+              supportedStatuses.add(PENDING_EXTERNAL);
+              supportedStatuses.add(PENDING_ANCHOR);
+            }
+            break;
+          case WITHDRAWAL:
+          case WITHDRAWAL_EXCHANGE:
+            supportedStatuses.add(PENDING_STELLAR);
+            if (areFundsReceived(txn6)) {
+              supportedStatuses.add(PENDING_ANCHOR);
+            }
+            break;
+        }
+        break;
       case SEP_24:
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
         switch (Kind.from(txn24.getKind())) {
@@ -240,15 +305,81 @@ public class NotifyRefundSentHandler extends RpcMethodHandler<NotifyRefundSentRe
   protected void updateTransactionWithRpcRequest(
       JdbcSepTransaction txn, NotifyRefundSentRequest request) {
     AssetInfo assetInfo = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
-    NotifyRefundSentRequest.Refund refund = request.getRefund();
-    if (refund != null) {
+    NotifyRefundSentRequest.Refund requestRefund = request.getRefund();
+    if (requestRefund != null) {
       switch (PlatformTransactionData.Sep.from(txn.getProtocol())) {
+        case SEP_6:
+          JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+          boolean isDeposit =
+              ImmutableSet.of(DEPOSIT, DEPOSIT_EXCHANGE).contains(Kind.from(txn6.getKind()));
+          org.stellar.anchor.api.shared.RefundPayment refundPayment =
+              org.stellar.anchor.api.shared.RefundPayment.builder()
+                  .id(requestRefund.getId())
+                  .idType(isDeposit ? EXTERNAL : STELLAR)
+                  .amount(
+                      Amount.builder()
+                          .asset(requestRefund.getAmount().getAsset())
+                          .amount(requestRefund.getAmount().getAmount())
+                          .build())
+                  .fee(
+                      Amount.builder()
+                          .asset(requestRefund.getAmountFee().getAsset())
+                          .amount(requestRefund.getAmountFee().getAmount())
+                          .build())
+                  .build();
+
+          Refunds refunds = txn6.getRefunds();
+          if (refunds == null) {
+            refunds = new Refunds();
+          }
+
+          if (refunds.getPayments() == null) {
+            refunds.setPayments(new org.stellar.anchor.api.shared.RefundPayment[] {refundPayment});
+          } else {
+            List<org.stellar.anchor.api.shared.RefundPayment> payments =
+                new ArrayList<>(Arrays.asList(refunds.getPayments()));
+            payments.removeIf(payment -> payment.getId().equals(request.getRefund().getId()));
+            payments.add(refundPayment);
+            refunds.setPayments(
+                payments.toArray(new org.stellar.anchor.api.shared.RefundPayment[0]));
+          }
+
+          List<org.stellar.anchor.api.shared.RefundPayment> refundPayments =
+              new ArrayList<>(Arrays.asList(refunds.getPayments()));
+
+          // Calculate the total fee amount by summing together fees from all refund payments.
+          refunds.setAmountFee(
+              new Amount(
+                  formatAmount(
+                      refundPayments.stream()
+                          .map(org.stellar.anchor.api.shared.RefundPayment::getFee)
+                          .map(amount -> decimal(amount.getAmount(), assetInfo))
+                          .reduce(BigDecimal.ZERO, BigDecimal::add)),
+                  requestRefund.getAmountFee().getAsset()));
+
+          // Calculate the total refunded amount by summing together amounts from all refund
+          // payments.
+          refunds.setAmountRefunded(
+              new Amount(
+                  formatAmount(
+                      sum(
+                          assetInfo,
+                          refunds.getAmountFee().getAmount(),
+                          formatAmount(
+                              refundPayments.stream()
+                                  .map(org.stellar.anchor.api.shared.RefundPayment::getAmount)
+                                  .map(amount -> decimal(amount.getAmount(), assetInfo))
+                                  .reduce(BigDecimal.ZERO, BigDecimal::add)))),
+                  requestRefund.getAmount().getAsset()));
+
+          txn6.setRefunds(refunds);
+          break;
         case SEP_24:
           Sep24RefundPayment sep24RefundPayment =
               JdbcSep24RefundPayment.builder()
-                  .id(refund.getId())
-                  .amount(refund.getAmount().getAmount())
-                  .fee(refund.getAmountFee().getAmount())
+                  .id(requestRefund.getId())
+                  .amount(requestRefund.getAmount().getAmount())
+                  .fee(requestRefund.getAmountFee().getAmount())
                   .build();
 
           JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
@@ -272,9 +403,9 @@ public class NotifyRefundSentHandler extends RpcMethodHandler<NotifyRefundSentRe
         case SEP_31:
           RefundPayment sep31RefundPayment =
               JdbcSep31RefundPayment.builder()
-                  .id(refund.getId())
-                  .amount(refund.getAmount().getAmount())
-                  .fee(refund.getAmountFee().getAmount())
+                  .id(requestRefund.getId())
+                  .amount(requestRefund.getAmount().getAmount())
+                  .fee(requestRefund.getAmountFee().getAmount())
                   .build();
 
           JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;

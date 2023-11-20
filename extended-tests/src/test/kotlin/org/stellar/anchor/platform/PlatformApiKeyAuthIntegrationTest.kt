@@ -21,7 +21,7 @@ internal class PlatformApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest()
       println("Running PlatformApiKeyAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(testProfileName = "default").also {
+          TestConfig().also {
             it.env[RUN_DOCKER] = "true"
             it.env[RUN_ALL_SERVERS] = "false"
             it.env[RUN_PLATFORM_SERVER] = "true"

@@ -9,7 +9,7 @@ import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
 
-class StellarObserverTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class StellarObserverTests : AbstractIntegrationTests(TestConfig()) {
   companion object {
     const val OBSERVER_HEALTH_SERVER_PORT = 8083
   }

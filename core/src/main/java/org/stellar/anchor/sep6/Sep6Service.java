@@ -89,14 +89,6 @@ public class Sep6Service {
             .type(request.getType())
             .assetCode(request.getAssetCode())
             .assetIssuer(asset.getIssuer())
-            // NB: these are purposely set to incorrect values.
-            // amount_out and amount_fee assets cannot be determined when the
-            // platform creates the transaction, but the RPC API requires
-            // these to be set during a notify_amounts_updated call.
-            .amountOut(request.getAmount())
-            .amountOutAsset(asset.getSep38AssetName())
-            .amountFee("0")
-            .amountFeeAsset(asset.getSep38AssetName())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
@@ -158,7 +150,7 @@ public class Sep6Service {
               request.getQuoteId(), sellAsset, request.getAmount());
     } else {
       // If a quote is not provided, set the fee and out amounts to 0.
-      // The business server should use the notify_amounts_updated RPC to update the amounts.
+      // The business server should use the request_offchain_funds RPC to update the amounts.
       amounts =
           Amounts.builder()
               .amountIn(request.getAmount())
@@ -256,14 +248,6 @@ public class Sep6Service {
             .assetIssuer(asset.getIssuer())
             .amountIn(request.getAmount())
             .amountInAsset(asset.getSep38AssetName())
-            // NB: these are purposely set to incorrect values.
-            // amount_out and amount_fee assets cannot be determined when the
-            // platform creates the transaction, but the RPC API requires
-            // these to be set during a notify_amounts_updated call.
-            .amountOut(request.getAmount())
-            .amountOutAsset(asset.getSep38AssetName())
-            .amountFee("0")
-            .amountFeeAsset(asset.getSep38AssetName())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
@@ -323,7 +307,7 @@ public class Sep6Service {
               request.getQuoteId(), sellAsset, request.getAmount());
     } else {
       // If a quote is not provided, set the fee and out amounts to 0.
-      // The business server should use the notify_amounts_updated RPC to update the amounts.
+      // The business server should use the request_onchain_funds RPC to update the amounts.
       amounts =
           Amounts.builder()
               .amountIn(request.getAmount())

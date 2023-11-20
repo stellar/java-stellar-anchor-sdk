@@ -29,7 +29,7 @@ import org.stellar.walletsdk.horizon.sign
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(ExecutionMode.CONCURRENT)
-class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
   private val maxTries = 30
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
@@ -112,7 +112,6 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
     val expectedStatuses =
       listOf(
         INCOMPLETE,
-        PENDING_ANCHOR, // update amounts
         PENDING_CUSTOMER_INFO_UPDATE, // request KYC
         PENDING_USR_TRANSFER_START, // provide deposit instructions
         PENDING_ANCHOR, // deposit into user wallet
@@ -168,7 +167,6 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig(testProfileName = "d
     val expectedStatuses =
       listOf(
         INCOMPLETE,
-        PENDING_ANCHOR, // update amounts
         PENDING_CUSTOMER_INFO_UPDATE, // request KYC
         PENDING_USR_TRANSFER_START, // wait for onchain user transfer
         PENDING_ANCHOR, // funds available for pickup

@@ -15,7 +15,7 @@ import org.stellar.sdk.KeyPair
 import org.stellar.walletsdk.anchor.auth
 import org.stellar.walletsdk.horizon.SigningKeyPair
 
-open class Sep12Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
   init {
     runBlocking {
       // We have to override the default CLIENT_WALLET_SECRET because the deletion of the customer
