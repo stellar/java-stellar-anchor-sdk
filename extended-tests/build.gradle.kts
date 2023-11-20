@@ -14,7 +14,8 @@ dependencies {
   testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.assertj.core)
   testImplementation("org.springframework.boot:spring-boot-starter-web")
-
+  testImplementation(libs.kotlin.serialization.json)
+  testImplementation(libs.ktor.client.json)
   // project dependencies
   testImplementation(project(":lib-util"))
   testImplementation(project(":api-schema"))

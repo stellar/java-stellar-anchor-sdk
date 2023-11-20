@@ -95,7 +95,7 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     assertEquals(amount, (interactiveJwt.claims["data"] as Map<*, *>)["amount"], amount)
 
     // Wait for the status to change to COMPLETED
-    waitForTxnStatus(response.id, COMPLETED, ERROR, token)
+    waitForTxnStatus(response.id, COMPLETED, token)
 
     // Check if the transaction can be listed by stellar transaction id
     val fetchedTxn = anchor.interactive().getTransaction(response.id, token) as DepositTransaction
@@ -202,7 +202,7 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     info("accessing ${withdrawTxn.url}...")
     assertEquals(200, resp.status.value)
     // Wait for the status to change to PENDING_USER_TRANSFER_START
-    waitForTxnStatus(withdrawTxn.id, PENDING_USER_TRANSFER_START, ERROR, token)
+    waitForTxnStatus(withdrawTxn.id, PENDING_USER_TRANSFER_START, token)
     // Submit transfer transaction
     val walletTxn =
       (anchor.interactive().getTransaction(withdrawTxn.id, token) as WithdrawalTransaction)
@@ -218,7 +218,7 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
       wallet.stellar().submitTransaction(transfer)
     }
     // Wait for the status to change to PENDING_USER_TRANSFER_END
-    waitForTxnStatus(withdrawTxn.id, COMPLETED, ERROR, token)
+    waitForTxnStatus(withdrawTxn.id, COMPLETED, token)
 
     // Check if the transaction can be listed by stellar transaction id
     val fetchTxn =
@@ -278,8 +278,8 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   private suspend fun waitForTxnStatus(
     id: String,
     expectedStatus: TransactionStatus,
-    exitStatus: TransactionStatus,
-    token: AuthToken
+    token: AuthToken,
+    exitStatus: TransactionStatus = ERROR
   ) {
     var status: TransactionStatus? = null
 
@@ -333,7 +333,7 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     val deposits =
       (0..1).map {
         val txnId = makeDeposit(asset, amount, token).id
-        waitForTxnStatus(txnId, COMPLETED, ERROR, token)
+        waitForTxnStatus(txnId, COMPLETED, token)
         txnId
       }
     val history = anchor.interactive().getTransactionsForAsset(asset, token)

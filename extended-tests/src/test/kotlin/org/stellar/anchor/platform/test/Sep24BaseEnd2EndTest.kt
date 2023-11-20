@@ -93,7 +93,7 @@ class Sep24BaseEnd2EndTest(config: TestConfig, val jwt: String) {
       assertEquals("referenceCustodial", interactiveJwt.claims[JwtService.CLIENT_NAME])
 
       // Wait for the status to change to COMPLETED
-      waitForTxnStatus(response.id, COMPLETED, token)
+      waitForTxnStatus(response.id, COMPLETED, ERROR, token)
 
       // Check if the transaction can be listed by stellar transaction id
       val fetchedTxn = anchor.interactive().getTransaction(response.id, token) as DepositTransaction
@@ -192,7 +192,7 @@ class Sep24BaseEnd2EndTest(config: TestConfig, val jwt: String) {
     info("accessing ${withdrawTxn.url}...")
     assertEquals(200, resp.status.value)
     // Wait for the status to change to PENDING_USER_TRANSFER_START
-    waitForTxnStatus(withdrawTxn.id, PENDING_USER_TRANSFER_START, token)
+    waitForTxnStatus(withdrawTxn.id, PENDING_USER_TRANSFER_START, ERROR, token)
     // Submit transfer transaction
     val walletTxn =
       (anchor.interactive().getTransaction(withdrawTxn.id, token) as WithdrawalTransaction)
@@ -207,7 +207,7 @@ class Sep24BaseEnd2EndTest(config: TestConfig, val jwt: String) {
       wallet.stellar().submitTransaction(transfer)
     }
     // Wait for the status to change to PENDING_USER_TRANSFER_END
-    waitForTxnStatus(withdrawTxn.id, COMPLETED, token)
+    waitForTxnStatus(withdrawTxn.id, COMPLETED, ERROR, token)
 
     // Check if the transaction can be listed by stellar transaction id
     val fetchTxn =
@@ -267,6 +267,7 @@ class Sep24BaseEnd2EndTest(config: TestConfig, val jwt: String) {
   private suspend fun waitForTxnStatus(
     id: String,
     expectedStatus: TransactionStatus,
+    exitStatus: TransactionStatus,
     token: AuthToken
   ) {
     var status: TransactionStatus? = null
@@ -274,20 +275,18 @@ class Sep24BaseEnd2EndTest(config: TestConfig, val jwt: String) {
     for (i in 0..maxTries) {
       // Get transaction info
       val transaction = anchor.interactive().getTransaction(id, token)
-
       if (status != transaction.status) {
         status = transaction.status
-
         info(
           "Transaction(id=${transaction.id}) status changed to $status. Message: ${transaction.message}"
         )
       }
 
-      delay(1.seconds)
+      if (transaction.status == expectedStatus) return
 
-      if (transaction.status == expectedStatus) {
-        return
-      }
+      if (transaction.status == exitStatus) break
+
+      delay(1.seconds)
     }
 
     fail("Transaction wasn't $expectedStatus in $maxTries tries, last status: $status")
@@ -319,7 +318,7 @@ class Sep24BaseEnd2EndTest(config: TestConfig, val jwt: String) {
     val deposits =
       (0..1).map {
         val txnId = makeDeposit(asset, amount, token).id
-        waitForTxnStatus(txnId, COMPLETED, token)
+        waitForTxnStatus(txnId, COMPLETED, ERROR, token)
         txnId
       }
     val history = anchor.interactive().getTransactionsForAsset(asset, token)
