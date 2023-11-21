@@ -171,7 +171,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
     // Update metrics
     Metrics.counter(
-            AnchorMetrics.SEP31_TRANSACTION.toString(),
+            AnchorMetrics.SEP31_TRANSACTION_OBSERVED.toString(),
             "status",
             SepTransactionStatus.PENDING_RECEIVER.toString())
         .increment();
@@ -219,7 +219,13 @@ public class PaymentOperationToEventListener implements PaymentListener {
           rpcConfig.getCustomMessages().getIncomingPaymentReceived());
     }
 
-    // TODO(ANCHOR-545): Disable metrics temporarily
+    Metrics.counter(
+            AnchorMetrics.SEP24_TRANSACTION_OBSERVED.toString(),
+            "status",
+            SepTransactionStatus.PENDING_ANCHOR.toString())
+        .increment();
+    Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
+        .increment(Double.parseDouble(payment.getAmount()));
   }
 
   void handleSep6Transaction(ObservedPayment payment, JdbcSep6Transaction txn)
