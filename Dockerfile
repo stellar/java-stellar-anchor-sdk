@@ -4,7 +4,7 @@ COPY --chown=gradle:gradle . .
 
 RUN gradle clean bootJar --stacktrace -x test
 
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends openjdk-11-jre
