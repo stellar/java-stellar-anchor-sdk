@@ -1,12 +1,15 @@
 package org.stellar.anchor.platform.config;
 
 import static org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.CUSTODY;
+import static org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.SELF;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep31Config;
 
@@ -16,9 +19,11 @@ public class PropertySep31Config implements Sep31Config, Validator {
   PaymentType paymentType = STRICT_SEND;
   DepositInfoGeneratorType depositInfoGeneratorType;
   CustodyConfig custodyConfig;
+  AssetService assetService;
 
-  public PropertySep31Config(CustodyConfig custodyConfig) {
+  public PropertySep31Config(CustodyConfig custodyConfig, AssetService assetService) {
     this.custodyConfig = custodyConfig;
+    this.assetService = assetService;
   }
 
   @Override
@@ -47,6 +52,17 @@ public class PropertySep31Config implements Sep31Config, Validator {
           "depositInfoGeneratorType",
           "sep31-deposit-info-generator-type",
           "[custody] deposit info generator type is not supported when custody integration is disabled");
+    }
+
+    if (SELF == depositInfoGeneratorType) {
+      for (AssetInfo asset : assetService.listStellarAssets()) {
+        if (!asset.getCode().equals("native") && asset.getDistributionAccount() == null) {
+          errors.rejectValue(
+              "depositInfoGeneratorType",
+              "sep31-deposit-info-generator-type",
+              "[self] deposit info generator type is not supported when distribution account is not set");
+        }
+      }
     }
   }
 }

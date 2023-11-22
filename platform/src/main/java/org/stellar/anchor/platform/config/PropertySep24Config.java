@@ -15,6 +15,8 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep24Config;
@@ -38,10 +40,13 @@ public class PropertySep24Config implements Sep24Config, Validator {
   DepositInfoGeneratorType depositInfoGeneratorType;
   CustodyConfig custodyConfig;
   KycFieldsForwarding kycFieldsForwarding;
+  AssetService assetService;
 
-  public PropertySep24Config(SecretConfig secretConfig, CustodyConfig custodyConfig) {
+  public PropertySep24Config(
+      SecretConfig secretConfig, CustodyConfig custodyConfig, AssetService assetService) {
     this.secretConfig = secretConfig;
     this.custodyConfig = custodyConfig;
+    this.assetService = assetService;
   }
 
   @Getter
@@ -203,6 +208,17 @@ public class PropertySep24Config implements Sep24Config, Validator {
           "depositInfoGeneratorType",
           "sep24-deposit-info-generator-type",
           "[custody] deposit info generator type is not supported when custody integration is disabled");
+    }
+
+    if (SELF == depositInfoGeneratorType) {
+      for (AssetInfo asset : assetService.listStellarAssets()) {
+        if (!asset.getCode().equals("native") && asset.getDistributionAccount() == null) {
+          errors.rejectValue(
+              "depositInfoGeneratorType",
+              "sep24-deposit-info-generator-type",
+              "[self] deposit info generator type is not supported when distribution account is not set");
+        }
+      }
     }
   }
 }
