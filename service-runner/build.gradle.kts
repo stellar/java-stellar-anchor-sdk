@@ -39,3 +39,23 @@ tasks {
 }
 
 application { mainClass.set("org.stellar.anchor.platform.ServiceRunner") }
+
+/**
+ * Start all the servers based on the `default` test configuration.
+ */
+tasks.register<JavaExec>("startAllServers") {
+  println("Starting all servers based on the `default` test configuration.")
+  group = "application"
+  classpath = sourceSets["main"].runtimeClasspath
+  mainClass.set("org.stellar.anchor.platform.run_profiles.RunAllServers")
+}
+
+/**
+ * Run docker-compose up to start Postgres, Kafka, Zookeeper,etc.
+ */
+tasks.register<JavaExec>("dockerComposeUp") {
+  println("Running docker-compose up to start Postgres, Kafka, Zookeeper,etc.")
+  group = "application"
+  classpath = sourceSets["main"].runtimeClasspath
+  mainClass.set("org.stellar.anchor.platform.run_profiles.RunDockerDevStack")
+}
