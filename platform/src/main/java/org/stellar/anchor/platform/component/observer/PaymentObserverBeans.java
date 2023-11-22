@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.component.observer;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
