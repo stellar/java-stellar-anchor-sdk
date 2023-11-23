@@ -51,7 +51,7 @@ const val DEPOSIT_FUND_CLIENT_SECRET_2 = "SCW2SJEPTL4K7FFPFOFABFEFZJCG6LHULWVJX6
 
 @TestInstance(PER_CLASS)
 @Execution(CONCURRENT)
-class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   private val client = HttpClient {
     install(HttpTimeout) {
       requestTimeoutMillis = 300000
@@ -278,27 +278,26 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
   private suspend fun waitForTxnStatus(
     id: String,
     expectedStatus: TransactionStatus,
-    token: AuthToken
+    token: AuthToken,
+    exitStatus: TransactionStatus = ERROR
   ) {
     var status: TransactionStatus? = null
 
     for (i in 0..maxTries) {
       // Get transaction info
       val transaction = anchor.interactive().getTransaction(id, token)
-
       if (status != transaction.status) {
         status = transaction.status
-
         info(
           "Transaction(id=${transaction.id}) status changed to $status. Message: ${transaction.message}"
         )
       }
 
-      delay(1.seconds)
+      if (transaction.status == expectedStatus) return
 
-      if (transaction.status == expectedStatus) {
-        return
-      }
+      if (transaction.status == exitStatus) break
+
+      delay(1.seconds)
     }
 
     fail("Transaction wasn't $expectedStatus in $maxTries tries, last status: $status")

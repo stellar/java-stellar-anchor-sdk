@@ -30,7 +30,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
       println("Running PlatformJwtAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(testProfileName = "default").also {
+          TestConfig().also {
             it.env[RUN_DOCKER] = "true"
             it.env[RUN_ALL_SERVERS] = "false"
             it.env[RUN_PLATFORM_SERVER] = "true"

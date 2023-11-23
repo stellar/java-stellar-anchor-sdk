@@ -215,7 +215,7 @@ public class Sep24Service {
             .toAccount(asset.getDistributionAccount())
             .clientDomain(token.getClientDomain());
 
-    if (asset.getDistributionAccount() != null) {
+    if (asset.getDistributionAccount().isEmpty()) {
       builder.withdrawAnchorAccount(asset.getDistributionAccount());
     }
 

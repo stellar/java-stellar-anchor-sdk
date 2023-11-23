@@ -10,19 +10,32 @@ plugins {
   jacoco
 }
 
-tasks {
-  register<Copy>("updateGitHook") {
-    from("scripts/pre-commit.sh") { rename { it.removeSuffix(".sh") } }
-    into(".git/hooks")
-    doLast {
-      if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
-        project.exec { commandLine("chmod", "+x", ".git/hooks/pre-commit") }
-      }
+// *******************************************************************************
+// Task registration and configuration
+// *******************************************************************************
+
+// The printVersionName task is used to print the version name of the project. This
+// is useful for CI/CD pipelines to get the version string of the project.
+tasks.register("printVersionName") { println(rootProject.version.toString()) }
+
+// The updateGitHook task is used to copy the pre-commit.sh file to the .git/hooks
+// directory. This is part of the efforts to force the Java/Kotlin code to be formatted
+// before committing the code.
+tasks.register<Copy>("updateGitHook") {
+  from("scripts/pre-commit.sh") { rename { it.removeSuffix(".sh") } }
+  into(".git/hooks")
+  doLast {
+    if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
+      project.exec { commandLine("chmod", "+x", ".git/hooks/pre-commit") }
     }
   }
-
-  "build" { dependsOn("updateGitHook") }
 }
+
+tasks { build { dependsOn("updateGitHook") } }
+
+// *******************************************************************************
+// Common configurations
+// *******************************************************************************
 
 subprojects {
   apply(plugin = "java")
@@ -47,10 +60,12 @@ subprojects {
       logger.warn("!!! WARNING !!!")
       logger.warn("=================")
       logger.warn(
-          "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
-          javaVersion)
+        "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
+        javaVersion
+      )
       logger.warn(
-          "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM")
+        "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM"
+      )
     }
 
     if (javaVersion < "11") {
@@ -127,25 +142,12 @@ subprojects {
     test {
       useJUnitPlatform()
       systemProperty(
-          "junit.jupiter.testclass.order.default",
-          "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation")
+        "junit.jupiter.testclass.order.default",
+        "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation"
+      )
 
       exclude("**/AnchorPlatformCustodyEnd2EndTest**")
       exclude("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
-
-      testLogging {
-        events("SKIPPED", "FAILED")
-        showExceptions = true
-        showStandardStreams = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-      }
-    }
-
-    register<Test>("testFireblocksE2E") {
-      useJUnitPlatform()
-
-      include("**/AnchorPlatformCustodyEnd2EndTest**")
-      include("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
 
       testLogging {
         events("SKIPPED", "FAILED")
@@ -181,10 +183,9 @@ allprojects {
   tasks.jar {
     manifest {
       attributes(
-          mapOf(
-              "Implementation-Title" to project.name, "Implementation-Version" to project.version))
+        mapOf("Implementation-Title" to project.name, "Implementation-Version" to project.version)
+      )
     }
   }
 }
 
-tasks.register("printVersionName") { println(rootProject.version.toString()) }

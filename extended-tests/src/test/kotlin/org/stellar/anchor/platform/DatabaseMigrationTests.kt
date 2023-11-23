@@ -5,7 +5,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
 val PostgresConfig =
-  TestConfig("default").also {
+  TestConfig().also {
     it.env[RUN_ALL_SERVERS] = "false"
     it.env[RUN_SEP_SERVER] = "true"
     it.env["data.flyway_enabled"] = "true"

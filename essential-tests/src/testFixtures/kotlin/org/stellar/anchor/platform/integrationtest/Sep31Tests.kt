@@ -40,7 +40,7 @@ lateinit var savedTxn: Sep31GetTransactionResponse
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(SAME_THREAD)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class Sep31Tests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
   private val sep12Client: Sep12Client = Sep12Client(toml.getString("KYC_SERVER"), this.token.token)
   private val sep31Client: Sep31Client =
     Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), this.token.token)
