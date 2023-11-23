@@ -93,7 +93,8 @@ public class Sep6Service {
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
-            .toAccount(request.getAccount());
+            .toAccount(request.getAccount())
+            .clientDomain(token.getClientDomain());
 
     if (memo != null) {
       builder.memo(memo.toString());
@@ -185,6 +186,7 @@ public class Sep6Service {
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(request.getAccount())
+            .clientDomain(token.getClientDomain())
             .quoteId(request.getQuoteId());
 
     if (memo != null) {
@@ -253,6 +255,7 @@ public class Sep6Service {
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
+            .clientDomain(token.getClientDomain())
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType());
 
@@ -339,6 +342,7 @@ public class Sep6Service {
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
+            .clientDomain(token.getClientDomain())
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType())
             .quoteId(request.getQuoteId());

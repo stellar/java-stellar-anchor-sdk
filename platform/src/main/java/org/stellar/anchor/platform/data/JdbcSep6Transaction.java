@@ -87,6 +87,10 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
   @Column(name = "memo_type")
   String memoType;
 
+  @SerializedName("client_domain")
+  @Column(name = "client_domain")
+  String clientDomain;
+
   @SerializedName("quote_id")
   @Column(name = "quote_id")
   String quoteId;

@@ -277,6 +277,15 @@ public interface Sep6Transaction extends SepTransaction {
   void setMemoType(String memoType);
 
   /**
+   * The client domain of the wallet that initiated the transaction.
+   *
+   * @return the client domain.
+   */
+  String getClientDomain();
+
+  void setClientDomain(String clientDomain);
+
+  /**
    * The ID returned from a SEP-38 quote response. IF this is set, the user must deliver the deposit
    * funds to the anchor before the quote expires, otherwise the anchor may not honor the quote.
    *

@@ -148,6 +148,11 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
+  public Sep6TransactionBuilder clientDomain(String clientDomain) {
+    txn.setClientDomain(clientDomain);
+    return this;
+  }
+
   public Sep6TransactionBuilder quoteId(String quoteId) {
     txn.setQuoteId(quoteId);
     return this;
