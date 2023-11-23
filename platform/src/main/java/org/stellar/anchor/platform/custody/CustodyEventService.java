@@ -22,14 +22,17 @@ import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 public abstract class CustodyEventService {
 
   private final JdbcCustodyTransactionRepo custodyTransactionRepo;
+  private final Sep6CustodyPaymentHandler sep6CustodyPaymentHandler;
   private final Sep24CustodyPaymentHandler sep24CustodyPaymentHandler;
   private final Sep31CustodyPaymentHandler sep31CustodyPaymentHandler;
 
   protected CustodyEventService(
       JdbcCustodyTransactionRepo custodyTransactionRepo,
+      Sep6CustodyPaymentHandler sep6CustodyPaymentHandler,
       Sep24CustodyPaymentHandler sep24CustodyPaymentHandler,
       Sep31CustodyPaymentHandler sep31CustodyPaymentHandler) {
     this.custodyTransactionRepo = custodyTransactionRepo;
+    this.sep6CustodyPaymentHandler = sep6CustodyPaymentHandler;
     this.sep24CustodyPaymentHandler = sep24CustodyPaymentHandler;
     this.sep31CustodyPaymentHandler = sep31CustodyPaymentHandler;
   }
@@ -49,6 +52,17 @@ public abstract class CustodyEventService {
     }
 
     switch (Sep.from(custodyTransaction.getProtocol())) {
+      case SEP_6:
+        switch (Kind.from(custodyTransaction.getKind())) {
+          case DEPOSIT:
+          case DEPOSIT_EXCHANGE:
+            sep6CustodyPaymentHandler.onSent(custodyTransaction, payment);
+            return;
+          case WITHDRAWAL:
+          case WITHDRAWAL_EXCHANGE:
+            sep6CustodyPaymentHandler.onReceived(custodyTransaction, payment);
+            return;
+        }
       case SEP_24:
         switch (Kind.from(custodyTransaction.getKind())) {
           case DEPOSIT:

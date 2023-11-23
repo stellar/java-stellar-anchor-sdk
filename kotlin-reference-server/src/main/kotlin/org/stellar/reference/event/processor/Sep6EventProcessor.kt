@@ -75,25 +75,31 @@ class Sep6EventProcessor(
         }
         runBlocking {
           val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
-          lateinit var txnId: String
-          transactionWithRetry {
-            txnId =
-              submitStellarTransaction(
-                keypair.accountId,
-                transaction.destinationAccount,
-                Asset.create(transaction.amountExpected.asset.toAssetId()),
-                transaction.amountExpected.amount
-              )
+          lateinit var stellarTxnId: String
+          if (config.appSettings.custodyEnabled) {
+            sepHelper.rpcAction(
+              "do_stellar_payment",
+              DoStellarPaymentRequest(transactionId = transaction.id)
+            )
+          } else {
+            transactionWithRetry {
+              stellarTxnId =
+                submitStellarTransaction(
+                  keypair.accountId,
+                  transaction.destinationAccount,
+                  Asset.create(transaction.amountExpected.asset.toAssetId()),
+                  transaction.amountExpected.amount
+                )
+            }
+            onchainPayments[transaction.id] = stellarTxnId
+            patchTransaction(
+              PlatformTransactionData.builder()
+                .id(transaction.id)
+                .status(PENDING_STELLAR)
+                .updatedAt(Instant.now())
+                .build()
+            )
           }
-          onchainPayments[transaction.id] = txnId
-          // TODO: manually submit the transaction until custody service is implemented
-          patchTransaction(
-            PlatformTransactionData.builder()
-              .id(transaction.id)
-              .status(PENDING_STELLAR)
-              .updatedAt(Instant.now())
-              .build()
-          )
         }
       }
       PENDING_USR_TRANSFER_START ->
