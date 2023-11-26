@@ -56,7 +56,7 @@ public class PropertySep31Config implements Sep31Config, Validator {
 
     if (SELF == depositInfoGeneratorType) {
       for (AssetInfo asset : assetService.listStellarAssets()) {
-        if (!asset.getCode().equals("native") && asset.getDistributionAccount() == null) {
+        if (!asset.getCode().equals("native") && asset.getDistributionAccount().isEmpty()) {
           errors.rejectValue(
               "depositInfoGeneratorType",
               "sep31-deposit-info-generator-type",

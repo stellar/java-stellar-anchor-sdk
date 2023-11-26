@@ -212,7 +212,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
 
     if (SELF == depositInfoGeneratorType) {
       for (AssetInfo asset : assetService.listStellarAssets()) {
-        if (!asset.getCode().equals("native") && asset.getDistributionAccount() == null) {
+        if (!asset.getCode().equals("native") && asset.getDistributionAccount().isEmpty()) {
           errors.rejectValue(
               "depositInfoGeneratorType",
               "sep24-deposit-info-generator-type",

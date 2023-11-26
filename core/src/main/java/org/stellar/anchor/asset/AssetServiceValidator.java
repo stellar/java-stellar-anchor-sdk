@@ -91,14 +91,4 @@ public class AssetServiceValidator {
       }
     }
   }
-
-  private static void validateDistributionAccount(AssetInfo assetInfo)
-      throws InvalidConfigException {
-    if (assetInfo.getSchema().equals(AssetInfo.Schema.stellar)
-        && !assetInfo.getCode().equals("native")
-        && assetInfo.getDistributionAccount() == null) {
-      throw new InvalidConfigException(
-          "Distribution account not defined for asset " + assetInfo.getSep38AssetName());
-    }
-  }
 }

@@ -223,7 +223,7 @@ public class Sep31Service {
             .build();
 
     // updateDepositInfo will update these ⬇️
-    if (assetInfo.getDistributionAccount() != null) {
+    if (!assetInfo.getDistributionAccount().isEmpty()) {
       txn.setStellarAccountId(assetInfo.getDistributionAccount());
     }
 
