@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.config;
 
 import static org.stellar.anchor.config.Sep6Config.DepositInfoGeneratorType.CUSTODY;
 import static org.stellar.anchor.config.Sep6Config.DepositInfoGeneratorType.SELF;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import lombok.*;
 import org.springframework.validation.Errors;
@@ -67,7 +68,7 @@ public class PropertySep6Config implements Sep6Config, Validator {
 
     if (SELF == depositInfoGeneratorType) {
       for (AssetInfo asset : assetService.listStellarAssets()) {
-        if (!asset.getCode().equals("native") && asset.getDistributionAccount().isEmpty()) {
+        if (!asset.getCode().equals("native") && isEmpty(asset.getDistributionAccount())) {
           errors.rejectValue(
               "depositInfoGeneratorType",
               "sep6-deposit-info-generator-type",

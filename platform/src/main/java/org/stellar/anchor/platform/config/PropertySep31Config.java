@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.config;
 import static org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.CUSTODY;
 import static org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.SELF;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +57,7 @@ public class PropertySep31Config implements Sep31Config, Validator {
 
     if (SELF == depositInfoGeneratorType) {
       for (AssetInfo asset : assetService.listStellarAssets()) {
-        if (!asset.getCode().equals("native") && asset.getDistributionAccount().isEmpty()) {
+        if (!asset.getCode().equals("native") && isEmpty(asset.getDistributionAccount())) {
           errors.rejectValue(
               "depositInfoGeneratorType",
               "sep31-deposit-info-generator-type",
