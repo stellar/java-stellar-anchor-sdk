@@ -103,4 +103,18 @@ class ExchangeAmountsCalculatorTest {
       calculator.calculateFromQuote(quoteId, assetService.getAsset("USDC"), "100")
     }
   }
+
+  @Test
+  fun `test validateQuoteAgainstRequestInfo with mismatched buy asset`() {
+    val quoteId = "id"
+    every { sep38QuoteStore.findByQuoteId(quoteId) } returns usdcQuote
+    assertThrows<BadRequestException> {
+      calculator.validateQuoteAgainstRequestInfo(
+        quoteId,
+        assetService.getAsset("USDC"),
+        assetService.getAsset("JPYC"),
+        "100"
+      )
+    }
+  }
 }

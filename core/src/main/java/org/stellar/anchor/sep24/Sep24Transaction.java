@@ -236,6 +236,18 @@ public interface Sep24Transaction extends SepTransaction {
 
   String getMessage();
 
+  String getQuoteId();
+
+  void setQuoteId(String quoteId);
+
+  String getSourceAsset();
+
+  void setSourceAsset(String sourceAsset);
+
+  String getDestinationAsset();
+
+  void setDestinationAsset(String sourceAsset);
+
   enum Kind {
     DEPOSIT("deposit"),
     WITHDRAWAL("withdrawal");
