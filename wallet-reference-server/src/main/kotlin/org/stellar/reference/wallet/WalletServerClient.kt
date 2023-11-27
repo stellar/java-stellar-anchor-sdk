@@ -53,8 +53,7 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
     var retries = 5
     var callbacks: List<T> = listOf()
     while (retries > 0) {
-      // TODO: remove when callbacks are de-duped
-      callbacks = getCallbacks(txnId, responseType).distinct()
+      callbacks = getCallbacks(txnId, responseType)
       if (callbacks.size >= expected) {
         return callbacks
       }
