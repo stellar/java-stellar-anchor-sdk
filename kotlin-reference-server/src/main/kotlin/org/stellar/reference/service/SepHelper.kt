@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import java.math.BigDecimal
 import java.util.*
+import java.util.Base64
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
