@@ -1,49 +1,61 @@
 package org.stellar.anchor.platform.service
 
 import io.mockk.MockKAnnotations
-import io.mockk.every
-import io.mockk.impl.annotations.MockK
-import io.mockk.mockk
+import java.util.stream.Stream
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.stellar.anchor.api.sep.AssetInfo
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.platform.data.JdbcSep6Transaction
 
 class Sep6DepositInfoSelfGeneratorTest {
 
   companion object {
-    private val TXN_ID = "testId"
-    private const val ASSET_CODE = "USDC"
-    private const val ASSET_ISSUER = "testIssuer"
-    private const val DISTRIBUTION_ACCOUNT = "testAccount"
+    @JvmStatic
+    fun assets(): Stream<Arguments> {
+      return Stream.of(
+        Arguments.of(
+          "testId1",
+          "USDC",
+          "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+          "GBJDTHT4562X2H37JMOE6IUTZZSDU6RYGYUNFYCHVFG3J4MYJIMU33HK",
+          "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMHRlc3RJZDE="
+        ),
+        Arguments.of("testId2", "USD", null, null, "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMHRlc3RJZDI=")
+      )
+    }
   }
 
-  @MockK(relaxed = true) lateinit var assetService: AssetService
+  private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
   private lateinit var generator: Sep6DepositInfoSelfGenerator
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    val asset = mockk<AssetInfo>()
-    every { asset.distributionAccount } returns DISTRIBUTION_ACCOUNT
-    every { assetService.getAsset(ASSET_CODE, ASSET_ISSUER) } returns asset
     generator = Sep6DepositInfoSelfGenerator(assetService)
   }
 
-  @Test
-  fun test_sep6_custodyGenerator_success() {
+  @ParameterizedTest
+  @MethodSource("assets")
+  fun test_sep6_selfGenerator_success(
+    txnId: String,
+    assetCode: String,
+    assetIssuer: String?,
+    distributionAccount: String?,
+    memo: String
+  ) {
     val txn = JdbcSep6Transaction()
-    txn.id = TXN_ID
-    txn.requestAssetCode = ASSET_CODE
-    txn.requestAssetIssuer = ASSET_ISSUER
+    txn.id = txnId
+    txn.requestAssetCode = assetCode
+    txn.requestAssetIssuer = assetIssuer
 
     val result = generator.generate(txn)
-    val expected =
-      SepDepositInfo(DISTRIBUTION_ACCOUNT, "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDB0ZXN0SWQ=", "hash")
+    val expected = SepDepositInfo(distributionAccount, memo, "hash")
     assertEquals(expected, result)
   }
 }
