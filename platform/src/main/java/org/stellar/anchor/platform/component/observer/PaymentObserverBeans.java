@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.component.observer;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,10 +35,7 @@ public class PaymentObserverBeans {
     if (assetService == null || assetService.listAllAssets() == null) {
       throw new ServerErrorException("Asset service cannot be empty.");
     }
-    List<AssetInfo> stellarAssets =
-        assetService.listAllAssets().stream()
-            .filter(asset -> asset.getSchema().equals(AssetInfo.Schema.stellar))
-            .collect(Collectors.toList());
+    List<AssetInfo> stellarAssets = assetService.listStellarAssets();
     if (stellarAssets.size() == 0) {
       throw new ServerErrorException("Asset service should contain at least one Stellar asset.");
     }
