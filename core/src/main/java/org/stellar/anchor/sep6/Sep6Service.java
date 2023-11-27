@@ -1,8 +1,10 @@
 package org.stellar.anchor.sep6;
 
+import static io.micrometer.core.instrument.Metrics.counter;
 import static org.stellar.anchor.util.MemoHelper.*;
 
 import com.google.common.collect.ImmutableMap;
+import io.micrometer.core.instrument.Counter;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,6 +19,7 @@ import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts;
+import org.stellar.anchor.util.MetricConstants;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.TransactionHelper;
 import org.stellar.sdk.Memo;
@@ -30,6 +33,31 @@ public class Sep6Service {
   private final EventService.Session eventSession;
 
   private final InfoResponse infoResponse;
+
+  private final Counter sep6TransactionRequestedCounter =
+      counter(MetricConstants.SEP6_TRANSACTION_REQUESTED);
+  private final Counter sep6TransactionQueriedCounter =
+      counter(MetricConstants.SEP6_TRANSACTION_QUERIED);
+  private final Counter sep6WithdrawalCounter =
+      counter(
+          MetricConstants.SEP6_TRANSACTION_CREATED,
+          MetricConstants.TYPE,
+          MetricConstants.TV_SEP6_WITHDRAWAL);
+  private final Counter sep6WithdrawalExchangeCounter =
+      counter(
+          MetricConstants.SEP6_TRANSACTION_CREATED,
+          MetricConstants.TYPE,
+          MetricConstants.TV_SEP6_WITHDRAWAL_EXCHANGE);
+  private final Counter sep6DepositCounter =
+      counter(
+          MetricConstants.SEP6_TRANSACTION_CREATED,
+          MetricConstants.TYPE,
+          MetricConstants.TV_SEP6_DEPOSIT);
+  private final Counter sep6DepositExchangeCounter =
+      counter(
+          MetricConstants.SEP6_TRANSACTION_CREATED,
+          MetricConstants.TYPE,
+          MetricConstants.TV_SEP6_DEPOSIT_EXCHANGE);
 
   public Sep6Service(
       Sep6Config sep6Config,
@@ -54,6 +82,8 @@ public class Sep6Service {
 
   public StartDepositResponse deposit(Sep10Jwt token, StartDepositRequest request)
       throws AnchorException {
+    sep6TransactionRequestedCounter.increment();
+
     // Pre-validation
     if (token == null) {
       throw new SepNotAuthorizedException("missing token");
@@ -111,6 +141,7 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
+    sep6DepositCounter.increment();
     return StartDepositResponse.builder()
         .how("Check the transaction for more information about how to deposit.")
         .id(txn.getId())
@@ -119,6 +150,8 @@ public class Sep6Service {
 
   public StartDepositResponse depositExchange(Sep10Jwt token, StartDepositExchangeRequest request)
       throws AnchorException {
+    sep6TransactionRequestedCounter.increment();
+
     if (token == null) {
       throw new SepNotAuthorizedException("missing token");
     }
@@ -203,6 +236,7 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
+    sep6DepositExchangeCounter.increment();
     return StartDepositResponse.builder()
         .how("Check the transaction for more information about how to deposit.")
         .id(id)
@@ -211,6 +245,8 @@ public class Sep6Service {
 
   public StartWithdrawResponse withdraw(Sep10Jwt token, StartWithdrawRequest request)
       throws AnchorException {
+    sep6TransactionRequestedCounter.increment();
+
     // Pre-validation
     if (token == null) {
       throw new SepNotAuthorizedException("missing token");
@@ -267,11 +303,14 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
+    sep6WithdrawalCounter.increment();
     return StartWithdrawResponse.builder().id(txn.getId()).build();
   }
 
   public StartWithdrawResponse withdrawExchange(
       Sep10Jwt token, StartWithdrawExchangeRequest request) throws AnchorException {
+    sep6TransactionRequestedCounter.increment();
+
     // Pre-validation
     if (token == null) {
       throw new SepNotAuthorizedException("missing token");
@@ -354,6 +393,7 @@ public class Sep6Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
             .build());
 
+    sep6WithdrawalExchangeCounter.increment();
     return StartWithdrawResponse.builder().id(txn.getId()).build();
   }
 
@@ -380,6 +420,7 @@ public class Sep6Service {
     List<Sep6TransactionResponse> responses =
         transactions.stream().map(Sep6TransactionUtils::fromTxn).collect(Collectors.toList());
 
+    sep6TransactionQueriedCounter.increment();
     return new GetTransactionsResponse(responses);
   }
 
@@ -417,6 +458,7 @@ public class Sep6Service {
       throw new NotFoundException("account memo does not match token");
     }
 
+    sep6TransactionQueriedCounter.increment();
     return new GetTransactionResponse(Sep6TransactionUtils.fromTxn(txn));
   }
 
