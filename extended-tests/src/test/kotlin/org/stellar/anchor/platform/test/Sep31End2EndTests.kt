@@ -171,10 +171,7 @@ class Sep31End2EndTests(config: TestConfig, val toml: Sep1Helper.TomlContent, va
     var retries = 5
     var callbacks: List<Sep31GetTransactionResponse>? = null
     while (retries > 0) {
-      callbacks =
-        walletServerClient.getCallbacks(txnId, Sep31GetTransactionResponse::class.java).distinctBy {
-          it.transaction.status
-        }
+      callbacks = walletServerClient.getCallbacks(txnId, Sep31GetTransactionResponse::class.java)
       if (callbacks.size == count) {
         return callbacks
       }
