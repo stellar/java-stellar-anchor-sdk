@@ -9,13 +9,10 @@ import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.TestInstance.*
-import org.junit.jupiter.api.TestInstance.Lifecycle.*
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.params.ParameterizedTest
@@ -37,7 +34,6 @@ import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.Log.info
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
-import org.stellar.sdk.*
 import org.stellar.walletsdk.InteractiveFlowResponse
 import org.stellar.walletsdk.anchor.*
 import org.stellar.walletsdk.anchor.TransactionStatus.*
@@ -47,7 +43,6 @@ import org.stellar.walletsdk.asset.XLM
 import org.stellar.walletsdk.auth.AuthToken
 import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
-import org.stellar.walletsdk.horizon.transaction.transferWithdrawalTransaction
 
 const val WITHDRAW_FUND_CLIENT_SECRET_1 = "SCGHF6KF6CBQ6Z4ZZUMU4DGRM6LR2PS7XOUN5VOETMPTPLD5BQE2FKL3"
 const val WITHDRAW_FUND_CLIENT_SECRET_2 = "SBSO7FVRDHCETSGPYETIFNVK64LS4KH325GOAENGV5Z7L6FAP7YS2BPK"
@@ -56,7 +51,7 @@ const val DEPOSIT_FUND_CLIENT_SECRET_2 = "SCW2SJEPTL4K7FFPFOFABFEFZJCG6LHULWVJX6
 
 @TestInstance(PER_CLASS)
 @Execution(CONCURRENT)
-class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   private val client = HttpClient {
     install(HttpTimeout) {
       requestTimeoutMillis = 300000
@@ -211,19 +206,19 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
     // Submit transfer transaction
     val walletTxn =
       (anchor.interactive().getTransaction(withdrawTxn.id, token) as WithdrawalTransaction)
-    val transfer =
-      wallet
-        .stellar()
-        .transaction(walletTxn.from!!)
-        .transferWithdrawalTransaction(walletTxn, asset)
-        .build()
-    transfer.sign(keypair)
+    transactionWithRetry {
+      val transfer =
+        wallet
+          .stellar()
+          .transaction(walletTxn.from!!)
+          .transferWithdrawalTransaction(walletTxn, asset)
+          .build()
+      transfer.sign(keypair)
 
-    submissionLock.withLock {
       wallet.stellar().submitTransaction(transfer)
-      // Wait for the status to change to PENDING_USER_TRANSFER_END
-      waitForTxnStatus(withdrawTxn.id, COMPLETED, token)
     }
+    // Wait for the status to change to PENDING_USER_TRANSFER_END
+    waitForTxnStatus(withdrawTxn.id, COMPLETED, token)
 
     // Check if the transaction can be listed by stellar transaction id
     val fetchTxn =
@@ -283,27 +278,26 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
   private suspend fun waitForTxnStatus(
     id: String,
     expectedStatus: TransactionStatus,
-    token: AuthToken
+    token: AuthToken,
+    exitStatus: TransactionStatus = ERROR
   ) {
     var status: TransactionStatus? = null
 
     for (i in 0..maxTries) {
       // Get transaction info
       val transaction = anchor.interactive().getTransaction(id, token)
-
       if (status != transaction.status) {
         status = transaction.status
-
         info(
           "Transaction(id=${transaction.id}) status changed to $status. Message: ${transaction.message}"
         )
       }
 
-      delay(1.seconds)
+      if (transaction.status == expectedStatus) return
 
-      if (transaction.status == expectedStatus) {
-        return
-      }
+      if (transaction.status == exitStatus) break
+
+      delay(1.seconds)
     }
 
     fail("Transaction wasn't $expectedStatus in $maxTries tries, last status: $status")
@@ -319,22 +313,22 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
     val keypair = SigningKeyPair.fromSecret(walletSecretKey)
     val newAcc = wallet.stellar().account().createKeyPair()
 
-    val tx =
-      wallet
-        .stellar()
-        .transaction(keypair)
-        .sponsoring(keypair, newAcc) {
-          createAccount(newAcc)
-          addAssetSupport(USDC)
-        }
-        .build()
-        .sign(keypair)
-        .sign(newAcc)
+    transactionWithRetry {
+      val tx =
+        wallet
+          .stellar()
+          .transaction(keypair)
+          .sponsoring(keypair, newAcc) {
+            createAccount(newAcc)
+            addAssetSupport(USDC)
+          }
+          .build()
+          .sign(keypair)
+          .sign(newAcc)
 
-    submissionLock.withLock {
       wallet.stellar().submitTransaction(tx)
-      delay(5000)
     }
+    delay(5000)
     val token = anchor.auth().authenticate(newAcc)
     val deposits =
       (0..1).map {
@@ -348,8 +342,6 @@ class Sep24End2EndTests : AbstractIntegrationTests(TestConfig(testProfileName = 
   }
 
   companion object {
-    // This is to make sure transaction submission is mutual exclusive to avoid failures
-    private val submissionLock = Mutex()
     private val USDC =
       IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     private val expectedDepositStatuses =

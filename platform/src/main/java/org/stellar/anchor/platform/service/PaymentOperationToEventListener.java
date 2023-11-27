@@ -95,18 +95,18 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Find a transaction matching the memo, assumes transactions are unique to account+memo
-    JdbcSep24Transaction sep24Txn;
+    JdbcSep24Transaction sep24Txn = null;
     try {
       sep24Txn =
           sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
               payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
     } catch (Exception ex) {
       errorEx(ex);
-      return;
     }
     if (sep24Txn != null) {
       try {
         handleSep24Transaction(payment, sep24Txn);
+        return;
       } catch (AnchorException aex) {
         warnF("Error handling the SEP24 transaction id={}.", sep24Txn.getId());
         errorEx(aex);
@@ -114,18 +114,18 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Find a transaction matching the memo, assumes transactions are unique to account+memo
-    JdbcSep6Transaction sep6Txn;
+    JdbcSep6Transaction sep6Txn = null;
     try {
       sep6Txn =
           sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(
               payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
     } catch (Exception ex) {
       errorEx(ex);
-      return;
     }
     if (sep6Txn != null) {
       try {
         handleSep6Transaction(payment, sep6Txn);
+        return;
       } catch (AnchorException aex) {
         warnF("Error handling the SEP6 transaction id={}.", sep6Txn.getId());
         errorEx(aex);
@@ -171,7 +171,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
     // Update metrics
     Metrics.counter(
-            AnchorMetrics.SEP31_TRANSACTION.toString(),
+            AnchorMetrics.SEP31_TRANSACTION_OBSERVED.toString(),
             "status",
             SepTransactionStatus.PENDING_RECEIVER.toString())
         .increment();
@@ -219,9 +219,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
           rpcConfig.getCustomMessages().getIncomingPaymentReceived());
     }
 
-    // Update metrics
     Metrics.counter(
-            AnchorMetrics.SEP24_TRANSACTION.toString(),
+            AnchorMetrics.SEP24_TRANSACTION_OBSERVED.toString(),
             "status",
             SepTransactionStatus.PENDING_ANCHOR.toString())
         .increment();

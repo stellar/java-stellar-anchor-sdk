@@ -33,7 +33,7 @@ import org.stellar.anchor.util.GsonUtils
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(ExecutionMode.SAME_THREAD)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class CallbackApiTests : AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
 
   companion object {
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000

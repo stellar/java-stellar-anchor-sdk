@@ -54,10 +54,17 @@ public class JdbcSep6TransactionStore implements Sep6TransactionStore {
   public List<Sep6Transaction> findTransactions(
       String accountId, String accountMemo, GetTransactionsRequest request)
       throws SepValidationException {
-    if (accountMemo != null) accountId = accountId + ":" + accountMemo;
-    List<Sep6Transaction> txns =
-        transactionRepo.findBySep10AccountAndRequestAssetCodeOrderByStartedAtDesc(
-            accountId, request.getAssetCode());
+    List<Sep6Transaction> txns;
+    if (accountMemo == null) {
+      txns =
+          transactionRepo.findBySep10AccountAndRequestAssetCodeOrderByStartedAtDesc(
+              accountId, request.getAssetCode());
+    } else {
+      txns =
+          transactionRepo
+              .findBySep10AccountAndSep10AccountMemoAndRequestAssetCodeOrderByStartedAtDesc(
+                  accountId, accountMemo, request.getAssetCode());
+    }
 
     int limit = Integer.MAX_VALUE;
     if (request.getLimit() != null && request.getLimit() > 0) {

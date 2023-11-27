@@ -24,5 +24,9 @@ public interface JdbcSep6TransactionRepo
       String withdrawAnchorAccount, String memo, String status);
 
   List<Sep6Transaction> findBySep10AccountAndRequestAssetCodeOrderByStartedAtDesc(
-      String stellarAccount, String assetCode);
+      String sep10Account, String requestAssetCode);
+
+  List<Sep6Transaction>
+      findBySep10AccountAndSep10AccountMemoAndRequestAssetCodeOrderByStartedAtDesc(
+          String sep10Account, String sep10AccountMemo, String requestAssetCode);
 }

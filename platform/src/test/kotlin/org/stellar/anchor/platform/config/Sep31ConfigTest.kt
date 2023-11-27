@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType
 
@@ -15,20 +17,22 @@ class Sep31ConfigTest {
   lateinit var config: PropertySep31Config
   lateinit var errors: Errors
   lateinit var custodyConfig: CustodyConfig
+  lateinit var assetService: AssetService
 
   @BeforeEach
   fun setUp() {
     custodyConfig = mockk()
+    assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
 
-    config = PropertySep31Config(custodyConfig)
+    config = PropertySep31Config(custodyConfig, assetService)
     config.enabled = true
     errors = BindException(config, "config")
     config.depositInfoGeneratorType = DepositInfoGeneratorType.SELF
   }
 
   @Test
-  fun `test valid sep24 configuration`() {
+  fun `test valid sep31 configuration`() {
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }
@@ -41,7 +45,7 @@ class Sep31ConfigTest {
   }
 
   @Test
-  fun `test valid sep24 configuration with custody integration`() {
+  fun `test valid sep31 configuration with custody integration`() {
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
     config.depositInfoGeneratorType = DepositInfoGeneratorType.CUSTODY
     config.validate(config, errors)
@@ -51,6 +55,19 @@ class Sep31ConfigTest {
   @Test
   fun `test invalid deposit info generator type with custody integration`() {
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
+    config.validate(config, errors)
+    assertEquals("sep31-deposit-info-generator-type", errors.allErrors[0].code)
+  }
+
+  @Test
+  fun `test validation rejecting self deposit generator if distribution_account missing in asset`() {
+    assetService =
+      DefaultAssetService.fromJsonResource("test_assets_missing_distribution_account.json")
+    config =
+      PropertySep31Config(custodyConfig, assetService).apply {
+        enabled = true
+        depositInfoGeneratorType = DepositInfoGeneratorType.SELF
+      }
     config.validate(config, errors)
     assertEquals("sep31-deposit-info-generator-type", errors.allErrors[0].code)
   }

@@ -73,8 +73,8 @@ public class SepBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep31")
-  Sep31Config sep31Config(CustodyConfig custodyConfig) {
-    return new PropertySep31Config(custodyConfig);
+  Sep31Config sep31Config(CustodyConfig custodyConfig, AssetService assetService) {
+    return new PropertySep31Config(custodyConfig, assetService);
   }
 
   @Bean

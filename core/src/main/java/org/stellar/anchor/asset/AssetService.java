@@ -36,4 +36,11 @@ public interface AssetService {
    * @return an asset with the given SEP-38 asset identifier.
    */
   AssetInfo getAssetByName(String asset);
+
+  /**
+   * Returns all stellar assets supported by the anchor.
+   *
+   * @return a list of assets with stellar schema.
+   */
+  List<AssetInfo> listStellarAssets();
 }

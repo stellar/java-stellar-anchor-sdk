@@ -28,7 +28,7 @@ lateinit var testProfileExecutor: TestProfileExecutor
 
 fun main() = runBlocking {
   info("Starting TestPfofileExecutor...")
-  testProfileExecutor = TestProfileExecutor(TestConfig(testProfileName = "default"))
+  testProfileExecutor = TestProfileExecutor(TestConfig())
 
   launch {
     Runtime.getRuntime()

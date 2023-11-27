@@ -9,8 +9,7 @@ import org.stellar.anchor.platform.config.PropertyEventConfig
 import org.stellar.anchor.platform.event.DefaultEventService
 import org.stellar.anchor.util.GsonUtils
 
-class EventProcessingServerTests :
-  AbstractIntegrationTests(TestConfig(testProfileName = "default")) {
+class EventProcessingServerTests : AbstractIntegrationTests(TestConfig()) {
   companion object {
     val eventConfig =
       GsonUtils.getInstance().fromJson(eventConfigJson, PropertyEventConfig::class.java)!!

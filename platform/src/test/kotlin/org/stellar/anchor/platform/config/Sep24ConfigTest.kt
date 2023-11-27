@@ -11,6 +11,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config.DepositInfoGeneratorType
@@ -23,16 +25,18 @@ class Sep24ConfigTest {
   lateinit var errors: Errors
   lateinit var secretConfig: SecretConfig
   lateinit var custodyConfig: CustodyConfig
+  lateinit var assetService: AssetService
 
   @BeforeEach
   fun setUp() {
     secretConfig = mockk()
     custodyConfig = mockk()
+    assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "more_info url jwt secret"
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "interactive url jwt secret"
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
 
-    config = PropertySep24Config(secretConfig, custodyConfig)
+    config = PropertySep24Config(secretConfig, custodyConfig, assetService)
     config.enabled = true
     errors = BindException(config, "config")
     config.interactiveUrl = InteractiveUrlConfig("https://www.stellar.org", 600, listOf(""))
@@ -154,5 +158,20 @@ class Sep24ConfigTest {
     config.features.claimableBalances = true
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
+  }
+
+  @Test
+  fun `test validation rejecting self deposit generator if distribution_account missing in asset`() {
+    assetService =
+      DefaultAssetService.fromJsonResource("test_assets_missing_distribution_account.json")
+    config =
+      PropertySep24Config(secretConfig, custodyConfig, assetService).apply {
+        enabled = true
+        interactiveUrl = InteractiveUrlConfig("https://www.stellar.org", 600, listOf(""))
+        moreInfoUrl = MoreInfoUrlConfig("https://www.stellar.org", 600, listOf(""))
+        depositInfoGeneratorType = DepositInfoGeneratorType.SELF
+      }
+    config.validate(config, errors)
+    assertEquals("sep24-deposit-info-generator-type", errors.allErrors[0].code)
   }
 }
