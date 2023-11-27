@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -39,7 +40,7 @@ import org.stellar.anchor.util.Log;
 public class EventProcessorManager {
   public static final String CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX =
       "client-status-callback-";
-  public static final String CALLBACK_API_EVENT_PROCESSOR_NAME = "callback-api-";
+  public static final String CALLBACK_API_EVENT_PROCESSOR_NAME = "callback-api";
   private final SecretConfig secretConfig;
   private final EventProcessorConfig eventProcessorConfig;
   private final CallbackApiConfig callbackApiConfig;
@@ -92,8 +93,7 @@ public class EventProcessorManager {
     // clientsConfig
     if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
       for (PropertyClientsConfig.ClientConfig clientConfig : clientsConfig.getClients()) {
-        if (clientConfig.getCallbackUrl().isEmpty()) {
-
+        if (StringUtils.isEmpty(clientConfig.getCallbackUrl())) {
           Log.info(String.format("Client status callback skipped: %s", json(clientConfig)));
           continue;
         }
