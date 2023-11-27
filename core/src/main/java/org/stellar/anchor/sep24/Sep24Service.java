@@ -7,7 +7,7 @@ import static org.stellar.anchor.api.sep.sep24.InfoResponse.FeatureFlagResponse;
 import static org.stellar.anchor.api.sep.sep24.InfoResponse.FeeResponse;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.sep24.Sep24Helper.fromTxn;
-import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.*;
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.info;
@@ -27,18 +27,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import org.stellar.anchor.api.event.AnchorEvent;
-import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.exception.SepNotAuthorizedException;
-import org.stellar.anchor.api.exception.SepNotFoundException;
-import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.GetTransactionRequest;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
@@ -55,6 +46,8 @@ import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.sep38.Sep38Quote;
+import org.stellar.anchor.sep6.ExchangeAmountsCalculator;
 import org.stellar.anchor.util.ConfigHelper;
 import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.MetricConstants;
@@ -74,6 +67,7 @@ public class Sep24Service {
   final InteractiveUrlConstructor interactiveUrlConstructor;
   final MoreInfoUrlConstructor moreInfoUrlConstructor;
   final CustodyConfig custodyConfig;
+  final ExchangeAmountsCalculator exchangeAmountsCalculator;
 
   final Counter sep24TransactionRequestedCounter =
       counter(MetricConstants.SEP24_TRANSACTION_REQUESTED);
@@ -103,7 +97,8 @@ public class Sep24Service {
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
       MoreInfoUrlConstructor moreInfoUrlConstructor,
-      CustodyConfig custodyConfig) {
+      CustodyConfig custodyConfig,
+      ExchangeAmountsCalculator exchangeAmountsCalculator) {
     debug("appConfig:", appConfig);
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
@@ -116,6 +111,7 @@ public class Sep24Service {
     this.interactiveUrlConstructor = interactiveUrlConstructor;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
     this.custodyConfig = custodyConfig;
+    this.exchangeAmountsCalculator = exchangeAmountsCalculator;
     info("Sep24Service initialized.");
   }
 
@@ -250,6 +246,14 @@ public class Sep24Service {
       builder.refundMemoType(memoTypeString(memoType(refundMemo)));
     }
 
+    String quoteId = withdrawRequest.get("quote_id");
+    if (quoteId != null) {
+      System.out.println(asset.getSep38AssetName() + 1231231);
+      AssetInfo buyAsset = assetService.getAssetByName(withdrawRequest.get("destination_asset"));
+      this.validatedAndPopulateQuote(
+          quoteId, asset, buyAsset, strAmount, builder, WITHDRAWAL.toString(), txnId);
+    }
+
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
 
@@ -340,7 +344,7 @@ public class Sep24Service {
       }
     }
 
-    // Verify that the asset code exists in our database, with withdraw enabled.
+    // Verify that the asset code exists in our database, with deposit enabled.
     AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
     if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep24Enabled()) {
       infoF("invalid operation for asset {}", assetCode);
@@ -385,7 +389,7 @@ public class Sep24Service {
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
             .status(INCOMPLETE.toString())
-            .kind(Sep24Transaction.Kind.DEPOSIT.toString())
+            .kind(DEPOSIT.toString())
             .assetCode(assetCode)
             .assetIssuer(depositRequest.get("asset_issuer"))
             .startedAt(Instant.now())
@@ -408,6 +412,13 @@ public class Sep24Service {
 
       builder.memo(memo.toString());
       builder.memoType(memoTypeString(memoType(memo)));
+    }
+
+    String quoteId = depositRequest.get("quote_id");
+    if (quoteId != null) {
+      AssetInfo sellAsset = assetService.getAssetByName(depositRequest.get("source_asset"));
+      this.validatedAndPopulateQuote(
+          quoteId, sellAsset, asset, strAmount, builder, DEPOSIT.toString(), txnId);
     }
 
     Sep24Transaction txn = builder.build();
@@ -556,5 +567,35 @@ public class Sep24Service {
                 sep24Config.getFeatures().getAccountCreation(),
                 sep24Config.getFeatures().getClaimableBalances()))
         .build();
+  }
+
+  public void validatedAndPopulateQuote(
+      String quoteId,
+      AssetInfo sellAsset,
+      AssetInfo buyAsset,
+      String strAmount,
+      Sep24TransactionBuilder builder,
+      String kind,
+      String txnId)
+      throws AnchorException {
+    Sep38Quote quote =
+        exchangeAmountsCalculator.validateQuoteAgainstRequestInfo(
+            quoteId, sellAsset, buyAsset, strAmount);
+
+    debugF("Updating transaction ({}) with quote ({})", txnId, quoteId);
+    builder.quoteId(quoteId);
+    builder.amountExpected(quote.getSellAmount());
+    builder.amountIn(quote.getSellAmount());
+    builder.amountInAsset(quote.getSellAsset());
+    builder.amountOut(quote.getBuyAmount());
+    builder.amountOutAsset(quote.getBuyAsset());
+    builder.amountFee(quote.getFee().getTotal());
+    builder.amountFeeAsset(quote.getFee().getAsset());
+
+    if (kind.equals(DEPOSIT.toString())) {
+      builder.sourceAsset(quote.getSellAsset());
+    } else {
+      builder.destinationAsset(quote.getBuyAsset());
+    }
   }
 }
