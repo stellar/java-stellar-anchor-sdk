@@ -192,6 +192,7 @@ public class TransactionHelper {
         .memoType(txn.getMemoType())
         .refundMemo(txn.getRefundMemo())
         .refundMemoType(txn.getRefundMemoType())
+        .quoteId(txn.getQuoteId())
         .build();
   }
 
