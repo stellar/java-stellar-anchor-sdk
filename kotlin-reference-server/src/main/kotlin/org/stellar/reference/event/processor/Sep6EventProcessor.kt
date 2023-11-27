@@ -8,6 +8,7 @@ import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.*
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind
+import org.stellar.anchor.api.rpc.method.RpcMethod
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.reference.callbacks.customer.CustomerService
 import org.stellar.reference.client.PlatformClient
@@ -78,7 +79,7 @@ class Sep6EventProcessor(
           lateinit var stellarTxnId: String
           if (config.appSettings.custodyEnabled) {
             sepHelper.rpcAction(
-              "do_stellar_payment",
+              RpcMethod.DO_STELLAR_PAYMENT.toString(),
               DoStellarPaymentRequest(transactionId = transaction.id)
             )
           } else {
@@ -105,7 +106,7 @@ class Sep6EventProcessor(
       PENDING_USR_TRANSFER_START ->
         runBlocking {
           sepHelper.rpcAction(
-            "notify_offchain_funds_received",
+            RpcMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED.toString(),
             NotifyOffchainFundsReceivedRequest(
               transactionId = transaction.id,
               message = "Funds received from user",
@@ -115,7 +116,7 @@ class Sep6EventProcessor(
       PENDING_STELLAR ->
         runBlocking {
           sepHelper.rpcAction(
-            "notify_onchain_funds_sent",
+            RpcMethod.NOTIFY_ONCHAIN_FUNDS_SENT.toString(),
             NotifyOnchainFundsSentRequest(
               transactionId = transaction.id,
               message = "Funds sent to user",
@@ -146,7 +147,7 @@ class Sep6EventProcessor(
             val externalTxnId = UUID.randomUUID()
             offchainPayments[transaction.id] = externalTxnId.toString()
             sepHelper.rpcAction(
-              "notify_offchain_funds_pending",
+              RpcMethod.NOTIFY_OFFCHAIN_FUNDS_PENDING.toString(),
               NotifyOffchainFundsPendingRequest(
                 transactionId = transaction.id,
                 message = "Funds sent to user",
@@ -155,7 +156,7 @@ class Sep6EventProcessor(
             )
           } else {
             sepHelper.rpcAction(
-              "notify_offchain_funds_available",
+              RpcMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE.toString(),
               NotifyOffchainFundsAvailableRequest(
                 transactionId = transaction.id,
                 message = "Funds available for withdrawal",
@@ -168,7 +169,7 @@ class Sep6EventProcessor(
       PENDING_EXTERNAL ->
         runBlocking {
           sepHelper.rpcAction(
-            "notify_offchain_funds_sent",
+            RpcMethod.NOTIFY_OFFCHAIN_FUNDS_SENT.toString(),
             NotifyOffchainFundsSentRequest(
               transactionId = transaction.id,
               message = "Funds sent to user",
@@ -204,7 +205,7 @@ class Sep6EventProcessor(
             if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isEmpty()) {
               runBlocking {
                 sepHelper.rpcAction(
-                  "request_offchain_funds",
+                  RpcMethod.REQUEST_OFFCHAIN_FUNDS.toString(),
                   RequestOffchainFundsRequest(
                     transactionId = transaction.id,
                     message = "Please deposit the amount to the following bank account",
@@ -241,7 +242,7 @@ class Sep6EventProcessor(
             if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isEmpty()) {
               runBlocking {
                 sepHelper.rpcAction(
-                  "request_onchain_funds",
+                  RpcMethod.REQUEST_ONCHAIN_FUNDS.toString(),
                   RequestOnchainFundsRequest(
                     transactionId = transaction.id,
                     message = "Please deposit the amount to the following address",
@@ -293,7 +294,7 @@ class Sep6EventProcessor(
     runBlocking {
       if (missingFields.isNotEmpty()) {
         sepHelper.rpcAction(
-          "request_customer_info_update",
+          RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE.toString(),
           RequestCustomerInfoUpdateHandler(
             transactionId = event.transaction.id,
             message = "Please update your info",
