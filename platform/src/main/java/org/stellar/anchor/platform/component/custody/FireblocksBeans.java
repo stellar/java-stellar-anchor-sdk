@@ -11,10 +11,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.config.FireblocksConfig;
-import org.stellar.anchor.platform.custody.CustodyPaymentService;
-import org.stellar.anchor.platform.custody.CustodyTransactionService;
-import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
-import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
+import org.stellar.anchor.platform.custody.*;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksPaymentService;
@@ -51,6 +48,7 @@ public class FireblocksBeans {
   @Bean
   FireblocksEventService fireblocksEventService(
       JdbcCustodyTransactionRepo custodyTransactionRepo,
+      Sep6CustodyPaymentHandler sep6CustodyPaymentHandler,
       Sep24CustodyPaymentHandler sep24CustodyPaymentHandler,
       Sep31CustodyPaymentHandler sep31CustodyPaymentHandler,
       Horizon horizon,
@@ -58,6 +56,7 @@ public class FireblocksBeans {
       throws InvalidConfigException {
     return new FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,

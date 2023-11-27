@@ -24,10 +24,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.config.FireblocksConfig;
-import org.stellar.anchor.platform.custody.CustodyEventService;
-import org.stellar.anchor.platform.custody.CustodyPayment;
-import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
-import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
+import org.stellar.anchor.platform.custody.*;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 import org.stellar.anchor.platform.utils.RSAUtil;
 import org.stellar.anchor.util.GsonUtils;
@@ -47,12 +44,17 @@ public class FireblocksEventService extends CustodyEventService {
 
   public FireblocksEventService(
       JdbcCustodyTransactionRepo custodyTransactionRepo,
+      Sep6CustodyPaymentHandler sep6CustodyPaymentHandler,
       Sep24CustodyPaymentHandler sep24CustodyPaymentHandler,
       Sep31CustodyPaymentHandler sep31CustodyPaymentHandler,
       Horizon horizon,
       FireblocksConfig fireblocksConfig)
       throws InvalidConfigException {
-    super(custodyTransactionRepo, sep24CustodyPaymentHandler, sep31CustodyPaymentHandler);
+    super(
+        custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler);
     this.horizon = horizon;
     this.publicKey = fireblocksConfig.getFireblocksPublicKey();
   }

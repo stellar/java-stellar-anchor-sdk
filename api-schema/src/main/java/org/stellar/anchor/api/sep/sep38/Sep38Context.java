@@ -6,6 +6,9 @@ public enum Sep38Context {
   @SerializedName("sep6")
   SEP6("sep6"),
 
+  @SerializedName("sep24")
+  SEP24("sep24"),
+
   @SerializedName("sep31")
   SEP31("sep31");
 

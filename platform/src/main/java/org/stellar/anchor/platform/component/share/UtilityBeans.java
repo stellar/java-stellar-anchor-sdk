@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.stellar.anchor.api.exception.NotSupportedException;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.healthcheck.HealthCheckable;
@@ -47,14 +48,15 @@ public class UtilityBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep24")
-  PropertySep24Config sep24Config(SecretConfig secretConfig, CustodyConfig custodyConfig) {
-    return new PropertySep24Config(secretConfig, custodyConfig);
+  PropertySep24Config sep24Config(
+      SecretConfig secretConfig, CustodyConfig custodyConfig, AssetService assetService) {
+    return new PropertySep24Config(secretConfig, custodyConfig, assetService);
   }
 
   @Bean
   @ConfigurationProperties(prefix = "sep6")
-  PropertySep6Config sep6Config(CustodyConfig custodyConfig) {
-    return new PropertySep6Config(custodyConfig);
+  PropertySep6Config sep6Config(CustodyConfig custodyConfig, AssetService assetService) {
+    return new PropertySep6Config(custodyConfig, assetService);
   }
 
   /**********************************
