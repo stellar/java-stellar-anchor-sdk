@@ -26,6 +26,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.callback.FeeIntegration
+import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepNotFoundException
@@ -40,6 +41,9 @@ import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.*
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.sep38.PojoSep38Quote
+import org.stellar.anchor.sep38.Sep38QuoteStore
+import org.stellar.anchor.sep6.ExchangeAmountsCalculator
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
@@ -53,6 +57,42 @@ internal class Sep24ServiceTest {
     const val TEST_SEP24_MORE_INFO_URL = "https://test-anchor.stellar.org/more_info_url"
     val TEST_STARTED_AT: Instant = Instant.now()
     val TEST_COMPLETED_AT: Instant = Instant.now().plusSeconds(100)
+    val DEPOSIT_QUOTE_JSON =
+      """
+       {
+        "id": "test-deposit-quote-id",
+        "expires_at": "2021-04-30T07:42:23",
+        "total_price": "5.42",
+        "price": "5.00",
+        "sell_asset": "iso4217:BRL",
+        "sell_amount": "542",
+        "buy_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+        "buy_amount": "100",
+        "fee": {
+          "total": "42.00",
+          "asset": "iso4217:BRL"
+        }
+      }
+      """
+        .trimIndent()
+    val WITHDRAW_QUOTE_JSON =
+      """
+      {
+        "id": "test-withdraw-quote-id",
+        "expires_at": "2021-04-30T07:42:23",
+        "total_price": "0.542",
+        "price": "0.5",
+        "sell_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+        "sell_amount": "542",
+        "buy_asset": "iso4217:BRL",
+        "buy_amount": "1000",
+        "fee": {
+          "total": "42",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        }
+      }
+    """
+        .trimIndent()
   }
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
@@ -78,11 +118,16 @@ internal class Sep24ServiceTest {
 
   @MockK(relaxed = true) lateinit var clientConfig: ClientsConfig.ClientConfig
 
+  @MockK(relaxed = true) lateinit var sep38QuoteStore: Sep38QuoteStore
+
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
   private lateinit var jwtService: JwtService
   private lateinit var sep24Service: Sep24Service
   private lateinit var testInteractiveUrlJwt: Sep24InteractiveUrlJwt
+  private lateinit var depositQuote: PojoSep38Quote
+  private lateinit var withdrawQuote: PojoSep38Quote
+  private lateinit var calculator: ExchangeAmountsCalculator
 
   private val gson = GsonUtils.getInstance()
 
@@ -103,6 +148,7 @@ internal class Sep24ServiceTest {
     every { moreInfoUrlConstructor.construct(any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
     every { clientsConfig.getClientConfigByDomain(any()) } returns clientConfig
+    calculator = ExchangeAmountsCalculator(sep38QuoteStore)
 
     sep24Service =
       Sep24Service(
@@ -115,8 +161,11 @@ internal class Sep24ServiceTest {
         eventService,
         interactiveUrlConstructor,
         moreInfoUrlConstructor,
-        custodyConfig
+        custodyConfig,
+        calculator
       )
+    depositQuote = gson.fromJson(DEPOSIT_QUOTE_JSON, PojoSep38Quote::class.java)
+    withdrawQuote = gson.fromJson(WITHDRAW_QUOTE_JSON, PojoSep38Quote::class.java)
   }
 
   @Test
@@ -198,6 +247,19 @@ internal class Sep24ServiceTest {
   }
 
   @Test
+  fun `test withdraw with quote_id`() {
+    val slotTxn = slot<Sep24Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+    every { sep38QuoteStore.findByQuoteId(any()) } returns withdrawQuote
+    sep24Service.withdraw(
+      createTestSep10JwtWithMemo(),
+      createTestTransactionRequest(withdrawQuote.id)
+    )
+    assertEquals(withdrawQuote.id, slotTxn.captured.quoteId)
+    assertEquals(withdrawQuote.buyAsset, slotTxn.captured.destinationAsset)
+  }
+
+  @Test
   fun `test withdrawal with no token and no request failure`() {
     assertThrows<SepValidationException> {
       sep24Service.withdraw(null, createTestTransactionRequest())
@@ -243,6 +305,13 @@ internal class Sep24ServiceTest {
       request["account"] = "G1234"
       val token = createTestSep10JwtToken()
       token.sub = "G1234"
+      sep24Service.withdraw(token, request)
+    }
+
+    assertThrows<BadRequestException> {
+      val request = createTestTransactionRequest("bad-quote-id")
+      val token = createTestSep10JwtToken()
+      every { sep38QuoteStore.findByQuoteId(any()) } returns null
       sep24Service.withdraw(token, request)
     }
   }
@@ -308,6 +377,19 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_MEMO, slotTxn.captured.sep10AccountMemo)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+  }
+
+  @Test
+  fun `test deposit with quote_id`() {
+    val slotTxn = slot<Sep24Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+    every { sep38QuoteStore.findByQuoteId(any()) } returns depositQuote
+    sep24Service.deposit(
+      createTestSep10JwtWithMemo(),
+      createTestTransactionRequest(depositQuote.id)
+    )
+    assertEquals(depositQuote.id, slotTxn.captured.quoteId)
+    assertEquals(depositQuote.sellAsset, slotTxn.captured.sourceAsset)
   }
 
   @Test
@@ -399,6 +481,13 @@ internal class Sep24ServiceTest {
       request["account"] = "G1234"
       val token = createTestSep10JwtToken()
       token.sub = "G1234"
+      sep24Service.deposit(token, request)
+    }
+
+    assertThrows<BadRequestException> {
+      val request = createTestTransactionRequest("bad-quote-id")
+      val token = createTestSep10JwtToken()
+      every { sep38QuoteStore.findByQuoteId(any()) } returns null
       sep24Service.deposit(token, request)
     }
   }

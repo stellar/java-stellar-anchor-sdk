@@ -307,6 +307,7 @@ sep6:
   ##     deposit address, memo and memo type.
   ## @supported_values:
   ##     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
+  ##          When using 'self', make sure all the stellar assets has distribution account configured.
   ##     custody: the memo and memo type are generated through Custody API, for example Fireblocks, as well as the deposit address.
   ##     none: deposit address, memo and memo type should be provided by the business in PATCH/RPC request.
   #

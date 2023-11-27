@@ -42,4 +42,7 @@ public class PojoSep24Transaction implements Sep24Transaction {
   String message;
   String refundMemo;
   String refundMemoType;
+  String quoteId;
+  String sourceAsset;
+  String destinationAsset;
 }

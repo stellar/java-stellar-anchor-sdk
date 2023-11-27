@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep38;
 
-import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31;
-import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6;
+import static org.stellar.anchor.api.sep.sep38.Sep38Context.*;
 import static org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse.*;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.util.BeanHelper.updateField;
@@ -337,8 +336,8 @@ public class Sep38Service {
 
     // context
     Sep38Context context = request.getContext();
-    if (context == null || !List.of(SEP6, SEP31).contains(context)) {
-      throw new BadRequestException("Unsupported context. Should be one of [sep6, sep31].");
+    if (context == null || !List.of(SEP6, SEP24, SEP31).contains(context)) {
+      throw new BadRequestException("Unsupported context. Should be one of [sep6, sep24, sep31].");
     }
 
     // Check SEP31 send limits
