@@ -1,10 +1,12 @@
-package org.stellar.anchor.platform.test
+package org.stellar.anchor.platform.extendedtest
 
 import com.google.gson.reflect.TypeToken
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -17,45 +19,52 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.client.Sep12Client
 import org.stellar.anchor.client.Sep24Client
 import org.stellar.anchor.client.Sep31Client
+import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.anchor.util.Sep1Helper
 
-class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, jwt: String) {
+class PlatformApiCustodyTests : AbstractIntegrationTests(TestConfig("custody")) {
   companion object {
     private const val TX_ID_KEY = "TX_ID"
     private const val RECEIVER_ID_KEY = "RECEIVER_ID"
     private const val SENDER_ID_KEY = "SENDER_ID"
+    private val custodyMockServer = MockWebServer()
+
+    @BeforeAll
+    @JvmStatic
+    fun construct() {
+      custodyMockServer.dispatcher =
+        object : Dispatcher() {
+          override fun dispatch(request: RecordedRequest): MockResponse {
+            if (
+              "POST" == request.method &&
+                "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses" == request.path
+            ) {
+              return MockResponse().setResponseCode(200).setBody(CUSTODY_DEPOSIT_ADDRESS_RESPONSE)
+            }
+            if ("POST" == request.method && "//v1/transactions" == request.path) {
+              return MockResponse()
+                .setResponseCode(200)
+                .setBody(CUSTODY_TRANSACTION_PAYMENT_RESPONSE)
+            }
+            return MockResponse().setResponseCode(404)
+          }
+        }
+
+      custodyMockServer.start(58086)
+    }
   }
 
   private val gson = GsonUtils.getInstance()
 
   private val platformApiClient =
     PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
-  private val sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
-  private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
-  private val sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
+  private val sep12Client = Sep12Client(toml.getString("KYC_SERVER"), token.token)
+  private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), token.token)
+  private val sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), token.token)
 
   fun testAll(custodyMockServer: MockWebServer) {
     println("Performing Platform API Custody tests...")
-
-    val mockServerDispatcher: Dispatcher =
-      object : Dispatcher() {
-        override fun dispatch(request: RecordedRequest): MockResponse {
-          if (
-            "POST" == request.method &&
-              "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses" == request.path
-          ) {
-            return MockResponse().setResponseCode(200).setBody(CUSTODY_DEPOSIT_ADDRESS_RESPONSE)
-          }
-          if ("POST" == request.method && "//v1/transactions" == request.path) {
-            return MockResponse().setResponseCode(200).setBody(CUSTODY_TRANSACTION_PAYMENT_RESPONSE)
-          }
-          return MockResponse().setResponseCode(404)
-        }
-      }
-
-    custodyMockServer.dispatcher = mockServerDispatcher
 
     `SEP-24 deposit complete full`()
     `SEP-24 withdraw full refund`()
@@ -71,7 +80,8 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
    * 4. pending_anchor -> do_stellar_payment
    * 5. completed
    */
-  private fun `SEP-24 deposit complete full`() {
+  @Test
+  fun `SEP-24 deposit complete full`() {
     `test deposit flow`(
       SEP_24_DEPOSIT_COMPLETE_FULL_FLOW_ACTION_REQUESTS,
       SEP_24_DEPOSIT_COMPLETE_FULL_FLOW_ACTION_RESPONSES
@@ -86,7 +96,8 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
    * 5. pending_stellar -> notify_refund_sent
    * 6. refunded
    */
-  private fun `SEP-24 withdraw full refund`() {
+  @Test
+  fun `SEP-24 withdraw full refund`() {
     `test withdraw flow`(
       SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS,
       SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES
@@ -99,7 +110,8 @@ class PlatformApiCustodyTests(config: TestConfig, toml: Sep1Helper.TomlContent, 
    * 3. pending_stellar -> notify_refund_sent
    * 3. pending_sender
    */
-  private fun `SEP-31 refunded do_stellar_refund`() {
+  @Test
+  fun `SEP-31 refunded do_stellar_refund`() {
     `test receive flow`(
       SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_REQUESTS,
       SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSES

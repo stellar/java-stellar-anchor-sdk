@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run - Kotlin Reference Server - no Docker" type="JetRunConfigurationType">
+  <configuration default="false" name="Reference Server - default" type="JetRunConfigurationType">
     <envs>
       <env name="app.enableTest" value="true" />
       <env name="TEST_PROFILE_NAME" value="default" />

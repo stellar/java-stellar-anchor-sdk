@@ -20,7 +20,7 @@ internal class CustodyApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() 
       println("Running CustodyApiKeyAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(testProfileName = "default-custody").also {
+          TestConfig(testProfileName = "custody").also {
             it.env[RUN_DOCKER] = "true"
             it.env[RUN_ALL_SERVERS] = "false"
             it.env[RUN_CUSTODY_SERVER] = "true"
@@ -52,7 +52,7 @@ internal class CustodyApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() 
   fun test_incomingCustodyAuth_emptyApiKey_authFails(method: String, endpoint: String) {
     val httpRequest =
       Request.Builder()
-        .url("http://localhost:${AbstractIntegrationTest.CUSTODY_SERVER_SERVER_PORT}$endpoint")
+        .url("http://localhost:${CUSTODY_SERVER_SERVER_PORT}$endpoint")
         .header("Content-Type", "application/json")
         .method(method, getCustodyDummyRequestBody())
         .build()
@@ -65,9 +65,9 @@ internal class CustodyApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() 
   fun test_incomingCustodyAuth_emptyApiKey_authPasses(method: String, endpoint: String) {
     val httpRequest =
       Request.Builder()
-        .url("http://localhost:${AbstractIntegrationTest.CUSTODY_SERVER_SERVER_PORT}$endpoint")
+        .url("http://localhost:${CUSTODY_SERVER_SERVER_PORT}$endpoint")
         .header("Content-Type", "application/json")
-        .header("X-Api-Key", AbstractIntegrationTest.PLATFORM_TO_CUSTODY_SECRET)
+        .header("X-Api-Key", PLATFORM_TO_CUSTODY_SECRET)
         .method(method, getCustodyDummyRequestBody())
         .build()
     val response = httpClient.newCall(httpRequest).execute()

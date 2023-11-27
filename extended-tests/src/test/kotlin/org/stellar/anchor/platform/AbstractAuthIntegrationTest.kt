@@ -2,9 +2,6 @@ package org.stellar.anchor.platform
 
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.platform.AbstractIntegrationTest.Companion.ANCHOR_TO_PLATFORM_SECRET
-import org.stellar.anchor.platform.AbstractIntegrationTest.Companion.PLATFORM_TO_ANCHOR_SECRET
-import org.stellar.anchor.platform.AbstractIntegrationTest.Companion.PLATFORM_TO_CUSTODY_SECRET
 
 const val GET_TRANSACTIONS_ENDPOINT = "GET,/transactions"
 const val PATCH_TRANSACTIONS_ENDPOINT = "PATCH,/transactions"
@@ -15,6 +12,14 @@ const val POST_CUSTODY_TRANSACTION_ENDPOINT = "POST,/transactions"
 
 abstract class AbstractAuthIntegrationTest {
   companion object {
+    const val ANCHOR_TO_PLATFORM_SECRET = "myAnchorToPlatformSecret"
+    const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
+    const val PLATFORM_TO_CUSTODY_SECRET = "myPlatformToCustodySecret"
+    const val PLATFORM_SERVER_PORT = 8085
+    const val CUSTODY_SERVER_SERVER_PORT = 8086
+    const val REFERENCE_SERVER_PORT = 8091
+    const val JWT_EXPIRATION_MILLISECONDS = 10000L
+
     private val jwtService =
       JwtService(
         null,

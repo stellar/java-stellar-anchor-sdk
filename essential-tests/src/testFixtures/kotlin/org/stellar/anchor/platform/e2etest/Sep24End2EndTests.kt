@@ -51,7 +51,7 @@ const val DEPOSIT_FUND_CLIENT_SECRET_2 = "SCW2SJEPTL4K7FFPFOFABFEFZJCG6LHULWVJX6
 
 @TestInstance(PER_CLASS)
 @Execution(CONCURRENT)
-class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
+open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   private val client = HttpClient {
     install(HttpTimeout) {
       requestTimeoutMillis = 300000

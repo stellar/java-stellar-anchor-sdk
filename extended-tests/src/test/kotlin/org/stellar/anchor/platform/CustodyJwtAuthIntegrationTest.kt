@@ -26,7 +26,7 @@ internal class CustodyJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
       println("Running CustodyJwtAuthIntegrationTest")
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(testProfileName = "default-custody").also {
+          TestConfig(testProfileName = "custody").also {
             it.env[RUN_DOCKER] = "true"
             it.env[RUN_ALL_SERVERS] = "false"
             it.env[RUN_CUSTODY_SERVER] = "true"
@@ -76,7 +76,7 @@ internal class CustodyJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     // Check if the request without JWT will cause a 403.
     val httpRequest =
       Request.Builder()
-        .url("http://localhost:${AbstractIntegrationTest.CUSTODY_SERVER_SERVER_PORT}${endpoint}")
+        .url("http://localhost:${CUSTODY_SERVER_SERVER_PORT}${endpoint}")
         .header("Content-Type", "application/json")
         .method(method, getCustodyDummyRequestBody())
         .build()

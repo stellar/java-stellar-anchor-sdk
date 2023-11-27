@@ -62,7 +62,7 @@ internal class PlatformApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest()
   fun `test API_KEY auth protection of the platform server`(method: String, endpoint: String) {
     val httpRequest =
       Request.Builder()
-        .url("http://localhost:${AbstractIntegrationTest.PLATFORM_SERVER_PORT}$endpoint")
+        .url("http://localhost:${PLATFORM_SERVER_PORT}$endpoint")
         .header("Content-Type", "application/json")
         .method(method, getPlatformDummyRequestBody(method))
         .build()
@@ -84,9 +84,9 @@ internal class PlatformApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest()
   fun `test the platform endpoints with API_KEY auth`(method: String, endpoint: String) {
     val httpRequest =
       Request.Builder()
-        .url("http://localhost:${AbstractIntegrationTest.PLATFORM_SERVER_PORT}$endpoint")
+        .url("http://localhost:${PLATFORM_SERVER_PORT}$endpoint")
         .header("Content-Type", "application/json")
-        .header("X-Api-Key", AbstractIntegrationTest.ANCHOR_TO_PLATFORM_SECRET)
+        .header("X-Api-Key", ANCHOR_TO_PLATFORM_SECRET)
         .method(method, getPlatformDummyRequestBody(method))
         .build()
     val response = httpClient.newCall(httpRequest).execute()

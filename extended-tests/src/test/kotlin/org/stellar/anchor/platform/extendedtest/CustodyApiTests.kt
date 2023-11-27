@@ -1,11 +1,14 @@
-package org.stellar.anchor.platform.test
+package org.stellar.anchor.platform.extendedtest
 
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
@@ -21,49 +24,54 @@ import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.client.CustodyApiClient
 import org.stellar.anchor.client.Sep24Client
+import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER
 import org.stellar.anchor.platform.gson
-import org.stellar.anchor.util.Sep1Helper
 
-class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, jwt: String) {
+class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
 
-  companion object {
-    const val TX_ID_KEY = "TX_ID"
-  }
-
-  private val custodyApiClient = CustodyApiClient(config.env["custody.server.url"]!!, jwt)
-  private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
+  private val custodyApiClient = CustodyApiClient(config.env["custody.server.url"]!!, token.token)
+  private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), token.token)
   private val platformApiClient =
     PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
 
-  fun testAll(custodyMockServer: MockWebServer) {
-    println("Performing Custody API tests...")
+  companion object {
+    const val TX_ID_KEY = "TX_ID"
+    private val custodyMockServer = MockWebServer()
 
-    val mockServerDispatcher: Dispatcher =
-      object : Dispatcher() {
-        override fun dispatch(request: RecordedRequest): MockResponse {
-          if (
-            "POST" == request.method &&
-              "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses" == request.path
-          ) {
-            return MockResponse().setResponseCode(200).setBody(CUSTODY_DEPOSIT_ADDRESS_RESPONSE)
+    @BeforeAll
+    @JvmStatic
+    fun construct() {
+      custodyMockServer.dispatcher =
+        object : Dispatcher() {
+          override fun dispatch(request: RecordedRequest): MockResponse {
+            if (
+              "POST" == request.method &&
+                "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses" == request.path
+            ) {
+              return MockResponse().setResponseCode(200).setBody(CUSTODY_DEPOSIT_ADDRESS_RESPONSE)
+            }
+            if ("POST" == request.method && "//v1/transactions" == request.path) {
+              return MockResponse()
+                .setResponseCode(200)
+                .setBody(CUSTODY_TRANSACTION_PAYMENT_RESPONSE)
+            }
+            return MockResponse().setResponseCode(404)
           }
-          if ("POST" == request.method && "//v1/transactions" == request.path) {
-            return MockResponse().setResponseCode(200).setBody(CUSTODY_TRANSACTION_PAYMENT_RESPONSE)
-          }
-          return MockResponse().setResponseCode(404)
         }
-      }
+      custodyMockServer.start(58086)
+    }
 
-    custodyMockServer.dispatcher = mockServerDispatcher
-
-    `test generate deposit address`(custodyMockServer)
-    `test custody transaction payment`(custodyMockServer)
-    `test custody transaction refund`(custodyMockServer)
+    @AfterAll
+    @JvmStatic
+    fun destroy() {
+      custodyMockServer.shutdown()
+    }
   }
 
-  private fun `test generate deposit address`(custodyMockServer: MockWebServer) {
+  @Test
+  fun `test generate deposit address`() {
     val ex: SepException = assertThrows { custodyApiClient.generateDepositAddress("invalidAsset") }
     assertEquals(
       "{\"error\":\"Unable to find Fireblocks asset code by Stellar asset code [invalidAsset]\"}",
@@ -91,7 +99,8 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
     JSONAssert.assertEquals(CUSTODY_DEPOSIT_ADDRESS_REQUEST, requestBody, JSONCompareMode.STRICT)
   }
 
-  private fun `test custody transaction payment`(custodyMockServer: MockWebServer) {
+  @Test
+  fun `test custody transaction payment`() {
     val depositRequest = gson.fromJson(DEPOSIT_REQUEST, HashMap::class.java)
 
     @Suppress("UNCHECKED_CAST")
@@ -167,7 +176,8 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
     )
   }
 
-  private fun `test custody transaction refund`(custodyMockServer: MockWebServer) {
+  @Test
+  fun `test custody transaction refund`() {
     val withdrawRequest = gson.fromJson(SEP_24_WITHDRAW_FLOW_REQUEST, HashMap::class.java)
 
     @Suppress("UNCHECKED_CAST")

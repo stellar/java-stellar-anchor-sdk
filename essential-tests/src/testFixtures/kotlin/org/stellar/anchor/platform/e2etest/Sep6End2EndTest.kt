@@ -29,7 +29,7 @@ import org.stellar.walletsdk.horizon.sign
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(ExecutionMode.CONCURRENT)
-class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
+open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
   private val maxTries = 30
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))

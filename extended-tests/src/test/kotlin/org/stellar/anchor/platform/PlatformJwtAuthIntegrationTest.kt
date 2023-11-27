@@ -39,12 +39,9 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
             it.env["platform_server.auth.type"] = "JWT"
             // enable business server callback auth
             it.env["auth.type"] = "JWT"
-            it.env["auth.platformToAnchorSecret"] =
-              AbstractIntegrationTest.PLATFORM_TO_ANCHOR_SECRET
-            it.env["auth.anchorToPlatformSecret"] =
-              AbstractIntegrationTest.ANCHOR_TO_PLATFORM_SECRET
-            it.env["auth.expirationMilliseconds"] =
-              AbstractIntegrationTest.JWT_EXPIRATION_MILLISECONDS.toString()
+            it.env["auth.platformToAnchorSecret"] = PLATFORM_TO_ANCHOR_SECRET
+            it.env["auth.anchorToPlatformSecret"] = ANCHOR_TO_PLATFORM_SECRET
+            it.env["auth.expirationMilliseconds"] = JWT_EXPIRATION_MILLISECONDS.toString()
           }
         )
       testProfileRunner.start()
@@ -130,7 +127,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   fun `test the callback customer endpoint with JWT auth`() {
     val rci =
       RestCustomerIntegration(
-        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         jwtAuthHelper,
         gson
@@ -147,7 +144,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   fun `test the callback rate endpoint with JWT auth`() {
     val rri =
       RestRateIntegration(
-        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         jwtAuthHelper,
         gson
@@ -162,7 +159,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   fun `test the callback fee endpoint with JWT auth`() {
     val rfi =
       RestFeeIntegration(
-        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         jwtAuthHelper,
         gson
@@ -175,7 +172,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   fun `test JWT protection of callback customer endpoint`() {
     val badTokenClient =
       RestCustomerIntegration(
-        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         jwtWrongKeyAuthHelper,
         gson
@@ -186,7 +183,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
 
     val expiredTokenClient =
       RestCustomerIntegration(
-        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         jwtWrongKeyAuthHelper,
         gson
@@ -200,7 +197,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   fun `test JWT protection of callback rate endpoint`() {
     val badTokenClient =
       RestRateIntegration(
-        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         jwtWrongKeyAuthHelper,
         gson
@@ -209,7 +206,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
 
     val expiredTokenClient =
       RestRateIntegration(
-        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         jwtExpiredAuthHelper,
         gson
@@ -223,7 +220,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   fun `test JWT protection of callback fee endpoint with bad token`() {
     val badTokenClient =
       RestFeeIntegration(
-        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         jwtWrongKeyAuthHelper,
         gson
@@ -232,7 +229,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
 
     val expiredTokenClient =
       RestFeeIntegration(
-        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         jwtExpiredAuthHelper,
         gson
