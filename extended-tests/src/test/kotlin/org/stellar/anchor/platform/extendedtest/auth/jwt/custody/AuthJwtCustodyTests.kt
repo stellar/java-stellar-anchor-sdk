@@ -1,12 +1,10 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.extendedtest.auth.jwt.custody
 
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -16,35 +14,11 @@ import org.stellar.anchor.api.exception.CustodyException
 import org.stellar.anchor.platform.apiclient.CustodyApiClient
 import org.stellar.anchor.platform.config.CustodyApiConfig
 import org.stellar.anchor.platform.config.PropertyCustodySecretConfig
+import org.stellar.anchor.platform.extendedtest.auth.AbstractAuthIntegrationTest
+import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.OkHttpUtil
 
-internal class CustodyJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
-  companion object {
-    @BeforeAll
-    @JvmStatic
-    fun setup() {
-      println("Running CustodyJwtAuthIntegrationTest")
-      testProfileRunner =
-        TestProfileExecutor(
-          TestConfig(testProfileName = "custody").also {
-            it.env[RUN_DOCKER] = "true"
-            it.env[RUN_ALL_SERVERS] = "false"
-            it.env[RUN_CUSTODY_SERVER] = "true"
-
-            // enable custody server jwt auth
-            it.env["custody_server.auth.type"] = "jwt"
-          }
-        )
-      testProfileRunner.start()
-    }
-
-    @AfterAll
-    @JvmStatic
-    fun breakdown() {
-      testProfileRunner.shutdown()
-    }
-  }
-
+internal class AuthJwtCustodyTests : AbstractAuthIntegrationTest() {
   private val httpClient: OkHttpClient =
     OkHttpClient.Builder()
       .connectTimeout(10, TimeUnit.MINUTES)

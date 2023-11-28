@@ -1,15 +1,11 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.extendedtest.auth.jwt.platform
 
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.callback.GetCustomerRequest
@@ -17,43 +13,14 @@ import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.apiclient.PlatformApiClient
+import org.stellar.anchor.platform.*
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
+import org.stellar.anchor.platform.extendedtest.auth.*
 import org.stellar.anchor.util.OkHttpUtil
 
-internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
-  companion object {
-    @BeforeAll
-    @JvmStatic
-    fun setup() {
-      println("Running PlatformJwtAuthIntegrationTest")
-      testProfileRunner =
-        TestProfileExecutor(
-          TestConfig().also {
-            it.env[RUN_DOCKER] = "true"
-            it.env[RUN_ALL_SERVERS] = "false"
-            it.env[RUN_PLATFORM_SERVER] = "true"
-
-            // enable platform server jwt auth
-            it.env["platform_server.auth.type"] = "JWT"
-            // enable business server callback auth
-            it.env["auth.type"] = "JWT"
-            it.env["auth.platformToAnchorSecret"] = PLATFORM_TO_ANCHOR_SECRET
-            it.env["auth.anchorToPlatformSecret"] = ANCHOR_TO_PLATFORM_SECRET
-            it.env["auth.expirationMilliseconds"] = JWT_EXPIRATION_MILLISECONDS.toString()
-          }
-        )
-      testProfileRunner.start()
-    }
-
-    @AfterAll
-    @JvmStatic
-    fun breakdown() {
-      testProfileRunner.shutdown()
-    }
-  }
-
+internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
   // TODO - to be deprecated by platformAPI client
   private val httpClient: OkHttpClient =
     OkHttpClient.Builder()
@@ -122,8 +89,6 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   }
 
   @Test
-  // This is disabled because it is testing the callback auth instead of platform auth
-  @Disabled
   fun `test the callback customer endpoint with JWT auth`() {
     val rci =
       RestCustomerIntegration(
@@ -139,8 +104,6 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   }
 
   @Test
-  // This is disabled because it is testing the callback auth instead of platform auth
-  @Disabled
   fun `test the callback rate endpoint with JWT auth`() {
     val rri =
       RestRateIntegration(
@@ -154,8 +117,6 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   }
 
   @Test
-  // This is disabled because it is testing the callback auth instead of platform auth
-  @Disabled
   fun `test the callback fee endpoint with JWT auth`() {
     val rfi =
       RestFeeIntegration(

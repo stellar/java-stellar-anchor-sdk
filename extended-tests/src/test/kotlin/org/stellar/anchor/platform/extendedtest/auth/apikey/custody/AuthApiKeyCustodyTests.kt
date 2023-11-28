@@ -1,43 +1,18 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.extendedtest.auth.apikey.custody
 
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.stellar.anchor.platform.extendedtest.auth.AbstractAuthIntegrationTest
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
 
-internal class CustodyApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
-  companion object {
-    @BeforeAll
-    @JvmStatic
-    fun setup() {
-      println("Running CustodyApiKeyAuthIntegrationTest")
-      testProfileRunner =
-        TestProfileExecutor(
-          TestConfig(testProfileName = "custody").also {
-            it.env[RUN_DOCKER] = "true"
-            it.env[RUN_ALL_SERVERS] = "false"
-            it.env[RUN_CUSTODY_SERVER] = "true"
-
-            // enable custody server api_key auth
-            it.env["custody_server.auth.type"] = "api_key"
-          }
-        )
-      testProfileRunner.start()
-    }
-
-    @AfterAll
-    @JvmStatic
-    fun breakdown() {
-      testProfileRunner.shutdown()
-    }
-  }
+// use TEST_PROFILE_NAME = "auth-apikey-custody"
+internal class AuthApiKeyCustodyTests : AbstractAuthIntegrationTest() {
 
   private val gson = GsonUtils.getInstance()
   private val httpClient: OkHttpClient =
@@ -52,7 +27,7 @@ internal class CustodyApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() 
   fun test_incomingCustodyAuth_emptyApiKey_authFails(method: String, endpoint: String) {
     val httpRequest =
       Request.Builder()
-        .url("http://localhost:${CUSTODY_SERVER_SERVER_PORT}$endpoint")
+        .url("http://localhost:$CUSTODY_SERVER_SERVER_PORT$endpoint")
         .header("Content-Type", "application/json")
         .method(method, getCustodyDummyRequestBody())
         .build()
@@ -65,18 +40,13 @@ internal class CustodyApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() 
   fun test_incomingCustodyAuth_emptyApiKey_authPasses(method: String, endpoint: String) {
     val httpRequest =
       Request.Builder()
-        .url("http://localhost:${CUSTODY_SERVER_SERVER_PORT}$endpoint")
+        .url("http://localhost:$CUSTODY_SERVER_SERVER_PORT$endpoint")
         .header("Content-Type", "application/json")
         .header("X-Api-Key", PLATFORM_TO_CUSTODY_SECRET)
         .method(method, getCustodyDummyRequestBody())
         .build()
     val response = httpClient.newCall(httpRequest).execute()
     assertEquals(200, response.code)
-  }
-
-  private fun getPlatformDummyRequestBody(method: String): RequestBody? {
-    return if (method != "PATCH") null
-    else OkHttpUtil.buildJsonRequestBody(gson.toJson(mapOf("proposedAssetsJson" to "bar")))
   }
 
   private fun getCustodyDummyRequestBody(): RequestBody? {

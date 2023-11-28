@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.extendedtest
+package org.stellar.anchor.platform.extendedtest.custody
 
 import com.google.gson.reflect.TypeToken
 import okhttp3.mockwebserver.Dispatcher

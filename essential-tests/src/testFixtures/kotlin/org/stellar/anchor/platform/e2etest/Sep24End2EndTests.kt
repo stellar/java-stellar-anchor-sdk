@@ -106,12 +106,32 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     assertEquals(fetchedTxn.id, transactionByStellarId.id)
 
     // Check the events sent to the reference server are recorded correctly
-    val actualEvents = waitForBusinessServerEvents(response.id, 5)
-    assertEvents(actualEvents, expectedDepositStatuses)
+    val actualEvents = waitForBusinessServerEvents(response.id, getExpectedDepositStatus().size)
+    assertEvents(actualEvents, getExpectedDepositStatus())
 
     // Check the callbacks sent to the wallet reference server are recorded correctly
-    val actualCallbacks = waitForWalletServerCallbacks(response.id, 5)
-    assertCallbacks(actualCallbacks, expectedDepositStatuses)
+    val actualCallbacks = waitForWalletServerCallbacks(response.id, getExpectedDepositStatus().size)
+    assertCallbacks(actualCallbacks, getExpectedDepositStatus())
+  }
+
+  open fun getExpectedDepositStatus(): List<Pair<AnchorEvent.Type, SepTransactionStatus>> {
+    return listOf(
+      TRANSACTION_CREATED to SepTransactionStatus.INCOMPLETE,
+      TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_USR_TRANSFER_START,
+      TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_ANCHOR,
+      TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_STELLAR,
+      TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
+    )
+  }
+
+  open fun getExpectedWithdrawalStatus(): List<Pair<AnchorEvent.Type, SepTransactionStatus>> {
+    return listOf(
+      TRANSACTION_CREATED to SepTransactionStatus.INCOMPLETE,
+      TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_USR_TRANSFER_START,
+      TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_ANCHOR,
+      TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_EXTERNAL,
+      TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
+    )
   }
 
   private suspend fun makeDeposit(
@@ -230,12 +250,13 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     assertEquals(fetchTxn.id, transactionByStellarId.id)
 
     // Check the events sent to the reference server are recorded correctly
-    val actualEvents = waitForBusinessServerEvents(withdrawTxn.id, 5)
-    assertEvents(actualEvents, expectedWithdrawalStatuses)
+    val actualEvents =
+      waitForBusinessServerEvents(withdrawTxn.id, getExpectedWithdrawalStatus().size)
+    assertEvents(actualEvents, getExpectedWithdrawalStatus())
 
     // Check the callbacks sent to the wallet reference server are recorded correctly
     val actualCallbacks = waitForWalletServerCallbacks(withdrawTxn.id, 5)
-    assertCallbacks(actualCallbacks, expectedWithdrawalStatuses)
+    assertCallbacks(actualCallbacks, getExpectedWithdrawalStatus())
   }
 
   private suspend fun waitForWalletServerCallbacks(
@@ -341,22 +362,6 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   companion object {
     private val USDC =
       IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-    private val expectedDepositStatuses =
-      listOf(
-        TRANSACTION_CREATED to SepTransactionStatus.INCOMPLETE,
-        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_USR_TRANSFER_START,
-        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_ANCHOR,
-        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_STELLAR,
-        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
-      )
-    private val expectedWithdrawalStatuses =
-      listOf(
-        TRANSACTION_CREATED to SepTransactionStatus.INCOMPLETE,
-        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_USR_TRANSFER_START,
-        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_ANCHOR,
-        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_EXTERNAL,
-        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
-      )
 
     @JvmStatic
     fun depositAssetsAndAmounts(): Stream<Arguments> {

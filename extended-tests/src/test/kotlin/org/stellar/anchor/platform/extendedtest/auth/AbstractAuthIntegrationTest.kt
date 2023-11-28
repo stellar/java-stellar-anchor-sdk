@@ -1,14 +1,8 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.extendedtest.auth
 
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
-
-const val GET_TRANSACTIONS_ENDPOINT = "GET,/transactions"
-const val PATCH_TRANSACTIONS_ENDPOINT = "PATCH,/transactions"
-const val GET_TRANSACTIONS_MY_ID_ENDPOINT = "GET,/transactions/my_id"
-const val GET_EXCHANGE_QUOTES_ENDPOINT = "GET,/exchange/quotes"
-const val GET_EXCHANGE_QUOTES_ID_ENDPOINT = "GET,/exchange/quotes/id"
-const val POST_CUSTODY_TRANSACTION_ENDPOINT = "POST,/transactions"
+import org.stellar.anchor.platform.TestProfileExecutor
 
 abstract class AbstractAuthIntegrationTest {
   companion object {
@@ -19,6 +13,13 @@ abstract class AbstractAuthIntegrationTest {
     const val CUSTODY_SERVER_SERVER_PORT = 8086
     const val REFERENCE_SERVER_PORT = 8091
     const val JWT_EXPIRATION_MILLISECONDS = 10000L
+
+    const val GET_TRANSACTIONS_ENDPOINT = "GET,/transactions"
+    const val PATCH_TRANSACTIONS_ENDPOINT = "PATCH,/transactions"
+    const val GET_TRANSACTIONS_MY_ID_ENDPOINT = "GET,/transactions/my_id"
+    const val GET_EXCHANGE_QUOTES_ENDPOINT = "GET,/exchange/quotes"
+    const val GET_EXCHANGE_QUOTES_ID_ENDPOINT = "GET,/exchange/quotes/id"
+    const val POST_CUSTODY_TRANSACTION_ENDPOINT = "POST,/transactions"
 
     private val jwtService =
       JwtService(

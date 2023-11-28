@@ -1,45 +1,18 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.extendedtest.auth.apikey.platform
 
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.stellar.anchor.platform.extendedtest.auth.*
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
 
-internal class PlatformApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
-  companion object {
-    @BeforeAll
-    @JvmStatic
-    fun setup() {
-      println("Running PlatformApiKeyAuthIntegrationTest")
-      testProfileRunner =
-        TestProfileExecutor(
-          TestConfig().also {
-            it.env[RUN_DOCKER] = "true"
-            it.env[RUN_ALL_SERVERS] = "false"
-            it.env[RUN_PLATFORM_SERVER] = "true"
-
-            // enable platform server api_key auth
-            it.env["platform_server.auth.type"] = "api_key"
-          }
-        )
-      testProfileRunner.start()
-    }
-
-    @AfterAll
-    @JvmStatic
-    fun breakdown() {
-      testProfileRunner.shutdown()
-    }
-  }
-
+internal class AuthApiKeyPlatformTests : AbstractAuthIntegrationTest() {
   private val gson = GsonUtils.getInstance()
   private val httpClient: OkHttpClient =
     OkHttpClient.Builder()

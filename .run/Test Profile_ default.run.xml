@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="All Servers - default" type="JetRunConfigurationType">
+  <configuration default="false" name="Test Profile: default" type="JetRunConfigurationType">
     <envs>
       <env name="app.enableTest" value="true" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunAllServers" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunTestProfile" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
     <shortenClasspath name="ARGS_FILE" />
     <method v="2">

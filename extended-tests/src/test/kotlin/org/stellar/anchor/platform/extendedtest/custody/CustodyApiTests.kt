@@ -1,15 +1,10 @@
-package org.stellar.anchor.platform.extendedtest
+package org.stellar.anchor.platform.extendedtest.custody
 
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertInstanceOf
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.*
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -18,7 +13,6 @@ import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.api.rpc.method.*
-import org.stellar.anchor.api.rpc.method.RpcMethod.*
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
@@ -26,7 +20,8 @@ import org.stellar.anchor.client.CustodyApiClient
 import org.stellar.anchor.client.Sep24Client
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService
+import org.stellar.anchor.platform.extendedtest.*
 import org.stellar.anchor.platform.gson
 
 class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
@@ -73,7 +68,7 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
   @Test
   fun `test generate deposit address`() {
     val ex: SepException = assertThrows { custodyApiClient.generateDepositAddress("invalidAsset") }
-    assertEquals(
+    Assertions.assertEquals(
       "{\"error\":\"Unable to find Fireblocks asset code by Stellar asset code [invalidAsset]\"}",
       ex.message
     )
@@ -94,8 +89,11 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
     val requestMethod = recordedRequest.method
     val requestBody = recordedRequest.body.readUtf8()
 
-    assertEquals("//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses", requestPath.toString())
-    assertEquals("POST", requestMethod)
+    Assertions.assertEquals(
+      "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses",
+      requestPath.toString()
+    )
+    Assertions.assertEquals("POST", requestMethod)
     JSONAssert.assertEquals(CUSTODY_DEPOSIT_ADDRESS_REQUEST, requestBody, JSONCompareMode.STRICT)
   }
 
@@ -117,10 +115,13 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
     val requestOffchainFundsParams =
       gson.fromJson(REQUEST_OFFCHAIN_FUNDS_REQUEST, RequestOffchainFundsRequest::class.java)
     requestOffchainFundsParams.transactionId = txId
-    platformApiClient.sendRpcNotification(REQUEST_OFFCHAIN_FUNDS, requestOffchainFundsParams)
+    platformApiClient.sendRpcNotification(
+      RpcMethod.REQUEST_OFFCHAIN_FUNDS,
+      requestOffchainFundsParams
+    )
 
     var txResponse = platformApiClient.getTransaction(txId)
-    assertEquals(SepTransactionStatus.PENDING_USR_TRANSFER_START, txResponse.status)
+    Assertions.assertEquals(SepTransactionStatus.PENDING_USR_TRANSFER_START, txResponse.status)
 
     val notifyOffchainFundsReceivedParams =
       gson.fromJson(
@@ -129,15 +130,15 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
       )
     notifyOffchainFundsReceivedParams.transactionId = txId
     platformApiClient.sendRpcNotification(
-      NOTIFY_OFFCHAIN_FUNDS_RECEIVED,
+      RpcMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED,
       notifyOffchainFundsReceivedParams
     )
 
     txResponse = platformApiClient.getTransaction(txId)
-    assertEquals(SepTransactionStatus.PENDING_ANCHOR, txResponse.status)
+    Assertions.assertEquals(SepTransactionStatus.PENDING_ANCHOR, txResponse.status)
 
     val ex: SepException = assertThrows { custodyApiClient.createTransactionPayment("invalidId") }
-    assertInstanceOf(SepNotFoundException::class.java, ex)
+    Assertions.assertInstanceOf(SepNotFoundException::class.java, ex)
 
     custodyApiClient.createTransactionPayment(txId)
 
@@ -147,18 +148,18 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
     val requestMethod = recordedRequest.method
     val requestBody = recordedRequest.body.readUtf8()
 
-    assertEquals("//v1/transactions", requestPath.toString())
+    Assertions.assertEquals("//v1/transactions", requestPath.toString())
     JSONAssert.assertEquals(
       CUSTODY_TRANSACTION_PAYMENT_REQUEST,
       requestBody,
       JSONCompareMode.STRICT
     )
 
-    assertEquals("POST", requestMethod)
+    Assertions.assertEquals("POST", requestMethod)
 
     custodyApiClient.sendWebhook(
       WEBHOOK_REQUEST,
-      mapOf(FIREBLOCKS_SIGNATURE_HEADER to WEBHOOK_SIGNATURE)
+      mapOf(FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER to WEBHOOK_SIGNATURE)
     )
 
     txResponse = platformApiClient.getTransaction(txId)
@@ -207,10 +208,13 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
         REQUEST_ONCHAIN_FUNDS_REQUEST.replace(TX_ID_KEY, txId),
         RequestOnchainFundsRequest::class.java
       )
-    platformApiClient.sendRpcNotification(REQUEST_ONCHAIN_FUNDS, requestOnchainFundsParams)
+    platformApiClient.sendRpcNotification(
+      RpcMethod.REQUEST_ONCHAIN_FUNDS,
+      requestOnchainFundsParams
+    )
 
     var txResponse = platformApiClient.getTransaction(txId)
-    assertEquals(SepTransactionStatus.PENDING_USR_TRANSFER_START, txResponse.status)
+    Assertions.assertEquals(SepTransactionStatus.PENDING_USR_TRANSFER_START, txResponse.status)
 
     val notifyOnchainFundsReceivedRequest =
       gson.fromJson(
@@ -218,25 +222,25 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
         NotifyOnchainFundsReceivedRequest::class.java
       )
     platformApiClient.sendRpcNotification(
-      NOTIFY_ONCHAIN_FUNDS_RECEIVED,
+      RpcMethod.NOTIFY_ONCHAIN_FUNDS_RECEIVED,
       notifyOnchainFundsReceivedRequest
     )
 
     txResponse = platformApiClient.getTransaction(txId)
-    assertEquals(SepTransactionStatus.PENDING_ANCHOR, txResponse.status)
+    Assertions.assertEquals(SepTransactionStatus.PENDING_ANCHOR, txResponse.status)
 
     val doStellarRefundParams =
       gson.fromJson(
         DO_STELLAR_REFUND_REQUEST.replace(TX_ID_KEY, txId),
         DoStellarRefundRequest::class.java
       )
-    platformApiClient.sendRpcNotification(DO_STELLAR_REFUND, doStellarRefundParams)
+    platformApiClient.sendRpcNotification(RpcMethod.DO_STELLAR_REFUND, doStellarRefundParams)
     txResponse = platformApiClient.getTransaction(txId)
-    assertEquals(SepTransactionStatus.PENDING_STELLAR, txResponse.status)
+    Assertions.assertEquals(SepTransactionStatus.PENDING_STELLAR, txResponse.status)
 
     custodyApiClient.sendWebhook(
       REFUND_WEBHOOK_REQUEST,
-      mapOf(FIREBLOCKS_SIGNATURE_HEADER to REFUND_WEBHOOK_SIGNATURE)
+      mapOf(FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER to REFUND_WEBHOOK_SIGNATURE)
     )
 
     txResponse = platformApiClient.getTransaction(txId)
