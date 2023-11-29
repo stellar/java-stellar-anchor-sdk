@@ -73,8 +73,8 @@ public class SepBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep31")
-  Sep31Config sep31Config(CustodyConfig custodyConfig) {
-    return new PropertySep31Config(custodyConfig);
+  Sep31Config sep31Config(CustodyConfig custodyConfig, AssetService assetService) {
+    return new PropertySep31Config(custodyConfig, assetService);
   }
 
   @Bean
@@ -183,7 +183,10 @@ public class SepBeans {
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
       MoreInfoUrlConstructor moreInfoUrlConstructor,
-      CustodyConfig custodyConfig) {
+      CustodyConfig custodyConfig,
+      Sep38QuoteStore sep38QuoteStore) {
+    ExchangeAmountsCalculator exchangeAmountsCalculator =
+        new ExchangeAmountsCalculator(sep38QuoteStore);
     return new Sep24Service(
         appConfig,
         sep24Config,
@@ -195,7 +198,8 @@ public class SepBeans {
         eventService,
         interactiveUrlConstructor,
         moreInfoUrlConstructor,
-        custodyConfig);
+        custodyConfig,
+        exchangeAmountsCalculator);
   }
 
   @Bean

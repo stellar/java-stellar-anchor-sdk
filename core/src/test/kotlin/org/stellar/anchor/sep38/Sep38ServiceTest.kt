@@ -819,7 +819,7 @@ class Sep38ServiceTest {
       )
     }
     assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
+    assertEquals("Unsupported context. Should be one of [sep6, sep24, sep31].", ex.message)
 
     // sell_amount should be within limit
     ex = assertThrows {

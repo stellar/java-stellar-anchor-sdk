@@ -17,10 +17,7 @@ import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.config.RpcConfig;
-import org.stellar.anchor.platform.custody.CustodyPaymentService;
-import org.stellar.anchor.platform.custody.CustodyTransactionService;
-import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
-import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
+import org.stellar.anchor.platform.custody.*;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
 @Configuration
@@ -56,6 +53,16 @@ public class CustodyBeans {
     registrationBean.setFilter(platformToCustody);
     registrationBean.addUrlPatterns("/transactions/*");
     return registrationBean;
+  }
+
+  @Bean
+  Sep6CustodyPaymentHandler sep6CustodyPaymentHandler(
+      JdbcCustodyTransactionRepo custodyTransactionRepo,
+      PlatformApiClient platformApiClient,
+      RpcConfig rpcConfig,
+      MetricsService metricsService) {
+    return new Sep6CustodyPaymentHandler(
+        custodyTransactionRepo, platformApiClient, rpcConfig, metricsService);
   }
 
   @Bean
