@@ -56,7 +56,7 @@ class ClientFinderTest {
   @Test
   fun `test getClientId with client found by domain`() {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns clientConfig
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)
   }
@@ -64,7 +64,7 @@ class ClientFinderTest {
   @Test
   fun `test getClientId with client found by signing key`() {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns null
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)
   }
@@ -74,27 +74,27 @@ class ClientFinderTest {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns null
     every { clientsConfig.getClientConfigBySigningKey(token.account) } returns null
 
-    assertThrows<BadRequestException> { clientFinder.getClientId(token) }
+    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
   }
 
   @Test
   fun `test getClientId with client not found by domain`() {
     every { sep10Config.allowedClientDomains } returns listOf("nothing")
 
-    assertThrows<BadRequestException> { clientFinder.getClientId(token) }
+    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
   }
 
   @Test
   fun `test getClientId with client not found by name`() {
     every { sep10Config.allowedClientNames } returns listOf("nothing")
 
-    assertThrows<BadRequestException> { clientFinder.getClientId(token) }
+    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
   }
 
   @Test
   fun `test getClientId with all domains allowed`() {
     every { sep10Config.allowedClientDomains } returns emptyList()
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)
   }
@@ -102,7 +102,7 @@ class ClientFinderTest {
   @Test
   fun `test getClientId with all names allowed`() {
     every { sep10Config.allowedClientNames } returns emptyList()
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)
   }
@@ -113,7 +113,7 @@ class ClientFinderTest {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns null
     every { clientsConfig.getClientConfigBySigningKey(token.account) } returns null
 
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
     assertNull(clientId)
   }
 
@@ -123,7 +123,7 @@ class ClientFinderTest {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns null
     every { clientsConfig.getClientConfigBySigningKey(token.account) } returns clientConfig
 
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
     assertEquals(clientConfig.name, clientId)
   }
 
@@ -133,7 +133,7 @@ class ClientFinderTest {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns clientConfig
     every { clientsConfig.getClientConfigBySigningKey(token.account) } returns null
 
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
     assertEquals(clientConfig.name, clientId)
   }
 }

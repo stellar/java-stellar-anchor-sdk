@@ -14,6 +14,7 @@ import org.stellar.anchor.api.sep.sep6.*;
 import org.stellar.anchor.api.sep.sep6.InfoResponse.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
+import org.stellar.anchor.client.ClientFinder;
 import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts;
@@ -25,6 +26,8 @@ public class Sep6Service {
   private final Sep6Config sep6Config;
   private final AssetService assetService;
   private final RequestValidator requestValidator;
+
+  private final ClientFinder clientFinder;
   private final Sep6TransactionStore txnStore;
   private final ExchangeAmountsCalculator exchangeAmountsCalculator;
   private final EventService.Session eventSession;
@@ -35,12 +38,14 @@ public class Sep6Service {
       Sep6Config sep6Config,
       AssetService assetService,
       RequestValidator requestValidator,
+      ClientFinder clientFinder,
       Sep6TransactionStore txnStore,
       ExchangeAmountsCalculator exchangeAmountsCalculator,
       EventService eventService) {
     this.sep6Config = sep6Config;
     this.assetService = assetService;
     this.requestValidator = requestValidator;
+    this.clientFinder = clientFinder;
     this.txnStore = txnStore;
     this.exchangeAmountsCalculator = exchangeAmountsCalculator;
     this.eventSession =
@@ -94,7 +99,8 @@ public class Sep6Service {
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(request.getAccount())
-            .clientDomain(token.getClientDomain());
+            .clientDomain(token.getClientDomain())
+            .clientName(clientFinder.getClientName(token));
 
     if (memo != null) {
       builder.memo(memo.toString());
@@ -187,6 +193,7 @@ public class Sep6Service {
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(request.getAccount())
             .clientDomain(token.getClientDomain())
+            .clientName(clientFinder.getClientName(token))
             .quoteId(request.getQuoteId());
 
     if (memo != null) {
@@ -256,6 +263,7 @@ public class Sep6Service {
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
             .clientDomain(token.getClientDomain())
+            .clientName(clientFinder.getClientName(token))
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType());
 
@@ -343,6 +351,7 @@ public class Sep6Service {
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
             .clientDomain(token.getClientDomain())
+            .clientName(clientFinder.getClientName(token))
             .refundMemo(request.getRefundMemo())
             .refundMemoType(request.getRefundMemoType())
             .quoteId(request.getQuoteId());

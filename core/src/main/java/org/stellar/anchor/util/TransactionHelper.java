@@ -109,6 +109,7 @@ public class TransactionHelper {
         .stellarTransactions(txn.getStellarTransactions())
         .externalTransactionId(txn.getExternalTransactionId())
         .clientDomain(txn.getClientDomain())
+        .clientName(txn.getClientName())
         .customers(txn.getCustomers())
         .creator(txn.getCreator())
         .build();
@@ -147,6 +148,7 @@ public class TransactionHelper {
         .memo(txn.getMemo())
         .memoType(txn.getMemoType())
         .clientDomain(txn.getClientDomain())
+        .clientName(txn.getClientName())
         .refundMemo(txn.getRefundMemo())
         .refundMemoType(txn.getRefundMemoType())
         .requiredInfoMessage(txn.getRequiredInfoMessage())
@@ -193,6 +195,7 @@ public class TransactionHelper {
         .memo(txn.getMemo())
         .memoType(txn.getMemoType())
         .clientDomain(txn.getClientDomain())
+        .clientName(txn.getClientName())
         .refundMemo(txn.getRefundMemo())
         .refundMemoType(txn.getRefundMemoType())
         .build();

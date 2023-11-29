@@ -1,1 +1,0 @@
-ALTER TABLE sep6_transaction ADD client_domain VARCHAR(255);

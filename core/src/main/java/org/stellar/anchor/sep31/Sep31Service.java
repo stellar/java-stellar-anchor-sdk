@@ -204,6 +204,7 @@ public class Sep31Service {
             .requiredInfoMessage(null)
             .quoteId(request.getQuoteId())
             .clientDomain(sep10Jwt.getClientDomain())
+            .clientName(getClientName())
             .requiredInfoUpdates(null)
             .fields(request.getFields().getTransaction())
             .refunded(null)

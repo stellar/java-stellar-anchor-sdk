@@ -92,6 +92,9 @@ public class PlatformTransactionData {
   @SerializedName("client_domain")
   String clientDomain;
 
+  @SerializedName("client_name")
+  String clientName;
+
   Customers customers;
   StellarId creator;
 

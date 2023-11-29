@@ -120,6 +120,10 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @Column(name = "client_domain")
   String clientDomain;
 
+  @SerializedName("client_name")
+  @Column(name = "client_name")
+  String clientName;
+
   @SerializedName("claimable_balance_supported")
   @Column(name = "claimable_balance_supported")
   Boolean claimableBalanceSupported;

@@ -85,6 +85,11 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
+  public Sep24TransactionBuilder clientName(String clientName) {
+    txn.setClientName(clientName);
+    return this;
+  }
+
   public Sep24TransactionBuilder claimableBalanceSupported(Boolean claimableBalanceSupported) {
     txn.setClaimableBalanceSupported(claimableBalanceSupported);
     return this;

@@ -50,6 +50,7 @@ import org.stellar.anchor.api.sep.sep24.TransactionResponse;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
+import org.stellar.anchor.client.ClientFinder;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.config.CustodyConfig;
@@ -69,6 +70,7 @@ public class Sep24Service {
   final ClientsConfig clientsConfig;
   final AssetService assetService;
   final JwtService jwtService;
+  final ClientFinder clientFinder;
   final Sep24TransactionStore txnStore;
   final EventService.Session eventSession;
   final InteractiveUrlConstructor interactiveUrlConstructor;
@@ -99,6 +101,7 @@ public class Sep24Service {
       ClientsConfig clientsConfig,
       AssetService assetService,
       JwtService jwtService,
+      ClientFinder clientFinder,
       Sep24TransactionStore txnStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
@@ -111,6 +114,7 @@ public class Sep24Service {
     this.clientsConfig = clientsConfig;
     this.assetService = assetService;
     this.jwtService = jwtService;
+    this.clientFinder = clientFinder;
     this.txnStore = txnStore;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.interactiveUrlConstructor = interactiveUrlConstructor;
@@ -215,7 +219,8 @@ public class Sep24Service {
             // TODO - jamie to add unique address generator
             .withdrawAnchorAccount(asset.getDistributionAccount())
             .toAccount(asset.getDistributionAccount())
-            .clientDomain(token.getClientDomain());
+            .clientDomain(token.getClientDomain())
+            .clientName(clientFinder.getClientName(token));
 
     // TODO - jamie to look into memo vs withdrawal_memo
     if (memo != null) {
@@ -391,6 +396,7 @@ public class Sep24Service {
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(destinationAccount)
             .clientDomain(token.getClientDomain())
+            .clientName(clientFinder.getClientName(token))
             .claimableBalanceSupported(claimableSupported);
 
     if (memo != null) {
