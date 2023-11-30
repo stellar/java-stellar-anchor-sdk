@@ -54,86 +54,86 @@ class ClientFinderTest {
   }
 
   @Test
-  fun `test getClientId with client found by domain`() {
+  fun `test getClientName with client found by domain`() {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns clientConfig
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)
   }
 
   @Test
-  fun `test getClientId with client found by signing key`() {
+  fun `test getClientName with client found by signing key`() {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns null
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)
   }
 
   @Test
-  fun `test getClientId with client not found`() {
+  fun `test getClientName with client not found`() {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns null
     every { clientsConfig.getClientConfigBySigningKey(token.account) } returns null
 
-    assertThrows<BadRequestException> { clientFinder.getClientId(token) }
+    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
   }
 
   @Test
-  fun `test getClientId with client not found by domain`() {
+  fun `test getClientName with client not found by domain`() {
     every { sep10Config.allowedClientDomains } returns listOf("nothing")
 
-    assertThrows<BadRequestException> { clientFinder.getClientId(token) }
+    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
   }
 
   @Test
-  fun `test getClientId with client not found by name`() {
+  fun `test getClientName with client not found by name`() {
     every { sep10Config.allowedClientNames } returns listOf("nothing")
 
-    assertThrows<BadRequestException> { clientFinder.getClientId(token) }
+    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
   }
 
   @Test
-  fun `test getClientId with all domains allowed`() {
+  fun `test getClientName with all domains allowed`() {
     every { sep10Config.allowedClientDomains } returns emptyList()
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)
   }
 
   @Test
-  fun `test getClientId with all names allowed`() {
+  fun `test getClientName with all names allowed`() {
     every { sep10Config.allowedClientNames } returns emptyList()
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)
   }
 
   @Test
-  fun `test getClientId with client attribution disabled and missing client`() {
+  fun `test getClientName with client attribution disabled and missing client`() {
     every { sep10Config.isClientAttributionRequired } returns false
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns null
     every { clientsConfig.getClientConfigBySigningKey(token.account) } returns null
 
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
     assertNull(clientId)
   }
 
   @Test
-  fun `test getClientId with client attribution disabled and client found by signing key`() {
+  fun `test getClientName with client attribution disabled and client found by signing key`() {
     every { sep10Config.isClientAttributionRequired } returns false
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns null
     every { clientsConfig.getClientConfigBySigningKey(token.account) } returns clientConfig
 
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
     assertEquals(clientConfig.name, clientId)
   }
 
   @Test
-  fun `test getClientId with client attribution disabled and client found by domain`() {
+  fun `test getClientName with client attribution disabled and client found by domain`() {
     every { sep10Config.isClientAttributionRequired } returns false
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns clientConfig
     every { clientsConfig.getClientConfigBySigningKey(token.account) } returns null
 
-    val clientId = clientFinder.getClientId(token)
+    val clientId = clientFinder.getClientName(token)
     assertEquals(clientConfig.name, clientId)
   }
 }

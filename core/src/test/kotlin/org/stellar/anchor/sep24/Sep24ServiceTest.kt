@@ -39,6 +39,7 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
+import org.stellar.anchor.client.ClientFinder
 import org.stellar.anchor.config.*
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.sep38.PojoSep38Quote
@@ -106,6 +107,8 @@ internal class Sep24ServiceTest {
 
   @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
 
+  @MockK(relaxed = true) lateinit var clientFinder: ClientFinder
+
   @MockK(relaxed = true) lateinit var txnStore: Sep24TransactionStore
 
   @MockK(relaxed = true) lateinit var interactiveUrlConstructor: InteractiveUrlConstructor
@@ -148,6 +151,7 @@ internal class Sep24ServiceTest {
     every { moreInfoUrlConstructor.construct(any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
     every { clientsConfig.getClientConfigByDomain(any()) } returns clientConfig
+    every { clientFinder.getClientName(any()) } returns TEST_CLIENT_NAME
     calculator = ExchangeAmountsCalculator(sep38QuoteStore)
 
     sep24Service =
@@ -157,6 +161,7 @@ internal class Sep24ServiceTest {
         clientsConfig,
         assetService,
         jwtService,
+        clientFinder,
         txnStore,
         eventService,
         interactiveUrlConstructor,
@@ -195,6 +200,7 @@ internal class Sep24ServiceTest {
     )
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals(TEST_CLIENT_NAME, slotTxn.captured.clientName)
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
@@ -244,6 +250,7 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_MEMO, slotTxn.captured.sep10AccountMemo)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals(TEST_CLIENT_NAME, slotTxn.captured.clientName)
   }
 
   @Test
@@ -343,6 +350,7 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ASSET_ISSUER_ACCOUNT_ID, slotTxn.captured.requestAssetIssuer)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals(TEST_CLIENT_NAME, slotTxn.captured.clientName)
   }
 
   @Test
@@ -377,6 +385,7 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_MEMO, slotTxn.captured.sep10AccountMemo)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals(TEST_CLIENT_NAME, slotTxn.captured.clientName)
   }
 
   @Test
@@ -442,6 +451,7 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ASSET_ISSUER_ACCOUNT_ID, slotTxn.captured.requestAssetIssuer)
     assertEquals(whitelistedAccount, slotTxn.captured.toAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals(TEST_CLIENT_NAME, slotTxn.captured.clientName)
   }
 
   @Test

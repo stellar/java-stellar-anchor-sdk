@@ -30,6 +30,7 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String requiredInfoMessage;
   String quoteId;
   String clientDomain;
+  String clientName;
   Sep31Operation.Fields requiredInfoUpdates;
   Map<String, String> fields;
   Boolean refunded;

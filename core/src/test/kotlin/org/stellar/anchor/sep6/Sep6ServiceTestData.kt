@@ -169,7 +169,9 @@ class Sep6ServiceTestData {
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "sep10AccountMemo": "123",
-          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "clientDomain": "vibrant.stellar.org",
+          "clientName": "vibrant"
         }
     """
         .trimIndent()
@@ -188,6 +190,8 @@ class Sep6ServiceTestData {
               "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
             },
             "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "client_domain": "vibrant.stellar.org",
+            "client_name": "vibrant",
             "customers": {
               "sender": {
                 "account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
@@ -212,7 +216,9 @@ class Sep6ServiceTestData {
           "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "sep10AccountMemo": "123",
-          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "clientDomain": "vibrant.stellar.org",
+          "clientName": "vibrant"
         }
 
       """
@@ -231,6 +237,8 @@ class Sep6ServiceTestData {
               "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
             },
             "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "client_domain": "vibrant.stellar.org",
+            "client_name": "vibrant",
             "customers": {
               "sender": {
                 "account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
@@ -264,6 +272,8 @@ class Sep6ServiceTestData {
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "sep10AccountMemo": "123",
           "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "clientDomain": "vibrant.stellar.org",
+          "clientName": "vibrant",
           "quoteId": "test-quote-id"
         }
       """
@@ -293,6 +303,8 @@ class Sep6ServiceTestData {
             },
             "quote_id": "test-quote-id",
             "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "client_domain": "vibrant.stellar.org",
+            "client_name": "vibrant",
             "customers": {
               "sender": {
                 "account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
@@ -325,7 +337,9 @@ class Sep6ServiceTestData {
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "sep10AccountMemo": "123",
-          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
+          "toAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "clientDomain": "vibrant.stellar.org",
+          "clientName": "vibrant"
         }
       """
         .trimIndent()
@@ -351,6 +365,8 @@ class Sep6ServiceTestData {
             },
             "amount_fee": { "amount": "0", "asset": "iso4217:USD" },
             "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+            "client_domain": "vibrant.stellar.org",
+            "client_name": "vibrant",
             "customers": {
               "sender": {
                 "account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
@@ -387,6 +403,8 @@ class Sep6ServiceTestData {
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "sep10AccountMemo": "123",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "clientDomain": "vibrant.stellar.org",
+          "clientName": "vibrant",
           "refundMemo": "some text",
           "refundMemoType": "text"
         }
@@ -413,6 +431,8 @@ class Sep6ServiceTestData {
             "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
             "refund_memo": "some text",
             "refund_memo_type": "text",
+            "client_domain": "vibrant.stellar.org",
+            "client_name": "vibrant",
             "customers": {
               "sender": {
                 "account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
@@ -439,6 +459,8 @@ class Sep6ServiceTestData {
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "sep10AccountMemo": "123",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "clientDomain": "vibrant.stellar.org",
+          "clientName": "vibrant",
           "refundMemo": "some text",
           "refundMemoType": "text"
         }
@@ -460,6 +482,8 @@ class Sep6ServiceTestData {
             "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
             "refund_memo": "some text",
             "refund_memo_type": "text",
+            "client_domain": "vibrant.stellar.org",
+            "client_name": "vibrant",
             "customers": {
               "sender": {
                 "account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
@@ -493,6 +517,8 @@ class Sep6ServiceTestData {
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "sep10AccountMemo": "123",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "clientDomain": "vibrant.stellar.org",
+          "clientName": "vibrant",
           "quoteId": "test-quote-id",
           "refundMemo": "some text",
           "refundMemoType": "text"
@@ -523,6 +549,8 @@ class Sep6ServiceTestData {
             "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
             "refund_memo": "some text",
             "refund_memo_type": "text",
+            "client_domain": "vibrant.stellar.org",
+            "client_name": "vibrant",
             "customers": {
               "sender": {
                 "account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
@@ -556,6 +584,8 @@ class Sep6ServiceTestData {
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "sep10AccountMemo": "123",
           "fromAccount": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+          "clientDomain": "vibrant.stellar.org",
+          "clientName": "vibrant",
           "refundMemo": "some text",
           "refundMemoType": "text"
         }
@@ -588,6 +618,8 @@ class Sep6ServiceTestData {
             "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
             "refund_memo": "some text",
             "refund_memo_type": "text",
+            "client_domain": "vibrant.stellar.org",
+            "client_name": "vibrant",
             "customers": {
               "sender": {
                 "account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",

@@ -54,6 +54,10 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   @Column(name = "client_domain")
   String clientDomain;
 
+  @SerializedName("client_name")
+  @Column(name = "client_name")
+  String clientName;
+
   @SerializedName("sender_id")
   @Column(name = "sender_id")
   String senderId;

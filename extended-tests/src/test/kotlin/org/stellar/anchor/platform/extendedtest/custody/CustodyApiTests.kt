@@ -556,7 +556,8 @@ private const val EXPECTED_TRANSACTION_RESPONSE =
       ]
     }
   ],
-  "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+  "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+  "client_name": "referenceCustodial"
 }
 """
 
@@ -635,7 +636,8 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
   "memo": "testTag",
   "memo_type": "id",
   "refund_memo": "12345",
-  "refund_memo_type": "id"
+  "refund_memo_type": "id",
+  "client_name": "referenceCustodial"
 }
 """
 
