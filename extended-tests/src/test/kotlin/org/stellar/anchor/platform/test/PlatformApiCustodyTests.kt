@@ -279,7 +279,8 @@ private const val SEP_24_DEPOSIT_COMPLETE_FULL_FLOW_ACTION_RESPONSES =
       "started_at": "2023-08-07T12:52:01.663006Z",
       "updated_at": "2023-08-07T12:52:03.100242Z",
       "message": "test message 1",
-      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "client_name": "referenceCustodial"
     },
     "id": "1"
   },
@@ -309,7 +310,8 @@ private const val SEP_24_DEPOSIT_COMPLETE_FULL_FLOW_ACTION_RESPONSES =
       "started_at": "2023-08-07T12:52:01.663006Z",
       "updated_at": "2023-08-07T12:52:04.165625Z",
       "message": "test message 2",
-      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "client_name": "referenceCustodial"
     },
     "id": "2"
   },
@@ -340,7 +342,8 @@ private const val SEP_24_DEPOSIT_COMPLETE_FULL_FLOW_ACTION_RESPONSES =
       "updated_at": "2023-08-07T12:52:05.241766Z",
       "message": "test message 3",
       "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-      "external_transaction_id": "ext-123456"
+      "external_transaction_id": "ext-123456",
+      "client_name": "referenceCustodial"
     },
     "id": "3"
   },
@@ -371,7 +374,8 @@ private const val SEP_24_DEPOSIT_COMPLETE_FULL_FLOW_ACTION_RESPONSES =
       "updated_at": "2023-08-07T12:52:07.016199Z",
       "message": "test message 4",
       "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-      "external_transaction_id": "ext-123456"
+      "external_transaction_id": "ext-123456",
+      "client_name": "referenceCustodial"
     },
     "id": "4"
   }
@@ -515,7 +519,8 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "updated_at": "2023-08-07T10:35:39.973638Z",
       "message": "test message 1",
       "source_account": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
-      "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF"
+      "destination_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+      "client_name": "referenceCustodial"
     },
     "id": "1"
   },
@@ -548,7 +553,8 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "source_account": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
       "destination_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
       "memo": "testMemo",
-      "memo_type": "id"
+      "memo_type": "id",
+      "client_name": "referenceCustodial"
     },
     "id": "2"
   },
@@ -602,7 +608,8 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "source_account": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
       "destination_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
       "memo": "testMemo",
-      "memo_type": "id"
+      "memo_type": "id",
+      "client_name": "referenceCustodial"
     },
     "id": "3"
   },
@@ -656,7 +663,8 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "source_account": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
       "destination_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
       "memo": "testMemo",
-      "memo_type": "id"
+      "memo_type": "id",
+      "client_name": "referenceCustodial"
     },
     "id": "4"
   },
@@ -735,7 +743,8 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "source_account": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
       "destination_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
       "memo": "testMemo",
-      "memo_type": "id"
+      "memo_type": "id",
+      "client_name": "referenceCustodial"
     },
     "id": "5"
   }

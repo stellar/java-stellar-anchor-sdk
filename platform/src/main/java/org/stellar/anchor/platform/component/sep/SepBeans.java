@@ -133,6 +133,7 @@ public class SepBeans {
   Sep6Service sep6Service(
       Sep6Config sep6Config,
       AssetService assetService,
+      ClientFinder clientFinder,
       Sep6TransactionStore txnStore,
       EventService eventService,
       Sep38QuoteStore sep38QuoteStore) {
@@ -143,6 +144,7 @@ public class SepBeans {
         sep6Config,
         assetService,
         requestValidator,
+        clientFinder,
         txnStore,
         exchangeAmountsCalculator,
         eventService);
@@ -176,6 +178,7 @@ public class SepBeans {
       ClientsConfig clientsConfig,
       AssetService assetService,
       JwtService jwtService,
+      ClientFinder clientFinder,
       Sep24TransactionStore sep24TransactionStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
@@ -190,6 +193,7 @@ public class SepBeans {
         clientsConfig,
         assetService,
         jwtService,
+        clientFinder,
         sep24TransactionStore,
         eventService,
         interactiveUrlConstructor,

@@ -40,6 +40,8 @@ public class PojoSep6Transaction implements Sep6Transaction {
   String toAccount;
   String memo;
   String memoType;
+  String clientDomain;
+  String clientName;
   String quoteId;
   String message;
   Refunds refunds;

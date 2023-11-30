@@ -28,6 +28,7 @@ public class PojoSep24Transaction implements Sep24Transaction {
   String memo;
   String protocol;
   String clientDomain;
+  String clientName;
   Boolean claimableBalanceSupported;
   String amountIn;
   String amountOut;

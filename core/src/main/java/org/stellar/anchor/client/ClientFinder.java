@@ -9,14 +9,14 @@ import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.Sep10Config;
 
-/** Finds the client ID for a SEP-10 JWT. */
+/** Finds the client name for a SEP-10 JWT. */
 @RequiredArgsConstructor
 public class ClientFinder {
   @NonNull private final Sep10Config sep10Config;
   @NonNull private final ClientsConfig clientsConfig;
 
   /**
-   * Returns the client ID for a SEP-10 JWT. If the client attribution is not required, the client
+   * Returns the client name for a SEP-10 JWT. If the client attribution is not required, the client
    * ID is returned if the client is found. If the client attribution is required, the client ID is
    * returned if the client is found and the client domain and name are allowed.
    *
@@ -25,7 +25,7 @@ public class ClientFinder {
    * @throws BadRequestException if the client is not found or the client domain or name is not
    */
   @Nullable
-  public String getClientId(Sep10Jwt token) throws BadRequestException {
+  public String getClientName(Sep10Jwt token) throws BadRequestException {
     ClientsConfig.ClientConfig client = getClient(token);
 
     // If client attribution is not required, return the client name
