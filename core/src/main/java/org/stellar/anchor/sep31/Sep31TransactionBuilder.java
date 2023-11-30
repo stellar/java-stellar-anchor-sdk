@@ -149,6 +149,11 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
+  public Sep31TransactionBuilder clientName(String clientName) {
+    txn.setClientName(clientName);
+    return this;
+  }
+
   public Sep31TransactionBuilder senderId(String senderId) {
     txn.setSenderId(senderId);
     return this;
