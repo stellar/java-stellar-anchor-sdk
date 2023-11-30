@@ -7,7 +7,7 @@ on:
 jobs:
   extended_tests:
     name: Run Extended Tests
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest-16-cores
     steps:
       #############################################
       # Setup JDK 11
@@ -46,14 +46,148 @@ jobs:
 
       #############################################
 
-      - name: Run Extended Tests
+      - name: Run Zookeeper, Kafka, Postgres, and Sep24 UI with docker-compose
+        run: docker-compose -f /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/docker-compose-test.yaml up -d --build
+
+      # `custody` Tests
+      - name: Start `custody` configuration
         env:
-          ANCHOR_DOMAIN: http://host.docker.internal:8080
-          SEP1_TOML_VALUE: /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/config/stellar.host.docker.internal.toml
-          SEP10_HOME_DOMAIN: host.docker.internal:8080
+          TEST_PROFILE_NAME: custody
         run: |
           cd /home/runner/java-stellar-anchor-sdk
-          ./gradlew extended-tests:test --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar -x distTar -x distZip -x shadowJar -x shadowDistZip -x shadowDistTar -x bootDistTar -x bootDistZip
+          ./gradlew startServersWithTestProfile &
+          echo "PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for the sep server to start and get ready
+        uses: mydea/action-wait-for-api@v1
+        with:
+          url: "http://localhost:8080/.well-known/stellar.toml"
+          interval: "1"
+
+      - name: Run `custody` configuration tests
+        env:
+          TEST_PROFILE_NAME: custody
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew :service-runner:clean :extended-tests:clean :extended-tests:test --tests org.stellar.anchor.platform.suite.CustodyTestSuite         
+          kill -9 $PID
+
+      # `rpc` Tests
+      - name: Start `rpc` configuration
+        env:
+          TEST_PROFILE_NAME: rpc
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew startServersWithTestProfile &
+          echo "PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for the sep server to start and get ready
+        uses: mydea/action-wait-for-api@v1
+        with:
+          url: "http://localhost:8080/.well-known/stellar.toml"
+          interval: "1"
+
+      - name: Run `rpc` configuration tests
+        env:
+          TEST_PROFILE_NAME: rpc
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew :extended-tests:test --tests org.stellar.anchor.platform.suite.RpcTestSuite         
+          kill -9 $PID      
+
+      # `auth-apikey-custody` Tests
+      - name: Start `auth-apikey-custody` configuration
+        env:
+          TEST_PROFILE_NAME: auth-apikey-custody
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew startServersWithTestProfile &
+          echo "PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for the sep server to start and get ready
+        uses: mydea/action-wait-for-api@v1
+        with:
+          url: "http://localhost:8086/health"
+          interval: "1"
+
+      - name: Run `auth-apikey-custody` configuration tests
+        env:
+          TEST_PROFILE_NAME: auth-apikey-custody
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew :extended-tests:test --tests org.stellar.anchor.platform.suite.AuthApikeyCustodyTestSuite         
+          kill -9 $PID           
+
+      # `auth-jwt-custody` Tests
+      - name: Start `auth-jwt-custody` configuration
+        env:
+          TEST_PROFILE_NAME: auth-jwt-custody
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew startServersWithTestProfile &
+          echo "PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for the sep server to start and get ready
+        uses: mydea/action-wait-for-api@v1
+        with:
+          url: "http://localhost:8086/health"
+          interval: "1"
+
+      - name: Run `auth-jwt-custody` configuration tests
+        env:
+          TEST_PROFILE_NAME: auth-jwt-custody
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew :extended-tests:test --tests org.stellar.anchor.platform.suite.AuthJwtCustodyTestSuite         
+          kill -9 $PID    
+
+      # `auth-apikey-platform` Tests
+      - name: Start `auth-apikey-platform` configuration
+        env:
+          TEST_PROFILE_NAME: auth-apikey-platform
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew startServersWithTestProfile &
+          echo "PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for the sep server to start and get ready
+        uses: mydea/action-wait-for-api@v1
+        with:
+          url: "http://localhost:8085/health"
+          expected-status: "403"
+          interval: "1"
+
+      - name: Run `auth-apikey-platform` configuration tests
+        env:
+          TEST_PROFILE_NAME: auth-apikey-platform
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew :extended-tests:test --tests org.stellar.anchor.platform.suite.AuthApikeyPlatformTestSuite         
+          kill -9 $PID
+
+      # `auth-jwt-platform` Tests
+      - name: Start `auth-jwt-platform` configuration
+        env:
+          TEST_PROFILE_NAME: auth-jwt-platform
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew startServersWithTestProfile &
+          echo "PID=$!" >> $GITHUB_ENV
+
+      - name: Wait for the sep server to start and get ready
+        uses: mydea/action-wait-for-api@v1
+        with:
+          url: "http://localhost:8085/health"
+          expected-status: "403"
+          interval: "1"
+
+      - name: Run `auth-jwt-platform` configuration tests
+        env:
+          TEST_PROFILE_NAME: auth-jwt-platform
+        run: |
+          cd /home/runner/java-stellar-anchor-sdk
+          ./gradlew :extended-tests:test --tests org.stellar.anchor.platform.suite.AuthJwtPlatformTestSuite         
+          kill -9 $PID   
 
       - name: Upload Extended Tests Report
         if: always()

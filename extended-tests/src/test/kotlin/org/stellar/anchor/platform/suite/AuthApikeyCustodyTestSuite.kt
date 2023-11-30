@@ -5,4 +5,4 @@ import org.junit.platform.suite.api.Suite
 
 @Suite
 @SelectPackages("org.stellar.anchor.platform.extendedtest.auth.apikey.custody")
-class AuthApikeyCustodyTestSuite {}
+class AuthApikeyCustodyTestSuite
