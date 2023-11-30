@@ -34,10 +34,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   lateinit var platformApiCustodyTests: PlatformApiCustodyTests
   lateinit var custodyApiTests: CustodyApiTests
   lateinit var sep24RpcE2eTests: Sep24BaseEnd2EndTest
-  lateinit var sep24CustodyE2eTests: Sep24BaseEnd2EndTest
-  lateinit var sep24CustodyRpcE2eTests: Sep24BaseEnd2EndTest
   lateinit var sep31RpcE2eTests: Sep31End2EndTests
-  lateinit var sep31CustodyRpcE2eTests: Sep31End2EndTests
 
   fun setUp(envMap: Map<String, String>) {
     envMap.forEach { (key, value) -> config.env[key] = value }
@@ -59,11 +56,8 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
 
     platformApiCustodyTests = PlatformApiCustodyTests(config, toml, jwt)
     custodyApiTests = CustodyApiTests(config, toml, jwt)
-    sep24CustodyE2eTests = Sep24BaseEnd2EndTest(config, jwt)
     sep24RpcE2eTests = Sep24BaseEnd2EndTest(config, jwt)
-    sep24CustodyRpcE2eTests = Sep24BaseEnd2EndTest(config, jwt)
     sep31RpcE2eTests = Sep31End2EndTests(config, toml, jwt)
-    sep31CustodyRpcE2eTests = Sep31End2EndTests(config, toml, jwt)
   }
 
   private suspend fun auth(): String {
