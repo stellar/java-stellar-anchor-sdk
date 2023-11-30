@@ -50,6 +50,14 @@ tasks.register<JavaExec>("startAllServers") {
   mainClass.set("org.stellar.anchor.platform.run_profiles.RunAllServers")
 }
 
+tasks.register<JavaExec>("startServersWithTestProfile") {
+  println("Starting the servers based on the test configuration specified by the TEST_PROFILE_NAME envionrment variable.")
+  group = "application"
+  classpath = sourceSets["main"].runtimeClasspath
+  println("Test profile name: ${System.getenv("TEST_PROFILE_NAME")}")
+  mainClass.set("org.stellar.anchor.platform.run_profiles.RunTestProfile")
+}
+
 /**
  * Run docker-compose up to start Postgres, Kafka, Zookeeper,etc.
  */
