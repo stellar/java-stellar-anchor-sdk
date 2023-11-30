@@ -257,5 +257,13 @@ public class PaymentOperationToEventListener implements PaymentListener {
         payment.getTransactionHash(),
         payment.getAmount(),
         rpcConfig.getCustomMessages().getIncomingPaymentReceived());
+
+    Metrics.counter(
+            AnchorMetrics.SEP6_TRANSACTION_OBSERVED.toString(),
+            "status",
+            SepTransactionStatus.PENDING_ANCHOR.toString())
+        .increment();
+    Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
+        .increment(Double.parseDouble(payment.getAmount()));
   }
 }
