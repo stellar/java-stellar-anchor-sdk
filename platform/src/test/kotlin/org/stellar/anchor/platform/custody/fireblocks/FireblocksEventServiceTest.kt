@@ -28,11 +28,11 @@ import org.stellar.anchor.platform.custody.Sep6CustodyPaymentHandler
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
-import org.stellar.anchor.platform.utils.RSAUtil
-import org.stellar.anchor.platform.utils.RSAUtil.RSA_ALGORITHM
-import org.stellar.anchor.platform.utils.RSAUtil.SHA512_WITH_RSA_ALGORITHM
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.anchor.util.RSAUtil
+import org.stellar.anchor.util.RSAUtil.RSA_ALGORITHM
+import org.stellar.anchor.util.RSAUtil.SHA512_WITH_RSA_ALGORITHM
 import org.stellar.sdk.Server
 import org.stellar.sdk.requests.PaymentsRequestBuilder
 import org.stellar.sdk.responses.Page

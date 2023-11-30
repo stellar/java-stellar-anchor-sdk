@@ -1,9 +1,11 @@
 package org.stellar.anchor.platform.extendedtest.custody
 
+import java.util.*
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
+import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.*
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
@@ -20,19 +22,26 @@ import org.stellar.anchor.client.CustodyApiClient
 import org.stellar.anchor.client.Sep24Client
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService
-import org.stellar.anchor.platform.extendedtest.*
 import org.stellar.anchor.platform.gson
+import org.stellar.anchor.util.RSAUtil
 
 class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
-
-  private val custodyApiClient = CustodyApiClient(config.env["custody.server.url"]!!, token.token)
+  private val custodyApiClient =
+    CustodyApiClient(
+      config.env["custody.server.url"]!!,
+      token.token,
+      RSAUtil.generatePrivateKey(config.env["secret.custody.fireblocks.secret_key"])
+    )
   private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), token.token)
   private val platformApiClient =
     PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
 
   companion object {
     const val TX_ID_KEY = "TX_ID"
+    const val CUSTODY_TX_ID_KEY = "CUSTODY_TX_ID"
+    private val custodyTxnId = UUID.randomUUID().toString()
+    private val refundCustodyTxnId = UUID.randomUUID().toString()
+    //    private val custodyTxnId = "df0442b4-6d53-44cd-82d7-3c48edc0b1ad"
     private val custodyMockServer = MockWebServer()
 
     @BeforeAll
@@ -50,7 +59,9 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
             if ("POST" == request.method && "//v1/transactions" == request.path) {
               return MockResponse()
                 .setResponseCode(200)
-                .setBody(CUSTODY_TRANSACTION_PAYMENT_RESPONSE)
+                .setBody(
+                  CUSTODY_TRANSACTION_PAYMENT_RESPONSE.replace(CUSTODY_TX_ID_KEY, custodyTxnId)
+                )
             }
             return MockResponse().setResponseCode(404)
           }
@@ -83,18 +94,23 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
       JSONCompareMode.STRICT
     )
 
-    val recordedRequest = custodyMockServer.takeRequest()
-
-    val requestPath = recordedRequest.path
-    val requestMethod = recordedRequest.method
-    val requestBody = recordedRequest.body.readUtf8()
-
-    Assertions.assertEquals(
-      "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses",
-      requestPath.toString()
-    )
-    Assertions.assertEquals("POST", requestMethod)
-    JSONAssert.assertEquals(CUSTODY_DEPOSIT_ADDRESS_REQUEST, requestBody, JSONCompareMode.STRICT)
+    for (count in 1..custodyMockServer.requestCount) {
+      val recordedRequest = custodyMockServer.takeRequest()
+      if (
+        recordedRequest.method.equals("POST") &&
+          recordedRequest.path.toString().equals("//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses")
+      ) {
+        Assertions.assertEquals(
+          "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses",
+          recordedRequest.path.toString()
+        )
+        JSONAssert.assertEquals(
+          CUSTODY_DEPOSIT_ADDRESS_REQUEST,
+          recordedRequest.body.readUtf8(),
+          JSONCompareMode.STRICT
+        )
+      }
+    }
   }
 
   @Test
@@ -142,39 +158,39 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
 
     custodyApiClient.createTransactionPayment(txId)
 
-    val recordedRequest = custodyMockServer.takeRequest()
+    var found = false
+    for (count in 1..custodyMockServer.requestCount) {
+      val recordedRequest = custodyMockServer.takeRequest()
+      if (
+        recordedRequest.method.equals("POST") &&
+          recordedRequest.path.toString().equals("//v1/transactions")
+      ) {
+        JSONAssert.assertEquals(
+          CUSTODY_TRANSACTION_PAYMENT_REQUEST,
+          recordedRequest.body.readUtf8(),
+          JSONCompareMode.STRICT
+        )
 
-    val requestPath = recordedRequest.path
-    val requestMethod = recordedRequest.method
-    val requestBody = recordedRequest.body.readUtf8()
+        val webhookRequest = WEBHOOK_REQUEST.replace(CUSTODY_TX_ID_KEY, custodyTxnId)
+        custodyApiClient.sendWebhook(webhookRequest)
 
-    Assertions.assertEquals("//v1/transactions", requestPath.toString())
-    JSONAssert.assertEquals(
-      CUSTODY_TRANSACTION_PAYMENT_REQUEST,
-      requestBody,
-      JSONCompareMode.STRICT
-    )
+        txResponse = platformApiClient.getTransaction(txId)
+        txResponse.startedAt = null
+        txResponse.updatedAt = null
 
-    Assertions.assertEquals("POST", requestMethod)
-
-    custodyApiClient.sendWebhook(
-      WEBHOOK_REQUEST,
-      mapOf(FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER to WEBHOOK_SIGNATURE)
-    )
-
-    txResponse = platformApiClient.getTransaction(txId)
-    txResponse.startedAt = null
-    txResponse.updatedAt = null
-
-    JSONAssert.assertEquals(
-      EXPECTED_TRANSACTION_RESPONSE.replace(TX_ID_KEY, txId),
-      gson.toJson(txResponse),
-      CustomComparator(
-        JSONCompareMode.STRICT,
-        Customization("completed_at") { _, _ -> true },
-        Customization("stellar_transactions[0].created_at") { _, _ -> true }
-      )
-    )
+        JSONAssert.assertEquals(
+          EXPECTED_TRANSACTION_RESPONSE.replace(TX_ID_KEY, txId),
+          gson.toJson(txResponse),
+          CustomComparator(
+            JSONCompareMode.STRICT,
+            Customization("completed_at") { _, _ -> true },
+            Customization("stellar_transactions[0].created_at") { _, _ -> true }
+          )
+        )
+        found = true
+      }
+    }
+    assertTrue(found)
   }
 
   @Test
@@ -195,7 +211,11 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
             return MockResponse().setResponseCode(200).setBody(CUSTODY_DEPOSIT_ADDRESS_RESPONSE)
           }
           if ("POST" == request.method && "//v1/transactions" == request.path) {
-            return MockResponse().setResponseCode(200).setBody(CUSTODY_TRANSACTION_REFUND_RESPONSE)
+            return MockResponse()
+              .setResponseCode(200)
+              .setBody(
+                CUSTODY_TRANSACTION_REFUND_RESPONSE.replace(CUSTODY_TX_ID_KEY, refundCustodyTxnId)
+              )
           }
           return MockResponse().setResponseCode(404)
         }
@@ -239,8 +259,7 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
     Assertions.assertEquals(SepTransactionStatus.PENDING_STELLAR, txResponse.status)
 
     custodyApiClient.sendWebhook(
-      REFUND_WEBHOOK_REQUEST,
-      mapOf(FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER to REFUND_WEBHOOK_SIGNATURE)
+      REFUND_WEBHOOK_REQUEST.replace(CUSTODY_TX_ID_KEY, refundCustodyTxnId)
     )
 
     txResponse = platformApiClient.getTransaction(txId)
@@ -341,7 +360,7 @@ private const val CUSTODY_TRANSACTION_PAYMENT_REQUEST =
 private const val CUSTODY_TRANSACTION_PAYMENT_RESPONSE =
   """
     {
-      "id":"df0442b4-6d53-44cd-82d7-3c48edc0b1ac",
+      "id":"CUSTODY_TX_ID",
       "status": "SUBMITTED"
     }
 """
@@ -349,7 +368,7 @@ private const val CUSTODY_TRANSACTION_PAYMENT_RESPONSE =
 private const val CUSTODY_TRANSACTION_REFUND_RESPONSE =
   """
     {
-      "id":"df0442b4-6d53-44cd-82d7-3c48edc0b1ad",
+      "id":"CUSTODY_TX_ID",
       "status": "SUBMITTED"
     }
 """
@@ -361,7 +380,7 @@ private const val WEBHOOK_REQUEST =
   "tenantId": "6ae8e895-7bdb-5021-b865-c65885c61068",
   "timestamp": 1687423621679,
   "data": {
-    "id": "df0442b4-6d53-44cd-82d7-3c48edc0b1ac",
+    "id": "CUSTODY_TX_ID",
     "createdAt": 1687423599336,
     "lastUpdated": 1687423620808,
     "assetId": "XLM_USDC_T_CEKS",
@@ -427,7 +446,7 @@ private const val REFUND_WEBHOOK_REQUEST =
   "tenantId": "6ae8e895-7bdb-5021-b865-c65885c61068",
   "timestamp": 1687423621679,
   "data": {
-    "id": "df0442b4-6d53-44cd-82d7-3c48edc0b1ad",
+    "id": "CUSTODY_TX_ID",
     "createdAt": 1687423599336,
     "lastUpdated": 1687423620808,
     "assetId": "XLM_USDC_T_CEKS",

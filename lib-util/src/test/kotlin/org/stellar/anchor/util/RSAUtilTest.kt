@@ -1,10 +1,11 @@
-package org.stellar.anchor.platform.util
+package org.stellar.anchor.util
 
 import com.google.common.io.BaseEncoding
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
 import java.io.IOException
 import java.nio.charset.Charset
+import java.security.KeyPairGenerator
 import java.security.NoSuchAlgorithmException
 import java.security.PublicKey
 import java.security.spec.InvalidKeySpecException
@@ -17,29 +18,30 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.exception.SepNotFoundException
-import org.stellar.anchor.platform.utils.RSAUtil.*
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
+import org.stellar.anchor.util.RSAUtil.*
 
 class RSAUtilTest {
+  private val privateKeyString =
+    "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJPq9AU6f8GrkSccloRb+UJmbxilZ7iLkvp0FeR/yymQuJDMNXPXwt5MYR9VJoY0uMDHThaEwbQAc2M4L9wl0EtsESebODUTqnsWZ8/a6GsmvIM3kz02ZOUHLst0krSkECPUHLLUKuw/HWz3LWxWLeqVRIcsCwKJNaBPZJzFw/8PAgMBAAECgYBhWXSYLFQApmW1k/8LxWxa4wei9Nk6f8GPy+7Mn76Z8IFH6t4TC6FYpHQXJvdfxDsDxSgDcgP574IBfu0gulJHEIsoDy1xR8TPobfhwoS1NJn70a8KQA6Whu+K5pjJxGUC7bpJH4ZK0O+szB1mNC0WgUywIc0lXCFFnCrgbNFWQQJBAM7+zgHAyD6rqQem09JcabMkwxu0mYih1mvQ3uv/fay8BdgZAqMuacMAPQ/A1TLeuTbMQ0LojnK/QlotbhHVnSkCQQC27684POaRrVIsVo5uKvQsKSNlYPpvGrGapHKiVgIQYfZSEY9SrazqKbA5yux0OR8ZFFSiJCThRElpzhnWFYl3AkEArNsLnVsn3W3sUX93FAwoGHlylQhTzk2XiaF7BwjsIftBxhvcn/h6SWVBmI4ne7uSX7hj0tPxYNFmz3dwm2QPQQJBAKS8mPSy2wtqoiotVBvfcHzoGujrePpednuFBXosq7UnEpN7Hq7cmW9RVVHl7CMJYXjLNx/AHroBLX8rS1bflCcCQBclpUG1PybVy1jHXTdI0w6zB6AwjaeFN5x4+b7hRe29yLNF532uIatxif19LHb5jUC7EefpLWBxx/bB4JCIyug="
+  private val publicKeyString =
+    "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCT6vQFOn/Bq5EnHJaEW/lCZm8YpWe4i5L6dBXkf8spkLiQzDVz18LeTGEfVSaGNLjAx04WhMG0AHNjOC/cJdBLbBEnmzg1E6p7FmfP2uhrJryDN5M9NmTlBy7LdJK0pBAj1Byy1CrsPx1s9y1sVi3qlUSHLAsCiTWgT2ScxcP/DwIDAQAB"
+  private val payload: String = "Test payload"
+  private val privateKey = generatePrivateKey(privateKeyString)
+  private val publicKey = generatePublicKey(publicKeyString)
+  private val signature = sign(payload, privateKey)
 
-  private val signature: String =
-    getResourceFileAsString("custody/fireblocks/webhook/submitted_event_valid_signature.txt")
-  private val eventObject: String =
-    getCompactJsonString("custody/fireblocks/webhook/submitted_event_request.json")
+  @Test
+  fun `test valid public key`() {
+    assertNotNull(generatePublicKey(publicKeyString, RSA_ALGORITHM))
+    assertTrue(isValidPublicKey(publicKeyString, RSA_ALGORITHM))
 
-  @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/webhook/public_key.txt"])
-  fun `test valid public key`(fileName: String) {
-    var publicKey: String = getResourceFileAsString(fileName)
-    assertNotNull(generatePublicKey(publicKey, RSA_ALGORITHM))
-    assertTrue(isValidPublicKey(publicKey, RSA_ALGORITHM))
-
-    publicKey =
-      publicKey
+    val publicKeyStr2 =
+      publicKeyString
         .replace(BEGIN_PUBLIC_KEY, StringUtils.EMPTY)
         .replace(END_PUBLIC_KEY, StringUtils.EMPTY)
-    assertNotNull(generatePublicKey(publicKey, RSA_ALGORITHM))
-    assertTrue(isValidPublicKey(publicKey, RSA_ALGORITHM))
+    assertNotNull(generatePublicKey(publicKeyStr2, RSA_ALGORITHM))
+    assertTrue(isValidPublicKey(publicKeyStr2, RSA_ALGORITHM))
   }
 
   @ParameterizedTest
@@ -73,72 +75,39 @@ class RSAUtilTest {
     assertFalse(isValidPublicKey(publicKey, RSA_ALGORITHM))
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/webhook/public_key.txt"])
-  fun `test isSignatureValid() returns true for valid signature, eventObject, public key and algorithm`(
-    fileName: String
-  ) {
-    val publicKeyString: String = getResourceFileAsString(fileName)
+  @Test
+  fun `test isSignatureValid() returns true for valid signature, eventObject, public key and algorithm`() {
     val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
-    val validationResult =
-      isValidSignature(signature, eventObject, publicKey, SHA512_WITH_RSA_ALGORITHM)
+    val sig = sign(payload, privateKey)
+    val validationResult = isValidSignature(signature, payload, publicKey)
     assertTrue(validationResult)
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/webhook/public_key.txt"])
-  fun `test isSignatureValid() for invalid signature`(fileName: String) {
-    val publicKeyString: String = getResourceFileAsString(fileName)
+  @Test
+  fun `test isSignatureValid() for invalid signature`() {
     val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
     val invalidSignature =
-      getResourceFileAsString("custody/fireblocks/webhook/submitted_event_invalid_signature.txt")
-    assertFalse(
-      isValidSignature(invalidSignature, eventObject, publicKey, SHA512_WITH_RSA_ALGORITHM)
-    )
+      "Yww6co109EfZ6BBam0zr1ewhv2gB3sFrfzcmbEFTttGp6GYVNEOslcMIMbjrFsFtkiEIO5ogvPI7Boz7yQUiXqh92Spj1aG5NoGDdjiW2ozTJxKq7ECK9IsS5vTjIxnBXUIXokCAN2BuiyA8d7LciJ6HwzS+DIvFNyvv7uKU6O0="
+    assertFalse(isValidSignature(invalidSignature, payload, publicKey))
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/webhook/public_key.txt"])
-  fun `test isSignatureValid() for invalid data`(fileName: String) {
-    val publicKeyString: String = getResourceFileAsString(fileName)
-    val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
-    val invalidEventObject = eventObject + "test"
-    assertFalse(
-      isValidSignature(signature, invalidEventObject, publicKey, SHA512_WITH_RSA_ALGORITHM)
-    )
+  @Test
+  fun `test isSignatureValid() for invalid data`() {
+    val invalidEventObject = payload + "test"
+    assertFalse(isValidSignature(signature, invalidEventObject, publicKey))
   }
 
   @Test
   fun `test isSignatureValid() for invalid public key`() {
     val invalidPublicKey: PublicKey = generatePublicKey(invalidPublicKey, RSA_ALGORITHM)
-    assertFalse(
-      isValidSignature(signature, eventObject, invalidPublicKey, SHA512_WITH_RSA_ALGORITHM)
-    )
+    assertFalse(isValidSignature(signature, payload, invalidPublicKey))
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/webhook/public_key.txt"])
-  fun `test isSignatureValid() for invalid algorithm`(fileName: String) {
-    val publicKeyString: String = getResourceFileAsString(fileName)
-    val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
+  @Test
+  fun `test isSignatureValid() for invalid algorithm`() {
     assertThrows<NoSuchAlgorithmException> {
-      isValidSignature(signature, eventObject, publicKey, "INVALID_ALGORITHM")
+      isValidSignature(signature, payload, publicKey, "INVALID_ALGORITHM")
     }
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/client/secret_key.txt"])
-  fun `test valid private key`(fileName: String) {
-    var privateKey: String = getResourceFileAsString(fileName)
-    assertNotNull(generatePrivateKey(privateKey, RSA_ALGORITHM))
-    assertTrue(isValidPrivateKey(privateKey, RSA_ALGORITHM))
-
-    privateKey =
-      privateKey
-        .replace(BEGIN_PUBLIC_KEY, StringUtils.EMPTY)
-        .replace(END_PUBLIC_KEY, StringUtils.EMPTY)
-    assertNotNull(generatePrivateKey(privateKey, RSA_ALGORITHM))
-    assertTrue(isValidPrivateKey(privateKey, RSA_ALGORITHM))
   }
 
   @ParameterizedTest
@@ -170,6 +139,22 @@ class RSAUtilTest {
   fun `test invalid private key algorithm`(privateKey: String) {
     assertThrows<NoSuchAlgorithmException> { generatePrivateKey(privateKey, "INVALID_ALGORITHM") }
     assertFalse(isValidPublicKey(privateKey, RSA_ALGORITHM))
+  }
+
+  @Test
+  fun `test sign and verify with random key`() {
+    val kp = KeyPairGenerator.getInstance("RSA").genKeyPair()
+    val signature = sign(payload, kp.private)
+    assertTrue(isValidSignature(signature, payload, kp.public))
+  }
+
+  @Test
+  fun `test sign and verify`() {
+    val privateKey = generatePrivateKey(privateKeyString)
+    val publicKey = generatePublicKey(publicKeyString)
+
+    val signature = sign(payload, privateKey)
+    assertTrue(isValidSignature(signature, payload, publicKey))
   }
 
   @Throws(IOException::class, SepNotFoundException::class)

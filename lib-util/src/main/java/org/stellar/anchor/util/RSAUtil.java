@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.utils;
+package org.stellar.anchor.util;
 
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.security.InvalidKeyException;
@@ -23,6 +23,11 @@ public class RSAUtil {
 
   public static final String RSA_ALGORITHM = SignatureAlgorithm.RS512.getFamilyName();
   public static final String SHA512_WITH_RSA_ALGORITHM = SignatureAlgorithm.RS512.getJcaName();
+
+  public static PublicKey generatePublicKey(String publicKey)
+      throws NoSuchAlgorithmException, InvalidKeySpecException {
+    return generatePublicKey(publicKey, RSA_ALGORITHM);
+  }
 
   /**
    * Generate a public key from a provided string.
@@ -49,6 +54,11 @@ public class RSAUtil {
     KeyFactory kf = KeyFactory.getInstance(keyFactoryAlgorithm);
 
     return kf.generatePublic(X509publicKey);
+  }
+
+  public static PrivateKey generatePrivateKey(String privateKey)
+      throws NoSuchAlgorithmException, InvalidKeySpecException {
+    return generatePrivateKey(privateKey, RSA_ALGORITHM);
   }
 
   /**
@@ -98,6 +108,11 @@ public class RSAUtil {
     return true;
   }
 
+  public static boolean isValidSignature(String signature, String dataString, PublicKey publicKey)
+      throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    return isValidSignature(signature, dataString, publicKey, SHA512_WITH_RSA_ALGORITHM);
+  }
+
   /**
    * Verify signature
    *
@@ -119,5 +134,30 @@ public class RSAUtil {
     sign.update(dataString.getBytes());
 
     return sign.verify(Base64.getDecoder().decode(signature));
+  }
+
+  /**
+   * Sign dataString.
+   *
+   * @param dataString The data to sign
+   * @param privateKey The private key to sign with
+   * @return The Base64 encoded signature
+   */
+  public static String sign(String dataString, PrivateKey privateKey)
+      throws NoSuchAlgorithmException, SignatureException, InvalidKeyException {
+    return sign(dataString, privateKey, SHA512_WITH_RSA_ALGORITHM);
+  }
+
+  public static String sign(String dataString, PrivateKey privateKey, String signatureAlgorithm)
+      throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    if (privateKey == null) {
+      throw new IllegalArgumentException("Private key is null");
+    }
+
+    Signature sign = Signature.getInstance(signatureAlgorithm);
+    sign.initSign(privateKey);
+    sign.update(dataString.getBytes());
+
+    return new String(Base64.getEncoder().encode(sign.sign()));
   }
 }
