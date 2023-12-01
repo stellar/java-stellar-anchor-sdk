@@ -104,7 +104,7 @@ jobs:
           ./gradlew startServersWithTestProfile &
           echo "PID=$!" >> $GITHUB_ENV
 
-      - name: Wait for the sep server to start and get ready
+      - name: Wait for the custody server to start and get ready
         uses: mydea/action-wait-for-api@v1
         with:
           url: "http://localhost:8086/health"
@@ -127,7 +127,7 @@ jobs:
           ./gradlew startServersWithTestProfile &
           echo "PID=$!" >> $GITHUB_ENV
 
-      - name: Wait for the sep server to start and get ready
+      - name: Wait for the custody server to start and get ready
         uses: mydea/action-wait-for-api@v1
         with:
           url: "http://localhost:8086/health"
@@ -150,7 +150,7 @@ jobs:
           ./gradlew startServersWithTestProfile &
           echo "PID=$!" >> $GITHUB_ENV
 
-      - name: Wait for the sep server to start and get ready
+      - name: Wait for the platform server to start and get ready
         uses: mydea/action-wait-for-api@v1
         with:
           url: "http://localhost:8085/health"
@@ -174,7 +174,7 @@ jobs:
           ./gradlew startServersWithTestProfile &
           echo "PID=$!" >> $GITHUB_ENV
 
-      - name: Wait for the sep server to start and get ready
+      - name: Wait for the platform server to start and get ready
         uses: mydea/action-wait-for-api@v1
         with:
           url: "http://localhost:8085/health"
