@@ -39,7 +39,7 @@ fun getResourceFile(resourceName: String): File {
     val resourceUrl: URL =
       {}::class.java.classLoader.getResource(fixedResourcePath)
         ?: throw RuntimeException("Resource $resourceName not found")
-    File(resourceUrl!!.toURI())
+    File(resourceUrl.toURI())
   }
 }
 

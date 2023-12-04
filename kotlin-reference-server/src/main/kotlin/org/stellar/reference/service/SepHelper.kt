@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import java.math.BigDecimal
 import java.util.*
+import java.util.Base64
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
@@ -79,7 +80,7 @@ class SepHelper(private val cfg: Config) {
     return client.get("$baseUrl/transactions/$transactionId").body()
   }
 
-  internal suspend fun sendStellarTransaction(
+  internal fun sendStellarTransaction(
     destinationAddress: String,
     assetString: String,
     amount: BigDecimal,
@@ -92,7 +93,9 @@ class SepHelper(private val cfg: Config) {
     val transactionBuilder =
       TransactionBuilder(myAccount, Network.TESTNET)
         .setBaseFee(100)
-        .setTimeout(60)
+        .addPreconditions(
+          TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(60)).build()
+        )
         .addOperation(
           PaymentOperation.Builder(destinationAddress, asset, amount.toPlainString()).build()
         )

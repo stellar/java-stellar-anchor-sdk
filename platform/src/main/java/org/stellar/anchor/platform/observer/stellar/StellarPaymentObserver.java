@@ -30,7 +30,7 @@ import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
-import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig;
+import org.stellar.anchor.platform.config.PaymentObserverConfig;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.platform.utils.DaemonExecutors;
@@ -54,7 +54,7 @@ public class StellarPaymentObserver implements HealthCheckable {
   private static final int MIN_RESULTS = 1;
 
   final Server server;
-  final StellarPaymentObserverConfig config;
+  final PaymentObserverConfig.StellarPaymentObserverConfig config;
   final List<PaymentListener> paymentListeners;
   final StellarPaymentStreamerCursorStore paymentStreamerCursorStore;
   final Map<SSEStream<OperationResponse>, String> mapStreamToAccount = new HashMap<>();
@@ -76,7 +76,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   public StellarPaymentObserver(
       String horizonServer,
-      StellarPaymentObserverConfig config,
+      PaymentObserverConfig.StellarPaymentObserverConfig config,
       List<PaymentListener> paymentListeners,
       PaymentObservingAccountsManager paymentObservingAccountsManager,
       StellarPaymentStreamerCursorStore paymentStreamerCursorStore) {

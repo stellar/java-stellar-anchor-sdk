@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.configurator;
 
-import static org.stellar.anchor.platform.config.PropertySecretConfig.SECRET_DATA_PASSWORD;
-import static org.stellar.anchor.platform.config.PropertySecretConfig.SECRET_DATA_USERNAME;
 import static org.stellar.anchor.util.Log.error;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
@@ -11,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.platform.config.PropertySecretConfig;
 import org.stellar.anchor.util.Log;
 
 /**
@@ -112,8 +111,12 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.jpa.generate-ddl", true);
         set("spring.jpa.hibernate.ddl-auto", "update");
         set("spring.datasource.url", constructSQLiteUrl(config));
-        set("spring.datasource.username", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
-        set("spring.datasource.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
+        set(
+            "spring.datasource.username",
+            SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_USERNAME));
+        set(
+            "spring.datasource.password",
+            SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_PASSWORD));
         break;
       case DATABASE_AURORA:
         set("spring.datasource.driver-class-name", "org.postgresql.Driver");
@@ -123,8 +126,12 @@ public class DataConfigAdapter extends SpringConfigAdapter {
             "spring.datasource.hikari.max-lifetime",
             840000); // 14 minutes because IAM tokens are valid for 15 min
         set("spring.datasource.url", constructPostgressUrl(config));
-        set("spring.datasource.username", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
-        set("spring.datasource.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
+        set(
+            "spring.datasource.username",
+            SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_USERNAME));
+        set(
+            "spring.datasource.password",
+            SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_PASSWORD));
         configureFlyway(config);
         break;
       case DATABASE_POSTGRES:
@@ -132,8 +139,12 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.name", "anchor-platform");
         set("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQL9Dialect");
         set("spring.datasource.url", constructPostgressUrl(config));
-        set("spring.datasource.username", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
-        set("spring.datasource.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
+        set(
+            "spring.datasource.username",
+            SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_USERNAME));
+        set(
+            "spring.datasource.password",
+            SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_PASSWORD));
         configureFlyway(config);
         break;
       default:
@@ -148,8 +159,12 @@ public class DataConfigAdapter extends SpringConfigAdapter {
     if (config.getString("data.flyway_enabled", "").equalsIgnoreCase("true")) {
       set("spring.flyway.enabled", true);
       set("spring.flyway.locations", "classpath:/db/migration");
-      set("spring.flyway.user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
-      set("spring.flyway.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
+      set(
+          "spring.flyway.user",
+          SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_USERNAME));
+      set(
+          "spring.flyway.password",
+          SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_PASSWORD));
       set("spring.flyway.url", constructPostgressUrl(config));
       boolean baselineOnMigrate =
           config.getString("data.flyway_baseline_on_migrate").equalsIgnoreCase("true");
@@ -195,8 +210,11 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         String url = constructPostgressUrl(config);
         try {
           Properties props = new Properties();
-          props.setProperty("user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
-          props.setProperty("password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
+          props.setProperty(
+              "user", SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_USERNAME));
+          props.setProperty(
+              "password",
+              SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_PASSWORD));
           DriverManager.getConnection(url, props);
         } catch (SQLException e) {
           error(e.getMessage());
@@ -215,15 +233,17 @@ public class DataConfigAdapter extends SpringConfigAdapter {
       case DATABASE_SQLITE:
       case DATABASE_AURORA:
       case DATABASE_POSTGRES:
-        if (isEmpty(SecretManager.getInstance().get(SECRET_DATA_USERNAME))) {
+        if (isEmpty(SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_USERNAME))) {
           String msg =
-              SECRET_DATA_USERNAME + " is not set. Please provide the datasource username.";
+              PropertySecretConfig.SECRET_DATA_USERNAME
+                  + " is not set. Please provide the datasource username.";
           error(msg);
           throw new InvalidConfigException(msg);
         }
-        if (isEmpty(SecretManager.getInstance().get(SECRET_DATA_PASSWORD))) {
+        if (isEmpty(SecretManager.getInstance().get(PropertySecretConfig.SECRET_DATA_PASSWORD))) {
           String msg =
-              SECRET_DATA_PASSWORD + " is not set. Please provide the datasource username.";
+              PropertySecretConfig.SECRET_DATA_PASSWORD
+                  + " is not set. Please provide the datasource username.";
           error(msg);
           throw new InvalidConfigException(msg);
         }

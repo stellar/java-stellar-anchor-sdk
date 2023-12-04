@@ -120,6 +120,10 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @Column(name = "client_domain")
   String clientDomain;
 
+  @SerializedName("client_name")
+  @Column(name = "client_name")
+  String clientName;
+
   @SerializedName("claimable_balance_supported")
   @Column(name = "claimable_balance_supported")
   Boolean claimableBalanceSupported;
@@ -135,4 +139,16 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @SerializedName("refund_memo_type")
   @Column(name = "refund_memo_type")
   String refundMemoType;
+
+  @SerializedName("quote_id")
+  @Column(name = "quote_id")
+  String quoteId;
+
+  @SerializedName("source_asset")
+  @Column(name = "source_asset")
+  String sourceAsset;
+
+  @SerializedName("destination_asset")
+  @Column(name = "destination_asset")
+  String destinationAsset;
 }

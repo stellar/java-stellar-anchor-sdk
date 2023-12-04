@@ -1,11 +1,14 @@
 package org.stellar.anchor.util;
 
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GsonUtils {
   private static Gson instance = null;
@@ -20,6 +23,10 @@ public class GsonUtils {
   public static Gson getInstance() {
     if (instance == null) instance = builder().create();
     return instance;
+  }
+
+  public static Map<String, String> fromJsonToMap(String json) {
+    return getInstance().fromJson(json, new TypeToken<HashMap<String, String>>() {}.getType());
   }
 }
 

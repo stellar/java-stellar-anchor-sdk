@@ -103,6 +103,12 @@ Run all tests: `./gradlew test`
 
 Run subproject tests: `./gradlew :[subproject]:test`
 
+### Running `docker-compose` up for development
+`./gradlew dockerComposeUp`
+
+### Starting all servers
+`./gradlew startAllServers`
+
 ## Set up the Git Hooks
 
 In order to have consistent code style, we use [Google Java Format](https://github.com/google/google-java-format) to

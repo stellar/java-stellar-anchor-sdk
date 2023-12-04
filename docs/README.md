@@ -1,6 +1,6 @@
 [![License](https://badgen.net/badge/license/Apache%202/blue?icon=github&label=License)](https://github.com/stellar/java-stellar-anchor-sdk/blob/develop/LICENSE)
 [![GitHub Version](https://badgen.net/github/release/stellar/java-stellar-anchor-sdk?icon=github&label=Latest%20release)](https://github.com/stellar/java-stellar-anchor-sdk/releases)
-[![Docker](https://badgen.net/badge/Latest%20Release/v2.4.0/blue?icon=docker)](https://hub.docker.com/r/stellar/anchor-platform/tags?page=1&name=2.4.0)
+[![Docker](https://badgen.net/badge/Latest%20Release/v2.5.0/blue?icon=docker)](https://hub.docker.com/r/stellar/anchor-platform/tags?page=1&name=2.5.0)
 ![Develop Branch](https://github.com/stellar/java-stellar-anchor-sdk/actions/workflows/wk_push_to_develop.yml/badge.svg?branch=develop)
 
 <div style="text-align: center">
@@ -45,7 +45,8 @@ contribute to this project.
 - __wallet_reference_server__: Contains the wallet's reference server implementation in Kotlin.
 - __service_runner__: Contains the service runner implementation that runs services, such as SEP, platform, payment
   observer, and reference servers, etc. It also contains the main entry point of the Anchor Platform.
-- __integration-tests__: Contains the integration tests and end-2-end tests for the Anchor Platform.
+- __essential-tests__: Contains the essential integration tests and end-2-end tests for the Anchor Platform.
+- __extended-tests__: Contains the extended integration tests and end-2-end tests for the Anchor Platform.
 
 ## References
 [SEP-1](https://stellar.org/protocol/sep-6): Stellar Info File

@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.custody.fireblocks;
 
-import static org.stellar.anchor.platform.utils.RSAUtil.SHA512_WITH_RSA_ALGORITHM;
-import static org.stellar.anchor.platform.utils.RSAUtil.isValidSignature;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.error;
 import static org.stellar.anchor.util.Log.errorEx;
@@ -26,12 +24,9 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.config.FireblocksConfig;
-import org.stellar.anchor.platform.custody.CustodyEventService;
-import org.stellar.anchor.platform.custody.CustodyPayment;
-import org.stellar.anchor.platform.custody.CustodyPayment.CustodyPaymentStatus;
-import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
-import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
+import org.stellar.anchor.platform.custody.*;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
+import org.stellar.anchor.platform.utils.RSAUtil;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
@@ -49,12 +44,17 @@ public class FireblocksEventService extends CustodyEventService {
 
   public FireblocksEventService(
       JdbcCustodyTransactionRepo custodyTransactionRepo,
+      Sep6CustodyPaymentHandler sep6CustodyPaymentHandler,
       Sep24CustodyPaymentHandler sep24CustodyPaymentHandler,
       Sep31CustodyPaymentHandler sep31CustodyPaymentHandler,
       Horizon horizon,
       FireblocksConfig fireblocksConfig)
       throws InvalidConfigException {
-    super(custodyTransactionRepo, sep24CustodyPaymentHandler, sep31CustodyPaymentHandler);
+    super(
+        custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler);
     this.horizon = horizon;
     this.publicKey = fireblocksConfig.getFireblocksPublicKey();
   }
@@ -82,7 +82,8 @@ public class FireblocksEventService extends CustodyEventService {
     debugF("Fireblocks /webhook endpoint called with data '{}'", event);
 
     try {
-      if (isValidSignature(signature, event, publicKey, SHA512_WITH_RSA_ALGORITHM)) {
+      if (RSAUtil.isValidSignature(
+          signature, event, publicKey, RSAUtil.SHA512_WITH_RSA_ALGORITHM)) {
         FireblocksEventObject fireblocksEventObject =
             GsonUtils.getInstance().fromJson(event, FireblocksEventObject.class);
 
@@ -115,11 +116,13 @@ public class FireblocksEventService extends CustodyEventService {
 
   public Optional<CustodyPayment> convert(TransactionDetails td) throws IOException {
     Optional<OperationResponse> operation = Optional.empty();
-    CustodyPaymentStatus status =
-        td.getStatus().isCompleted() ? CustodyPaymentStatus.SUCCESS : CustodyPaymentStatus.ERROR;
+    CustodyPayment.CustodyPaymentStatus status =
+        td.getStatus().isCompleted()
+            ? CustodyPayment.CustodyPaymentStatus.SUCCESS
+            : CustodyPayment.CustodyPaymentStatus.ERROR;
     String message = null;
 
-    if (CustodyPaymentStatus.ERROR == status && td.getSubStatus() != null) {
+    if (CustodyPayment.CustodyPaymentStatus.ERROR == status && td.getSubStatus() != null) {
       message = td.getSubStatus().name();
     }
 

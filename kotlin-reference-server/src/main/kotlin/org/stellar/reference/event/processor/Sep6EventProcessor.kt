@@ -8,12 +8,14 @@ import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.*
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind
+import org.stellar.anchor.api.rpc.method.RpcMethod
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.reference.callbacks.customer.CustomerService
 import org.stellar.reference.client.PlatformClient
 import org.stellar.reference.data.*
 import org.stellar.reference.log
 import org.stellar.reference.service.SepHelper
+import org.stellar.reference.transactionWithRetry
 import org.stellar.sdk.*
 
 class Sep6EventProcessor(
@@ -42,7 +44,7 @@ class Sep6EventProcessor(
   override fun onTransactionCreated(event: AnchorEvent) {
     when (val kind = event.transaction.kind) {
       Kind.DEPOSIT,
-      Kind.WITHDRAWAL -> updateAmounts(event)
+      Kind.WITHDRAWAL -> requestKyc(event)
       else -> {
         log.warn("Received transaction created event with unsupported kind: $kind")
       }
@@ -74,28 +76,37 @@ class Sep6EventProcessor(
         }
         runBlocking {
           val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
-          val txnId =
-            submitStellarTransaction(
-              keypair.accountId,
-              transaction.destinationAccount,
-              Asset.create(transaction.amountExpected.asset.toAssetId()),
-              transaction.amountExpected.amount
+          lateinit var stellarTxnId: String
+          if (config.appSettings.custodyEnabled) {
+            sepHelper.rpcAction(
+              RpcMethod.DO_STELLAR_PAYMENT.toString(),
+              DoStellarPaymentRequest(transactionId = transaction.id)
             )
-          onchainPayments[transaction.id] = txnId
-          // TODO: manually submit the transaction until custody service is implemented
-          patchTransaction(
-            PlatformTransactionData.builder()
-              .id(transaction.id)
-              .status(PENDING_STELLAR)
-              .updatedAt(Instant.now())
-              .build()
-          )
+          } else {
+            transactionWithRetry {
+              stellarTxnId =
+                submitStellarTransaction(
+                  keypair.accountId,
+                  transaction.destinationAccount,
+                  Asset.create(transaction.amountExpected.asset.toAssetId()),
+                  transaction.amountExpected.amount
+                )
+            }
+            onchainPayments[transaction.id] = stellarTxnId
+            patchTransaction(
+              PlatformTransactionData.builder()
+                .id(transaction.id)
+                .status(PENDING_STELLAR)
+                .updatedAt(Instant.now())
+                .build()
+            )
+          }
         }
       }
       PENDING_USR_TRANSFER_START ->
         runBlocking {
           sepHelper.rpcAction(
-            "notify_offchain_funds_received",
+            RpcMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED.toString(),
             NotifyOffchainFundsReceivedRequest(
               transactionId = transaction.id,
               message = "Funds received from user",
@@ -105,7 +116,7 @@ class Sep6EventProcessor(
       PENDING_STELLAR ->
         runBlocking {
           sepHelper.rpcAction(
-            "notify_onchain_funds_sent",
+            RpcMethod.NOTIFY_ONCHAIN_FUNDS_SENT.toString(),
             NotifyOnchainFundsSentRequest(
               transactionId = transaction.id,
               message = "Funds sent to user",
@@ -136,7 +147,7 @@ class Sep6EventProcessor(
             val externalTxnId = UUID.randomUUID()
             offchainPayments[transaction.id] = externalTxnId.toString()
             sepHelper.rpcAction(
-              "notify_offchain_funds_pending",
+              RpcMethod.NOTIFY_OFFCHAIN_FUNDS_PENDING.toString(),
               NotifyOffchainFundsPendingRequest(
                 transactionId = transaction.id,
                 message = "Funds sent to user",
@@ -145,7 +156,7 @@ class Sep6EventProcessor(
             )
           } else {
             sepHelper.rpcAction(
-              "notify_offchain_funds_available",
+              RpcMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE.toString(),
               NotifyOffchainFundsAvailableRequest(
                 transactionId = transaction.id,
                 message = "Funds available for withdrawal",
@@ -158,7 +169,7 @@ class Sep6EventProcessor(
       PENDING_EXTERNAL ->
         runBlocking {
           sepHelper.rpcAction(
-            "notify_offchain_funds_sent",
+            RpcMethod.NOTIFY_OFFCHAIN_FUNDS_SENT.toString(),
             NotifyOffchainFundsSentRequest(
               transactionId = transaction.id,
               message = "Funds sent to user",
@@ -191,67 +202,65 @@ class Sep6EventProcessor(
         val customer = transaction.customers.sender
         when (transaction.kind) {
           Kind.DEPOSIT -> {
-            if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isNotEmpty()) {
-              return
-            }
-            runBlocking {
-              sepHelper.rpcAction(
-                "request_offchain_funds",
-                RequestOffchainFundsRequest(
-                  transactionId = transaction.id,
-                  message = "Please deposit the amount to the following bank account",
-                  amountIn =
-                    AmountAssetRequest(
-                      asset = "iso4217:USD",
-                      amount = transaction.amountExpected.amount
-                    ),
-                  amountOut =
-                    AmountAssetRequest(
-                      asset = transaction.amountOut.asset,
-                      amount = transaction.amountOut.amount
-                    ),
-                  amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
-                  instructions =
-                    mapOf(
-                      "organization.bank_number" to
-                        InstructionField(
-                          value = "121122676",
-                          description = "US Bank routing number"
-                        ),
-                      "organization.bank_account_number" to
-                        InstructionField(
-                          value = "13719713158835300",
-                          description = "US Bank account number"
-                        ),
-                    )
+            if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isEmpty()) {
+              runBlocking {
+                sepHelper.rpcAction(
+                  RpcMethod.REQUEST_OFFCHAIN_FUNDS.toString(),
+                  RequestOffchainFundsRequest(
+                    transactionId = transaction.id,
+                    message = "Please deposit the amount to the following bank account",
+                    amountIn =
+                      AmountAssetRequest(
+                        asset = "iso4217:USD",
+                        amount = transaction.amountExpected.amount
+                      ),
+                    amountOut =
+                      AmountAssetRequest(
+                        asset = transaction.amountExpected.asset,
+                        amount = transaction.amountExpected.amount
+                      ),
+                    amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                    instructions =
+                      mapOf(
+                        "organization.bank_number" to
+                          InstructionField(
+                            value = "121122676",
+                            description = "US Bank routing number"
+                          ),
+                        "organization.bank_account_number" to
+                          InstructionField(
+                            value = "13719713158835300",
+                            description = "US Bank account number"
+                          ),
+                      )
+                  )
                 )
-              )
+              }
             }
           }
           Kind.WITHDRAWAL -> {
-            if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isNotEmpty()) {
-              return
-            }
-            runBlocking {
-              sepHelper.rpcAction(
-                "request_onchain_funds",
-                RequestOnchainFundsRequest(
-                  transactionId = transaction.id,
-                  message = "Please deposit the amount to the following address",
-                  amountIn =
-                    AmountAssetRequest(
-                      asset = transaction.amountExpected.asset,
-                      amount = transaction.amountExpected.amount
-                    ),
-                  amountOut =
-                    AmountAssetRequest(
-                      asset = "iso4217:USD",
-                      amount = transaction.amountExpected.amount
-                    ),
-                  amountFee =
-                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
+            if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isEmpty()) {
+              runBlocking {
+                sepHelper.rpcAction(
+                  RpcMethod.REQUEST_ONCHAIN_FUNDS.toString(),
+                  RequestOnchainFundsRequest(
+                    transactionId = transaction.id,
+                    message = "Please deposit the amount to the following address",
+                    amountIn =
+                      AmountAssetRequest(
+                        asset = transaction.amountExpected.asset,
+                        amount = transaction.amountExpected.amount
+                      ),
+                    amountOut =
+                      AmountAssetRequest(
+                        asset = "iso4217:USD",
+                        amount = transaction.amountExpected.amount
+                      ),
+                    amountFee =
+                      AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
+                  )
                 )
-              )
+              }
             }
           }
           else -> {
@@ -266,31 +275,16 @@ class Sep6EventProcessor(
   private fun verifyKyc(sep10Account: String, sep10AccountMemo: String?, kind: Kind): List<String> {
     val customer =
       customerService.getCustomer(
-        GetCustomerRequest.builder().account(sep10Account).memo(sep10AccountMemo).build()
+        GetCustomerRequest.builder()
+          .account(sep10Account)
+          .memo(sep10AccountMemo)
+          .memoType(if (sep10AccountMemo != null) "id" else null)
+          .build()
       )
     val providedFields = customer.providedFields.keys
     return requiredKyc
       .plus(if (kind == Kind.DEPOSIT) depositRequiredKyc else withdrawRequiredKyc)
       .filter { !providedFields.contains(it) }
-  }
-
-  private fun updateAmounts(event: AnchorEvent) {
-    val asset =
-      when (event.transaction.kind) {
-        Kind.DEPOSIT -> event.transaction.amountExpected.asset
-        Kind.WITHDRAWAL -> "iso4217:USD"
-        else -> throw RuntimeException("Unsupported kind: ${event.transaction.kind}")
-      }
-    runBlocking {
-      sepHelper.rpcAction(
-        "notify_amounts_updated",
-        NotifyAmountsUpdatedRequest(
-          transactionId = event.transaction.id,
-          amountOut = AmountAssetRequest(asset, amount = event.transaction.amountExpected.amount),
-          amountFee = AmountAssetRequest(asset, amount = "0")
-        )
-      )
-    }
   }
 
   private fun requestKyc(event: AnchorEvent) {
@@ -300,7 +294,7 @@ class Sep6EventProcessor(
     runBlocking {
       if (missingFields.isNotEmpty()) {
         sepHelper.rpcAction(
-          "request_customer_info_update",
+          RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE.toString(),
           RequestCustomerInfoUpdateHandler(
             transactionId = event.transaction.id,
             message = "Please update your info",
@@ -331,7 +325,9 @@ class Sep6EventProcessor(
     val transaction =
       TransactionBuilder(account, Network.TESTNET)
         .setBaseFee(100)
-        .setTimeout(60L)
+        .addPreconditions(
+          TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(60)).build()
+        )
         .addOperation(PaymentOperation.Builder(destination, asset, amount).build())
         .build()
     transaction.sign(KeyPair.fromSecretSeed(config.appSettings.secret))

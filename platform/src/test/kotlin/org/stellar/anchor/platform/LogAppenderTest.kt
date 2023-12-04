@@ -72,7 +72,10 @@ class LogAppenderTest {
     // Verify that the append method was called, which ensures that the event was captured
     verify { appender.append(any()) }
 
-    assertEquals(LogAppenderTest::class.qualifiedName, capturedLogEvent.captured.loggerName)
+    assertEquals(
+      org.stellar.anchor.platform.LogAppenderTest::class.qualifiedName,
+      capturedLogEvent.captured.loggerName
+    )
     assertEquals(wantLevelName, capturedLogEvent.captured.level.toString())
     assertEquals(wantMessage, capturedLogEvent.captured.message.toString())
     capturedLogEvent.clear()

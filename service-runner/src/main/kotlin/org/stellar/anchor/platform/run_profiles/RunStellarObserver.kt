@@ -7,7 +7,7 @@ import kotlinx.coroutines.runBlocking
 import org.stellar.anchor.platform.*
 
 fun main() = runBlocking {
-  testProfileExecutor = TestProfileExecutor(TestConfig(testProfileName = "default"))
+  testProfileExecutor = TestProfileExecutor(TestConfig())
   launch { registerShutdownHook(testProfileExecutor) }
   testProfileExecutor.start(true) {
     it.env[RUN_DOCKER] = "false"

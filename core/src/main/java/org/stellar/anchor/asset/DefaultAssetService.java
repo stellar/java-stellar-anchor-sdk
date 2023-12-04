@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.NoArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -116,5 +117,12 @@ public class DefaultAssetService implements AssetService {
       }
     }
     return null;
+  }
+
+  @Override
+  public List<AssetInfo> listStellarAssets() {
+    return listAllAssets().stream()
+        .filter(asset -> asset.getSchema().equals(AssetInfo.Schema.stellar))
+        .collect(Collectors.toList());
   }
 }

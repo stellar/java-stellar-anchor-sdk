@@ -5,11 +5,13 @@ import java.math.RoundingMode
 import mu.KotlinLogging
 import org.stellar.reference.data.*
 import org.stellar.reference.service.SepHelper
+import org.stellar.reference.transactionWithRetry
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
 
 private val log = KotlinLogging.logger {}
 
 class DepositService(private val cfg: Config) {
+
   val sep24 = SepHelper(cfg)
 
   suspend fun processDeposit(
@@ -46,11 +48,13 @@ class DepositService(private val cfg: Config) {
         // 7. Finalize custody Stellar anchor transaction
         finalizeCustodyStellarTransaction(transactionId)
       } else {
-        // 5. Sign and send transaction
-        val txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
+        transactionWithRetry {
+          // 5. Sign and send transaction
+          val txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
 
-        // 6. Finalize Stellar anchor transaction
-        finalizeStellarTransaction(transactionId, txHash, asset, amount)
+          // 6. Finalize Stellar anchor transaction
+          finalizeStellarTransaction(transactionId, txHash, asset, amount)
+        }
       }
 
       log.info { "Transaction completed: $transactionId" }

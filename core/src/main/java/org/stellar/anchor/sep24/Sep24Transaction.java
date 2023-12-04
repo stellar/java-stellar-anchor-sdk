@@ -142,6 +142,15 @@ public interface Sep24Transaction extends SepTransaction {
   void setClientDomain(String domainClient);
 
   /**
+   * The name of the client that initiated the transaction.
+   *
+   * @return the client name.
+   */
+  String getClientName();
+
+  void setClientName(String nameClient);
+
+  /**
    * True if the client supports receiving deposit transactions as a claimable balance, false
    * otherwise.
    *
@@ -235,6 +244,18 @@ public interface Sep24Transaction extends SepTransaction {
   void setRefundMemoType(String refundMemoType);
 
   String getMessage();
+
+  String getQuoteId();
+
+  void setQuoteId(String quoteId);
+
+  String getSourceAsset();
+
+  void setSourceAsset(String sourceAsset);
+
+  String getDestinationAsset();
+
+  void setDestinationAsset(String sourceAsset);
 
   enum Kind {
     DEPOSIT("deposit"),

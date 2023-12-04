@@ -1,0 +1,46 @@
+// The alias call in plugins scope produces IntelliJ false error which is suppressed here.
+@Suppress("DSL_SCOPE_VIOLATION")
+plugins {
+  `java-library`
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.spring.dependency.management)
+  alias(libs.plugins.kotlin.jvm)
+}
+
+repositories { maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") } }
+
+dependencies {
+  testImplementation(libs.stellar.wallet.sdk)
+  testImplementation(libs.okhttp3.mockserver)
+  testImplementation(libs.assertj.core)
+  testImplementation("org.springframework.boot:spring-boot-starter-web")
+  testImplementation(libs.kotlin.serialization.json)
+  testImplementation(libs.ktor.client.json)
+  // project dependencies
+  testImplementation(project(":lib-util"))
+  testImplementation(project(":api-schema"))
+  testImplementation(project(":core"))
+  testImplementation(project(":platform"))
+  testImplementation(project(":service-runner"))
+  testImplementation(project(":wallet-reference-server"))
+  testImplementation(project(":kotlin-reference-server"))
+  testImplementation(testFixtures(project(":essential-tests")))
+}
+
+tasks { bootJar { enabled = false } }
+
+// The following is to enable test concurrency
+apply(from = "$rootDir/scripts.gradle.kts")
+@Suppress("UNCHECKED_CAST")
+val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
+
+tasks.test {
+// Useful exclusions for debugging tests
+//  exclude("**/org/stellar/anchor/platform/AnchorPlatformApiRpcEnd2EndTest**")
+//  exclude("**/org/stellar/anchor/platform/AnchorPlatformCustodyApiRpcEnd2EndTest**")
+//  exclude("**/org/stellar/anchor/platform/AnchorPlatformCustodyEnd2EndTest**")
+//  exclude("**/org/stellar/anchor/platform/AnchorPlatformCustodyIntegrationTest**")
+//  exclude("**/org/stellar/anchor/platform/CustodyApiKeyAuthIntegrationTest**")
+//  exclude("**/org/stellar/anchor/platform/CustodyJwtAuthIntegrationTest**")
+//  exclude("**/org/stellar/anchor/platform/PostgresMigrationTest**")
+}

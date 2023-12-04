@@ -53,7 +53,7 @@ The following artifacts are available for each workflow run:
 - `/java-stellar-anchor-sdk/api-schema/build/libs`: The build artifact of the `api-schema` subproject.
 - `java-stellar-anchor-sdk/core/build/reports`: The test reports of the `core` subproject.
 - `java-stellar-anchor-sdk/platform/build/reports`: The test reports of the `platform` subproject.
-- `java-stellar-anchor-sdk/integration-tests/build/reports`: The test reports of the `integration-tests` subproject.
+- `java-stellar-anchor-sdk/essential-tests/build/reports`: The test reports of the `essential-tests` subproject.
 
 To access the artifacts, follow these steps:
 1. Go to the `Actions` tab of the repository.

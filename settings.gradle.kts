@@ -4,7 +4,7 @@ rootProject.name = "java-stellar-anchor-sdk"
 include("api-schema")
 
 /** Test libraries */
-include("test-lib")
+include("lib-util")
 
 /** SDK */
 include("core")
@@ -14,10 +14,14 @@ include("platform")
 
 /** Reference Server */
 include("kotlin-reference-server")
+
 include("wallet-reference-server")
 
-/** Integration tests */
-include("integration-tests")
+/** Essential tests */
+include("essential-tests")
+
+/** Extended tests */
+include("extended-tests")
 
 /** Service runners */
 include("service-runner")

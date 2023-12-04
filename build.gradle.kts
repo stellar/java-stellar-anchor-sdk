@@ -4,29 +4,44 @@ import org.apache.tools.ant.taskdefs.condition.Os
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
   java
+  `java-test-fixtures`
   alias(libs.plugins.spotless)
   alias(libs.plugins.kotlin.jvm) apply false
   jacoco
 }
 
-tasks {
-  register<Copy>("updateGitHook") {
-    from("scripts/pre-commit.sh") { rename { it.removeSuffix(".sh") } }
-    into(".git/hooks")
-    doLast {
-      if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
-        project.exec { commandLine("chmod", "+x", ".git/hooks/pre-commit") }
-      }
+// *******************************************************************************
+// Task registration and configuration
+// *******************************************************************************
+
+// The printVersionName task is used to print the version name of the project. This
+// is useful for CI/CD pipelines to get the version string of the project.
+tasks.register("printVersionName") { println(rootProject.version.toString()) }
+
+// The updateGitHook task is used to copy the pre-commit.sh file to the .git/hooks
+// directory. This is part of the efforts to force the Java/Kotlin code to be formatted
+// before committing the code.
+tasks.register<Copy>("updateGitHook") {
+  from("scripts/pre-commit.sh") { rename { it.removeSuffix(".sh") } }
+  into(".git/hooks")
+  doLast {
+    if (!Os.isFamily(Os.FAMILY_WINDOWS)) {
+      project.exec { commandLine("chmod", "+x", ".git/hooks/pre-commit") }
     }
   }
-
-  "build" { dependsOn("updateGitHook") }
 }
+
+tasks { build { dependsOn("updateGitHook") } }
+
+// *******************************************************************************
+// Common configurations
+// *******************************************************************************
 
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
   apply(plugin = "jacoco")
+  apply(plugin = "java-test-fixtures")
 
   repositories {
     mavenLocal()
@@ -70,7 +85,7 @@ subprojects {
       reports {
         xml.required.set(true)
         csv.required.set(false)
-        html.required.set(true)
+        html.required.set(false)
       }
     }
   }
@@ -101,6 +116,9 @@ subprojects {
     //
     testImplementation(rootProject.libs.bundles.junit)
     testImplementation(rootProject.libs.jsonassert)
+
+    testFixturesImplementation(rootProject.libs.bundles.junit)
+    testFixturesImplementation(rootProject.libs.jsonassert)
 
     testAnnotationProcessor(rootProject.libs.lombok)
   }
@@ -139,20 +157,6 @@ subprojects {
       }
     }
 
-    register<Test>("testFireblocksE2E") {
-      useJUnitPlatform()
-
-      include("**/AnchorPlatformCustodyEnd2EndTest**")
-      include("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
-
-      testLogging {
-        events("SKIPPED", "FAILED")
-        showExceptions = true
-        showStandardStreams = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-      }
-    }
-
     processResources {
       doFirst {
         val existingFile = file("$buildDir/resources/main/metadata.properties")
@@ -174,7 +178,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.4.0"
+  version = "2.5.0"
 
   tasks.jar {
     manifest {
@@ -185,4 +189,3 @@ allprojects {
   }
 }
 
-tasks.register("printVersionName") { println(rootProject.version.toString()) }

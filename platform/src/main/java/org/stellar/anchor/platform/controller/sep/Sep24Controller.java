@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.controller.sep;
 
-import static org.stellar.anchor.platform.controller.sep.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.*;
 
 import java.io.IOException;
@@ -49,7 +48,7 @@ public class Sep24Controller {
       HttpServletRequest request, @RequestBody HashMap<String, String> requestData)
       throws AnchorException, MalformedURLException, URISyntaxException {
     debug("/deposit", requestData);
-    Sep10Jwt token = getSep10Token(request);
+    Sep10Jwt token = Sep10Helper.getSep10Token(request);
     InteractiveTransactionResponse itr = sep24Service.deposit(token, requestData);
     info("interactive redirection:", itr);
     return itr;
@@ -79,7 +78,7 @@ public class Sep24Controller {
       HttpServletRequest request, @RequestBody HashMap<String, String> requestData)
       throws AnchorException, MalformedURLException, URISyntaxException {
     debug("/withdraw", requestData);
-    Sep10Jwt token = getSep10Token(request);
+    Sep10Jwt token = Sep10Helper.getSep10Token(request);
     InteractiveTransactionResponse itr = sep24Service.withdraw(token, requestData);
     info("interactive redirection:", itr);
     return itr;
@@ -109,7 +108,7 @@ public class Sep24Controller {
       HttpServletRequest request, @RequestBody GetTransactionsRequest tr)
       throws SepException, MalformedURLException, URISyntaxException {
     debug("/transactions", tr);
-    Sep10Jwt token = getSep10Token(request);
+    Sep10Jwt token = Sep10Helper.getSep10Token(request);
     return sep24Service.findTransactions(token, tr);
   }
 
@@ -148,7 +147,7 @@ public class Sep24Controller {
       HttpServletRequest request, @RequestBody(required = false) GetTransactionRequest tr)
       throws SepException, IOException, URISyntaxException {
     debug("/transaction", tr);
-    Sep10Jwt token = getSep10Token(request);
+    Sep10Jwt token = Sep10Helper.getSep10Token(request);
 
     return sep24Service.findTransaction(token, tr);
   }

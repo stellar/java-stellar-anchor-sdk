@@ -2,10 +2,6 @@ package org.stellar.anchor.platform.custody;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
-import static org.stellar.anchor.platform.data.CustodyTransactionStatus.CREATED;
-import static org.stellar.anchor.platform.data.CustodyTransactionStatus.SUBMITTED;
-import static org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType.PAYMENT;
-import static org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType.REFUND;
 import static org.stellar.anchor.util.Log.debugF;
 
 import java.time.Instant;
@@ -25,7 +21,6 @@ import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableExcepti
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
 import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
-import org.stellar.anchor.platform.data.JdbcCustodyTransaction.PaymentType;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
 public class CustodyTransactionService {
@@ -46,7 +41,8 @@ public class CustodyTransactionService {
    * @param request custody transaction info
    * @return {@link JdbcCustodyTransaction} object
    */
-  public JdbcCustodyTransaction create(CreateCustodyTransactionRequest request, PaymentType type)
+  public JdbcCustodyTransaction create(
+      CreateCustodyTransactionRequest request, JdbcCustodyTransaction.PaymentType type)
       throws CustodyBadRequestException {
     return custodyTransactionRepo.save(
         JdbcCustodyTransaction.builder()
@@ -81,7 +77,7 @@ public class CustodyTransactionService {
       throws AnchorException {
     JdbcCustodyTransaction txn =
         custodyTransactionRepo.findFirstBySepTxIdAndTypeOrderByCreatedAtAsc(
-            txnId, PAYMENT.getType());
+            txnId, JdbcCustodyTransaction.PaymentType.PAYMENT.getType());
     if (txn == null) {
       throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
     }
@@ -89,7 +85,7 @@ public class CustodyTransactionService {
     CreateTransactionPaymentResponse response;
     try {
       response = custodyPaymentService.createTransactionPayment(txn, requestBody);
-      updateCustodyTransaction(txn, response.getId(), SUBMITTED);
+      updateCustodyTransaction(txn, response.getId(), CustodyTransactionStatus.SUBMITTED);
     } catch (FireblocksException e) {
       updateCustodyTransaction(txn, StringUtils.EMPTY, CustodyTransactionStatus.FAILED);
       throw (getResponseException(e));
@@ -110,7 +106,7 @@ public class CustodyTransactionService {
       String txnId, CreateTransactionRefundRequest refundRequest) throws AnchorException {
     JdbcCustodyTransaction txn =
         custodyTransactionRepo.findFirstBySepTxIdAndTypeOrderByCreatedAtAsc(
-            txnId, PAYMENT.getType());
+            txnId, JdbcCustodyTransaction.PaymentType.PAYMENT.getType());
     if (txn == null) {
       throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
     }
@@ -120,7 +116,7 @@ public class CustodyTransactionService {
     CreateTransactionPaymentResponse response;
     try {
       response = custodyPaymentService.createTransactionPayment(refundTxn, null);
-      updateCustodyTransaction(refundTxn, response.getId(), SUBMITTED);
+      updateCustodyTransaction(refundTxn, response.getId(), CustodyTransactionStatus.SUBMITTED);
     } catch (FireblocksException e) {
       custodyTransactionRepo.deleteById(refundTxn.getId());
       throw (getResponseException(e));
@@ -144,7 +140,7 @@ public class CustodyTransactionService {
             .asset(txn.getAsset())
             .kind(txn.getKind())
             .build(),
-        REFUND);
+        JdbcCustodyTransaction.PaymentType.REFUND);
   }
 
   private void updateCustodyTransaction(
@@ -160,12 +156,14 @@ public class CustodyTransactionService {
   }
 
   public List<JdbcCustodyTransaction> getOutboundTransactionsEligibleForReconciliation() {
-    return custodyTransactionRepo.findAllByStatusAndExternalTxIdNotNull(SUBMITTED.toString());
+    return custodyTransactionRepo.findAllByStatusAndExternalTxIdNotNull(
+        CustodyTransactionStatus.SUBMITTED.toString());
   }
 
   public List<JdbcCustodyTransaction> getInboundTransactionsEligibleForReconciliation() {
     return custodyTransactionRepo.findAllByStatusAndKindIn(
-        CREATED.toString(), Set.of(RECEIVE.getKind(), WITHDRAWAL.getKind()));
+        CustodyTransactionStatus.CREATED.toString(),
+        Set.of(RECEIVE.getKind(), WITHDRAWAL.getKind()));
   }
 
   private AnchorException getResponseException(FireblocksException e) {

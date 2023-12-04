@@ -784,6 +784,14 @@ class Sep31ServiceTest {
         SepDepositInfo(tx.stellarAccountId, memo, "hash")
       }
 
+    // mock client config
+    every { sep10Config.allowedClientDomains } returns listOf("vibrant.stellar.org")
+    every { clientsConfig.getClientConfigBySigningKey(any()) } returns
+      ClientsConfig.ClientConfig().apply {
+        domain = "vibrant.stellar.org"
+        name = "vibrant"
+      }
+
     // mock transaction save
     val slotTxn = slot<Sep31Transaction>()
     every { txnStore.save(capture(slotTxn)) } answers
@@ -824,6 +832,7 @@ class Sep31ServiceTest {
       "updatedAt": "$txStartedAt",
       "quoteId": "my_quote_id",
       "clientDomain": "vibrant.stellar.org",
+      "clientName": "vibrant",
       "fields": {
         "receiver_account_number": "1",
         "type": "1",

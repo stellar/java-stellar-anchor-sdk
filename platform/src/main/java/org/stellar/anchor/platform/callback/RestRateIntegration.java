@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.callback;
 
 import static okhttp3.HttpUrl.get;
-import static org.stellar.anchor.platform.callback.PlatformIntegrationHelper.*;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -56,12 +55,13 @@ public class RestRateIntegration implements RateIntegration {
         });
     HttpUrl url = urlBuilder.build();
 
-    Request httpRequest = getRequestBuilder(authHelper).url(url).get().build();
-    Response response = call(httpClient, httpRequest);
-    String responseContent = getContent(response);
+    Request httpRequest =
+        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build();
+    Response response = PlatformIntegrationHelper.call(httpClient, httpRequest);
+    String responseContent = PlatformIntegrationHelper.getContent(response);
 
     if (response.code() != HttpStatus.OK.value()) {
-      throw httpError(responseContent, response.code(), gson);
+      throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
     }
 
     GetRateResponse getRateResponse;

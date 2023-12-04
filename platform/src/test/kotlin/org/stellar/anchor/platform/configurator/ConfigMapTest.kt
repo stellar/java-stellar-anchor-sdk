@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.configurator
 
-import javax.xml.bind.annotation.XmlType.DEFAULT
-import kotlin.test.assertEquals
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

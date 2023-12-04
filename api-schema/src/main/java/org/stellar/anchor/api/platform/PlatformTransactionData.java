@@ -89,6 +89,12 @@ public class PlatformTransactionData {
   @SerializedName("withdraw_anchor_account")
   String withdrawAnchorAccount;
 
+  @SerializedName("client_domain")
+  String clientDomain;
+
+  @SerializedName("client_name")
+  String clientName;
+
   Customers customers;
   StellarId creator;
 
