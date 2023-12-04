@@ -62,9 +62,6 @@ public class ConfigReader {
    * @return name of the array
    */
   String trimToArrayName(String fieldName) {
-    if (fieldName == null) {
-      System.out.println("hello");
-    }
     Matcher matcher = arrayPattern.matcher(fieldName);
 
     if (matcher.find()) {

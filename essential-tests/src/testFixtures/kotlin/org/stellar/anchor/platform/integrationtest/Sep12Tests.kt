@@ -65,7 +65,6 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
     val ex: ClientRequestException = assertThrows {
       anchor.sep12(token).get(pr.id, type = "sep31-receiver")
     }
-    println(ex)
   }
 
   companion object {

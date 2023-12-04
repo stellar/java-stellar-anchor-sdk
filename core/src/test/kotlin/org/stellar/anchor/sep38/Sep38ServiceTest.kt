@@ -110,7 +110,7 @@ class Sep38ServiceTest {
     assertNull(stellarJPYC.sellDeliveryMethods)
     assertNull(stellarJPYC.buyDeliveryMethods)
     wantAssets = listOf(fiatUSD, stellarUSDC)
-    println(stellarJPYC.exchangeableAssetNames)
+    Log.debug(stellarJPYC.exchangeableAssetNames)
     assertTrue(stellarJPYC.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(stellarJPYC.exchangeableAssetNames))
 

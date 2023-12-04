@@ -110,8 +110,6 @@ class RestCustomerIntegrationTest {
     wantResponse.providedFields = mapOf("last_name" to lastNameProvidedField)
 
     val gotResponse = customerIntegration.getCustomer(getCustomerRequest)
-    println(gson.toJson(wantResponse))
-    println(gson.toJson(gotResponse))
 
     assertEquals(wantResponse, gotResponse)
 

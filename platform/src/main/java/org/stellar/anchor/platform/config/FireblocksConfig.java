@@ -191,7 +191,6 @@ public class FireblocksConfig implements Validator {
    */
   public PublicKey getFireblocksPublicKey() throws InvalidConfigException {
     try {
-      System.out.println("publicKey=" + publicKey);
       return generatePublicKey(publicKey, RSA_ALGORITHM);
     } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
       throw new InvalidConfigException(List.of("Failed to generate Fireblocks public key"), e);

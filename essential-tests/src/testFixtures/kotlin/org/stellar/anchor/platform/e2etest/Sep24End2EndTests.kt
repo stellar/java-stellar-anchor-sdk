@@ -31,6 +31,7 @@ import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.util.Log.debug
 import org.stellar.anchor.util.Log.info
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
@@ -356,7 +357,7 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
       }
     val history = anchor.interactive().getTransactionsForAsset(asset, token)
     assertThat(history).allMatch { deposits.contains(it.id) }
-    println("test created transactions show up in the get history call passed")
+    debug("test created transactions show up in the get history call passed")
   }
 
   companion object {

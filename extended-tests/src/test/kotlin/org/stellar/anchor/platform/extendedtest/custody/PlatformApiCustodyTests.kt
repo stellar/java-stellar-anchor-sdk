@@ -63,16 +63,6 @@ class PlatformApiCustodyTests : AbstractIntegrationTests(TestConfig("custody")) 
   private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), token.token)
   private val sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), token.token)
 
-  fun testAll(custodyMockServer: MockWebServer) {
-    println("Performing Platform API Custody tests...")
-
-    `SEP-24 deposit complete full`()
-    `SEP-24 withdraw full refund`()
-    // TODO: This is temporarily disabled because of lacking support for debugging. This should be
-    // re-enabled once the tests are cleaned up.
-    `SEP-31 refunded do_stellar_refund`()
-  }
-
   /**
    * 1. incomplete -> notify_interactive_flow_complete
    * 2. pending_anchor -> request_offchain_funds
