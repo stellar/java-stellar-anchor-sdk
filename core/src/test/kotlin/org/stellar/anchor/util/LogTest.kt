@@ -6,18 +6,14 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.Logger
 import org.stellar.anchor.LockAndMockStatic
 import org.stellar.anchor.LockAndMockTest
-import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.PII
 import org.stellar.anchor.util.Log.shorter
-import org.stellar.sdk.Network.TESTNET
 
-@Disabled
 @ExtendWith(LockAndMockTest::class)
 internal class LogTest {
   @MockK(relaxed = true) private lateinit var logger: Logger
@@ -27,20 +23,13 @@ internal class LogTest {
     MockKAnnotations.init(this, relaxed = true)
   }
 
-  @Suppress("unused")
-  class TestBean {
-    val field1: String = "1"
-    val field2: String = "2"
-  }
-
-  @Suppress("unused")
   class TestBeanPII {
     val fieldNoPII: String = "no secret"
 
     @PII val fieldPII: String = "secret"
   }
 
-  val wantTestPIIJson = """{"fieldNoPII":"no secret"}"""
+  private val wantTestPIIJson = """{"fieldNoPII":"no secret"}"""
 
   @Test
   @LockAndMockStatic([Log::class])
@@ -85,25 +74,6 @@ internal class LogTest {
     verify { logger.trace("Hello$wantTestPIIJson") }
   }
 
-  @Suppress("unused")
-  class TestAppConfig : AppConfig {
-    override fun getStellarNetwork(): String {
-      return "TESTNET"
-    }
-
-    override fun getStellarNetworkPassphrase(): String {
-      return TESTNET.networkPassphrase
-    }
-
-    override fun getHorizonUrl(): String {
-      return "https://horizon.stellar.org"
-    }
-
-    override fun getLanguages(): MutableList<String> {
-      return mutableListOf("en")
-    }
-  }
-
   @Test
   @LockAndMockStatic([Log::class])
   fun `test errorEx`() {
@@ -122,6 +92,7 @@ internal class LogTest {
   }
 
   @Test
+  @LockAndMockStatic([Log::class])
   fun `test shorter string conversion`() {
     assertNull(shorter(null))
     assertEquals(shorter("123"), "123")
@@ -132,6 +103,7 @@ internal class LogTest {
   }
 
   @Test
+  @LockAndMockStatic([Log::class])
   fun `test getLogger`() {
     val logger = Log.getLogger()
     assertNotNull(logger)
