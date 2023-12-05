@@ -22,6 +22,7 @@ import org.stellar.anchor.filter.Sep10JwtFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
+import org.stellar.anchor.platform.condition.ConditionalOnAnySepsEnabled;
 import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator;
@@ -123,7 +124,7 @@ public class SepBeans {
   }
 
   @Bean
-  @ConditionalOnAllSepsEnabled(seps = {"sep6", "sep24"})
+  @ConditionalOnAnySepsEnabled(seps = {"sep6", "sep24", "sep31"})
   ClientFinder clientFinder(Sep10Config sep10Config, ClientsConfig clientsConfig) {
     return new ClientFinder(sep10Config, clientsConfig);
   }
