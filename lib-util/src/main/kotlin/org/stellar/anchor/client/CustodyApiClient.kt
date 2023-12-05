@@ -1,10 +1,16 @@
 package org.stellar.anchor.client
 
 import com.google.gson.reflect.TypeToken
+import java.security.PrivateKey
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse
+import org.stellar.anchor.util.RSAUtil
 
-class CustodyApiClient(private val endpoint: String, private val jwt: String) : SepClient() {
+class CustodyApiClient(
+  private val endpoint: String,
+  private val jwt: String,
+  private val webhookPrivateKey: PrivateKey
+) : SepClient() {
 
   fun generateDepositAddress(asset: String): GenerateDepositAddressResponse {
     val url = "$endpoint/assets/$asset/addresses"
@@ -24,10 +30,8 @@ class CustodyApiClient(private val endpoint: String, private val jwt: String) : 
     httpPost(url, mapOf<String, String>(), jwt)
   }
 
-  fun sendWebhook(webhook: String, headers: Map<String, String>) {
-    val url = "$endpoint/webhook"
-    val type = object : TypeToken<Map<String?, *>?>() {}.type
-    val requestBody: Map<String, Any> = gson.fromJson(webhook, type)
-    httpPost(url, requestBody, headers)
+  fun sendWebhook(webhookRequest: String) {
+    val webhookSignature = RSAUtil.sign(webhookRequest, webhookPrivateKey)
+    httpPost("$endpoint/webhook", webhookRequest, mapOf("fireblocks-signature" to webhookSignature))
   }
 }

@@ -41,19 +41,22 @@ open class SepClient {
     return httpPost(url, requestBody, headers)
   }
 
-  fun httpPost(url: String, requestBody: Map<String, Any>, headers: Map<String, String>): String? {
-    val requestBodyStr = gson.toJson(requestBody).toRequestBody(TYPE_JSON)
-
+  fun httpPost(url: String, requestBodyStr: String, headers: Map<String, String>): String? {
+    val requestBody = requestBodyStr.toRequestBody(TYPE_JSON)
     val request =
       Request.Builder()
         .url(url)
         .header("Content-Type", "application/json")
         .apply { headers.forEach { (key, value) -> header(key, value) } }
-        .post(requestBodyStr)
+        .post(requestBody)
         .build()
 
     val response = client.newCall(request).execute()
     return handleResponse(response)
+  }
+
+  fun httpPost(url: String, requestBody: Map<String, Any>, headers: Map<String, String>): String? {
+    return httpPost(url, gson.toJson(requestBody), headers)
   }
 
   fun handleResponse(response: Response): String? {
