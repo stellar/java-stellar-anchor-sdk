@@ -74,8 +74,6 @@ class CustodyServiceTest {
 
     custodyService.createTransaction(txn)
 
-    println(gson.toJson(requestCapture.captured))
-
     JSONAssert.assertEquals(
       sep6WithdrawalRequest.replace("testKind", kind),
       gson.toJson(requestCapture.captured),

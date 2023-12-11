@@ -6565,7 +6565,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
          "started_at":"2023-07-20T08:57:05.380736Z",
          "updated_at":"2023-07-20T08:57:16.672110400Z",
          "message":"test message",
-         "destination_account":"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+         "destination_account":"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+         "client_name": "referenceCustodial"
       },
       "id":1
    }
@@ -6601,7 +6602,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
          "started_at":"2023-07-20T09:07:51.007629Z",
          "updated_at":"2023-07-20T09:07:59.425534900Z",
          "message":"test message",
-         "destination_account":"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+         "destination_account":"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+         "client_name": "referenceCustodial"
       },
       "id":1
    },
@@ -6632,7 +6634,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
          "updated_at":"2023-07-20T09:07:59.448888600Z",
          "message":"test message",
          "external_transaction_id": "1",
-         "destination_account":"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+         "destination_account":"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+         "client_name": "referenceCustodial"
       },
       "id":2
    }

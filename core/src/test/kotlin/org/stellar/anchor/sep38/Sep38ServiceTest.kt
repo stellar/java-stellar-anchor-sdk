@@ -33,6 +33,7 @@ import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
+import org.stellar.anchor.util.Log.debug
 import org.stellar.anchor.util.StringHelper.json
 
 @Order(88)
@@ -110,7 +111,7 @@ class Sep38ServiceTest {
     assertNull(stellarJPYC.sellDeliveryMethods)
     assertNull(stellarJPYC.buyDeliveryMethods)
     wantAssets = listOf(fiatUSD, stellarUSDC)
-    println(stellarJPYC.exchangeableAssetNames)
+    debug(stellarJPYC.exchangeableAssetNames)
     assertTrue(stellarJPYC.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(stellarJPYC.exchangeableAssetNames))
 
@@ -819,7 +820,7 @@ class Sep38ServiceTest {
       )
     }
     assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
+    assertEquals("Unsupported context. Should be one of [sep6, sep24, sep31].", ex.message)
 
     // sell_amount should be within limit
     ex = assertThrows {

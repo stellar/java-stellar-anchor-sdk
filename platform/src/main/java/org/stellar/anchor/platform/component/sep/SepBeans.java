@@ -22,6 +22,7 @@ import org.stellar.anchor.filter.Sep10JwtFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
+import org.stellar.anchor.platform.condition.ConditionalOnAnySepsEnabled;
 import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator;
@@ -73,8 +74,8 @@ public class SepBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep31")
-  Sep31Config sep31Config(CustodyConfig custodyConfig) {
-    return new PropertySep31Config(custodyConfig);
+  Sep31Config sep31Config(CustodyConfig custodyConfig, AssetService assetService) {
+    return new PropertySep31Config(custodyConfig, assetService);
   }
 
   @Bean
@@ -123,7 +124,7 @@ public class SepBeans {
   }
 
   @Bean
-  @ConditionalOnAllSepsEnabled(seps = {"sep6", "sep24"})
+  @ConditionalOnAnySepsEnabled(seps = {"sep6", "sep24"})
   ClientFinder clientFinder(Sep10Config sep10Config, ClientsConfig clientsConfig) {
     return new ClientFinder(sep10Config, clientsConfig);
   }
@@ -133,6 +134,7 @@ public class SepBeans {
   Sep6Service sep6Service(
       Sep6Config sep6Config,
       AssetService assetService,
+      ClientFinder clientFinder,
       Sep6TransactionStore txnStore,
       EventService eventService,
       Sep38QuoteStore sep38QuoteStore) {
@@ -143,6 +145,7 @@ public class SepBeans {
         sep6Config,
         assetService,
         requestValidator,
+        clientFinder,
         txnStore,
         exchangeAmountsCalculator,
         eventService);
@@ -176,22 +179,28 @@ public class SepBeans {
       ClientsConfig clientsConfig,
       AssetService assetService,
       JwtService jwtService,
+      ClientFinder clientFinder,
       Sep24TransactionStore sep24TransactionStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
       MoreInfoUrlConstructor moreInfoUrlConstructor,
-      CustodyConfig custodyConfig) {
+      CustodyConfig custodyConfig,
+      Sep38QuoteStore sep38QuoteStore) {
+    ExchangeAmountsCalculator exchangeAmountsCalculator =
+        new ExchangeAmountsCalculator(sep38QuoteStore);
     return new Sep24Service(
         appConfig,
         sep24Config,
         clientsConfig,
         assetService,
         jwtService,
+        clientFinder,
         sep24TransactionStore,
         eventService,
         interactiveUrlConstructor,
         moreInfoUrlConstructor,
-        custodyConfig);
+        custodyConfig,
+        exchangeAmountsCalculator);
   }
 
   @Bean

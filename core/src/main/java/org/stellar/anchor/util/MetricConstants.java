@@ -10,9 +10,13 @@ public class MetricConstants {
   public static final String SEP1_TOML_ACCESSED = "sep1.toml_accessed";
 
   // SEP-6 metrics
-  public static final String SEP6_TRANSACTION = "sep6.transaction";
-  public static final String TV_SEP6_DEPOSIT = "deposit";
+  public static final String SEP6_TRANSACTION_REQUESTED = "sep6.transaction.requested";
+  public static final String SEP6_TRANSACTION_CREATED = "sep6.transaction.created";
+  public static final String SEP6_TRANSACTION_QUERIED = "sep6.transaction.queried";
   public static final String TV_SEP6_WITHDRAWAL = "withdrawal";
+  public static final String TV_SEP6_WITHDRAWAL_EXCHANGE = "withdrawal_exchange";
+  public static final String TV_SEP6_DEPOSIT = "deposit";
+  public static final String TV_SEP6_DEPOSIT_EXCHANGE = "deposit_exchange";
 
   // SEP-10 metrics
   public static final String SEP10_CHALLENGE_CREATED = "sep10.transaction";

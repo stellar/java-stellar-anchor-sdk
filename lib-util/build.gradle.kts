@@ -10,6 +10,7 @@ dependencies {
   implementation(libs.commons.text)
   implementation(libs.coroutines.core)
   implementation(libs.google.gson)
+  implementation(libs.jjwt)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
   implementation(libs.okhttp3)
   implementation(project(":api-schema"))

@@ -85,6 +85,11 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
+  public Sep24TransactionBuilder clientName(String clientName) {
+    txn.setClientName(clientName);
+    return this;
+  }
+
   public Sep24TransactionBuilder claimableBalanceSupported(Boolean claimableBalanceSupported) {
     txn.setClaimableBalanceSupported(claimableBalanceSupported);
     return this;
@@ -133,6 +138,18 @@ public class Sep24TransactionBuilder {
   public Sep24TransactionBuilder refundMemoType(String refundMemoType) {
     txn.setRefundMemoType(refundMemoType);
     return this;
+  }
+
+  public void quoteId(String quoteId) {
+    txn.setQuoteId(quoteId);
+  }
+
+  public void sourceAsset(String sourceAsset) {
+    txn.setSourceAsset(sourceAsset);
+  }
+
+  public void destinationAsset(String destinationAsset) {
+    txn.setDestinationAsset(destinationAsset);
   }
 
   public Sep24Transaction build() {

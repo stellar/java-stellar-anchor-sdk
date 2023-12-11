@@ -1,12 +1,7 @@
 package org.stellar.anchor.platform.custody.fireblocks
 
 import com.google.gson.reflect.TypeToken
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.runs
-import io.mockk.slot
-import io.mockk.verify
+import io.mockk.*
 import java.security.Signature
 import java.util.*
 import kotlin.test.assertEquals
@@ -29,14 +24,15 @@ import org.stellar.anchor.platform.config.PropertyCustodySecretConfig
 import org.stellar.anchor.platform.custody.CustodyPayment
 import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler
 import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler
+import org.stellar.anchor.platform.custody.Sep6CustodyPaymentHandler
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
-import org.stellar.anchor.platform.utils.RSAUtil
-import org.stellar.anchor.platform.utils.RSAUtil.RSA_ALGORITHM
-import org.stellar.anchor.platform.utils.RSAUtil.SHA512_WITH_RSA_ALGORITHM
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.anchor.util.RSAUtil
+import org.stellar.anchor.util.RSAUtil.RSA_ALGORITHM
+import org.stellar.anchor.util.RSAUtil.SHA512_WITH_RSA_ALGORITHM
 import org.stellar.sdk.Server
 import org.stellar.sdk.requests.PaymentsRequestBuilder
 import org.stellar.sdk.responses.Page
@@ -51,6 +47,7 @@ class FireblocksEventServiceTest {
 
   private lateinit var secretConfig: PropertyCustodySecretConfig
   private lateinit var custodyTransactionRepo: JdbcCustodyTransactionRepo
+  private lateinit var sep6CustodyPaymentHandler: Sep6CustodyPaymentHandler
   private lateinit var sep24CustodyPaymentHandler: Sep24CustodyPaymentHandler
   private lateinit var sep31CustodyPaymentHandler: Sep31CustodyPaymentHandler
   private lateinit var horizon: Horizon
@@ -62,6 +59,7 @@ class FireblocksEventServiceTest {
   fun setUp() {
     secretConfig = mockk()
     custodyTransactionRepo = mockk()
+    sep6CustodyPaymentHandler = mockk()
     sep24CustodyPaymentHandler = mockk()
     sep31CustodyPaymentHandler = mockk()
     horizon = mockk()
@@ -77,6 +75,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -99,6 +98,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -135,6 +135,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -171,6 +172,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -212,6 +214,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -257,6 +260,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -319,6 +323,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -349,6 +354,7 @@ class FireblocksEventServiceTest {
       assertThrows<InvalidConfigException> {
         FireblocksEventService(
           custodyTransactionRepo,
+          sep6CustodyPaymentHandler,
           sep24CustodyPaymentHandler,
           sep31CustodyPaymentHandler,
           horizon,
@@ -365,6 +371,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -386,6 +393,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -407,6 +415,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -429,6 +438,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,
@@ -450,6 +460,7 @@ class FireblocksEventServiceTest {
     val eventsService =
       FireblocksEventService(
         custodyTransactionRepo,
+        sep6CustodyPaymentHandler,
         sep24CustodyPaymentHandler,
         sep31CustodyPaymentHandler,
         horizon,

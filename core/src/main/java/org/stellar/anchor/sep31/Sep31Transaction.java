@@ -92,6 +92,10 @@ public interface Sep31Transaction extends SepTransaction {
 
   void setClientDomain(String clientDomain);
 
+  String getClientName();
+
+  void setClientName(String clientName);
+
   void setSenderId(String sourceId);
 
   String getSenderId();

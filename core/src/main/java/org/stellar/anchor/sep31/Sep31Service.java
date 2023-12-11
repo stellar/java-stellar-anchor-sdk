@@ -204,6 +204,7 @@ public class Sep31Service {
             .requiredInfoMessage(null)
             .quoteId(request.getQuoteId())
             .clientDomain(sep10Jwt.getClientDomain())
+            .clientName(getClientName())
             .requiredInfoUpdates(null)
             .fields(request.getFields().getTransaction())
             .refunded(null)
@@ -217,11 +218,15 @@ public class Sep31Service {
             .amountInAsset(assetInfo.getSep38AssetName())
             .amountOut(null)
             .amountOutAsset(null)
-            // updateDepositInfo will update these ⬇️
             .stellarAccountId(assetInfo.getDistributionAccount())
             .stellarMemo(null)
             .stellarMemoType(null)
             .build();
+
+    // updateDepositInfo will update these ⬇️
+    if (!isEmpty(assetInfo.getDistributionAccount())) {
+      txn.setStellarAccountId(assetInfo.getDistributionAccount());
+    }
 
     Context.get().setTransaction(txn);
     updateAmounts();
