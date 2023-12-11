@@ -64,6 +64,7 @@ internal class Sep1HelperTest {
     try {
       Sep1Helper.readToml(mockUrl)
     } catch (e: InvalidConfigException) {
+      print("Caught InvalidConfigException")
       exceptionThrown = true
     }
     assertTrue(exceptionThrown, "InvalidConfigException was expected but not thrown")
