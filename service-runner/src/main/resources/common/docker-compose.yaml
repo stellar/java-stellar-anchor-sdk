@@ -64,15 +64,6 @@ services:
       CLUSTER_ID: 'ciWo7IWazngRchmPES6q5A=='
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
 
-  zookeeper:
-    platform: linux/x86_64
-    image: confluentinc/cp-zookeeper:6.1.9
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-
   db:
     image: postgres:15.2-alpine
     ports:
