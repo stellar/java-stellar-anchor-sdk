@@ -56,7 +56,7 @@ tasks.register<JavaExec>("startAllServers") {
  */
 tasks.register<JavaExec>("startServersWithTestProfile") {
   println(
-    "Starting the servers based on the test configuration specified by the TEST_PROFILE_NAME envionrment variable."
+    "Starting the servers based on the test configuration specified by the TEST_PROFILE_NAME environment variable."
   )
   group = "application"
   classpath = sourceSets["main"].runtimeClasspath
@@ -71,45 +71,56 @@ tasks.register<JavaExec>("dockerComposeUp") {
   mainClass.set("org.stellar.anchor.platform.run_profiles.RunDockerDevStack")
 }
 
-val pullImage by tasks.creating(DockerPullImage::class) { image.set("stellar/anchor-tests:v0.6.9") }
-
-val createContainer by
-  tasks.creating(DockerCreateContainer::class) {
-    dependsOn(pullImage)
-    targetImageId { pullImage.image.get() }
-    val homeDomain = System.getenv("HOME_DOMAIN") ?: "http://host.docker.internal:8080"
-    println("HOME_DOMAIN=$homeDomain")
-    println("PROJECT_DIR=${project.projectDir}")
-    val configPath = "${project.projectDir}/../platform/src/test/resources"
-    //      hostConfig.autoRemove.set(true)
-    hostConfig.binds.set(mutableMapOf(configPath to "/config"))
-    val logConfig = DockerCreateContainer.HostConfig.LogConfig()
-    hostConfig.logConfig("json-file", mapOf("max-size" to "100m"))
-    hostConfig.network.set("host")
-    cmd.set(
-      listOf(
-        "--home-domain",
-        "http://host.docker.internal:8080",
-        "--seps",
-        "1",
-        "10",
-        "--sep-config",
-        "//config/stellar-anchor-tests-sep-config.json",
-        "--verbose"
-      )
-    )
+val dockerPullAnchorTest by
+  tasks.register<DockerPullImage>("pullDockerImage") {
+    println("Pulling the docker image.")
+    group = "docker"
+    image.set("stellar/anchor-tests:v0.6.9")
   }
 
-val printLogs by
-  tasks.registering(DockerLogsContainer::class) {
-    dependsOn(startContainer)
-    targetContainerId(createContainer.containerId)
+val dockerCreateAnchorTest by
+  tasks.register<DockerCreateContainer>("dockerCreatePullAnchorTest") {
+    println("Creating the docker container.")
+    group = "docker"
+
+    dependsOn(dockerPullAnchorTest)
+    targetImageId { dockerPullAnchorTest.image.get() }
+
+    val homeDomain = System.getenv("TEST_HOME_DO`MAIN") ?: "http://host.docker.internal:8080"
+    println("HOME_DOMAIN=$homeDomain")
+    val seps = System.getenv().getOrDefault("TEST_SEPS", "1,10,12,24,31,38").split(",")
+    println("TEST_SEPS=$seps")
+
+    val configPath = "${project.projectDir}/../platform/src/test/resources"
+    hostConfig.autoRemove.set(true)
+    hostConfig.binds.set(mutableMapOf(configPath to "/config"))
+    hostConfig.network.set("host")
+
+    val cmdList = mutableListOf("--home-domain", homeDomain, "--seps")
+    cmdList.addAll(seps)
+    cmdList.addAll(
+      listOf("--sep-config", "/config/stellar-anchor-tests-sep-config.json", "--verbose")
+    )
+
+    cmd.set(cmdList)
+  }
+
+val dockerStartAnchorTest by
+  tasks.register<DockerStartContainer>("dockerStartAnchorTest") {
+    println("Starting the docker container.")
+    group = "docker"
+
+    dependsOn(dockerCreateAnchorTest)
+    targetContainerId(dockerCreateAnchorTest.containerId)
+  }
+
+val anchorTest by
+  tasks.register<DockerLogsContainer>("anchorTest") {
+    println("Running the docker container.")
+    group = "docker"
+
+    dependsOn(dockerStartAnchorTest)
+    targetContainerId(dockerCreateAnchorTest.containerId)
     follow.set(true)
     tailAll.set(true)
-  }
-
-val startContainer by
-  tasks.creating(DockerStartContainer::class) {
-    dependsOn(createContainer)
-    targetContainerId(createContainer.containerId)
   }
