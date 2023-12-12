@@ -87,7 +87,7 @@ val dockerCreateAnchorTest by
     targetImageId { dockerPullAnchorTest.image.get() }
 
     val homeDomain = System.getenv("TEST_HOME_DO`MAIN") ?: "http://host.docker.internal:8080"
-    println("HOME_DOMAIN=$homeDomain")
+    println("TEST_HOME_DOMAIN=$homeDomain")
     val seps = System.getenv().getOrDefault("TEST_SEPS", "1,10,12,24,31,38").split(",")
     println("TEST_SEPS=$seps")
 
