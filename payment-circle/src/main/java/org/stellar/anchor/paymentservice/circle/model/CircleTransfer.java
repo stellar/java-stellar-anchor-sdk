@@ -1,6 +1,7 @@
 package org.stellar.anchor.paymentservice.circle.model;
 
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.Map;
@@ -8,7 +9,6 @@ import lombok.Data;
 import org.stellar.anchor.paymentservice.Account;
 import org.stellar.anchor.paymentservice.Payment;
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter;
-import shadow.com.google.common.reflect.TypeToken;
 
 @Data
 public class CircleTransfer {

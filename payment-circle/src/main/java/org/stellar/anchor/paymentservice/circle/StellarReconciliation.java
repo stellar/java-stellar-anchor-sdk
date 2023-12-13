@@ -1,5 +1,7 @@
 package org.stellar.anchor.paymentservice.circle;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
@@ -13,8 +15,6 @@ import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
-import shadow.com.google.common.reflect.TypeToken;
-import shadow.com.google.gson.Gson;
 
 public interface StellarReconciliation extends CircleResponseErrorHandler {
 

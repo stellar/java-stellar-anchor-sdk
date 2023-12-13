@@ -15,6 +15,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
+import java.util.Base64;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Hex;

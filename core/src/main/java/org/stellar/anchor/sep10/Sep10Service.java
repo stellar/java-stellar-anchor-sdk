@@ -285,7 +285,7 @@ public class Sep10Service {
             new Network(appConfig.getStellarNetworkPassphrase()),
             sep10Config.getHomeDomain(),
             getDomainFromURI(appConfig.getHostUrl()));
-    long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
+    long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime().longValueExact();
     Memo memo = challenge.getTransaction().getMemo();
     JwtToken jwtToken =
         JwtToken.of(
