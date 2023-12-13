@@ -141,15 +141,17 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
       }
 
     // Submit transfer transaction
-    val transfer =
-      wallet
-        .stellar()
-        .transaction(keypair)
-        .transfer(postTxResponse.stellarAccountId, asset, amount)
-        .setMemo(Pair(memoType, postTxResponse.stellarMemo))
-        .build()
-    transfer.sign(keypair)
-    wallet.stellar().submitTransaction(transfer)
+    transactionWithRetry {
+      val transfer =
+        wallet
+          .stellar()
+          .transaction(keypair)
+          .transfer(postTxResponse.stellarAccountId, asset, amount)
+          .setMemo(Pair(memoType, postTxResponse.stellarMemo))
+          .build()
+      transfer.sign(keypair)
+      wallet.stellar().submitTransaction(transfer)
+    }
 
     // Wait for the status to change to COMPLETED
     waitStatus(postTxResponse.id, SepTransactionStatus.COMPLETED)
