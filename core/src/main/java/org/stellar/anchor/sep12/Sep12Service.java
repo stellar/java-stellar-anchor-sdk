@@ -6,11 +6,14 @@ import static org.stellar.anchor.util.MetricConstants.SEP12_CUSTOMER;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.event.AnchorEvent;
@@ -79,6 +82,17 @@ public class Sep12Service {
 
     if (request.getAccount() == null && token.getAccount() != null) {
       request.setAccount(token.getAccount());
+    }
+
+    if (StringUtils.isNotEmpty(request.getIdIssueDate())) {
+      if (!isValidISO8601Date(request.getIdIssueDate())) {
+        throw new SepValidationException("Invalid 'id_issue_date'");
+      }
+    }
+    if (StringUtils.isNotEmpty(request.getIdExpirationDate())) {
+      if (!isValidISO8601Date(request.getIdExpirationDate())) {
+        throw new SepValidationException("Invalid 'id_expiration_date'");
+      }
     }
 
     PutCustomerResponse response =
@@ -225,5 +239,14 @@ public class Sep12Service {
 
     requestBase.setMemo(memo);
     requestBase.setMemoType(memoType);
+  }
+
+  private boolean isValidISO8601Date(String dateStr) {
+    try {
+      LocalDate.parse(dateStr);
+      return true;
+    } catch (DateTimeParseException e) {
+      return false;
+    }
   }
 }
