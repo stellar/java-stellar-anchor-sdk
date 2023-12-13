@@ -19,6 +19,7 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.LockAndMockStatic
 import org.stellar.anchor.LockAndMockTest
+import org.stellar.anchor.LockStatic
 import org.stellar.anchor.util.NetUtil.*
 
 @Order(100)
@@ -100,6 +101,7 @@ internal class NetUtilTest {
         "file:///home/johndoe/a.toml"
       ]
   )
+  @LockStatic([NetUtil::class])
   fun `test valid urls with isUrlValid()`(testValue: String?) {
     assertTrue(isUrlValid(testValue))
   }
@@ -121,6 +123,7 @@ internal class NetUtilTest {
         ""
       ]
   )
+  @LockStatic([NetUtil::class])
   fun `test bad urls with isUrlValid()`(testValue: String?) {
     assertFalse(isUrlValid(testValue))
   }
@@ -139,6 +142,7 @@ internal class NetUtilTest {
         "127.0.0.1:8080"
       ]
   )
+  @LockStatic([NetUtil::class])
   fun `test valid server port with isServerPortValid`(testValue: String) {
     assertTrue(isServerPortValid(testValue, false))
   }
@@ -157,6 +161,7 @@ internal class NetUtilTest {
         ""
       ]
   )
+  @LockStatic([NetUtil::class])
   fun `test bad server port with isServerPortValid`(testValue: String?) {
     assertFalse(isServerPortValid(testValue, true))
   }
@@ -171,6 +176,7 @@ internal class NetUtilTest {
         "http://test.stellar.org:9800,test.stellar.org:9800",
       ]
   )
+  @LockStatic([NetUtil::class])
   fun `test good URLs for getDomainFromURL`(testUri: String, compareDomain: String) {
     val domain = getDomainFromURL(testUri)
     assertEquals(domain, compareDomain)
@@ -178,6 +184,7 @@ internal class NetUtilTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["bad url", "http :///test.stellar.org:9800/"])
+  @LockStatic([NetUtil::class])
   fun `test bad URLs for getDomainFromURL`(testUrl: String) {
     org.junit.jupiter.api.assertThrows<MalformedURLException> { getDomainFromURL(testUrl) }
   }
