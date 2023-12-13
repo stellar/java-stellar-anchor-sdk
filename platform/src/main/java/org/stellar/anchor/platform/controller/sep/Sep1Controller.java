@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.controller.sep;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
@@ -27,6 +28,7 @@ public class Sep1Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET, RequestMethod.OPTIONS})
   public RedirectView landingPage() throws SepNotFoundException {
     if (!sep1Config.isEnabled()) {
@@ -40,6 +42,7 @@ public class Sep1Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/.well-known/stellar.toml",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET, RequestMethod.OPTIONS})
   public ResponseEntity<String> getToml() throws SepException {
     if (!sep1Config.isEnabled()) {

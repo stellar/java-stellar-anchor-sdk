@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.controller.platform;
 
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +23,9 @@ public class PlatformRpcController {
   }
 
   @CrossOrigin(origins = "*")
-  @RequestMapping(method = {RequestMethod.POST})
+  @RequestMapping(
+      method = {RequestMethod.POST},
+      produces = {MediaType.APPLICATION_JSON_VALUE})
   @ResponseStatus(value = HttpStatus.OK)
   public List<RpcResponse> handle(@RequestBody List<RpcRequest> rpcRequests) {
     return rpcService.handle(rpcRequests);

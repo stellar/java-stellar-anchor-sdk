@@ -31,6 +31,7 @@ public class Sep12Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/customer",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public Sep12GetCustomerResponse getCustomer(
       HttpServletRequest request,
@@ -68,6 +69,7 @@ public class Sep12Controller {
   @RequestMapping(
       value = "/customer",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PUT})
   public Sep12PutCustomerResponse putCustomer(
       HttpServletRequest request, @RequestBody Sep12PutCustomerRequest putCustomerRequest) {
@@ -82,7 +84,8 @@ public class Sep12Controller {
   @RequestMapping(
       value = "/customer",
       method = {RequestMethod.POST, RequestMethod.PUT},
-      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE})
   public Sep12PutCustomerResponse putCustomerMultipart(HttpServletRequest request) {
     debug("PUT /customer multipart body:", request.getParameterMap());
     Gson gson = GsonUtils.getInstance();
@@ -101,6 +104,7 @@ public class Sep12Controller {
   @RequestMapping(
       value = "/customer/{account}",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.DELETE})
   @ResponseStatus(code = HttpStatus.OK)
   public void deleteCustomer(
@@ -123,6 +127,7 @@ public class Sep12Controller {
   @RequestMapping(
       value = "/customer/{account}",
       consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.DELETE})
   @ResponseStatus(code = HttpStatus.OK)
   public void deleteCustomer(

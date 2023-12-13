@@ -30,6 +30,7 @@ public class Sep38Controller {
   public Sep38Controller(Sep38Service sep38Service) {
     this.sep38Service = sep38Service;
   }
+
   // TODO: add integration tests
 
   @CrossOrigin(origins = "*")
@@ -45,6 +46,7 @@ public class Sep38Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/prices",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public GetPricesResponse getPrices(
       @RequestParam(name = "sell_asset") String sellAssetName,
@@ -68,6 +70,7 @@ public class Sep38Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/price",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public GetPriceResponse getPrice(
       HttpServletRequest request, @RequestParam Map<String, String> params) {
@@ -89,6 +92,7 @@ public class Sep38Controller {
   @RequestMapping(
       value = "/quote",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
   public Sep38QuoteResponse postQuote(
       HttpServletRequest request, @RequestBody Sep38PostQuoteRequest postQuoteRequest) {
@@ -102,6 +106,7 @@ public class Sep38Controller {
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
       value = "/quote/{quote_id}",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public Sep38QuoteResponse getQuote(
       HttpServletRequest request, @PathVariable(name = "quote_id") String quoteId) {
