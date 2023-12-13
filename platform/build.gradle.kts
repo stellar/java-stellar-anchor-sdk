@@ -14,7 +14,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation(libs.sqlite.jdbc)
   implementation(libs.google.gson)
-  implementation(libs.java.stellar.sdk)
+  implementation("com.github.stellar:java-stellar-sdk:0.42.0:uber")
 
   annotationProcessor(libs.lombok)
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

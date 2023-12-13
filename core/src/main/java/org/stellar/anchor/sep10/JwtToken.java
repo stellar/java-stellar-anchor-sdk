@@ -2,7 +2,7 @@ package org.stellar.anchor.sep10;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
-import shadow.javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @Data
 @SuppressWarnings("unused")
