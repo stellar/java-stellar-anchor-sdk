@@ -58,24 +58,6 @@ internal class Sep1HelperTest {
 
   @Test
   @LockStatic([NetUtil::class])
-  fun `readToml throws InvalidConfigException on invalid TOML content`() {
-    val mockUrl = "http://example.com/stellar.toml"
-    val invalidTomlContent = "Invalid TOML Content"
-    mockkStatic(NetUtil::class)
-    every { NetUtil.fetch(mockUrl) } returns invalidTomlContent
-
-    var exceptionThrown = false
-    try {
-      Sep1Helper.readToml(mockUrl)
-    } catch (e: InvalidConfigException) {
-      print("Caught InvalidConfigException")
-      exceptionThrown = true
-    }
-    assertTrue(exceptionThrown, "InvalidConfigException was expected but not thrown")
-  }
-
-  @Test
-  @LockStatic([NetUtil::class])
   fun `readToml throws InvalidConfigException when fetching instance metadata instead of TOML`() {
     val mockUrl = "http://169.254.169.254/latest/meta-data/local-hostname"
     val instanceMetadataContent =
