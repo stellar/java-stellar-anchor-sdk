@@ -88,7 +88,7 @@ val dockerCreateAnchorTest by
 
     val homeDomain = System.getenv("TEST_HOME_DO`MAIN") ?: "http://host.docker.internal:8080"
     println("TEST_HOME_DOMAIN=$homeDomain")
-    val seps = System.getenv().getOrDefault("TEST_SEPS", "1,10,12,24,31,38").split(",")
+    val seps = System.getenv().getOrDefault("TEST_SEPS", "1,6,10,12,24,31,38").split(",")
     println("TEST_SEPS=$seps")
 
     val configPath = "${project.projectDir}/../platform/src/test/resources"
