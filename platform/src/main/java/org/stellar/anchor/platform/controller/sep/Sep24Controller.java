@@ -43,6 +43,7 @@ public class Sep24Controller {
   @RequestMapping(
       value = "/transactions/deposit/interactive",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
   public InteractiveTransactionResponse deposit(
       HttpServletRequest request, @RequestBody HashMap<String, String> requestData)
@@ -58,7 +59,8 @@ public class Sep24Controller {
   @RequestMapping(
       value = "/transactions/deposit/interactive",
       method = {RequestMethod.POST},
-      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE})
   public InteractiveTransactionResponse depositAllType(HttpServletRequest request)
       throws AnchorException, MalformedURLException, URISyntaxException {
     HashMap<String, String> requestData = new HashMap<>();
@@ -73,6 +75,7 @@ public class Sep24Controller {
   @RequestMapping(
       value = "/transactions/withdraw/interactive",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
   public InteractiveTransactionResponse withdraw(
       HttpServletRequest request, @RequestBody HashMap<String, String> requestData)
@@ -88,7 +91,8 @@ public class Sep24Controller {
   @RequestMapping(
       value = "/transactions/withdraw/interactive",
       method = {RequestMethod.POST},
-      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE})
   public InteractiveTransactionResponse withdrawAllType(HttpServletRequest request)
       throws AnchorException, MalformedURLException, URISyntaxException {
     HashMap<String, String> requestData = new HashMap<>();
@@ -103,6 +107,7 @@ public class Sep24Controller {
   @RequestMapping(
       value = "/transactions",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public GetTransactionsResponse getTransactions(
       HttpServletRequest request, @RequestBody GetTransactionsRequest tr)
@@ -116,6 +121,7 @@ public class Sep24Controller {
   @RequestMapping(
       value = "/transactions",
       consumes = {MediaType.ALL_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public GetTransactionsResponse getTransactions(
       HttpServletRequest request,
@@ -142,6 +148,7 @@ public class Sep24Controller {
   @RequestMapping(
       value = "/transaction",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public Sep24GetTransactionResponse getTransaction(
       HttpServletRequest request, @RequestBody(required = false) GetTransactionRequest tr)
@@ -156,6 +163,7 @@ public class Sep24Controller {
   @RequestMapping(
       value = "/transaction",
       consumes = {MediaType.ALL_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public Sep24GetTransactionResponse getTransaction(
       HttpServletRequest request,

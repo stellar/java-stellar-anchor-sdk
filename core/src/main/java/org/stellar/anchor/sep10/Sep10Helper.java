@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.infoF;
 
 import java.io.IOException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.util.Sep1Helper;
 import org.stellar.sdk.FormatException;
@@ -34,13 +35,16 @@ public class Sep10Helper {
       debugF("Validating client_domain signing key: {}", clientSigningKey);
       KeyPair.fromAccountId(clientSigningKey);
       return clientSigningKey;
-    } catch (IllegalArgumentException | FormatException ex) {
+    } catch (IllegalArgumentException | FormatException e) {
       infoF("SIGNING_KEY {} is not a valid Stellar account Id.", clientSigningKey);
       throw new SepException(
           String.format("SIGNING_KEY %s is not a valid Stellar account Id.", clientSigningKey));
-    } catch (IOException ioex) {
+    } catch (IOException e) {
       infoF("Unable to read from {}", url);
-      throw new SepException(String.format("Unable to read from %s", url), ioex);
+      throw new SepException(String.format("Unable to read from %s", url), e);
+    } catch (InvalidConfigException e) {
+      infoF("Invalid config: {}", e.getMessage());
+      throw new SepException(String.format("Invalid config: %s", e.getMessage()));
     }
   }
 }
