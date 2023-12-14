@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 
 public class Sep1Helper {
-  public static TomlContent readToml(String url) throws IOException {
+  public static TomlContent readToml(String url) throws IOException, InvalidConfigException {
     try {
       String tomlValue = NetUtil.fetch(url);
       return new TomlContent(tomlValue);
@@ -16,6 +16,12 @@ public class Sep1Helper {
           String.format("An error occurred while fetching the TOML from %s", url);
       Log.error(e.toString());
       throw new IOException(obfuscatedMessage); // Preserve the original exception as the cause
+    } catch (InvalidConfigException e) {
+      String obfuscatedMessage =
+          String.format("An error occurred while parsing the TOML from %s", url);
+      Log.error(e.toString());
+      throw new InvalidConfigException(
+          obfuscatedMessage); // Preserve the original exception as the cause
     }
   }
 
@@ -34,8 +40,16 @@ public class Sep1Helper {
   public static class TomlContent {
     private final Toml toml;
 
-    TomlContent(String tomlString) {
-      toml = new Toml().read(tomlString);
+    TomlContent(String tomlString) throws InvalidConfigException {
+      try {
+        toml = new Toml().read(tomlString);
+      } catch (Exception e) {
+        // Obfuscate the message and rethrow
+        String obfuscatedMessage = "Failed to parse TOML content. Invalid Config.";
+        Log.error(e.toString()); // Log the parsing exception
+        throw new InvalidConfigException(
+            obfuscatedMessage); // Preserve the original exception as the cause
+      }
     }
 
     public String getString(String key) {
