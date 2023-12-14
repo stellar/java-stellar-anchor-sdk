@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.controller.custody;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,7 @@ public class CustodyPaymentController {
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
       value = "/assets/{assetId}/addresses",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
   public GenerateDepositAddressResponse generateDepositAddress(@PathVariable String assetId)
       throws CustodyException, InvalidConfigException {
