@@ -244,7 +244,7 @@ class Sep12ServiceTest {
         .type("sending_user")
         .firstName("John")
         .idIssueDate("2023-12-13")
-        .idExpirationDate("2027-12-13")
+        .idExpirationDate("2023-12-13T19:33:07Z")
         .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
     assertDoesNotThrow { sep12Service.putCustomer(jwtToken, mockPutRequest) }
@@ -258,7 +258,7 @@ class Sep12ServiceTest {
         .type("sending_user")
         .firstName("John")
         .idIssueDate("2023-12-13")
-        .idExpirationDate("2027-12-13")
+        .idExpirationDate("2023-12-13T19:33:07Z")
         .build()
     assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
 
@@ -287,7 +287,7 @@ class Sep12ServiceTest {
         .memoType("id")
         .type("sending_user")
         .firstName("John")
-        .idIssueDate("2023-12-13T19:33:07Z")
+        .idIssueDate("2023-12-13T19:33:07X")
         .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
 
@@ -305,7 +305,7 @@ class Sep12ServiceTest {
         .memoType("id")
         .type("sending_user")
         .firstName("John")
-        .idExpirationDate("2023-12-13T19:33:07Z")
+        .idExpirationDate("2023-12-13T19:33:07X")
         .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
 

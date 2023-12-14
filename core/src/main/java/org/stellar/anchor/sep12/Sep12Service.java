@@ -7,6 +7,7 @@ import static org.stellar.anchor.util.MetricConstants.SEP12_CUSTOMER;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Objects;
 import java.util.Set;
@@ -246,7 +247,12 @@ public class Sep12Service {
       LocalDate.parse(dateStr);
       return true;
     } catch (DateTimeParseException e) {
-      return false;
+      try {
+        ZonedDateTime.parse(dateStr);
+        return true;
+      } catch (DateTimeParseException e2) {
+        return false;
+      }
     }
   }
 }
