@@ -93,7 +93,7 @@ class TestProfileExecutor(val config: TestConfig) {
       val envMap = config.env
 
       envMap["assets.value"] = getResourceFile(envMap["assets.value"]!!).absolutePath
-      if (envMap["sep1.toml.type"] != "url") {
+      if (envMap["sep1.toml.type"] != "url" && envMap["sep1.toml.type"] != "string") {
         envMap["sep1.toml.value"] = getResourceFile(envMap["sep1.toml.value"]!!).absolutePath
       }
       // Start servers

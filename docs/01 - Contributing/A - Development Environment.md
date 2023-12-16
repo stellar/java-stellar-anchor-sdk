@@ -1,28 +1,30 @@
 # How to set up the development environment
 
 <!-- TOC -->
+
 * [How to set up the development environment](#how-to-set-up-the-development-environment)
-  * [Install JDK 11](#install-jdk-11)
-  * [Checkout the Project](#checkout-the-project)
-  * [Set up `docker`](#set-up-docker)
-  * [Set up your hosts file](#set-up-your-hosts-file)
-  * [Build the Project with Gradle](#build-the-project-with-gradle)
-    * [Clean](#clean)
-    * [Build](#build)
-    * [Running Unit Tests](#running-unit-tests)
-    * [Running `docker-compose` up for development](#running-docker-compose-up-for-development)
-    * [Starting all servers](#starting-all-servers)
-  * [Set up the Git Hooks](#set-up-the-git-hooks)
+    * [Install JDK 11](#install-jdk-11)
+    * [Checkout the Project](#checkout-the-project)
+    * [Set up `docker`](#set-up-docker)
+    * [Set up your hosts file](#set-up-your-hosts-file)
+    * [Build the Project with Gradle](#build-the-project-with-gradle)
+        * [Clean](#clean)
+        * [Build](#build)
+        * [Running Unit Tests](#running-unit-tests)
+        * [Running `docker-compose` up for development](#running-docker-compose-up-for-development)
+        * [Starting all servers](#starting-all-servers)
+    * [Set up the Git Hooks](#set-up-the-git-hooks)
 * [Set up the Development Environment with IntelliJ IDEA](#set-up-the-development-environment-with-intellij-idea)
-  * [Configuring Gradle on IntelliJ IDEA](#configuring-gradle-on-intellij-idea)
-  * [IntelliJ Run Configurations](#intellij-run-configurations)
-  * [Test Profiles](#test-profiles)
-  * [Development Scenarios](#development-scenarios)
-    * [How to debug the platform server](#how-to-debug-the-platform-server)
-    * [Debug the integration tests or the end-to-end tests](#debug-the-integration-tests-or-the-end-to-end-tests)
-      * [Option 1: Run the servers from IntelliJ](#option-1-run-the-servers-from-intellij)
-    * [Option 2: Run the servers and tests from Gradle](#option-2-run-the-servers-and-tests-from-gradle)
-  * [Running the Tests From Gradle in IntelliJ](#running-the-tests-from-gradle-in-intellij)
+    * [Configuring Gradle on IntelliJ IDEA](#configuring-gradle-on-intellij-idea)
+    * [IntelliJ Run Configurations](#intellij-run-configurations)
+    * [Test Profiles](#test-profiles)
+    * [Development Scenarios](#development-scenarios)
+        * [How to debug the platform server](#how-to-debug-the-platform-server)
+        * [Debug the integration tests or the end-to-end tests](#debug-the-integration-tests-or-the-end-to-end-tests)
+            * [Option 1: Run the servers from IntelliJ](#option-1-run-the-servers-from-intellij)
+        * [Option 2: Run the servers and tests from Gradle](#option-2-run-the-servers-and-tests-from-gradle)
+    * [Running the Tests From Gradle in IntelliJ](#running-the-tests-from-gradle-in-intellij)
+
 <!-- TOC -->
 
 ## Install JDK 11
@@ -110,12 +112,15 @@ Run all tests: `./gradlew test`
 Run subproject tests: `./gradlew :[subproject]:test`
 
 ### Running `docker-compose up` for Kafka, Zookeeper, Postgres, and SEP24 Reference UI
+
 `./gradlew dockerComposeUp`
 
 ### Starting all servers
+
 `./gradlew startAllServers`
 
 ### Starting the servers with a specific test profile
+
 `export TEST_PROFILE_NAME=rpc && ./gradlew startServersWithTestProfile`
 
 ## Set up the Git Hooks
@@ -173,7 +178,8 @@ The project is mostly developed with IntelliJ, therefore we will only cover the 
 
 Several IntelliJ run configurations are provided to make it easier to run the project.
 
-- `Docker - Run Dev Stack - Zookeeper, Kafka, Postgres, SEP24 Reference UI`: runs the development stack locally, using `docker-compose`.
+- `Docker - Run Dev Stack - Zookeeper, Kafka, Postgres, SEP24 Reference UI`: runs the development stack locally,
+  using `docker-compose`.
 - `Test Profile: default`: runs the tests with the default profile.
 - `Test Profile: rpc`: runs the tests with the rpc profile.
 - `Test Profile: custody`: runs the tests with the custody profile.
@@ -181,6 +187,7 @@ Several IntelliJ run configurations are provided to make it easier to run the pr
 - `Test Profile: auth-jwt-custody`: runs the tests with the auth-jwt-custody profile.
 - `Test Profile: auth-apikey-platform`: runs the tests with the auth-apikey-platform profile.
 - `Test Profile: auth-jwt-platform`: runs the tests with the auth-jwt-platform profile.
+- `Test Profile: host-docker-internal`: runs the tests with the host-docker-internal profile.
 - `Sep Server: default`: runs the SEP server locally with `default` profile.
 - `Stellar Observer: default`: runs the Stellar Observer locally with `default` profile.
 - `Platform Server: default`: runs the Platform server locally with `default` profile.
@@ -190,7 +197,10 @@ Several IntelliJ run configurations are provided to make it easier to run the pr
 - `Custody Server: custody`: runs the Custody server locally with `custody` profile.
 
 ## Test Profiles
-There are several test profiles that can be used to start the Anchor platform servers. These test profiles are listed in the `service-runner/src/main/resources/profiles` folder.
+
+There are several test profiles that can be used to start the Anchor platform servers. These test profiles are listed in
+the `service-runner/src/main/resources/profiles` folder.
+
 - `default`: starts all servers with the most commonly used configuration.
 - `rpc`: starts all servers with the RPC enabled.
 - `custody`: starts all servers with the custody servers enabled.
@@ -200,6 +210,7 @@ There are several test profiles that can be used to start the Anchor platform se
 - `auth-jwt-platform`: starts the platform servers with the JWT authentication enabled.
 
 ## Development Scenarios
+
 ### How to debug the platform server
 
 If you would like to debug the Platform server, you can do so by running the
@@ -213,8 +224,8 @@ If you would like to debug the Platform server, you can do so by running the
 
 If you would like to debug the unit tests or the end-to-end tests, there are two options:
 
-
 #### Option 1: Run the servers from IntelliJ
+
 - Make sure `docker` and `docker-compose` is available on your local machine.
 - Check if there are previous docker containers running on your machine. If there are, please stop and delete them.
 - Run `Docker - Run Dev Stack - Zookeeper, Kafka, Postgres, SEP24 Reference UI` to start the development stack.
@@ -222,11 +233,13 @@ If you would like to debug the unit tests or the end-to-end tests, there are two
 - Debug the tests you want to run with the IntelliJ debugger.
 
 ### Option 2: Run the servers and tests from Gradle
+
 - Make sure `docker` and `docker-compose` is available on your local machine.
 - Check if there are previous docker containers running on your machine. If there are, please stop and delete them.
 - Navigate to the directory to the project folder
 - `./gradlew dockerComposeUp` to start the development stack.
-- `export TEST_PROFILE_NAME=rpc && ./gradlew startServersWithTestProfile` to start the servers with `rpc`. You can also choose other test profile name by changing the value of `TEST_PROFILE_NAME`.
+- `export TEST_PROFILE_NAME=rpc && ./gradlew startServersWithTestProfile` to start the servers with `rpc`. You can also
+  choose other test profile name by changing the value of `TEST_PROFILE_NAME`.
 - `./gradlew :extended-tests:test --tests org.stellar.anchor.platform.suite.RpcTestSuite`
 
 ## Running the Tests From Gradle in IntelliJ
@@ -235,3 +248,30 @@ If you would like to debug the unit tests or the end-to-end tests, there are two
 2. Navigate to the all tests option: `Tasks -> verification -> test`.
 3. Right-click it and select the `run` or `debug` option:
    ![running-the-tests.png](/docs/resources/img/running-the-tests.png)
+
+## Run the Stellar Anchor Test from Gradle
+
+### Run docker compose up
+
+`./gradlew dockerComposeUp`
+
+### Run the servers with the `host-docker-internal` profile
+
+`export TEST_PROFILE_NAME=host-docker-internal && ./gradlew startServersWithTestProfile`
+
+Note: You can also run `Test Profile: host-docker-internal` from IntelliJ.
+
+### Set the `TEST_HOME_DOMAIN` environment variable of the anchor test
+
+Before you run the anchor test, you need to set the `TEST_HOME_DOMAIN` environment variable to set the `--home-domain`
+that you would like the anchor test to run against. The default value of the `TEST_HOME_DOMAIN`
+is `http://host.docker.internal:8080`
+
+To change the value: `export TEST_HOME_DOMAIN=http://{server}:{port}`
+
+### Set the `TEST_SEPS` environment variable that you want to test
+
+Before you run the anchor test, you need to specify the SEPs that you would like to test. The default value of
+the `TEST_SEPS` is `1,10,12,24,31,38`.
+
+To change the value: `export TEST_SEPS=1,10,24`
