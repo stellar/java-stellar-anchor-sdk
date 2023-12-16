@@ -1,3 +1,8 @@
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerLogsContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
+
 @Suppress(
   // The alias call in plugins scope produces IntelliJ false error which is suppressed here.
   "DSL_SCOPE_VIOLATION"
@@ -7,6 +12,7 @@ plugins {
   alias(libs.plugins.spring.boot)
   alias(libs.plugins.spring.dependency.management)
   alias(libs.plugins.kotlin.jvm)
+  id("com.bmuschko.docker-remote-api") version "9.3.7"
 }
 
 dependencies {
@@ -32,17 +38,11 @@ dependencies {
   implementation(project(":wallet-reference-server"))
 }
 
-tasks {
-  bootJar {
-    archiveBaseName.set("anchor-platform-runner")
-  }
-}
+tasks { bootJar { archiveBaseName.set("anchor-platform-runner") } }
 
 application { mainClass.set("org.stellar.anchor.platform.ServiceRunner") }
 
-/**
- * Start all the servers based on the `default` test configuration.
- */
+/** Start all the servers based on the `default` test configuration. */
 tasks.register<JavaExec>("startAllServers") {
   println("Starting all servers based on the `default` test configuration.")
   group = "application"
@@ -51,21 +51,76 @@ tasks.register<JavaExec>("startAllServers") {
 }
 
 /**
- * Start all the servers based on the test configuration specified by the TEST_PROFILE_NAME envionrment variable.
+ * Start all the servers based on the test configuration specified by the TEST_PROFILE_NAME
+ * envionrment variable.
  */
 tasks.register<JavaExec>("startServersWithTestProfile") {
-  println("Starting the servers based on the test configuration specified by the TEST_PROFILE_NAME envionrment variable.")
+  println(
+    "Starting the servers based on the test configuration specified by the TEST_PROFILE_NAME environment variable."
+  )
   group = "application"
   classpath = sourceSets["main"].runtimeClasspath
   mainClass.set("org.stellar.anchor.platform.run_profiles.RunTestProfile")
 }
 
-/**
- * Run docker-compose up to start Postgres, Kafka, Zookeeper,etc.
- */
+/** Run docker-compose up to start Postgres, Kafka, Zookeeper,etc. */
 tasks.register<JavaExec>("dockerComposeUp") {
   println("Running docker-compose up to start Postgres, Kafka, Zookeeper,etc.")
   group = "application"
   classpath = sourceSets["main"].runtimeClasspath
   mainClass.set("org.stellar.anchor.platform.run_profiles.RunDockerDevStack")
 }
+
+val dockerPullAnchorTest by
+  tasks.register<DockerPullImage>("pullDockerImage") {
+    println("Pulling the docker image.")
+    group = "docker"
+    image.set("stellar/anchor-tests:v0.6.9")
+  }
+
+val dockerCreateAnchorTest by
+  tasks.register<DockerCreateContainer>("dockerCreatePullAnchorTest") {
+    println("Creating the docker container.")
+    group = "docker"
+
+    dependsOn(dockerPullAnchorTest)
+    targetImageId { dockerPullAnchorTest.image.get() }
+
+    val homeDomain = System.getenv("TEST_HOME_DO`MAIN") ?: "http://host.docker.internal:8080"
+    println("TEST_HOME_DOMAIN=$homeDomain")
+    val seps = System.getenv().getOrDefault("TEST_SEPS", "1,6,10,12,24,31,38").split(",")
+    println("TEST_SEPS=$seps")
+
+    val configPath = "${project.projectDir}/../platform/src/test/resources"
+    hostConfig.autoRemove.set(true)
+    hostConfig.binds.set(mutableMapOf(configPath to "/config"))
+    hostConfig.network.set("host")
+
+    val cmdList = mutableListOf("--home-domain", homeDomain, "--seps")
+    cmdList.addAll(seps)
+    cmdList.addAll(
+      listOf("--sep-config", "/config/stellar-anchor-tests-sep-config.json", "--verbose")
+    )
+
+    cmd.set(cmdList)
+  }
+
+val dockerStartAnchorTest by
+  tasks.register<DockerStartContainer>("dockerStartAnchorTest") {
+    println("Starting the docker container.")
+    group = "docker"
+
+    dependsOn(dockerCreateAnchorTest)
+    targetContainerId(dockerCreateAnchorTest.containerId)
+  }
+
+val anchorTest by
+  tasks.register<DockerLogsContainer>("anchorTest") {
+    println("Running the docker container.")
+    group = "docker"
+
+    dependsOn(dockerStartAnchorTest)
+    targetContainerId(dockerCreateAnchorTest.containerId)
+    follow.set(true)
+    tailAll.set(true)
+  }
