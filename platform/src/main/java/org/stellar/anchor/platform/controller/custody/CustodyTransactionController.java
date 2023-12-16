@@ -31,6 +31,7 @@ public class CustodyTransactionController {
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
       value = "/transactions",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
   public void createCustodyTransaction(@RequestBody CreateCustodyTransactionRequest request) {
     custodyTransactionService.create(request, PAYMENT);
@@ -42,6 +43,7 @@ public class CustodyTransactionController {
   @RequestMapping(
       value = "/transactions/{id}/payments",
       method = {RequestMethod.POST},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   public CreateTransactionPaymentResponse createTransactionPayment(
       @PathVariable(name = "id") String txnId, @RequestBody String requestBody) {
@@ -54,6 +56,7 @@ public class CustodyTransactionController {
   @RequestMapping(
       value = "/transactions/{id}/refunds",
       method = {RequestMethod.POST},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   public CreateTransactionPaymentResponse createTransactionRefund(
       @PathVariable(name = "id") String txnId,

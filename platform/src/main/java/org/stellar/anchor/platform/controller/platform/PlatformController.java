@@ -40,6 +40,7 @@ public class PlatformController {
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
       value = "/transactions/{id}",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public GetTransactionResponse getTransaction(@PathVariable(name = "id") String txnId)
       throws AnchorException {
@@ -50,7 +51,8 @@ public class PlatformController {
   @RequestMapping(
       value = "/transactions/{id}/payments",
       method = {RequestMethod.POST},
-      consumes = {MediaType.APPLICATION_JSON_VALUE})
+      consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE})
   public CreateTransactionPaymentResponse createCustodyTransactionPayment(
       @PathVariable(name = "id") String txnId, @RequestBody String requestBody)
       throws AnchorException {
@@ -62,6 +64,7 @@ public class PlatformController {
   @RequestMapping(
       value = "/transactions",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PATCH})
   public PatchTransactionsResponse patchTransactions(@RequestBody PatchTransactionsRequest request)
       throws AnchorException {
@@ -72,6 +75,7 @@ public class PlatformController {
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
       value = "/transactions",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public GetTransactionsResponse getTransactions(
       @RequestParam(value = "sep") TransactionsSeps sep,

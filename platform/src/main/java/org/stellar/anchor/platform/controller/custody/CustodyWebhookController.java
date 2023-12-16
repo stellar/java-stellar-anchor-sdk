@@ -22,7 +22,8 @@ public class CustodyWebhookController {
   @RequestMapping(
       value = "/webhook",
       method = {RequestMethod.POST},
-      consumes = {MediaType.APPLICATION_JSON_VALUE})
+      consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<Void> handleEvent(
       @RequestBody String eventObject, @RequestHeader Map<String, String> headers) {
     custodyEventService.handleEvent(eventObject, headers);
