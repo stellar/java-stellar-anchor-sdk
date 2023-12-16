@@ -42,6 +42,7 @@ public class Sep31Controller {
   @RequestMapping(
       value = "/transactions",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
   public Sep31PostTransactionResponse postTransaction(
       HttpServletRequest servletRequest, @RequestBody Sep31PostTransactionRequest request)
@@ -55,6 +56,7 @@ public class Sep31Controller {
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
       value = "/transactions/{id}",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public Sep31GetTransactionResponse getTransaction(
       HttpServletRequest ignoredServletRequest, @PathVariable(name = "id") String txnId)
@@ -68,6 +70,7 @@ public class Sep31Controller {
   @RequestMapping(
       value = "/transactions/{id}",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PATCH})
   public Sep31GetTransactionResponse patchTransaction(
       HttpServletRequest ignoredServletRequest,

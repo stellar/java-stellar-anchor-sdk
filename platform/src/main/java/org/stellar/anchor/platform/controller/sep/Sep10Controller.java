@@ -36,6 +36,7 @@ public class Sep10Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/auth",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public ChallengeResponse createChallenge(
       @RequestParam String account,
@@ -63,10 +64,10 @@ public class Sep10Controller {
   @RequestMapping(
       value = "/auth",
       consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
   public ValidationResponse validateChallenge(@RequestParam String transaction)
-      throws InvalidSep10ChallengeException, IOException, URISyntaxException,
-          SepValidationException {
+      throws InvalidSep10ChallengeException, IOException, SepValidationException {
     debugF("POST /auth transaction={}", transaction);
     return validateChallenge(ValidationRequest.of(transaction));
   }
@@ -75,6 +76,7 @@ public class Sep10Controller {
   @RequestMapping(
       value = "/auth",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
   public ValidationResponse validateChallenge(
       @RequestBody(required = false) ValidationRequest validationRequest)

@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.controller.sep;
 import static org.stellar.anchor.util.Log.debugF;
 
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
@@ -25,6 +26,7 @@ public class Sep6Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/info",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public InfoResponse getInfo() {
     debugF("GET /info");
@@ -34,6 +36,7 @@ public class Sep6Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/deposit",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public StartDepositResponse deposit(
       HttpServletRequest request,
@@ -74,6 +77,7 @@ public class Sep6Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/deposit-exchange",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public StartDepositResponse depositExchange(
       HttpServletRequest request,
@@ -112,6 +116,7 @@ public class Sep6Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/withdraw",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public StartWithdrawResponse withdraw(
       HttpServletRequest request,
@@ -139,6 +144,7 @@ public class Sep6Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/withdraw-exchange",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public StartWithdrawResponse withdraw(
       HttpServletRequest request,
@@ -170,6 +176,7 @@ public class Sep6Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/transactions",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public GetTransactionsResponse getTransactions(
       HttpServletRequest request,
@@ -206,6 +213,7 @@ public class Sep6Controller {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/transaction",
+      produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public GetTransactionResponse getTransaction(
       HttpServletRequest request,

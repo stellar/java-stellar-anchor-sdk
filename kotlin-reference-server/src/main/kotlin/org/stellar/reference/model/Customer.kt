@@ -1,7 +1,5 @@
 package org.stellar.reference.model
 
-import java.time.Instant
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -22,8 +20,8 @@ data class Customer(
   @SerialName("clabe_number") val clabeNumber: String? = null,
   @SerialName("id_type") val idType: String? = null,
   @SerialName("id_country_code") val idCountryCode: String? = null,
-  @SerialName("id_issue_date") @Contextual val idIssueDate: Instant? = null,
-  @SerialName("id_expiration_date") @Contextual val idExpirationDate: Instant? = null,
+  @SerialName("id_issue_date") val idIssueDate: String? = null,
+  @SerialName("id_expiration_date") val idExpirationDate: String? = null,
   @SerialName("id_number") val idNumber: String? = null,
 )
 
