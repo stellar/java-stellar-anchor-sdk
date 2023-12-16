@@ -17,6 +17,6 @@ public class MetricConfig implements Validator {
 
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    System.out.println("here");
+    // NOOP
   }
 }

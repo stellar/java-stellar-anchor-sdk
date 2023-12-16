@@ -10,12 +10,18 @@
     * [Clean](#clean)
     * [Build](#build)
     * [Running Unit Tests](#running-unit-tests)
+    * [Running `docker-compose` up for development](#running-docker-compose-up-for-development)
+    * [Starting all servers](#starting-all-servers)
   * [Set up the Git Hooks](#set-up-the-git-hooks)
 * [Set up the Development Environment with IntelliJ IDEA](#set-up-the-development-environment-with-intellij-idea)
   * [Configuring Gradle on IntelliJ IDEA](#configuring-gradle-on-intellij-idea)
-  * [Run Configurations](#run-configurations)
-    * [Example: Debug the Platform Server](#example-debug-the-platform-server)
-    * [Example: Debug the Junit or the End-to-End Tests](#example-debug-the-junit-or-the-end-to-end-tests)
+  * [IntelliJ Run Configurations](#intellij-run-configurations)
+  * [Test Profiles](#test-profiles)
+  * [Development Scenarios](#development-scenarios)
+    * [How to debug the platform server](#how-to-debug-the-platform-server)
+    * [Debug the integration tests or the end-to-end tests](#debug-the-integration-tests-or-the-end-to-end-tests)
+      * [Option 1: Run the servers from IntelliJ](#option-1-run-the-servers-from-intellij)
+    * [Option 2: Run the servers and tests from Gradle](#option-2-run-the-servers-and-tests-from-gradle)
   * [Running the Tests From Gradle in IntelliJ](#running-the-tests-from-gradle-in-intellij)
 <!-- TOC -->
 
@@ -103,11 +109,14 @@ Run all tests: `./gradlew test`
 
 Run subproject tests: `./gradlew :[subproject]:test`
 
-### Running `docker-compose` up for development
+### Running `docker-compose up` for Kafka, Zookeeper, Postgres, and SEP24 Reference UI
 `./gradlew dockerComposeUp`
 
 ### Starting all servers
 `./gradlew startAllServers`
+
+### Starting the servers with a specific test profile
+`export TEST_PROFILE_NAME=rpc && ./gradlew startServersWithTestProfile`
 
 ## Set up the Git Hooks
 
@@ -160,67 +169,69 @@ The project is mostly developed with IntelliJ, therefore we will only cover the 
 
    ![gradle-reload-all.png](/docs/resources/img/gradle-reload-all.png)
 
-## Run Configurations
+## IntelliJ Run Configurations
 
 Several IntelliJ run configurations are provided to make it easier to run the project.
 
-- `Docker - Run Dev Stack - Zookeeper, Kafka, DB`: runs the development stack locally, using `docker-compose`.
-- `Run - All Servers - with Docker`: runs all the servers locally, using `docker-compose`.
-- `Run - All Servers - no Docker`: runs all the servers locally, without running `docker-compose`.
-- `Run - Sep Server - no Docker`: runs the SEP server locally, without running `docker-compose`.
-- `Run - Platform Server - no Docker`: runs the Platform server locally, without running `docker-compose`.
-- `Run - Event Processing Server - no Docker`: runs the Event Processing server locally, without
-  running `docker-compose`.
-- `Run - Custody Server - no Docker`: runs the Custody server locally, without running `docker-compose`.
-- `Run - Java Reference Server - no Docker`: runs the Java Reference server locally, without running `docker-compose`.
-- `Run - Kotlin Reference Server - no Docker`: runs the Kotlin Reference server locally, without
-  running `docker-compose`.
+- `Docker - Run Dev Stack - Zookeeper, Kafka, Postgres, SEP24 Reference UI`: runs the development stack locally, using `docker-compose`.
+- `Test Profile: default`: runs the tests with the default profile.
+- `Test Profile: rpc`: runs the tests with the rpc profile.
+- `Test Profile: custody`: runs the tests with the custody profile.
+- `Test Profile: auth-apikey-custody`: runs the tests with the auth-apikey-custody profile.
+- `Test Profile: auth-jwt-custody`: runs the tests with the auth-jwt-custody profile.
+- `Test Profile: auth-apikey-platform`: runs the tests with the auth-apikey-platform profile.
+- `Test Profile: auth-jwt-platform`: runs the tests with the auth-jwt-platform profile.
+- `Sep Server: default`: runs the SEP server locally with `default` profile.
+- `Stellar Observer: default`: runs the Stellar Observer locally with `default` profile.
+- `Platform Server: default`: runs the Platform server locally with `default` profile.
+- `Event Processing Server: default`: runs the Event Processing server locally with `default` profile.
+- `Reference Server: default`: runs the Reference server locally with `default` profile.
+- `Wallet Reference Server: default`: runs the Wallet Reference server locally with `default` profile.
+- `Custody Server: custody`: runs the Custody server locally with `custody` profile.
 
-The following run configurations are provided to run integration and end-2-end tests
+## Test Profiles
+There are several test profiles that can be used to start the Anchor platform servers. These test profiles are listed in the `service-runner/src/main/resources/profiles` folder.
+- `default`: starts all servers with the most commonly used configuration.
+- `rpc`: starts all servers with the RPC enabled.
+- `custody`: starts all servers with the custody servers enabled.
+- `auth-apikey-custody`: starts the custody servers with the API key authentication enabled.
+- `auth-jwt-custody`: starts the custody servers with the JWT authentication enabled.
+- `auth-apikey-platform`: starts the platform servers with the API key authentication enabled.
+- `auth-jwt-platform`: starts the platform servers with the JWT authentication enabled.
 
-- `Test - End2End Test - no fullstack`: runs the end-2-end tests locally, without running `docker-compose`.
-- `Test - End2End Test - with fullstack`: runs the end-2-end tests locally, with running `docker-compose`.
-- `Test - End2End with RPC Test - no fullstack`: runs the end-2-end tests with RPC locally, 
-  without running `docker-compose`.
-- `Test - End2End with RPC Test - with fullstack`: runs the end-2-end tests with RPC locally, 
-  with running `docker-compose`.
-- `Test - Fireblocks End2End Test - no fullstack`: runs the end-2-end tests with Fireblocks locally, 
-  without running `docker-compose`.
-- `Test - Fireblocks End2End Test - with fullstack`: runs the end-2-end tests with Fireblocks locally, 
-  with running `docker-compose`. 
-- `Test - Fireblocks End2End with RPC Test - no fullstack`: runs the end-2-end tests with Fireblocks and RPC locally,
-  without running `docker-compose`.
-- `Test - Fireblocks End2End with RPC Test - with fullstack`: runs the end-2-end tests with Fireblocks and RPC locally,
-  with running `docker-compose`.
-- `Test - Integration Test - no fullstack`: runs the integration tests locally, without running `docker-compose`.
-- `Test - Integration Test - with fullstack`: runs the integration tests locally, with running `docker-compose`.
-
-### Example: Debug the Platform Server
+## Development Scenarios
+### How to debug the platform server
 
 If you would like to debug the Platform server, you can do so by running the
 
 - Make sure `docker` and `docker-compose` is available on your local machine.
-- Run `Docker - Run Dev Stack - Zookeeper, Kafka, DB` to start the development stack.
-- Run `Run - Sep Server - no Docker` to start the SEP server.
-- Debug `Run - Platform Server - no Docker` to start debugging the Platform server.
+- Check if there are previous docker containers running on your machine. If there are, please stop and delete them.
+- Run `Docker - Run Dev Stack - Zookeeper, Kafka, Postgres, SEP24 Reference UI` to start the development stack.
+- Debug `Sep Server: default` to start the SEP server.
 
-### Example: Debug the Junit or the End-to-End Tests
+### Debug the integration tests or the end-to-end tests
 
-If you would like to debug the unit tests or the end-to-end tests
+If you would like to debug the unit tests or the end-to-end tests, there are two options:
 
+
+#### Option 1: Run the servers from IntelliJ
 - Make sure `docker` and `docker-compose` is available on your local machine.
-- Run or Debug `Run - All Servers - with Docker`
-- Debug `Test - End2End Test - no fullstack` or `Test - Integration Test - no fullstack`
+- Check if there are previous docker containers running on your machine. If there are, please stop and delete them.
+- Run `Docker - Run Dev Stack - Zookeeper, Kafka, Postgres, SEP24 Reference UI` to start the development stack.
+- Run `Test Profile: default` to run the servers with the `default` profile.
+- Debug the tests you want to run with the IntelliJ debugger.
+
+### Option 2: Run the servers and tests from Gradle
+- Make sure `docker` and `docker-compose` is available on your local machine.
+- Check if there are previous docker containers running on your machine. If there are, please stop and delete them.
+- Navigate to the directory to the project folder
+- `./gradlew dockerComposeUp` to start the development stack.
+- `export TEST_PROFILE_NAME=rpc && ./gradlew startServersWithTestProfile` to start the servers with `rpc`. You can also choose other test profile name by changing the value of `TEST_PROFILE_NAME`.
+- `./gradlew :extended-tests:test --tests org.stellar.anchor.platform.suite.RpcTestSuite`
 
 ## Running the Tests From Gradle in IntelliJ
-
-To make sure your configuration worked, please make sure you can run all the tests successfully from the IDE:
 
 1. Open the Gradle tool window: `View -> Tool Windows -> Gradle`.
 2. Navigate to the all tests option: `Tasks -> verification -> test`.
 3. Right-click it and select the `run` or `debug` option:
    ![running-the-tests.png](/docs/resources/img/running-the-tests.png)
-
-__Note__: You may need to check there is no active docker containers running on your machine from the previous debug
-sessions. If there are, please stop and delete them. 
-

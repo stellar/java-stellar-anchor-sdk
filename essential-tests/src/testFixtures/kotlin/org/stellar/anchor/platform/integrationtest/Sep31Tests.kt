@@ -33,6 +33,7 @@ import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCust
 import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
 import org.stellar.anchor.platform.printRequest
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.anchor.util.Log.*
 import org.stellar.anchor.util.StringHelper.json
 
 lateinit var savedTxn: Sep31GetTransactionResponse
@@ -121,7 +122,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
 
     val all = listOf(tx1, tx2, tx3)
 
-    println("Created transactions ${tx1.id} ${tx2.id} ${tx3.id}")
+    debug("Created transactions ${tx1.id} ${tx2.id} ${tx3.id}")
 
     // Basic test
     val txs = getTransactions(pageSize = 1000)

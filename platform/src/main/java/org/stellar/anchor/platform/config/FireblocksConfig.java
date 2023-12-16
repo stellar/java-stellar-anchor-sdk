@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.config;
 
-import static org.stellar.anchor.platform.utils.RSAUtil.RSA_ALGORITHM;
-import static org.stellar.anchor.platform.utils.RSAUtil.generatePrivateKey;
-import static org.stellar.anchor.platform.utils.RSAUtil.generatePublicKey;
+import static org.stellar.anchor.util.RSAUtil.RSA_ALGORITHM;
+import static org.stellar.anchor.util.RSAUtil.generatePrivateKey;
+import static org.stellar.anchor.util.RSAUtil.generatePublicKey;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.security.NoSuchAlgorithmException;
@@ -23,9 +23,9 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.config.CustodySecretConfig;
-import org.stellar.anchor.platform.utils.RSAUtil;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.NetUtil;
+import org.stellar.anchor.util.RSAUtil;
 
 @Data
 public class FireblocksConfig implements Validator {

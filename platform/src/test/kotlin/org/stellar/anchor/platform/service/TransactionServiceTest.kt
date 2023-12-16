@@ -639,8 +639,6 @@ class TransactionServiceTest {
 
     every { sep38QuoteStore.findByQuoteId(quoteId) } returns testSep38Quote
 
-    println(gson.toJson(testSep38Quote))
-
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     transactionService =
       TransactionService(

@@ -29,7 +29,7 @@ import org.stellar.walletsdk.horizon.sign
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(ExecutionMode.CONCURRENT)
-class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
+open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
   private val maxTries = 30
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
@@ -47,8 +47,8 @@ class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         "email_address" to "john@email.com",
         "id_type" to "drivers_license",
         "id_country_code" to "CAN",
-        "id_issue_date" to "2023-01-01T05:00:00Z",
-        "id_expiration_date" to "2099-01-01T05:00:00Z",
+        "id_issue_date" to "2023-01-01",
+        "id_expiration_date" to "2099-01-01",
         "id_number" to "1234567890",
         "bank_account_number" to "13719713158835300",
         "bank_account_type" to "checking",

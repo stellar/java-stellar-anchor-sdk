@@ -10,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
+import org.stellar.anchor.util.Log.debug
 
 class CustodyEventServiceTest {
 
@@ -27,7 +28,7 @@ class CustodyEventServiceTest {
       sep31CustodyPaymentHandler
     ) {
     override fun handleEvent(event: String?, headers: MutableMap<String, String>?) {
-      println("Test implementation")
+      debug("Test implementation")
     }
   }
 

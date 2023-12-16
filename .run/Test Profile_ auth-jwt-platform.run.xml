@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Test Profile: auth-jwt-platform" type="JetRunConfigurationType">
+    <envs>
+      <env name="app.enableTest" value="true" />
+      <env name="TEST_PROFILE_NAME" value="auth-jwt-platform" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunTestProfile" />
+    <module name="java-stellar-anchor-sdk.service-runner.main" />
+    <shortenClasspath name="ARGS_FILE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

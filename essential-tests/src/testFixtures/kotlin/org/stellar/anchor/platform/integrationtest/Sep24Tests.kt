@@ -58,7 +58,6 @@ class Sep24Tests : AbstractIntegrationTests(TestConfig()) {
   fun `test Sep24 info endpoint`() = runBlocking {
     printRequest("Calling GET /info")
     val info = anchor.sep24().getServicesInfo()
-    println(gson.toJson(info))
     JSONAssert.assertEquals(expectedSep24Info, gson.toJson(info), JSONCompareMode.LENIENT)
   }
 
@@ -68,7 +67,6 @@ class Sep24Tests : AbstractIntegrationTests(TestConfig()) {
     printRequest("POST /transactions/withdraw/interactive")
     val withdrawRequest: HashMap<String, String> =
       gson.fromJson(withdrawRequest, object : TypeToken<HashMap<String, String>>() {}.type)
-    println(withdrawRequest)
     val response =
       anchor
         .sep24()

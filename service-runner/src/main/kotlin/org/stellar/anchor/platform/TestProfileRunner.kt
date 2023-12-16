@@ -80,8 +80,6 @@ class TestProfileExecutor(val config: TestConfig) {
     }
 
     startDocker()
-    // TODO: Check server readiness instead of wait for 5 seconds
-    sleep(5000)
     startServers(wait)
   }
 
@@ -170,6 +168,9 @@ class TestProfileExecutor(val config: TestConfig) {
           .build()
 
       docker.beforeAll(null)
+
+      // TODO: Check server readiness instead of wait for 5 seconds
+      sleep(5000)
     }
   }
 
@@ -185,8 +186,8 @@ class TestProfileExecutor(val config: TestConfig) {
       }
     }
 
-    org.stellar.reference.stop()
-    org.stellar.reference.wallet.stop()
+    if (shouldStartAllServers || shouldStartKotlinReferenceServer) org.stellar.reference.stop()
+    if (shouldStartAllServers || shouldStartWalletServer) org.stellar.reference.wallet.stop()
   }
 
   private fun shutdownDocker() {

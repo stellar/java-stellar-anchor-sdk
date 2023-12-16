@@ -253,7 +253,6 @@ public class Sep24Service {
 
     String quoteId = withdrawRequest.get("quote_id");
     if (quoteId != null) {
-      System.out.println(asset.getSep38AssetName() + 1231231);
       AssetInfo buyAsset = assetService.getAssetByName(withdrawRequest.get("destination_asset"));
       this.validatedAndPopulateQuote(
           quoteId, asset, buyAsset, strAmount, builder, WITHDRAWAL.toString(), txnId);
