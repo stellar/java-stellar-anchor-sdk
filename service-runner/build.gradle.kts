@@ -63,9 +63,11 @@ tasks.register<JavaExec>("startServersWithTestProfile") {
   mainClass.set("org.stellar.anchor.platform.run_profiles.RunTestProfile")
 }
 
-/** Run docker-compose up to start Postgres, Kafka, Zookeeper,etc. */
+/**
+ * Run docker-compose up to start Postgres, Kafka, etc.
+ */
 tasks.register<JavaExec>("dockerComposeUp") {
-  println("Running docker-compose up to start Postgres, Kafka, Zookeeper,etc.")
+  println("Running docker-compose up to start Postgres, Kafka ,etc.")
   group = "application"
   classpath = sourceSets["main"].runtimeClasspath
   mainClass.set("org.stellar.anchor.platform.run_profiles.RunDockerDevStack")
