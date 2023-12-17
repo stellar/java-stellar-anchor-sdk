@@ -9,16 +9,6 @@ services:
       - "8080:8080" # sep-server
       - "8082:8082" # Java management server
 
-  reference-server:
-    image: stellar/anchor-platform:edge
-    command: "--anchor-reference-server"
-    environment:
-      - REFERENCE_SERVER_CONFIG_ENV=file:/config/java-reference-server-config.yaml
-    volumes:
-      - ../config:/config
-    ports:
-      - "8081:8081"
-
   sep24-reference-ui:
     image: stellar/sep24-reference-ui
     ports:

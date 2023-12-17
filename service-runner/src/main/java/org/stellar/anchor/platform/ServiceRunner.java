@@ -25,7 +25,6 @@ public class ServiceRunner {
     options.addOption(
         "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
     options.addOption("e", "event-processor", false, "Start the event processor.");
-    options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.");
     options.addOption("k", "kotlin-reference-server", false, "Start Kotlin reference server.");
     options.addOption("w", "wallet-reference-server", false, "Start wallet reference server.");
     options.addOption("t", "test-profile-runner", false, "Run the stack with test profile.");
