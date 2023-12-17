@@ -79,7 +79,6 @@ communicate with each other.
 
 ```shell
 127.0.0.1 db
-127.0.0.1 zookeeper
 127.0.0.1 kafka
 127.0.0.1 sep24-reference-ui
 127.0.0.1 reference-server
@@ -111,7 +110,7 @@ Run all tests: `./gradlew test`
 
 Run subproject tests: `./gradlew :[subproject]:test`
 
-### Running `docker-compose up` for Kafka, Zookeeper, Postgres, and SEP24 Reference UI
+### Running `docker-compose up` for Kafka, Postgres, and SEP24 Reference UI
 
 `./gradlew dockerComposeUp`
 
@@ -178,8 +177,7 @@ The project is mostly developed with IntelliJ, therefore we will only cover the 
 
 Several IntelliJ run configurations are provided to make it easier to run the project.
 
-- `Docker - Run Dev Stack - Zookeeper, Kafka, Postgres, SEP24 Reference UI`: runs the development stack locally,
-  using `docker-compose`.
+- `Docker - Run Dev Stack - Kafka, Postgres, SEP24 Reference UI`: runs the development stack locally, using `docker-compose`.
 - `Test Profile: default`: runs the tests with the default profile.
 - `Test Profile: rpc`: runs the tests with the rpc profile.
 - `Test Profile: custody`: runs the tests with the custody profile.
@@ -217,7 +215,7 @@ If you would like to debug the Platform server, you can do so by running the
 
 - Make sure `docker` and `docker-compose` is available on your local machine.
 - Check if there are previous docker containers running on your machine. If there are, please stop and delete them.
-- Run `Docker - Run Dev Stack - Zookeeper, Kafka, Postgres, SEP24 Reference UI` to start the development stack.
+- Run `Docker - Run Dev Stack - Kafka, Postgres, SEP24 Reference UI` to start the development stack.
 - Debug `Sep Server: default` to start the SEP server.
 
 ### Debug the integration tests or the end-to-end tests
@@ -228,7 +226,7 @@ If you would like to debug the unit tests or the end-to-end tests, there are two
 
 - Make sure `docker` and `docker-compose` is available on your local machine.
 - Check if there are previous docker containers running on your machine. If there are, please stop and delete them.
-- Run `Docker - Run Dev Stack - Zookeeper, Kafka, Postgres, SEP24 Reference UI` to start the development stack.
+- Run `Docker - Run Dev Stack - Kafka, Postgres, SEP24 Reference UI` to start the development stack.
 - Run `Test Profile: default` to run the servers with the `default` profile.
 - Debug the tests you want to run with the IntelliJ debugger.
 
