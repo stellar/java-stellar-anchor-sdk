@@ -18,7 +18,7 @@ dependencies {
   annotationProcessor(libs.lombok)
 
   // From jitpack.io
-  implementation("com.github.stellar:java-stellar-sdk:0.42.0:uber")
+  implementation("com.github.stellar:java-stellar-sdk:0.42.0")
 
   // From projects
   implementation(project(":core"))

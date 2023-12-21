@@ -5,7 +5,7 @@ plugins {
   id("org.jetbrains.kotlin.jvm") version "1.6.10"
 }
 
-version = "1.0.16"
+version = "1.0.17"
 
 dependencies {
   compileOnly(libs.servlet.api)
@@ -23,7 +23,7 @@ dependencies {
   implementation(libs.jjwt)
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
-  implementation("com.github.stellar:java-stellar-sdk:0.42.0:uber")
+  implementation("com.github.stellar:java-stellar-sdk:0.42.0")
 
   // Lombok should be used by all sub-projects to reduce Java verbosity
   annotationProcessor(libs.lombok)
