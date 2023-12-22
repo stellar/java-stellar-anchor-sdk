@@ -172,7 +172,8 @@ public class StellarPaymentObserver implements HealthCheckable {
               java.util.Optional<Throwable> error, java.util.Optional<Integer> responseCode) {
             handleFailure(error);
           }
-        });
+        },
+        15 * 1000);
   }
 
   private void updateReceivedMetrics(OperationResponse operationResponse) {
@@ -429,6 +430,16 @@ public class StellarPaymentObserver implements HealthCheckable {
   void handleFailure(Optional<Throwable> exception) {
     // The SSEStreamer has internal errors. We will give up and let the container
     // manager to restart.
+<<<<<<< Updated upstream
+    if (exception.isPresent()
+        && exception.get() instanceof IOException
+        && exception.get().getMessage().contains("Canceled")) {
+=======
+    if (exception.isPresent() && exception.get() instanceof IOException && exception.get().getMessage().contains("Canceled")) {
+>>>>>>> Stashed changes
+      infoF("Restarting stream");
+      return;
+    }
     exception.ifPresent(throwable -> errorEx("stellar payment observer stream error: ", throwable));
     // Mark the observer unhealthy
     setStatus(STREAM_ERROR);
