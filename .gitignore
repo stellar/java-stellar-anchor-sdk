@@ -10,3 +10,6 @@ target/
 */generated/*
 *.tgz
 .vscode
+
+# Ignore version info file
+service-runner/src/main/resources/version-info.properties

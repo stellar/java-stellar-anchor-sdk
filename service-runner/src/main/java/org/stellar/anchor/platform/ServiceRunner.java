@@ -2,13 +2,17 @@ package org.stellar.anchor.platform;
 
 import static org.stellar.anchor.util.Log.info;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
+import java.util.Properties;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.stellar.reference.ReferenceServerStartKt;
 import org.stellar.reference.wallet.WalletServerStartKt;
@@ -16,19 +20,9 @@ import org.stellar.reference.wallet.WalletServerStartKt;
 public class ServiceRunner {
 
   public static void main(String[] args) {
-    Options options = new Options();
-    options.addOption("h", "help", false, "Print this message.");
-    options.addOption("a", "all", false, "Start all servers.");
-    options.addOption("s", "sep-server", false, "Start SEP endpoint server.");
-    options.addOption("c", "custody-server", false, "Start Custody server.");
-    options.addOption("p", "platform-server", false, "Start Platform API endpoint server.");
-    options.addOption(
-        "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
-    options.addOption("e", "event-processor", false, "Start the event processor.");
-    options.addOption("k", "kotlin-reference-server", false, "Start Kotlin reference server.");
-    options.addOption("w", "wallet-reference-server", false, "Start wallet reference server.");
-    options.addOption("t", "test-profile-runner", false, "Run the stack with test profile.");
+    printBanner();
 
+    Options options = getOptions();
     CommandLineParser parser = new DefaultParser();
 
     try {
@@ -82,6 +76,30 @@ public class ServiceRunner {
     }
   }
 
+  private static void printBanner() {
+    System.out.println("****************************************");
+    System.out.println("           Anchor Platform              ");
+    System.out.println("           Version " + getVersion());
+    System.out.println("****************************************");
+  }
+
+  @NotNull
+  private static Options getOptions() {
+    Options options = new Options();
+    options.addOption("h", "help", false, "Print this message.");
+    options.addOption("a", "all", false, "Start all servers.");
+    options.addOption("s", "sep-server", false, "Start SEP endpoint server.");
+    options.addOption("c", "custody-server", false, "Start Custody server.");
+    options.addOption("p", "platform-server", false, "Start Platform API endpoint server.");
+    options.addOption(
+        "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
+    options.addOption("e", "event-processor", false, "Start the event processor.");
+    options.addOption("k", "kotlin-reference-server", false, "Start Kotlin reference server.");
+    options.addOption("w", "wallet-reference-server", false, "Start wallet reference server.");
+    options.addOption("t", "test-profile-runner", false, "Run the stack with test profile.");
+    return options;
+  }
+
   public static ConfigurableApplicationContext startSepServer(Map<String, String> env) {
     return new SepServer().start(env);
   }
@@ -119,5 +137,16 @@ public class ServiceRunner {
     HelpFormatter helper = new HelpFormatter();
     helper.setOptionComparator(null);
     helper.printHelp("java -jar anchor-platform.jar", options);
+  }
+
+  static String getVersion() {
+    try (InputStream is =
+        ServiceRunner.class.getClassLoader().getResourceAsStream("version-info.properties")) {
+      Properties properties = new Properties();
+      properties.load(is);
+      return properties.getProperty("version");
+    } catch (IOException e) {
+      return "unknown";
+    }
   }
 }
