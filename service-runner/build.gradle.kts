@@ -120,13 +120,3 @@ val anchorTest by
       follow.set(true)
       tailAll.set(true)
     }
-
-// defines the task to generate the version information file
-tasks.register("generate-version-info") {
-  doLast {
-    val versionInfoFile = file("${project.projectDir}/src/main/resources/version-info.properties")
-    versionInfoFile.writeText("version=${rootProject.version}")
-  }
-}
-
-tasks.build { dependsOn("generate-version-info") }

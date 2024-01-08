@@ -2,10 +2,7 @@ package org.stellar.anchor.platform;
 
 import static org.stellar.anchor.util.Log.info;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -14,6 +11,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.stellar.anchor.api.shared.Metadata;
 import org.stellar.reference.ReferenceServerStartKt;
 import org.stellar.reference.wallet.WalletServerStartKt;
 
@@ -140,13 +138,6 @@ public class ServiceRunner {
   }
 
   static String getVersion() {
-    try (InputStream is =
-        ServiceRunner.class.getClassLoader().getResourceAsStream("version-info.properties")) {
-      Properties properties = new Properties();
-      properties.load(is);
-      return properties.getProperty("version");
-    } catch (IOException e) {
-      return "unknown";
-    }
+    return Metadata.getVersion();
   }
 }
