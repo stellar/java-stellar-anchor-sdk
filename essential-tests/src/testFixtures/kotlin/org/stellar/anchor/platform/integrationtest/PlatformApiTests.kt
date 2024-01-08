@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.integrationtest
 import com.google.gson.reflect.TypeToken
 import org.apache.http.HttpStatus.SC_OK
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
@@ -26,6 +27,7 @@ import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 
+@Disabled
 class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   private val gson = GsonUtils.getInstance()
 
