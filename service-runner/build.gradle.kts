@@ -4,9 +4,8 @@ import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
 
 @Suppress(
-  // The alias call in plugins scope produces IntelliJ false error which is suppressed here.
-  "DSL_SCOPE_VIOLATION"
-)
+    // The alias call in plugins scope produces IntelliJ false error which is suppressed here.
+    "DSL_SCOPE_VIOLATION")
 plugins {
   application
   alias(libs.plugins.spring.boot)
@@ -17,8 +16,7 @@ plugins {
 
 dependencies {
   implementation(
-    libs.snakeyaml
-  ) // used to force the version of snakeyaml (used by springboot) to a safer one.
+      libs.snakeyaml) // used to force the version of snakeyaml (used by springboot) to a safer one.
   implementation("org.springframework.boot:spring-boot-starter-web")
 
   implementation(libs.commons.cli)
@@ -56,16 +54,13 @@ tasks.register<JavaExec>("startAllServers") {
  */
 tasks.register<JavaExec>("startServersWithTestProfile") {
   println(
-    "Starting the servers based on the test configuration specified by the TEST_PROFILE_NAME environment variable."
-  )
+      "Starting the servers based on the test configuration specified by the TEST_PROFILE_NAME environment variable.")
   group = "application"
   classpath = sourceSets["main"].runtimeClasspath
   mainClass.set("org.stellar.anchor.platform.run_profiles.RunTestProfile")
 }
 
-/**
- * Run docker-compose up to start Postgres, Kafka, etc.
- */
+/** Run docker-compose up to start Postgres, Kafka, etc. */
 tasks.register<JavaExec>("dockerComposeUp") {
   println("Running docker-compose up to start Postgres, Kafka ,etc.")
   group = "application"
@@ -74,55 +69,54 @@ tasks.register<JavaExec>("dockerComposeUp") {
 }
 
 val dockerPullAnchorTest by
-  tasks.register<DockerPullImage>("pullDockerImage") {
-    println("Pulling the docker image.")
-    group = "docker"
-    image.set("stellar/anchor-tests:v0.6.9")
-  }
+    tasks.register<DockerPullImage>("pullDockerImage") {
+      println("Pulling the docker image.")
+      group = "docker"
+      image.set("stellar/anchor-tests:v0.6.9")
+    }
 
 val dockerCreateAnchorTest by
-  tasks.register<DockerCreateContainer>("dockerCreatePullAnchorTest") {
-    println("Creating the docker container.")
-    group = "docker"
+    tasks.register<DockerCreateContainer>("dockerCreatePullAnchorTest") {
+      println("Creating the docker container.")
+      group = "docker"
 
-    dependsOn(dockerPullAnchorTest)
-    targetImageId { dockerPullAnchorTest.image.get() }
+      dependsOn(dockerPullAnchorTest)
+      targetImageId { dockerPullAnchorTest.image.get() }
 
-    val homeDomain = System.getenv("TEST_HOME_DO`MAIN") ?: "http://host.docker.internal:8080"
-    println("TEST_HOME_DOMAIN=$homeDomain")
-    val seps = System.getenv().getOrDefault("TEST_SEPS", "1,6,10,12,24,31,38").split(",")
-    println("TEST_SEPS=$seps")
+      val homeDomain = System.getenv("TEST_HOME_DO`MAIN") ?: "http://host.docker.internal:8080"
+      println("TEST_HOME_DOMAIN=$homeDomain")
+      val seps = System.getenv().getOrDefault("TEST_SEPS", "1,6,10,12,24,31,38").split(",")
+      println("TEST_SEPS=$seps")
 
-    val configPath = "${project.projectDir}/../platform/src/test/resources"
-    hostConfig.autoRemove.set(true)
-    hostConfig.binds.set(mutableMapOf(configPath to "/config"))
-    hostConfig.network.set("host")
+      val configPath = "${project.projectDir}/../platform/src/test/resources"
+      hostConfig.autoRemove.set(true)
+      hostConfig.binds.set(mutableMapOf(configPath to "/config"))
+      hostConfig.network.set("host")
 
-    val cmdList = mutableListOf("--home-domain", homeDomain, "--seps")
-    cmdList.addAll(seps)
-    cmdList.addAll(
-      listOf("--sep-config", "/config/stellar-anchor-tests-sep-config.json", "--verbose")
-    )
+      val cmdList = mutableListOf("--home-domain", homeDomain, "--seps")
+      cmdList.addAll(seps)
+      cmdList.addAll(
+          listOf("--sep-config", "/config/stellar-anchor-tests-sep-config.json", "--verbose"))
 
-    cmd.set(cmdList)
-  }
+      cmd.set(cmdList)
+    }
 
 val dockerStartAnchorTest by
-  tasks.register<DockerStartContainer>("dockerStartAnchorTest") {
-    println("Starting the docker container.")
-    group = "docker"
+    tasks.register<DockerStartContainer>("dockerStartAnchorTest") {
+      println("Starting the docker container.")
+      group = "docker"
 
-    dependsOn(dockerCreateAnchorTest)
-    targetContainerId(dockerCreateAnchorTest.containerId)
-  }
+      dependsOn(dockerCreateAnchorTest)
+      targetContainerId(dockerCreateAnchorTest.containerId)
+    }
 
 val anchorTest by
-  tasks.register<DockerLogsContainer>("anchorTest") {
-    println("Running the docker container.")
-    group = "docker"
+    tasks.register<DockerLogsContainer>("anchorTest") {
+      println("Running the docker container.")
+      group = "docker"
 
-    dependsOn(dockerStartAnchorTest)
-    targetContainerId(dockerCreateAnchorTest.containerId)
-    follow.set(true)
-    tailAll.set(true)
-  }
+      dependsOn(dockerStartAnchorTest)
+      targetContainerId(dockerCreateAnchorTest.containerId)
+      follow.set(true)
+      tailAll.set(true)
+    }
