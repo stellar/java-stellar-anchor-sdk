@@ -43,7 +43,7 @@ apply(from = "$rootDir/scripts.gradle.kts")
 val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
 
 tasks.test {
-  enableTestConcurrency(this)
+//  enableTestConcurrency(this)
   exclude("**/org/stellar/anchor/platform/*Test.class")
   exclude("**/org/stellar/anchor/platform/integrationtest/**")
   exclude("**/org/stellar/anchor/platform/e2etest/**")

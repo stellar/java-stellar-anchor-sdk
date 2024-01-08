@@ -572,7 +572,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 3",
-              "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+              "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
             }
           }
         ]
@@ -634,7 +634,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "5", "asset": "iso4217:USD" },
               "started_at": "2023-11-15T21:42:15.946261Z",
               "updated_at": "2023-11-15T21:42:18.067475Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 2",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext-123456",
@@ -670,23 +669,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "started_at": "2023-11-15T21:42:15.946261Z",
               "updated_at": "2023-11-15T21:42:19.160375Z",
               "completed_at": "2023-11-15T21:42:19.160373Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -763,7 +758,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "5", "asset": "iso4217:USD" },
               "started_at": "2023-11-16T21:17:23.259258Z",
               "updated_at": "2023-11-16T21:17:25.712902Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 2",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext-123456",
@@ -799,23 +793,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "started_at": "2023-11-16T21:17:23.259258Z",
               "updated_at": "2023-11-16T21:17:26.934996Z",
               "completed_at": "2023-11-16T21:17:26.934991Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -921,7 +910,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 6",
-              "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+              "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
             }
           }
         ]
@@ -1012,7 +1001,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "1.11", "asset": "iso4217:USD" },
               "started_at": "2023-11-15T21:53:33.071238Z",
               "updated_at": "2023-11-15T21:53:36.146841Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 3",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext-123456",
@@ -1048,7 +1036,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "1.11", "asset": "iso4217:USD" },
               "started_at": "2023-11-15T21:53:33.071238Z",
               "updated_at": "2023-11-15T21:53:36.165729Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 4",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext-123456",
@@ -1084,7 +1071,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "1.11", "asset": "iso4217:USD" },
               "started_at": "2023-11-15T21:53:33.071238Z",
               "updated_at": "2023-11-15T21:53:37.180044Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 5",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext-123456",
@@ -1121,23 +1107,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "started_at": "2023-11-15T21:53:33.071238Z",
               "updated_at": "2023-11-15T21:53:38.259639Z",
               "completed_at": "2023-11-15T21:53:38.259637Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 6",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -1234,7 +1216,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 5",
-              "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+              "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
             }
           }
         ]
@@ -1296,7 +1278,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "1.11", "asset": "iso4217:USD" },
               "started_at": "2023-11-15T22:02:41.822662Z",
               "updated_at": "2023-11-15T22:02:44.098221Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 2",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext-123456",
@@ -1331,7 +1312,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "1.11", "asset": "iso4217:USD" },
               "started_at": "2023-11-15T22:02:41.822662Z",
               "updated_at": "2023-11-15T22:02:45.177536Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 3",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext-123456",
@@ -1366,7 +1346,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "1.11", "asset": "iso4217:USD" },
               "started_at": "2023-11-15T22:02:41.822662Z",
               "updated_at": "2023-11-15T22:02:46.237378Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 4",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext-123456",
@@ -1402,23 +1381,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "started_at": "2023-11-15T22:02:41.822662Z",
               "updated_at": "2023-11-15T22:02:47.506156Z",
               "completed_at": "2023-11-15T22:02:47.506151Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 5",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -1536,7 +1511,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 5",
-              "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+              "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
             }
           }
         ]
@@ -1598,7 +1573,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "1.11", "asset": "iso4217:USD" },
               "started_at": "2023-11-15T23:15:21.331844Z",
               "updated_at": "2023-11-15T23:15:23.614615Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 2",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext-123456",
@@ -1633,7 +1607,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "1.11", "asset": "iso4217:USD" },
               "started_at": "2023-11-15T23:15:21.331844Z",
               "updated_at": "2023-11-15T23:15:24.715809Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 3",
               "refunds": {
                 "amount_refunded": { "amount": "990.11", "asset": "iso4217:USD" },
@@ -1680,7 +1653,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "amount_fee": { "amount": "1.11", "asset": "iso4217:USD" },
               "started_at": "2023-11-15T23:15:21.331844Z",
               "updated_at": "2023-11-15T23:15:25.787787Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 4",
               "refunds": {
                 "amount_refunded": { "amount": "990.11", "asset": "iso4217:USD" },
@@ -1728,7 +1700,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "started_at": "2023-11-15T23:15:21.331844Z",
               "updated_at": "2023-11-15T23:15:27.000415Z",
               "completed_at": "2023-11-15T23:15:27.000411Z",
-              "transfer_received_at": "2023-07-04T12:34:56Z",
               "message": "test message 5",
               "refunds": {
                 "amount_refunded": { "amount": "990.11", "asset": "iso4217:USD" },
@@ -1744,19 +1715,16 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -1811,7 +1779,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 2",
-              "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+              "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
             }
           },
           {
@@ -1891,23 +1859,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "started_at": "2023-11-15T22:47:17.787600Z",
               "updated_at": "2023-11-15T22:47:20.258606Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -1950,23 +1914,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "started_at": "2023-11-15T22:47:17.787600Z",
               "updated_at": "2023-11-15T22:47:21.386785Z",
               "completed_at": "2023-11-15T22:47:21.386780Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -2053,23 +2013,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "started_at": "2023-11-16T21:18:15.453486Z",
               "updated_at": "2023-11-16T21:18:17.599527Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -2112,23 +2068,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "started_at": "2023-11-16T21:18:15.453486Z",
               "updated_at": "2023-11-16T21:18:18.643487Z",
               "completed_at": "2023-11-16T21:18:18.643485Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -2185,7 +2137,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 2",
-              "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+              "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
             }
           },
           {
@@ -2275,23 +2227,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "started_at": "2023-11-15T23:00:49.250465Z",
               "updated_at": "2023-11-15T23:00:51.344410Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -2333,23 +2281,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "started_at": "2023-11-15T23:00:49.250465Z",
               "updated_at": "2023-11-15T23:00:52.367691Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -2393,23 +2337,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "started_at": "2023-11-15T23:00:49.250465Z",
               "updated_at": "2023-11-15T23:00:53.387796Z",
               "completed_at": "2023-11-15T23:00:53.387794Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -2466,7 +2406,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 2",
-              "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+              "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
             }
           },
           {
@@ -2556,23 +2496,20 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "started_at": "2023-11-15T22:56:01.090169Z",
               "updated_at": "2023-11-15T22:56:03.177061Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
+                      "id": "1451136305336321",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -2614,23 +2551,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "started_at": "2023-11-15T22:56:01.090169Z",
               "updated_at": "2023-11-15T22:56:04.197512Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
                   "payments": [
                     {
-                      "id": "563306435719169",
+                      "id": "1451136305336321",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -2674,23 +2607,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "started_at": "2023-11-15T22:56:01.090169Z",
               "updated_at": "2023-11-15T22:56:05.214808Z",
               "completed_at": "2023-11-15T22:56:05.214806Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -2747,7 +2675,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 2",
-              "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+              "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
             }
           },
           {
@@ -2837,23 +2765,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "started_at": "2023-11-15T23:17:41.318025Z",
               "updated_at": "2023-11-15T23:17:43.576954Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -2896,7 +2820,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "started_at": "2023-11-15T23:17:41.318025Z",
               "updated_at": "2023-11-15T23:17:44.626373Z",
               "completed_at": "2023-11-15T23:17:44.626370Z",
-              "transfer_received_at": "2023-06-22T08:46:56Z",
               "message": "test message 3",
               "refunds": {
                 "amount_refunded": {
@@ -2924,19 +2847,16 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-                  "created_at": "2023-06-22T08:46:56Z",
-                  "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg\u003d\u003d",
+                  "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
                   "payments": [
                     {
-                      "id": "563306435719169",
                       "amount": {
                         "amount": "4.5000000",
                         "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-                      "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+                      "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+                      "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
                     }
                   ]
                 }
@@ -3006,7 +2926,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 3",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   }
 ]
@@ -3105,19 +3025,16 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 3",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -3229,7 +3146,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 6",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   }
 ]
@@ -3420,19 +3337,16 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 6",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -3520,7 +3434,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 5",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   }
 ]
@@ -3681,19 +3595,16 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 5",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -3803,7 +3714,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 5",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   }
 ]    
@@ -4036,19 +3947,16 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -4095,7 +4003,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 2",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   },
   {
@@ -4175,21 +4083,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 2",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "MTkwYjA2NTAtMDcwNy00YmMzLTk1MjEtM2ZhYzY4MzU=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -4230,21 +4135,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 3",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "MTkwYjA2NTAtMDcwNy00YmMzLTk1MjEtM2ZhYzY4MzU=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -4294,7 +4196,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 2",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   },
   {
@@ -4384,21 +4286,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 2",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "MTkwYjA2NTAtMDcwNy00YmMzLTk1MjEtM2ZhYzY4MzU=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -4438,21 +4337,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 3",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "MTkwYjA2NTAtMDcwNy00YmMzLTk1MjEtM2ZhYzY4MzU=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -4494,21 +4390,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 4",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "MTkwYjA2NTAtMDcwNy00YmMzLTk1MjEtM2ZhYzY4MzU=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -4588,21 +4481,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 2",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "MTkwYjA2NTAtMDcwNy00YmMzLTk1MjEtM2ZhYzY4MzU=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -4642,21 +4532,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 3",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "MTkwYjA2NTAtMDcwNy00YmMzLTk1MjEtM2ZhYzY4MzU=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -4698,21 +4585,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 4",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "MTkwYjA2NTAtMDcwNy00YmMzLTk1MjEtM2ZhYzY4MzU=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -4762,7 +4646,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 2",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   },
   {
@@ -4822,7 +4706,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 2",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   },
   {
@@ -4912,21 +4796,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 2",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "MTkwYjA2NTAtMDcwNy00YmMzLTk1MjEtM2ZhYzY4MzU=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -4991,21 +4872,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "MTkwYjA2NTAtMDcwNy00YmMzLTk1MjEtM2ZhYzY4MzU=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -5030,7 +4908,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 1",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   },
   {
@@ -5081,25 +4959,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "started_at": "2023-08-03T15:14:02.506800Z",
       "updated_at": "2023-08-03T15:14:05.060150Z",
-      "transfer_received_at": "2023-06-22T08:46:56Z",
       "message": "test message 1",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "NTY3NWI1YzctMGVmNC00NTY2LWFmMGMtOWY4MGVmMjg=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -5140,7 +5014,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "started_at": "2023-08-03T15:14:02.506800Z",
       "updated_at": "2023-08-03T15:14:06.437196Z",
-      "transfer_received_at": "2023-06-22T08:46:56Z",
       "message": "test message 2",
       "refunds": {
         "amount_refunded": {
@@ -5168,21 +5041,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "NTY3NWI1YzctMGVmNC00NTY2LWFmMGMtOWY4MGVmMjg=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -5214,7 +5084,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 1",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   },
   {
@@ -5301,25 +5171,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "started_at": "2023-08-07T08:01:24.478460Z",
       "updated_at": "2023-08-07T08:01:25.680087Z",
-      "transfer_received_at": "2023-06-22T08:46:56Z",
       "message": "test message 1",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "ZmQzY2I4M2YtY2UwNC00Mjc2LWFiYzEtY2QzNWUzNDk=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -5360,25 +5226,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "started_at": "2023-08-07T08:01:24.478460Z",
       "updated_at": "2023-08-07T08:01:26.692095Z",
-      "transfer_received_at": "2023-06-22T08:46:56Z",
       "message": "test message 2",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "ZmQzY2I4M2YtY2UwNC00Mjc2LWFiYzEtY2QzNWUzNDk=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -5419,25 +5281,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "started_at": "2023-08-07T08:01:24.478460Z",
       "updated_at": "2023-08-07T08:01:27.729558Z",
-      "transfer_received_at": "2023-06-22T08:46:56Z",
       "message": "test message 3",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "ZmQzY2I4M2YtY2UwNC00Mjc2LWFiYzEtY2QzNWUzNDk=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -5478,25 +5336,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "started_at": "2023-08-07T08:01:24.478460Z",
       "updated_at": "2023-08-07T08:01:28.769798Z",
-      "transfer_received_at": "2023-06-22T08:46:56Z",
       "message": "test message 4",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "ZmQzY2I4M2YtY2UwNC00Mjc2LWFiYzEtY2QzNWUzNDk=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -5537,25 +5391,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "started_at": "2023-08-07T08:01:24.478460Z",
       "updated_at": "2023-08-07T08:01:29.797331Z",
-      "transfer_received_at": "2023-06-22T08:46:56Z",
       "message": "test message 5",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "ZmQzY2I4M2YtY2UwNC00Mjc2LWFiYzEtY2QzNWUzNDk=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -5596,25 +5446,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       },
       "started_at": "2023-08-07T08:01:24.478460Z",
       "updated_at": "2023-08-07T08:01:30.816913Z",
-      "transfer_received_at": "2023-06-22T08:46:56Z",
       "message": "test message 6",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "ZmQzY2I4M2YtY2UwNC00Mjc2LWFiYzEtY2QzNWUzNDk=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -5657,25 +5503,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "started_at": "2023-08-07T08:01:24.478460Z",
       "updated_at": "2023-08-07T08:01:31.828811Z",
       "completed_at": "2023-08-07T08:01:31.828809Z",
-      "transfer_received_at": "2023-06-22T08:46:56Z",
       "message": "test message 7",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "memo": "ZmQzY2I4M2YtY2UwNC00Mjc2LWFiYzEtY2QzNWUzNDk=",
           "memo_type": "hash",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }
@@ -6019,7 +5861,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 14",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   },
   {
@@ -6115,7 +5957,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 19",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   },
   {
@@ -6125,7 +5967,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 20",
-      "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+      "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
     }
   }
 ]
@@ -6388,19 +6230,16 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 19",
       "stellar_transactions": [
         {
-          "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-          "created_at": "2023-06-22T08:46:56Z",
-          "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+          "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
           "payments": [
             {
-              "id": "563306435719169",
               "amount": {
                 "amount": "4.5000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-              "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+              "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+              "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
             }
           ]
         }

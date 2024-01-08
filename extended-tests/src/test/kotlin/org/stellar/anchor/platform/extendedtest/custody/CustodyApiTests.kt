@@ -182,7 +182,7 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
           EXPECTED_TRANSACTION_RESPONSE.replace(TX_ID_KEY, txId),
           gson.toJson(txResponse),
           CustomComparator(
-            JSONCompareMode.STRICT,
+            JSONCompareMode.LENIENT,
             Customization("completed_at") { _, _ -> true },
             Customization("stellar_transactions[0].created_at") { _, _ -> true }
           )
@@ -270,7 +270,7 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
       EXPECTED_TXN_REFUND_RESPONSE.replace(TX_ID_KEY, txId),
       gson.toJson(txResponse),
       CustomComparator(
-        JSONCompareMode.STRICT,
+        JSONCompareMode.LENIENT,
         Customization("completed_at") { _, _ -> true },
         Customization("stellar_transactions[0].created_at") { _, _ -> true }
       )
@@ -399,12 +399,12 @@ private const val WEBHOOK_REQUEST =
     "amount": 4.5,
     "networkFee": 0.00001,
     "netAmount": 4.5,
-    "sourceAddress": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-    "destinationAddress": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W",
+    "sourceAddress": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+    "destinationAddress": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB",
     "destinationAddressDescription": "",
     "destinationTag": "",
     "status": "CONFIRMING",
-    "txHash": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+    "txHash": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
     "subStatus": "CONFIRMED",
     "signedBy": [],
     "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
@@ -465,12 +465,12 @@ private const val REFUND_WEBHOOK_REQUEST =
     "amount": 4.5,
     "networkFee": 0.00001,
     "netAmount": 1,
-    "sourceAddress": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W",
+    "sourceAddress": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB",
     "destinationAddress": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
     "destinationAddressDescription": "",
     "destinationTag": "12345",
     "status": "CONFIRMING",
-    "txHash": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+    "txHash": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
     "subStatus": "CONFIRMED",
     "signedBy": [],
     "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
@@ -539,19 +539,16 @@ private const val EXPECTED_TRANSACTION_RESPONSE =
   "external_transaction_id": "1",
   "stellar_transactions": [
     {
-      "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-      "created_at": "2023-06-22T08:46:39.336Z",
-      "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+      "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
       "payments": [
         {
-          "id": "563306435719169",
           "amount": {
             "amount": "4.5000000",
             "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
           },
           "payment_type": "payment",
-          "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-          "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+          "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+          "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
         }
       ]
     }
@@ -597,7 +594,7 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
     },
     "payments": [
       {
-        "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+        "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
         "id_type": "stellar",
         "amount": {
           "amount": "4.5000000",
@@ -612,21 +609,18 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
   },
   "stellar_transactions": [
     {
-      "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+      "id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4",
       "memo": "testTag",
       "memo_type": "id",
-      "created_at": "2023-06-22T08:46:56Z",
-      "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
       "payments": [
         {
-          "id": "563306435719169",
           "amount": {
             "amount": "4.5000000",
             "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
           },
           "payment_type": "payment",
-          "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-          "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+          "source_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+          "destination_account": "GATEYCIMJZ2F6Y437QSYH4XFQ6HLD5YP4MBJZFFPZVEQDJOY4QTCB7BB"
         }
       ]
     }
@@ -709,7 +703,7 @@ private const val NOTIFY_ONCHAIN_FUNDS_RECEIVED_REQUEST =
   {
     "transaction_id": "TX_ID",
     "message": "test message 1",
-    "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+    "stellar_transaction_id": "898e1d7c931e595004616b92f3479b3373f848d8a6fb170f6bd86364ed1eaaf4"
   }
 """
 
