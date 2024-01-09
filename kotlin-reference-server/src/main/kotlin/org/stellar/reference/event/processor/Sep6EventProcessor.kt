@@ -143,7 +143,7 @@ class Sep6EventProcessor(
           return
         }
         runBlocking {
-          if (offchainPayments[transaction.id] == null) {
+          if (offchainPayments[transaction.id] == null && transaction.transferReceivedAt != null) {
             // If the amount was not specified at transaction initialization, set the
             // amountOut and amountFee fields after receiving the onchain deposit.
             if (transaction.amountOut.amount.equals("0")) {
@@ -166,7 +166,7 @@ class Sep6EventProcessor(
                 externalTransactionId = externalTxnId.toString()
               )
             )
-          } else {
+          } else if (transaction.transferReceivedAt != null) {
             // TODO: check why this throws an exception
             sepHelper.rpcAction(
               RpcMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE.toString(),
