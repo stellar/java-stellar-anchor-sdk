@@ -70,13 +70,13 @@ public class RequestOffchainFundsHandler extends RpcMethodHandler<RequestOffchai
       if (AssetValidationUtils.isStellarAsset(request.getAmountIn().getAsset())) {
         throw new InvalidParamsException("amount_in.asset should be non-stellar asset");
       }
-      AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), assetService);
+      AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), true, assetService);
     }
     if (request.getAmountOut() != null) {
       if (!AssetValidationUtils.isStellarAsset(request.getAmountOut().getAsset())) {
         throw new InvalidParamsException("amount_out.asset should be stellar asset");
       }
-      AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), assetService);
+      AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), true, assetService);
     }
     if (request.getAmountFee() != null) {
       if (AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
@@ -92,6 +92,16 @@ public class RequestOffchainFundsHandler extends RpcMethodHandler<RequestOffchai
               .asset(request.getAmountIn().getAsset())
               .build(),
           assetService);
+    }
+
+    if (request.getAmountIn() == null && txn.getAmountIn() == null) {
+      throw new InvalidParamsException("amount_in is required");
+    }
+    if (request.getAmountOut() == null && txn.getAmountOut() == null) {
+      throw new InvalidParamsException("amount_out is required");
+    }
+    if (request.getAmountFee() == null && txn.getAmountFee() == null) {
+      throw new InvalidParamsException("amount_fee is required");
     }
   }
 
