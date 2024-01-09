@@ -63,7 +63,7 @@ tasks.register<JavaExec>("startServersWithTestProfile") {
 
 /** Run docker-compose up to start Postgres, Kafka, etc. */
 tasks.register<JavaExec>("dockerComposeStart") {
-  println("Running docker-compose up to start Postgres, Kafka ,etc.")
+  println("Running docker-compose to start Postgres, Kafka ,etc.")
   group = "application"
   classpath = sourceSets["main"].runtimeClasspath
   mainClass.set("org.stellar.anchor.platform.run_profiles.RunDockerDevStackNoWait")

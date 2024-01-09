@@ -253,7 +253,7 @@ If you would like to debug the unit tests or the end-to-end tests, there are two
 
 ## Run the Stellar Anchor Test from Gradle
 
-### Run docker compose up
+### Run docker compose start
 
 `./gradlew dockerComposeStart`
 
@@ -277,3 +277,7 @@ Before you run the anchor test, you need to specify the SEPs that you would like
 the `TEST_SEPS` is `1,10,12,24,31,38`.
 
 To change the value: `export TEST_SEPS=1,10,24`
+
+### Run docker compose down
+
+`./gradlew dockerComposeDown`
