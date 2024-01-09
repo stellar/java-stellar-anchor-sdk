@@ -170,7 +170,6 @@ class Sep6EventProcessor(
               )
             )
           } else if (transaction.transferReceivedAt != null) {
-            // TODO: check why this throws an exception
             sepHelper.rpcAction(
               RpcMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE.toString(),
               NotifyOffchainFundsAvailableRequest(
