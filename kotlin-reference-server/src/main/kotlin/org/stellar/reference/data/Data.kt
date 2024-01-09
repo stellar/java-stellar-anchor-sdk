@@ -126,8 +126,8 @@ data class NotifyOffchainFundsPendingRequest(
 data class NotifyAmountsUpdatedRequest(
   @SerialName("transaction_id") override val transactionId: String,
   override val message: String? = null,
-  @SerialName("amount_out") val amountOut: AmountAssetRequest,
-  @SerialName("amount_fee") val amountFee: AmountAssetRequest
+  @SerialName("amount_out") val amountOut: AmountRequest,
+  @SerialName("amount_fee") val amountFee: AmountRequest
 ) : RpcActionParamsRequest()
 
 @Serializable

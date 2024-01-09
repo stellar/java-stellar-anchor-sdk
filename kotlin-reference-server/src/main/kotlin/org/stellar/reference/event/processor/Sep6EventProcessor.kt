@@ -144,6 +144,18 @@ class Sep6EventProcessor(
         }
         runBlocking {
           if (offchainPayments[transaction.id] == null) {
+            // If the amount was not specified at transaction initialization, set the
+            // amountOut and amountFee fields after receiving the onchain deposit.
+            if (transaction.amountOut.amount.equals("0")) {
+              sepHelper.rpcAction(
+                RpcMethod.NOTIFY_AMOUNTS_UPDATED.toString(),
+                NotifyAmountsUpdatedRequest(
+                  transactionId = transaction.id,
+                  amountOut = AmountRequest(amount = transaction.amountIn.amount),
+                  amountFee = AmountRequest(amount = "0")
+                )
+              )
+            }
             val externalTxnId = UUID.randomUUID()
             offchainPayments[transaction.id] = externalTxnId.toString()
             sepHelper.rpcAction(
@@ -155,6 +167,7 @@ class Sep6EventProcessor(
               )
             )
           } else {
+            // TODO: check why this throws an exception
             sepHelper.rpcAction(
               RpcMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE.toString(),
               NotifyOffchainFundsAvailableRequest(
@@ -242,6 +255,7 @@ class Sep6EventProcessor(
             if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isEmpty()) {
               runBlocking {
                 if (transaction.amountExpected.amount != null) {
+                  // The amount was specified at transaction initialization
                   sepHelper.rpcAction(
                     RpcMethod.REQUEST_ONCHAIN_FUNDS.toString(),
                     RequestOnchainFundsRequest(
@@ -267,6 +281,9 @@ class Sep6EventProcessor(
                     RequestOnchainFundsRequest(
                       transactionId = transaction.id,
                       message = "Please deposit to the following address",
+                      amountIn = AmountAssetRequest(transaction.amountExpected.asset, "0"),
+                      amountOut = AmountAssetRequest("iso4217:USD", "0"),
+                      amountFee = AmountAssetRequest(transaction.amountExpected.asset, "0")
                     )
                   )
                 }
