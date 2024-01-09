@@ -2,6 +2,7 @@ import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerLogsContainer
 import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
 import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
+import java.io.ByteArrayOutputStream
 
 @Suppress(
     // The alias call in plugins scope produces IntelliJ false error which is suppressed here.
@@ -61,11 +62,35 @@ tasks.register<JavaExec>("startServersWithTestProfile") {
 }
 
 /** Run docker-compose up to start Postgres, Kafka, etc. */
-tasks.register<JavaExec>("dockerComposeUp") {
-  println("Running docker-compose up to start Postgres, Kafka ,etc.")
+tasks.register<JavaExec>("dockerComposeStart") {
+  println("Running docker-compose to start Postgres, Kafka ,etc.")
   group = "application"
   classpath = sourceSets["main"].runtimeClasspath
-  mainClass.set("org.stellar.anchor.platform.run_profiles.RunDockerDevStack")
+  mainClass.set("org.stellar.anchor.platform.run_profiles.RunDockerDevStackNoWait")
+}
+
+tasks.register<Exec>("dockerComposeStop") {
+  val outputStream = ByteArrayOutputStream()
+  standardOutput = outputStream
+  // Lists all running Docker containers with their labels
+  commandLine("bash", "-c", "docker compose ls | awk 'NR>1 {print $1}'")
+
+  doLast {
+    // Captures the output of the command
+    // Convert the output stream to a String
+    val outputString = outputStream.toString()
+
+    // Get the list of projects
+    val projectNames =
+        outputString.lineSequence().filter { it.isNotBlank() }.map { it.split(Regex("\\s+"))[0] }
+    // Iterate over each project name and process it
+    projectNames.forEach { projectName ->
+      exec {
+        println("docker compose -p $projectName down")
+        commandLine("bash", "-c", "docker compose -p $projectName down")
+      }
+    }
+  }
 }
 
 val dockerPullAnchorTest by

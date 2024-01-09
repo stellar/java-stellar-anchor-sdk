@@ -110,9 +110,13 @@ Run all tests: `./gradlew test`
 
 Run subproject tests: `./gradlew :[subproject]:test`
 
-### Running `docker-compose up` for Kafka, Postgres, and SEP24 Reference UI
+### Running `docker-compose start` for Kafka, Postgres, and SEP24 Reference UI
 
-`./gradlew dockerComposeUp`
+`./gradlew dockerComposeStart`
+
+### Running `docker-compose stop` to shutdown Kafka, Postgres, and SEP24 Reference UI
+
+`./gradlew dockerComposeStop`
 
 ### Starting all servers
 
@@ -235,7 +239,7 @@ If you would like to debug the unit tests or the end-to-end tests, there are two
 - Make sure `docker` and `docker-compose` is available on your local machine.
 - Check if there are previous docker containers running on your machine. If there are, please stop and delete them.
 - Navigate to the directory to the project folder
-- `./gradlew dockerComposeUp` to start the development stack.
+- `./gradlew dockerComposeStart` to start the development stack.
 - `export TEST_PROFILE_NAME=rpc && ./gradlew startServersWithTestProfile` to start the servers with `rpc`. You can also
   choose other test profile name by changing the value of `TEST_PROFILE_NAME`.
 - `./gradlew :extended-tests:test --tests org.stellar.anchor.platform.suite.RpcTestSuite`
@@ -249,9 +253,9 @@ If you would like to debug the unit tests or the end-to-end tests, there are two
 
 ## Run the Stellar Anchor Test from Gradle
 
-### Run docker compose up
+### Run docker compose start
 
-`./gradlew dockerComposeUp`
+`./gradlew dockerComposeStart`
 
 ### Run the servers with the `host-docker-internal` profile
 
@@ -273,3 +277,7 @@ Before you run the anchor test, you need to specify the SEPs that you would like
 the `TEST_SEPS` is `1,10,12,24,31,38`.
 
 To change the value: `export TEST_SEPS=1,10,24`
+
+### Run docker compose down
+
+`./gradlew dockerComposeDown`
