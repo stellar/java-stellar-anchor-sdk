@@ -92,7 +92,13 @@ class Sep6EventProcessor(
                   keypair.accountId,
                   transaction.destinationAccount,
                   Asset.create(transaction.amountExpected.asset.toAssetId()),
-                  transaction.amountExpected.amount
+                  // If no amount was specified at transaction initialization, assume the user
+                  // transferred 1 USD to the Anchor's bank account
+                  if (transaction.amountExpected.amount.equals("0")) {
+                    "1"
+                  } else {
+                    transaction.amountExpected.amount
+                  }
                 )
             }
             onchainPayments[transaction.id] = stellarTxnId
@@ -220,36 +226,50 @@ class Sep6EventProcessor(
     val customer = transaction.customers.sender
     when (transaction.kind) {
       Kind.DEPOSIT -> {
+        val instructions =
+          mapOf(
+            "organization.bank_number" to
+              InstructionField(value = "121122676", description = "US Bank routing number"),
+            "organization.bank_account_number" to
+              InstructionField(value = "13719713158835300", description = "US Bank account number"),
+          )
         if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isEmpty()) {
           runBlocking {
-            sepHelper.rpcAction(
-              RpcMethod.REQUEST_OFFCHAIN_FUNDS.toString(),
-              RequestOffchainFundsRequest(
-                transactionId = transaction.id,
-                message = "Please deposit the amount to the following bank account",
-                amountIn =
-                  AmountAssetRequest(
-                    asset = "iso4217:USD",
-                    amount = transaction.amountExpected.amount
-                  ),
-                amountOut =
-                  AmountAssetRequest(
-                    asset = transaction.amountExpected.asset,
-                    amount = transaction.amountExpected.amount
-                  ),
-                amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
-                instructions =
-                  mapOf(
-                    "organization.bank_number" to
-                      InstructionField(value = "121122676", description = "US Bank routing number"),
-                    "organization.bank_account_number" to
-                      InstructionField(
-                        value = "13719713158835300",
-                        description = "US Bank account number"
-                      ),
-                  )
+            if (transaction.amountExpected.amount != null) {
+              // The amount was specified at transaction initialization
+              sepHelper.rpcAction(
+                RpcMethod.REQUEST_OFFCHAIN_FUNDS.toString(),
+                RequestOffchainFundsRequest(
+                  transactionId = transaction.id,
+                  message = "Please deposit the amount to the following bank account",
+                  amountIn =
+                    AmountAssetRequest(
+                      asset = "iso4217:USD",
+                      amount = transaction.amountExpected.amount
+                    ),
+                  amountOut =
+                    AmountAssetRequest(
+                      asset = transaction.amountExpected.asset,
+                      amount = transaction.amountExpected.amount
+                    ),
+                  amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                  instructions = instructions
+                )
               )
-            )
+            } else {
+              sepHelper.rpcAction(
+                RpcMethod.REQUEST_OFFCHAIN_FUNDS.toString(),
+                RequestOffchainFundsRequest(
+                  transactionId = transaction.id,
+                  message = "Please deposit to the following bank account",
+                  amountIn = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                  amountOut =
+                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0"),
+                  amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                  instructions = instructions
+                )
+              )
+            }
           }
         }
       }
