@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,7 +18,8 @@ public class GsonUtils {
     return new GsonBuilder()
         .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
         .registerTypeAdapter(Instant.class, new InstantConverter())
-        .registerTypeAdapter(Duration.class, new DurationConverter());
+        .registerTypeAdapter(Duration.class, new DurationConverter())
+        .registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter());
   }
 
   public static Gson getInstance() {
@@ -55,5 +57,19 @@ class InstantConverter implements JsonSerializer<Instant>, JsonDeserializer<Inst
   public Instant deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
       throws JsonParseException {
     return dateTimeFormatter.parse(json.getAsString(), Instant::from);
+  }
+}
+
+class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]> {
+
+  @Override
+  public byte[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+      throws JsonParseException {
+    return Base64.getDecoder().decode(json.getAsString());
+  }
+
+  @Override
+  public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
+    return new JsonPrimitive(Base64.getEncoder().encodeToString(src));
   }
 }

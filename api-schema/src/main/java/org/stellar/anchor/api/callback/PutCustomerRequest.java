@@ -88,6 +88,12 @@ public class PutCustomerRequest {
   @SerializedName("cbu_alias")
   String cbuAlias;
 
+  @SerializedName("crypto_address")
+  String cryptoAddress;
+
+  @SerializedName("crypto_memo")
+  String cryptoMemo;
+
   @SerializedName("tax_id")
   String taxId;
 
@@ -120,10 +126,31 @@ public class PutCustomerRequest {
   @SerializedName("id_number")
   String idNumber;
 
+  @SerializedName("photo_id_front")
+  byte[] photoIdFront;
+
+  @SerializedName("photo_id_back")
+  byte[] photoIdBack;
+
+  @SerializedName("notary_approval_of_photo_id")
+  byte[] notaryApprovalOfPhotoId;
+
   @SerializedName("ip_address")
-  String ip_address;
+  String ipAddress;
+
+  @SerializedName("photo_proof_residence")
+  byte[] photoProofResidence;
 
   String sex;
+
+  @SerializedName("photo_proof_of_income")
+  byte[] photoProofOfIncome;
+
+  @SerializedName("proof_of_liveness")
+  byte[] proofOfLiveness;
+
+  @SerializedName("referral_id")
+  String referralId;
 
   public static PutCustomerRequest from(Sep12PutCustomerRequest request) {
     return gson.fromJson(gson.toJson(request), PutCustomerRequest.class);
