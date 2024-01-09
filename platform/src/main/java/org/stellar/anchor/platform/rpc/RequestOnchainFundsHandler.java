@@ -124,16 +124,6 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
           assetService);
     }
 
-    if (request.getAmountIn() == null && txn.getAmountIn() == null) {
-      throw new InvalidParamsException("amount_in is required");
-    }
-    if (request.getAmountOut() == null && txn.getAmountOut() == null) {
-      throw new InvalidParamsException("amount_out is required");
-    }
-    if (request.getAmountFee() == null && txn.getAmountFee() == null) {
-      throw new InvalidParamsException("amount_fee is required");
-    }
-
     boolean canGenerateSep6DepositInfo =
         SEP_6 == Sep.from(txn.getProtocol())
             && sep6DepositInfoGenerator instanceof Sep6DepositInfoNoneGenerator;

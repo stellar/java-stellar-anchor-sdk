@@ -75,9 +75,9 @@ data class RequestOffchainFundsRequest(
 data class RequestOnchainFundsRequest(
   @SerialName("transaction_id") override val transactionId: String,
   override val message: String,
-  @SerialName("amount_in") val amountIn: AmountAssetRequest,
-  @SerialName("amount_out") val amountOut: AmountAssetRequest,
-  @SerialName("amount_fee") val amountFee: AmountAssetRequest,
+  @SerialName("amount_in") val amountIn: AmountAssetRequest? = null,
+  @SerialName("amount_out") val amountOut: AmountAssetRequest? = null,
+  @SerialName("amount_fee") val amountFee: AmountAssetRequest? = null,
   @SerialName("amount_expected") val amountExpected: AmountRequest? = null
 ) : RpcActionParamsRequest()
 

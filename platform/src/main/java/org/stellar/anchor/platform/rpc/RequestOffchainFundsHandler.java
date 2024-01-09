@@ -93,16 +93,6 @@ public class RequestOffchainFundsHandler extends RpcMethodHandler<RequestOffchai
               .build(),
           assetService);
     }
-
-    if (request.getAmountIn() == null && txn.getAmountIn() == null) {
-      throw new InvalidParamsException("amount_in is required");
-    }
-    if (request.getAmountOut() == null && txn.getAmountOut() == null) {
-      throw new InvalidParamsException("amount_out is required");
-    }
-    if (request.getAmountFee() == null && txn.getAmountFee() == null) {
-      throw new InvalidParamsException("amount_fee is required");
-    }
   }
 
   @Override

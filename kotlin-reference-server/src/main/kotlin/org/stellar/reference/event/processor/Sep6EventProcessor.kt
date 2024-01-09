@@ -241,25 +241,35 @@ class Sep6EventProcessor(
           Kind.WITHDRAWAL -> {
             if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isEmpty()) {
               runBlocking {
-                sepHelper.rpcAction(
-                  RpcMethod.REQUEST_ONCHAIN_FUNDS.toString(),
-                  RequestOnchainFundsRequest(
-                    transactionId = transaction.id,
-                    message = "Please deposit the amount to the following address",
-                    amountIn =
-                      AmountAssetRequest(
-                        asset = transaction.amountExpected.asset,
-                        amount = transaction.amountExpected.amount
-                      ),
-                    amountOut =
-                      AmountAssetRequest(
-                        asset = "iso4217:USD",
-                        amount = transaction.amountExpected.amount
-                      ),
-                    amountFee =
-                      AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
+                if (transaction.amountExpected.amount != null) {
+                  sepHelper.rpcAction(
+                    RpcMethod.REQUEST_ONCHAIN_FUNDS.toString(),
+                    RequestOnchainFundsRequest(
+                      transactionId = transaction.id,
+                      message = "Please deposit the amount to the following address",
+                      amountIn =
+                        AmountAssetRequest(
+                          asset = transaction.amountExpected.asset,
+                          amount = transaction.amountExpected.amount
+                        ),
+                      amountOut =
+                        AmountAssetRequest(
+                          asset = "iso4217:USD",
+                          amount = transaction.amountExpected.amount
+                        ),
+                      amountFee =
+                        AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
+                    )
                   )
-                )
+                } else {
+                  sepHelper.rpcAction(
+                    RpcMethod.REQUEST_ONCHAIN_FUNDS.toString(),
+                    RequestOnchainFundsRequest(
+                      transactionId = transaction.id,
+                      message = "Please deposit to the following address",
+                    )
+                  )
+                }
               }
             }
           }
