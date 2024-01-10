@@ -60,12 +60,10 @@ subprojects {
       logger.warn("!!! WARNING !!!")
       logger.warn("=================")
       logger.warn(
-        "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
-        javaVersion
-      )
+          "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
+          javaVersion)
       logger.warn(
-        "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM"
-      )
+          "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM")
     }
 
     if (javaVersion < "11") {
@@ -142,9 +140,8 @@ subprojects {
     test {
       useJUnitPlatform()
       systemProperty(
-        "junit.jupiter.testclass.order.default",
-        "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation"
-      )
+          "junit.jupiter.testclass.order.default",
+          "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation")
 
       exclude("**/AnchorPlatformCustodyEnd2EndTest**")
       exclude("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
@@ -183,9 +180,33 @@ allprojects {
   tasks.jar {
     manifest {
       attributes(
-        mapOf("Implementation-Title" to project.name, "Implementation-Version" to project.version)
-      )
+          mapOf(
+              "Implementation-Title" to project.name, "Implementation-Version" to project.version))
     }
   }
 }
 
+tasks.register("printUsage") {
+  doLast {
+    val green = "\u001B[32m"
+    val bold = "\u001B[1m"
+    // ANSI escape code to reset
+    val reset = "\u001B[0m"
+    println(
+        """
+                  ${green}${bold}Usage: ./gradlew <task>${reset}
+                  
+                  Available custom tasks:
+                    - ${bold}printVersionName${reset}: Prints the version of the project.
+                    - ${bold}updateGitHook${reset}: Updates the git hook to format the code before committing.
+                    - ${bold}startAllServers${reset}: Starts all the servers based on the `default` test configuration.
+                    - ${bold}startServersWithTestProfile${reset}: Starts the servers based on the test configuration specified by the TEST_PROFILE_NAME environment variable.
+                    - ${bold}dockerComposeStart${reset}: Runs docker-compose up to start Postgres, Kafka, etc.
+                    - ${bold}dockerComposeStop${reset}: Runs docker-compose down to stop Postgres, Kafka, etc.
+                    - ${bold}anchorTest${reset}: Runs stellar anchor tests. Set `TEST_HOME_DOMAIN` and `TEST_SEPS` environment variables to customize the tests.
+    """
+            .trimIndent())
+  }
+}
+
+defaultTasks("printUsage")
