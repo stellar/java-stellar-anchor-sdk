@@ -125,7 +125,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
     if (sep6Txn != null) {
       try {
         handleSep6Transaction(payment, sep6Txn);
-        return;
       } catch (AnchorException aex) {
         warnF("Error handling the SEP6 transaction id={}.", sep6Txn.getId());
         errorEx(aex);
@@ -242,9 +241,9 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
     BigDecimal amountExpected = decimal(txn.getAmountExpected());
     BigDecimal gotAmount = decimal(payment.getAmount());
-    if (gotAmount.compareTo(amountExpected) >= 0) {
+    if (amountExpected != null && gotAmount.compareTo(amountExpected) >= 0) {
       Log.infoF("Incoming payment for SEP-6 transaction {}.", txn.getId());
-    } else {
+    } else if (amountExpected != null) {
       Log.warnF(
           "The incoming payment amount for SEP-6 transaction {} was insufficient! Expected: \"{}\", Received: \"{}\"",
           txn.getId(),

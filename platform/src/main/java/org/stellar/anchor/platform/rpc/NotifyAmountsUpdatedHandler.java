@@ -61,6 +61,7 @@ public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsU
             .amount(request.getAmountOut().getAmount())
             .asset(txn.getAmountOutAsset())
             .build(),
+        true,
         assetService);
     AssetValidationUtils.validateAsset(
         "amount_fee",
