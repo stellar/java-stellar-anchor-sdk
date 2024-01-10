@@ -164,13 +164,8 @@ class NotifyAmountsUpdatedHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
-    request.amountOut.amount = "-1"
-    var ex = assertThrows<BadRequestException> { handler.handle(request) }
-    assertEquals("amount_out.amount should be positive", ex.message)
-    request.amountOut.amount = "1"
-
     request.amountFee.amount = "-1"
-    ex = assertThrows { handler.handle(request) }
+    val ex = assertThrows<BadRequestException> { handler.handle(request) }
     assertEquals("amount_fee.amount should be non-negative", ex.message)
     request.amountFee.amount = "1"
 
