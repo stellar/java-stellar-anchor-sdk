@@ -83,7 +83,6 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   ) = runBlocking {
     val keypair = SigningKeyPair.fromSecret(walletSecretKey)
     walletServerClient.clearCallbacks()
-    anchorReferenceServerClient.clearEvents()
 
     val token = anchor.auth().authenticate(keypair)
     val response = makeDeposit(asset, amount, token)
@@ -209,7 +208,6 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   ) = runBlocking {
     val keypair = SigningKeyPair.fromSecret(walletSecretKey)
     walletServerClient.clearCallbacks()
-    anchorReferenceServerClient.clearEvents()
 
     val token = anchor.auth().authenticate(keypair)
     val withdrawTxn = anchor.interactive().withdraw(asset, token, extraFields)
