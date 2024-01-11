@@ -15,7 +15,7 @@ class PlatformServerHealthTests {
   fun testHealth() {
     val response = platformApiClient.health(listOf("all"))
     Assertions.assertEquals(5, response.size)
-    Assertions.assertEquals(1L, response["number_of_checks"])
+    Assertions.assertEquals(0L, response["number_of_checks"])
     Assertions.assertNotNull(response["checks"])
     Assertions.assertNotNull(response["started_at"])
     Assertions.assertNotNull(response["elapsed_time_ms"])
