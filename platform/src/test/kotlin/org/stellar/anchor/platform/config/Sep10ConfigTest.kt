@@ -243,7 +243,7 @@ class Sep10ConfigTest {
     @JvmStatic
     fun generatedHomeDomainsTestConfig(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of(null, null, null, true, 0),
+        Arguments.of(null, null, null, false, 1),
         Arguments.of(null, "www.stellar.org", listOf("www.stellar.org", "www.losbstr.co"), true, 0),
         Arguments.of(null, "www.stellar.org", emptyList<String>(), false, 1),
         Arguments.of("localhost:8080", "", listOf("www.stellar.org", "www.losbstr.co"), false, 2),
