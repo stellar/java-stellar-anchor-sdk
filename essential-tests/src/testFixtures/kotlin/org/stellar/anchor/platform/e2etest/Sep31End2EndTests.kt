@@ -101,7 +101,6 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
     val amount = "5"
 
     walletServerClient.clearCallbacks()
-    anchorReferenceServerClient.clearEvents()
 
     val senderCustomerRequest =
       gson.fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
