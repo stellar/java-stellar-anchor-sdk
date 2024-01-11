@@ -19,10 +19,9 @@ import org.springframework.core.io.Resource;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
-import org.stellar.anchor.healthcheck.HealthCheckable;
 
 public abstract class ConfigManager
-    implements ApplicationContextInitializer<ConfigurableApplicationContext>, HealthCheckable {
+    implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
   static final String STELLAR_ANCHOR_CONFIG = "STELLAR_ANCHOR_CONFIG";
   static ConfigManager configManager;
@@ -164,26 +163,6 @@ public abstract class ConfigManager
       return resource;
     }
     return null;
-  }
-
-  @Override
-  public String getName() {
-    return "config";
-  }
-
-  @Override
-  public List<Tags> getTags() {
-    return List.of(Tags.ALL, Tags.CONFIG);
-  }
-
-  @Override
-  public HealthCheckResult check() {
-    return ConfigManagerHealthCheckResult.builder().name(getName()).configMap(configMap).build();
-  }
-
-  @Override
-  public int compareTo(@NotNull HealthCheckable other) {
-    return this.getName().compareTo(other.getName());
   }
 }
 
