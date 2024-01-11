@@ -163,11 +163,9 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     actualEvents?.let {
       assertEquals(expectedStatuses.size, actualEvents.size)
 
-      GsonUtils.getInstance().toJson(expectedStatuses).let { json ->
-        println("expectedStatuses: $json")
-      }
+      println("expectedStatuses: " + GsonUtils.getInstance().toJson(expectedStatuses))
 
-      GsonUtils.getInstance().toJson(actualEvents).let { json -> println("actualEvents: $json") }
+      println("actualEvents: " + GsonUtils.getInstance().toJson(expectedStatuses))
 
       expectedStatuses.forEachIndexed { index, expectedStatus ->
         actualEvents[index].let { actualEvent ->
