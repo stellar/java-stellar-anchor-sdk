@@ -85,6 +85,11 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
+    if (StringUtils.isNotEmpty(request.getBirthDate())) {
+      if (!isValidISO8601Date(request.getBirthDate())) {
+        throw new SepValidationException("Invalid 'birth_date'");
+      }
+    }
     if (StringUtils.isNotEmpty(request.getIdIssueDate())) {
       if (!isValidISO8601Date(request.getIdIssueDate())) {
         throw new SepValidationException("Invalid 'id_issue_date'");
