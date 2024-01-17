@@ -12,6 +12,7 @@ object Customers : Table() {
   val lastName = varchar("last_name", 255).nullable()
   val address = varchar("address", 255).nullable()
   val emailAddress = varchar("email_address", 255).nullable()
+  val birthDate = varchar("birth_date", 255).nullable()
   val bankAccountNumber = varchar("bank_account_number", 255).nullable()
   val bankAccountType = varchar("bank_account_type", 255).nullable()
   val bankNumber = varchar("bank_number", 255).nullable()
