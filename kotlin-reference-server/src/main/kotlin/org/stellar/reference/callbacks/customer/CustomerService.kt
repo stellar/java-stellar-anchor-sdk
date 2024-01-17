@@ -123,8 +123,13 @@ class CustomerService(private val customerRepository: CustomerRepository) {
         "address" to
           createField(customer.address, "string", "The customer's address", optional = true),
         "email_address" to
-          createField(customer.emailAddress, "string", "The customer's email address"),
-        "birth_date" to createField(customer.birthDate, "string", "The customer's birth date"),
+          createField(
+            customer.emailAddress,
+            "string",
+            "The customer's email address",
+          ),
+        "birth_date" to
+          createField(customer.birthDate, "string", "The customer's birth date", optional = true),
         "bank_account_number" to
           createField(
             customer.bankAccountNumber,
