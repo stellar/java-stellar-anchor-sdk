@@ -54,16 +54,6 @@ internal class DefaultAssetServiceTest {
   }
 
   @Test
-  fun `test native asset with SEP-31 or SEP-38 enabled`() {
-    assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromJsonResource("test_native_asset_sep31.json.bad")
-    }
-    assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromJsonResource("test_native_asset_sep38.json.bad")
-    }
-  }
-
-  @Test
   fun `test invalid config with duplicate assets`() {
     assertThrows<InvalidConfigException> {
       DefaultAssetService.fromYamlResource("test_assets_duplicate_asset.yaml")
@@ -389,8 +379,8 @@ internal class DefaultAssetServiceTest {
             },
             "sep6_enabled": false,
             "sep24_enabled": true,
-            "sep31_enabled": false,
-            "sep38_enabled": false
+            "sep31_enabled": true,
+            "sep38_enabled": true
           }
         ]
       }

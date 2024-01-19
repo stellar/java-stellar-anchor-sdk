@@ -34,6 +34,7 @@ public class Sep31Controller {
       method = {RequestMethod.GET})
   public Sep31InfoResponse getInfo() {
     debugF("GET /info");
+    System.out.println("controller");
     return sep31Service.getInfo();
   }
 
