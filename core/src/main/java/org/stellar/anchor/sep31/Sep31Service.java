@@ -128,7 +128,6 @@ public class Sep31Service {
   }
 
   public Sep31InfoResponse getInfo() {
-    System.out.println("1231231231231");
     return infoResponse;
   }
 
