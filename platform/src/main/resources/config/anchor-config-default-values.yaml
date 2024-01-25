@@ -335,7 +335,7 @@ sep10:
   # The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
   # `home_domain` value must be equal to the host of the toml file. If sep1 is enabled, toml file will be hosted on the SEP server.
   # This property cannot coexist with `home_domains` and is going to be deprecated. Please use `home_domains` instead.
-  home_domain: localhost:8080
+  home_domain:
   # The `home_domains` property of SEP-10. This is a list of domains that the client can use to authenticate.
   # https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
   # This property cannot coexist with `home_domain`. Please also set web_auth_domain if you have more than one home domain in this list.
