@@ -51,8 +51,10 @@ public class PropertySep10Config implements Sep10Config, Validator {
 
   @PostConstruct
   public void postConstruct() {
+    // Moving home_domain to home_domains. home_domain will be deprecated in 3.0
     if (homeDomains == null || homeDomains.isEmpty()) {
       homeDomains = List.of(homeDomain);
+      homeDomain = null;
     }
     // If webAuthDomain is not specified and there is 1 and only 1 domain in the home_domains
     if (isEmpty(webAuthDomain) && homeDomains.size() == 1) {
@@ -98,11 +100,11 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");
     }
 
-    // Only one of homeDomain or homeDomains can be defined.
     if (isEmpty(homeDomain) && (homeDomains == null || homeDomains.isEmpty())) {
-      errors.rejectValue(
-          "homeDomain", "home-domain-empty", "The sep10.home_domain is not defined.");
+      // Default to localhost:8080 if neither is defined.
+      homeDomains = List.of("localhost:8080");
     } else if (!isEmpty(homeDomain) && (homeDomains != null && !homeDomains.isEmpty())) {
+      // Reject if both are defined.
       errors.rejectValue(
           "homeDomain",
           "home-domain-coexist",

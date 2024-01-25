@@ -12,9 +12,11 @@ class EventConsumer(
   private val consumer: KafkaConsumer<String, String>,
   private val processor: AnchorEventProcessor
 ) {
+  private var stopped = false
+
   fun start(): EventConsumer {
     try {
-      while (true) {
+      while (!stopped) {
         val records = consumer.poll(Duration.ofSeconds(10))
         if (!records.isEmpty) {
           log.info("Received ${records.count()} records")
@@ -35,6 +37,7 @@ class EventConsumer(
   }
 
   fun stop() {
+    stopped = true
     consumer.wakeup()
   }
 }

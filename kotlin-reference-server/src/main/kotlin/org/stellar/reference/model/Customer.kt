@@ -13,6 +13,7 @@ data class Customer(
   @SerialName("last_name") val lastName: String? = null,
   val address: String? = null,
   @SerialName("email_address") val emailAddress: String? = null,
+  @SerialName("birth_date") val birthDate: String? = null,
   @SerialName("bank_account_number") val bankAccountNumber: String? = null,
   @SerialName("bank_account_type") val bankAccountType: String? = null,
   @SerialName("bank_number") val bankNumber: String? = null,

@@ -247,6 +247,6 @@ assets:
         - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
       decimals: 7
     sep6_enabled: false
-    sep31_enabled: false
-    sep38_enabled: false
+    sep31_enabled: true
+    sep38_enabled: true
     sep24_enabled: true

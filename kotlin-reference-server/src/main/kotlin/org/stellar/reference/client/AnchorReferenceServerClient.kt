@@ -77,17 +77,6 @@ class AnchorReferenceServerClient(val endpoint: Url) {
     return gson.fromJson(response.body<String>(), SendEventRequest::class.java)
   }
 
-  suspend fun clearEvents() {
-    client.delete {
-      url {
-        this.protocol = endpoint.protocol
-        host = endpoint.host
-        port = endpoint.port
-        encodedPath = "/events"
-      }
-    }
-  }
-
   /**
    * ATTENTION: this function is used for testing purposes only.
    *

@@ -31,7 +31,14 @@ class Sep6EventProcessor(
 ) : SepAnchorEventProcessor {
   companion object {
     val requiredKyc =
-      listOf("id_type", "id_country_code", "id_issue_date", "id_expiration_date", "id_number")
+      listOf(
+        "birth_date",
+        "id_type",
+        "id_country_code",
+        "id_issue_date",
+        "id_expiration_date",
+        "id_number"
+      )
     val depositRequiredKyc = listOf("address")
     val withdrawRequiredKyc =
       listOf("bank_account_number", "bank_account_type", "bank_number", "bank_branch_number")
@@ -44,7 +51,10 @@ class Sep6EventProcessor(
   override fun onTransactionCreated(event: AnchorEvent) {
     when (val kind = event.transaction.kind) {
       Kind.DEPOSIT,
-      Kind.WITHDRAWAL -> requestKyc(event)
+      Kind.WITHDRAWAL -> {
+        requestKyc(event)
+        requestCustomerFunds(event.transaction)
+      }
       else -> {
         log.warn("Received transaction created event with unsupported kind: $kind")
       }
@@ -89,7 +99,13 @@ class Sep6EventProcessor(
                   keypair.accountId,
                   transaction.destinationAccount,
                   Asset.create(transaction.amountExpected.asset.toAssetId()),
-                  transaction.amountExpected.amount
+                  // If no amount was specified at transaction initialization, assume the user
+                  // transferred 1 USD to the Anchor's bank account
+                  if (transaction.amountExpected.amount.equals("0")) {
+                    "1"
+                  } else {
+                    transaction.amountExpected.amount
+                  }
                 )
             }
             onchainPayments[transaction.id] = stellarTxnId
@@ -143,7 +159,19 @@ class Sep6EventProcessor(
           return
         }
         runBlocking {
-          if (offchainPayments[transaction.id] == null) {
+          if (offchainPayments[transaction.id] == null && transaction.transferReceivedAt != null) {
+            // If the amount was not specified at transaction initialization, set the
+            // amountOut and amountFee fields after receiving the onchain deposit.
+            if (transaction.amountOut.amount.equals("0")) {
+              sepHelper.rpcAction(
+                RpcMethod.NOTIFY_AMOUNTS_UPDATED.toString(),
+                NotifyAmountsUpdatedRequest(
+                  transactionId = transaction.id,
+                  amountOut = AmountRequest(amount = transaction.amountIn.amount),
+                  amountFee = AmountRequest(amount = "0")
+                )
+              )
+            }
             val externalTxnId = UUID.randomUUID()
             offchainPayments[transaction.id] = externalTxnId.toString()
             sepHelper.rpcAction(
@@ -154,7 +182,7 @@ class Sep6EventProcessor(
                 externalTransactionId = externalTxnId.toString()
               )
             )
-          } else {
+          } else if (transaction.transferReceivedAt != null) {
             sepHelper.rpcAction(
               RpcMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE.toString(),
               NotifyOffchainFundsAvailableRequest(
@@ -198,78 +226,103 @@ class Sep6EventProcessor(
           )
           .records
       }
-      .forEach { transaction ->
-        val customer = transaction.customers.sender
-        when (transaction.kind) {
-          Kind.DEPOSIT -> {
-            if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isEmpty()) {
-              runBlocking {
-                sepHelper.rpcAction(
-                  RpcMethod.REQUEST_OFFCHAIN_FUNDS.toString(),
-                  RequestOffchainFundsRequest(
-                    transactionId = transaction.id,
-                    message = "Please deposit the amount to the following bank account",
-                    amountIn =
-                      AmountAssetRequest(
-                        asset = "iso4217:USD",
-                        amount = transaction.amountExpected.amount
-                      ),
-                    amountOut =
-                      AmountAssetRequest(
-                        asset = transaction.amountExpected.asset,
-                        amount = transaction.amountExpected.amount
-                      ),
-                    amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
-                    instructions =
-                      mapOf(
-                        "organization.bank_number" to
-                          InstructionField(
-                            value = "121122676",
-                            description = "US Bank routing number"
-                          ),
-                        "organization.bank_account_number" to
-                          InstructionField(
-                            value = "13719713158835300",
-                            description = "US Bank account number"
-                          ),
-                      )
-                  )
+      .forEach { requestCustomerFunds(it) }
+  }
+
+  private fun requestCustomerFunds(transaction: GetTransactionResponse) {
+    val customer = transaction.customers.sender
+    when (transaction.kind) {
+      Kind.DEPOSIT -> {
+        val instructions =
+          mapOf(
+            "organization.bank_number" to
+              InstructionField(value = "121122676", description = "US Bank routing number"),
+            "organization.bank_account_number" to
+              InstructionField(value = "13719713158835300", description = "US Bank account number"),
+          )
+        if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isEmpty()) {
+          runBlocking {
+            if (transaction.amountExpected.amount != null) {
+              // The amount was specified at transaction initialization
+              sepHelper.rpcAction(
+                RpcMethod.REQUEST_OFFCHAIN_FUNDS.toString(),
+                RequestOffchainFundsRequest(
+                  transactionId = transaction.id,
+                  message = "Please deposit the amount to the following bank account",
+                  amountIn =
+                    AmountAssetRequest(
+                      asset = "iso4217:USD",
+                      amount = transaction.amountExpected.amount
+                    ),
+                  amountOut =
+                    AmountAssetRequest(
+                      asset = transaction.amountExpected.asset,
+                      amount = transaction.amountExpected.amount
+                    ),
+                  amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                  instructions = instructions
                 )
-              }
-            }
-          }
-          Kind.WITHDRAWAL -> {
-            if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isEmpty()) {
-              runBlocking {
-                sepHelper.rpcAction(
-                  RpcMethod.REQUEST_ONCHAIN_FUNDS.toString(),
-                  RequestOnchainFundsRequest(
-                    transactionId = transaction.id,
-                    message = "Please deposit the amount to the following address",
-                    amountIn =
-                      AmountAssetRequest(
-                        asset = transaction.amountExpected.asset,
-                        amount = transaction.amountExpected.amount
-                      ),
-                    amountOut =
-                      AmountAssetRequest(
-                        asset = "iso4217:USD",
-                        amount = transaction.amountExpected.amount
-                      ),
-                    amountFee =
-                      AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
-                  )
+              )
+            } else {
+              sepHelper.rpcAction(
+                RpcMethod.REQUEST_OFFCHAIN_FUNDS.toString(),
+                RequestOffchainFundsRequest(
+                  transactionId = transaction.id,
+                  message = "Please deposit to the following bank account",
+                  amountIn = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                  amountOut =
+                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0"),
+                  amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                  instructions = instructions
                 )
-              }
+              )
             }
-          }
-          else -> {
-            log.warn(
-              "Received transaction created event with unsupported kind: ${transaction.kind}"
-            )
           }
         }
       }
+      Kind.WITHDRAWAL -> {
+        if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isEmpty()) {
+          runBlocking {
+            if (transaction.amountExpected.amount != null) {
+              // The amount was specified at transaction initialization
+              sepHelper.rpcAction(
+                RpcMethod.REQUEST_ONCHAIN_FUNDS.toString(),
+                RequestOnchainFundsRequest(
+                  transactionId = transaction.id,
+                  message = "Please deposit the amount to the following address",
+                  amountIn =
+                    AmountAssetRequest(
+                      asset = transaction.amountExpected.asset,
+                      amount = transaction.amountExpected.amount
+                    ),
+                  amountOut =
+                    AmountAssetRequest(
+                      asset = "iso4217:USD",
+                      amount = transaction.amountExpected.amount
+                    ),
+                  amountFee =
+                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
+                )
+              )
+            } else {
+              sepHelper.rpcAction(
+                RpcMethod.REQUEST_ONCHAIN_FUNDS.toString(),
+                RequestOnchainFundsRequest(
+                  transactionId = transaction.id,
+                  message = "Please deposit to the following address",
+                  amountIn = AmountAssetRequest(transaction.amountExpected.asset, "0"),
+                  amountOut = AmountAssetRequest("iso4217:USD", "0"),
+                  amountFee = AmountAssetRequest(transaction.amountExpected.asset, "0")
+                )
+              )
+            }
+          }
+        }
+      }
+      else -> {
+        log.warn("Received transaction created event with unsupported kind: ${transaction.kind}")
+      }
+    }
   }
 
   private fun verifyKyc(sep10Account: String, sep10AccountMemo: String?, kind: Kind): List<String> {

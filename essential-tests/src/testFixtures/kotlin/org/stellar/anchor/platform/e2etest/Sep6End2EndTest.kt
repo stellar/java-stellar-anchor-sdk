@@ -45,6 +45,7 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         "last_name" to "Doe",
         "address" to "123 Bay Street",
         "email_address" to "john@email.com",
+        "birth_date" to "1990-01-01",
         "id_type" to "drivers_license",
         "id_country_code" to "CAN",
         "id_issue_date" to "2023-01-01",
