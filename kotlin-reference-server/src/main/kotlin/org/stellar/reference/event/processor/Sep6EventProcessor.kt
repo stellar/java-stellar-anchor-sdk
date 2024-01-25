@@ -31,7 +31,14 @@ class Sep6EventProcessor(
 ) : SepAnchorEventProcessor {
   companion object {
     val requiredKyc =
-      listOf("id_type", "id_country_code", "id_issue_date", "id_expiration_date", "id_number")
+      listOf(
+        "birth_date",
+        "id_type",
+        "id_country_code",
+        "id_issue_date",
+        "id_expiration_date",
+        "id_number"
+      )
     val depositRequiredKyc = listOf("address")
     val withdrawRequiredKyc =
       listOf("bank_account_number", "bank_account_type", "bank_number", "bank_branch_number")

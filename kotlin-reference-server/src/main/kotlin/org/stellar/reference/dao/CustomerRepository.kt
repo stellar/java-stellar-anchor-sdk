@@ -36,6 +36,7 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
               address = it[Customers.address],
               lastName = it[Customers.lastName],
               emailAddress = it[Customers.emailAddress],
+              birthDate = it[Customers.birthDate],
               bankAccountNumber = it[Customers.bankAccountNumber],
               bankAccountType = it[Customers.bankAccountType],
               bankNumber = it[Customers.bankNumber],
@@ -77,6 +78,7 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
               lastName = it[Customers.lastName],
               address = it[Customers.address],
               emailAddress = it[Customers.emailAddress],
+              birthDate = it[Customers.birthDate],
               bankAccountNumber = it[Customers.bankAccountNumber],
               bankAccountType = it[Customers.bankAccountType],
               bankNumber = it[Customers.bankNumber],
@@ -104,6 +106,7 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
           it[lastName] = customer.lastName
           it[address] = customer.address
           it[emailAddress] = customer.emailAddress
+          it[birthDate] = customer.birthDate
           it[bankAccountNumber] = customer.bankAccountNumber
           it[bankAccountType] = customer.bankAccountType
           it[bankNumber] = customer.bankNumber
@@ -130,6 +133,7 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
         it[lastName] = customer.lastName
         it[address] = customer.address
         it[emailAddress] = customer.emailAddress
+        it[birthDate] = customer.birthDate
         it[bankAccountNumber] = customer.bankAccountNumber
         it[bankAccountType] = customer.bankAccountType
         it[bankNumber] = customer.bankNumber

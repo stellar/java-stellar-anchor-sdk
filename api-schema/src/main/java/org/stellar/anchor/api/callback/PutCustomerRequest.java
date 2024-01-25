@@ -2,7 +2,6 @@ package org.stellar.anchor.api.callback;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
-import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
@@ -57,7 +56,7 @@ public class PutCustomerRequest {
   String emailAddress;
 
   @SerializedName("birth_date")
-  Instant birthDate;
+  String birthDate;
 
   @SerializedName("birth_place")
   String birthPlace;

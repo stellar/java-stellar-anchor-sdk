@@ -17,12 +17,6 @@ public class AssetServiceValidator {
       throw new InvalidConfigException("0 assets defined in configuration");
     }
 
-    // TODO: remove this check once we support SEP-31 and SEP-38 for native asset
-    AssetInfo nativeAsset = assetService.getAsset("native");
-    if (nativeAsset != null && (nativeAsset.getSep31Enabled() || nativeAsset.getSep38Enabled())) {
-      throw new InvalidConfigException("Native asset does not support SEP-31 or SEP-38");
-    }
-
     // Check for duplicate assets
     Set<String> existingAssetNames = new HashSet<>();
     for (AssetInfo asset : assetService.listAllAssets()) {

@@ -57,6 +57,7 @@ class CustomerService(private val customerRepository: CustomerRepository) {
           lastName = request.lastName ?: customer.lastName,
           address = request.address ?: customer.address,
           emailAddress = request.emailAddress ?: customer.emailAddress,
+          birthDate = request.birthDate ?: customer.birthDate,
           bankAccountNumber = request.bankAccountNumber ?: customer.bankAccountNumber,
           bankAccountType = request.bankAccountType ?: customer.bankAccountType,
           bankNumber = request.bankNumber ?: customer.bankNumber,
@@ -82,6 +83,7 @@ class CustomerService(private val customerRepository: CustomerRepository) {
           lastName = request.lastName,
           address = request.address,
           emailAddress = request.emailAddress,
+          birthDate = request.birthDate,
           bankAccountNumber = request.bankAccountNumber,
           bankAccountType = request.bankAccountType,
           bankNumber = request.bankNumber,
@@ -121,7 +123,13 @@ class CustomerService(private val customerRepository: CustomerRepository) {
         "address" to
           createField(customer.address, "string", "The customer's address", optional = true),
         "email_address" to
-          createField(customer.emailAddress, "string", "The customer's email address"),
+          createField(
+            customer.emailAddress,
+            "string",
+            "The customer's email address",
+          ),
+        "birth_date" to
+          createField(customer.birthDate, "string", "The customer's birth date", optional = true),
         "bank_account_number" to
           createField(
             customer.bankAccountNumber,
