@@ -84,6 +84,12 @@ public class Sep12PutCustomerRequest implements Sep12CustomerRequestBase {
   @SerializedName("cbu_alias")
   String cbuAlias;
 
+  @SerializedName("crypto_address")
+  String cryptoAddress;
+
+  @SerializedName("crypto_memo")
+  String cryptoMemo;
+
   @SerializedName("tax_id")
   String taxId;
 
@@ -116,8 +122,29 @@ public class Sep12PutCustomerRequest implements Sep12CustomerRequestBase {
   @SerializedName("id_number")
   String idNumber;
 
+  @SerializedName("photo_id_front")
+  byte[] photoIdFront;
+
+  @SerializedName("photo_id_back")
+  byte[] photoIdBack;
+
+  @SerializedName("notary_approval_of_photo_id")
+  byte[] notaryApprovalOfPhotoId;
+
   @SerializedName("ip_address")
   String ipAddress;
 
+  @SerializedName("photo_proof_residence")
+  byte[] photoProofResidence;
+
   String sex;
+
+  @SerializedName("photo_proof_of_income")
+  byte[] photoProofOfIncome;
+
+  @SerializedName("proof_of_liveness")
+  byte[] proofOfLiveness;
+
+  @SerializedName("referral_id")
+  String referralId;
 }
