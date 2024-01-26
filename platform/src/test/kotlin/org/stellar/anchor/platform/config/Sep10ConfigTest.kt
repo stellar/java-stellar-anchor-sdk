@@ -247,6 +247,8 @@ class Sep10ConfigTest {
         Arguments.of(null, "www.stellar.org", listOf("www.stellar.org", "www.losbstr.co"), true, 0),
         Arguments.of(null, "www.stellar.org", emptyList<String>(), false, 1),
         Arguments.of("localhost:8080", "", listOf("www.stellar.org", "www.losbstr.co"), false, 2),
+        Arguments.of("localhost:8080", "", listOf("*.stellar.org"), false, 1),
+        Arguments.of("", "", listOf("*.stellar.org"), true, 1),
       )
     }
   }
