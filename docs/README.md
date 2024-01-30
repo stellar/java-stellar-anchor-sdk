@@ -33,13 +33,15 @@ Please refer to our [How to contribute](/docs/01%20-%20Contributing/README.md) g
 contribute to this project.
 
 ## Directory Layout
+
 - __docs__: Contains the documentation for the Anchor Platform.
 - __api_schema__: Contains the Java classes and interfaces that represent the API schema.
 - __core__: Contains the core Anchor Platform implementation. Most of the SEP business logics are implemented here. No
   infrastructures, such as database, configuration, queue, or logging implementations are assumed in this sub-project.
 - __platform__: Contains the Anchor Platform implementation that uses Spring Boot as the underlying framework. This
   sub-project is responsible for providing the infrastructure implementations, such as database, configuration, queue,
-  and logging. The `sep-server`, `platform-server`, `custody-server`, `event-processor` and `stellar-observer` services are also implemented here.
+  and logging. The `sep-server`, `platform-server`, `custody-server`, `event-processor` and `stellar-observer` services
+  are also implemented here.
 - __kotlin_reference_server__: Contains the anchor's reference server implementation in Kotlin.
 - __wallet_reference_server__: Contains the wallet's reference server implementation in Kotlin.
 - __service_runner__: Contains the service runner implementation that runs services, such as SEP, platform, payment
@@ -56,7 +58,19 @@ Kotlin reference server.
 docker-compose -f service-runner/src/main/resources/docker-compose.yaml up -d
 ```
 
+The [Stellar Demo Wallet](https://demo-wallet.stellar.org) can be used to interact with the Anchor Platform. To get
+started, create and fund a new account, then add a new asset with the following parameters.
+
+| Parameter          | Value                                                      |
+|--------------------|------------------------------------------------------------|
+| Asset Code         | `USDC`                                                     |
+| Anchor Home Domain | `localhost:8080`                                           |
+| Issuer Public Key  | `GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP` |
+
+Now you can deposit and withdraw USDC using the Stellar Demo Wallet.
+
 ## References
+
 [SEP-1](https://stellar.org/protocol/sep-6): Stellar Info File
 
 [SEP-6](https://stellar.org/protocol/sep-6): Deposit and Withdrawal API
