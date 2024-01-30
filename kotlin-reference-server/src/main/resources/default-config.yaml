@@ -44,7 +44,7 @@ event:
   # Enables the Kafka event processor.
   enabled: true
   # The Kafka boostrap server.
-  bootstrapServer: localhost:29092
+  bootstrapServer: kafka:29092
   # The AnchorEvent topic to subscribe to.
   topic: TRANSACTION
 
