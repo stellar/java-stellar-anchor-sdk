@@ -47,6 +47,15 @@ contribute to this project.
 - __essential-tests__: Contains the essential integration tests and end-2-end tests for the Anchor Platform.
 - __extended-tests__: Contains the extended integration tests and end-2-end tests for the Anchor Platform.
 
+## Quickstart
+
+Anchor Platform can be run locally using Docker Compose. This will start an instance of the Anchor Platform and the
+Kotlin reference server.
+
+```shell
+docker-compose -f service-runner/src/main/resources/docker-compose.yaml up -d
+```
+
 ## References
 [SEP-1](https://stellar.org/protocol/sep-6): Stellar Info File
 
