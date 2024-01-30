@@ -2,12 +2,12 @@ version: '2.4'
 services:
   platform:
     image: stellar/anchor-platform:edge
-    command: --sep-server
+    command: --sep-server --platform-server
     volumes:
       - ../config:/config
     ports:
-      - "8080:8080" # sep-server
-      - "8082:8082" # Java management server
+      - "8080:8080" # SEP server
+      - "8085:8085" # Platform server
 
   sep24-reference-ui:
     image: stellar/sep24-reference-ui
