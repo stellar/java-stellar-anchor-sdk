@@ -1,5 +1,9 @@
 package org.stellar.anchor.platform.integrationtest
 
+import com.google.gson.*
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
+import java.io.IOException
 import java.util.*
 import kotlin.test.assertFailsWith
 import org.junit.jupiter.api.Test
@@ -39,8 +43,11 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
 
   @Test
   fun testChallengeSerialization() {
-    val challenge = sep10Client.challenge()
-    Base64.getDecoder().decode(challenge.transaction)
+    val response = sep10Client.challengeJson()
+    val transactionStartIndex = response.indexOf("\"transaction\"") + 15
+    val transactionEndIndex = response.indexOf(",", transactionStartIndex) - 1
+    val transaction = response.substring(transactionStartIndex, transactionEndIndex)
+    Base64.getDecoder().decode(transaction)
   }
 
   @Test
@@ -61,5 +68,21 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
       exceptionClass = SepNotAuthorizedException::class,
       block = { sep10Client.validate(ValidationRequest.of(challenge.transaction)) },
     )
+  }
+
+  class RawStringTypeAdapter : TypeAdapter<String>() {
+    @Throws(IOException::class)
+    override fun write(out: JsonWriter, value: String?) {
+      if (value == null) {
+        out.nullValue()
+      } else {
+        out.jsonValue("\"$value\"")
+      }
+    }
+
+    @Throws(IOException::class)
+    override fun read(reader: JsonReader): String {
+      return reader.nextString()
+    }
   }
 }
