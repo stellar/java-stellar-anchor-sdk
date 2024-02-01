@@ -356,7 +356,7 @@ public class Sep24Service {
     }
 
     // Validate min amount
-    Long minAmount = asset.getWithdraw().getMinAmount();
+    Long minAmount = asset.getDeposit().getMinAmount();
     if (strAmount != null && minAmount != null) {
       if (decimal(strAmount).compareTo(decimal(minAmount)) < 0) {
         infoF("invalid amount {}", strAmount);
@@ -366,7 +366,7 @@ public class Sep24Service {
     }
 
     // Validate max amount
-    Long maxAmount = asset.getWithdraw().getMaxAmount();
+    Long maxAmount = asset.getDeposit().getMaxAmount();
     if (strAmount != null && maxAmount != null) {
       if (decimal(strAmount).compareTo(decimal(maxAmount)) > 0) {
         infoF("invalid amount {}", strAmount);
