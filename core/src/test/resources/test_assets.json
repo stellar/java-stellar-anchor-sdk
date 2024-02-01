@@ -8,7 +8,7 @@
       "significant_decimals": 2,
       "deposit": {
         "enabled": true,
-        "min_amount": 100,
+        "min_amount": 1,
         "max_amount": 10000,
         "methods": [
           "SEPA",

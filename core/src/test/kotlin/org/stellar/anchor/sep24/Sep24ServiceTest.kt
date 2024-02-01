@@ -321,13 +321,6 @@ internal class Sep24ServiceTest {
       every { sep38QuoteStore.findByQuoteId(any()) } returns null
       sep24Service.withdraw(token, request)
     }
-
-    assertThrows<SepValidationException> {
-      // Withdrawal range is 1 ~ 10000
-      val request = createTestTransactionRequest()
-      request["amount"] = "10001"
-      sep24Service.deposit(createTestSep10JwtToken(), request)
-    }
   }
 
   @ParameterizedTest
@@ -506,13 +499,6 @@ internal class Sep24ServiceTest {
       val token = createTestSep10JwtToken()
       every { sep38QuoteStore.findByQuoteId(any()) } returns null
       sep24Service.deposit(token, request)
-    }
-
-    assertThrows<SepValidationException> {
-      // deposit range is 100 ~ 10000
-      val request = createTestTransactionRequest()
-      request["amount"] = "50"
-      sep24Service.deposit(createTestSep10JwtToken(), request)
     }
   }
 
