@@ -34,6 +34,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_TOML
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
+import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN_PATTERN
 import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_SIGNING_SEED
@@ -111,7 +112,7 @@ internal class Sep10ServiceTest {
     every { sep10Config.webAuthDomain } returns TEST_WEB_AUTH_DOMAIN
     every { sep10Config.authTimeout } returns 900
     every { sep10Config.jwtTimeout } returns 900
-    every { sep10Config.homeDomains } returns listOf(TEST_HOME_DOMAIN)
+    every { sep10Config.homeDomains } returns listOf(TEST_HOME_DOMAIN, TEST_HOME_DOMAIN_PATTERN)
 
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
 
@@ -420,6 +421,22 @@ internal class Sep10ServiceTest {
     cr.homeDomain = "bad.homedomain.com"
 
     assertThrows<SepValidationException> { sep10Service.createChallenge(cr) }
+  }
+
+  @Test
+  @LockAndMockStatic([NetUtil::class])
+  fun `Test create challenge with wildcard matched home domain success`() {
+    every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(null)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
+    cr.homeDomain = "abc.def.wildcard.stellar.org"
+
+    sep10Service.createChallenge(cr)
   }
 
   @Test
