@@ -29,7 +29,6 @@ services:
       file: common/docker-compose.yaml
       service: reference-server
     depends_on:
-      - db
       - kafka
 
   sep24-reference-ui:
@@ -46,5 +45,3 @@ services:
     extends:
       file: common/docker-compose.yaml
       service: db
-
-

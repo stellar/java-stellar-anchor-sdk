@@ -39,6 +39,11 @@ class Sep10Client(
     return gson.fromJson(responseBody, ChallengeResponse::class.java)
   }
 
+  fun challengeJson(): String {
+    val url = String.format("%s?account=%s", this.endpoint, walletAccount)
+    return httpGet(url)!!
+  }
+
   private fun sign(
     challengeResponse: ChallengeResponse,
     signingKeys: Array<String>,
