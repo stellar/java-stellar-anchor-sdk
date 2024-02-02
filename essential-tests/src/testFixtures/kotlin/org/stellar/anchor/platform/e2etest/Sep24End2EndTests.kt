@@ -372,7 +372,7 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     @JvmStatic
     fun depositAssetsAndAmounts(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of(DEPOSIT_FUND_CLIENT_SECRET_1, USDC, "0.01"),
+        Arguments.of(DEPOSIT_FUND_CLIENT_SECRET_1, USDC, "1"),
         Arguments.of(DEPOSIT_FUND_CLIENT_SECRET_2, XLM, "0.0001")
       )
     }
@@ -387,7 +387,7 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
 
     @JvmStatic
     fun historyAssetsAndAmounts(): Stream<Arguments> {
-      return Stream.of(Arguments.of(CLIENT_WALLET_SECRET, USDC, "0.01"))
+      return Stream.of(Arguments.of(CLIENT_WALLET_SECRET, USDC, "1"))
     }
   }
 }
