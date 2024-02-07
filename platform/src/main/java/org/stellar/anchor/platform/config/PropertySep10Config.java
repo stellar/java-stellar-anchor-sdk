@@ -137,7 +137,9 @@ public class PropertySep10Config implements Sep10Config, Validator {
             "sep10-web-auth-domain-invalid",
             "The sep10.web_auth_domain does not have valid format.");
       }
-    } else if (homeDomains != null && homeDomains.size() > 1) {
+    } else if (homeDomains != null
+        && !homeDomains.isEmpty()
+        && (homeDomains.size() > 1 || homeDomains.get(0).contains("*"))) {
       errors.rejectValue(
           "webAuthDomain",
           "sep10-web-auth-domain-empty",

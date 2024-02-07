@@ -4,6 +4,7 @@ import static java.lang.String.*;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_CREATED;
 import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_VALIDATED;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
@@ -25,7 +26,6 @@ import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.*;
 import org.stellar.sdk.Sep10Challenge.ChallengeTransaction;
 import org.stellar.sdk.requests.ErrorResponse;
@@ -116,7 +116,7 @@ public class Sep10Service implements ISep10Service {
       throw new SepValidationException("Invalid challenge transaction.");
     }
 
-    if ((!sep10Config.getHomeDomains().contains(homeDomain))) {
+    if (!Sep10Helper.isDomainNameMatch(sep10Config.getHomeDomains(), homeDomain)) {
       throw new SepValidationException(format("Invalid home_domain. %s", homeDomain));
     }
 
@@ -128,7 +128,7 @@ public class Sep10Service implements ISep10Service {
       throws SepException {
     try {
       String clientSigningKey = null;
-      if (!StringHelper.isEmpty(request.getClientDomain())) {
+      if (!isEmpty(request.getClientDomain())) {
         debugF("Fetching SIGNING_KEY from client_domain: {}", request.getClientDomain());
         clientSigningKey = fetchSigningKeyFromClientDomain(request.getClientDomain());
         debugF("SIGNING_KEY from client_domain fetched: {}", clientSigningKey);
@@ -257,11 +257,15 @@ public class Sep10Service implements ISep10Service {
 
   void validateHomeDomain(ChallengeRequest request) throws SepValidationException {
     String homeDomain = request.getHomeDomain();
-    String defaultHomeDomain = sep10Config.getHomeDomains().get(0);
-    if (homeDomain == null) {
+    String defaultHomeDomain = Sep10Helper.getDefaultDomainName(sep10Config.getHomeDomains());
+
+    if (homeDomain == null && defaultHomeDomain == null) {
+      info("home_domain is required but not provided");
+      throw new SepValidationException("home_domain is required");
+    } else if (homeDomain == null && !isEmpty(defaultHomeDomain)) {
       debugF("home_domain is not specified. Will use the default: {}", defaultHomeDomain);
       request.setHomeDomain(defaultHomeDomain);
-    } else if (!sep10Config.getHomeDomains().contains(homeDomain)) {
+    } else if (!Sep10Helper.isDomainNameMatch(sep10Config.getHomeDomains(), homeDomain)) {
       infoF("Bad home_domain: {}", homeDomain);
       throw new SepValidationException(format("home_domain [%s] is not supported.", homeDomain));
     }
