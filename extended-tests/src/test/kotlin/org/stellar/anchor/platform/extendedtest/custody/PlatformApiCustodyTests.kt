@@ -442,7 +442,7 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS =
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 3",
-      "stellar_transaction_id": "51bcf1d3e1c3ed5a9a47a8ed781f41a39f7069d3a47737ae7b386e7f0b6a1fc9",
+      "stellar_transaction_id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
       "amount_in": {
         "amount": "1"
       }
@@ -588,18 +588,18 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "message": "test message 3",
       "stellar_transactions": [
         {
-          "id": "51bcf1d3e1c3ed5a9a47a8ed781f41a39f7069d3a47737ae7b386e7f0b6a1fc9",
+          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
-                "amount": "100.0000000",
+                "amount": "1.0000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B",
-              "destination_account": "GD5JCGP4AX7IASTMV3CDQIXGZ6EMZELQ7R6E5FA6Z3YGZ2WWDEXNWOF3"
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
             }
           ]
         }
@@ -640,18 +640,18 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "message": "test message 4",
       "stellar_transactions": [
         {
-          "id": "51bcf1d3e1c3ed5a9a47a8ed781f41a39f7069d3a47737ae7b386e7f0b6a1fc9",
+          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
-                "amount": "100.0000000",
+                "amount": "1.0000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B",
-              "destination_account": "GD5JCGP4AX7IASTMV3CDQIXGZ6EMZELQ7R6E5FA6Z3YGZ2WWDEXNWOF3"
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
             }
           ]
         }
@@ -717,18 +717,18 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       },
       "stellar_transactions": [
         {
-          "id": "51bcf1d3e1c3ed5a9a47a8ed781f41a39f7069d3a47737ae7b386e7f0b6a1fc9",
+          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
-                "amount": "100.0000000",
+                "amount": "1.0000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B",
-              "destination_account": "GD5JCGP4AX7IASTMV3CDQIXGZ6EMZELQ7R6E5FA6Z3YGZ2WWDEXNWOF3"
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
             }
           ]
         }
@@ -754,7 +754,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_REQUESTS
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 1",
-      "stellar_transaction_id": "51bcf1d3e1c3ed5a9a47a8ed781f41a39f7069d3a47737ae7b386e7f0b6a1fc9"
+      "stellar_transaction_id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2"
     }
   },
   {
@@ -828,18 +828,18 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       "message": "test message 1",
       "stellar_transactions": [
         {
-          "id": "51bcf1d3e1c3ed5a9a47a8ed781f41a39f7069d3a47737ae7b386e7f0b6a1fc9",
+          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
-                "amount": "100.0000000",
+                "amount": "1.0000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B",
-              "destination_account": "GD5JCGP4AX7IASTMV3CDQIXGZ6EMZELQ7R6E5FA6Z3YGZ2WWDEXNWOF3"
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
             }
           ]
         }
@@ -883,18 +883,18 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       "message": "test message 2",
       "stellar_transactions": [
         {
-          "id": "51bcf1d3e1c3ed5a9a47a8ed781f41a39f7069d3a47737ae7b386e7f0b6a1fc9",
+          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
-                "amount": "100.0000000",
+                "amount": "1.0000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B",
-              "destination_account": "GD5JCGP4AX7IASTMV3CDQIXGZ6EMZELQ7R6E5FA6Z3YGZ2WWDEXNWOF3"
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
             }
           ]
         }
@@ -963,18 +963,18 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       },
       "stellar_transactions": [
         {
-          "id": "51bcf1d3e1c3ed5a9a47a8ed781f41a39f7069d3a47737ae7b386e7f0b6a1fc9",
+          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
-                "amount": "100.0000000",
+                "amount": "1.0000000",
                 "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "payment_type": "payment",
-              "source_account": "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B",
-              "destination_account": "GD5JCGP4AX7IASTMV3CDQIXGZ6EMZELQ7R6E5FA6Z3YGZ2WWDEXNWOF3"
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
             }
           ]
         }
