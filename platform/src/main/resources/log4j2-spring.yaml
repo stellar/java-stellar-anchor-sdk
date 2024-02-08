@@ -53,12 +53,4 @@ Configutation:
       level: info
       AppenderRef:
         - ref: ${env:LOG_APPENDER:-console_appender}
-    Logger:
-      - name: org.stellar
-        level: debug
-      - name: org.apache
-        level: warn
-      - name: org.hibernate
-        level: warn
-      - name: com.zaxxer
-        level: warn
+
