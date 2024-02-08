@@ -15,11 +15,12 @@ public class SpringFrameworkConfigurator extends AbstractConfigurator
     PropertiesPropertySource pps = createPrefixedPropertySource("spring");
     pps.getSource()
         .forEach(
-            (String k, Object v) -> {
-              if (k.startsWith("logging.level")) {
+            (String cfgName, Object cfgValue) -> {
+              if (cfgName.startsWith("logging.level") && cfgValue instanceof String) {
                 LoggingSystem system =
                     LoggingSystem.get(SpringFrameworkConfigurator.class.getClassLoader());
-                system.setLogLevel(k.replace("logging.level.", ""), LogLevel.valueOf((String) v));
+                system.setLogLevel(
+                    cfgName.replace("logging.level.", ""), LogLevel.valueOf((String) cfgValue));
               }
             });
     applicationContext.getEnvironment().getPropertySources().addFirst(pps);
