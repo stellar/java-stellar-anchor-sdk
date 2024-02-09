@@ -99,30 +99,37 @@ public class ServiceRunner {
   }
 
   public static ConfigurableApplicationContext startSepServer(Map<String, String> env) {
+    info("Starting SEP server...");
     return new SepServer().start(env);
   }
 
   public static ConfigurableApplicationContext startPlatformServer(Map<String, String> env) {
+    info("Starting platform server...");
     return new PlatformServer().start(env);
   }
 
   public static ConfigurableApplicationContext startCustodyServer(Map<String, String> env) {
+    info("Starting custody server...");
     return new CustodyServer().start(env);
   }
 
   public static ConfigurableApplicationContext startStellarObserver(Map<String, String> env) {
+    info("Starting observer...");
     return new StellarObservingServer().start(env);
   }
 
   public static ConfigurableApplicationContext startEventProcessingServer(Map<String, String> env) {
+    info("Starting event processing server...");
     return new EventProcessingServer().start(env);
   }
 
   public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {
+    info("Starting Kotlin reference server...");
     ReferenceServerStartKt.start(envMap, wait);
   }
 
   public static void startWalletServer(Map<String, String> envMap, boolean wait) {
+    info("Starting wallet server...");
     WalletServerStartKt.start(envMap, wait);
   }
 
