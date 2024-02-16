@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.controller;
 
-import static org.stellar.anchor.util.Log.errorEx;
+import static org.stellar.anchor.util.Log.*;
 
 import javax.transaction.NotSupportedException;
 import org.springframework.http.HttpStatus;
@@ -18,14 +18,14 @@ public class GlobalControllerExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler({SepValidationException.class, BadRequestException.class})
   public SepExceptionResponse handleBadRequest(AnchorException ex) {
-    errorEx(ex);
+    info(ex.getMessage());
     return new SepExceptionResponse(ex.getMessage());
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public SepExceptionResponse handleMissingParams(MissingServletRequestParameterException ex) {
-    errorEx(ex);
+    info(ex.getMessage());
     String name = ex.getParameterName();
     return new SepExceptionResponse(String.format("The \"%s\" parameter is missing.", name));
   }
@@ -41,6 +41,7 @@ public class GlobalControllerExceptionHandler {
   @ExceptionHandler({SepNotAuthorizedException.class})
   public SepExceptionResponse handleAuthError(SepException ex) {
     errorEx(ex);
+
     return new SepExceptionResponse(ex.getMessage());
   }
 
