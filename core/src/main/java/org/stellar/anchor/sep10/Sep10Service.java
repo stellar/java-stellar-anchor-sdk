@@ -288,6 +288,8 @@ public class Sep10Service implements ISep10Service {
     Set<Sep10Challenge.Signer> signers = fetchSigners(account);
     // the signatures must be greater than the medium threshold of the account.
     int threshold = account.getThresholds().getMedThreshold();
+    Network network = new Network(appConfig.getStellarNetworkPassphrase());
+    String homeDomain = extractHomeDomainFromChallengeXdr(request.getTransaction(), network);
 
     infoF(
         "Verifying challenge threshold. server_account={}, client_domain={}, threshold={}, signers={}",
@@ -299,8 +301,8 @@ public class Sep10Service implements ISep10Service {
         .verifyChallengeTransactionThreshold(
             request.getTransaction(),
             serverAccountId,
-            new Network(appConfig.getStellarNetworkPassphrase()),
-            sep10Config.getHomeDomains().toArray(new String[0]),
+            network,
+            homeDomain,
             sep10Config.getWebAuthDomain(),
             threshold,
             signers);
@@ -348,13 +350,16 @@ public class Sep10Service implements ISep10Service {
             "There is more than one client signer on challenge transaction for an account that doesn't exist");
       }
 
+      Network network = new Network(appConfig.getStellarNetworkPassphrase());
+      String homeDomain = extractHomeDomainFromChallengeXdr(request.getTransaction(), network);
+
       debug("Calling Sep10Challenge.verifyChallengeTransactionSigners");
       Sep10ChallengeWrapper.instance()
           .verifyChallengeTransactionSigners(
               request.getTransaction(),
               serverAccountId,
-              new Network(appConfig.getStellarNetworkPassphrase()),
-              sep10Config.getHomeDomains().toArray(new String[0]),
+              network,
+              homeDomain,
               sep10Config.getWebAuthDomain(),
               signers);
 
@@ -392,6 +397,8 @@ public class Sep10Service implements ISep10Service {
     }
 
     String transaction = request.getTransaction();
+    Network network = new Network(appConfig.getStellarNetworkPassphrase());
+    String homeDomain = extractHomeDomainFromChallengeXdr(transaction, network);
 
     debug("Parse challenge string.");
     ChallengeTransaction challenge =
@@ -400,7 +407,7 @@ public class Sep10Service implements ISep10Service {
                 transaction,
                 serverAccountId,
                 new Network(appConfig.getStellarNetworkPassphrase()),
-                sep10Config.getHomeDomains().toArray(new String[0]),
+                homeDomain,
                 sep10Config.getWebAuthDomain());
 
     debugF(
@@ -429,6 +436,47 @@ public class Sep10Service implements ISep10Service {
             homeDomain);
     debug("jwtToken:", sep10Jwt);
     return jwtService.encode(sep10Jwt);
+  }
+
+  /**
+   * Extracts the home domain from a Stellar SEP-10 challenge transaction represented in XDR format.
+   *
+   * @param challengeXdr SEP-0010 transaction challenge transaction in base64.
+   * @param network The network to connect to for verifying and retrieving.
+   * @return The extracted home domain from the Manage Data operation within the SEP-10 challenge
+   *     transaction.
+   * @throws IOException If read XDR string fails, the exception will be thrown.
+   * @throws InvalidSep10ChallengeException If the SEP-0010 validation fails, the exception will be
+   *     thrown.
+   */
+  String extractHomeDomainFromChallengeXdr(String challengeXdr, Network network)
+      throws IOException, InvalidSep10ChallengeException {
+    AbstractTransaction parsed =
+        Transaction.fromEnvelopeXdr(AccountConverter.enableMuxed(), challengeXdr, network);
+    if (!(parsed instanceof Transaction)) {
+      throw new InvalidSep10ChallengeException("Transaction cannot be a fee bump transaction");
+    }
+
+    Transaction transaction = (Transaction) parsed;
+    if (transaction.getOperations().length < 1) {
+      throw new InvalidSep10ChallengeException(
+          "Transaction requires at least one ManageData operation.");
+    }
+
+    // verify that the first operation in the transaction is a Manage Data operation
+    Operation operation = transaction.getOperations()[0];
+    if (!(operation instanceof ManageDataOperation)) {
+      throw new InvalidSep10ChallengeException("Operation type should be ManageData.");
+    }
+
+    ManageDataOperation manageDataOperation = (ManageDataOperation) operation;
+    String homeDomain = manageDataOperation.getName().split(" ")[0];
+    if (!Sep10Helper.isDomainNameMatch(sep10Config.getHomeDomains(), homeDomain)) {
+      throw new InvalidSep10ChallengeException(
+          "The transaction's operation key name does not include one of the expected home domains.");
+    }
+
+    return homeDomain;
   }
 }
 
@@ -466,35 +514,35 @@ class Sep10ChallengeWrapper {
       String challengeXdr,
       String serverAccountId,
       Network network,
-      String[] domainNames,
+      String domainName,
       String webAuthDomain)
       throws InvalidSep10ChallengeException, IOException {
     return Sep10Challenge.readChallengeTransaction(
-        challengeXdr, serverAccountId, network, domainNames, webAuthDomain);
+        challengeXdr, serverAccountId, network, domainName, webAuthDomain);
   }
 
   public synchronized void verifyChallengeTransactionSigners(
       String challengeXdr,
       String serverAccountId,
       Network network,
-      String[] domainNames,
+      String domainName,
       String webAuthDomain,
       Set<String> signers)
       throws InvalidSep10ChallengeException, IOException {
     Sep10Challenge.verifyChallengeTransactionSigners(
-        challengeXdr, serverAccountId, network, domainNames, webAuthDomain, signers);
+        challengeXdr, serverAccountId, network, domainName, webAuthDomain, signers);
   }
 
   public synchronized void verifyChallengeTransactionThreshold(
       String challengeXdr,
       String serverAccountId,
       Network network,
-      String[] domainNames,
+      String domainName,
       String webAuthDomain,
       int threshold,
       Set<Sep10Challenge.Signer> signers)
       throws InvalidSep10ChallengeException, IOException {
     Sep10Challenge.verifyChallengeTransactionThreshold(
-        challengeXdr, serverAccountId, network, domainNames, webAuthDomain, threshold, signers);
+        challengeXdr, serverAccountId, network, domainName, webAuthDomain, threshold, signers);
   }
 }

@@ -410,6 +410,13 @@ internal class Sep10ServiceTest {
   }
 
   @Test
+  fun `Test validate challenge with bad home domain failure`() {
+    val vr = ValidationRequest()
+    vr.transaction = createTestChallenge("", "abc.badPattern.stellar.org", false)
+    assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+  }
+
+  @Test
   fun `Test request to create challenge with bad home domain failure`() {
     val cr =
       ChallengeRequest.builder()
