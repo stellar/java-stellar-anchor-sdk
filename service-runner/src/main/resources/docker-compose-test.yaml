@@ -15,3 +15,8 @@ services:
     extends:
       file: common/docker-compose.yaml
       service: sep24-reference-ui
+  reference-db:
+    hostname: reference-db
+    extends:
+      file: common/docker-compose.yaml
+      service: reference-db
