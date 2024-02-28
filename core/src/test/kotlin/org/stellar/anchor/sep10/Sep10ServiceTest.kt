@@ -658,22 +658,6 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `Test createChallenge() when isKnownCustodialAccountRequired is not enabled`() {
-    every { sep10Config.knownCustodialAccountList } returns
-      listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-    val cr =
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(null)
-        .build()
-
-    assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
-  }
-
-  @Test
   fun `test the challenge with existent account, multisig, and client domain`() {
     // 1 ------ Create Test Transaction
 

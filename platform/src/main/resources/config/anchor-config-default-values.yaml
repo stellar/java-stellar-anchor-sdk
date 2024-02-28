@@ -366,11 +366,6 @@ sep10:
   # Set the timeout in seconds of the authenticated JSON Web Token. An expired JWT will be rejected.
   # This is the timeout period after the client has authenticated.
   jwt_timeout: 86400
-  # Whether to require authenticating clients to be in the list of known custodial accounts.
-  #
-  # If the flag is set to true, the client must be one of the custodial clients defined in the clients section
-  # of this configuration file.
-  known_custodial_account_required: false
 
 ######################
 # SEP-12 Configuration
