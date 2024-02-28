@@ -283,7 +283,7 @@ public class Sep10Service implements ISep10Service {
 
   void validateChallengeRequest(
       ValidationRequest request, AccountResponse account, String clientDomain)
-      throws InvalidSep10ChallengeException, IOException {
+      throws InvalidSep10ChallengeException, IOException, SepValidationException {
     // fetch the signers from the transaction
     Set<Sep10Challenge.Signer> signers = fetchSigners(account);
     // the signatures must be greater than the medium threshold of the account.
@@ -318,7 +318,7 @@ public class Sep10Service implements ISep10Service {
 
   AccountResponse fetchAccount(
       ValidationRequest request, ChallengeTransaction challenge, String clientDomain)
-      throws InvalidSep10ChallengeException, IOException {
+      throws InvalidSep10ChallengeException, IOException, SepValidationException {
     // Check the client's account
     AccountResponse account;
     try {
@@ -441,38 +441,36 @@ public class Sep10Service implements ISep10Service {
   /**
    * Extracts the home domain from a Stellar SEP-10 challenge transaction represented in XDR format.
    *
-   * @param challengeXdr SEP-0010 transaction challenge transaction in base64.
+   * @param challengeXdr SEP-10 transaction challenge transaction in base64.
    * @param network The network to connect to for verifying and retrieving.
    * @return The extracted home domain from the Manage Data operation within the SEP-10 challenge
    *     transaction.
    * @throws IOException If read XDR string fails, the exception will be thrown.
-   * @throws InvalidSep10ChallengeException If the SEP-0010 validation fails, the exception will be
-   *     thrown.
+   * @throws SepValidationException If the transaction is not a valid SEP-10 challenge transaction.
    */
   String extractHomeDomainFromChallengeXdr(String challengeXdr, Network network)
-      throws IOException, InvalidSep10ChallengeException {
+      throws IOException, SepValidationException {
     AbstractTransaction parsed =
         Transaction.fromEnvelopeXdr(AccountConverter.enableMuxed(), challengeXdr, network);
     if (!(parsed instanceof Transaction)) {
-      throw new InvalidSep10ChallengeException("Transaction cannot be a fee bump transaction");
+      throw new SepValidationException("Transaction cannot be a fee bump transaction");
     }
 
     Transaction transaction = (Transaction) parsed;
     if (transaction.getOperations().length < 1) {
-      throw new InvalidSep10ChallengeException(
-          "Transaction requires at least one ManageData operation.");
+      throw new SepValidationException("Transaction requires at least one ManageData operation.");
     }
 
     // verify that the first operation in the transaction is a Manage Data operation
     Operation operation = transaction.getOperations()[0];
     if (!(operation instanceof ManageDataOperation)) {
-      throw new InvalidSep10ChallengeException("Operation type should be ManageData.");
+      throw new SepValidationException("Operation type should be ManageData.");
     }
 
     ManageDataOperation manageDataOperation = (ManageDataOperation) operation;
     String homeDomain = manageDataOperation.getName().split(" ")[0];
     if (!Sep10Helper.isDomainNameMatch(sep10Config.getHomeDomains(), homeDomain)) {
-      throw new InvalidSep10ChallengeException(
+      throw new SepValidationException(
           "The transaction's operation key name does not include one of the expected home domains.");
     }
 
