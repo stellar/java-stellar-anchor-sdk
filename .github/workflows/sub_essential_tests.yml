@@ -76,8 +76,6 @@ jobs:
         uses: mydea/action-wait-for-api@v1
         with:
           url: "http://localhost:8080/.well-known/stellar.toml"
-          expected-status: "200"
-          timeout: "300"
           interval: "1"
 
       #
