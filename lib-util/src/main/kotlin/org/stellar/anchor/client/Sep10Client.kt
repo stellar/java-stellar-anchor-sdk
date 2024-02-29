@@ -24,17 +24,18 @@ class Sep10Client(
     signingSeed: String
   ) : this(endpoint, serverAccount, walletAccount, arrayOf(signingSeed))
 
-  fun auth(): String {
+  fun auth(homeDomain: String): String {
     // Call to get challenge
-    val challenge = challenge()
+    val challenge = challenge(homeDomain)
     // Sign challenge
-    val txn = sign(challenge, signingKeys, serverAccount)
+    val txn = sign(challenge, signingKeys, serverAccount, homeDomain)
     // Get token from challenge
     return validate(ValidationRequest.of(txn))!!.token
   }
 
-  fun challenge(): ChallengeResponse {
-    val url = String.format("%s?account=%s", this.endpoint, walletAccount)
+  fun challenge(homeDomain: String? = ""): ChallengeResponse {
+    val url =
+      String.format("%s?account=%s&home_domain=%s", this.endpoint, walletAccount, homeDomain)
     val responseBody = httpGet(url)
     return gson.fromJson(responseBody, ChallengeResponse::class.java)
   }
@@ -47,7 +48,8 @@ class Sep10Client(
   private fun sign(
     challengeResponse: ChallengeResponse,
     signingKeys: Array<String>,
-    serverAccount: String
+    serverAccount: String,
+    homeDomain: String,
   ): String {
     val url = URL(endpoint)
     val webAuthDomain = url.authority
@@ -56,7 +58,7 @@ class Sep10Client(
         challengeResponse.transaction,
         serverAccount,
         Network(challengeResponse.networkPassphrase),
-        webAuthDomain, // TODO: home domain may be different than WEB_AUTH_DOMAIN
+        homeDomain,
         webAuthDomain
       )
     for (signingKey in signingKeys) {

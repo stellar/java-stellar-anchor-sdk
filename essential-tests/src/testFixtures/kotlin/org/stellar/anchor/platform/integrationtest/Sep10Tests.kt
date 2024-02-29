@@ -7,6 +7,7 @@ import java.io.IOException
 import java.util.*
 import kotlin.test.assertFailsWith
 import org.junit.jupiter.api.Test
+import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.client.Sep10Client
@@ -15,6 +16,7 @@ import org.stellar.anchor.platform.*
 class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
   lateinit var sep10Client: Sep10Client
   lateinit var sep10ClientMultiSig: Sep10Client
+  lateinit var webAuthDomain: String
 
   init {
     if (!::sep10Client.isInitialized) {
@@ -39,6 +41,7 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
           ),
         )
     }
+    webAuthDomain = toml.getString("WEB_AUTH_ENDPOINT").split("/")[2]
   }
 
   @Test
@@ -52,12 +55,25 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
 
   @Test
   fun testAuth() {
-    sep10Client.auth()
+    sep10Client.auth(webAuthDomain)
+  }
+
+  @Test
+  fun testAuthWithWildcardDomain() {
+    sep10Client.auth("test.stellar.org")
+  }
+
+  @Test
+  fun testAuthWithWildcardDomainFail() {
+    assertFailsWith(
+      exceptionClass = SepException::class,
+      block = { sep10Client.auth("bad.domain.org") },
+    )
   }
 
   @Test
   fun testMultiSig() {
-    sep10ClientMultiSig.auth()
+    sep10ClientMultiSig.auth(webAuthDomain)
   }
 
   @Test
