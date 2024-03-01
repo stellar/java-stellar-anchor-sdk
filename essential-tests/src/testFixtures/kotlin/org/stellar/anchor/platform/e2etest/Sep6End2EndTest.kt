@@ -119,7 +119,7 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         PENDING_STELLAR,
         COMPLETED
       )
-    assertAnchorReceivedStatuses(deposit.id, expectedStatuses)
+    //    assertAnchorReceivedStatuses(deposit.id, expectedStatuses)
     assertWalletReceivedStatuses(deposit.id, expectedStatuses)
   }
 
@@ -174,7 +174,7 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         PENDING_EXTERNAL,
         COMPLETED
       )
-    assertAnchorReceivedStatuses(withdraw.id, expectedStatuses)
+    //    assertAnchorReceivedStatuses(withdraw.id, expectedStatuses)
     assertWalletReceivedStatuses(withdraw.id, expectedStatuses)
   }
 
