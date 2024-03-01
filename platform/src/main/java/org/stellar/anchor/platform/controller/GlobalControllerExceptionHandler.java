@@ -40,15 +40,14 @@ public class GlobalControllerExceptionHandler {
   @ResponseStatus(HttpStatus.FORBIDDEN)
   @ExceptionHandler({SepNotAuthorizedException.class})
   public SepExceptionResponse handleAuthError(SepException ex) {
-    errorEx(ex);
-
+    info(ex.getMessage());
     return new SepExceptionResponse(ex.getMessage());
   }
 
   @ExceptionHandler({SepNotFoundException.class, NotFoundException.class})
   @ResponseStatus(value = HttpStatus.NOT_FOUND)
   SepExceptionResponse handleNotFound(AnchorException ex) {
-    errorEx(ex);
+    info(ex.getMessage());
     return new SepExceptionResponse(ex.getMessage());
   }
 
