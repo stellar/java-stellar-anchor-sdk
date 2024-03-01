@@ -33,7 +33,7 @@ public class GlobalControllerExceptionHandler {
   @ExceptionHandler(HttpMessageNotReadableException.class)
   @ResponseStatus(value = HttpStatus.BAD_REQUEST)
   public SepExceptionResponse handleRandomException(HttpMessageNotReadableException ex) {
-    errorEx(ex);
+    info(ex.getMessage());
     return new SepExceptionResponse("Your request body is wrong in some way.");
   }
 
@@ -54,7 +54,7 @@ public class GlobalControllerExceptionHandler {
   @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
   @ExceptionHandler({NotSupportedException.class})
   public SepExceptionResponse handleNotImplementedError(Exception ex) {
-    errorEx(ex);
+    info(ex.getMessage());
     return new SepExceptionResponse(ex.getMessage());
   }
 
