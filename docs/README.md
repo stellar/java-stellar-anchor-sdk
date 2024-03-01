@@ -1,7 +1,7 @@
 [![License](https://badgen.net/badge/license/Apache%202/blue?icon=github&label=License)](https://github.com/stellar/java-stellar-anchor-sdk/blob/develop/LICENSE)
 [![GitHub Version](https://badgen.net/github/release/stellar/java-stellar-anchor-sdk?icon=github&label=Latest%20release)](https://github.com/stellar/java-stellar-anchor-sdk/releases)
-[![Docker](https://badgen.net/badge/Latest%20Release/v2.5.2/blue?icon=docker)](https://hub.docker.com/r/stellar/anchor-platform/tags?page=1&name=2.5.1)
-![Develop Branch](https://github.com/stellar/java-stellar-anchor-sdk/actions/workflows/wk_push_to_develop.yml/badge.svg?branch=develop)
+[![Docker](https://badgen.net/badge/Latest%20Release/v2.6.0/blue?icon=docker)](https://hub.docker.com/r/stellar/anchor-platform/tags?page=1&name=2.5.1)
+![Develop Branch](https://github.com/stellar/java-stellar-anchor-sdk/actions/workflows/on_push_to_develop.yml/badge.svg?branch=develop)
 
 <div style="text-align: center">
 <img alt="Stellar" src="https://github.com/stellar/.github/raw/master/stellar-logo.png" width="558" />
