@@ -4,7 +4,6 @@ import java.time.Instant
 import java.util.*
 import kotlinx.coroutines.runBlocking
 import org.stellar.anchor.api.callback.GetCustomerRequest
-import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.*
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind
@@ -27,7 +26,7 @@ class Sep6EventProcessor(
   /** Map of transaction ID to Stellar transaction ID. */
   private val onchainPayments: MutableMap<String, String> = mutableMapOf(),
   /** Map of transaction ID to external transaction ID. */
-  private val offchainPayments: MutableMap<String, String> = mutableMapOf()
+  private val offchainPayments: MutableMap<String, String> = mutableMapOf(),
 ) : SepAnchorEventProcessor {
   companion object {
     val requiredKyc =
@@ -37,23 +36,23 @@ class Sep6EventProcessor(
         "id_country_code",
         "id_issue_date",
         "id_expiration_date",
-        "id_number"
+        "id_number",
       )
     val depositRequiredKyc = listOf("address")
     val withdrawRequiredKyc =
       listOf("bank_account_number", "bank_account_type", "bank_number", "bank_branch_number")
   }
 
-  override fun onQuoteCreated(event: AnchorEvent) {
+  override suspend fun onQuoteCreated(event: SendEventRequest) {
     TODO("Not yet implemented")
   }
 
-  override fun onTransactionCreated(event: AnchorEvent) {
-    when (val kind = event.transaction.kind) {
+  override suspend fun onTransactionCreated(event: SendEventRequest) {
+    when (val kind = event.payload.transaction!!.kind) {
       Kind.DEPOSIT,
       Kind.WITHDRAWAL -> {
         requestKyc(event)
-        requestCustomerFunds(event.transaction)
+        requestCustomerFunds(event.payload.transaction)
       }
       else -> {
         log.warn("Received transaction created event with unsupported kind: $kind")
@@ -61,12 +60,12 @@ class Sep6EventProcessor(
     }
   }
 
-  override fun onTransactionError(event: AnchorEvent) {
+  override suspend fun onTransactionError(event: SendEventRequest) {
     log.warn("Received transaction error event: $event")
   }
 
-  override fun onTransactionStatusChanged(event: AnchorEvent) {
-    when (val kind = event.transaction.kind) {
+  override suspend fun onTransactionStatusChanged(event: SendEventRequest) {
+    when (val kind = event.payload.transaction!!.kind) {
       Kind.DEPOSIT -> onDepositTransactionStatusChanged(event)
       Kind.WITHDRAWAL -> onWithdrawTransactionStatusChanged(event)
       else -> {
@@ -75,8 +74,8 @@ class Sep6EventProcessor(
     }
   }
 
-  private fun onDepositTransactionStatusChanged(event: AnchorEvent) {
-    val transaction = event.transaction
+  private suspend fun onDepositTransactionStatusChanged(event: SendEventRequest) {
+    val transaction = event.payload.transaction!!
     when (val status = transaction.status) {
       PENDING_ANCHOR -> {
         val customer = transaction.customers.sender
@@ -84,62 +83,56 @@ class Sep6EventProcessor(
           requestKyc(event)
           return
         }
-        runBlocking {
-          val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
-          lateinit var stellarTxnId: String
-          if (config.appSettings.custodyEnabled) {
-            sepHelper.rpcAction(
-              RpcMethod.DO_STELLAR_PAYMENT.toString(),
-              DoStellarPaymentRequest(transactionId = transaction.id)
-            )
-          } else {
-            transactionWithRetry {
-              stellarTxnId =
-                submitStellarTransaction(
-                  keypair.accountId,
-                  transaction.destinationAccount,
-                  Asset.create(transaction.amountExpected.asset.toAssetId()),
-                  // If no amount was specified at transaction initialization, assume the user
-                  // transferred 1 USD to the Anchor's bank account
-                  if (transaction.amountExpected.amount.equals("0")) {
-                    "1"
-                  } else {
-                    transaction.amountExpected.amount
-                  }
-                )
-            }
-            onchainPayments[transaction.id] = stellarTxnId
-            patchTransaction(
-              PlatformTransactionData.builder()
-                .id(transaction.id)
-                .status(PENDING_STELLAR)
-                .updatedAt(Instant.now())
-                .build()
-            )
+        val keypair = KeyPair.fromSecretSeed(config.appSettings.secret)
+        lateinit var stellarTxnId: String
+        if (config.appSettings.custodyEnabled) {
+          sepHelper.rpcAction(
+            RpcMethod.DO_STELLAR_PAYMENT.toString(),
+            DoStellarPaymentRequest(transactionId = transaction.id),
+          )
+        } else {
+          transactionWithRetry {
+            stellarTxnId =
+              submitStellarTransaction(
+                keypair.accountId,
+                transaction.destinationAccount,
+                Asset.create(transaction.amountExpected.asset.toAssetId()),
+                // If no amount was specified at transaction initialization, assume the user
+                // transferred 1 USD to the Anchor's bank account
+                if (transaction.amountExpected.amount.equals("0")) {
+                  "1"
+                } else {
+                  transaction.amountExpected.amount
+                },
+              )
           }
+          onchainPayments[transaction.id] = stellarTxnId
+          patchTransaction(
+            PlatformTransactionData.builder()
+              .id(transaction.id)
+              .status(PENDING_STELLAR)
+              .updatedAt(Instant.now())
+              .build()
+          )
         }
       }
       PENDING_USR_TRANSFER_START ->
-        runBlocking {
-          sepHelper.rpcAction(
-            RpcMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED.toString(),
-            NotifyOffchainFundsReceivedRequest(
-              transactionId = transaction.id,
-              message = "Funds received from user",
-            )
-          )
-        }
+        sepHelper.rpcAction(
+          RpcMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED.toString(),
+          NotifyOffchainFundsReceivedRequest(
+            transactionId = transaction.id,
+            message = "Funds received from user",
+          ),
+        )
       PENDING_STELLAR ->
-        runBlocking {
-          sepHelper.rpcAction(
-            RpcMethod.NOTIFY_ONCHAIN_FUNDS_SENT.toString(),
-            NotifyOnchainFundsSentRequest(
-              transactionId = transaction.id,
-              message = "Funds sent to user",
-              stellarTransactionId = onchainPayments[transaction.id]!!
-            )
-          )
-        }
+        sepHelper.rpcAction(
+          RpcMethod.NOTIFY_ONCHAIN_FUNDS_SENT.toString(),
+          NotifyOnchainFundsSentRequest(
+            transactionId = transaction.id,
+            message = "Funds sent to user",
+            stellarTransactionId = onchainPayments[transaction.id]!!,
+          ),
+        )
       COMPLETED -> {
         log.info("Transaction ${transaction.id} completed")
       }
@@ -149,8 +142,8 @@ class Sep6EventProcessor(
     }
   }
 
-  private fun onWithdrawTransactionStatusChanged(event: AnchorEvent) {
-    val transaction = event.transaction
+  private suspend fun onWithdrawTransactionStatusChanged(event: SendEventRequest) {
+    val transaction = event.payload.transaction!!
     when (val status = transaction.status) {
       PENDING_ANCHOR -> {
         val customer = transaction.customers.sender
@@ -158,40 +151,38 @@ class Sep6EventProcessor(
           requestKyc(event)
           return
         }
-        runBlocking {
-          if (offchainPayments[transaction.id] == null && transaction.transferReceivedAt != null) {
-            // If the amount was not specified at transaction initialization, set the
-            // amountOut and amountFee fields after receiving the onchain deposit.
-            if (transaction.amountOut.amount.equals("0")) {
-              sepHelper.rpcAction(
-                RpcMethod.NOTIFY_AMOUNTS_UPDATED.toString(),
-                NotifyAmountsUpdatedRequest(
-                  transactionId = transaction.id,
-                  amountOut = AmountRequest(amount = transaction.amountIn.amount),
-                  amountFee = AmountRequest(amount = "0")
-                )
-              )
-            }
-            val externalTxnId = UUID.randomUUID()
-            offchainPayments[transaction.id] = externalTxnId.toString()
+        if (offchainPayments[transaction.id] == null && transaction.transferReceivedAt != null) {
+          // If the amount was not specified at transaction initialization, set the
+          // amountOut and amountFee fields after receiving the onchain deposit.
+          if (transaction.amountOut.amount.equals("0")) {
             sepHelper.rpcAction(
-              RpcMethod.NOTIFY_OFFCHAIN_FUNDS_PENDING.toString(),
-              NotifyOffchainFundsPendingRequest(
+              RpcMethod.NOTIFY_AMOUNTS_UPDATED.toString(),
+              NotifyAmountsUpdatedRequest(
                 transactionId = transaction.id,
-                message = "Funds sent to user",
-                externalTransactionId = externalTxnId.toString()
-              )
-            )
-          } else if (transaction.transferReceivedAt != null) {
-            sepHelper.rpcAction(
-              RpcMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE.toString(),
-              NotifyOffchainFundsAvailableRequest(
-                transactionId = transaction.id,
-                message = "Funds available for withdrawal",
-                externalTransactionId = offchainPayments[transaction.id]!!
-              )
+                amountOut = AmountRequest(amount = transaction.amountIn.amount),
+                amountFee = AmountRequest(amount = "0"),
+              ),
             )
           }
+          val externalTxnId = UUID.randomUUID()
+          offchainPayments[transaction.id] = externalTxnId.toString()
+          sepHelper.rpcAction(
+            RpcMethod.NOTIFY_OFFCHAIN_FUNDS_PENDING.toString(),
+            NotifyOffchainFundsPendingRequest(
+              transactionId = transaction.id,
+              message = "Funds sent to user",
+              externalTransactionId = externalTxnId.toString(),
+            ),
+          )
+        } else if (transaction.transferReceivedAt != null) {
+          sepHelper.rpcAction(
+            RpcMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE.toString(),
+            NotifyOffchainFundsAvailableRequest(
+              transactionId = transaction.id,
+              message = "Funds available for withdrawal",
+              externalTransactionId = offchainPayments[transaction.id]!!,
+            ),
+          )
         }
       }
       PENDING_EXTERNAL ->
@@ -201,7 +192,7 @@ class Sep6EventProcessor(
             NotifyOffchainFundsSentRequest(
               transactionId = transaction.id,
               message = "Funds sent to user",
-            )
+            ),
           )
         }
       COMPLETED -> {
@@ -213,19 +204,17 @@ class Sep6EventProcessor(
     }
   }
 
-  override fun onCustomerUpdated(event: AnchorEvent) {
-    runBlocking {
-        platformClient
-          .getTransactions(
-            GetTransactionsRequest.builder()
-              .sep(TransactionsSeps.SEP_6)
-              .orderBy(TransactionsOrderBy.CREATED_AT)
-              .order(TransactionsOrder.ASC)
-              .statuses(listOf(PENDING_CUSTOMER_INFO_UPDATE))
-              .build()
-          )
-          .records
-      }
+  override suspend fun onCustomerUpdated(event: SendEventRequest) {
+    platformClient
+      .getTransactions(
+        GetTransactionsRequest.builder()
+          .sep(TransactionsSeps.SEP_6)
+          .orderBy(TransactionsOrderBy.CREATED_AT)
+          .order(TransactionsOrder.ASC)
+          .statuses(listOf(PENDING_CUSTOMER_INFO_UPDATE))
+          .build()
+      )
+      .records
       .forEach { requestCustomerFunds(it) }
   }
 
@@ -252,16 +241,16 @@ class Sep6EventProcessor(
                   amountIn =
                     AmountAssetRequest(
                       asset = "iso4217:USD",
-                      amount = transaction.amountExpected.amount
+                      amount = transaction.amountExpected.amount,
                     ),
                   amountOut =
                     AmountAssetRequest(
                       asset = transaction.amountExpected.asset,
-                      amount = transaction.amountExpected.amount
+                      amount = transaction.amountExpected.amount,
                     ),
                   amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
-                  instructions = instructions
-                )
+                  instructions = instructions,
+                ),
               )
             } else {
               sepHelper.rpcAction(
@@ -273,8 +262,8 @@ class Sep6EventProcessor(
                   amountOut =
                     AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0"),
                   amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
-                  instructions = instructions
-                )
+                  instructions = instructions,
+                ),
               )
             }
           }
@@ -293,16 +282,16 @@ class Sep6EventProcessor(
                   amountIn =
                     AmountAssetRequest(
                       asset = transaction.amountExpected.asset,
-                      amount = transaction.amountExpected.amount
+                      amount = transaction.amountExpected.amount,
                     ),
                   amountOut =
                     AmountAssetRequest(
                       asset = "iso4217:USD",
-                      amount = transaction.amountExpected.amount
+                      amount = transaction.amountExpected.amount,
                     ),
                   amountFee =
-                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0")
-                )
+                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0"),
+                ),
               )
             } else {
               sepHelper.rpcAction(
@@ -312,8 +301,8 @@ class Sep6EventProcessor(
                   message = "Please deposit to the following address",
                   amountIn = AmountAssetRequest(transaction.amountExpected.asset, "0"),
                   amountOut = AmountAssetRequest("iso4217:USD", "0"),
-                  amountFee = AmountAssetRequest(transaction.amountExpected.asset, "0")
-                )
+                  amountFee = AmountAssetRequest(transaction.amountExpected.asset, "0"),
+                ),
               )
             }
           }
@@ -340,19 +329,19 @@ class Sep6EventProcessor(
       .filter { !providedFields.contains(it) }
   }
 
-  private fun requestKyc(event: AnchorEvent) {
-    val kind = event.transaction.kind
-    val customer = event.transaction.customers.sender
+  private fun requestKyc(event: SendEventRequest) {
+    val kind = event.payload.transaction!!.kind
+    val customer = event.payload.transaction.customers.sender
     val missingFields = verifyKyc(customer.account, customer.memo, kind)
     runBlocking {
       if (missingFields.isNotEmpty()) {
         sepHelper.rpcAction(
           RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE.toString(),
           RequestCustomerInfoUpdateHandler(
-            transactionId = event.transaction.id,
+            transactionId = event.payload.transaction.id,
             message = "Please update your info",
-            requiredCustomerInfoUpdates = missingFields
-          )
+            requiredCustomerInfoUpdates = missingFields,
+          ),
         )
       }
     }
@@ -371,7 +360,7 @@ class Sep6EventProcessor(
     source: String,
     destination: String,
     asset: Asset,
-    amount: String
+    amount: String,
   ): String {
     // TODO: use Kotlin wallet SDK
     val account = server.accounts().account(source)

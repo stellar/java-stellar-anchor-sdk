@@ -1,34 +1,36 @@
 package org.stellar.reference.event.processor
 
 import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.platform.PlatformTransactionData
+import org.stellar.reference.data.SendEventRequest
 import org.stellar.reference.log
 
 class AnchorEventProcessor(
   private val sep6EventProcessor: Sep6EventProcessor,
-  private val noOpEventProcessor: NoOpEventProcessor
+  private val noOpEventProcessor: NoOpEventProcessor,
 ) {
-  fun handleEvent(event: AnchorEvent) {
+  suspend fun handleEvent(event: SendEventRequest) {
     val processor = getProcessor(event)
     try {
       when (event.type) {
-        AnchorEvent.Type.TRANSACTION_CREATED -> {
+        AnchorEvent.Type.TRANSACTION_CREATED.type -> {
           log.info("Received transaction created event")
           processor.onTransactionCreated(event)
         }
-        AnchorEvent.Type.TRANSACTION_STATUS_CHANGED -> {
+        AnchorEvent.Type.TRANSACTION_STATUS_CHANGED.type -> {
           log.info("Received transaction status changed event")
           processor.onTransactionStatusChanged(event)
         }
-        AnchorEvent.Type.TRANSACTION_ERROR -> {
+        AnchorEvent.Type.TRANSACTION_ERROR.type -> {
           log.info("Received transaction error event")
           processor.onTransactionError(event)
         }
-        AnchorEvent.Type.CUSTOMER_UPDATED -> {
+        AnchorEvent.Type.CUSTOMER_UPDATED.type -> {
           log.info("Received customer updated event")
           // Only SEP-6 listens to this event
           sep6EventProcessor.onCustomerUpdated(event)
         }
-        AnchorEvent.Type.QUOTE_CREATED -> {
+        AnchorEvent.Type.QUOTE_CREATED.type -> {
           log.info("Received quote created event")
           processor.onQuoteCreated(event)
         }
@@ -43,9 +45,9 @@ class AnchorEventProcessor(
     }
   }
 
-  private fun getProcessor(event: AnchorEvent): SepAnchorEventProcessor =
-    when (event.sep) {
-      "6" -> sep6EventProcessor
+  private fun getProcessor(event: SendEventRequest): SepAnchorEventProcessor =
+    when (event.payload.transaction?.sep) {
+      PlatformTransactionData.Sep.SEP_6 -> sep6EventProcessor
       else -> noOpEventProcessor
     }
 }

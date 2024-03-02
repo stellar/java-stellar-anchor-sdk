@@ -8,8 +8,7 @@ data class LocationConfig(val ktReferenceServerConfig: String)
 data class Config(
   @ConfigAlias("app") val appSettings: AppSettings,
   @ConfigAlias("auth") val authSettings: AuthSettings,
-  @ConfigAlias("event") val eventSettings: EventSettings,
-  val sep24: Sep24
+  val sep24: Sep24,
 )
 
 data class Sep24(val secret: String, val interactiveJwtKey: String) {
@@ -28,14 +27,14 @@ data class AppSettings(
   val custodyEnabled: Boolean,
   val rpcEnabled: Boolean,
   val enableTest: Boolean,
-  val secret: String
+  val secret: String,
 )
 
 data class AuthSettings(
   val type: Type,
   val platformToAnchorSecret: String,
   val anchorToPlatformSecret: String,
-  val expirationMilliseconds: Long
+  val expirationMilliseconds: Long,
 ) {
   enum class Type {
     NONE,
@@ -43,5 +42,3 @@ data class AuthSettings(
     JWT
   }
 }
-
-data class EventSettings(val enabled: Boolean, val bootstrapServer: String, val topic: String)
