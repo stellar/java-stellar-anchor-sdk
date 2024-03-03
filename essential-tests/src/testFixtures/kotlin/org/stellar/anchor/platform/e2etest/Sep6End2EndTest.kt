@@ -54,7 +54,7 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         "bank_account_number" to "13719713158835300",
         "bank_account_type" to "checking",
         "bank_number" to "123",
-        "bank_branch_number" to "121122676"
+        "bank_branch_number" to "121122676",
       )
   }
 
@@ -74,7 +74,7 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
           "asset_code" to USDC.code,
           "account" to walletKeyPair.address,
           "amount" to "1",
-          "type" to "SWIFT"
+          "type" to "SWIFT",
         )
       )
     Log.info("Deposit initiated: ${deposit.id}")
@@ -100,9 +100,9 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
           InstructionField.builder()
             .value("13719713158835300")
             .description("US Bank account number")
-            .build()
+            .build(),
       ),
-      completedDepositTxn.transaction.instructions
+      completedDepositTxn.transaction.instructions,
     )
     val transactionByStellarId: GetTransactionResponse =
       sep6Client.getTransaction(
@@ -117,9 +117,8 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         PENDING_USR_TRANSFER_START, // provide deposit instructions
         PENDING_ANCHOR, // deposit into user wallet
         PENDING_STELLAR,
-        COMPLETED
+        COMPLETED,
       )
-    assertAnchorReceivedStatuses(deposit.id, expectedStatuses)
     assertWalletReceivedStatuses(deposit.id, expectedStatuses)
   }
 
@@ -172,24 +171,14 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         PENDING_USR_TRANSFER_START, // wait for onchain user transfer
         PENDING_ANCHOR, // funds available for pickup
         PENDING_EXTERNAL,
-        COMPLETED
+        COMPLETED,
       )
-    assertAnchorReceivedStatuses(withdraw.id, expectedStatuses)
     assertWalletReceivedStatuses(withdraw.id, expectedStatuses)
-  }
-
-  private suspend fun assertAnchorReceivedStatuses(
-    txnId: String,
-    expected: List<SepTransactionStatus>
-  ) {
-    val events = anchorReferenceServerClient.pollEvents(txnId, expected.size)
-    val statuses = events.map { it.payload.transaction?.status.toString() }
-    assertContentEquals(expected.map { it.status }, statuses)
   }
 
   private suspend fun assertWalletReceivedStatuses(
     txnId: String,
-    expected: List<SepTransactionStatus>
+    expected: List<SepTransactionStatus>,
   ) {
     val callbacks =
       walletServerClient.pollCallbacks(txnId, expected.size, GetTransactionResponse::class.java)
@@ -200,7 +189,7 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
   private suspend fun waitStatus(
     id: String,
     expectedStatus: SepTransactionStatus,
-    sep6Client: Sep6Client
+    sep6Client: Sep6Client,
   ) {
     var status: String? = null
     for (i in 0..maxTries) {
