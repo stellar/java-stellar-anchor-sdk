@@ -1,4 +1,5 @@
-FROM gradle:7.6.0-jdk11-alpine AS build
+## TODO: this should use alpine when the platform is not Apple Silicon
+FROM gradle:7.6.4-jdk11 AS build
 WORKDIR /code
 COPY --chown=gradle:gradle . .
 
