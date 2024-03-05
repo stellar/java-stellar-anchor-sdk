@@ -1,16 +1,19 @@
 package org.stellar.anchor.platform.integrationtest
 
+import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse
 import org.stellar.anchor.api.sep.sep12.Sep12Status
-import org.stellar.anchor.platform.AbstractIntegrationTests
-import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.platform.printRequest
-import org.stellar.anchor.platform.printResponse
+import org.stellar.anchor.platform.*
 import org.stellar.sdk.KeyPair
 import org.stellar.walletsdk.anchor.auth
 import org.stellar.walletsdk.horizon.SigningKeyPair
@@ -64,6 +67,102 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
 
     val ex: ClientRequestException = assertThrows {
       anchor.sep12(token).get(pr.id, type = "sep31-receiver")
+    }
+  }
+
+  @Test
+  fun `test multipart put`() {
+    val httpClient = HttpClient()
+    runBlocking {
+      val putResponse =
+        httpClient.put("${config.env["anchor.domain"]!!}/sep12/customer") {
+          headers { bearerAuth(token.token) }
+          contentType(ContentType.MultiPart.FormData)
+          setBody(
+            MultiPartFormDataContent(
+              formData {
+                append("address", "some address")
+                append(
+                  key = "photo_id_front",
+                  value = "value_photo_id_front".toByteArray(),
+                  headers =
+                    Headers.build {
+                      append(HttpHeaders.ContentType, "image/jpeg")
+                      append(HttpHeaders.ContentDisposition, "filename=\"photo_id_front.jpg\"")
+                    },
+                )
+                append(
+                  key = "photo_id_back",
+                  value = "value_photo_id_back".toByteArray(),
+                  headers =
+                    Headers.build {
+                      append(HttpHeaders.ContentType, "image/jpeg")
+                      append(HttpHeaders.ContentDisposition, "filename=\"photo_id_back.jpg\"")
+                    },
+                )
+                append(
+                  key = "notary_approval_of_photo_id",
+                  value = "value_approval_of_photo_id".toByteArray(),
+                  headers =
+                    Headers.build {
+                      append(HttpHeaders.ContentType, "image/jpeg")
+                      append(
+                        HttpHeaders.ContentDisposition,
+                        "filename=\"notary_approval_of_photo_id.jpg\"",
+                      )
+                    },
+                )
+                append(
+                  key = "photo_proof_residence",
+                  value = "value_photo_residence".toByteArray(),
+                  headers =
+                    Headers.build {
+                      append(HttpHeaders.ContentType, "image/jpeg")
+                      append(
+                        HttpHeaders.ContentDisposition,
+                        "filename=\"photo_proof_residence.jpg\"",
+                      )
+                    },
+                )
+                append(
+                  key = "photo_proof_of_income",
+                  value = "value_photo_proof_of_income".toByteArray(),
+                  headers =
+                    Headers.build {
+                      append(HttpHeaders.ContentType, "image/jpeg")
+                      append(
+                        HttpHeaders.ContentDisposition,
+                        "filename=\"photo_proof_of_income.jpg\"",
+                      )
+                    },
+                )
+                append(
+                  key = "proof_of_liveness",
+                  value = "value_proof_of_liveness".toByteArray(),
+                  headers =
+                    Headers.build {
+                      append(HttpHeaders.ContentType, "image/jpeg")
+                      append(HttpHeaders.ContentDisposition, "filename=\"proof_of_liveness.jpg\"")
+                    },
+                )
+              }
+            )
+          )
+        }
+
+      val id = gson.fromJson(putResponse.body<String>(), Sep12PutCustomerResponse::class.java).id
+      val getResponse = anchor.sep12(token).get(id)
+
+      // Test string fields
+      assert(getResponse.providedFields!!.containsKey("address"))
+
+      // Test binary fields
+      assert(getResponse.providedFields!!.containsKey("photo_id_front"))
+      assert(getResponse.providedFields!!.containsKey("photo_id_back"))
+      assert(getResponse.providedFields!!.containsKey("notary_approval_of_photo_id"))
+      assert(getResponse.providedFields!!.containsKey("photo_proof_residence"))
+      assert(getResponse.providedFields!!.containsKey("photo_proof_of_income"))
+      assert(getResponse.providedFields!!.containsKey("proof_of_liveness"))
     }
   }
 

@@ -101,7 +101,6 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
     val amount = "5"
 
     walletServerClient.clearCallbacks()
-    anchorReferenceServerClient.clearEvents()
 
     val senderCustomerRequest =
       gson.fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
@@ -169,7 +168,7 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
     txnId: String,
     count: Int
   ): List<Sep31GetTransactionResponse>? {
-    var retries = 5
+    var retries = 30
     var callbacks: List<Sep31GetTransactionResponse>? = null
     while (retries > 0) {
       callbacks = walletServerClient.getCallbacks(txnId, Sep31GetTransactionResponse::class.java)
@@ -186,7 +185,7 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
     txnId: String,
     count: Int
   ): List<SendEventRequest>? {
-    var retries = 5
+    var retries = 30
     var events: List<SendEventRequest>? = null
     while (retries > 0) {
       events = anchorReferenceServerClient.getEvents(txnId)

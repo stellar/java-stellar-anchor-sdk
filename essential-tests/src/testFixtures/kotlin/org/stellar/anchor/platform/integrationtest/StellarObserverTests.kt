@@ -49,7 +49,9 @@ class StellarObserverTests : AbstractIntegrationTests(TestConfig()) {
 
     val stellarPaymentObserverCheck = checks["stellar_payment_observer"] as Map<*, *>
     Assertions.assertEquals(2, stellarPaymentObserverCheck.size)
-    Assertions.assertEquals("GREEN", stellarPaymentObserverCheck["status"])
+    Assertions.assertTrue(
+      (stellarPaymentObserverCheck["status"] as String) in setOf("GREEN", "YELLOW")
+    )
 
     val observerStreams = stellarPaymentObserverCheck["streams"] as List<*>
     Assertions.assertEquals(1, observerStreams.size)

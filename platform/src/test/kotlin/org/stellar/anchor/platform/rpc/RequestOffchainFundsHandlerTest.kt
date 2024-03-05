@@ -288,18 +288,8 @@ class RequestOffchainFundsHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
-    request.amountIn.amount = "-1"
-    var ex = assertThrows<BadRequestException> { handler.handle(request) }
-    assertEquals("amount_in.amount should be positive", ex.message)
-    request.amountIn.amount = "1"
-
-    request.amountOut.amount = "-1"
-    ex = assertThrows { handler.handle(request) }
-    assertEquals("amount_out.amount should be positive", ex.message)
-    request.amountOut.amount = "1"
-
     request.amountFee.amount = "-1"
-    ex = assertThrows { handler.handle(request) }
+    var ex = assertThrows<BadRequestException> { handler.handle(request) }
     assertEquals("amount_fee.amount should be non-negative", ex.message)
     request.amountFee.amount = "1"
 

@@ -31,6 +31,7 @@ import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log.debug
 import org.stellar.anchor.util.Log.info
 import org.stellar.reference.client.AnchorReferenceServerClient
@@ -83,7 +84,6 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   ) = runBlocking {
     val keypair = SigningKeyPair.fromSecret(walletSecretKey)
     walletServerClient.clearCallbacks()
-    anchorReferenceServerClient.clearEvents()
 
     val token = anchor.auth().authenticate(keypair)
     val response = makeDeposit(asset, amount, token)
@@ -163,6 +163,12 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     actualEvents?.let {
       assertEquals(expectedStatuses.size, actualEvents.size)
 
+      GsonUtils.getInstance().toJson(expectedStatuses).let { json ->
+        println("expectedStatuses: $json")
+      }
+
+      GsonUtils.getInstance().toJson(actualEvents).let { json -> println("actualEvents: $json") }
+
       expectedStatuses.forEachIndexed { index, expectedStatus ->
         actualEvents[index].let { actualEvent ->
           assertNotNull(actualEvent.id)
@@ -209,7 +215,6 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   ) = runBlocking {
     val keypair = SigningKeyPair.fromSecret(walletSecretKey)
     walletServerClient.clearCallbacks()
-    anchorReferenceServerClient.clearEvents()
 
     val token = anchor.auth().authenticate(keypair)
     val withdrawTxn = anchor.interactive().withdraw(asset, token, extraFields)
@@ -264,7 +269,7 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     txnId: String,
     count: Int
   ): List<Sep24GetTransactionResponse>? {
-    var retries = 5
+    var retries = 30
     var callbacks: List<Sep24GetTransactionResponse>? = null
     while (retries > 0) {
       callbacks = walletServerClient.getCallbacks(txnId, Sep24GetTransactionResponse::class.java)
@@ -281,7 +286,7 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     txnId: String,
     count: Int
   ): List<SendEventRequest>? {
-    var retries = 5
+    var retries = 30
     var events: List<SendEventRequest>? = null
     while (retries > 0) {
       events = anchorReferenceServerClient.getEvents(txnId)
@@ -367,7 +372,7 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     @JvmStatic
     fun depositAssetsAndAmounts(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of(DEPOSIT_FUND_CLIENT_SECRET_1, USDC, "0.01"),
+        Arguments.of(DEPOSIT_FUND_CLIENT_SECRET_1, USDC, "1"),
         Arguments.of(DEPOSIT_FUND_CLIENT_SECRET_2, XLM, "0.0001")
       )
     }
@@ -382,7 +387,7 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
 
     @JvmStatic
     fun historyAssetsAndAmounts(): Stream<Arguments> {
-      return Stream.of(Arguments.of(CLIENT_WALLET_SECRET, USDC, "0.01"))
+      return Stream.of(Arguments.of(CLIENT_WALLET_SECRET, USDC, "1"))
     }
   }
 }

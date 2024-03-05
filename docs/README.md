@@ -1,7 +1,7 @@
 [![License](https://badgen.net/badge/license/Apache%202/blue?icon=github&label=License)](https://github.com/stellar/java-stellar-anchor-sdk/blob/develop/LICENSE)
 [![GitHub Version](https://badgen.net/github/release/stellar/java-stellar-anchor-sdk?icon=github&label=Latest%20release)](https://github.com/stellar/java-stellar-anchor-sdk/releases)
-[![Docker](https://badgen.net/badge/Latest%20Release/v2.5.2/blue?icon=docker)](https://hub.docker.com/r/stellar/anchor-platform/tags?page=1&name=2.5.1)
-![Develop Branch](https://github.com/stellar/java-stellar-anchor-sdk/actions/workflows/wk_push_to_develop.yml/badge.svg?branch=develop)
+[![Docker](https://badgen.net/badge/Latest%20Release/v2.6.0/blue?icon=docker)](https://hub.docker.com/r/stellar/anchor-platform/tags?page=1&name=2.5.1)
+![Develop Branch](https://github.com/stellar/java-stellar-anchor-sdk/actions/workflows/on_push_to_develop.yml/badge.svg?branch=develop)
 
 <div style="text-align: center">
 <img alt="Stellar" src="https://github.com/stellar/.github/raw/master/stellar-logo.png" width="558" />
@@ -33,22 +33,45 @@ Please refer to our [How to contribute](/docs/01%20-%20Contributing/README.md) g
 contribute to this project.
 
 ## Directory Layout
+
 - __docs__: Contains the documentation for the Anchor Platform.
 - __api_schema__: Contains the Java classes and interfaces that represent the API schema.
 - __core__: Contains the core Anchor Platform implementation. Most of the SEP business logics are implemented here. No
   infrastructures, such as database, configuration, queue, or logging implementations are assumed in this sub-project.
 - __platform__: Contains the Anchor Platform implementation that uses Spring Boot as the underlying framework. This
   sub-project is responsible for providing the infrastructure implementations, such as database, configuration, queue,
-  and logging. The `sep-server`, `platform-server`, `custody-server`, `event-processor` and `stellar-observer` services are also implemented here.
+  and logging. The `sep-server`, `platform-server`, `custody-server`, `event-processor` and `stellar-observer` services
+  are also implemented here.
 - __kotlin_reference_server__: Contains the anchor's reference server implementation in Kotlin.
-- __anchor_reference_server__: Contains the anchor's reference server implementation in Java. This will be deprecated soon.
 - __wallet_reference_server__: Contains the wallet's reference server implementation in Kotlin.
 - __service_runner__: Contains the service runner implementation that runs services, such as SEP, platform, payment
   observer, and reference servers, etc. It also contains the main entry point of the Anchor Platform.
 - __essential-tests__: Contains the essential integration tests and end-2-end tests for the Anchor Platform.
 - __extended-tests__: Contains the extended integration tests and end-2-end tests for the Anchor Platform.
 
+## Quickstart
+
+Anchor Platform can be run locally using Docker Compose. This will start an instance of the Anchor Platform and the
+Kotlin reference server.
+
+```shell
+docker build --build-arg BASE_IMAGE=gradle:7.6.4-jdk11 -t anchor-platform:local ./
+docker-compose -f service-runner/src/main/resources/docker-compose.yaml up -d
+```
+
+The [Stellar Demo Wallet](https://demo-wallet.stellar.org) can be used to interact with the Anchor Platform. To get
+started, create and fund a new account, then add a new asset with the following parameters.
+
+| Parameter          | Value                                                      |
+|--------------------|------------------------------------------------------------|
+| Asset Code         | `USDC`                                                     |
+| Anchor Home Domain | `localhost:8080`                                           |
+| Issuer Public Key  | `GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP` |
+
+Now you can deposit and withdraw USDC using the Stellar Demo Wallet.
+
 ## References
+
 [SEP-1](https://stellar.org/protocol/sep-6): Stellar Info File
 
 [SEP-6](https://stellar.org/protocol/sep-6): Deposit and Withdrawal API

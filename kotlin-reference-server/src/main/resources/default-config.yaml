@@ -7,7 +7,7 @@ app:
   # The URL of the Stellar network to which the Anchor will connect.
   horizonEndpoint: https://horizon-testnet.stellar.org
   # The URL of the platform server.
-  platformApiEndpoint: http://localhost:8085
+  platformApiEndpoint: http://platform:8085
   # The Stellar wallet to which the customer will send the Stellar assets.
   distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
   distributionWalletMemo:
@@ -40,18 +40,9 @@ auth:
   # Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
   expirationMilliseconds: 30000
 
-event:
-  # Enables the Kafka event processor.
-  enabled: true
-  # The Kafka boostrap server.
-  bootstrapServer: localhost:29092
-  # The AnchorEvent topic to subscribe to.
-  topic: TRANSACTION
-
-
 sep24:
   # Secret key used to send funds to user accounts.
-  # Public key: GABCKCYPAGDDQMSCTMSBO7C2L34NU3XXCW7LR4VVSWCCXMAJY3B4YCZP
-  secret: "SAJW2O2NH5QMMVWYAN352OEXS2RUY675A2HPK5HEG2FRR2NXPYA4OLYN"
+  # Public key: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
+  secret: "SAJ34AG5XC7BWGK3GGQGCXERSEP7LZYXBBDMD33NMBASZVNKACEMNEIY"
   # Encryption key for interactive JWT
   interactiveJwtKey: "secret_sep24_interactive_url_jwt_secret"
