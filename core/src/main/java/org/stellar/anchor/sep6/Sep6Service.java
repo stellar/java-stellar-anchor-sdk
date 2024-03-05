@@ -14,6 +14,7 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep6.*;
 import org.stellar.anchor.api.sep.sep6.InfoResponse.*;
+import org.stellar.anchor.api.shared.RateFee;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.client.ClientFinder;
@@ -199,6 +200,7 @@ public class Sep6Service {
               .amountOutAsset(buyAsset.getSep38AssetName())
               .amountFee("0")
               .amountFeeAsset(sellAsset.getSep38AssetName())
+              .rateFee(new RateFee("0", sellAsset.getSep38AssetName(), null))
               .build();
     }
 
@@ -220,6 +222,7 @@ public class Sep6Service {
             .amountOutAsset(amounts.getAmountOutAsset())
             .amountFee(amounts.getAmountFee())
             .amountFeeAsset(amounts.getAmountFeeAsset())
+            .feeDetails(amounts.rateFee)
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
@@ -366,6 +369,7 @@ public class Sep6Service {
               .amountOutAsset(buyAsset.getSep38AssetName())
               .amountFee("0")
               .amountFeeAsset(sellAsset.getSep38AssetName())
+              .rateFee(new RateFee("0", sellAsset.getSep38AssetName(), null))
               .build();
     }
 
@@ -384,6 +388,7 @@ public class Sep6Service {
             .amountOutAsset(amounts.getAmountOutAsset())
             .amountFee(amounts.getAmountFee())
             .amountFeeAsset(amounts.getAmountFeeAsset())
+            .feeDetails(amounts.getRateFee())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())

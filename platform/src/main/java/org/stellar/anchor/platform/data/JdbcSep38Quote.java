@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import javax.persistence.*;
 import lombok.Data;
-import org.stellar.anchor.api.sep.sep38.RateFee;
+import org.stellar.anchor.api.shared.RateFee;
 import org.stellar.anchor.sep38.Sep38Quote;
 
 @Data

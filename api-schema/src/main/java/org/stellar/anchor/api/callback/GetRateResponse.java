@@ -5,7 +5,7 @@ import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.stellar.anchor.api.sep.sep38.RateFee;
+import org.stellar.anchor.api.shared.RateFee;
 import reactor.util.annotation.Nullable;
 
 /**

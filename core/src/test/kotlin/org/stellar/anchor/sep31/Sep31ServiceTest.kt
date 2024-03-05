@@ -30,8 +30,8 @@ import org.stellar.anchor.api.sep.operation.Sep31Operation
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
-import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.RateFee
 import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService

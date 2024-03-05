@@ -22,8 +22,8 @@ import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.SepTransactionStatus
-import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.RateFee
 import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService

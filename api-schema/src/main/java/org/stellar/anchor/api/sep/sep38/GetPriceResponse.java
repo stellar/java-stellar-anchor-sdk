@@ -3,6 +3,7 @@ package org.stellar.anchor.api.sep.sep38;
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.anchor.api.shared.RateFee;
 
 /**
  * The response body of the GET /price endpoint of SEP-38.

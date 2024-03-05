@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep38;
 
 import java.time.Instant;
-import org.stellar.anchor.api.sep.sep38.RateFee;
+import org.stellar.anchor.api.shared.RateFee;
 
 public class Sep38QuoteBuilder {
   final Sep38Quote quote;

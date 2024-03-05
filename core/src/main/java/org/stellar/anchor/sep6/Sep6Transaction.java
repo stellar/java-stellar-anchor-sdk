@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.SepTransaction;
 import org.stellar.anchor.api.shared.InstructionField;
+import org.stellar.anchor.api.shared.RateFee;
 import org.stellar.anchor.api.shared.Refunds;
 
 public interface Sep6Transaction extends SepTransaction {
@@ -184,8 +185,10 @@ public interface Sep6Transaction extends SepTransaction {
    *
    * @return the amount of fee charged by the anchor.
    */
+  @Deprecated
   String getAmountFee();
 
+  @Deprecated
   void setAmountFee(String amountFee);
 
   /**
@@ -194,9 +197,21 @@ public interface Sep6Transaction extends SepTransaction {
    *
    * @return the asset in which fees are calculated in.
    */
+  @Deprecated
   String getAmountFeeAsset();
 
+  @Deprecated
   void setAmountFeeAsset(String amountFeeAsset);
+
+  void setFeeDetails(RateFee feeDetails);
+
+  /**
+   * Description of fee charged by the anchor. Includes total break down of all fees that were
+   * charged.
+   *
+   * @return Description of fee charged by the anchor.
+   */
+  RateFee getFeeDetails();
 
   /**
    * The amount requested by the user to deposit or withdraw.

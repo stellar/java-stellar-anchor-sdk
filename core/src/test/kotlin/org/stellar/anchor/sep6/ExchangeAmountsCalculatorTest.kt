@@ -13,7 +13,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.SepValidationException
-import org.stellar.anchor.api.sep.sep38.RateFee
+import org.stellar.anchor.api.shared.RateFee
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.sep38.PojoSep38Quote
@@ -64,6 +64,7 @@ class ExchangeAmountsCalculatorTest {
         .amountOutAsset("iso4217:USD")
         .amountFee("2")
         .amountFeeAsset("iso4217:USD")
+        .rateFee(RateFee("2", "iso4217:USD"))
         .build(),
       result
     )

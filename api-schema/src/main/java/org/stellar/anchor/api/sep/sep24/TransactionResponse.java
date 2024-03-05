@@ -3,6 +3,7 @@ package org.stellar.anchor.api.sep.sep24;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import lombok.Data;
+import org.stellar.anchor.api.shared.RateFee;
 
 /** Base class of transaction responses for withdraw and deposit. */
 @Data
@@ -32,10 +33,15 @@ public class TransactionResponse {
   String amountOutAsset;
 
   @SerializedName("amount_fee")
+  @Deprecated
   String amountFee;
 
   @SerializedName("amount_fee_asset")
+  @Deprecated
   String amountFeeAsset;
+
+  @SerializedName("fee_details")
+  RateFee feeDetails;
 
   @SerializedName("started_at")
   Instant startedAt;

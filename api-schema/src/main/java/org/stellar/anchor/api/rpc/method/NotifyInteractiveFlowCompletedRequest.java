@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
+import org.stellar.anchor.api.shared.RateFee;
 
 @Data
 @SuperBuilder
@@ -21,9 +22,12 @@ public class NotifyInteractiveFlowCompletedRequest extends RpcMethodParamsReques
   @SerializedName("amount_out")
   private AmountAssetRequest amountOut;
 
-  @NotNull
   @SerializedName("amount_fee")
+  @Deprecated
   private AmountAssetRequest amountFee;
+
+  @SerializedName("fee_details")
+  private RateFee feeDetails;
 
   @SerializedName("amount_expected")
   private AmountRequest amountExpected;

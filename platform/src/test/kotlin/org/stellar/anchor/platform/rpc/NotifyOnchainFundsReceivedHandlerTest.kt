@@ -28,10 +28,7 @@ import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.*
 import org.stellar.anchor.api.rpc.method.AmountRequest
 import org.stellar.anchor.api.rpc.method.NotifyOnchainFundsReceivedRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
-import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.Customers
-import org.stellar.anchor.api.shared.StellarId
-import org.stellar.anchor.api.shared.StellarTransaction
+import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.event.EventService
@@ -43,6 +40,7 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep6Transaction
 import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
+import org.stellar.anchor.platform.utils.toRate
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -280,7 +278,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountRequest("1"))
         .amountOut(AmountRequest("0.9"))
-        .amountFee(AmountRequest("0.1"))
+        .feeDetails(RateFee("0.1", STELLAR_USDC))
         .stellarTransactionId(STELLAR_TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -348,6 +346,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
 
@@ -796,6 +795,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))

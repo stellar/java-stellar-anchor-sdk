@@ -84,16 +84,30 @@ public class NotifyInteractiveFlowCompletedHandler
         break;
     }
 
-    AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
+    if ((request.getAmountFee() == null && request.getFeeDetails() == null)
+        || (request.getAmountFee() != null && request.getFeeDetails() != null)) {
+      throw new InvalidParamsException("Either amount_fee or fee_details must be set");
+    }
+
+    if (request.getAmountFee() != null) {
+      AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
+    }
+    if (request.getFeeDetails() != null) {
+      AssetValidationUtils.validateFeeDetails(request.getFeeDetails(), txn, assetService);
+    }
+    String feeAsset =
+        request.getFeeDetails() != null
+            ? request.getFeeDetails().getAsset()
+            : request.getAmountFee().getAsset();
     switch (Kind.from(txn24.getKind())) {
       case DEPOSIT:
-        if (AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
-          throw new InvalidParamsException("amount_fee.asset should be non-stellar asset");
+        if (AssetValidationUtils.isStellarAsset(feeAsset)) {
+          throw new InvalidParamsException("fee asset should be a non-stellar asset");
         }
         break;
       case WITHDRAWAL:
-        if (!AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
-          throw new InvalidParamsException("amount_fee.asset should be stellar asset");
+        if (!AssetValidationUtils.isStellarAsset(feeAsset)) {
+          throw new InvalidParamsException("fee asset should be a stellar asset");
         }
         break;
     }
@@ -139,8 +153,14 @@ public class NotifyInteractiveFlowCompletedHandler
     txn24.setAmountOut(request.getAmountOut().getAmount());
     txn24.setAmountOutAsset(request.getAmountOut().getAsset());
 
-    txn24.setAmountFee(request.getAmountFee().getAmount());
-    txn24.setAmountFeeAsset(request.getAmountFee().getAsset());
+    if (request.getAmountFee() != null) {
+      txn24.setAmountFee(request.getAmountFee().getAmount());
+      txn24.setAmountFeeAsset(request.getAmountFee().getAsset());
+    } else {
+      txn24.setAmountFee(request.getFeeDetails().getTotal());
+      txn24.setAmountFeeAsset(request.getFeeDetails().getAsset());
+      txn24.setFeeDetailsList(request.getFeeDetails().getDetails());
+    }
 
     if (request.getAmountExpected() != null) {
       txn24.setAmountExpected(request.getAmountExpected().getAmount());

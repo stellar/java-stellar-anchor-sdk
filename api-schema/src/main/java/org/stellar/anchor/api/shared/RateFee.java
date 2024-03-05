@@ -1,4 +1,4 @@
-package org.stellar.anchor.api.sep.sep38;
+package org.stellar.anchor.api.shared;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

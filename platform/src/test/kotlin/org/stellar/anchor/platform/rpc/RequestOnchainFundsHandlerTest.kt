@@ -44,6 +44,7 @@ import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep6Transaction
 import org.stellar.anchor.platform.service.*
+import org.stellar.anchor.platform.utils.toRate
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -263,7 +264,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "All or none of the amount_in, amount_out, and amount_fee should be set",
+      "All or none of the amount_in, amount_out, and fee_details should be set",
       ex.message
     )
 
@@ -614,6 +615,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.memo = TEXT_MEMO
@@ -731,6 +733,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.memo = TEXT_MEMO_2
@@ -839,6 +842,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.memo = TEXT_MEMO
@@ -939,6 +943,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.memo = TEXT_MEMO
@@ -1043,6 +1048,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.memo = TEXT_MEMO
@@ -1274,6 +1280,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.memo = TEXT_MEMO
@@ -1390,6 +1397,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.memo = TEXT_MEMO_2
@@ -1487,6 +1495,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.memo = TEXT_MEMO
@@ -1589,6 +1598,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = expectedResponse.amountFee.toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.memo = TEXT_MEMO

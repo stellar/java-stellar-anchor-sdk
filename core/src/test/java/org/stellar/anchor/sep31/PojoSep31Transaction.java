@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.api.sep.operation.Sep31Operation;
+import org.stellar.anchor.api.shared.RateFee;
+import org.stellar.anchor.api.shared.RateFeeDetail;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.api.shared.StellarTransaction;
 
@@ -41,6 +43,20 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String receiverId;
   String senderId;
   StellarId creator;
+  List<RateFeeDetail> feeDetailsList;
+
+  public void setFeeDetails(RateFee feeDetails) {
+    setAmountFee(feeDetails.getTotal());
+    setAmountFeeAsset(feeDetails.getAsset());
+    setFeeDetailsList(feeDetails.getDetails());
+  }
+
+  public RateFee getFeeDetails() {
+    if (getAmountFee() == null) {
+      return null;
+    }
+    return new RateFee(getAmountFee(), getAmountFeeAsset(), getFeeDetailsList());
+  }
 
   @Override
   public void setRefunds(Sep31Refunds sep31Refunds) {

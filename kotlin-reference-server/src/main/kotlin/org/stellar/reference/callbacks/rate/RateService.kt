@@ -9,8 +9,8 @@ import java.time.ZonedDateTime
 import java.util.*
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateResponse
-import org.stellar.anchor.api.sep.sep38.RateFee
-import org.stellar.anchor.api.sep.sep38.RateFeeDetail
+import org.stellar.anchor.api.shared.RateFee
+import org.stellar.anchor.api.shared.RateFeeDetail
 import org.stellar.reference.callbacks.BadRequestException
 import org.stellar.reference.callbacks.NotFoundException
 import org.stellar.reference.dao.QuoteRepository

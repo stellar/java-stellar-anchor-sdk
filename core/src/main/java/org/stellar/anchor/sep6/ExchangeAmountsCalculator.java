@@ -10,7 +10,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.sep38.RateFee;
+import org.stellar.anchor.api.shared.RateFee;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 
@@ -37,6 +37,7 @@ public class ExchangeAmountsCalculator {
         .amountOut(quote.getBuyAmount())
         .amountOutAsset(quote.getBuyAsset())
         .amountFee(quote.getFee().getTotal())
+        .rateFee(quote.getFee())
         .amountFeeAsset(quote.getFee().getAsset())
         .build();
   }
@@ -97,7 +98,8 @@ public class ExchangeAmountsCalculator {
     String amountInAsset;
     String amountOut;
     String amountOutAsset;
-    String amountFee;
-    String amountFeeAsset;
+    @Deprecated String amountFee;
+    @Deprecated String amountFeeAsset;
+    RateFee rateFee;
   }
 }

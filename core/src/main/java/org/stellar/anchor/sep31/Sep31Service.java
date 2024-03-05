@@ -58,6 +58,7 @@ import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest;
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest;
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.RateFee;
 import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
@@ -188,6 +189,14 @@ public class Sep31Service {
             .build();
 
     Amount fee = Context.get().getFee();
+
+    Sep38Quote quote = Context.get().getQuote();
+    RateFee feeDetails = quote == null ? null : quote.getFee();
+
+    if (feeDetails == null) {
+      feeDetails = new RateFee(fee.getAmount(), fee.getAsset(), null);
+    }
+
     Instant now = Instant.now();
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
@@ -196,6 +205,7 @@ public class Sep31Service {
             .statusEta(null)
             .amountFee(fee.getAmount())
             .amountFeeAsset(fee.getAsset())
+            .feeDetails(feeDetails)
             .startedAt(now)
             .updatedAt(now) // this will be overwritten by the sep31TransactionStore#save method.
             .completedAt(null)

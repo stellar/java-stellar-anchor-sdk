@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-import org.stellar.anchor.api.sep.sep38.RateFee;
+import org.stellar.anchor.api.shared.RateFee;
 import org.stellar.anchor.util.GsonUtils;
 
 @Converter

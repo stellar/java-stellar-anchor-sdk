@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.operation.Sep31Operation;
+import org.stellar.anchor.api.shared.RateFee;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.api.shared.StellarTransaction;
 
@@ -54,13 +55,20 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
+  @Deprecated
   public Sep31TransactionBuilder amountFee(String amountFee) {
     txn.setAmountFee(amountFee);
     return this;
   }
 
+  @Deprecated
   public Sep31TransactionBuilder amountFeeAsset(String amountFeeAsset) {
     txn.setAmountFeeAsset(amountFeeAsset);
+    return this;
+  }
+
+  public Sep31TransactionBuilder feeDetails(RateFee feeDetails) {
+    txn.setFeeDetails(feeDetails);
     return this;
   }
 

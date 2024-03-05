@@ -26,6 +26,8 @@ import org.stellar.anchor.api.sep.operation.Sep38Operation
 import org.stellar.anchor.api.sep.sep38.*
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6
+import org.stellar.anchor.api.shared.RateFee
+import org.stellar.anchor.api.shared.RateFeeDetail
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.SecretConfig
