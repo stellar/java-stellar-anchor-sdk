@@ -72,7 +72,8 @@ services:
   reference-db:
     image: postgres:15.2-alpine
     ports:
-      - "5433:5432"
+      - "5433:5433"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
+    command: -p 5433
