@@ -1,15 +1,15 @@
 package org.stellar.reference.event.processor
 
-import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.reference.data.SendEventRequest
 
 class NoOpEventProcessor : SepAnchorEventProcessor {
-  override fun onQuoteCreated(event: AnchorEvent) {}
+  override suspend fun onQuoteCreated(event: SendEventRequest) {}
 
-  override fun onTransactionCreated(event: AnchorEvent) {}
+  override suspend fun onTransactionCreated(event: SendEventRequest) {}
 
-  override fun onTransactionError(event: AnchorEvent) {}
+  override suspend fun onTransactionError(event: SendEventRequest) {}
 
-  override fun onTransactionStatusChanged(event: AnchorEvent) {}
+  override suspend fun onTransactionStatusChanged(event: SendEventRequest) {}
 
-  override fun onCustomerUpdated(event: AnchorEvent) {}
+  override suspend fun onCustomerUpdated(event: SendEventRequest) {}
 }

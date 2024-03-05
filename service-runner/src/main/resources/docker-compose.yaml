@@ -29,8 +29,7 @@ services:
       file: common/docker-compose.yaml
       service: reference-server
     depends_on:
-      - db
-      - kafka
+      - reference-db
 
   sep24-reference-ui:
     extends:
@@ -41,17 +40,13 @@ services:
     extends:
       file: common/docker-compose.yaml
       service: kafka
-    depends_on:
-      - zookeeper
-
-  zookeeper:
-    extends:
-      file: common/docker-compose.yaml
-      service: zookeeper
 
   db:
     extends:
       file: common/docker-compose.yaml
       service: db
 
-
+  reference-db:
+    extends:
+      file: common/docker-compose.yaml
+      service: reference-db

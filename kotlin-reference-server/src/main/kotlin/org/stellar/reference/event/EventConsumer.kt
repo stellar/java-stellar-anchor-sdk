@@ -1,40 +1,30 @@
 package org.stellar.reference.event
 
-import java.time.Duration
-import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.common.errors.WakeupException
-import org.stellar.anchor.api.event.AnchorEvent
-import org.stellar.anchor.util.GsonUtils
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
+import org.stellar.reference.data.SendEventRequest
 import org.stellar.reference.event.processor.AnchorEventProcessor
 import org.stellar.reference.log
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class EventConsumer(
-  private val consumer: KafkaConsumer<String, String>,
-  private val processor: AnchorEventProcessor
+  private val channel: Channel<SendEventRequest>,
+  private val processor: AnchorEventProcessor,
 ) {
-  fun start(): EventConsumer {
-    try {
-      while (true) {
-        val records = consumer.poll(Duration.ofSeconds(10))
-        if (!records.isEmpty) {
-          log.info("Received ${records.count()} records")
-          records.forEach { record ->
-            processor.handleEvent(
-              GsonUtils.getInstance().fromJson(record.value(), AnchorEvent::class.java)
-            )
-          }
-        }
-      }
-    } catch (e: WakeupException) {
-      // ignore for shutdown
-    } finally {
-      consumer.close()
-    }
+  private var stopped = false
 
+  suspend fun start(): EventConsumer {
+    while (!stopped) {
+      while (!channel.isEmpty) {
+        val event = channel.receive()
+        log.info("Processing event ${event.id} of type ${event.type}")
+        processor.handleEvent(event)
+      }
+    }
     return this
   }
 
   fun stop() {
-    consumer.wakeup()
+    stopped = true
   }
 }

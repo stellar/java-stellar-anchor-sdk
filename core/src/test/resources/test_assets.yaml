@@ -205,5 +205,5 @@ assets:
       decimals: 7
     sep6_enabled: false
     sep24_enabled: true
-    sep31_enabled: false
-    sep38_enabled: false
+    sep31_enabled: true
+    sep38_enabled: true

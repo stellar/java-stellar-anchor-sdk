@@ -5,13 +5,6 @@ services:
     extends:
       file: common/docker-compose.yaml
       service: kafka
-    depends_on:
-      - zookeeper
-  zookeeper:
-    hostname: zookeeper
-    extends:
-      file: common/docker-compose.yaml
-      service: zookeeper
   db:
     hostname: db
     extends:
@@ -22,3 +15,8 @@ services:
     extends:
       file: common/docker-compose.yaml
       service: sep24-reference-ui
+  reference-db:
+    hostname: reference-db
+    extends:
+      file: common/docker-compose.yaml
+      service: reference-db

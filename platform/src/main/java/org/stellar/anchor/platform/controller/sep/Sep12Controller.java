@@ -3,13 +3,17 @@ package org.stellar.anchor.platform.controller.sep;
 import static org.stellar.anchor.util.Log.*;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.stellar.anchor.api.sep.sep12.*;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
@@ -68,7 +72,7 @@ public class Sep12Controller {
   @ResponseStatus(code = HttpStatus.ACCEPTED)
   @RequestMapping(
       value = "/customer",
-      consumes = {MediaType.APPLICATION_JSON_VALUE},
+      consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PUT})
   public Sep12PutCustomerResponse putCustomer(
@@ -83,10 +87,10 @@ public class Sep12Controller {
   @ResponseStatus(code = HttpStatus.ACCEPTED)
   @RequestMapping(
       value = "/customer",
-      method = {RequestMethod.POST, RequestMethod.PUT},
+      method = {RequestMethod.PUT},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE})
-  public Sep12PutCustomerResponse putCustomerMultipart(HttpServletRequest request) {
+  public Sep12PutCustomerResponse putCustomerMultipart(MultipartHttpServletRequest request) {
     debug("PUT /customer multipart body:", request.getParameterMap());
     Gson gson = GsonUtils.getInstance();
     Map<String, String> requestData = new HashMap<>();
@@ -95,6 +99,22 @@ public class Sep12Controller {
     }
     Sep12PutCustomerRequest putCustomerRequest =
         gson.fromJson(gson.toJson(requestData), Sep12PutCustomerRequest.class);
+
+    // Extract binary fields
+    MultiValueMap<String, MultipartFile> files = request.getMultiFileMap();
+    for (java.lang.reflect.Field field : Sep12PutCustomerRequest.class.getDeclaredFields()) {
+      if (field.getType() == byte[].class) {
+        field.setAccessible(true);
+        SerializedName serializedName = field.getAnnotation(SerializedName.class);
+        String fieldName = (serializedName != null) ? serializedName.value() : field.getName();
+
+        MultipartFile file = files.getFirst(fieldName);
+        if (file != null) {
+          field.set(putCustomerRequest, file.getBytes());
+        }
+      }
+    }
+
     Sep10Jwt sep10Jwt = Sep10Helper.getSep10Token(request);
     return sep12Service.putCustomer(sep10Jwt, putCustomerRequest);
   }

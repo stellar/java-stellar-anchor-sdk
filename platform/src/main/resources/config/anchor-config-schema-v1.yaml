@@ -76,7 +76,6 @@ sep10.enabled:
 sep10.home_domain:
 sep10.home_domains:
 sep10.jwt_timeout:
-sep10.known_custodial_account_required:
 sep10.web_auth_domain:
 sep12.enabled:
 sep24.enabled:

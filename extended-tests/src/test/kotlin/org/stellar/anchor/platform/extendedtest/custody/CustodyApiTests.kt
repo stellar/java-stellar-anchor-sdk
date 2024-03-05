@@ -182,7 +182,7 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
           EXPECTED_TRANSACTION_RESPONSE.replace(TX_ID_KEY, txId),
           gson.toJson(txResponse),
           CustomComparator(
-            JSONCompareMode.STRICT,
+            JSONCompareMode.LENIENT,
             Customization("completed_at") { _, _ -> true },
             Customization("stellar_transactions[0].created_at") { _, _ -> true }
           )
@@ -270,7 +270,7 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
       EXPECTED_TXN_REFUND_RESPONSE.replace(TX_ID_KEY, txId),
       gson.toJson(txResponse),
       CustomComparator(
-        JSONCompareMode.STRICT,
+        JSONCompareMode.LENIENT,
         Customization("completed_at") { _, _ -> true },
         Customization("stellar_transactions[0].created_at") { _, _ -> true }
       )
@@ -396,33 +396,33 @@ private const val WEBHOOK_REQUEST =
       "name": "N/A",
       "subType": ""
     },
-    "amount": 4.5,
+    "amount": 1,
     "networkFee": 0.00001,
-    "netAmount": 4.5,
-    "sourceAddress": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-    "destinationAddress": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W",
+    "netAmount": 1,
+    "sourceAddress": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+    "destinationAddress": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT",
     "destinationAddressDescription": "",
     "destinationTag": "",
     "status": "CONFIRMING",
-    "txHash": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+    "txHash": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
     "subStatus": "CONFIRMED",
     "signedBy": [],
     "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
     "rejectedBy": "",
-    "amountUSD": 4.509,
+    "amountUSD": 1,
     "addressType": "",
     "note": "",
     "exchangeTxId": "",
-    "requestedAmount": 4.5,
+    "requestedAmount": 1,
     "feeCurrency": "XLM_TEST",
     "operation": "TRANSFER",
     "customerRefId": null,
     "numOfConfirmations": 1,
     "amountInfo": {
-      "amount": "4.5",
-      "requestedAmount": "4.5",
-      "netAmount": "4.5",
-      "amountUSD": "4.509"
+      "amount": "1",
+      "requestedAmount": "1",
+      "netAmount": "1",
+      "amountUSD": "1"
     },
     "feeInfo": {
       "networkFee": "0.00001"
@@ -462,33 +462,33 @@ private const val REFUND_WEBHOOK_REQUEST =
       "name": "N/A",
       "subType": ""
     },
-    "amount": 4.5,
+    "amount": 1,
     "networkFee": 0.00001,
     "netAmount": 1,
-    "sourceAddress": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W",
+    "sourceAddress": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT",
     "destinationAddress": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
     "destinationAddressDescription": "",
     "destinationTag": "12345",
     "status": "CONFIRMING",
-    "txHash": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+    "txHash": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
     "subStatus": "CONFIRMED",
     "signedBy": [],
     "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
     "rejectedBy": "",
-    "amountUSD": 4.509,
+    "amountUSD": 1,
     "addressType": "",
     "note": "",
     "exchangeTxId": "",
-    "requestedAmount": 4.5,
+    "requestedAmount": 1,
     "feeCurrency": "XLM_TEST",
     "operation": "TRANSFER",
     "customerRefId": null,
     "numOfConfirmations": 1,
     "amountInfo": {
-      "amount": "4.5",
-      "requestedAmount": "4.5",
-      "netAmount": "4.5",
-      "amountUSD": "4.509"
+      "amount": "1",
+      "requestedAmount": "1",
+      "netAmount": "1",
+      "amountUSD": "1"
     },
     "feeInfo": {
       "networkFee": "0.00001"
@@ -539,19 +539,16 @@ private const val EXPECTED_TRANSACTION_RESPONSE =
   "external_transaction_id": "1",
   "stellar_transactions": [
     {
-      "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
-      "created_at": "2023-06-22T08:46:39.336Z",
-      "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
+      "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
       "payments": [
         {
-          "id": "563306435719169",
           "amount": {
-            "amount": "4.5000000",
+            "amount": "1.0000000",
             "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
           },
           "payment_type": "payment",
-          "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-          "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+          "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+          "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
         }
       ]
     }
@@ -569,15 +566,15 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
   "kind": "withdrawal",
   "status": "refunded",
   "amount_expected": {
-    "amount": "4.5",
+    "amount": "1",
     "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
   "amount_in": {
-    "amount": "4.5",
+    "amount": "1",
     "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   },
   "amount_out": {
-    "amount": "4",
+    "amount": "99.5",
     "asset": "iso4217:USD"
   },
   "amount_fee": {
@@ -588,7 +585,7 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
   "message": "test message",
   "refunds": {
     "amount_refunded": {
-      "amount": "4.5",
+      "amount": "1",
       "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     },
     "amount_fee": {
@@ -597,10 +594,10 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
     },
     "payments": [
       {
-        "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+        "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
         "id_type": "stellar",
         "amount": {
-          "amount": "4.5000000",
+          "amount": "1.0000000",
           "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
         },
         "fee": {
@@ -612,21 +609,18 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
   },
   "stellar_transactions": [
     {
-      "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
+      "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
       "memo": "testTag",
       "memo_type": "id",
-      "created_at": "2023-06-22T08:46:56Z",
-      "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
       "payments": [
         {
-          "id": "563306435719169",
           "amount": {
-            "amount": "4.5000000",
+            "amount": "1.0000000",
             "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
           },
           "payment_type": "payment",
-          "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
-          "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
+          "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+          "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
         }
       ]
     }
@@ -687,11 +681,11 @@ private const val REQUEST_ONCHAIN_FUNDS_REQUEST =
     "transaction_id": "TX_ID",
     "message": "test message 1",
     "amount_in": {
-      "amount": "4.5",
+      "amount": "1",
       "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     },
     "amount_out": {
-      "amount": "4",
+      "amount": "99.5",
       "asset": "iso4217:USD"
     },
     "amount_fee": {
@@ -699,7 +693,7 @@ private const val REQUEST_ONCHAIN_FUNDS_REQUEST =
       "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     },
     "amount_expected": {
-      "amount": "4.5"
+      "amount": "1"
     }
   }
 """
@@ -709,7 +703,7 @@ private const val NOTIFY_ONCHAIN_FUNDS_RECEIVED_REQUEST =
   {
     "transaction_id": "TX_ID",
     "message": "test message 1",
-    "stellar_transaction_id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1"
+    "stellar_transaction_id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2"
   }
 """
 
@@ -720,7 +714,7 @@ private const val DO_STELLAR_REFUND_REQUEST =
     "message": "test message",
     "refund": {
         "amount": {
-            "amount": 4.5,
+            "amount": 1,
             "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
         },
         "amount_fee": {

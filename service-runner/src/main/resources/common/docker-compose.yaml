@@ -1,23 +1,13 @@
 version: '2.4'
 services:
   platform:
-    image: stellar/anchor-platform:edge
-    command: --sep-server
+    image: anchor-platform:local
+    command: --sep-server --platform-server --event-processor
     volumes:
       - ../config:/config
     ports:
-      - "8080:8080" # sep-server
-      - "8082:8082" # Java management server
-
-  reference-server:
-    image: stellar/anchor-platform:edge
-    command: "--anchor-reference-server"
-    environment:
-      - REFERENCE_SERVER_CONFIG_ENV=file:/config/java-reference-server-config.yaml
-    volumes:
-      - ../config:/config
-    ports:
-      - "8081:8081"
+      - "8080:8080" # SEP server
+      - "8085:8085" # Platform server
 
   sep24-reference-ui:
     image: stellar/sep24-reference-ui
@@ -25,7 +15,7 @@ services:
       - "3000:80"
 
   observer:
-    image: stellar/anchor-platform:edge
+    image: anchor-platform:local
     build:
       context: ../../../../../essential-tests/src/test
       dockerfile: essential-tests/docker-compose-configs/Dockerfile
@@ -37,33 +27,39 @@ services:
       - "host.docker.internal:host-gateway"
 
   custody-server:
-    image: stellar/anchor-platform:edge
+    image: anchor-platform:local
     command: "--custody-server"
+    volumes:
+      # add mounts for the new config directory
+      - ../config:/config
+
+  reference-server:
+    image: anchor-platform:local
+    command: "--kotlin-reference-server"
     volumes:
       # add mounts for the new config directory
       - ../config:/config
 
   kafka:
     platform: linux/x86_64
-    image: confluentinc/cp-kafka:6.1.9
+    image: confluentinc/cp-kafka:7.4.3
     ports:
       - "29092:29092"
+      - "29093:29093"
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT'
+      KAFKA_LISTENERS: 'INTERNAL://kafka:29092,CONTROLLER://kafka:29093'
+      KAFKA_ADVERTISED_LISTENERS: 'INTERNAL://kafka:29092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'INTERNAL'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
-  zookeeper:
-    platform: linux/x86_64
-    image: confluentinc/cp-zookeeper:6.1.9
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      CLUSTER_ID: 'ciWo7IWazngRchmPES6q5A=='
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
 
   db:
     image: postgres:15.2-alpine
@@ -72,3 +68,12 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
+
+  reference-db:
+    image: postgres:15.2-alpine
+    ports:
+      - "5433:5433"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    command: -p 5433

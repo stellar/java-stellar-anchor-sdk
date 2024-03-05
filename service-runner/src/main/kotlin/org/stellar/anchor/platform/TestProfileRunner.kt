@@ -93,7 +93,7 @@ class TestProfileExecutor(val config: TestConfig) {
       val envMap = config.env
 
       envMap["assets.value"] = getResourceFile(envMap["assets.value"]!!).absolutePath
-      if (envMap["sep1.toml.type"] != "url") {
+      if (envMap["sep1.toml.type"] != "url" && envMap["sep1.toml.type"] != "string") {
         envMap["sep1.toml.value"] = getResourceFile(envMap["sep1.toml.value"]!!).absolutePath
       }
       // Start servers
@@ -101,33 +101,25 @@ class TestProfileExecutor(val config: TestConfig) {
       val scope = CoroutineScope(Dispatchers.Default)
 
       if (shouldStartAllServers || shouldStartKotlinReferenceServer) {
-        info("Starting Kotlin reference server...")
         jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, wait) }
       }
       if (shouldStartAllServers || shouldStartWalletServer) {
-        info("Starting wallet server...")
         jobs += scope.launch { ServiceRunner.startWalletServer(envMap, wait) }
       }
       if ((shouldStartAllServers || shouldStartObserver) && !custodyEnabled) {
-        info("Starting observer...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
       }
       if ((shouldStartAllServers || shouldStartCustodyServer) && custodyEnabled) {
-        info("Starting Custody server...")
-
         jobs += scope.launch { runningServers.add(ServiceRunner.startCustodyServer(envMap)) }
       }
       if (shouldStartAllServers || shouldStartEventProcessingServer) {
-        info("Starting event processing server...")
         jobs +=
           scope.launch { runningServers.add(ServiceRunner.startEventProcessingServer(envMap)) }
       }
       if (shouldStartAllServers || shouldStartSepServer) {
-        info("Starting SEP server...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startSepServer(envMap)) }
       }
       if (shouldStartAllServers || shouldStartPlatformServer) {
-        info("Starting platform server...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startPlatformServer(envMap)) }
       }
 

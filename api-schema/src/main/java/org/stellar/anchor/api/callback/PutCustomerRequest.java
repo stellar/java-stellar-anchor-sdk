@@ -2,7 +2,6 @@ package org.stellar.anchor.api.callback;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
-import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
@@ -57,7 +56,7 @@ public class PutCustomerRequest {
   String emailAddress;
 
   @SerializedName("birth_date")
-  Instant birthDate;
+  String birthDate;
 
   @SerializedName("birth_place")
   String birthPlace;
@@ -88,6 +87,12 @@ public class PutCustomerRequest {
 
   @SerializedName("cbu_alias")
   String cbuAlias;
+
+  @SerializedName("crypto_address")
+  String cryptoAddress;
+
+  @SerializedName("crypto_memo")
+  String cryptoMemo;
 
   @SerializedName("tax_id")
   String taxId;
@@ -121,10 +126,31 @@ public class PutCustomerRequest {
   @SerializedName("id_number")
   String idNumber;
 
+  @SerializedName("photo_id_front")
+  byte[] photoIdFront;
+
+  @SerializedName("photo_id_back")
+  byte[] photoIdBack;
+
+  @SerializedName("notary_approval_of_photo_id")
+  byte[] notaryApprovalOfPhotoId;
+
   @SerializedName("ip_address")
-  String ip_address;
+  String ipAddress;
+
+  @SerializedName("photo_proof_residence")
+  byte[] photoProofResidence;
 
   String sex;
+
+  @SerializedName("photo_proof_of_income")
+  byte[] photoProofOfIncome;
+
+  @SerializedName("proof_of_liveness")
+  byte[] proofOfLiveness;
+
+  @SerializedName("referral_id")
+  String referralId;
 
   public static PutCustomerRequest from(Sep12PutCustomerRequest request) {
     return gson.fromJson(gson.toJson(request), PutCustomerRequest.class);

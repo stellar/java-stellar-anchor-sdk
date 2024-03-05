@@ -4,6 +4,9 @@ import static okhttp3.HttpUrl.get;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -15,6 +18,7 @@ import okhttp3.HttpUrl.Builder;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.Log;
@@ -83,12 +87,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
   @Override
   public PutCustomerResponse putCustomer(PutCustomerRequest putCustomerRequest)
       throws AnchorException {
-    HttpUrl url = getCustomerUrlBuilder().build();
-
-    RequestBody requestBody =
-        RequestBody.create(gson.toJson(putCustomerRequest), MediaType.get("application/json"));
-    Request callbackRequest =
-        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).put(requestBody).build();
+    Request callbackRequest = createCallbackRequest(putCustomerRequest);
 
     // Call anchor
     Response response = PlatformIntegrationHelper.call(httpClient, callbackRequest);
@@ -104,6 +103,76 @@ public class RestCustomerIntegration implements CustomerIntegration {
     } catch (Exception e) {
       throw new ServerErrorException("internal server error", e);
     }
+  }
+
+  private Request createCallbackRequest(PutCustomerRequest putCustomerRequest)
+      throws AnchorException {
+    boolean hasBinaryFields = false;
+
+    /*
+     * Check if the request has binary fields. If it does, we need to use multipart/form-data
+     * instead of application/json.
+     */
+    for (Field field : putCustomerRequest.getClass().getDeclaredFields()) {
+      if (!Modifier.isPrivate(field.getModifiers())) {
+        field.setAccessible(true);
+        try {
+          Object value = field.get(putCustomerRequest);
+          if (value instanceof byte[]) {
+            hasBinaryFields = true;
+            break;
+          }
+        } catch (IllegalAccessException e) {
+          throw new BadRequestException("invalid request body");
+        }
+      }
+    }
+
+    if (hasBinaryFields) {
+      MultipartBody requestBody = convertToMultipart(putCustomerRequest);
+      return PlatformIntegrationHelper.getRequestBuilder(authHelper)
+          .url(getCustomerUrlBuilder().build())
+          .put(requestBody)
+          .build();
+    } else {
+      RequestBody requestBody =
+          RequestBody.create(gson.toJson(putCustomerRequest), MediaType.get("application/json"));
+      return PlatformIntegrationHelper.getRequestBuilder(authHelper)
+          .url(getCustomerUrlBuilder().build())
+          .put(requestBody)
+          .build();
+    }
+  }
+
+  private MultipartBody convertToMultipart(PutCustomerRequest putCustomerRequest)
+      throws AnchorException {
+    MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+
+    for (Field field : putCustomerRequest.getClass().getDeclaredFields()) {
+      if (!Modifier.isPrivate(field.getModifiers())) {
+        field.setAccessible(true);
+        try {
+          Object value = field.get(putCustomerRequest);
+          if (value != null) {
+            SerializedName serializedName = field.getAnnotation(SerializedName.class);
+            String name = (serializedName != null) ? serializedName.value() : field.getName();
+
+            if (value instanceof byte[]) {
+              byte[] bytes = (byte[]) value;
+              RequestBody fileBody =
+                  RequestBody.create(bytes, MediaType.parse("application/octet-stream"));
+              builder.addFormDataPart(name, field.getName(), fileBody);
+            } else {
+              builder.addFormDataPart(name, value.toString());
+            }
+          }
+        } catch (IllegalAccessException e) {
+          throw new BadRequestException("invalid request body");
+        }
+      }
+    }
+
+    return builder.build();
   }
 
   @Override

@@ -35,10 +35,10 @@ jobs:
       - name: Set up hostnames (/etc/hosts)
         run: |
           sudo echo "127.0.0.1 db" | sudo tee -a /etc/hosts
-          sudo echo "127.0.0.1 zookeeper" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 kafka" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 sep24-reference-ui" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 reference-server" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 reference-db" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 wallet-server" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 custody-server" | sudo tee -a /etc/hosts
@@ -46,7 +46,7 @@ jobs:
 
       #############################################
 
-      - name: Run Zookeeper, Kafka, Postgres, and Sep24 UI with docker-compose
+      - name: Run Kafka, Postgres, and Sep24 UI with docker-compose
         run: docker-compose -f /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/docker-compose-test.yaml up -d --build
 
       # `custody` Tests
