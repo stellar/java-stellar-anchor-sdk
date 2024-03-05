@@ -2,7 +2,7 @@ version: '2.4'
 services:
   platform:
     image: anchor-platform:local
-    command: --sep-server --platform-server
+    command: --sep-server --platform-server --event-processor
     volumes:
       - ../config:/config
     ports:
