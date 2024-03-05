@@ -55,7 +55,7 @@ Anchor Platform can be run locally using Docker Compose. This will start an inst
 Kotlin reference server.
 
 ```shell
-docker build -t anchor-platform:local ./
+docker build --build-arg BASE_IMAGE=gradle:7.6.4-jdk11 -t anchor-platform:local ./
 docker-compose -f service-runner/src/main/resources/docker-compose.yaml up -d
 ```
 

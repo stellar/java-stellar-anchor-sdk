@@ -1,5 +1,6 @@
-## TODO: this should use alpine when the platform is not Apple Silicon
-FROM gradle:7.6.4-jdk11 AS build
+ARG BASE_IMAGE=gradle:7.6.4-jdk11-alpine
+
+FROM ${BASE_IMAGE} AS build
 WORKDIR /code
 COPY --chown=gradle:gradle . .
 
