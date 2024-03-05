@@ -1,8 +1,8 @@
 version: '2.4'
 services:
   platform:
-    image: stellar/anchor-platform:edge
-    command: --sep-server --platform-server
+    image: anchor-platform:local
+    command: --sep-server --platform-server --event-processor
     volumes:
       - ../config:/config
     ports:
@@ -15,7 +15,7 @@ services:
       - "3000:80"
 
   observer:
-    image: stellar/anchor-platform:edge
+    image: anchor-platform:local
     build:
       context: ../../../../../essential-tests/src/test
       dockerfile: essential-tests/docker-compose-configs/Dockerfile
@@ -27,14 +27,14 @@ services:
       - "host.docker.internal:host-gateway"
 
   custody-server:
-    image: stellar/anchor-platform:edge
+    image: anchor-platform:local
     command: "--custody-server"
     volumes:
       # add mounts for the new config directory
       - ../config:/config
 
   reference-server:
-    image: stellar/anchor-platform:edge
+    image: anchor-platform:local
     command: "--kotlin-reference-server"
     volumes:
       # add mounts for the new config directory
@@ -72,7 +72,8 @@ services:
   reference-db:
     image: postgres:15.2-alpine
     ports:
-      - "5433:5432"
+      - "5433:5433"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
+    command: -p 5433
