@@ -8,21 +8,19 @@ import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt;
+import org.stellar.anchor.platform.config.MoreInfoUrlConfig;
 import org.stellar.anchor.platform.config.PropertyClientsConfig;
-import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.util.ConfigHelper;
 
 public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
   private final PropertyClientsConfig clientsConfig;
-  private final PropertySep24Config.MoreInfoUrlConfig config;
+  private final MoreInfoUrlConfig config;
   private final JwtService jwtService;
 
   public SimpleMoreInfoUrlConstructor(
-      PropertyClientsConfig clientsConfig,
-      PropertySep24Config.MoreInfoUrlConfig config,
-      JwtService jwtService) {
+      PropertyClientsConfig clientsConfig, MoreInfoUrlConfig config, JwtService jwtService) {
     this.clientsConfig = clientsConfig;
     this.config = config;
     this.jwtService = jwtService;

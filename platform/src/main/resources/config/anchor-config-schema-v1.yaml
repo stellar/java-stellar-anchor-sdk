@@ -96,6 +96,9 @@ sep38.enabled:
 sep38.sep10_enforced:
 sep6.deposit_info_generator_type:
 sep6.enabled:
+sep6.more_info_url.base_url:
+sep6.more_info_url.jwt_expiration:
+sep6.more_info_url.txn_fields:
 sep6.features.account_creation:
 sep6.features.claimable_balances:
 sep_server.context_path:

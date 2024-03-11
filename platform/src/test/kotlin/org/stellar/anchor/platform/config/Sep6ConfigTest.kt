@@ -32,6 +32,7 @@ class Sep6ConfigTest {
         features = Sep6Config.Features(false, false)
         depositInfoGeneratorType = Sep6Config.DepositInfoGeneratorType.CUSTODY
       }
+    config.moreInfoUrl = MoreInfoUrlConfig("https://www.stellar.org", 600, listOf(""))
     errors = BindException(config, "config")
   }
 
@@ -75,6 +76,13 @@ class Sep6ConfigTest {
     Assertions.assertEquals("sep6-features-claimable-balances-invalid", errors.allErrors[0].code)
   }
 
+  @Test
+  fun `test more_info_url with invalid url`() {
+    config.moreInfoUrl = MoreInfoUrlConfig("httpss://www.stellar.org", 100, listOf(""))
+    config.validate(config, errors)
+    Assertions.assertEquals("sep6-more-info-url-base-url-not-valid", errors.allErrors[0].code)
+  }
+
   @CsvSource(value = ["NONE", "SELF"])
   @ParameterizedTest
   fun `test validation rejecting custody enabled and non-custodial deposit info generator`(
@@ -103,6 +111,7 @@ class Sep6ConfigTest {
         features = Sep6Config.Features(false, false)
         depositInfoGeneratorType = Sep6Config.DepositInfoGeneratorType.SELF
       }
+    config.moreInfoUrl = MoreInfoUrlConfig("https://www.stellar.org", 600, listOf(""))
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
 
     config.validate(config, errors)
