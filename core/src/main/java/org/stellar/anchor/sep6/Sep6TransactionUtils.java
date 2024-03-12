@@ -40,7 +40,6 @@ public class Sep6TransactionUtils {
             .kind(txn.getKind())
             .status(txn.getStatus())
             .statusEta(txn.getStatusEta())
-            .moreInfoUrl(txn.getMoreInfoUrl())
             .amountIn(txn.getAmountIn())
             .amountInAsset(txn.getAmountInAsset())
             .amountOut(txn.getAmountOut())

@@ -43,11 +43,6 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  public Sep6TransactionBuilder moreInfoUrl(String moreInfoUrl) {
-    txn.setMoreInfoUrl(moreInfoUrl);
-    return this;
-  }
-
   public Sep6TransactionBuilder kind(String kind) {
     txn.setKind(kind);
     return this;
