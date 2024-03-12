@@ -10,6 +10,7 @@ internal class OkHttpUtilTest {
     val TEST_URL = "https://www.stellar.org"
     val TEST_JSON = "{}"
   }
+
   @Test
   fun `test buildClient() ok`() {
     val client = OkHttpUtil.buildClient()

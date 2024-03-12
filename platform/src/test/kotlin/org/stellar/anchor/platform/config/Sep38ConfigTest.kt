@@ -17,6 +17,7 @@ open class Sep38ConfigTest {
     ValidationUtils.invokeValidator(sep38Config, sep38Config, errors)
     assertEquals(0, errors.errorCount)
   }
+
   @Test
   fun testSep38ConfigBadQuoteIntegrationEndpoint() {
     val sep38Config = PropertySep38Config()

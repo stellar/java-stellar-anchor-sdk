@@ -233,6 +233,7 @@ public interface Sep24Transaction {
   String getAmountOutAsset();
 
   void setAmountOutAsset(String amountOutAsset);
+
   /**
    * Amount of fee charged by anchor.
    *

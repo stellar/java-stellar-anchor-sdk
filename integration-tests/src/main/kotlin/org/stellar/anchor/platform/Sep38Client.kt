@@ -36,7 +36,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     sellAsset: String,
     sellAmount: String,
     buyAsset: String,
-    context: Sep38Context
+    context: Sep38Context,
   ): GetPriceResponse {
     // build URL
     val urlBuilder =
@@ -59,7 +59,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     sellAmount: String,
     buyAsset: String,
     context: Sep38Context = SEP31,
-    expireAfter: Instant? = null
+    expireAfter: Instant? = null,
   ): Sep38QuoteResponse {
     // build URL
     println("$endpoint/quote")

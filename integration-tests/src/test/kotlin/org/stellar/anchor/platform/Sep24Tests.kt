@@ -44,6 +44,6 @@ fun testSep24PostInteractive() {
   assertFalse(savedTxn.transaction.refunded)
   assertEquals(
     "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
-    savedTxn.transaction.from
+    savedTxn.transaction.from,
   )
 }

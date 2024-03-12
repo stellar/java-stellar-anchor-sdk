@@ -97,7 +97,8 @@ class StellarPaymentTest {
           "source_account": "GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ",
           "destination_account": "GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7"
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     val actual = mapper.writeValueAsString(mockPayment1)
 
     JSONAssert.assertEquals(expected, actual, true)

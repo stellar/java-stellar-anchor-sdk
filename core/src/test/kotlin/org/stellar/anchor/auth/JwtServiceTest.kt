@@ -29,15 +29,7 @@ internal class JwtServiceTest {
     every { appConfig.jwtSecretKey } returns "jwt_secret"
 
     val jwtService = JwtService(appConfig)
-    val token =
-      JwtToken.of(
-        TEST_ISS,
-        TEST_SUB,
-        TEST_IAT,
-        TEST_EXP,
-        TEST_JTI,
-        TEST_CLIENT_DOMAIN,
-      )
+    val token = JwtToken.of(TEST_ISS, TEST_SUB, TEST_IAT, TEST_EXP, TEST_JTI, TEST_CLIENT_DOMAIN)
     val cipher = jwtService.encode(token)
     val dt = jwtService.decode(cipher)
 

@@ -68,7 +68,7 @@ class ApiKeyAuthIntegrationTest {
     account: String,
     accountMemo: String? = null,
     hostUrl: String = "",
-    clientDomain: String = "vibrant.stellar.org"
+    clientDomain: String = "vibrant.stellar.org",
   ): JwtToken {
     val issuedAt: Long = System.currentTimeMillis() / 1000L
     return JwtToken.of(
@@ -77,7 +77,7 @@ class ApiKeyAuthIntegrationTest {
       issuedAt,
       issuedAt + 60,
       "",
-      clientDomain
+      clientDomain,
     )
   }
 
@@ -110,7 +110,7 @@ class ApiKeyAuthIntegrationTest {
         PLATFORM_SERVER_PORT,
         "/",
         mapOf("stellar.anchor.config" to "file:${newFilePath.toStr()}"),
-        true
+        true,
       )
   }
 
@@ -130,7 +130,8 @@ class ApiKeyAuthIntegrationTest {
         "PATCH,/transactions",
         "GET,/transactions/my_id",
         "GET,/exchange/quotes",
-        "GET,/exchange/quotes/id"]
+        "GET,/exchange/quotes/id",
+      ]
   )
   fun test_incomingPlatformAuth_emptyApiKey_authFails(method: String, endpoint: String) {
     val httpRequest =
@@ -151,7 +152,8 @@ class ApiKeyAuthIntegrationTest {
         "PATCH,/transactions",
         "GET,/transactions/my_id",
         "GET,/exchange/quotes",
-        "GET,/exchange/quotes/id"]
+        "GET,/exchange/quotes/id",
+      ]
   )
   fun test_incomingPlatformAuth_apiKey_authPasses(method: String, endpoint: String) {
     val httpRequest =
@@ -183,7 +185,8 @@ class ApiKeyAuthIntegrationTest {
           "asset": "iso4217:USD"
         }
       }
-    }""".trimMargin()
+    }"""
+            .trimMargin()
         )
     )
     val sep38Service = platformServerContext.getBean(Sep38Service::class.java)
@@ -220,10 +223,8 @@ class ApiKeyAuthIntegrationTest {
         &sell_amount=100
         &buy_asset=stellar%3AUSDC%3AGDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
         &client_id=GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG
-        """.replace(
-        "\n        ",
-        ""
-      )
+        """
+        .replace("\n        ", "")
     MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
     assertEquals("", request.body.readUtf8())
   }

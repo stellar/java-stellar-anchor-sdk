@@ -71,7 +71,7 @@ class Sep31TransactionTest {
     mockMissingFields.transaction =
       mapOf(
         "receiver_account_number" to
-          AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false),
+          AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false)
       )
 
     stellarTransaction =
@@ -158,7 +158,7 @@ class Sep31TransactionTest {
               .fee(Amount("4.0000", fiatUSD))
               .requestedAt(null)
               .refundedAt(null)
-              .build()
+              .build(),
           )
         )
         .build()
@@ -185,7 +185,7 @@ class Sep31TransactionTest {
         .customers(
           Customers(
             StellarId("6c1770b0-0ea4-11ed-861d-0242ac120002", null),
-            StellarId("31212353-f265-4dba-9eb4-0bbeda3ba7f2", null)
+            StellarId("31212353-f265-4dba-9eb4-0bbeda3ba7f2", null),
           )
         )
         .creator(StellarId("141ee445-f32c-4c38-9d25-f4475d6c5558", null))
@@ -204,7 +204,7 @@ class Sep31TransactionTest {
         .payments(
           listOf<Sep31RefundPayment>(
             Sep31RefundPayment.builder().id("1111").amount("50.0000").fee("4.0000").build(),
-            Sep31RefundPayment.builder().id("2222").amount("40.0000").fee("4.0000").build()
+            Sep31RefundPayment.builder().id("2222").amount("40.0000").fee("4.0000").build(),
           )
         )
         .build()

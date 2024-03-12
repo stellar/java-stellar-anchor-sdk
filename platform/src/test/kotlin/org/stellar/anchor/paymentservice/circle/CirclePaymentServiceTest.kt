@@ -88,7 +88,7 @@ class CirclePaymentServiceTest {
     Account(
       PaymentNetwork.CIRCLE,
       "1000066041",
-      Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR, PaymentNetwork.BANK_WIRE)
+      Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR, PaymentNetwork.BANK_WIRE),
     )
 
   private fun getDistAccountIdMockResponse(masterWalletId: String = "1000066041"): MockResponse {
@@ -382,7 +382,7 @@ class CirclePaymentServiceTest {
     assertEquals(PaymentNetwork.CIRCLE, account?.paymentNetwork)
     assertEquals(
       Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR, PaymentNetwork.BANK_WIRE),
-      account?.capabilities
+      account?.capabilities,
     )
     assertNull(account?.idTag)
     assertEquals(1, account?.balances?.size)
@@ -469,64 +469,61 @@ class CirclePaymentServiceTest {
             Account(PaymentNetwork.STELLAR, "123", Account.Capabilities()),
             Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
             "",
-            BigDecimal(0)
+            BigDecimal(0),
           )
           .block()
       }
     assertEquals(
       HttpException(400, "the only supported network for the source account is circle"),
-      ex
+      ex,
     )
 
     // missing beneficiary email when destination is a wire bank account
-    ex =
-      assertThrows {
-        service
-          .sendPayment(
-            Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
-            Account(PaymentNetwork.BANK_WIRE, "123", "invalidEmail", Account.Capabilities()),
-            "",
-            BigDecimal(0)
-          )
-          .block()
-      }
+    ex = assertThrows {
+      service
+        .sendPayment(
+          Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
+          Account(PaymentNetwork.BANK_WIRE, "123", "invalidEmail", Account.Capabilities()),
+          "",
+          BigDecimal(0),
+        )
+        .block()
+    }
     assertEquals(
       HttpException(
         400,
-        "for bank transfers, please provide a valid beneficiary email address in the destination idTag"
+        "for bank transfers, please provide a valid beneficiary email address in the destination idTag",
       ),
-      ex
+      ex,
     )
 
     // invalid currency name schema
-    ex =
-      assertThrows {
-        service
-          .sendPayment(
-            Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
-            Account(PaymentNetwork.CIRCLE, "456", Account.Capabilities()),
-            "invalidSchema:USD",
-            BigDecimal(0)
-          )
-          .block()
-      }
+    ex = assertThrows {
+      service
+        .sendPayment(
+          Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
+          Account(PaymentNetwork.CIRCLE, "456", Account.Capabilities()),
+          "invalidSchema:USD",
+          BigDecimal(0),
+        )
+        .block()
+    }
     assertEquals(
       HttpException(400, "the currency to be sent must contain the destination network schema"),
-      ex
+      ex,
     )
 
     // invalid currency name
-    ex =
-      assertThrows {
-        service
-          .sendPayment(
-            Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
-            Account(PaymentNetwork.BANK_WIRE, "456", "email@test.com", Account.Capabilities()),
-            "iso4217:ABC",
-            BigDecimal(0)
-          )
-          .block()
-      }
+    ex = assertThrows {
+      service
+        .sendPayment(
+          Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
+          Account(PaymentNetwork.BANK_WIRE, "456", "email@test.com", Account.Capabilities()),
+          "iso4217:ABC",
+          BigDecimal(0),
+        )
+        .block()
+    }
     val wantException =
       HttpException(
         400,
@@ -534,8 +531,8 @@ class CirclePaymentServiceTest {
           "the only supported currencies are %s, %s and %s.",
           "circle:USD",
           "iso4217:USD",
-          CircleAsset.stellarUSDC(Network.TESTNET)
-        )
+          CircleAsset.stellarUSDC(Network.TESTNET),
+        ),
       )
     assertEquals(wantException, ex)
   }
@@ -544,12 +541,14 @@ class CirclePaymentServiceTest {
   fun test_private_validateSendPaymentInput_supportedCurrencies() {
     // Let's use reflection to access the private method
     val validateSendPaymentInputMethod: Method =
-      CirclePaymentService::class.java.getDeclaredMethod(
-        "validateSendPaymentInput",
-        Account::class.java,
-        Account::class.java,
-        String::class.java
-      )
+      CirclePaymentService::class
+        .java
+        .getDeclaredMethod(
+          "validateSendPaymentInput",
+          Account::class.java,
+          Account::class.java,
+          String::class.java,
+        )
     assert(validateSendPaymentInputMethod.trySetAccessible())
 
     // "circle:USD" succeeds
@@ -559,7 +558,7 @@ class CirclePaymentServiceTest {
         service,
         Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
         Account(PaymentNetwork.CIRCLE, "456", Account.Capabilities()),
-        "circle:USD"
+        "circle:USD",
       )
     }
 
@@ -570,7 +569,7 @@ class CirclePaymentServiceTest {
         service,
         Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
         Account(PaymentNetwork.STELLAR, "G...", Account.Capabilities()),
-        "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
       )
     }
 
@@ -581,7 +580,7 @@ class CirclePaymentServiceTest {
         service,
         Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
         Account(PaymentNetwork.BANK_WIRE, "456", "email@test.com", Account.Capabilities()),
-        "iso4217:USD"
+        "iso4217:USD",
       )
     }
   }
@@ -616,7 +615,8 @@ class CirclePaymentServiceTest {
                                 "status":"pending",
                                 "createDate":"2022-01-01T01:01:01.544Z"
                             }
-                        }""".trimIndent()
+                        }"""
+                    .trimIndent()
                 )
           }
           return MockResponse().setResponseCode(404)
@@ -628,7 +628,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.CIRCLE,
         "1000067536",
-        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
+        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR),
       )
     var payment: Payment? = null
     assertDoesNotThrow {
@@ -638,7 +638,7 @@ class CirclePaymentServiceTest {
             merchantAccount,
             destination,
             CircleAsset.circleUSD(),
-            BigDecimal.valueOf(0.91)
+            BigDecimal.valueOf(0.91),
           )
           .block()
     }
@@ -647,7 +647,7 @@ class CirclePaymentServiceTest {
     assertEquals(merchantAccount, payment?.sourceAccount)
     assertEquals(
       Account(PaymentNetwork.CIRCLE, "1000067536", CircleWallet.defaultCapabilities()),
-      payment?.destinationAccount
+      payment?.destinationAccount,
     )
     assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
     assertEquals(Payment.Status.PENDING, payment?.status)
@@ -661,16 +661,8 @@ class CirclePaymentServiceTest {
       hashMapOf<String, Any>(
         "id" to "c58e2613-a808-4075-956c-e576787afb3b",
         "source" to hashMapOf<String, Any>("id" to "1000066041", "type" to "wallet"),
-        "destination" to
-          hashMapOf<String, Any>(
-            "id" to "1000067536",
-            "type" to "wallet",
-          ),
-        "amount" to
-          hashMapOf<String, Any>(
-            "amount" to "0.91",
-            "currency" to "USD",
-          ),
+        "destination" to hashMapOf<String, Any>("id" to "1000067536", "type" to "wallet"),
+        "amount" to hashMapOf<String, Any>("amount" to "0.91", "currency" to "USD"),
         "status" to "pending",
         "createDate" to "2022-01-01T01:01:01.544Z",
       )
@@ -704,7 +696,8 @@ class CirclePaymentServiceTest {
                 "amount": "0.91",
                 "currency": "USD"
             }
-        }""".trimIndent()
+        }"""
+        .trimIndent()
     JSONAssert.assertEquals(wantBody, gotBody, false)
   }
 
@@ -740,7 +733,8 @@ class CirclePaymentServiceTest {
                                 "status":"pending",
                                 "createDate":"2022-01-01T01:01:01.544Z"
                             }
-                        }""".trimIndent()
+                        }"""
+                    .trimIndent()
                 )
           }
           return MockResponse().setResponseCode(404)
@@ -754,7 +748,7 @@ class CirclePaymentServiceTest {
         PaymentNetwork.STELLAR,
         "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
         "test tag",
-        Account.Capabilities()
+        Account.Capabilities(),
       )
     var payment: Payment? = null
     assertDoesNotThrow {
@@ -764,7 +758,7 @@ class CirclePaymentServiceTest {
             source,
             destination,
             "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-            BigDecimal.valueOf(0.91)
+            BigDecimal.valueOf(0.91),
           )
           .block()
     }
@@ -776,13 +770,13 @@ class CirclePaymentServiceTest {
         PaymentNetwork.STELLAR,
         "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
         "test tag",
-        Account.Capabilities(PaymentNetwork.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR),
       ),
-      payment?.destinationAccount
+      payment?.destinationAccount,
     )
     assertEquals(
       Balance("0.91", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"),
-      payment?.balance
+      payment?.balance,
     )
     assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
@@ -794,11 +788,7 @@ class CirclePaymentServiceTest {
     val wantOriginalResponse =
       hashMapOf<String, Any>(
         "id" to "c58e2613-a808-4075-956c-e576787afb3b",
-        "source" to
-          hashMapOf<String, Any>(
-            "id" to "1000066041",
-            "type" to "wallet",
-          ),
+        "source" to hashMapOf<String, Any>("id" to "1000066041", "type" to "wallet"),
         "destination" to
           hashMapOf<String, Any>(
             "address" to "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
@@ -806,11 +796,7 @@ class CirclePaymentServiceTest {
             "type" to "blockchain",
             "chain" to "XLM",
           ),
-        "amount" to
-          hashMapOf<String, Any>(
-            "amount" to "0.91",
-            "currency" to "USD",
-          ),
+        "amount" to hashMapOf<String, Any>("amount" to "0.91", "currency" to "USD"),
         "status" to "pending",
         "createDate" to "2022-01-01T01:01:01.544Z",
       )
@@ -846,7 +832,8 @@ class CirclePaymentServiceTest {
                 "amount": "0.91",
                 "currency": "USD"
             }
-        }""".trimIndent()
+        }"""
+        .trimIndent()
     JSONAssert.assertEquals(wantBody, gotBody, false)
   }
 
@@ -883,7 +870,8 @@ class CirclePaymentServiceTest {
                                         "createDate":"2021-11-25T15:43:03.477Z",
                                         "updateDate":"2021-11-25T16:10:01.618Z"
                                     }
-                            }""".trimIndent()
+                            }"""
+                    .trimIndent()
                 )
           }
           return MockResponse().setResponseCode(404)
@@ -897,7 +885,7 @@ class CirclePaymentServiceTest {
         PaymentNetwork.BANK_WIRE,
         "6c87da10-feb8-484f-822c-2083ed762d25",
         "test@mail.com",
-        Account.Capabilities()
+        Account.Capabilities(),
       )
     var payment: Payment? = null
     assertDoesNotThrow {
@@ -913,9 +901,9 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.BANK_WIRE,
         "6c87da10-feb8-484f-822c-2083ed762d25",
-        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE),
       ),
-      payment?.destinationAccount
+      payment?.destinationAccount,
     )
     assertEquals(Balance("0.91", "iso4217:USD"), payment?.balance)
     assertEquals(Payment.Status.PENDING, payment?.status)
@@ -937,7 +925,7 @@ class CirclePaymentServiceTest {
                 put("amount", "0.91")
                 put("currency", "USD")
               }
-            }
+            },
           )
           put(
             "fees",
@@ -946,7 +934,7 @@ class CirclePaymentServiceTest {
                 put("amount", "0.09")
                 put("currency", "USD")
               }
-            }
+            },
           )
           put("status", "pending")
           put("sourceWalletId", "1000066041")
@@ -958,7 +946,7 @@ class CirclePaymentServiceTest {
                 put("id", "6c87da10-feb8-484f-822c-2083ed762d25")
                 put("name", "JPMORGAN CHASE BANK, NA ****6789")
               }
-            }
+            },
           )
           put("createDate", "2021-11-25T15:43:03.477Z")
           put("updateDate", "2021-11-25T16:10:01.618Z")
@@ -990,7 +978,8 @@ class CirclePaymentServiceTest {
             "metadata": {
                 "beneficiaryEmail": "test@mail.com"
             }
-        }""".trimIndent()
+        }"""
+        .trimIndent()
     JSONAssert.assertEquals(wantBody, gotBody, false)
   }
 
@@ -1028,7 +1017,8 @@ class CirclePaymentServiceTest {
                       $mockStellarToWalletTransferJson,
                       $mockWalletToStellarTransferJson
                     ]
-                  }""".trimIndent()
+                  }"""
+                    .trimIndent()
                 )
             "/v1/configuration" -> return getDistAccountIdMockResponse()
             "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments" ->
@@ -1073,7 +1063,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.STELLAR,
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        Account.Capabilities(PaymentNetwork.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR),
       )
     p2.destinationAccount = merchantAccount
     p2.balance = Balance("1.50", "circle:USD")
@@ -1091,7 +1081,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.STELLAR,
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        Account.Capabilities(PaymentNetwork.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR),
       )
     p3.balance =
       Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
@@ -1121,7 +1111,8 @@ class CirclePaymentServiceTest {
                       $mockWalletToWalletTransferJson,
                       $mockWalletToStellarTransferJson
                     ]
-                  }""".trimIndent()
+                  }"""
+                    .trimIndent()
                 )
             "/v1/configuration" -> return getDistAccountIdMockResponse()
           }
@@ -1164,7 +1155,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.STELLAR,
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        Account.Capabilities(PaymentNetwork.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR),
       )
     p2.balance =
       Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
@@ -1193,7 +1184,8 @@ class CirclePaymentServiceTest {
                     "data": [
                       $mockWalletToWirePayoutJson
                     ]
-                  }""".trimIndent()
+                  }"""
+                    .trimIndent()
                 )
             "/v1/configuration" -> return getDistAccountIdMockResponse()
           }
@@ -1218,7 +1210,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.BANK_WIRE,
         "6c87da10-feb8-484f-822c-2083ed762d25",
-        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE),
       )
     p.balance = Balance("3.00", "iso4217:USD")
     p.status = Payment.Status.SUCCESSFUL
@@ -1247,7 +1239,8 @@ class CirclePaymentServiceTest {
                     "data": [
                       $mockWalletToWirePayoutJson
                     ]
-                  }""".trimIndent()
+                  }"""
+                    .trimIndent()
                 )
             "/v1/configuration" -> return getDistAccountIdMockResponse()
           }
@@ -1273,7 +1266,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.BANK_WIRE,
         "6c87da10-feb8-484f-822c-2083ed762d25",
-        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE),
       )
     p.balance = Balance("3.00", "iso4217:USD")
     p.status = Payment.Status.SUCCESSFUL
@@ -1302,7 +1295,8 @@ class CirclePaymentServiceTest {
                     "data": [
                       $mockWireToWalletPaymentJson
                     ]
-                  }""".trimIndent()
+                  }"""
+                    .trimIndent()
                 )
             "/v1/configuration" -> return getDistAccountIdMockResponse()
           }
@@ -1327,7 +1321,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.BANK_WIRE,
         "a4e76642-81c5-47ca-9229-ebd64efd74a7",
-        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE),
       )
     p.destinationAccount = merchantAccount
     p.balance = Balance("1000.00", "circle:USD")
@@ -1357,7 +1351,8 @@ class CirclePaymentServiceTest {
                     "data": [
                       $mockWireToWalletPaymentJson
                     ]
-                  }""".trimIndent()
+                  }"""
+                    .trimIndent()
                 )
             "/v1/configuration" -> return getDistAccountIdMockResponse()
           }
@@ -1383,7 +1378,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.BANK_WIRE,
         "a4e76642-81c5-47ca-9229-ebd64efd74a7",
-        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE),
       )
     p.destinationAccount = merchantAccount
     p.balance = Balance("1000.00", "circle:USD")
@@ -1419,7 +1414,7 @@ class CirclePaymentServiceTest {
   fun test_getTransfersOrPayoutsOrPayments_paginationRequestUri(
     uri: String,
     beforeCursor: String?,
-    afterCursor: String?
+    afterCursor: String?,
   ) {
     val dispatcher =
       object : Dispatcher() {
@@ -1428,9 +1423,12 @@ class CirclePaymentServiceTest {
           if (request.path!!.startsWith("/v1/$uri")) {
             return MockResponse()
               .addHeader("Content-Type", "application/json")
-              .setBody("""{
+              .setBody(
+                """{
                 "data": []
-              }""".trimIndent())
+              }"""
+                  .trimIndent()
+              )
           }
 
           if (request.path.equals("/v1/configuration")) {
@@ -1448,8 +1446,8 @@ class CirclePaymentServiceTest {
         assertDoesNotThrow {
           paymentHistory =
             (service as CirclePaymentService)
-                .getTransfers("1000066041", beforeCursor, afterCursor, 1)
-                .block()!!
+              .getTransfers("1000066041", beforeCursor, afterCursor, 1)
+              .block()!!
               .toPaymentHistory(1, merchantAccount, "1000066041")
         }
       }
@@ -1457,8 +1455,8 @@ class CirclePaymentServiceTest {
         assertDoesNotThrow {
           paymentHistory =
             (service as CirclePaymentService)
-                .getPayouts("1000066041", beforeCursor, afterCursor, 1)
-                .block()!!
+              .getPayouts("1000066041", beforeCursor, afterCursor, 1)
+              .block()!!
               .toPaymentHistory(1, merchantAccount)
         }
       }
@@ -1466,8 +1464,8 @@ class CirclePaymentServiceTest {
         assertDoesNotThrow {
           paymentHistory =
             (service as CirclePaymentService)
-                .getIncomingPayments("1000066041", beforeCursor, afterCursor, 1)
-                .block()!!
+              .getIncomingPayments("1000066041", beforeCursor, afterCursor, 1)
+              .block()!!
               .toPaymentHistory(1, merchantAccount)
         }
       }
@@ -1502,7 +1500,8 @@ class CirclePaymentServiceTest {
                         $mockStellarToWalletTransferJson,
                         $mockWalletToStellarTransferJson
                       ]
-                    }""".trimIndent()
+                    }"""
+                    .trimIndent()
                 )
             "/v1/payouts?pageSize=50&source=1000066041" ->
               return MockResponse()
@@ -1512,7 +1511,8 @@ class CirclePaymentServiceTest {
                       "data": [
                         $mockWalletToWirePayoutJson
                       ]
-                    }""".trimIndent()
+                    }"""
+                    .trimIndent()
                 )
             "/v1/payments?pageSize=50" ->
               return MockResponse()
@@ -1522,7 +1522,8 @@ class CirclePaymentServiceTest {
                       "data": [
                         $mockWireToWalletPaymentJson
                       ]
-                    }""".trimIndent()
+                    }"""
+                    .trimIndent()
                 )
             "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments" ->
               return MockResponse()
@@ -1551,7 +1552,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.BANK_WIRE,
         "a4e76642-81c5-47ca-9229-ebd64efd74a7",
-        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE),
       )
     p0.destinationAccount = merchantAccount
     p0.balance = Balance("1000.00", "circle:USD")
@@ -1579,7 +1580,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.STELLAR,
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        Account.Capabilities(PaymentNetwork.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR),
       )
     p2.destinationAccount = merchantAccount
     p2.balance = Balance("1.50", "circle:USD")
@@ -1597,7 +1598,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.BANK_WIRE,
         "6c87da10-feb8-484f-822c-2083ed762d25",
-        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE),
       )
     p3.balance = Balance("3.00", "iso4217:USD")
     p3.status = Payment.Status.SUCCESSFUL
@@ -1613,7 +1614,7 @@ class CirclePaymentServiceTest {
       Account(
         PaymentNetwork.STELLAR,
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        Account.Capabilities(PaymentNetwork.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR),
       )
     p4.balance =
       Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
@@ -1654,7 +1655,7 @@ class CirclePaymentServiceTest {
         "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
         "2454278437550473431",
         "USD",
-        "XLM"
+        "XLM",
       )
     )
     wantAddresses.add(
@@ -1662,7 +1663,7 @@ class CirclePaymentServiceTest {
         "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
         "4560730744420812493",
         "USD",
-        "XLM"
+        "XLM",
       )
     )
     wantAddresses.add(
@@ -1707,7 +1708,7 @@ class CirclePaymentServiceTest {
         "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
         "2454278437550473431",
         "USD",
-        "XLM"
+        "XLM",
       )
 
     assertEquals(wantResponse, response)
@@ -1755,7 +1756,7 @@ class CirclePaymentServiceTest {
         "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
         "2454278437550473431",
         "USD",
-        "XLM"
+        "XLM",
       )
     assertEquals(wantAddress, address)
 
@@ -1834,7 +1835,7 @@ class CirclePaymentServiceTest {
     val wireInstructionsRequest = server.takeRequest()
     assertThat(
       wireInstructionsRequest.path,
-      CoreMatchers.endsWith("/v1/banks/wires/bank-id-here/instructions")
+      CoreMatchers.endsWith("/v1/banks/wires/bank-id-here/instructions"),
     )
     assertEquals("GET", wireInstructionsRequest.method)
     assertEquals("application/json", wireInstructionsRequest.headers["Content-Type"])
@@ -1876,7 +1877,7 @@ class CirclePaymentServiceTest {
     ex = assertThrows { service.getDepositInstructions(config).block() }
     assertEquals(
       HttpException(400, "the only receiving currency in a circle account is \"circle:USD\""),
-      ex
+      ex,
     )
 
     // missing bank id
@@ -1886,9 +1887,9 @@ class CirclePaymentServiceTest {
     assertEquals(
       HttpException(
         400,
-        "please provide a valid Circle bank id for the intermediaryAccountId field when requesting instructions for bank wire deposits"
+        "please provide a valid Circle bank id for the intermediaryAccountId field when requesting instructions for bank wire deposits",
       ),
-      ex
+      ex,
     )
   }
 
@@ -1897,7 +1898,7 @@ class CirclePaymentServiceTest {
   @EnumSource(
     value = PaymentNetwork::class,
     mode = EnumSource.Mode.EXCLUDE,
-    names = ["STELLAR", "CIRCLE", "BANK_WIRE"]
+    names = ["STELLAR", "CIRCLE", "BANK_WIRE"],
   )
   fun test_getDepositInstructions_parameterValidation_supportedNetworks(
     paymentNetwork: PaymentNetwork?
@@ -1908,9 +1909,9 @@ class CirclePaymentServiceTest {
     assertEquals(
       HttpException(
         400,
-        """the only supported intermediary payment networks are "stellar", "circle" and "bank_wire""""
+        """the only supported intermediary payment networks are "stellar", "circle" and "bank_wire"""",
       ),
-      ex
+      ex,
     )
   }
 
@@ -1930,7 +1931,7 @@ class CirclePaymentServiceTest {
         null,
         PaymentNetwork.CIRCLE,
         "circle:USD",
-        null
+        null,
       )
     assertEquals(wantInstructions, instructions)
     assertEquals(0, server.requestCount)
@@ -1974,7 +1975,7 @@ class CirclePaymentServiceTest {
         "2454278437550473431",
         PaymentNetwork.STELLAR,
         CircleAsset.stellarUSDC(Network.TESTNET),
-        null
+        null,
       )
     assertEquals(wantInstructions, instructions)
 
@@ -2021,7 +2022,7 @@ class CirclePaymentServiceTest {
         null,
         PaymentNetwork.BANK_WIRE,
         "bank-id-here",
-        CircleAsset.circleUSD()
+        CircleAsset.circleUSD(),
       )
     assertDoesNotThrow { instructions = service.getDepositInstructions(config).block() }
 
@@ -2040,7 +2041,7 @@ class CirclePaymentServiceTest {
             mapOf(
               "name" to "CIRCLE INTERNET FINANCIAL INC",
               "address1" to "1 MAIN STREET",
-              "address2" to "SUITE 1"
+              "address2" to "SUITE 1",
             ),
           "beneficiaryBank" to
             mapOf(
@@ -2051,9 +2052,9 @@ class CirclePaymentServiceTest {
               "country" to "US",
               "swiftCode" to "CRYPTO99",
               "routingNumber" to "999999999",
-              "accountNumber" to "1000000001"
-            )
-        )
+              "accountNumber" to "1000000001",
+            ),
+        ),
       )
     assertEquals(wantInstructions, instructions)
 
@@ -2068,7 +2069,7 @@ class CirclePaymentServiceTest {
     val wireInstructionsRequest = server.takeRequest()
     assertThat(
       wireInstructionsRequest.path,
-      CoreMatchers.endsWith("/v1/banks/wires/bank-id-here/instructions")
+      CoreMatchers.endsWith("/v1/banks/wires/bank-id-here/instructions"),
     )
     assertEquals("GET", wireInstructionsRequest.method)
     assertEquals("application/json", wireInstructionsRequest.headers["Content-Type"])
@@ -2145,13 +2146,13 @@ class CirclePaymentServiceTest {
     validateErrHandling(
       ErrorHandlingTestCase(
         service.getAccount("random_id"),
-        listOf(validateSecretKeyResponse, badRequestResponse)
+        listOf(validateSecretKeyResponse, badRequestResponse),
       )
     )
     validateErrHandling(
       ErrorHandlingTestCase(
         getMerchantAccountUnsettledBalancesMethod.invoke(service) as Mono<*>,
-        listOf(badRequestResponse)
+        listOf(badRequestResponse),
       )
     )
     validateErrHandling(
@@ -2160,7 +2161,7 @@ class CirclePaymentServiceTest {
     validateErrHandling(
       ErrorHandlingTestCase(
         getCircleWalletMethod.invoke(service, "random_id") as Mono<*>,
-        listOf(badRequestResponse)
+        listOf(badRequestResponse),
       )
     )
     validateErrHandling(
@@ -2169,25 +2170,25 @@ class CirclePaymentServiceTest {
     validateErrHandling(
       ErrorHandlingTestCase(
         (service as CirclePaymentService).getListOfAddresses("any_id"),
-        listOf(badRequestResponse)
+        listOf(badRequestResponse),
       )
     )
     validateErrHandling(
       ErrorHandlingTestCase(
         (service as CirclePaymentService).createNewStellarAddress("any_id"),
-        listOf(badRequestResponse)
+        listOf(badRequestResponse),
       )
     )
     validateErrHandling(
       ErrorHandlingTestCase(
         (service as CirclePaymentService).getOrCreateStellarAddress("any_id"),
-        listOf(emptyListResponse, badRequestResponse)
+        listOf(emptyListResponse, badRequestResponse),
       )
     )
     validateErrHandling(
       ErrorHandlingTestCase(
         (service as CirclePaymentService).getWireDepositInstructions("1000066041", "any_bank_id"),
-        listOf(badRequestResponse)
+        listOf(badRequestResponse),
       )
     )
     validateErrHandling(
@@ -2195,7 +2196,7 @@ class CirclePaymentServiceTest {
         service.getDepositInstructions(
           DepositRequirements("1000066041", PaymentNetwork.STELLAR, CircleAsset.circleUSD())
         ),
-        listOf(badRequestResponse)
+        listOf(badRequestResponse),
       )
     )
     validateErrHandling(
@@ -2206,10 +2207,10 @@ class CirclePaymentServiceTest {
             null,
             PaymentNetwork.BANK_WIRE,
             "bank-id-here",
-            CircleAsset.circleUSD()
+            CircleAsset.circleUSD(),
           )
         ),
-        listOf(badRequestResponse)
+        listOf(badRequestResponse),
       )
     )
     // --- tests with async/parallel requests ---
@@ -2223,8 +2224,8 @@ class CirclePaymentServiceTest {
         hashMapOf(
           "/v1/configuration" to validateSecretKeyResponse,
           "/v1/businessAccount/balances" to mainAccountResponse,
-          "/v1/wallets/1000066041" to badRequestResponse
-        )
+          "/v1/wallets/1000066041" to badRequestResponse,
+        ),
       )
     )
     validateErrHandling(
@@ -2233,12 +2234,12 @@ class CirclePaymentServiceTest {
           Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities()),
           Account(PaymentNetwork.CIRCLE, "1000067536", Account.Capabilities()),
           CircleAsset.circleUSD(),
-          BigDecimal.valueOf(1)
+          BigDecimal.valueOf(1),
         ),
         hashMapOf(
           "/v1/configuration" to validateSecretKeyResponse,
-          "/v1/transfers" to badRequestResponse
-        )
+          "/v1/transfers" to badRequestResponse,
+        ),
       )
     )
     validateErrHandling(
@@ -2249,15 +2250,15 @@ class CirclePaymentServiceTest {
             PaymentNetwork.STELLAR,
             "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
             "test tag",
-            Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
+            Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR),
           ),
           "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-          BigDecimal(1)
+          BigDecimal(1),
         ),
         hashMapOf(
           "/v1/configuration" to validateSecretKeyResponse,
-          "/v1/transfers" to badRequestResponse
-        )
+          "/v1/transfers" to badRequestResponse,
+        ),
       )
     )
     validateErrHandling(
@@ -2268,27 +2269,27 @@ class CirclePaymentServiceTest {
             PaymentNetwork.BANK_WIRE,
             "6c87da10-feb8-484f-822c-2083ed762d25",
             "test@mail.com",
-            Account.Capabilities()
+            Account.Capabilities(),
           ),
           CircleAsset.fiatUSD(),
-          BigDecimal(1)
+          BigDecimal(1),
         ),
         hashMapOf(
           "/v1/configuration" to validateSecretKeyResponse,
-          "/v1/payouts" to badRequestResponse
+          "/v1/payouts" to badRequestResponse,
         ),
       )
     )
     validateErrHandling(
       ErrorHandlingTestCase(
         (service as CirclePaymentService).getTransfers("1000066041", null, null, null),
-        hashMapOf("/v1/transfers?pageSize=50&walletId=1000066041" to badRequestResponse)
+        hashMapOf("/v1/transfers?pageSize=50&walletId=1000066041" to badRequestResponse),
       )
     )
     validateErrHandling(
       ErrorHandlingTestCase(
         (service as CirclePaymentService).getPayouts("1000066041", null, null, null),
-        hashMapOf("/v1/payouts?pageSize=50&source=1000066041" to badRequestResponse)
+        hashMapOf("/v1/payouts?pageSize=50&source=1000066041" to badRequestResponse),
       )
     )
     validateErrHandling(
@@ -2296,8 +2297,8 @@ class CirclePaymentServiceTest {
         (service as CirclePaymentService).getIncomingPayments("1000066041", null, null, null),
         hashMapOf(
           "/v1/configuration" to validateSecretKeyResponse,
-          "/v1/payments?pageSize=50" to badRequestResponse
-        )
+          "/v1/payments?pageSize=50" to badRequestResponse,
+        ),
       )
     )
     validateErrHandling(
@@ -2307,8 +2308,8 @@ class CirclePaymentServiceTest {
           "/v1/configuration" to validateSecretKeyResponse,
           "/v1/transfers?pageSize=50&walletId=1000066041" to badRequestResponse,
           "/v1/payouts?pageSize=50&source=1000066041" to badRequestResponse,
-          "/v1/payments?pageSize=50" to badRequestResponse
-        )
+          "/v1/payments?pageSize=50" to badRequestResponse,
+        ),
       )
     )
   }

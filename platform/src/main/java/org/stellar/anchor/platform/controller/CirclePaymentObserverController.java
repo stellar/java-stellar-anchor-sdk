@@ -53,7 +53,9 @@ public class CirclePaymentObserverController {
       method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.HEAD},
       consumes = {MediaType.TEXT_PLAIN_VALUE})
   public void handleCircleNotificationTextPlain(@RequestBody(required = false) String jsonBodyStr)
-      throws UnprocessableEntityException, BadRequestException, ServerErrorException,
+      throws UnprocessableEntityException,
+          BadRequestException,
+          ServerErrorException,
           EventPublishException {
     CircleNotification circleNotification = gson.fromJson(jsonBodyStr, CircleNotification.class);
     circlePaymentObserverService.handleCircleNotification(circleNotification);

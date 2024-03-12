@@ -19,6 +19,7 @@ class LogAppenderTest {
   private val loggerContext: LoggerContext = LogManager.getContext(false) as LoggerContext
   private val rootLoggerConfig = loggerContext.configuration.getLoggerConfig("org.stellar")
   private val lastLevel = rootLoggerConfig.level
+
   @BeforeEach
   fun setup() {
     every { appender.name } returns "mock appender"
@@ -51,7 +52,7 @@ class LogAppenderTest {
   fun test_logger_outputAccurateLoggerName(
     methodName: String,
     wantMessage: String,
-    wantLevelName: String
+    wantLevelName: String,
   ) {
     when (methodName) {
       "error" -> Log.error(wantMessage)

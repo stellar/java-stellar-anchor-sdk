@@ -162,11 +162,11 @@ fun testSep31UnhappyPath() {
   assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
   assertEquals(
     TransactionEvent.Status.PENDING_CUSTOMER_INFO_UPDATE.status,
-    gotSep31TxResponse.transaction.status
+    gotSep31TxResponse.transaction.status,
   )
   assertEquals(
     "The receiving customer clabe_number is invalid!",
-    gotSep31TxResponse.transaction.requiredInfoMessage
+    gotSep31TxResponse.transaction.requiredInfoMessage,
   )
   assertNull(gotSep31TxResponse.transaction.completedAt)
 
@@ -206,6 +206,6 @@ fun testSep31UnhappyPath() {
   assertNull(gotSep31TxResponse.transaction.requiredInfoMessage)
   assertEquals(
     patchedTx.completedAt.truncatedTo(SECONDS),
-    gotSep31TxResponse.transaction.completedAt.truncatedTo(SECONDS)
+    gotSep31TxResponse.transaction.completedAt.truncatedTo(SECONDS),
   )
 }

@@ -127,7 +127,7 @@ class TransactionServiceTest {
     mockMissingFields.transaction =
       mapOf(
         "receiver_account_number" to
-          AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false),
+          AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false)
       )
 
     // mock the database SEP-31 transaction
@@ -188,7 +188,7 @@ class TransactionServiceTest {
               .fee(Amount("4.0000", fiatUSD))
               .requestedAt(null)
               .refundedAt(null)
-              .build()
+              .build(),
           )
         )
         .build()
@@ -215,7 +215,7 @@ class TransactionServiceTest {
         .customers(
           Customers(
             StellarId("6c1770b0-0ea4-11ed-861d-0242ac120002", null),
-            StellarId("31212353-f265-4dba-9eb4-0bbeda3ba7f2", null)
+            StellarId("31212353-f265-4dba-9eb4-0bbeda3ba7f2", null),
           )
         )
         .creator(StellarId("141ee445-f32c-4c38-9d25-f4475d6c5558", null))
@@ -303,7 +303,8 @@ class TransactionServiceTest {
         "COMPLETED",
         "REFUNDED",
         "EXPIRED",
-        "ERROR"]
+        "ERROR",
+      ],
   )
   fun test_validateIfStatusIsSupported_failure(sepTxnStatus: SepTransactionStatus) {
     val ex: Exception = assertThrows {
@@ -325,7 +326,8 @@ class TransactionServiceTest {
         "PENDING_EXTERNAL",
         "COMPLETED",
         "EXPIRED",
-        "ERROR"]
+        "ERROR",
+      ],
   )
   fun test_validateIfStatusIsSupported(sepTxnStatus: SepTransactionStatus) {
     assertDoesNotThrow { transactionService.validateIfStatusIsSupported(sepTxnStatus.getName()) }
@@ -361,7 +363,7 @@ class TransactionServiceTest {
               .fee(Amount("4.0000", fiatUSD))
               .requestedAt(null)
               .refundedAt(null)
-              .build()
+              .build(),
           )
         )
         .build()

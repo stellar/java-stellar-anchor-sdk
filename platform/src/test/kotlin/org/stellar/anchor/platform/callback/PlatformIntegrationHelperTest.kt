@@ -43,7 +43,7 @@ class PlatformIntegrationHelperTest {
           JwtToken.of(
             TEST_HOME_DOMAIN,
             currentTimeMilliseconds / 1000L,
-            (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
+            (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L,
           )
 
         val jwtService = JwtService("secret")

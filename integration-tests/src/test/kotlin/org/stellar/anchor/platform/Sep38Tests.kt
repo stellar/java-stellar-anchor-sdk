@@ -37,7 +37,7 @@ fun sep38TestHappyPath() {
       "iso4217:USD",
       "100",
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      SEP31
+      SEP31,
     )
   printResponse(price)
 
@@ -48,7 +48,7 @@ fun sep38TestHappyPath() {
       "iso4217:USD",
       "100",
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      SEP31
+      SEP31,
     )
   printResponse(postQuote)
 
@@ -61,7 +61,7 @@ fun sep38TestHappyPath() {
       "100",
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
       SEP31,
-      expireAfter = expireAfter
+      expireAfter = expireAfter,
     )
   printResponse(postQuote)
 
@@ -82,7 +82,7 @@ fun testSellOverAssetLimit() {
         "iso4217:USD",
         "10000000000",
         "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-        SEP31
+        SEP31,
       )
   }
 }

@@ -30,7 +30,7 @@ class MathHelperTest {
     assertInstanceOf(NumberFormatException::class.java, ex)
     assertEquals(
       "Character a is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.",
-      ex.message
+      ex.message,
     )
   }
 }

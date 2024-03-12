@@ -49,71 +49,65 @@ class PaymentConfigTest {
     // assetService.listAllAssets() is null
     val mockEmptyAssetService = mockk<AssetService>()
     every { mockEmptyAssetService.listAllAssets() } returns null
-    ex =
-      assertThrows {
-        paymentConfig.stellarPaymentObserverService(mockEmptyAssetService, null, null, null, null)
-      }
+    ex = assertThrows {
+      paymentConfig.stellarPaymentObserverService(mockEmptyAssetService, null, null, null, null)
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("Asset service cannot be empty.", ex.message)
 
     // assetService.listAllAssets() doesn't contain stellar assets
     val mockStellarLessAssetService = mockk<AssetService>()
     every { mockStellarLessAssetService.listAllAssets() } returns listOf()
-    ex =
-      assertThrows {
-        paymentConfig.stellarPaymentObserverService(
-          mockStellarLessAssetService,
-          null,
-          null,
-          null,
-          null
-        )
-      }
+    ex = assertThrows {
+      paymentConfig.stellarPaymentObserverService(
+        mockStellarLessAssetService,
+        null,
+        null,
+        null,
+        null,
+      )
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("Asset service should contain at least one Stellar asset.", ex.message)
 
     // paymentListeners is null
-    ex =
-      assertThrows {
-        paymentConfig.stellarPaymentObserverService(assetService, null, null, null, null)
-      }
+    ex = assertThrows {
+      paymentConfig.stellarPaymentObserverService(assetService, null, null, null, null)
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("The stellar payment observer service needs at least one listener.", ex.message)
 
     // paymentListeners is empty
-    ex =
-      assertThrows {
-        paymentConfig.stellarPaymentObserverService(assetService, listOf(), null, null, null)
-      }
+    ex = assertThrows {
+      paymentConfig.stellarPaymentObserverService(assetService, listOf(), null, null, null)
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("The stellar payment observer service needs at least one listener.", ex.message)
 
     // paymentStreamerCursorStore is null
-    ex =
-      assertThrows {
-        paymentConfig.stellarPaymentObserverService(
-          assetService,
-          mockPaymentListeners,
-          null,
-          null,
-          null
-        )
-      }
+    ex = assertThrows {
+      paymentConfig.stellarPaymentObserverService(
+        assetService,
+        mockPaymentListeners,
+        null,
+        null,
+        null,
+      )
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("Payment streamer cursor store cannot be empty.", ex.message)
 
     // appConfig is null
     every { paymentStreamerCursorStore.load() } returns null
-    ex =
-      assertThrows {
-        paymentConfig.stellarPaymentObserverService(
-          assetService,
-          mockPaymentListeners,
-          paymentStreamerCursorStore,
-          null,
-          null
-        )
-      }
+    ex = assertThrows {
+      paymentConfig.stellarPaymentObserverService(
+        assetService,
+        mockPaymentListeners,
+        paymentStreamerCursorStore,
+        null,
+        null,
+      )
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("App config cannot be empty.", ex.message)
   }
@@ -137,7 +131,7 @@ class PaymentConfigTest {
         mockPaymentListeners,
         paymentStreamerCursorStore,
         paymentObservingAccountsManager,
-        mockAppConfig
+        mockAppConfig,
       )
     }
   }

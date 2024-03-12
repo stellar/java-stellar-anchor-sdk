@@ -73,7 +73,7 @@ fun testSep31PostAndGetTransaction() {
   val postTxResponse = sep31Client.postTransaction(txnRequest)
   assertEquals(
     "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-    postTxResponse.stellarAccountId
+    postTxResponse.stellarAccountId,
   )
 
   // GET Sep31 transaction

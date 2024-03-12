@@ -82,7 +82,7 @@ class PaymentOperationToEventListenerTest {
       transactionStore.findByStellarAccountIdAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns null
     paymentOperationToEventListener.onReceived(p)
@@ -91,7 +91,7 @@ class PaymentOperationToEventListenerTest {
       transactionStore.findByStellarAccountIdAndMemoAndStatus(
         slotAccount.captured,
         slotMemo.captured,
-        slotStatus.captured
+        slotStatus.captured,
       )
     }
     assertEquals("GCIZBIBPYIOSND7KRYMTSM25POVLOGGCKGIQLLUNSQJ5MAVRBD66KF6B", slotAccount.captured)
@@ -105,7 +105,7 @@ class PaymentOperationToEventListenerTest {
       transactionStore.findByStellarAccountIdAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } throws SepException("Something went wrong")
     paymentOperationToEventListener.onReceived(p)
@@ -114,7 +114,7 @@ class PaymentOperationToEventListenerTest {
       transactionStore.findByStellarAccountIdAndMemoAndStatus(
         slotAccount.captured,
         slotMemo.captured,
-        slotStatus.captured
+        slotStatus.captured,
       )
     }
     assertEquals("GCIZBIBPYIOSND7KRYMTSM25POVLOGGCKGIQLLUNSQJ5MAVRBD66KF6B", slotAccount.captured)
@@ -131,7 +131,7 @@ class PaymentOperationToEventListenerTest {
       transactionStore.findByStellarAccountIdAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
@@ -140,7 +140,7 @@ class PaymentOperationToEventListenerTest {
       transactionStore.findByStellarAccountIdAndMemoAndStatus(
         slotAccount.captured,
         slotMemo.captured,
-        slotStatus.captured
+        slotStatus.captured,
       )
     }
     assertEquals("GCIZBIBPYIOSND7KRYMTSM25POVLOGGCKGIQLLUNSQJ5MAVRBD66KF6B", slotAccount.captured)
@@ -208,7 +208,7 @@ class PaymentOperationToEventListenerTest {
       transactionStore.findByStellarAccountIdAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns sep31TxCopy
 
@@ -247,7 +247,7 @@ class PaymentOperationToEventListenerTest {
         .statusChange(
           TransactionEvent.StatusChange(
             TransactionEvent.Status.PENDING_SENDER,
-            TransactionEvent.Status.PENDING_RECEIVER
+            TransactionEvent.Status.PENDING_RECEIVER,
           )
         )
         .sep(TransactionEvent.Sep.SEP_31)
@@ -271,7 +271,7 @@ class PaymentOperationToEventListenerTest {
         .customers(
           Customers(
             StellarId.builder().id(senderId).build(),
-            StellarId.builder().id(receiverId).build()
+            StellarId.builder().id(receiverId).build(),
           )
         )
         .stellarTransactions(listOf(stellarTransaction))
@@ -285,7 +285,7 @@ class PaymentOperationToEventListenerTest {
       transactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "pending_sender"
+        "pending_sender",
       )
     }
     verify(exactly = 1) { eventPublishService.publish(any()) }
@@ -365,7 +365,7 @@ class PaymentOperationToEventListenerTest {
       transactionStore.findByStellarAccountIdAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns sep31TxCopy
 
@@ -404,7 +404,7 @@ class PaymentOperationToEventListenerTest {
         .statusChange(
           TransactionEvent.StatusChange(
             TransactionEvent.Status.PENDING_SENDER,
-            TransactionEvent.Status.PENDING_RECEIVER
+            TransactionEvent.Status.PENDING_RECEIVER,
           )
         )
         .sep(TransactionEvent.Sep.SEP_31)
@@ -428,7 +428,7 @@ class PaymentOperationToEventListenerTest {
         .customers(
           Customers(
             StellarId.builder().id(senderId).build(),
-            StellarId.builder().id(receiverId).build()
+            StellarId.builder().id(receiverId).build(),
           )
         )
         .stellarTransactions(listOf(stellarTransaction))
@@ -442,7 +442,7 @@ class PaymentOperationToEventListenerTest {
       transactionStore.findByStellarAccountIdAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "pending_sender"
+        "pending_sender",
       )
     }
     verify(exactly = 1) { eventPublishService.publish(any()) }
