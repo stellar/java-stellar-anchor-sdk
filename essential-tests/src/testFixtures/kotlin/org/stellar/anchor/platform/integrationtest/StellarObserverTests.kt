@@ -43,8 +43,7 @@ class StellarObserverTests : AbstractIntegrationTests(TestConfig()) {
 
     val checks = responseBody["checks"] as Map<*, *>
 
-    Assertions.assertEquals(2, checks.size)
-    Assertions.assertNotNull(checks["config"])
+    Assertions.assertEquals(1, checks.size)
     Assertions.assertNotNull(checks["stellar_payment_observer"])
 
     val stellarPaymentObserverCheck = checks["stellar_payment_observer"] as Map<*, *>
