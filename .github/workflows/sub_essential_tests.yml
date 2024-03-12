@@ -38,6 +38,7 @@ jobs:
           sudo echo "127.0.0.1 kafka" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 sep24-reference-ui" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 reference-server" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 reference-db" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 wallet-server" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 custody-server" | sudo tee -a /etc/hosts
@@ -47,7 +48,7 @@ jobs:
 
 
       - name: Pull Stellar Validation Tests Docker Image
-        run: docker pull stellar/anchor-tests:v0.6.9 &
+        run: docker pull stellar/anchor-tests:v0.6.10 &
 
       - name: Run Kafka, Postgres, and Sep24 UI with docker-compose
         env:
@@ -65,7 +66,8 @@ jobs:
           RUN_EVENT_PROCESSING_SERVER: true
           RUN_WALLET_SERVER: true
           SEP1_TOML_VALUE: /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/config/stellar.host.docker.internal.toml
-          SEP10_HOME_DOMAIN: host.docker.internal:8080
+          SEP10_WEB_AUTH_DOMAIN: host.docker.internal:8080
+          SEP10_HOME_DOMAINS: host.docker.internal:8080,*.stellar.org
         run: |
           cp /home/runner/java-stellar-anchor-sdk/service-runner/build/libs/anchor-platform-runner-*.jar /home/runner/anchor-platform-runner.jar
           java -jar /home/runner/anchor-platform-runner.jar -t &
@@ -92,7 +94,7 @@ jobs:
 
       - name: Run Stellar validation tool
         run: |
-          docker run --network host -v /home/runner/java-stellar-anchor-sdk/platform/src/test/resources://config stellar/anchor-tests:v0.6.9 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
+          docker run --network host -v /home/runner/java-stellar-anchor-sdk/platform/src/test/resources://config stellar/anchor-tests:v0.6.10 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
 
       - name: Upload Essential Tests Report
         if: always()

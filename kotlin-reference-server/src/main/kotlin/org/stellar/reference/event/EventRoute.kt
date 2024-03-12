@@ -15,7 +15,7 @@ fun Route.event(eventService: EventService) {
   val gson: Gson = GsonUtils.getInstance()
 
   route("/event") {
-    // The `POST /event` endpoint of the CallbackAPI to receive an event.
+    // The `POST /event` endpoint of the Callback API to receive an event.
     post {
       val receivedEventJson = call.receive<String>()
       val receivedEvent = gson.fromJson(receivedEventJson, SendEventRequest::class.java)

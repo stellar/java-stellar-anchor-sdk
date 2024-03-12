@@ -198,6 +198,34 @@ class RestCustomerIntegrationTest {
   }
 
   @Test
+  fun test_putCustomerBinaryFields() {
+    val putCustomerRequest =
+      PutCustomerRequest.builder()
+        .id("customer-id")
+        .account(TEST_ACCOUNT)
+        .memo("memo")
+        .firstName("John")
+        .lastName("Doe")
+        .photoIdFront("value_photo_id_front".toByteArray())
+        .build()
+
+    mockAnchor.enqueue(MockResponse().setResponseCode(200).setBody("""{"id": "customer-id"}"""))
+
+    val wantResponse = PutCustomerResponse()
+    wantResponse.id = "customer-id"
+
+    val gotResponse = customerIntegration.putCustomer(putCustomerRequest)
+    assertEquals(wantResponse, gotResponse)
+
+    val request = mockAnchor.takeRequest()
+    assertEquals("PUT", request.method)
+    assertEquals("multipart/form-data", request.headers["Content-Type"]?.split(';')?.get(0))
+    assertNull(request.headers["Authorization"])
+    val wantEndpoint = "/customer"
+    MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
+  }
+
+  @Test
   fun test_putCustomer_failure() {
     val putCustomerRequest =
       PutCustomerRequest.builder().id("customer-id").account(TEST_ACCOUNT).build()

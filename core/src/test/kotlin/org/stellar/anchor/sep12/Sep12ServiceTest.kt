@@ -243,6 +243,7 @@ class Sep12ServiceTest {
         .memoType("id")
         .type("sending_user")
         .firstName("John")
+        .birthDate("2000-01-01")
         .idIssueDate("2023-12-13")
         .idExpirationDate("2023-12-13T19:33:07Z")
         .build()
@@ -257,6 +258,7 @@ class Sep12ServiceTest {
         .memoType("id")
         .type("sending_user")
         .firstName("John")
+        .birthDate("2000-01-01")
         .idIssueDate("2023-12-13")
         .idExpirationDate("2023-12-13T19:33:07Z")
         .build()
@@ -275,6 +277,24 @@ class Sep12ServiceTest {
     verify(exactly = 1) { customerIntegration.putCustomer(any()) }
     verify(exactly = 1) { eventSession.publish(any()) }
     assertEquals(TEST_ACCOUNT, mockPutRequest.account)
+  }
+
+  @Test
+  fun `Test put customer bad birth_date`() {
+    // Execute the request
+    val mockPutRequest =
+      Sep12PutCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sending_user")
+        .firstName("John")
+        .birthDate("2023-12-13T19:33:07X")
+        .build()
+    val jwtToken = createJwtToken(TEST_ACCOUNT)
+
+    assertThrows<SepValidationException> { sep12Service.putCustomer(jwtToken, mockPutRequest) }
+    verify(exactly = 0) { customerIntegration.putCustomer(any()) }
   }
 
   @Test

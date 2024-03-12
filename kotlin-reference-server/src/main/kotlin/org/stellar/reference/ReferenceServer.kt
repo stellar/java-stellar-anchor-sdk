@@ -1,9 +1,9 @@
 package org.stellar.reference
 
-import io.ktor.server.netty.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.stellar.reference.di.ConfigContainer
 import org.stellar.reference.di.EventConsumerContainer
@@ -22,7 +22,7 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
   eventConsumingExecutor = DaemonExecutors.newFixedThreadPool(1)
   eventConsumingExecutor.submit {
     log.info("Starting event consumer")
-    EventConsumerContainer.eventConsumer.start()
+    runBlocking { EventConsumerContainer.eventConsumer.start() }
   }
 
   // start server
