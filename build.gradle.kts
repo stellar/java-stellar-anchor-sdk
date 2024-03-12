@@ -53,7 +53,7 @@ subprojects {
       googleJavaFormat()
     }
 
-    kotlin { ktfmt("0.30").googleStyle() }
+    kotlin { ktfmt("0.47").googleStyle() }
   }
 
   dependencies {

@@ -47,7 +47,7 @@ class AnchorPlatformIntegrationTest {
       AuthHelper.forJwtToken(
         platformToAnchorJwtService,
         JWT_EXPIRATION_MILLISECONDS,
-        "http://localhost:$SEP_SERVER_PORT"
+        "http://localhost:$SEP_SERVER_PORT",
       )
 
     private lateinit var toml: Sep1Helper.TomlContent
@@ -64,7 +64,7 @@ class AnchorPlatformIntegrationTest {
         "http://localhost:$REFERENCE_SERVER_PORT",
         httpClient,
         authHelper,
-        gson
+        gson,
       )
     private val rri =
       RestRateIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
@@ -166,7 +166,8 @@ class AnchorPlatformIntegrationTest {
         "sell_amount": "100",
         "buy_amount": "98.0392"
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
   }
 
@@ -202,14 +203,16 @@ class AnchorPlatformIntegrationTest {
           ]
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
   }
 
   @Test
   fun testRate_firm() {
     val rate =
-      rri.getRate(
+      rri
+        .getRate(
           GetRateRequest.builder()
             .type(FIRM)
             .context(SEP31)
@@ -265,7 +268,8 @@ class AnchorPlatformIntegrationTest {
           ]
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(gotQuote), true)
   }
 
@@ -302,7 +306,7 @@ class AnchorPlatformIntegrationTest {
           "amount": "0.30"
         }
       }""",
-      true
+      true,
     )
   }
 
@@ -320,7 +324,7 @@ class AnchorPlatformIntegrationTest {
         "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.enabled" to "true",
-        "logging.level.root" to "INFO"
+        "logging.level.root" to "INFO",
       )
 
     tests.forEach { assertEquals(it.value, platformServerContext.environment[it.key]) }
@@ -355,7 +359,7 @@ class AnchorPlatformIntegrationTest {
     assertEquals(86400, sep10Config.jwtTimeout)
     assertEquals(
       "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
-      sep10Config.signingSeed
+      sep10Config.signingSeed,
     )
   }
 

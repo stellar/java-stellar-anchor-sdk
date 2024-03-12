@@ -31,7 +31,7 @@ class Sep31TransactionBuilderTest {
           .id("aa762cda-a193-4961-861e-57b31fed6eb3")
           .amount("20")
           .fee("1")
-          .build())
+          .build()),
       )
 
     val refunds =

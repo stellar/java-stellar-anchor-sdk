@@ -17,6 +17,7 @@ class SepLanguageHelperTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     SepLanguageHelper.reset()
   }
+
   @Test
   fun `test validateLanguage()`() {
     every { appConfig.languages } returns
@@ -31,7 +32,7 @@ class SepLanguageHelperTest {
         "fr-CA",
         "zh-TW",
         "zh-CN",
-        "uk-UA"
+        "uk-UA",
       )
 
     Assertions.assertEquals("en", validateLanguage(appConfig, "pt"))

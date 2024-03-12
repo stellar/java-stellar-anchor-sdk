@@ -31,7 +31,7 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
 
   fun putCustomer(
     customerRequest: Sep12PutCustomerRequest,
-    mediaType: MediaType = TYPE_JSON
+    mediaType: MediaType = TYPE_JSON,
   ): Sep12PutCustomerResponse? {
     val body: RequestBody?
     when (mediaType) {

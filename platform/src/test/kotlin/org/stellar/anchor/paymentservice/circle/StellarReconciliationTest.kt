@@ -57,7 +57,7 @@ class StellarReconciliationTest {
     val originalTransfer =
       gson.fromJson(
         CirclePaymentServiceTest.mockStellarToWalletTransferJson,
-        CircleTransfer::class.java
+        CircleTransfer::class.java,
       )
     assertNull(originalTransfer.source.address)
 
@@ -69,7 +69,7 @@ class StellarReconciliationTest {
     }
     assertEquals(
       "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-      updatedTransfer?.source?.address
+      updatedTransfer?.source?.address,
     )
 
     // verify the updated transfer is a new object and did not cause any change in the original
@@ -84,7 +84,7 @@ class StellarReconciliationTest {
       request.path,
       CoreMatchers.endsWith(
         "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments"
-      )
+      ),
     )
   }
 }

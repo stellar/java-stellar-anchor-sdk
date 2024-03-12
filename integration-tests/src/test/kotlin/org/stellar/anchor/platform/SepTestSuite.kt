@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
     "r",
     "start-anchor-reference-server",
     false,
-    "Start anchor reference test server."
+    "Start anchor reference test server.",
   )
   options.addOption("t", "sep1-toml", true, "The path where the SEP1 TOML file can be read.")
   val sepTestOptions =
@@ -30,7 +30,7 @@ fun main(args: Array<String>) {
       "p",
       "tests",
       false,
-      "Tests to be performed. One or multiple of [sep1,sep10,sep12,sep24,sep31,ref,platform]"
+      "Tests to be performed. One or multiple of [sep1,sep10,sep12,sep24,sep31,ref,platform]",
     )
   sepTestOptions.isRequired = true
   sepTestOptions.args = Option.UNLIMITED_VALUES
@@ -103,7 +103,7 @@ fun getOrCreateJwt(tomlContent: TomlContent): String? {
         issuedAt,
         issuedAt + 60,
         "",
-        null
+        null,
       )
     jwt = jwtService.encode(token)
   }

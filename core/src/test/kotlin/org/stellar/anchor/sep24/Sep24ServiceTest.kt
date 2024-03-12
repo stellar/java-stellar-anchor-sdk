@@ -110,7 +110,7 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.assetCode, "USDC")
     assertEquals(
       slotTxn.captured.assetIssuer,
-      "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     )
     assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.fromAccount, TEST_ACCOUNT)
@@ -135,10 +135,7 @@ internal class Sep24ServiceTest {
     assertEquals(tokenStrings.size, 1)
     tokenString = tokenStrings[0].value
     decodedToken = jwtService.decode(tokenString)
-    assertEquals(
-      "$TEST_ACCOUNT:$TEST_MEMO",
-      decodedToken.sub,
-    )
+    assertEquals("$TEST_ACCOUNT:$TEST_MEMO", decodedToken.sub)
     assertEquals(TEST_CLIENT_DOMAIN, decodedToken.clientDomain)
   }
 
@@ -151,7 +148,7 @@ internal class Sep24ServiceTest {
       "amount" to "123.4",
       "email_address" to "jamie@stellar.org",
       "first_name" to "Jamie",
-      "last_name" to "Li"
+      "last_name" to "Li",
     )
   }
 
@@ -249,10 +246,7 @@ internal class Sep24ServiceTest {
     assertEquals(tokenStrings.size, 1)
     val tokenString = tokenStrings[0].value
     val decodedToken = jwtService.decode(tokenString)
-    assertEquals(
-      "$TEST_ACCOUNT:$TEST_MEMO",
-      decodedToken.sub,
-    )
+    assertEquals("$TEST_ACCOUNT:$TEST_MEMO", decodedToken.sub)
     assertEquals(TEST_CLIENT_DOMAIN, decodedToken.clientDomain)
   }
 
@@ -354,7 +348,7 @@ internal class Sep24ServiceTest {
           10,
           "2021-12-20T19:30:58+00:00",
           "1",
-          "en-US"
+          "en-US",
         )
       sep24Service.findTransactions(createJwtToken(), gtr)
     }

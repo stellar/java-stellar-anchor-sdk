@@ -61,7 +61,7 @@ class CircleTransferSerializationTest {
     wantTransfer.destination =
       CircleTransactionParty.stellar(
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        null
+        null,
       )
     wantTransfer.amount = CircleBalance("USD", "1.00")
     wantTransfer.transactionHash =
@@ -76,16 +76,12 @@ class CircleTransferSerializationTest {
           hashMapOf<String, Any>(
             "type" to "blockchain",
             "address" to "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-            "chain" to "XLM"
+            "chain" to "XLM",
           ),
-        "amount" to
-          hashMapOf<String, Any>(
-            "amount" to "1.00",
-            "currency" to "USD",
-          ),
+        "amount" to hashMapOf<String, Any>("amount" to "1.00", "currency" to "USD"),
         "transactionHash" to "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef",
         "status" to "complete",
-        "createDate" to "2022-01-01T01:01:01.544Z"
+        "createDate" to "2022-01-01T01:01:01.544Z",
       )
 
     val transfer = gson.fromJson(mockCircleTransferJson, CircleTransfer::class.java)
@@ -100,7 +96,7 @@ class CircleTransferSerializationTest {
     transfer.destination =
       CircleTransactionParty.stellar(
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        null
+        null,
       )
     transfer.amount = CircleBalance("USD", "1.00")
     transfer.transactionHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
@@ -114,16 +110,12 @@ class CircleTransferSerializationTest {
           hashMapOf<String, Any>(
             "type" to "blockchain",
             "address" to "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-            "chain" to "XLM"
+            "chain" to "XLM",
           ),
-        "amount" to
-          hashMapOf<String, Any>(
-            "amount" to "1.00",
-            "currency" to "USD",
-          ),
+        "amount" to hashMapOf<String, Any>("amount" to "1.00", "currency" to "USD"),
         "transactionHash" to "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef",
         "status" to "complete",
-        "createDate" to "2022-01-01T01:01:01.544Z"
+        "createDate" to "2022-01-01T01:01:01.544Z",
       )
 
     val transferJson = gson.toJson(transfer)

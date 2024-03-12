@@ -351,9 +351,7 @@ class Sep31ServiceTest {
   @Test
   fun `test quotes supported and required validation`() {
     val assetServiceQuotesNotSupported: AssetService =
-      ResourceJsonAssetService(
-        "test_assets.json.quotes_required_but_not_supported",
-      )
+      ResourceJsonAssetService("test_assets.json.quotes_required_but_not_supported")
     val ex: AnchorException = assertThrows {
       Sep31Service(
         appConfig,
@@ -368,10 +366,7 @@ class Sep31ServiceTest {
       )
     }
     assertInstanceOf(SepValidationException::class.java, ex)
-    assertEquals(
-      "if quotes_required is true, quotes_supported must also be true",
-      ex.message,
-    )
+    assertEquals("if quotes_required is true, quotes_supported must also be true", ex.message)
   }
 
   @Test
@@ -611,7 +606,7 @@ class Sep31ServiceTest {
     assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
     assertEquals(
       "[sep31-receiver, sep31-foreign-receiver]",
-      (ex as Sep31CustomerInfoNeededException).type
+      (ex as Sep31CustomerInfoNeededException).type,
     )
 
     // receiver status is not ACCEPTED
@@ -625,7 +620,7 @@ class Sep31ServiceTest {
     assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
     assertEquals(
       "[sep31-receiver, sep31-foreign-receiver]",
-      (ex as Sep31CustomerInfoNeededException).type
+      (ex as Sep31CustomerInfoNeededException).type,
     )
 
     // missing sender_id
@@ -641,7 +636,7 @@ class Sep31ServiceTest {
     assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
     assertEquals(
       "[sep31-sender, sep31-large-sender, sep31-foreign-sender]",
-      (ex as Sep31CustomerInfoNeededException).type
+      (ex as Sep31CustomerInfoNeededException).type,
     )
 
     // sender status is not ACCEPTED
@@ -655,7 +650,7 @@ class Sep31ServiceTest {
     assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
     assertEquals(
       "[sep31-sender, sep31-large-sender, sep31-foreign-sender]",
-      (ex as Sep31CustomerInfoNeededException).type
+      (ex as Sep31CustomerInfoNeededException).type,
     )
 
     // ----- QUOTE_ID IS USED ⬇️ -----
@@ -742,7 +737,7 @@ class Sep31ServiceTest {
           "receiver_account_number" to "1",
           "type" to "1",
           "receiver_routing_number" to "SWIFT",
-        ),
+        )
       )
 
     // Make sure we can get the sender and receiver customers
@@ -826,7 +821,8 @@ class Sep31ServiceTest {
       "creator": {
         "account": "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantTx, gotTx, true)
 
     // validate event response
@@ -858,13 +854,13 @@ class Sep31ServiceTest {
         .customers(
           Customers(
             StellarId.builder().id(senderId).build(),
-            StellarId.builder().id(receiverId).build()
+            StellarId.builder().id(receiverId).build(),
           )
         )
         .creator(
           StellarId.builder()
             .account("GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2")
-            .build(),
+            .build()
         )
         .build()
     assertEquals(wantEvent, txEventSlot.captured)
@@ -897,7 +893,7 @@ class Sep31ServiceTest {
           "receiver_account_number" to "1",
           "type" to "1",
           "receiver_routing_number" to "SWIFT",
-        ),
+        )
       )
 
     // Make sure we can get the sender and receiver customers
@@ -943,7 +939,7 @@ class Sep31ServiceTest {
           "receiver_account_number" to "1",
           "type" to "1",
           "receiver_routing_number" to "SWIFT",
-        ),
+        )
       )
 
     // Make sure we can get the sender and receiver customers
@@ -991,9 +987,7 @@ class Sep31ServiceTest {
       }
 
     val assetServiceQuotesNotSupported: AssetService =
-      ResourceJsonAssetService(
-        "test_assets.json.quotes_not_supported",
-      )
+      ResourceJsonAssetService("test_assets.json.quotes_not_supported")
     sep31Service =
       Sep31Service(
         appConfig,
@@ -1021,17 +1015,11 @@ class Sep31ServiceTest {
           "receiver_account_number" to "1",
           "type" to "1",
           "receiver_routing_number" to "SWIFT",
-        ),
+        )
       )
 
     // Provide fee response.
-    every { feeIntegration.getFee(any()) } returns
-      GetFeeResponse(
-        Amount(
-          "2",
-          "stellar:USDC",
-        ),
-      )
+    every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount("2", "stellar:USDC"))
 
     // Make sure we can get the sender and receiver customers
     val mockCustomer = Sep12GetCustomerResponse()
@@ -1056,12 +1044,14 @@ class Sep31ServiceTest {
   val jpycJson =
     """
     {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"sep12":{"sender":{"types":{"sep31-sender":{"description":"Japanese citizens"}}},"receiver":{"types":{"sep31-receiver":{"description":"Japanese citizens receiving USD"}}}},"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
-  """.trimIndent()
+  """
+      .trimIndent()
 
   val usdcJson =
     """
     {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"sep12":{"sender":{"types":{"sep31-sender":{"description":"U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"},"sep31-large-sender":{"description":"U.S. citizens that do not have sending limits"},"sep31-foreign-sender":{"description":"non-U.S. citizens sending payments of less than ${'$'}10,000 in value"}}},"receiver":{"types":{"sep31-receiver":{"description":"U.S. citizens receiving USD"},"sep31-foreign-receiver":{"description":"non-U.S. citizens receiving USD"}}}},"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
-  """.trimIndent()
+  """
+      .trimIndent()
 
   @Test
   fun `test INFO response`() {
@@ -1102,7 +1092,7 @@ class Sep31ServiceTest {
         "type" to
           AssetInfo.Sep31TxnFieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false),
         "receiver_routing_number" to
-          AssetInfo.Sep31TxnFieldSpec("routing number of the destination bank account", null, false)
+          AssetInfo.Sep31TxnFieldSpec("routing number of the destination bank account", null, false),
       )
     assertEquals(wantMissingFields, ex4.missingFields)
 

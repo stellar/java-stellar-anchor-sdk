@@ -56,8 +56,9 @@ open class SepClient {
     println("statusCode: " + response.code)
     println("responseBody: $responseBody")
     when (response.code) {
-      HttpStatus.OK.value(), HttpStatus.CREATED.value(), HttpStatus.ACCEPTED.value() ->
-        return responseBody
+      HttpStatus.OK.value(),
+      HttpStatus.CREATED.value(),
+      HttpStatus.ACCEPTED.value() -> return responseBody
       HttpStatus.FORBIDDEN.value() -> throw SepNotAuthorizedException("Forbidden")
       HttpStatus.NOT_FOUND.value() -> {
         val sepException = gson.fromJson(responseBody, SepExceptionResponse::class.java)

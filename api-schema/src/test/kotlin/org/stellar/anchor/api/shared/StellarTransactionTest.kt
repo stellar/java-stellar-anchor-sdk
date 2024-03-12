@@ -53,7 +53,7 @@ class StellarTransactionTest {
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
           .payments(listOf(mockPayment1))
-          .build()
+          .build(),
       )
 
     val wantTxList =
@@ -95,7 +95,7 @@ class StellarTransactionTest {
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
           .payments(listOf(mockPayment1))
-          .build()
+          .build(),
       )
 
     val wantTxList =
@@ -133,7 +133,7 @@ class StellarTransactionTest {
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
           .payments(listOf(mockPayment1))
-          .build()
+          .build(),
       )
 
     val wantTxList =
@@ -175,7 +175,7 @@ class StellarTransactionTest {
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
           .payments(listOf(mockPayment2, mockPayment3))
-          .build()
+          .build(),
       )
 
     val wantTxList =
@@ -221,7 +221,7 @@ class StellarTransactionTest {
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
           .payments(listOf(mockPayment3))
-          .build()
+          .build(),
       )
 
     val wantTxList =
@@ -245,7 +245,7 @@ class StellarTransactionTest {
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
           .payments(listOf(mockPayment3))
-          .build()
+          .build(),
       )
 
     assertEquals(wantTxList, txList)
@@ -279,7 +279,8 @@ class StellarTransactionTest {
             "memo_type": "text",
             "created_at": 1690415946.788000000
         }
-    """.trimIndent()
+    """
+        .trimIndent()
     val actual =
       mapper.writeValueAsString(
         StellarTransaction.builder()

@@ -79,7 +79,7 @@ class Sep31DepositInfoGeneratorTest {
         assetService,
         feeIntegration,
         customerIntegration,
-        eventPublishService
+        eventPublishService,
       )
 
     txn = gson.fromJson(txnJson, JdbcSep31Transaction::class.java)
@@ -103,13 +103,13 @@ class Sep31DepositInfoGeneratorTest {
         assetService,
         feeIntegration,
         customerIntegration,
-        eventPublishService
+        eventPublishService,
       )
 
     Assertions.assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
     Assertions.assertEquals(
       "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-      txn.stellarAccountId
+      txn.stellarAccountId,
     )
     Assertions.assertNull(txn.stellarMemoType)
     Assertions.assertNull(txn.stellarMemo)
@@ -123,7 +123,7 @@ class Sep31DepositInfoGeneratorTest {
 
     Assertions.assertEquals(
       "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-      txn.stellarAccountId
+      txn.stellarAccountId,
     )
     Assertions.assertEquals("hash", txn.stellarMemoType)
     Assertions.assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", txn.stellarMemo)
@@ -148,7 +148,8 @@ class Sep31DepositInfoGeneratorTest {
                         "masterWalletId":"1000066041"
                       }
                     }
-                  }""".trimMargin()
+                  }"""
+                    .trimMargin()
                 )
             "/v1/wallets/1000066041/addresses" ->
               return MockResponse()
@@ -161,7 +162,8 @@ class Sep31DepositInfoGeneratorTest {
                     "currency":"USD",
                     "chain":"XLM"
                   }
-                }""".trimMargin()
+                }"""
+                    .trimMargin()
                 )
           }
           return MockResponse().setResponseCode(404)
@@ -189,7 +191,7 @@ class Sep31DepositInfoGeneratorTest {
         assetService,
         feeIntegration,
         customerIntegration,
-        eventPublishService
+        eventPublishService,
       )
 
     Assertions.assertNull(txn.stellarMemoType)
@@ -200,7 +202,7 @@ class Sep31DepositInfoGeneratorTest {
 
     Assertions.assertEquals(
       "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
-      txn.stellarAccountId
+      txn.stellarAccountId,
     )
     Assertions.assertEquals("text", txn.stellarMemoType)
     Assertions.assertEquals("2454278437550473431", txn.stellarMemo)
@@ -218,13 +220,13 @@ class Sep31DepositInfoGeneratorTest {
       Sep31DepositInfo(
         "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
         nonEmptyMemo,
-        nonEmptyMemoType
+        nonEmptyMemoType,
       )
 
     Assertions.assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
     Assertions.assertEquals(
       "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-      txn.stellarAccountId
+      txn.stellarAccountId,
     )
     Assertions.assertNull(txn.stellarMemoType)
     Assertions.assertNull(txn.stellarMemo)
@@ -238,7 +240,7 @@ class Sep31DepositInfoGeneratorTest {
 
     Assertions.assertEquals(
       "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-      txn.stellarAccountId
+      txn.stellarAccountId,
     )
     Assertions.assertEquals(nonEmptyMemo, txn.stellarMemo)
     Assertions.assertEquals(nonEmptyMemoType, txn.stellarMemoType)

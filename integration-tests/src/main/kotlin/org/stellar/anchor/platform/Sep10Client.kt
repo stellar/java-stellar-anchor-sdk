@@ -14,13 +14,13 @@ class Sep10Client(
   private val endpoint: String,
   private val serverAccount: String,
   private val walletAccount: String,
-  private val signingKeys: Array<String>
+  private val signingKeys: Array<String>,
 ) : SepClient() {
   constructor(
     endpoint: String,
     serverAccount: String,
     walletAccount: String,
-    signingSeed: String
+    signingSeed: String,
   ) : this(endpoint, serverAccount, walletAccount, arrayOf(signingSeed))
 
   fun auth(): String {
@@ -41,7 +41,7 @@ class Sep10Client(
   private fun sign(
     challengeResponse: ChallengeResponse,
     signingKeys: Array<String>,
-    serverAccount: String
+    serverAccount: String,
   ): String {
     val url = URL(endpoint)
     val webAuthDomain = url.authority
@@ -51,7 +51,7 @@ class Sep10Client(
         serverAccount,
         Network(challengeResponse.networkPassphrase),
         webAuthDomain, // TODO: home domain may be different than WEB_AUTH_DOMAIN
-        webAuthDomain
+        webAuthDomain,
       )
     for (signingKey in signingKeys) {
       challengeTransaction.transaction.sign(KeyPair.fromSecretSeed(signingKey))

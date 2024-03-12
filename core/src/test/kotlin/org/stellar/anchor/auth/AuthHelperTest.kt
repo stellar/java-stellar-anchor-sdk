@@ -40,7 +40,7 @@ class AuthHelperTest {
           JwtToken.of(
             "http://localhost:8080",
             currentTimeMilliseconds / 1000L,
-            (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
+            (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L,
           )
 
         val jwtService = JwtService("secret")

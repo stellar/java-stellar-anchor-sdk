@@ -24,16 +24,16 @@ class PaymentObservingAccountsManagerTest {
       listOf(
         PaymentObservingAccount(
           "GCK5ECMM67ZN7RWGUSDKQAW6CAF6Q5WYK2VQJ276SJMINU6WVCIQW6BL",
-          Instant.now().minus(0, HOURS)
+          Instant.now().minus(0, HOURS),
         ),
         PaymentObservingAccount(
           "GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB",
-          Instant.now().minus(2, HOURS)
+          Instant.now().minus(2, HOURS),
         ),
         PaymentObservingAccount(
           "GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6",
-          Instant.now().minus(12, HOURS)
-        )
+          Instant.now().minus(12, HOURS),
+        ),
       )
   }
 
@@ -89,7 +89,7 @@ class PaymentObservingAccountsManagerTest {
       PaymentObservingAccountsManager.ObservingAccount(
         "GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22",
         Instant.now().minus(24, HOURS),
-        TRANSIENT
+        TRANSIENT,
       )
     )
 
@@ -97,7 +97,7 @@ class PaymentObservingAccountsManagerTest {
       PaymentObservingAccountsManager.ObservingAccount(
         "GCC2B7LML6UBKBA7NOMLCR57HPKMFHRO2VTZGSIMRLXDMECBXQ44MOYO",
         Instant.now().minus(100, DAYS),
-        RESIDENTIAL
+        RESIDENTIAL,
       )
     )
 

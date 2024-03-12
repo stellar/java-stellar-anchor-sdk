@@ -54,7 +54,7 @@ internal class TestSigner(
   @SerializedName("key") val key: String,
   @SerializedName("type") val type: String,
   @SerializedName("weight") val weight: Int,
-  @SerializedName("sponsor") val sponsor: String
+  @SerializedName("sponsor") val sponsor: String,
 ) {
   fun toSigner(): AccountResponse.Signer {
     val gson = GsonUtils.getInstance()
@@ -181,7 +181,7 @@ internal class Sep10ServiceTest {
 
     val transaction =
       TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
-        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .setTimeout(900)
         .setBaseFee(100)
         .addOperation(op1DomainNameMandatory)
         .addOperation(op2WebAuthDomainMandatory)
@@ -272,7 +272,7 @@ internal class Sep10ServiceTest {
 
     val transaction =
       TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
-        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .setTimeout(900)
         .setBaseFee(100)
         .addOperation(op1DomainNameMandatory)
         .addOperation(op2WebAuthDomainMandatory)
@@ -345,7 +345,7 @@ internal class Sep10ServiceTest {
 
     val transaction =
       TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
-        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .setTimeout(900)
         .setBaseFee(100)
         .addOperation(op1DomainNameMandatory)
         .addOperation(op2WebAuthDomainMandatory)
@@ -396,7 +396,7 @@ internal class Sep10ServiceTest {
         any(),
         any(),
         any(),
-        any()
+        any(),
       )
     }
   }
@@ -415,7 +415,7 @@ internal class Sep10ServiceTest {
         TimeBounds(now, now + 900),
         clientDomain,
         if (clientDomain.isEmpty()) "" else clientDomainKeyPair.accountId,
-        memo
+        memo,
       )
     txn.sign(clientKeyPair)
     if (clientDomain.isNotEmpty() && signWithClientDomain) {
@@ -448,7 +448,7 @@ internal class Sep10ServiceTest {
     val signers =
       arrayOf(
         TestSigner(clientKeyPair.accountId, "ed25519_public_key", 1, "").toSigner(),
-        TestSigner(clientDomainKeyPair.accountId, "ed25519_public_key", 1, "").toSigner()
+        TestSigner(clientDomainKeyPair.accountId, "ed25519_public_key", 1, "").toSigner(),
       )
 
     every { accountResponse.signers } returns signers

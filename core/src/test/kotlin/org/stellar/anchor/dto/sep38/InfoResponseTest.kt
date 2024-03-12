@@ -63,19 +63,19 @@ class InfoResponseTest {
     val wantSellDeliveryMethod =
       AssetInfo.Sep38Operation.DeliveryMethod(
         "WIRE",
-        "Send USD directly to the Anchor's bank account."
+        "Send USD directly to the Anchor's bank account.",
       )
     assertEquals(listOf(wantSellDeliveryMethod), fiatUSD.sellDeliveryMethods)
     val wantBuyDeliveryMethod =
       AssetInfo.Sep38Operation.DeliveryMethod(
         "WIRE",
-        "Have USD sent directly to your bank account."
+        "Have USD sent directly to your bank account.",
       )
     assertEquals(listOf(wantBuyDeliveryMethod), fiatUSD.buyDeliveryMethods)
     wantAssets =
       listOf(
         "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-        "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
       )
     assertTrue(fiatUSD.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(fiatUSD.exchangeableAssetNames))

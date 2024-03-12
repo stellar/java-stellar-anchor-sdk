@@ -18,7 +18,7 @@ internal class ExponentialBackoffTimerTest {
     ex = assertThrows { ExponentialBackoffTimer(1, 0) }
     assertEquals(
       "The formula 'maxSleepSeconds >= initialSleepSeconds' is not being respected.",
-      ex.message
+      ex.message,
     )
 
     // constructor with all parameters works
@@ -31,11 +31,11 @@ internal class ExponentialBackoffTimerTest {
     assertDoesNotThrow { exponentialBackoffTimer = ExponentialBackoffTimer() }
     assertEquals(
       ExponentialBackoffTimer.DEFAULT_INITIAL_SLEEP_SECONDS,
-      exponentialBackoffTimer.initialSleepSeconds
+      exponentialBackoffTimer.initialSleepSeconds,
     )
     assertEquals(
       ExponentialBackoffTimer.DEFAULT_MAX_SLEEP_SECONDS,
-      exponentialBackoffTimer.maxSleepSeconds
+      exponentialBackoffTimer.maxSleepSeconds,
     )
   }
 

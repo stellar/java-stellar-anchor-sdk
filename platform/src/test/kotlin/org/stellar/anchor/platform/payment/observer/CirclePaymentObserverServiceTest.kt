@@ -49,7 +49,7 @@ class CirclePaymentObserverServiceTest {
         httpClient,
         circlePaymentObserverConfig,
         horizon,
-        listOf(paymentListener)
+        listOf(paymentListener),
       )
 
     server = MockWebServer()
@@ -80,12 +80,11 @@ class CirclePaymentObserverServiceTest {
 
     // Unsupported type is ignored
     unsupportedNotification = mapOf("Type" to "ABC")
-    ex =
-      assertThrows {
-        circlePaymentObserverService.handleCircleNotification(
-          fromMapToCircleNotification(unsupportedNotification)
-        )
-      }
+    ex = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(
+        fromMapToCircleNotification(unsupportedNotification)
+      )
+    }
     assertEquals("Not handling notification of unsupported type \"ABC\".", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
   }
@@ -102,7 +101,7 @@ class CirclePaymentObserverServiceTest {
     }
     assertEquals(
       "Notification body of type SubscriptionConfirmation is missing subscription URL.",
-      ex.message
+      ex.message,
     )
     assertInstanceOf(BadRequestException::class.java, ex)
 
@@ -111,12 +110,11 @@ class CirclePaymentObserverServiceTest {
     val serverUrl = server.url("").toString()
     subConfirmationNotification =
       mapOf("Type" to "SubscriptionConfirmation", "SubscribeURL" to serverUrl)
-    ex =
-      assertThrows {
-        circlePaymentObserverService.handleCircleNotification(
-          fromMapToCircleNotification(subConfirmationNotification)
-        )
-      }
+    ex = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(
+        fromMapToCircleNotification(subConfirmationNotification)
+      )
+    }
     assertEquals("Failed to call \"SubscribeURL\" endpoint.", ex.message)
     assertInstanceOf(BadRequestException::class.java, ex)
 
@@ -127,7 +125,7 @@ class CirclePaymentObserverServiceTest {
         newHttpClient,
         circlePaymentObserverConfig,
         horizon,
-        listOf(paymentListener)
+        listOf(paymentListener),
       )
 
     val badRequestResponse =
@@ -137,12 +135,11 @@ class CirclePaymentObserverServiceTest {
         .setBody("""{ "error": "Something went wrong with your request." }""")
     server.enqueue(badRequestResponse)
 
-    ex =
-      assertThrows {
-        circlePaymentObserverService.handleCircleNotification(
-          fromMapToCircleNotification(subConfirmationNotification)
-        )
-      }
+    ex = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(
+        fromMapToCircleNotification(subConfirmationNotification)
+      )
+    }
     assertEquals("Calling the \"SubscribeURL\" endpoint didn't succeed.", ex.message)
     assertInstanceOf(BadRequestException::class.java, ex)
 
@@ -186,48 +183,44 @@ class CirclePaymentObserverServiceTest {
 
     // notification type is not "transfers"
     subConfirmationNotification = mapOf("Type" to "Notification", "Message" to "{}")
-    ex =
-      assertThrows {
-        circlePaymentObserverService.handleCircleNotification(
-          fromMapToCircleNotification(subConfirmationNotification)
-        )
-      }
+    ex = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(
+        fromMapToCircleNotification(subConfirmationNotification)
+      )
+    }
     assertEquals("Won't handle notification of type \"null\".", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
 
     // missing Message.transfer
     var messageJson = """{ "notificationType": "transfers" }"""
     subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
-    ex =
-      assertThrows {
-        circlePaymentObserverService.handleCircleNotification(
-          fromMapToCircleNotification(subConfirmationNotification)
-        )
-      }
+    ex = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(
+        fromMapToCircleNotification(subConfirmationNotification)
+      )
+    }
     assertEquals("Missing \"transfer\" value in notification of type \"transfers\".", ex.message)
     assertInstanceOf(BadRequestException::class.java, ex)
 
     // Not a complete transfer
     messageJson = """{ "notificationType": "transfers", "transfer": {} }"""
     subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
-    ex =
-      assertThrows {
-        circlePaymentObserverService.handleCircleNotification(
-          fromMapToCircleNotification(subConfirmationNotification)
-        )
-      }
+    ex = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(
+        fromMapToCircleNotification(subConfirmationNotification)
+      )
+    }
     assertEquals("Not a complete transfer.", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
 
     // Incomplete transfer
     messageJson = """{ "notificationType": "transfers", "transfer": { "status": "pending" } }"""
     subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
-    ex =
-      assertThrows {
-        circlePaymentObserverService.handleCircleNotification(
-          fromMapToCircleNotification(subConfirmationNotification)
-        )
-      }
+    ex = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(
+        fromMapToCircleNotification(subConfirmationNotification)
+      )
+    }
     assertEquals("Not a complete transfer.", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
 
@@ -250,12 +243,11 @@ class CirclePaymentObserverServiceTest {
         .trimIndent()
         .trimMargin()
     subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
-    ex =
-      assertThrows {
-        circlePaymentObserverService.handleCircleNotification(
-          fromMapToCircleNotification(subConfirmationNotification)
-        )
-      }
+    ex = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(
+        fromMapToCircleNotification(subConfirmationNotification)
+      )
+    }
     assertEquals("Neither source nor destination are Stellar accounts.", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
 
@@ -282,12 +274,11 @@ class CirclePaymentObserverServiceTest {
         .trimIndent()
         .trimMargin()
     subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
-    ex =
-      assertThrows {
-        circlePaymentObserverService.handleCircleNotification(
-          fromMapToCircleNotification(subConfirmationNotification)
-        )
-      }
+    ex = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(
+        fromMapToCircleNotification(subConfirmationNotification)
+      )
+    }
     assertEquals("None of the transfer wallets is being tracked.", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
 
@@ -298,7 +289,7 @@ class CirclePaymentObserverServiceTest {
         httpClient,
         circlePaymentObserverConfig,
         horizon,
-        listOf(paymentListener)
+        listOf(paymentListener),
       )
     messageJson =
       """{
@@ -322,12 +313,11 @@ class CirclePaymentObserverServiceTest {
         .trimIndent()
         .trimMargin()
     subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
-    ex =
-      assertThrows {
-        circlePaymentObserverService.handleCircleNotification(
-          fromMapToCircleNotification(subConfirmationNotification)
-        )
-      }
+    ex = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(
+        fromMapToCircleNotification(subConfirmationNotification)
+      )
+    }
     assertEquals("The only supported Circle currency is USDC.", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
   }
@@ -354,7 +344,7 @@ class CirclePaymentObserverServiceTest {
         httpClient,
         circlePaymentObserverConfig,
         horizon,
-        listOf(paymentListener)
+        listOf(paymentListener),
       )
 
     // Mock horizon call
@@ -465,7 +455,7 @@ class CirclePaymentObserverServiceTest {
         httpClient,
         circlePaymentObserverConfig,
         horizon,
-        listOf(paymentListener)
+        listOf(paymentListener),
       )
 
     // if the response is empty, returns null
@@ -568,7 +558,7 @@ class CirclePaymentObserverServiceTest {
         httpClient,
         circlePaymentObserverConfig,
         horizon,
-        listOf(paymentListener)
+        listOf(paymentListener),
       )
     party = CircleTransactionParty.wallet("11111")
     isWalletTracked = circlePaymentObserverService.isWalletTracked(party)
@@ -585,7 +575,7 @@ class CirclePaymentObserverServiceTest {
         httpClient,
         circlePaymentObserverConfig,
         horizon,
-        listOf(paymentListener)
+        listOf(paymentListener),
       )
     party = CircleTransactionParty.wallet("11111")
     isWalletTracked = circlePaymentObserverService.isWalletTracked(party)

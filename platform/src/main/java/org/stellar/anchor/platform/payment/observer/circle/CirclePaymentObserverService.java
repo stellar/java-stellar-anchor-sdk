@@ -60,7 +60,9 @@ public class CirclePaymentObserverService {
   }
 
   public void handleCircleNotification(CircleNotification circleNotification)
-      throws UnprocessableEntityException, BadRequestException, ServerErrorException,
+      throws UnprocessableEntityException,
+          BadRequestException,
+          ServerErrorException,
           EventPublishException {
     String type = Objects.toString(circleNotification.getType(), "");
 
@@ -134,7 +136,9 @@ public class CirclePaymentObserverService {
    * @throws ServerErrorException when there's an error trying to fetch the Stellar network.
    */
   public void handleTransferNotification(CircleNotification circleNotification)
-      throws BadRequestException, UnprocessableEntityException, ServerErrorException,
+      throws BadRequestException,
+          UnprocessableEntityException,
+          ServerErrorException,
           EventPublishException {
     if (circleNotification.getMessage() == null) {
       throw new BadRequestException("Notification body of type Notification is missing a message.");

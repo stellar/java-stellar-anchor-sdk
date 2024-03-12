@@ -20,7 +20,7 @@ fun sep10TestAll(toml: Sep1Helper.TomlContent): String {
       toml.getString("WEB_AUTH_ENDPOINT"),
       toml.getString("SIGNING_KEY"),
       CLIENT_WALLET_ACCOUNT,
-      CLIENT_WALLET_SECRET
+      CLIENT_WALLET_SECRET,
     )
 
   sep10ClientMultiSig =
@@ -31,8 +31,8 @@ fun sep10TestAll(toml: Sep1Helper.TomlContent): String {
       arrayOf(
         CLIENT_WALLET_SECRET,
         CLIENT_WALLET_EXTRA_SIGNER_1_SECRET,
-        CLIENT_WALLET_EXTRA_SIGNER_2_SECRET
-      )
+        CLIENT_WALLET_EXTRA_SIGNER_2_SECRET,
+      ),
     )
 
   val jwt = testOk()
@@ -55,6 +55,6 @@ fun testUnsignedChallenge() {
 
   assertFailsWith(
     exceptionClass = SepNotAuthorizedException::class,
-    block = { sep10Client.validate(ValidationRequest.of(challenge.transaction)) }
+    block = { sep10Client.validate(ValidationRequest.of(challenge.transaction)) },
   )
 }

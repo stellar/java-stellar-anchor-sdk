@@ -69,7 +69,7 @@ class RefundsTest {
               .id("B")
               .amount("50")
               .fee("4")
-              .build()
+              .build(),
           )
         )
         .build()
@@ -118,7 +118,7 @@ class RefundsTest {
               .fee(Amount("4", stellarUSDC))
               .refundedAt(null)
               .refundedAt(null)
-              .build()
+              .build(),
           )
         )
         .build()
@@ -152,7 +152,7 @@ class RefundsTest {
               .fee(Amount("4", stellarUSDC))
               .refundedAt(Instant.now())
               .refundedAt(Instant.now())
-              .build()
+              .build(),
           )
         )
         .build()
