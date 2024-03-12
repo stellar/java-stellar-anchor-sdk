@@ -31,7 +31,6 @@ import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log.debug
 import org.stellar.anchor.util.Log.info
 import org.stellar.reference.client.AnchorReferenceServerClient
@@ -162,11 +161,6 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     assertNotNull(actualEvents)
     actualEvents?.let {
       assertEquals(expectedStatuses.size, actualEvents.size)
-
-      println("expectedStatuses: " + GsonUtils.getInstance().toJson(expectedStatuses))
-
-      println("actualEvents: " + GsonUtils.getInstance().toJson(expectedStatuses))
-
       expectedStatuses.forEachIndexed { index, expectedStatus ->
         actualEvents[index].let { actualEvent ->
           assertNotNull(actualEvent.id)
