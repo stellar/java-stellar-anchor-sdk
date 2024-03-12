@@ -34,6 +34,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_TOML
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
+import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN_PATTERN
 import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_SIGNING_SEED
@@ -111,7 +112,7 @@ internal class Sep10ServiceTest {
     every { sep10Config.webAuthDomain } returns TEST_WEB_AUTH_DOMAIN
     every { sep10Config.authTimeout } returns 900
     every { sep10Config.jwtTimeout } returns 900
-    every { sep10Config.homeDomains } returns listOf(TEST_HOME_DOMAIN)
+    every { sep10Config.homeDomains } returns listOf(TEST_HOME_DOMAIN, TEST_HOME_DOMAIN_PATTERN)
 
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
 
@@ -409,6 +410,13 @@ internal class Sep10ServiceTest {
   }
 
   @Test
+  fun `Test validate challenge with bad home domain failure`() {
+    val vr = ValidationRequest()
+    vr.transaction = createTestChallenge("", "abc.badPattern.stellar.org", false)
+    assertThrows<SepValidationException> { sep10Service.validateChallenge(vr) }
+  }
+
+  @Test
   fun `Test request to create challenge with bad home domain failure`() {
     val cr =
       ChallengeRequest.builder()
@@ -420,6 +428,22 @@ internal class Sep10ServiceTest {
     cr.homeDomain = "bad.homedomain.com"
 
     assertThrows<SepValidationException> { sep10Service.createChallenge(cr) }
+  }
+
+  @Test
+  @LockAndMockStatic([NetUtil::class])
+  fun `Test create challenge with wildcard matched home domain success`() {
+    every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(null)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
+    cr.homeDomain = "abc.def.wildcard.stellar.org"
+
+    sep10Service.createChallenge(cr)
   }
 
   @Test
@@ -621,22 +645,6 @@ internal class Sep10ServiceTest {
   @LockAndMockStatic([Sep10Challenge::class])
   fun `test createChallenge() ok`() {
     every { sep10Config.knownCustodialAccountList } returns listOf(TEST_ACCOUNT)
-    val cr =
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(null)
-        .build()
-
-    assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
-  }
-
-  @Test
-  fun `Test createChallenge() when isKnownCustodialAccountRequired is not enabled`() {
-    every { sep10Config.knownCustodialAccountList } returns
-      listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr =
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)

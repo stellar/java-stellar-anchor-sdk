@@ -1,4 +1,6 @@
-FROM gradle:7.6.0-jdk11-alpine AS build
+ARG BASE_IMAGE=gradle:7.6.4-jdk11-alpine
+
+FROM ${BASE_IMAGE} AS build
 WORKDIR /code
 COPY --chown=gradle:gradle . .
 

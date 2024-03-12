@@ -6,6 +6,7 @@ import static org.stellar.anchor.util.Log.*;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import lombok.Builder;
@@ -33,10 +34,6 @@ public abstract class ConfigManager
   public static ConfigManager getInstance() {
     if (configManager == null) configManager = new DefaultConfigManager();
     return configManager;
-  }
-
-  public ConfigMap getConfigMap() {
-    return configMap;
   }
 
   /**
@@ -171,7 +168,7 @@ public abstract class ConfigManager
 class ConfigManagerHealthCheckResult implements HealthCheckResult {
   transient String name;
 
-  ConfigMap configMap;
+  Collection<String> configured;
 
   @Override
   public String name() {

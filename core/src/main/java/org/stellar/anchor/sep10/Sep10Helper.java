@@ -4,6 +4,9 @@ import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.infoF;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.util.Sep1Helper;
@@ -46,5 +49,50 @@ public class Sep10Helper {
       infoF("Invalid config: {}", e.getMessage());
       throw new SepException(String.format("Invalid config: %s", e.getMessage()));
     }
+  }
+
+  /**
+   * Checks if the given domain name matches any pattern or exact domain in the provided list.
+   *
+   * @param patternsAndDomains A list containing patterns and/or exact domain names to match
+   *     against.
+   * @param domainName The domain name to check for a match.
+   * @return true if the domain name matches any pattern or exact domain in the list, false
+   *     otherwise.
+   */
+  public static Boolean isDomainNameMatch(List<String> patternsAndDomains, String domainName) {
+    for (String patternOrDomain : patternsAndDomains) {
+      if (patternOrDomain.contains("*")) {
+        // wildcard domain
+        // Escape special characters in the pattern and replace '*' with '.*'
+        String regex = patternOrDomain.replace(".", "\\.").replace("*", ".*");
+        Pattern patternObject = Pattern.compile(regex);
+        Matcher matcher = patternObject.matcher(domainName);
+        if (matcher.matches()) {
+          return true;
+        }
+      } else {
+        // exact domain
+        if (patternOrDomain.equals(domainName)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Retrieves the first non-wildcard domain name from the provided list of patterns and domains.
+   *
+   * @param patternsAndDomains A list containing patterns and/or exact domain names to search.
+   * @return The first exact domain name found in the list, or null if no exact domain is present.
+   */
+  public static String getDefaultDomainName(List<String> patternsAndDomains) {
+    for (String patternOrDomain : patternsAndDomains) {
+      if (!patternOrDomain.contains("*")) {
+        return patternOrDomain;
+      }
+    }
+    return null;
   }
 }
