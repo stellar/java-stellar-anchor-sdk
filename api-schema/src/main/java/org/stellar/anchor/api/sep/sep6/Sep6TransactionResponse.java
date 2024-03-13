@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.InstructionField;
-import org.stellar.anchor.api.shared.RateFee;
 import org.stellar.anchor.api.shared.Refunds;
 
 @Data
@@ -45,7 +45,7 @@ public class Sep6TransactionResponse {
   String amountFeeAsset;
 
   @SerializedName("fee_details")
-  RateFee feeDetails;
+  FeeDetails feeDetails;
 
   @SerializedName("quote_id")
   String quoteId;

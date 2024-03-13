@@ -633,7 +633,7 @@ class TransactionServiceTest {
     testSep38Quote.sellAsset = fiatUSD
     testSep38Quote.buyAmount = "98"
     testSep38Quote.buyAsset = stellarUSDC
-    testSep38Quote.fee = RateFee("2", fiatUSD)
+    testSep38Quote.fee = FeeDetails("2", fiatUSD)
 
     every { sep38QuoteStore.findByQuoteId(quoteId) } returns testSep38Quote
 
@@ -1130,9 +1130,9 @@ class TransactionServiceTest {
 
     assertEquals(Amount("10", "USDC").toRate(), transactionService.validateAndGetRateFee(data))
 
-    data.feeDetails = RateFee("10", "USDC", listOf(RateFeeDetail("test", "10")))
+    data.feeDetails = FeeDetails("10", "USDC", listOf(FeeDescription("test", "10")))
     assertEquals(
-      RateFee("10", "USDC", listOf(RateFeeDetail("test", "10"))),
+      FeeDetails("10", "USDC", listOf(FeeDescription("test", "10"))),
       transactionService.validateAndGetRateFee(data)
     )
 

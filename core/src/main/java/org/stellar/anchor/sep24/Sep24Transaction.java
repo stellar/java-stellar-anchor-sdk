@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep24;
 
 import org.stellar.anchor.SepTransaction;
-import org.stellar.anchor.api.shared.RateFee;
+import org.stellar.anchor.api.shared.FeeDetails;
 
 @SuppressWarnings("unused")
 public interface Sep24Transaction extends SepTransaction {
@@ -232,9 +232,9 @@ public interface Sep24Transaction extends SepTransaction {
    * @return Unified fields of SEP-24 transaction history complied from <code>amount_fee</code>,
    *     <code>amount_fee_asset</code> and <code>fee_details</code>
    */
-  RateFee getFeeDetails();
+  FeeDetails getFeeDetails();
 
-  void setFeeDetails(RateFee feeDetails);
+  void setFeeDetails(FeeDetails feeDetails);
 
   Boolean getRefunded();
 

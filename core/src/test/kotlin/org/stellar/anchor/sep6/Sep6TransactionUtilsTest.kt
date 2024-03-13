@@ -3,7 +3,6 @@ package org.stellar.anchor.sep6
 import com.google.gson.Gson
 import java.time.Instant
 import java.util.*
-import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -146,7 +145,7 @@ class Sep6TransactionUtilsTest {
         amountOutAsset = "USDC"
         amountFee = "1.00"
         amountFeeAsset = "USD"
-        feeDetails = RateFee("1.00", "USD", null)
+        feeDetails = FeeDetails("1.00", "USD", null)
         amountExpected = "100.00"
         sep10Account = TEST_ACCOUNT
         sep10AccountMemo = TEST_MEMO

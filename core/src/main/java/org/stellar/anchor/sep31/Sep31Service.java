@@ -58,7 +58,7 @@ import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest;
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest;
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.RateFee;
+import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
@@ -189,14 +189,14 @@ public class Sep31Service {
             .build();
 
     Sep38Quote quote = Context.get().getQuote();
-    RateFee feeDetails;
+    FeeDetails feeDetails;
 
     if (quote != null) {
       feeDetails = quote.getFee();
     } else {
       Amount fee = Context.get().getFee();
 
-      feeDetails = new RateFee(fee.getAmount(), fee.getAsset(), null);
+      feeDetails = new FeeDetails(fee.getAmount(), fee.getAsset(), null);
     }
 
     Instant now = Instant.now();

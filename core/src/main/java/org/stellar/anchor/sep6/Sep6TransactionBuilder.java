@@ -3,8 +3,8 @@ package org.stellar.anchor.sep6;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.InstructionField;
-import org.stellar.anchor.api.shared.RateFee;
 import org.stellar.anchor.api.shared.Refunds;
 
 public class Sep6TransactionBuilder {
@@ -111,7 +111,7 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  public Sep6TransactionBuilder feeDetails(RateFee feeDetails) {
+  public Sep6TransactionBuilder feeDetails(FeeDetails feeDetails) {
     txn.setFeeDetails(feeDetails);
     return this;
   }

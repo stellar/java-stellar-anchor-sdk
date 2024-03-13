@@ -278,7 +278,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountRequest("1"))
         .amountOut(AmountRequest("0.9"))
-        .feeDetails(RateFee("0.1", STELLAR_USDC))
+        .feeDetails(FeeDetails("0.1", STELLAR_USDC))
         .stellarTransactionId(STELLAR_TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()

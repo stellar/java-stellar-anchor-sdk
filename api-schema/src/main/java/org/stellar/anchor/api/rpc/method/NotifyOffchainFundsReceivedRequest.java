@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
-import org.stellar.anchor.api.shared.RateFee;
+import org.stellar.anchor.api.shared.FeeDetails;
 
 @Data
 @SuperBuilder
@@ -31,5 +31,5 @@ public class NotifyOffchainFundsReceivedRequest extends RpcMethodParamsRequest {
   private AmountRequest amountFee;
 
   @SerializedName("fee_details")
-  private RateFee feeDetails;
+  private FeeDetails feeDetails;
 }

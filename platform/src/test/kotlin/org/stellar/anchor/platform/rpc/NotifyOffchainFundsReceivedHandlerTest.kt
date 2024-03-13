@@ -28,7 +28,7 @@ import org.stellar.anchor.api.rpc.method.NotifyOffchainFundsReceivedRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.Customers
-import org.stellar.anchor.api.shared.RateFee
+import org.stellar.anchor.api.shared.FeeDetails
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
@@ -751,7 +751,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
-    expectedResponse.feeDetails = RateFee("0.1", STELLAR_USDC)
+    expectedResponse.feeDetails = FeeDetails("0.1", STELLAR_USDC)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 

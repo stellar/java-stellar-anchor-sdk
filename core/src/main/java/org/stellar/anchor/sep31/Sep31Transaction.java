@@ -46,9 +46,9 @@ public interface Sep31Transaction extends SepTransaction {
   @Deprecated
   void setAmountFeeAsset(String amountFeeAsset);
 
-  RateFee getFeeDetails();
+  FeeDetails getFeeDetails();
 
-  void setFeeDetails(RateFee feeDetails);
+  void setFeeDetails(FeeDetails feeDetails);
 
   String getStellarAccountId();
 

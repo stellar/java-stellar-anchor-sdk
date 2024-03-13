@@ -271,7 +271,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("1", STELLAR_USDC))
-        .feeDetails(RateFee("1", FIAT_USD, null))
+        .feeDetails(FeeDetails("1", FIAT_USD, null))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -307,7 +307,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("1", STELLAR_USDC))
-        .feeDetails(RateFee("1", FIAT_USD, null))
+        .feeDetails(FeeDetails("1", FIAT_USD, null))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -395,7 +395,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
-        .feeDetails(RateFee("0.1", FIAT_USD))
+        .feeDetails(FeeDetails("0.1", FIAT_USD))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -447,7 +447,7 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
-    expectedResponse.feeDetails = RateFee("0.1", FIAT_USD, null)
+    expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
@@ -482,7 +482,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
-        .feeDetails(RateFee("0.1", FIAT_USD, null))
+        .feeDetails(FeeDetails("0.1", FIAT_USD, null))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -532,7 +532,7 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
-    expectedResponse.feeDetails = RateFee("0.1", FIAT_USD, null)
+    expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
@@ -619,7 +619,7 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
-    expectedResponse.feeDetails = RateFee("0.1", STELLAR_USDC, null)
+    expectedResponse.feeDetails = FeeDetails("0.1", STELLAR_USDC, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
@@ -713,7 +713,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
-        .feeDetails(RateFee("0.1", FIAT_USD, null))
+        .feeDetails(FeeDetails("0.1", FIAT_USD, null))
         .amountExpected(AmountRequest("1"))
         .instructions(mapOf("first_name" to InstructionField.builder().build()))
         .build()
@@ -767,7 +767,7 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
-    expectedResponse.feeDetails = RateFee("0.1", FIAT_USD, null)
+    expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
@@ -815,7 +815,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
-        .feeDetails(RateFee("0.1", FIAT_USD, null))
+        .feeDetails(FeeDetails("0.1", FIAT_USD, null))
         .instructions(mapOf("first_name" to InstructionField.builder().build()))
         .build()
     val txn6 = JdbcSep6Transaction()
@@ -867,7 +867,7 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
-    expectedResponse.feeDetails = RateFee("0.1", FIAT_USD, null)
+    expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
@@ -972,7 +972,7 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
-    expectedResponse.feeDetails = RateFee("0.1", STELLAR_USDC, null)
+    expectedResponse.feeDetails = FeeDetails("0.1", STELLAR_USDC, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))

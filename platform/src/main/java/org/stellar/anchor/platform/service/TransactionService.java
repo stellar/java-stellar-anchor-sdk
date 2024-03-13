@@ -41,7 +41,7 @@ import org.stellar.anchor.api.platform.TransactionsSeps;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.RateFee;
+import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
@@ -256,7 +256,7 @@ public class TransactionService {
     validateAsset("amount_out", patch.getTransaction().getAmountOut());
     validateAsset("amount_fee", patch.getTransaction().getAmountFee(), true);
 
-    RateFee feeDetails = validateAndGetRateFee(patch.getTransaction());
+    FeeDetails feeDetails = validateAndGetRateFee(patch.getTransaction());
 
     JdbcSepTransaction txn = queryTransactionById(patch.getTransaction().getId());
     if (txn == null)
@@ -392,7 +392,7 @@ public class TransactionService {
           .ifPresent(stellarTransaction -> txn.setStellarTransactionId(stellarTransaction.getId()));
     }
 
-    RateFee feeDetails = validateAndGetRateFee(patch);
+    FeeDetails feeDetails = validateAndGetRateFee(patch);
 
     switch (txn.getProtocol()) {
       case "6":
@@ -477,10 +477,10 @@ public class TransactionService {
     }
   }
 
-  RateFee validateAndGetRateFee(PlatformTransactionData patch) throws BadRequestException {
+  FeeDetails validateAndGetRateFee(PlatformTransactionData patch) throws BadRequestException {
     // If both fee_details and fee is set, validate that they match. If only one set, properly set
     // the other one.
-    RateFee feeDetails = patch.getFeeDetails();
+    FeeDetails feeDetails = patch.getFeeDetails();
 
     if (feeDetails != null) {
       if (patch.getAmountFee() != null) {
@@ -496,7 +496,7 @@ public class TransactionService {
       }
     } else if (patch.getAmountFee() != null) {
       feeDetails =
-          new RateFee(patch.getAmountFee().getAmount(), patch.getAmountFee().getAsset(), null);
+          new FeeDetails(patch.getAmountFee().getAmount(), patch.getAmountFee().getAsset(), null);
     }
 
     return feeDetails;

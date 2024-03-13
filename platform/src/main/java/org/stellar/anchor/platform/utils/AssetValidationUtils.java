@@ -11,8 +11,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.rpc.method.AmountAssetRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.shared.RateFee;
-import org.stellar.anchor.api.shared.RateFeeDetail;
+import org.stellar.anchor.api.shared.FeeDescription;
+import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.util.MathHelper;
@@ -40,7 +40,9 @@ public class AssetValidationUtils {
   }
 
   public static void validateFeeDetails(
-      @NotNull RateFee fee, @Nullable JdbcSepTransaction jdbcTransaction, AssetService assetService)
+      @NotNull FeeDetails fee,
+      @Nullable JdbcSepTransaction jdbcTransaction,
+      AssetService assetService)
       throws BadRequestException {
     validateAsset(
         "fee_details", new AmountAssetRequest(fee.getTotal(), fee.getAsset()), true, assetService);
@@ -57,7 +59,7 @@ public class AssetValidationUtils {
     if (fee.getDetails() != null) {
       BigDecimal sum =
           fee.getDetails().stream()
-              .map(RateFeeDetail::getAmount)
+              .map(FeeDescription::getAmount)
               .map(MathHelper::decimal)
               .reduce(decimal(0L), BigDecimal::add);
 

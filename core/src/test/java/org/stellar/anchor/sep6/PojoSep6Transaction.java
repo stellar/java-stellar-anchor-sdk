@@ -50,18 +50,18 @@ public class PojoSep6Transaction implements Sep6Transaction {
   String requiredCustomerInfoMessage;
   List<String> requiredCustomerInfoUpdates;
   Map<String, InstructionField> instructions;
-  List<RateFeeDetail> feeDetailsList;
+  List<FeeDescription> feeDetailsList;
 
-  public void setFeeDetails(RateFee feeDetails) {
+  public void setFeeDetails(FeeDetails feeDetails) {
     setAmountFee(feeDetails.getTotal());
     setAmountFeeAsset(feeDetails.getAsset());
     setFeeDetailsList(feeDetails.getDetails());
   }
 
-  public RateFee getFeeDetails() {
+  public FeeDetails getFeeDetails() {
     if (getAmountFee() == null) {
       return null;
     }
-    return new RateFee(getAmountFee(), getAmountFeeAsset(), getFeeDetailsList());
+    return new FeeDetails(getAmountFee(), getAmountFeeAsset(), getFeeDetailsList());
   }
 }

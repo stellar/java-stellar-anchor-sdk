@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.utils
 
 import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.RateFee
+import org.stellar.anchor.api.shared.FeeDetails
 
-fun Amount.toRate(): RateFee {
-  return RateFee(this.amount, this.asset)
+fun Amount.toRate(): FeeDetails {
+  return FeeDetails(this.amount, this.asset)
 }

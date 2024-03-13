@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep24;
 
 import java.time.Instant;
-import org.stellar.anchor.api.shared.RateFee;
+import org.stellar.anchor.api.shared.FeeDetails;
 
 @SuppressWarnings("unused")
 public class Sep24TransactionBuilder {
@@ -116,7 +116,7 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
-  public Sep24TransactionBuilder feeDetails(RateFee feeDetails) {
+  public Sep24TransactionBuilder feeDetails(FeeDetails feeDetails) {
     txn.setFeeDetails(feeDetails);
     return this;
   }

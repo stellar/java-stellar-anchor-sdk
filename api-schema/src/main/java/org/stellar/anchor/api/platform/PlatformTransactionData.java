@@ -46,7 +46,7 @@ public class PlatformTransactionData {
   Amount amountFee;
 
   @SerializedName("fee_details")
-  RateFee feeDetails;
+  FeeDetails feeDetails;
 
   @SerializedName("quote_id")
   String quoteId;
