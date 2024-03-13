@@ -236,7 +236,7 @@ class RequestOnchainFundsHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("amount_fee is required", ex.message)
+    assertEquals("fee_details or amount_fee is required", ex.message)
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
@@ -264,7 +264,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "All or none of the amount_in, amount_out, and fee_details should be set",
+      "All or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set",
       ex.message
     )
 
@@ -468,6 +468,11 @@ class RequestOnchainFundsHandlerTest {
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_fee.asset should be stellar asset", ex.message)
 
+    request.amountFee = null
+    request.feeDetails = Amount("10", FIAT_USD).toRate()
+    ex = assertThrows { handler.handle(request) }
+    assertEquals("fee_details.asset should be stellar asset", ex.message)
+
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
@@ -551,7 +556,7 @@ class RequestOnchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("0.9", FIAT_USD))
-        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .feeDetails(Amount("0.1", STELLAR_USDC).toRate())
         .amountExpected(AmountRequest("1"))
         .memo(TEXT_MEMO)
         .memoType(TEXT_MEMO_TYPE)
@@ -1209,7 +1214,7 @@ class RequestOnchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("0.9", FIAT_USD))
-        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .feeDetails(Amount("0.1", STELLAR_USDC).toRate())
         .amountExpected(AmountRequest("1"))
         .memo(TEXT_MEMO)
         .memoType(TEXT_MEMO_TYPE)

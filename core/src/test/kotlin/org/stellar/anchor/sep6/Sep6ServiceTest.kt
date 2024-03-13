@@ -334,8 +334,6 @@ class Sep6ServiceTest {
         .amountInAsset(sourceAsset)
         .amountOut("98")
         .amountOutAsset(TEST_ASSET_SEP38_FORMAT)
-        .amountFee("2")
-        .amountFeeAsset(TEST_ASSET_SEP38_FORMAT)
         .rateFee(RateFee("2", TEST_ASSET_SEP38_FORMAT))
         .build()
 
@@ -898,8 +896,6 @@ class Sep6ServiceTest {
         .amountInAsset(TEST_ASSET_SEP38_FORMAT)
         .amountOut("98")
         .amountOutAsset(destinationAsset)
-        .amountFee("2")
-        .amountFeeAsset(destinationAsset)
         .rateFee(RateFee("2", destinationAsset))
         .build()
 

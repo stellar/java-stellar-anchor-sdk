@@ -85,6 +85,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
 
+    // If none of the accepted combinations of input parameters satisfies -> throw an exception
     if (!((request.getAmountIn() == null
             && request.getAmountOut() == null
             && request.getAmountFee() == null
@@ -94,7 +95,12 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
             && request.getAmountOut() != null
             && (request.getAmountFee() != null || request.getFeeDetails() != null)))) {
       throw new InvalidParamsException(
-          "All or none of the amount_in, amount_out, and fee_details should be set");
+          "All or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set");
+    }
+
+    // In case 2nd predicate in previous IF statement was TRUE
+    if (request.getFeeDetails() != null && request.getAmountFee() != null) {
+      throw new InvalidParamsException("Either fee_details or amount_fee should be set");
     }
 
     if (request.getAmountIn() != null) {
@@ -117,7 +123,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
     }
     if (request.getFeeDetails() != null) {
       if (!AssetValidationUtils.isStellarAsset(request.getFeeDetails().getAsset())) {
-        throw new InvalidParamsException("amount_fee.asset should be stellar asset");
+        throw new InvalidParamsException("fee_details.asset should be stellar asset");
       }
       AssetValidationUtils.validateFeeDetails(request.getFeeDetails(), txn, assetService);
     }
@@ -140,7 +146,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
     if (request.getAmountFee() == null
         && request.getFeeDetails() == null
         && txn.getAmountFee() == null) {
-      throw new InvalidParamsException("amount_fee is required");
+      throw new InvalidParamsException("fee_details or amount_fee is required");
     }
 
     boolean canGenerateSep6DepositInfo =

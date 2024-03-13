@@ -198,8 +198,6 @@ public class Sep6Service {
               .amountInAsset(sellAsset.getSep38AssetName())
               .amountOut("0")
               .amountOutAsset(buyAsset.getSep38AssetName())
-              .amountFee("0")
-              .amountFeeAsset(sellAsset.getSep38AssetName())
               .rateFee(new RateFee("0", sellAsset.getSep38AssetName(), null))
               .build();
     }
@@ -220,8 +218,6 @@ public class Sep6Service {
             .amountInAsset(amounts.getAmountInAsset())
             .amountOut(amounts.getAmountOut())
             .amountOutAsset(amounts.getAmountOutAsset())
-            .amountFee(amounts.getAmountFee())
-            .amountFeeAsset(amounts.getAmountFeeAsset())
             .feeDetails(amounts.rateFee)
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
@@ -367,8 +363,6 @@ public class Sep6Service {
               .amountInAsset(sellAsset.getSep38AssetName())
               .amountOut("0")
               .amountOutAsset(buyAsset.getSep38AssetName())
-              .amountFee("0")
-              .amountFeeAsset(sellAsset.getSep38AssetName())
               .rateFee(new RateFee("0", sellAsset.getSep38AssetName(), null))
               .build();
     }
@@ -386,8 +380,6 @@ public class Sep6Service {
             .amountInAsset(amounts.getAmountInAsset())
             .amountOut(amounts.getAmountOut())
             .amountOutAsset(amounts.getAmountOutAsset())
-            .amountFee(amounts.getAmountFee())
-            .amountFeeAsset(amounts.getAmountFeeAsset())
             .feeDetails(amounts.getRateFee())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())

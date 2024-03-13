@@ -225,6 +225,13 @@ public interface Sep24Transaction extends SepTransaction {
   @Deprecated
   void setAmountFeeAsset(String amountFeeAsset);
 
+  /**
+   * Description of fee charged by the anchor. The schema for this object is defined in the Fee
+   * Details Object Schema and matches the one of SEP-38 quote's fee.
+   *
+   * @return Unified fields of SEP-24 transaction history complied from <code>amount_fee</code>,
+   *     <code>amount_fee_asset</code> and <code>fee_details</code>
+   */
   RateFee getFeeDetails();
 
   void setFeeDetails(RateFee feeDetails);

@@ -226,7 +226,7 @@ class RequestOffchainFundsHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("fee_details is required", ex.message)
+    assertEquals("fee_details or amount_fee is required", ex.message)
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
@@ -254,7 +254,7 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "All or none of the amount_in, amount_out, and amount_fee should be set",
+      "All or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set",
       ex.message
     )
 

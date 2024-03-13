@@ -188,12 +188,14 @@ public class Sep31Service {
             .memo(sep10Jwt.getAccountMemo())
             .build();
 
-    Amount fee = Context.get().getFee();
-
     Sep38Quote quote = Context.get().getQuote();
-    RateFee feeDetails = quote == null ? null : quote.getFee();
+    RateFee feeDetails;
 
-    if (feeDetails == null) {
+    if (quote != null) {
+      feeDetails = quote.getFee();
+    } else {
+      Amount fee = Context.get().getFee();
+
       feeDetails = new RateFee(fee.getAmount(), fee.getAsset(), null);
     }
 
@@ -203,8 +205,6 @@ public class Sep31Service {
             .id(generateSepTransactionId())
             .status(SepTransactionStatus.PENDING_SENDER.getStatus())
             .statusEta(null)
-            .amountFee(fee.getAmount())
-            .amountFeeAsset(fee.getAsset())
             .feeDetails(feeDetails)
             .startedAt(now)
             .updatedAt(now) // this will be overwritten by the sep31TransactionStore#save method.

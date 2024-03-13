@@ -477,7 +477,7 @@ public class TransactionService {
     }
   }
 
-  private RateFee validateAndGetRateFee(PlatformTransactionData patch) throws BadRequestException {
+  RateFee validateAndGetRateFee(PlatformTransactionData patch) throws BadRequestException {
     // If both fee_details and fee is set, validate that they match. If only one set, properly set
     // the other one.
     RateFee feeDetails = patch.getFeeDetails();
@@ -493,8 +493,6 @@ public class TransactionService {
         if (!patch.getAmountFee().getAsset().equals(patch.getFeeDetails().getAsset())) {
           throw new BadRequestException("amount_fee's asset doesn't match asset from fee_details");
         }
-      } else {
-        patch.setAmountFee(new Amount(feeDetails.getTotal(), feeDetails.getAsset()));
       }
     } else if (patch.getAmountFee() != null) {
       feeDetails =
@@ -617,7 +615,7 @@ public class TransactionService {
       }
 
       if (!equalsAsDecimals(txn.getFeeDetails().getTotal(), quote.getFee().getTotal())) {
-        throw new BadRequestException("transaction.fee.total != quote.fee.total");
+        throw new BadRequestException("transaction.fee_details.total != quote.fee.total");
       }
     }
   }

@@ -69,14 +69,21 @@ public class NotifyOffchainFundsReceivedHandler
       throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
 
-    if (!((request.getAmountIn() == null
+    // If none of the accepted combinations of input parameters satisfies -> throw an exception
+    if (!
+    // None of the amounts are provided
+    ((request.getAmountIn() == null
             && request.getAmountOut() == null
             && request.getAmountFee() == null
             && request.getFeeDetails() == null)
-        || (request.getAmountIn() != null
+        ||
+        // All the amounts are provided (allow either amount_fee or fee_details)
+        (request.getAmountIn() != null
             && request.getAmountOut() != null
             && (request.getAmountFee() != null || request.getFeeDetails() != null))
-        || (request.getAmountIn() != null
+        ||
+        // Only amount_in is provided
+        (request.getAmountIn() != null
             && request.getAmountOut() == null
             && request.getAmountFee() == null
             && request.getFeeDetails() == null))) {
@@ -84,6 +91,7 @@ public class NotifyOffchainFundsReceivedHandler
           "Invalid amounts combination provided: all, none or only amount_in should be set");
     }
 
+    // In case 2nd predicate in previous IF statement was TRUE
     if (request.getAmountFee() != null && request.getFeeDetails() != null) {
       throw new InvalidParamsException("Either amount_fee or fee_details should be set");
     }

@@ -55,20 +55,9 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
-  @Deprecated
-  public Sep31TransactionBuilder amountFee(String amountFee) {
-    txn.setAmountFee(amountFee);
-    return this;
-  }
-
-  @Deprecated
-  public Sep31TransactionBuilder amountFeeAsset(String amountFeeAsset) {
-    txn.setAmountFeeAsset(amountFeeAsset);
-    return this;
-  }
-
   public Sep31TransactionBuilder feeDetails(RateFee feeDetails) {
     txn.setFeeDetails(feeDetails);
+
     return this;
   }
 

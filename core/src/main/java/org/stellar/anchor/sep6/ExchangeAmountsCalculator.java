@@ -36,9 +36,7 @@ public class ExchangeAmountsCalculator {
         .amountInAsset(quote.getSellAsset())
         .amountOut(quote.getBuyAmount())
         .amountOutAsset(quote.getBuyAsset())
-        .amountFee(quote.getFee().getTotal())
         .rateFee(quote.getFee())
-        .amountFeeAsset(quote.getFee().getAsset())
         .build();
   }
 
@@ -98,8 +96,6 @@ public class ExchangeAmountsCalculator {
     String amountInAsset;
     String amountOut;
     String amountOutAsset;
-    @Deprecated String amountFee;
-    @Deprecated String amountFeeAsset;
     RateFee rateFee;
   }
 }

@@ -106,12 +106,6 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
-  @Deprecated
-  public Sep24TransactionBuilder amountFee(String amountFee) {
-    txn.setAmountFee(amountFee);
-    return this;
-  }
-
   public Sep24TransactionBuilder amountInAsset(String amountInAsset) {
     txn.setAmountInAsset(amountInAsset);
     return this;
@@ -119,12 +113,6 @@ public class Sep24TransactionBuilder {
 
   public Sep24TransactionBuilder amountOutAsset(String amountOutAsset) {
     txn.setAmountOutAsset(amountOutAsset);
-    return this;
-  }
-
-  @Deprecated
-  public Sep24TransactionBuilder amountFeeAsset(String amountFeeAsset) {
-    txn.setAmountFeeAsset(amountFeeAsset);
     return this;
   }
 

@@ -62,8 +62,6 @@ class ExchangeAmountsCalculatorTest {
         .amountInAsset(TEST_ASSET_SEP38_FORMAT)
         .amountOut("98")
         .amountOutAsset("iso4217:USD")
-        .amountFee("2")
-        .amountFeeAsset("iso4217:USD")
         .rateFee(RateFee("2", "iso4217:USD"))
         .build(),
       result
