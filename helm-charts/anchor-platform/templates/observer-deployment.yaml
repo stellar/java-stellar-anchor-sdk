@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ap-observer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ap-observer
+  template:
+    metadata:
+      labels:
+        app: ap-observer
+    spec:
+      containers:
+      - name: stellar-observer
+        image: stellar/anchor-platform:latest
+        args: ["--stellar-observer"]
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8003
+          protocol: TCP
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8083
+          initialDelaySeconds: 120
+          failureThreshold: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8083
+          initialDelaySeconds: 120
+          failureThreshold: 2
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8083
+          initialDelaySeconds: 120
+          periodSeconds: 30
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+          readOnly: true
+        env:
+        - name: STELLAR_ANCHOR_CONFIG
+          value: file:/config/anchor-config.yaml
+        - name: ASSETS_TYPE
+          value: file
+        - name: ASSETS_VALUE
+          value: /config/assets.yaml
+        - name: SECRET_DATA_USERNAME
+          value: postgres # TODO: move to secret
+        - name: SECRET_DATA_PASSWORD
+          value: cdb1ajkMih # TODO: move to secret
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 500m
+          limits:
+            memory: 1Gi
+            cpu: 1
+      volumes:
+      - name: config-volume
+        configMap:
+          name: anchor-config
