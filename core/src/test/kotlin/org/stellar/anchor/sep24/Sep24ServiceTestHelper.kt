@@ -1,7 +1,10 @@
 package org.stellar.anchor.sep24
 
 import org.stellar.anchor.TestConstants
+import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
+import org.stellar.anchor.TestConstants.Companion.TEST_AMOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
+import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_OFFCHAIN_ASSET
 
 fun createTestTransactionRequest(quoteID: String? = null): MutableMap<String, String> {
@@ -9,9 +12,9 @@ fun createTestTransactionRequest(quoteID: String? = null): MutableMap<String, St
     mutableMapOf(
       "lang" to "en",
       "asset_code" to TEST_ASSET,
-      "asset_issuer" to TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID,
-      "account" to TestConstants.TEST_ACCOUNT,
-      "amount" to "542",
+      "asset_issuer" to TEST_ASSET_ISSUER_ACCOUNT_ID,
+      "account" to TEST_ACCOUNT,
+      "amount" to TEST_AMOUNT,
       "source_asset" to TEST_OFFCHAIN_ASSET,
       "destination_asset" to TEST_OFFCHAIN_ASSET,
       "email_address" to "jamie@stellar.org",
@@ -33,10 +36,10 @@ fun createTestTransaction(kind: String): Sep24Transaction {
   txn.completedAt = Sep24ServiceTest.TEST_COMPLETED_AT
 
   txn.requestAssetCode = TEST_ASSET
-  txn.requestAssetIssuer = TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID
-  txn.sep10Account = TestConstants.TEST_ACCOUNT
-  txn.toAccount = TestConstants.TEST_ACCOUNT
-  txn.fromAccount = TestConstants.TEST_ACCOUNT
+  txn.requestAssetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
+  txn.sep10Account = TEST_ACCOUNT
+  txn.toAccount = TEST_ACCOUNT
+  txn.fromAccount = TEST_ACCOUNT
   txn.clientDomain = TestConstants.TEST_CLIENT_DOMAIN
   txn.protocol = "sep24"
   txn.amountIn = "321.4"
@@ -56,10 +59,10 @@ fun createTestTransactions(kind: String): MutableList<Sep24Transaction> {
   txn.completedAt = Sep24ServiceTest.TEST_COMPLETED_AT
 
   txn.requestAssetCode = TEST_ASSET
-  txn.requestAssetIssuer = TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID
-  txn.sep10Account = TestConstants.TEST_ACCOUNT
-  txn.toAccount = TestConstants.TEST_ACCOUNT
-  txn.fromAccount = TestConstants.TEST_ACCOUNT
+  txn.requestAssetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
+  txn.sep10Account = TEST_ACCOUNT
+  txn.toAccount = TEST_ACCOUNT
+  txn.fromAccount = TEST_ACCOUNT
   txn.clientDomain = TestConstants.TEST_CLIENT_DOMAIN
   txn.protocol = "sep24"
   txn.amountIn = "321.4"
@@ -74,10 +77,10 @@ fun createTestTransactions(kind: String): MutableList<Sep24Transaction> {
   txn.completedAt = Sep24ServiceTest.TEST_COMPLETED_AT
 
   txn.requestAssetCode = TEST_ASSET
-  txn.requestAssetIssuer = TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID
-  txn.sep10Account = TestConstants.TEST_ACCOUNT
-  txn.toAccount = TestConstants.TEST_ACCOUNT
-  txn.fromAccount = TestConstants.TEST_ACCOUNT
+  txn.requestAssetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
+  txn.sep10Account = TEST_ACCOUNT
+  txn.toAccount = TEST_ACCOUNT
+  txn.fromAccount = TEST_ACCOUNT
   txn.clientDomain = TestConstants.TEST_CLIENT_DOMAIN
   txn.protocol = "sep24"
   txn.amountIn = "456.7"
