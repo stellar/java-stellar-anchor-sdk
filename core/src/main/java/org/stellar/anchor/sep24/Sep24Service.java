@@ -194,9 +194,6 @@ public class Sep24Service {
     if (token.getClientDomain() != null)
       withdrawRequest.put("client_domain", token.getClientDomain());
 
-    // TODO - jamie - should we be allowing user to specify memo? transaction are looked up
-    // by PaymentObserver
-    // by account+memo, could be collisions
     Memo memo = makeMemo(withdrawRequest.get("memo"), withdrawRequest.get("memo_type"));
     Memo refundMemo =
         makeMemo(withdrawRequest.get("refund_memo"), withdrawRequest.get("refund_memo_type"));
@@ -220,7 +217,6 @@ public class Sep24Service {
       builder.withdrawAnchorAccount(asset.getDistributionAccount());
     }
 
-    // TODO - jamie to look into memo vs withdrawal_memo
     if (memo != null) {
       debug("transaction memo detected.", memo);
 
@@ -254,11 +250,11 @@ public class Sep24Service {
     String quoteId = withdrawRequest.get("quote_id");
     AssetInfo buyAsset = assetService.getAssetByName(withdrawRequest.get("destination_asset"));
     if (quoteId != null) {
-      validatedAndPopulateQuote(
+      validateAndPopulateQuote(
           quoteId, asset, buyAsset, strAmount, builder, WITHDRAWAL.toString(), txnId);
     } else {
       builder.amountExpected(strAmount);
-      builder.amountOutAsset(buyAsset.getSep38AssetName());
+      if (buyAsset != null) builder.amountOutAsset(buyAsset.getSep38AssetName());
     }
 
     Sep24Transaction txn = builder.build();
@@ -425,11 +421,11 @@ public class Sep24Service {
     String quoteId = depositRequest.get("quote_id");
     AssetInfo sellAsset = assetService.getAssetByName(depositRequest.get("source_asset"));
     if (quoteId != null) {
-      validatedAndPopulateQuote(
+      validateAndPopulateQuote(
           quoteId, sellAsset, asset, strAmount, builder, DEPOSIT.toString(), txnId);
     } else {
       builder.amountExpected(strAmount);
-      builder.amountInAsset(sellAsset.getSep38AssetName());
+      if (sellAsset != null) builder.amountInAsset(sellAsset.getSep38AssetName());
     }
 
     Sep24Transaction txn = builder.build();
@@ -580,7 +576,7 @@ public class Sep24Service {
         .build();
   }
 
-  public void validatedAndPopulateQuote(
+  public void validateAndPopulateQuote(
       String quoteId,
       AssetInfo sellAsset,
       AssetInfo buyAsset,
@@ -602,11 +598,5 @@ public class Sep24Service {
     builder.amountOutAsset(quote.getBuyAsset());
     builder.amountFee(quote.getFee().getTotal());
     builder.amountFeeAsset(quote.getFee().getAsset());
-
-    if (kind.equals(DEPOSIT.toString())) {
-      builder.sourceAsset(quote.getSellAsset());
-    } else {
-      builder.destinationAsset(quote.getBuyAsset());
-    }
   }
 }

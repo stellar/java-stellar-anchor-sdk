@@ -1,17 +1,19 @@
 package org.stellar.anchor.sep24
 
 import org.stellar.anchor.TestConstants
+import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
+import org.stellar.anchor.TestConstants.Companion.TEST_OFFCHAIN_ASSET
 
-fun createTestTransactionRequest(
-  quoteID: String? = null,
-): MutableMap<String, String> {
+fun createTestTransactionRequest(quoteID: String? = null): MutableMap<String, String> {
   val request =
     mutableMapOf(
       "lang" to "en",
-      "asset_code" to TestConstants.TEST_ASSET,
+      "asset_code" to TEST_ASSET,
       "asset_issuer" to TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID,
       "account" to TestConstants.TEST_ACCOUNT,
       "amount" to "542",
+      "source_asset" to TEST_OFFCHAIN_ASSET,
+      "destination_asset" to TEST_OFFCHAIN_ASSET,
       "email_address" to "jamie@stellar.org",
       "first_name" to "Jamie",
       "last_name" to "Li",
@@ -30,7 +32,7 @@ fun createTestTransaction(kind: String): Sep24Transaction {
   txn.startedAt = Sep24ServiceTest.TEST_STARTED_AT
   txn.completedAt = Sep24ServiceTest.TEST_COMPLETED_AT
 
-  txn.requestAssetCode = TestConstants.TEST_ASSET
+  txn.requestAssetCode = TEST_ASSET
   txn.requestAssetIssuer = TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID
   txn.sep10Account = TestConstants.TEST_ACCOUNT
   txn.toAccount = TestConstants.TEST_ACCOUNT
@@ -53,7 +55,7 @@ fun createTestTransactions(kind: String): MutableList<Sep24Transaction> {
   txn.startedAt = Sep24ServiceTest.TEST_STARTED_AT
   txn.completedAt = Sep24ServiceTest.TEST_COMPLETED_AT
 
-  txn.requestAssetCode = TestConstants.TEST_ASSET
+  txn.requestAssetCode = TEST_ASSET
   txn.requestAssetIssuer = TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID
   txn.sep10Account = TestConstants.TEST_ACCOUNT
   txn.toAccount = TestConstants.TEST_ACCOUNT
@@ -71,7 +73,7 @@ fun createTestTransactions(kind: String): MutableList<Sep24Transaction> {
   txn.startedAt = Sep24ServiceTest.TEST_STARTED_AT
   txn.completedAt = Sep24ServiceTest.TEST_COMPLETED_AT
 
-  txn.requestAssetCode = TestConstants.TEST_ASSET
+  txn.requestAssetCode = TEST_ASSET
   txn.requestAssetIssuer = TestConstants.TEST_ASSET_ISSUER_ACCOUNT_ID
   txn.sep10Account = TestConstants.TEST_ACCOUNT
   txn.toAccount = TestConstants.TEST_ACCOUNT

@@ -22,6 +22,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
+import org.stellar.anchor.TestConstants.Companion.TEST_OFFCHAIN_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
@@ -201,6 +202,7 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals(TEST_CLIENT_NAME, slotTxn.captured.clientName)
+    assertEquals(TEST_OFFCHAIN_ASSET, slotTxn.captured.amountOutAsset)
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
@@ -263,7 +265,7 @@ internal class Sep24ServiceTest {
       createTestTransactionRequest(withdrawQuote.id)
     )
     assertEquals(withdrawQuote.id, slotTxn.captured.quoteId)
-    assertEquals(withdrawQuote.buyAsset, slotTxn.captured.destinationAsset)
+    assertEquals(withdrawQuote.buyAsset, slotTxn.captured.amountInAsset)
   }
 
   @Test
@@ -398,7 +400,7 @@ internal class Sep24ServiceTest {
       createTestTransactionRequest(depositQuote.id)
     )
     assertEquals(depositQuote.id, slotTxn.captured.quoteId)
-    assertEquals(depositQuote.sellAsset, slotTxn.captured.sourceAsset)
+    assertEquals(depositQuote.sellAsset, slotTxn.captured.amountOutAsset)
   }
 
   @Test
