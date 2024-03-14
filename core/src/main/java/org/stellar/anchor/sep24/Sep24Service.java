@@ -86,7 +86,7 @@ public class Sep24Service {
           MetricConstants.TV_SEP24_DEPOSIT);
 
   public static final List<String> INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST =
-      List.of("amount", "client_domain", "lang");
+      List.of("amount", "client_domain", "lang", "customer_id");
   public static String ERR_TOKEN_ACCOUNT_MISMATCH = "'account' does not match the one in the token";
 
   public Sep24Service(
@@ -252,10 +252,13 @@ public class Sep24Service {
     }
 
     String quoteId = withdrawRequest.get("quote_id");
+    AssetInfo buyAsset = assetService.getAssetByName(withdrawRequest.get("destination_asset"));
     if (quoteId != null) {
-      AssetInfo buyAsset = assetService.getAssetByName(withdrawRequest.get("destination_asset"));
-      this.validatedAndPopulateQuote(
+      validatedAndPopulateQuote(
           quoteId, asset, buyAsset, strAmount, builder, WITHDRAWAL.toString(), txnId);
+    } else {
+      builder.amountExpected(strAmount);
+      builder.amountOutAsset(buyAsset.getSep38AssetName());
     }
 
     Sep24Transaction txn = builder.build();
@@ -420,10 +423,13 @@ public class Sep24Service {
     }
 
     String quoteId = depositRequest.get("quote_id");
+    AssetInfo sellAsset = assetService.getAssetByName(depositRequest.get("source_asset"));
     if (quoteId != null) {
-      AssetInfo sellAsset = assetService.getAssetByName(depositRequest.get("source_asset"));
-      this.validatedAndPopulateQuote(
+      validatedAndPopulateQuote(
           quoteId, sellAsset, asset, strAmount, builder, DEPOSIT.toString(), txnId);
+    } else {
+      builder.amountExpected(strAmount);
+      builder.amountInAsset(sellAsset.getSep38AssetName());
     }
 
     Sep24Transaction txn = builder.build();
