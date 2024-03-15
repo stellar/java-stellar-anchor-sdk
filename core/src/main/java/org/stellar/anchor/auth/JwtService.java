@@ -25,6 +25,7 @@ public class JwtService {
   public static final String HOME_DOMAIN = "home_domain";
   public static final String CLIENT_NAME = "client_name";
 
+  String sep6MoreInfoUrlJwtSecret;
   String sep10JwtSecret;
   String sep24InteractiveUrlJwtSecret;
   String sep24MoreInfoUrlJwtSecret;
@@ -35,6 +36,7 @@ public class JwtService {
   public JwtService(SecretConfig secretConfig, CustodySecretConfig custodySecretConfig)
       throws NotSupportedException {
     this(
+        secretConfig.getSep6MoreInfoUrlJwtSecret(),
         secretConfig.getSep10JwtSecretKey(),
         secretConfig.getSep24InteractiveUrlJwtSecret(),
         secretConfig.getSep24MoreInfoUrlJwtSecret(),
@@ -44,12 +46,14 @@ public class JwtService {
   }
 
   public JwtService(
+      String sep6MoreInfoUrlJwtSecret,
       String sep10JwtSecret,
       String sep24InteractiveUrlJwtSecret,
       String sep24MoreInfoUrlJwtSecret,
       String callbackAuthSecret,
       String platformAuthSecret,
       String custodyAuthSecret) {
+    this.sep6MoreInfoUrlJwtSecret = toBase64OrNull(sep6MoreInfoUrlJwtSecret);
     this.sep10JwtSecret = toBase64OrNull(sep10JwtSecret);
     this.sep24InteractiveUrlJwtSecret = toBase64OrNull(sep24InteractiveUrlJwtSecret);
     this.sep24MoreInfoUrlJwtSecret = toBase64OrNull(sep24MoreInfoUrlJwtSecret);
@@ -81,22 +85,20 @@ public class JwtService {
     return builder.signWith(SignatureAlgorithm.HS256, sep10JwtSecret).compact();
   }
 
+  public String encode(Sep6MoreInfoUrlJwt token) throws InvalidConfigException {
+    if (sep6MoreInfoUrlJwtSecret == null) {
+      throw new InvalidConfigException(
+          "Please provide the secret before encoding JWT for Sep6 more_info_url");
+    }
+    return encodeForSep6Sep24Url(token, sep6MoreInfoUrlJwtSecret);
+  }
+
   public String encode(Sep24InteractiveUrlJwt token) throws InvalidConfigException {
     if (sep24InteractiveUrlJwtSecret == null) {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for Sep24 interactive url");
     }
-    Instant timeExp = Instant.ofEpochSecond(token.getExp());
-    JwtBuilder builder =
-        Jwts.builder()
-            .setId(token.getJti())
-            .setExpiration(from(timeExp))
-            .setSubject(token.getSub());
-    for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
-      builder.claim(claim.getKey(), claim.getValue());
-    }
-
-    return builder.signWith(SignatureAlgorithm.HS256, sep24InteractiveUrlJwtSecret).compact();
+    return encodeForSep6Sep24Url(token, sep24InteractiveUrlJwtSecret);
   }
 
   public String encode(Sep24MoreInfoUrlJwt token) throws InvalidConfigException {
@@ -104,6 +106,10 @@ public class JwtService {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for more_info_url");
     }
+    return encodeForSep6Sep24Url(token, sep24MoreInfoUrlJwtSecret);
+  }
+
+  private String encodeForSep6Sep24Url(AbstractJwt token, String secret) {
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
         Jwts.builder()
@@ -113,8 +119,7 @@ public class JwtService {
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
     }
-
-    return builder.signWith(SignatureAlgorithm.HS256, sep24MoreInfoUrlJwtSecret).compact();
+    return builder.signWith(SignatureAlgorithm.HS256, secret).compact();
   }
 
   public String encode(CallbackAuthJwt token) throws InvalidConfigException {

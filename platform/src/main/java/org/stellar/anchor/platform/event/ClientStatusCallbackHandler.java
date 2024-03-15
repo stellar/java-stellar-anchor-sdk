@@ -28,8 +28,9 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.data.*;
+import org.stellar.anchor.platform.service.Sep24MoreInfoUrlConstructor;
+import org.stellar.anchor.platform.service.Sep6MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.*;
-import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.RefundPayment;
 import org.stellar.anchor.sep31.Sep31Refunds;
@@ -51,20 +52,23 @@ public class ClientStatusCallbackHandler extends EventHandler {
   private final ClientConfig clientConfig;
   private final Sep6TransactionStore sep6TransactionStore;
   private final AssetService assetService;
-  private final MoreInfoUrlConstructor moreInfoUrlConstructor;
+  private final Sep6MoreInfoUrlConstructor sep6MoreInfoUrlConstructor;
+  private final Sep24MoreInfoUrlConstructor sep24MoreInfoUrlConstructor;
 
   public ClientStatusCallbackHandler(
       SecretConfig secretConfig,
       ClientConfig clientConfig,
       Sep6TransactionStore sep6TransactionStore,
       AssetService assetService,
-      MoreInfoUrlConstructor moreInfoUrlConstructor) {
+      Sep6MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
+      Sep24MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
     super();
     this.secretConfig = secretConfig;
     this.clientConfig = clientConfig;
     this.assetService = assetService;
     this.sep6TransactionStore = sep6TransactionStore;
-    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
+    this.sep6MoreInfoUrlConstructor = sep6MoreInfoUrlConstructor;
+    this.sep24MoreInfoUrlConstructor = sep24MoreInfoUrlConstructor;
   }
 
   @Override
@@ -117,12 +121,13 @@ public class ClientStatusCallbackHandler extends EventHandler {
             sep6TransactionStore.findByTransactionId(event.getTransaction().getId());
         org.stellar.anchor.api.sep.sep6.GetTransactionResponse sep6TxnRes =
             new org.stellar.anchor.api.sep.sep6.GetTransactionResponse(
-                Sep6TransactionUtils.fromTxn(sep6Txn));
+                Sep6TransactionUtils.fromTxn(sep6Txn, sep6MoreInfoUrlConstructor));
         return json(sep6TxnRes);
       case SEP_24:
         Sep24Transaction sep24Txn = fromSep24Txn(event.getTransaction());
         Sep24GetTransactionResponse txn24Response =
-            Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, sep24Txn));
+            Sep24GetTransactionResponse.of(
+                fromTxn(assetService, sep24MoreInfoUrlConstructor, sep24Txn));
         return json(txn24Response);
       case SEP_31:
         Sep31Transaction sep31Txn = fromSep31Txn(event.getTransaction());

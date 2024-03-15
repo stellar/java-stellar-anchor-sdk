@@ -5,9 +5,10 @@ import static org.stellar.anchor.util.MemoHelper.*;
 
 import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Counter;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -19,6 +20,7 @@ import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.client.ClientFinder;
 import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts;
 import org.stellar.anchor.util.MetricConstants;
 import org.stellar.anchor.util.SepHelper;
@@ -29,14 +31,12 @@ public class Sep6Service {
   private final Sep6Config sep6Config;
   private final AssetService assetService;
   private final RequestValidator requestValidator;
-
   private final ClientFinder clientFinder;
   private final Sep6TransactionStore txnStore;
   private final ExchangeAmountsCalculator exchangeAmountsCalculator;
   private final EventService.Session eventSession;
-
   private final InfoResponse infoResponse;
-
+  private final MoreInfoUrlConstructor sep6MoreInfoUrlConstructor;
   private final Counter sep6TransactionRequestedCounter =
       counter(MetricConstants.SEP6_TRANSACTION_REQUESTED);
   private final Counter sep6TransactionQueriedCounter =
@@ -69,7 +69,8 @@ public class Sep6Service {
       ClientFinder clientFinder,
       Sep6TransactionStore txnStore,
       ExchangeAmountsCalculator exchangeAmountsCalculator,
-      EventService eventService) {
+      EventService eventService,
+      MoreInfoUrlConstructor sep6MoreInfoUrlConstructor) {
     this.sep6Config = sep6Config;
     this.assetService = assetService;
     this.requestValidator = requestValidator;
@@ -79,6 +80,7 @@ public class Sep6Service {
     this.eventSession =
         eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
     this.infoResponse = buildInfoResponse();
+    this.sep6MoreInfoUrlConstructor = sep6MoreInfoUrlConstructor;
   }
 
   public InfoResponse getInfo() {
@@ -411,7 +413,7 @@ public class Sep6Service {
   }
 
   public GetTransactionsResponse findTransactions(Sep10Jwt token, GetTransactionsRequest request)
-      throws SepException {
+      throws SepException, MalformedURLException, URISyntaxException {
     // Pre-validation
     if (token == null) {
       throw new SepNotAuthorizedException("missing token");
@@ -430,15 +432,18 @@ public class Sep6Service {
     // Query the transaction store
     List<Sep6Transaction> transactions =
         txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), request);
-    List<Sep6TransactionResponse> responses =
-        transactions.stream().map(Sep6TransactionUtils::fromTxn).collect(Collectors.toList());
+    List<Sep6TransactionResponse> responses = new ArrayList<>();
+    for (Sep6Transaction txn : transactions) {
+      Sep6TransactionResponse tr = Sep6TransactionUtils.fromTxn(txn, sep6MoreInfoUrlConstructor);
+      responses.add(tr);
+    }
 
     sep6TransactionQueriedCounter.increment();
     return new GetTransactionsResponse(responses);
   }
 
   public GetTransactionResponse findTransaction(Sep10Jwt token, GetTransactionRequest request)
-      throws AnchorException {
+      throws AnchorException, MalformedURLException, URISyntaxException {
     // Pre-validation
     if (token == null) {
       throw new SepNotAuthorizedException("missing token");
@@ -472,7 +477,8 @@ public class Sep6Service {
     }
 
     sep6TransactionQueriedCounter.increment();
-    return new GetTransactionResponse(Sep6TransactionUtils.fromTxn(txn));
+    return new GetTransactionResponse(
+        Sep6TransactionUtils.fromTxn(txn, sep6MoreInfoUrlConstructor));
   }
 
   private InfoResponse buildInfoResponse() {

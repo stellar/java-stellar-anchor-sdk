@@ -26,12 +26,14 @@ abstract class AbstractAuthIntegrationTest {
         null,
         null,
         null,
+        null,
         PLATFORM_TO_ANCHOR_SECRET,
         ANCHOR_TO_PLATFORM_SECRET,
         PLATFORM_TO_CUSTODY_SECRET
       )
     private val jwtWrongKeyService =
       JwtService(
+        null,
         null,
         null,
         null,

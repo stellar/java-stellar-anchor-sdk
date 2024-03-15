@@ -15,6 +15,7 @@ import org.springframework.validation.Validator;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
+import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.util.NetUtil;
@@ -32,10 +33,13 @@ public class PropertySep6Config implements Sep6Config, Validator {
   CustodyConfig custodyConfig;
   AssetService assetService;
   MoreInfoUrlConfig moreInfoUrl;
+  SecretConfig secretConfig;
 
-  public PropertySep6Config(CustodyConfig custodyConfig, AssetService assetService) {
+  public PropertySep6Config(
+      CustodyConfig custodyConfig, AssetService assetService, SecretConfig secretConfig) {
     this.custodyConfig = custodyConfig;
     this.assetService = assetService;
+    this.secretConfig = secretConfig;
   }
 
   @Override
@@ -95,6 +99,11 @@ public class PropertySep6Config implements Sep6Config, Validator {
                     field));
           }
         }
+      }
+      if (isEmpty(secretConfig.getSep6MoreInfoUrlJwtSecret())) {
+        errors.reject(
+            "sep6-more-info-url-jwt-secret-not-defined",
+            "Please set the secret.sep6.more_info_url.jwt_secret or SECRET_SEP6_MORE_INFO_URL_JWT_SECRET environment variable");
       }
     }
   }

@@ -22,7 +22,8 @@ public class AuthHelper {
     switch (type) {
       case JWT:
         return AuthHelper.forJwtToken(
-            new JwtService(null, null, null, secret, secret, secret), jwtExpirationMilliseconds);
+            new JwtService(null, null, null, null, secret, secret, secret),
+            jwtExpirationMilliseconds);
       case API_KEY:
         return AuthHelper.forApiKey(secret);
       default:

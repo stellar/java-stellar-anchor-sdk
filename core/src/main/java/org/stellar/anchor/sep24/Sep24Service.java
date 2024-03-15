@@ -67,7 +67,7 @@ public class Sep24Service {
   final Sep24TransactionStore txnStore;
   final EventService.Session eventSession;
   final InteractiveUrlConstructor interactiveUrlConstructor;
-  final MoreInfoUrlConstructor moreInfoUrlConstructor;
+  final MoreInfoUrlConstructor sep24moreInfoUrlConstructor;
   final CustodyConfig custodyConfig;
   final ExchangeAmountsCalculator exchangeAmountsCalculator;
 
@@ -99,7 +99,7 @@ public class Sep24Service {
       Sep24TransactionStore txnStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
-      MoreInfoUrlConstructor moreInfoUrlConstructor,
+      MoreInfoUrlConstructor sep24moreInfoUrlConstructor,
       CustodyConfig custodyConfig,
       ExchangeAmountsCalculator exchangeAmountsCalculator) {
     debug("appConfig:", appConfig);
@@ -113,7 +113,7 @@ public class Sep24Service {
     this.txnStore = txnStore;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.interactiveUrlConstructor = interactiveUrlConstructor;
-    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
+    this.sep24moreInfoUrlConstructor = sep24moreInfoUrlConstructor;
     this.custodyConfig = custodyConfig;
     this.exchangeAmountsCalculator = exchangeAmountsCalculator;
     info("Sep24Service initialized.");
@@ -487,7 +487,8 @@ public class Sep24Service {
     List<TransactionResponse> list = new ArrayList<>();
     debugF("found {} transactions", txns.size());
     for (Sep24Transaction txn : txns) {
-      TransactionResponse transactionResponse = fromTxn(assetService, moreInfoUrlConstructor, txn);
+      TransactionResponse transactionResponse =
+          fromTxn(assetService, sep24moreInfoUrlConstructor, txn);
       list.add(transactionResponse);
     }
     result.setTransactions(list);
@@ -543,7 +544,7 @@ public class Sep24Service {
     }
     // increment counter
     sep24TransactionQueriedCounter.increment();
-    return Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, txn));
+    return Sep24GetTransactionResponse.of(fromTxn(assetService, sep24moreInfoUrlConstructor, txn));
   }
 
   public InfoResponse getInfo() {

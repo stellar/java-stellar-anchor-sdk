@@ -15,9 +15,9 @@ import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.service.HealthCheckService;
-import org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor;
+import org.stellar.anchor.platform.service.Sep24MoreInfoUrlConstructor;
+import org.stellar.anchor.platform.service.Sep6MoreInfoUrlConstructor;
 import org.stellar.anchor.platform.validator.RequestValidator;
-import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.util.GsonUtils;
 
 @Configuration
@@ -40,10 +40,15 @@ public class UtilityBeans {
   }
 
   @Bean
-  MoreInfoUrlConstructor moreInfoUrlConstructor(
+  Sep24MoreInfoUrlConstructor sep24MoreInfoUrlConstructor(
       PropertyClientsConfig clientsConfig, PropertySep24Config sep24Config, JwtService jwtService) {
-    return new SimpleMoreInfoUrlConstructor(
-        clientsConfig, sep24Config.getMoreInfoUrl(), jwtService);
+    return new Sep24MoreInfoUrlConstructor(clientsConfig, sep24Config.getMoreInfoUrl(), jwtService);
+  }
+
+  @Bean
+  Sep6MoreInfoUrlConstructor sep6MoreInfoUrlConstructor(
+      PropertyClientsConfig clientsConfig, PropertySep6Config sep6Config, JwtService jwtService) {
+    return new Sep6MoreInfoUrlConstructor(clientsConfig, sep6Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean
@@ -55,8 +60,9 @@ public class UtilityBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep6")
-  PropertySep6Config sep6Config(CustodyConfig custodyConfig, AssetService assetService) {
-    return new PropertySep6Config(custodyConfig, assetService);
+  PropertySep6Config sep6Config(
+      CustodyConfig custodyConfig, AssetService assetService, SecretConfig secretConfig) {
+    return new PropertySep6Config(custodyConfig, assetService, secretConfig);
   }
 
   /**********************************

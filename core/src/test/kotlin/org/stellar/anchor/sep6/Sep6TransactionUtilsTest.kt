@@ -1,9 +1,12 @@
 package org.stellar.anchor.sep6
 
 import com.google.gson.Gson
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.util.*
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -12,11 +15,19 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.api.shared.*
+import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.util.GsonUtils
 
 class Sep6TransactionUtilsTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
+  }
+  @MockK(relaxed = true) lateinit var sep6MoreInfoUrlConstructor: MoreInfoUrlConstructor
+
+  @BeforeEach
+  fun setup() {
+    MockKAnnotations.init(this, relaxUnitFun = true)
+    every { sep6MoreInfoUrlConstructor.construct(any()) } returns "https://example.com/more_info"
   }
 
   private val apiTxn =
@@ -128,7 +139,6 @@ class Sep6TransactionUtilsTest {
         externalTransactionId = "external-id"
         status = "pending_external"
         statusEta = 100L
-        moreInfoUrl = "https://example.com/more_info"
         kind = "deposit"
         startedAt = Instant.ofEpochMilli(1)
         completedAt = Instant.ofEpochMilli(2)
@@ -187,7 +197,7 @@ class Sep6TransactionUtilsTest {
 
     JSONAssert.assertEquals(
       apiTxn,
-      gson.toJson(Sep6TransactionUtils.fromTxn(databaseTxn)),
+      gson.toJson(Sep6TransactionUtils.fromTxn(databaseTxn, sep6MoreInfoUrlConstructor)),
       JSONCompareMode.STRICT
     )
   }

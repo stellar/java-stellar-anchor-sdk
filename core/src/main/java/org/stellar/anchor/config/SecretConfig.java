@@ -1,6 +1,8 @@
 package org.stellar.anchor.config;
 
 public interface SecretConfig {
+  String getSep6MoreInfoUrlJwtSecret();
+
   String getSep10JwtSecretKey();
 
   String getSep10SigningSeed();

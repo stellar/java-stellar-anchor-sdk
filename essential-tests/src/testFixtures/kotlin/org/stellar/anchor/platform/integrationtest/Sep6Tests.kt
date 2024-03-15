@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.integrationtest
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -41,6 +42,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
       gson.toJson(savedDepositTxn),
       JSONCompareMode.LENIENT
     )
+    Assertions.assertNotNull(savedDepositTxn.transaction.moreInfoUrl)
   }
 
   @Test
@@ -94,6 +96,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
       gson.toJson(savedDepositTxn),
       JSONCompareMode.LENIENT
     )
+    Assertions.assertNotNull(savedDepositTxn.transaction.moreInfoUrl)
   }
 
   @Test
@@ -109,6 +112,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
       gson.toJson(savedWithdrawTxn),
       JSONCompareMode.LENIENT
     )
+    Assertions.assertNotNull(savedWithdrawTxn.transaction.moreInfoUrl)
   }
 
   @Test
@@ -154,12 +158,13 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
     Log.info("GET /withdraw-exchange response: $response")
     assert(!response.id.isNullOrEmpty())
 
-    val savedDepositTxn = sep6Client.getTransaction(mapOf("id" to response.id!!))
+    val savedWithdrawTxn = sep6Client.getTransaction(mapOf("id" to response.id!!))
     JSONAssert.assertEquals(
       expectedSep6WithdrawExchangeWithQuoteResponse,
-      gson.toJson(savedDepositTxn),
+      gson.toJson(savedWithdrawTxn),
       JSONCompareMode.LENIENT
     )
+    Assertions.assertNotNull(savedWithdrawTxn.transaction.moreInfoUrl)
   }
 
   private fun postQuote(sellAsset: String, sellAmount: String, buyAsset: String): String {

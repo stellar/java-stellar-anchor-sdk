@@ -6,35 +6,41 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
+import org.stellar.anchor.SepTransaction;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt;
+import org.stellar.anchor.auth.Sep6MoreInfoUrlJwt;
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig;
 import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
-import org.stellar.anchor.sep24.Sep24Transaction;
+import org.stellar.anchor.sep6.Sep6Transaction;
 import org.stellar.anchor.util.ConfigHelper;
 
-public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
-  private final PropertyClientsConfig clientsConfig;
+public class Sep6MoreInfoUrlConstructor extends MoreInfoUrlConstructor {
+  PropertyClientsConfig clientsConfig;
   private final MoreInfoUrlConfig config;
   private final JwtService jwtService;
 
-  public SimpleMoreInfoUrlConstructor(
+  public Sep6MoreInfoUrlConstructor(
       PropertyClientsConfig clientsConfig, MoreInfoUrlConfig config, JwtService jwtService) {
     this.clientsConfig = clientsConfig;
     this.config = config;
     this.jwtService = jwtService;
   }
 
-  @Override
   @SneakyThrows
-  public String construct(Sep24Transaction txn) {
-    PropertyClientsConfig.ClientConfig clientConfig =
-        ConfigHelper.getClientConfig(clientsConfig, txn);
+  @Override
+  public String construct(SepTransaction txn) {
+    return construct((Sep6Transaction) txn);
+  }
 
-    Sep24MoreInfoUrlJwt token =
-        new Sep24MoreInfoUrlJwt(
-            UrlConstructorHelper.getAccount(txn),
+  @SneakyThrows
+  public String construct(Sep6Transaction txn) {
+    PropertyClientsConfig.ClientConfig clientConfig =
+        ConfigHelper.getClientConfig(clientsConfig, txn.getClientDomain(), txn.getSep10Account());
+
+    Sep6MoreInfoUrlJwt token =
+        new Sep6MoreInfoUrlJwt(
+            UrlConstructorHelper.getAccount(txn.getMemo(), txn.getSep10Account()),
             txn.getTransactionId(),
             Instant.now().getEpochSecond() + config.getJwtExpiration(),
             txn.getClientDomain(),

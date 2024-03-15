@@ -137,7 +137,8 @@ public class SepBeans {
       ClientFinder clientFinder,
       Sep6TransactionStore txnStore,
       EventService eventService,
-      Sep38QuoteStore sep38QuoteStore) {
+      Sep38QuoteStore sep38QuoteStore,
+      MoreInfoUrlConstructor sep6MoreInfoUrlConstructor) {
     RequestValidator requestValidator = new RequestValidator(assetService);
     ExchangeAmountsCalculator exchangeAmountsCalculator =
         new ExchangeAmountsCalculator(sep38QuoteStore);
@@ -148,7 +149,8 @@ public class SepBeans {
         clientFinder,
         txnStore,
         exchangeAmountsCalculator,
-        eventService);
+        eventService,
+        sep6MoreInfoUrlConstructor);
   }
 
   @Bean
@@ -183,7 +185,7 @@ public class SepBeans {
       Sep24TransactionStore sep24TransactionStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
-      MoreInfoUrlConstructor moreInfoUrlConstructor,
+      MoreInfoUrlConstructor sep24MoreInfoUrlConstructor,
       CustodyConfig custodyConfig,
       Sep38QuoteStore sep38QuoteStore) {
     ExchangeAmountsCalculator exchangeAmountsCalculator =
@@ -198,7 +200,7 @@ public class SepBeans {
         sep24TransactionStore,
         eventService,
         interactiveUrlConstructor,
-        moreInfoUrlConstructor,
+        sep24MoreInfoUrlConstructor,
         custodyConfig,
         exchangeAmountsCalculator);
   }

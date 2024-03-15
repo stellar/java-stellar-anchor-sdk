@@ -13,11 +13,13 @@ import org.springframework.validation.Errors
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
+import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep6Config
 
 class Sep6ConfigTest {
   @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
   @MockK(relaxed = true) lateinit var assetService: AssetService
+  @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
   lateinit var config: PropertySep6Config
   lateinit var errors: Errors
 
@@ -26,8 +28,9 @@ class Sep6ConfigTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
+    every { secretConfig.sep6MoreInfoUrlJwtSecret } returns "more_info url jwt secret"
     config =
-      PropertySep6Config(custodyConfig, assetService).apply {
+      PropertySep6Config(custodyConfig, assetService, secretConfig).apply {
         enabled = true
         features = Sep6Config.Features(false, false)
         depositInfoGeneratorType = Sep6Config.DepositInfoGeneratorType.CUSTODY
@@ -77,10 +80,17 @@ class Sep6ConfigTest {
   }
 
   @Test
-  fun `test more_info_url with invalid url`() {
+  fun `test validation rejecting invalid more_info_url config`() {
     config.moreInfoUrl = MoreInfoUrlConfig("httpss://www.stellar.org", 100, listOf(""))
     config.validate(config, errors)
     Assertions.assertEquals("sep6-more-info-url-base-url-not-valid", errors.allErrors[0].code)
+  }
+
+  @Test
+  fun `test validation rejecting missing more_info_url jwt secret`() {
+    every { secretConfig.sep6MoreInfoUrlJwtSecret } returns null
+    config.validate(config, errors)
+    Assertions.assertEquals("sep6-more-info-url-jwt-secret-not-defined", errors.allErrors[0].code)
   }
 
   @CsvSource(value = ["NONE", "SELF"])
@@ -106,7 +116,7 @@ class Sep6ConfigTest {
     assetService =
       DefaultAssetService.fromJsonResource("test_assets_missing_distribution_account.json")
     config =
-      PropertySep6Config(custodyConfig, assetService).apply {
+      PropertySep6Config(custodyConfig, assetService, secretConfig).apply {
         enabled = true
         features = Sep6Config.Features(false, false)
         depositInfoGeneratorType = Sep6Config.DepositInfoGeneratorType.SELF

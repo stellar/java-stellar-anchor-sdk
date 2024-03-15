@@ -31,6 +31,7 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.client.ClientFinder
 import org.stellar.anchor.config.Sep6Config
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts
 import org.stellar.anchor.util.GsonUtils
 
@@ -49,6 +50,7 @@ class Sep6ServiceTest {
   @MockK(relaxed = true) lateinit var exchangeAmountsCalculator: ExchangeAmountsCalculator
   @MockK(relaxed = true) lateinit var eventService: EventService
   @MockK(relaxed = true) lateinit var eventSession: EventService.Session
+  @MockK(relaxed = true) lateinit var sep6MoreInfoUrlConstructor: MoreInfoUrlConstructor
 
   private lateinit var sep6Service: Sep6Service
 
@@ -62,6 +64,7 @@ class Sep6ServiceTest {
     every { eventService.createSession(any(), any()) } returns eventSession
     every { requestValidator.getDepositAsset(TEST_ASSET) } returns asset
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns asset
+    every { sep6MoreInfoUrlConstructor.construct(any()) } returns "https://example.com/more_info"
     sep6Service =
       Sep6Service(
         sep6Config,
@@ -70,7 +73,8 @@ class Sep6ServiceTest {
         clientFinder,
         txnStore,
         exchangeAmountsCalculator,
-        eventService
+        eventService,
+        sep6MoreInfoUrlConstructor,
       )
   }
 
@@ -1381,7 +1385,6 @@ class Sep6ServiceTest {
     txn.kind = "deposit"
     txn.status = "complete"
     txn.statusEta = 5
-    txn.moreInfoUrl = "https://example.com/more_info"
     txn.amountIn = "100"
     txn.amountInAsset = "USD"
     txn.amountOut = "98"

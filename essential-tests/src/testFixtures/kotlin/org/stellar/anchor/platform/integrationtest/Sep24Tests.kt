@@ -39,6 +39,7 @@ import org.stellar.walletsdk.asset.IssuedAssetId
 class Sep24Tests : AbstractIntegrationTests(TestConfig()) {
   private val jwtService: JwtService =
     JwtService(
+      config.env["secret.sep6.more_info_url.jwt_secret"]!!,
       config.env["secret.sep10.jwt_secret"]!!,
       config.env["secret.sep24.interactive_url.jwt_secret"]!!,
       config.env["secret.sep24.more_info_url.jwt_secret"]!!,
