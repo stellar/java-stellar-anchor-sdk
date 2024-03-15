@@ -37,11 +37,11 @@ public class Sep6TransactionResponse {
   String amountOutAsset;
 
   @SerializedName("amount_fee")
-  @Deprecated
+  @Deprecated // ANCHOR-636
   String amountFee;
 
   @SerializedName("amount_fee_asset")
-  @Deprecated
+  @Deprecated // ANCHOR-636
   String amountFeeAsset;
 
   @SerializedName("fee_details")

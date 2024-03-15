@@ -42,7 +42,7 @@ public class PlatformTransactionData {
   Amount amountOut;
 
   @SerializedName("amount_fee")
-  @Deprecated
+  @Deprecated // ANCHOR-636
   Amount amountFee;
 
   @SerializedName("fee_details")

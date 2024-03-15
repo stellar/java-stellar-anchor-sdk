@@ -185,10 +185,10 @@ public interface Sep6Transaction extends SepTransaction {
    *
    * @return the amount of fee charged by the anchor.
    */
-  @Deprecated
+  @Deprecated // ANCHOR-636
   String getAmountFee();
 
-  @Deprecated
+  @Deprecated // ANCHOR-636
   void setAmountFee(String amountFee);
 
   /**
@@ -197,10 +197,10 @@ public interface Sep6Transaction extends SepTransaction {
    *
    * @return the asset in which fees are calculated in.
    */
-  @Deprecated
+  @Deprecated // ANCHOR-636
   String getAmountFeeAsset();
 
-  @Deprecated
+  @Deprecated // ANCHOR-636
   void setAmountFeeAsset(String amountFeeAsset);
 
   void setFeeDetails(FeeDetails feeDetails);

@@ -23,7 +23,7 @@ public class NotifyInteractiveFlowCompletedRequest extends RpcMethodParamsReques
   private AmountAssetRequest amountOut;
 
   @SerializedName("amount_fee")
-  @Deprecated
+  @Deprecated // ANCHOR-636
   private AmountAssetRequest amountFee;
 
   @SerializedName("fee_details")

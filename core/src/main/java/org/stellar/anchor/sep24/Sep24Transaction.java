@@ -206,10 +206,10 @@ public interface Sep24Transaction extends SepTransaction {
    *
    * @return <code>amount_fee</code> field of the SEP-24 transaction history.
    */
-  @Deprecated
+  @Deprecated // ANCHOR-636
   String getAmountFee();
 
-  @Deprecated
+  @Deprecated // ANCHOR-636
   void setAmountFee(String amountFee);
 
   /**
@@ -219,10 +219,10 @@ public interface Sep24Transaction extends SepTransaction {
    *
    * @return <code>amount_fee_asset</code> field of the SEP-24 transaction history.
    */
-  @Deprecated
+  @Deprecated // ANCHOR-636
   String getAmountFeeAsset();
 
-  @Deprecated
+  @Deprecated // ANCHOR-636
   void setAmountFeeAsset(String amountFeeAsset);
 
   /**
