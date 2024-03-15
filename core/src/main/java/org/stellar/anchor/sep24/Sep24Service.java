@@ -602,7 +602,5 @@ public class Sep24Service {
     builder.amountInAsset(quote.getSellAsset());
     builder.amountOut(quote.getBuyAmount());
     builder.amountOutAsset(quote.getBuyAsset());
-    builder.amountFee(quote.getFee().getTotal());
-    builder.amountFeeAsset(quote.getFee().getAsset());
   }
 }

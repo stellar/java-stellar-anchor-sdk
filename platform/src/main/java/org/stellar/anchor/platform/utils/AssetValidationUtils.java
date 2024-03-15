@@ -3,12 +3,19 @@ package org.stellar.anchor.platform.utils;
 import static java.util.stream.Collectors.toList;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
+import java.math.BigDecimal;
 import java.util.List;
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import org.apache.commons.collections.CollectionUtils;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.rpc.method.AmountAssetRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.shared.FeeDescription;
+import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.util.MathHelper;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
 
@@ -30,6 +37,37 @@ public class AssetValidationUtils {
       String fieldName, AmountAssetRequest amount, AssetService assetService)
       throws BadRequestException {
     validateAsset(fieldName, amount, false, assetService);
+  }
+
+  public static void validateFeeDetails(
+      @NotNull FeeDetails fee,
+      @Nullable JdbcSepTransaction jdbcTransaction,
+      AssetService assetService)
+      throws BadRequestException {
+    validateAsset(
+        "fee_details", new AmountAssetRequest(fee.getTotal(), fee.getAsset()), true, assetService);
+
+    if (jdbcTransaction != null
+        && jdbcTransaction.getAmountFeeAsset() != null
+        && !fee.getAsset().equals(jdbcTransaction.getAmountFeeAsset())) {
+      throw new BadRequestException(
+          "fee_details.asset is different from expected database asset ("
+              + jdbcTransaction.getAmountFeeAsset()
+              + ")");
+    }
+
+    if (fee.getDetails() != null) {
+      BigDecimal sum =
+          fee.getDetails().stream()
+              .map(FeeDescription::getAmount)
+              .map(MathHelper::decimal)
+              .reduce(decimal(0L), BigDecimal::add);
+
+      if (decimal(fee.getTotal()).compareTo(sum) != 0) {
+        throw new BadRequestException(
+            "fee_details.total is not equal to the sum of (fee_details.details.amount)");
+      }
+    }
   }
 
   public static void validateAsset(

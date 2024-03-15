@@ -69,17 +69,31 @@ public class NotifyOffchainFundsReceivedHandler
       throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
 
-    if (!((request.getAmountIn() == null
+    // If none of the accepted combinations of input parameters satisfies -> throw an exception
+    if (!
+    // None of the amounts are provided
+    ((request.getAmountIn() == null
             && request.getAmountOut() == null
-            && request.getAmountFee() == null)
-        || (request.getAmountIn() != null
+            && request.getAmountFee() == null
+            && request.getFeeDetails() == null)
+        ||
+        // All the amounts are provided (allow either amount_fee or fee_details)
+        (request.getAmountIn() != null
             && request.getAmountOut() != null
-            && request.getAmountFee() != null)
-        || (request.getAmountIn() != null
+            && (request.getAmountFee() != null || request.getFeeDetails() != null))
+        ||
+        // Only amount_in is provided
+        (request.getAmountIn() != null
             && request.getAmountOut() == null
-            && request.getAmountFee() == null))) {
+            && request.getAmountFee() == null
+            && request.getFeeDetails() == null))) {
       throw new InvalidParamsException(
           "Invalid amounts combination provided: all, none or only amount_in should be set");
+    }
+
+    // In case 2nd predicate in previous IF statement was TRUE
+    if (request.getAmountFee() != null && request.getFeeDetails() != null) {
+      throw new InvalidParamsException("Either amount_fee or fee_details should be set");
     }
 
     if (request.getAmountIn() != null) {
@@ -109,6 +123,9 @@ public class NotifyOffchainFundsReceivedHandler
               .build(),
           true,
           assetService);
+    }
+    if (request.getFeeDetails() != null) {
+      AssetValidationUtils.validateFeeDetails(request.getFeeDetails(), txn, assetService);
     }
   }
 
@@ -173,6 +190,10 @@ public class NotifyOffchainFundsReceivedHandler
     }
     if (request.getAmountFee() != null) {
       txn.setAmountFee(request.getAmountFee().getAmount());
+    }
+    if (request.getFeeDetails() != null) {
+      txn.setAmountFee(request.getFeeDetails().getTotal());
+      txn.setFeeDetailsList(request.getFeeDetails().getDetails());
     }
 
     switch (Sep.from(txn.getProtocol())) {
