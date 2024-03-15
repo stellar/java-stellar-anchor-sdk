@@ -594,8 +594,7 @@ public class Sep24Service {
     builder.amountInAsset(quote.getSellAsset());
     builder.amountOut(quote.getBuyAmount());
     builder.amountOutAsset(quote.getBuyAsset());
-    builder.amountFee(quote.getFee().getTotal());
-    builder.amountFeeAsset(quote.getFee().getAsset());
+    builder.feeDetails(quote.getFee());
 
     if (kind.equals(DEPOSIT.toString())) {
       builder.sourceAsset(quote.getSellAsset());

@@ -35,6 +35,7 @@ import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
+import org.stellar.anchor.platform.utils.toRate
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -218,6 +219,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
+    expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
@@ -303,6 +305,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
+    expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
@@ -409,7 +412,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
 
     request.amountFee.asset = STELLAR_USDC
     ex = assertThrows { handler.handle(request) }
-    assertEquals("amount_fee.asset should be non-stellar asset", ex.message)
+    assertEquals("fee asset should be a non-stellar asset", ex.message)
     request.amountFee.asset = FIAT_USD
 
     verify(exactly = 0) { txn6Store.save(any()) }
@@ -451,7 +454,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
 
     request.amountFee.asset = FIAT_USD
     ex = assertThrows { handler.handle(request) }
-    assertEquals("amount_fee.asset should be stellar asset", ex.message)
+    assertEquals("fee asset should be a stellar asset", ex.message)
     request.amountFee.asset = STELLAR_USDC
 
     verify(exactly = 0) { txn6Store.save(any()) }

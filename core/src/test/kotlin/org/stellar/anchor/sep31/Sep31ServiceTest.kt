@@ -30,8 +30,8 @@ import org.stellar.anchor.api.sep.operation.Sep31Operation
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
-import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.FeeDetails
 import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
@@ -746,7 +746,7 @@ class Sep31ServiceTest {
     quote.totalPrice = "0.008"
     quote.price = "0.0072"
     quote.expiresAt = Instant.now()
-    quote.fee = RateFee("10", stellarUSDC)
+    quote.fee = FeeDetails("10", stellarUSDC)
     every { quoteStore.findByQuoteId("my_quote_id") } returns quote
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
