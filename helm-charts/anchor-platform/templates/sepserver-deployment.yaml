@@ -1,44 +1,44 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ap-observer
+  name: ap-sep
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ap-observer
+      app: ap-sep
   template:
     metadata:
       labels:
-        app: ap-observer
+        app: ap-sep
     spec:
       containers:
-      - name: stellar-observer
+      - name: sep-server
         image: stellar/anchor-platform:latest
-        args: ["--stellar-observer"]
+        args: ["--sep-server"]
         imagePullPolicy: Always
         ports:
         - name: http
-          containerPort: 8083
+          containerPort: 8080
           protocol: TCP
         startupProbe:
           httpGet:
             path: /health
-            port: 8083
+            port: 8080
           initialDelaySeconds: 120
           failureThreshold: 10
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
-            port: 8083
+            port: 8080
           initialDelaySeconds: 120
           failureThreshold: 2
           periodSeconds: 30
         readinessProbe:
           httpGet:
             path: /health
-            port: 8083
+            port: 8080
           initialDelaySeconds: 120
           periodSeconds: 30
         volumeMounts:
@@ -60,6 +60,10 @@ spec:
           value: secret
         - name: SECRET_SEP24_MORE_INFO_URL_JWT_SECRET
           value: secret
+        - name: SECRET_SEP10_JWT_SECRET
+          value: secret
+        - name: SECRET_SEP10_SIGNING_SEED
+          value: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
         resources:
           requests:
             memory: 512Mi
@@ -70,4 +74,4 @@ spec:
       volumes:
       - name: config-volume
         configMap:
-          name: anchor-config
+          name: anchor-config        

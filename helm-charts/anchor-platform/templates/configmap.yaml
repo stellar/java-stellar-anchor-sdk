@@ -6,6 +6,10 @@ data:
   anchor-config.yaml: |
     version: 1
 
+    app_logging:
+      stellar_level: DEBUG
+      request_logger_enabled: true
+
     stellar_network:
       network: TESTNET
       network_passphrase: "Test SDF Network ; September 2015"
@@ -17,6 +21,87 @@ data:
       database: postgres
       flyway_enabled: true
       ddl_auto: update
+    
+    events:
+      enabled: true
+      queue:
+        type: kafka
+        kafka:
+          bootstrap_server: kafka:9092
+
+    sep1:
+      enabled: true
+      toml:
+        type: file
+        value: /config/sep1.toml
+    
+    sep6:
+      enabled: true
+    
+    sep10:
+      enabled: true
+      web_auth_domain: anchor-platform.default.svc.cluster.local
+      home_domains: anchor-platform.default.svc.cluster.local
+    
+    sep12:
+      enabled: true
+    
+    sep31:
+      enabled: true
+
+    sep38:
+      enabled: true
+
+    sep24:
+      enabled: true
+      interactive_url:
+        base_url: http://localhost:8091
+      more_info_url:
+        base_url: http://localhost:8091
+
+  sep1.toml: |
+    ACCOUNTS = ["GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"]
+    VERSION = "0.1.0"
+    SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
+    NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+
+    WEB_AUTH_ENDPOINT = "http://localhost:8080/auth"
+    KYC_SERVER = "http://localhost:8080/sep12"
+    TRANSFER_SERVER = "http://localhost:8080/sep6"
+    TRANSFER_SERVER_SEP0024 = "http://localhost:8080/sep24"
+    DIRECT_PAYMENT_SERVER = "http://localhost:8080/sep31"
+    ANCHOR_QUOTE_SERVER = "http://localhost:8080/sep38"
+
+    [[CURRENCIES]]
+    code = "USDC"
+    issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    status = "test"
+    is_asset_anchored = false
+    desc = "Circle USDC Token"
+    anchor_asset_type = "crypto"
+
+    [[CURRENCIES]]
+    code = "USDC"
+    issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    status = "test"
+    is_asset_anchored = false
+    desc = "Circle USDC Token"
+    anchor_asset_type = "crypto"
+
+    [[CURRENCIES]]
+    code = "native"
+    status = "test"
+    is_asset_anchored = false
+    anchor_asset_type = "crypto"
+    desc = "XLM, the native token of the Stellar network."
+
+    [DOCUMENTATION]
+    ORG_NAME = "Stellar Development Foundation"
+    ORG_URL = "https://stellar.org"
+    ORG_DESCRIPTION = "SEP 24 reference server."
+    ORG_KEYBASE = "stellar.public"
+    ORG_TWITTER = "StellarOrg"
+    ORG_GITHUB = "stellar"
 
   assets.yaml: |
     assets:
