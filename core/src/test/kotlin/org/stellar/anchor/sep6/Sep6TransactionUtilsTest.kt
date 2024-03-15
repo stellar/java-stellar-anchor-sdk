@@ -44,6 +44,10 @@ class Sep6TransactionUtilsTest {
           "amount_out_asset": "$TEST_ASSET",
           "amount_fee": "1.00",
           "amount_fee_asset": "USD",
+          "fee_details": {
+            "total": "1.00",
+            "asset": "USD"
+          },
           "from": "1234",
           "to": "$TEST_ASSET_ISSUER_ACCOUNT_ID",
           "deposit_memo_type": "text",
@@ -152,6 +156,7 @@ class Sep6TransactionUtilsTest {
         amountOutAsset = "USDC"
         amountFee = "1.00"
         amountFeeAsset = "USD"
+        feeDetails = FeeDetails("1.00", "USD", null)
         amountExpected = "100.00"
         sep10Account = TEST_ACCOUNT
         sep10AccountMemo = TEST_MEMO

@@ -26,6 +26,8 @@ import org.stellar.anchor.api.sep.operation.Sep38Operation
 import org.stellar.anchor.api.sep.sep38.*
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6
+import org.stellar.anchor.api.shared.FeeDescription
+import org.stellar.anchor.api.shared.FeeDetails
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.SecretConfig
@@ -421,12 +423,12 @@ class Sep38ServiceTest {
     assertEquals("sell_amount exceeds max limit", ex.message)
   }
 
-  private fun mockSellAssetFee(sellAsset: String?): RateFee {
+  private fun mockSellAssetFee(sellAsset: String?): FeeDetails {
     assertNotNull(sellAsset)
 
-    val rateFee = RateFee("0", sellAsset)
-    rateFee.addFeeDetail(RateFeeDetail("Sell fee", "1.00"))
-    return rateFee
+    val feeDetails = FeeDetails("0", sellAsset)
+    feeDetails.addFeeDetail(FeeDescription("Sell fee", "1.00"))
+    return feeDetails
   }
 
   @Test
