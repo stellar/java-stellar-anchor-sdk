@@ -254,7 +254,10 @@ public class Sep24Service {
           quoteId, asset, buyAsset, strAmount, builder, WITHDRAWAL.toString(), txnId);
     } else {
       builder.amountExpected(strAmount);
-      if (buyAsset != null) builder.amountOutAsset(buyAsset.getSep38AssetName());
+      if (buyAsset != null) {
+        builder.amountOut("0");
+        builder.amountOutAsset(buyAsset.getSep38AssetName());
+      }
     }
 
     Sep24Transaction txn = builder.build();
@@ -425,7 +428,10 @@ public class Sep24Service {
           quoteId, sellAsset, asset, strAmount, builder, DEPOSIT.toString(), txnId);
     } else {
       builder.amountExpected(strAmount);
-      if (sellAsset != null) builder.amountInAsset(sellAsset.getSep38AssetName());
+      if (sellAsset != null) {
+        builder.amountIn("0");
+        builder.amountInAsset(sellAsset.getSep38AssetName());
+      }
     }
 
     Sep24Transaction txn = builder.build();
