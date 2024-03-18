@@ -140,14 +140,6 @@ public class Sep24TransactionBuilder {
     txn.setQuoteId(quoteId);
   }
 
-  public void sourceAsset(String sourceAsset) {
-    txn.setSourceAsset(sourceAsset);
-  }
-
-  public void destinationAsset(String destinationAsset) {
-    txn.setDestinationAsset(destinationAsset);
-  }
-
   public Sep24Transaction build() {
     return txn;
   }
