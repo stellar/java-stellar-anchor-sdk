@@ -22,6 +22,12 @@ data:
       flyway_enabled: true
       ddl_auto: update
     
+    callback_api:
+      base_url: http://ap-reference:8091
+
+    platform_api:
+      base_url: http://ap-platform:8085
+    
     events:
       enabled: true
       queue:
@@ -40,8 +46,8 @@ data:
     
     sep10:
       enabled: true
-      web_auth_domain: anchor-platform.default.svc.cluster.local
-      home_domains: anchor-platform.default.svc.cluster.local
+      web_auth_domain: localhost:8080
+      home_domains: localhost:8080
     
     sep12:
       enabled: true
