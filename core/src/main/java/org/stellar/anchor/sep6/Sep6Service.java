@@ -14,7 +14,6 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep6.*;
 import org.stellar.anchor.api.sep.sep6.InfoResponse.*;
-import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.client.ClientFinder;
@@ -198,7 +197,8 @@ public class Sep6Service {
               .amountInAsset(sellAsset.getSep38AssetName())
               .amountOut("0")
               .amountOutAsset(buyAsset.getSep38AssetName())
-              .feeDetails(new FeeDetails("0", sellAsset.getSep38AssetName(), null))
+              .amountFee("0")
+              .amountFeeAsset(sellAsset.getSep38AssetName())
               .build();
     }
 
@@ -218,7 +218,8 @@ public class Sep6Service {
             .amountInAsset(amounts.getAmountInAsset())
             .amountOut(amounts.getAmountOut())
             .amountOutAsset(amounts.getAmountOutAsset())
-            .feeDetails(amounts.feeDetails)
+            .amountFee(amounts.getAmountFee())
+            .amountFeeAsset(amounts.getAmountFeeAsset())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
@@ -363,7 +364,8 @@ public class Sep6Service {
               .amountInAsset(sellAsset.getSep38AssetName())
               .amountOut("0")
               .amountOutAsset(buyAsset.getSep38AssetName())
-              .feeDetails(new FeeDetails("0", sellAsset.getSep38AssetName(), null))
+              .amountFee("0")
+              .amountFeeAsset(sellAsset.getSep38AssetName())
               .build();
     }
 
@@ -380,7 +382,8 @@ public class Sep6Service {
             .amountInAsset(amounts.getAmountInAsset())
             .amountOut(amounts.getAmountOut())
             .amountOutAsset(amounts.getAmountOutAsset())
-            .feeDetails(amounts.getFeeDetails())
+            .amountFee(amounts.getAmountFee())
+            .amountFeeAsset(amounts.getAmountFeeAsset())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())

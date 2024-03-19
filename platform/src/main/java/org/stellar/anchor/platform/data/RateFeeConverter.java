@@ -5,21 +5,21 @@ import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-import org.stellar.anchor.api.shared.FeeDetails;
+import org.stellar.anchor.api.sep.sep38.RateFee;
 import org.stellar.anchor.util.GsonUtils;
 
 @Converter
-public class RateFeeConverter implements AttributeConverter<FeeDetails, String> {
+public class RateFeeConverter implements AttributeConverter<RateFee, String> {
   private static final Gson gson = GsonUtils.getInstance();
 
   @Override
-  public String convertToDatabaseColumn(FeeDetails priceDetails) {
+  public String convertToDatabaseColumn(RateFee priceDetails) {
     return gson.toJson(priceDetails);
   }
 
   @Override
-  public FeeDetails convertToEntityAttribute(String customerInfoJSON) {
-    Type type = new TypeToken<FeeDetails>() {}.getType();
+  public RateFee convertToEntityAttribute(String customerInfoJSON) {
+    Type type = new TypeToken<RateFee>() {}.getType();
     return gson.fromJson(customerInfoJSON, type);
   }
 }

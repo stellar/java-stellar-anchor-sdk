@@ -24,7 +24,6 @@ import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep6.*
 import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.FeeDetails
 import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
@@ -334,7 +333,8 @@ class Sep6ServiceTest {
         .amountInAsset(sourceAsset)
         .amountOut("98")
         .amountOutAsset(TEST_ASSET_SEP38_FORMAT)
-        .feeDetails(FeeDetails("2", TEST_ASSET_SEP38_FORMAT))
+        .amountFee("2")
+        .amountFeeAsset(TEST_ASSET_SEP38_FORMAT)
         .build()
 
     val request =
@@ -896,7 +896,8 @@ class Sep6ServiceTest {
         .amountInAsset(TEST_ASSET_SEP38_FORMAT)
         .amountOut("98")
         .amountOutAsset(destinationAsset)
-        .feeDetails(FeeDetails("2", destinationAsset))
+        .amountFee("2")
+        .amountFeeAsset(destinationAsset)
         .build()
 
     val request =

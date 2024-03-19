@@ -73,15 +73,13 @@ public class NotifyOnchainFundsReceivedHandler
 
     if (!((request.getAmountIn() == null
             && request.getAmountOut() == null
-            && request.getAmountFee() == null
-            && request.getFeeDetails() == null)
+            && request.getAmountFee() == null)
         || (request.getAmountIn() != null
             && request.getAmountOut() != null
-            && (request.getAmountFee() != null || request.getFeeDetails() != null))
+            && request.getAmountFee() != null)
         || (request.getAmountIn() != null
             && request.getAmountOut() == null
-            && request.getAmountFee() == null
-            && request.getFeeDetails() == null))) {
+            && request.getAmountFee() == null))) {
       throw new InvalidParamsException(
           "Invalid amounts combination provided: all, none or only amount_in should be set");
     }
@@ -113,9 +111,6 @@ public class NotifyOnchainFundsReceivedHandler
               .build(),
           true,
           assetService);
-    }
-    if (request.getFeeDetails() != null) {
-      AssetValidationUtils.validateFeeDetails(request.getFeeDetails(), txn, assetService);
     }
   }
 
@@ -185,10 +180,6 @@ public class NotifyOnchainFundsReceivedHandler
     }
     if (request.getAmountFee() != null) {
       txn.setAmountFee(request.getAmountFee().getAmount());
-    }
-    if (request.getFeeDetails() != null) {
-      txn.setAmountFee(request.getFeeDetails().getTotal());
-      txn.setFeeDetailsList(request.getFeeDetails().getDetails());
     }
   }
 }

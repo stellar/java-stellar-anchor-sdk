@@ -17,7 +17,6 @@ import static org.stellar.anchor.util.MetricConstants.*;
 import com.google.common.collect.ImmutableSet;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -41,7 +40,6 @@ import org.stellar.anchor.api.platform.TransactionsSeps;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
@@ -256,8 +254,6 @@ public class TransactionService {
     validateAsset("amount_out", patch.getTransaction().getAmountOut());
     validateAsset("amount_fee", patch.getTransaction().getAmountFee(), true);
 
-    FeeDetails feeDetails = validateAndGetRateFee(patch.getTransaction());
-
     JdbcSepTransaction txn = queryTransactionById(patch.getTransaction().getId());
     if (txn == null)
       throw new BadRequestException(
@@ -294,10 +290,6 @@ public class TransactionService {
           custodyService.createTransaction(sep6Transaction);
         }
 
-        if (feeDetails != null) {
-          sep6Transaction.setFeeDetails(feeDetails);
-        }
-
         txn6Store.save(sep6Transaction);
         eventSession.publish(
             AnchorEvent.builder()
@@ -321,10 +313,6 @@ public class TransactionService {
           custodyService.createTransaction(sep24Txn);
         }
 
-        if (feeDetails != null) {
-          sep24Txn.setFeeDetails(feeDetails);
-        }
-
         txn24Store.save(sep24Txn);
         eventSession.publish(
             AnchorEvent.builder()
@@ -337,11 +325,6 @@ public class TransactionService {
         break;
       case "31":
         JdbcSep31Transaction sep31Txn = (JdbcSep31Transaction) txn;
-
-        if (feeDetails != null) {
-          sep31Txn.setFeeDetails(feeDetails);
-        }
-
         txn31Store.save(sep31Txn);
         eventSession.publish(
             AnchorEvent.builder()
@@ -392,8 +375,6 @@ public class TransactionService {
           .ifPresent(stellarTransaction -> txn.setStellarTransactionId(stellarTransaction.getId()));
     }
 
-    FeeDetails feeDetails = validateAndGetRateFee(patch);
-
     switch (txn.getProtocol()) {
       case "6":
         JdbcSep6Transaction sep6Txn = (JdbcSep6Transaction) txn;
@@ -402,9 +383,6 @@ public class TransactionService {
         txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoMessage", txnUpdated);
         txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoUpdates", txnUpdated);
         txnUpdated = updateField(patch, sep6Txn, "instructions", txnUpdated);
-        if (feeDetails != null) {
-          sep6Txn.setFeeDetails(feeDetails);
-        }
         break;
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
@@ -436,9 +414,6 @@ public class TransactionService {
             txnUpdated = true;
           }
         }
-        if (feeDetails != null) {
-          sep24Txn.setFeeDetails(feeDetails);
-        }
         break;
       case "31":
         // update message
@@ -463,9 +438,6 @@ public class TransactionService {
             txnUpdated = true;
           }
         }
-        if (feeDetails != null) {
-          sep31Txn.setFeeDetails(feeDetails);
-        }
 
         validateQuoteAndAmounts(sep31Txn);
         break;
@@ -475,31 +447,6 @@ public class TransactionService {
     if (txnUpdated) {
       txn.setUpdatedAt(now);
     }
-  }
-
-  FeeDetails validateAndGetRateFee(PlatformTransactionData patch) throws BadRequestException {
-    // If both fee_details and fee is set, validate that they match. If only one set, properly set
-    // the other one.
-    FeeDetails feeDetails = patch.getFeeDetails();
-
-    if (feeDetails != null) {
-      if (patch.getAmountFee() != null) {
-        if (new BigDecimal(patch.getAmountFee().getAmount())
-                .compareTo(new BigDecimal(patch.getFeeDetails().getTotal()))
-            != 0) {
-          throw new BadRequestException(
-              "amount_fee's amount doesn't match amount from fee_details");
-        }
-        if (!patch.getAmountFee().getAsset().equals(patch.getFeeDetails().getAsset())) {
-          throw new BadRequestException("amount_fee's asset doesn't match asset from fee_details");
-        }
-      }
-    } else if (patch.getAmountFee() != null) {
-      feeDetails =
-          new FeeDetails(patch.getAmountFee().getAmount(), patch.getAmountFee().getAsset(), null);
-    }
-
-    return feeDetails;
   }
 
   /**
@@ -574,7 +521,7 @@ public class TransactionService {
       if (allAmountAvailable(txn)
           && Objects.equals(txn.getAmountInAsset(), txn.getAmountOutAsset()))
         if (decimal(txn.getAmountIn())
-                .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getFeeDetails().getTotal())))
+                .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee())))
             != 0) throw new BadRequestException("amount_in != amount_out + amount_fee");
     } else {
       // with exchange
@@ -608,14 +555,6 @@ public class TransactionService {
 
       if (!equalsAsDecimals(txn.getAmountFee(), quote.getFee().getTotal())) {
         throw new BadRequestException("amount_fee != sum(quote.fee.total)");
-      }
-
-      if (!Objects.equals(txn.getFeeDetails().getAsset(), quote.getFee().getAsset())) {
-        throw new BadRequestException("transaction.fee_details.asset != quote.fee.asset");
-      }
-
-      if (!equalsAsDecimals(txn.getFeeDetails().getTotal(), quote.getFee().getTotal())) {
-        throw new BadRequestException("transaction.fee_details.total != quote.fee.total");
       }
     }
   }

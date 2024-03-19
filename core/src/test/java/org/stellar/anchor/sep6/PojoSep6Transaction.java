@@ -4,7 +4,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
-import org.stellar.anchor.api.shared.*;
+import org.stellar.anchor.api.shared.InstructionField;
+import org.stellar.anchor.api.shared.Refunds;
+import org.stellar.anchor.api.shared.StellarTransaction;
 
 @Data
 public class PojoSep6Transaction implements Sep6Transaction {
@@ -50,18 +52,4 @@ public class PojoSep6Transaction implements Sep6Transaction {
   String requiredCustomerInfoMessage;
   List<String> requiredCustomerInfoUpdates;
   Map<String, InstructionField> instructions;
-  List<FeeDescription> feeDetailsList;
-
-  public void setFeeDetails(FeeDetails feeDetails) {
-    setAmountFee(feeDetails.getTotal());
-    setAmountFeeAsset(feeDetails.getAsset());
-    setFeeDetailsList(feeDetails.getDetails());
-  }
-
-  public FeeDetails getFeeDetails() {
-    if (getAmountFee() == null) {
-      return null;
-    }
-    return new FeeDetails(getAmountFee(), getAmountFeeAsset(), getFeeDetailsList());
-  }
 }
