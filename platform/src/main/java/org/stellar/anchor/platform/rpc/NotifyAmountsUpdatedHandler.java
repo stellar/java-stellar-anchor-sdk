@@ -55,6 +55,11 @@ public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsU
       throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
 
+    if ((request.getAmountFee() == null && request.getFeeDetails() == null)
+        || (request.getAmountFee() != null && request.getFeeDetails() != null)) {
+      throw new InvalidParamsException("Either amount_fee or fee_details must be set");
+    }
+
     AssetValidationUtils.validateAsset(
         "amount_out",
         AmountAssetRequest.builder()
@@ -63,14 +68,19 @@ public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsU
             .build(),
         true,
         assetService);
-    AssetValidationUtils.validateAsset(
-        "amount_fee",
-        AmountAssetRequest.builder()
-            .amount(request.getAmountFee().getAmount())
-            .asset(txn.getAmountFeeAsset())
-            .build(),
-        true,
-        assetService);
+    if (request.getAmountFee() != null) {
+      AssetValidationUtils.validateAsset(
+          "amount_fee",
+          AmountAssetRequest.builder()
+              .amount(request.getAmountFee().getAmount())
+              .asset(txn.getAmountFeeAsset())
+              .build(),
+          true,
+          assetService);
+    }
+    if (request.getFeeDetails() != null) {
+      AssetValidationUtils.validateFeeDetails(request.getFeeDetails(), txn, assetService);
+    }
   }
 
   @Override
@@ -112,6 +122,11 @@ public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsU
   protected void updateTransactionWithRpcRequest(
       JdbcSepTransaction txn, NotifyAmountsUpdatedRequest request) throws InvalidParamsException {
     txn.setAmountOut(request.getAmountOut().getAmount());
-    txn.setAmountFee(request.getAmountFee().getAmount());
+    if (request.getAmountFee() != null) {
+      txn.setAmountFee(request.getAmountFee().getAmount());
+    } else {
+      txn.setAmountFee(request.getFeeDetails().getTotal());
+      txn.setFeeDetailsList(request.getFeeDetails().getDetails());
+    }
   }
 }

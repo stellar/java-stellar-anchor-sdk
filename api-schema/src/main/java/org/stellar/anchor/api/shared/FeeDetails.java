@@ -1,4 +1,4 @@
-package org.stellar.anchor.api.sep.sep38;
+package org.stellar.anchor.api.shared;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -12,17 +12,17 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RateFee {
+public class FeeDetails {
   String total;
   String asset;
-  List<RateFeeDetail> details;
+  List<FeeDescription> details;
 
-  public RateFee(String total, String asset) {
+  public FeeDetails(String total, String asset) {
     this.total = total;
     this.asset = asset;
   }
 
-  public void addFeeDetail(RateFeeDetail feeDetail) {
+  public void addFeeDetail(FeeDescription feeDetail) {
     if (feeDetail == null || feeDetail.amount == null) {
       return;
     }
