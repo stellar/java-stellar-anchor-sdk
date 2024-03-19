@@ -27,10 +27,10 @@ object ServiceContainer {
 
   private val database =
     Database.connect(
-      "jdbc:postgresql://postgresql-ref:5432/postgres",
+      "jdbc:postgresql://${config.dataSettings.url}/${config.dataSettings.database}",
       driver = "org.postgresql.Driver",
-      user = "postgres",
-      password = "XgvqTkecnv"
+      user = config.dataSettings.user,
+      password = config.dataSettings.password
     )
   private val customerRepo = JdbcCustomerRepository(database)
   private val quotesRepo = JdbcQuoteRepository(database)

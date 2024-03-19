@@ -3,13 +3,13 @@ kind: ConfigMap
 metadata:
   name: reference-config
 data:
-  default-config.yaml: |
+  config.yaml: |
     app:
       version: 0.0.1
       isTest: false
       port: 8091
       horizonEndpoint: https://horizon-testnet.stellar.org
-      platformApiAEndpoint: http://platform.default.svc.cluster.local:8085
+      platformApiEndpoint: http://platform.default.svc.cluster.local:8085
       distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
       distributionWalletMemo:
       distributionWalletMemoType:
@@ -27,3 +27,9 @@ data:
     sep24:
       secret: SAJ34AG5XC7BWGK3GGQGCXERSEP7LZYXBBDMD33NMBASZVNKACEMNEIY
       interactiveJwtKey: secret_sep24_interactive_url_jwt_secret
+
+    data:
+      url: postgresql-ref:5432
+      database: postgres
+      user: postgres
+      password: XgvqTkecnv

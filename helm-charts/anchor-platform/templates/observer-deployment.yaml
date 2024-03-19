@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: stellar-observer
-        image: stellar/anchor-platform:latest
+        image: anchor-platform:local
         args: ["--stellar-observer"]
         imagePullPolicy: Always
         ports:

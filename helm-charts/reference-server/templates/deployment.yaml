@@ -30,6 +30,9 @@ spec:
         - name: config-volume
           mountPath: /config
           readOnly: true
+        env:
+        - name: KT_REFERENCE_SERVER_CONFIG
+          value: /config/config.yaml
       volumes:
       - name: config-volume
         configMap:
