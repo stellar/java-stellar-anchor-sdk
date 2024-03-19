@@ -9,8 +9,8 @@ import java.time.ZonedDateTime
 import java.util.*
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateResponse
-import org.stellar.anchor.api.shared.FeeDescription
-import org.stellar.anchor.api.shared.FeeDetails
+import org.stellar.anchor.api.sep.sep38.RateFee
+import org.stellar.anchor.api.sep.sep38.RateFeeDetail
 import org.stellar.reference.callbacks.BadRequestException
 import org.stellar.reference.callbacks.NotFoundException
 import org.stellar.reference.dao.QuoteRepository
@@ -87,11 +87,11 @@ class RateService(private val quoteRepository: QuoteRepository) {
               price = getString(finalPrice, 10),
               totalPrice = getString(finalTotalPrice!!, 10),
               fee =
-                org.stellar.reference.model.FeeDetails(
+                org.stellar.reference.model.RateFee(
                   fee.total,
                   fee.asset,
                   fee.details.map {
-                    org.stellar.reference.model.FeeDescription(it.name, it.description, it.amount)
+                    org.stellar.reference.model.RateFeeDetail(it.name, it.description, it.amount)
                   }
                 )
             )
@@ -116,12 +116,12 @@ class RateService(private val quoteRepository: QuoteRepository) {
   private fun getRate(id: String): GetRateResponse.Rate {
     val quote =
       quoteRepository.get(id) ?: throw NotFoundException("Rate with quote id $id not found", id)
-    val feeDetails = FeeDetails("0", quote.fee?.asset)
+    val rateFee = RateFee("0", quote.fee?.asset)
     quote.fee
       ?.details
       ?.forEach(
-        fun(detail: org.stellar.reference.model.FeeDescription) {
-          feeDetails.addFeeDetail(FeeDescription(detail.name, detail.description, detail.amount))
+        fun(detail: org.stellar.reference.model.RateFeeDetail) {
+          rateFee.addFeeDetail(RateFeeDetail(detail.name, detail.description, detail.amount))
         }
       )
 
@@ -131,7 +131,7 @@ class RateService(private val quoteRepository: QuoteRepository) {
       .sellAmount(quote.sellAmount)
       .buyAmount(quote.buyAmount)
       .expiresAt(quote.expiresAt)
-      .fee(feeDetails)
+      .fee(rateFee)
       .build()
   }
 
@@ -214,15 +214,15 @@ class RateService(private val quoteRepository: QuoteRepository) {
       }
     }
 
-    private fun getFee(sellAsset: String, buyAsset: String): FeeDetails {
-      val feeDetails = FeeDetails("0", sellAsset)
+    private fun getFee(sellAsset: String, buyAsset: String): RateFee {
+      val rateFee = RateFee("0", sellAsset)
       if (getPrice(sellAsset, buyAsset) == null) {
-        return feeDetails
+        return rateFee
       }
 
-      val sellAssetDetail = FeeDescription("Sell fee", "Fee related to selling the asset.", "1.00")
-      feeDetails.addFeeDetail(sellAssetDetail)
-      return feeDetails
+      val sellAssetDetail = RateFeeDetail("Sell fee", "Fee related to selling the asset.", "1.00")
+      rateFee.addFeeDetail(sellAssetDetail)
+      return rateFee
     }
   }
 }

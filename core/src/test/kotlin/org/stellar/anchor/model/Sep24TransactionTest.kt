@@ -5,7 +5,6 @@ import io.mockk.mockk
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.api.shared.FeeDetails
 import org.stellar.anchor.sep24.PojoSep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionBuilder
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -23,9 +22,10 @@ internal class Sep24TransactionTest {
         .completedAt(instantNow)
         .withdrawAnchorAccount("account")
         .memo("memo")
-        .feeDetails(FeeDetails("20", "USDC_Fee"))
+        .amountFee("20")
         .amountInAsset("USDC_In")
         .amountOutAsset("USDC_Out")
+        .amountFeeAsset("USDC_Fee")
         .build()
 
     assertEquals(txn.transactionId, "txnId")

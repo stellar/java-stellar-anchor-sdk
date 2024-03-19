@@ -8,8 +8,8 @@ public class Sep31Helper {
   public static boolean allAmountAvailable(Sep31Transaction txn) {
     return txn.getAmountIn() != null
         && txn.getAmountInAsset() != null
-        && txn.getFeeDetails() != null
-        && txn.getFeeDetails().getAsset() != null
+        && txn.getAmountFee() != null
+        && txn.getAmountFeeAsset() != null
         && txn.getAmountOut() != null
         && txn.getAmountOutAsset() != null;
   }

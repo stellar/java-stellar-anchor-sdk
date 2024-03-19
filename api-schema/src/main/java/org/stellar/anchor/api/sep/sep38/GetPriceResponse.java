@@ -3,7 +3,6 @@ package org.stellar.anchor.api.sep.sep38;
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
-import org.stellar.anchor.api.shared.FeeDetails;
 
 /**
  * The response body of the GET /price endpoint of SEP-38.
@@ -26,5 +25,5 @@ public class GetPriceResponse {
   @SerializedName("buy_amount")
   String buyAmount;
 
-  FeeDetails fee;
+  RateFee fee;
 }

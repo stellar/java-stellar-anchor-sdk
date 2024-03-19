@@ -6,7 +6,6 @@ import static org.stellar.anchor.util.Log.*;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import lombok.Builder;
@@ -179,10 +178,7 @@ public abstract class ConfigManager
 
   @Override
   public HealthCheckResult check() {
-    return ConfigManagerHealthCheckResult.builder()
-        .name(getName())
-        .configured(configMap.names())
-        .build();
+    return ConfigManagerHealthCheckResult.builder().name(getName()).configMap(configMap).build();
   }
 
   @Override
@@ -196,7 +192,7 @@ public abstract class ConfigManager
 class ConfigManagerHealthCheckResult implements HealthCheckResult {
   transient String name;
 
-  Collection<String> configured;
+  ConfigMap configMap;
 
   @Override
   public String name() {

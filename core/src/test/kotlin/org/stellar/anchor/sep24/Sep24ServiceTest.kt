@@ -15,7 +15,6 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
-import org.stellar.anchor.TestConstants.Companion.TEST_AMOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
@@ -23,7 +22,6 @@ import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
-import org.stellar.anchor.TestConstants.Companion.TEST_OFFCHAIN_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
@@ -67,13 +65,13 @@ internal class Sep24ServiceTest {
         "expires_at": "2021-04-30T07:42:23",
         "total_price": "5.42",
         "price": "5.00",
-        "sell_asset": "iso4217:USD",
+        "sell_asset": "iso4217:BRL",
         "sell_amount": "542",
         "buy_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         "buy_amount": "100",
         "fee": {
           "total": "42.00",
-          "asset": "iso4217:USD"
+          "asset": "iso4217:BRL"
         }
       }
       """
@@ -87,7 +85,7 @@ internal class Sep24ServiceTest {
         "price": "0.5",
         "sell_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         "sell_amount": "542",
-        "buy_asset": "iso4217:USD",
+        "buy_asset": "iso4217:BRL",
         "buy_amount": "1000",
         "fee": {
           "total": "42",
@@ -203,9 +201,6 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals(TEST_CLIENT_NAME, slotTxn.captured.clientName)
-    assertEquals(TEST_AMOUNT, slotTxn.captured.amountExpected)
-    assertEquals(TEST_OFFCHAIN_ASSET, slotTxn.captured.amountOutAsset)
-    assertNull(slotTxn.captured.amountInAsset)
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
@@ -268,7 +263,7 @@ internal class Sep24ServiceTest {
       createTestTransactionRequest(withdrawQuote.id)
     )
     assertEquals(withdrawQuote.id, slotTxn.captured.quoteId)
-    assertEquals(withdrawQuote.buyAsset, slotTxn.captured.amountOutAsset)
+    assertEquals(withdrawQuote.buyAsset, slotTxn.captured.destinationAsset)
   }
 
   @Test
@@ -356,9 +351,6 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals(TEST_CLIENT_NAME, slotTxn.captured.clientName)
-    assertEquals(TEST_AMOUNT, slotTxn.captured.amountExpected)
-    assertEquals(TEST_OFFCHAIN_ASSET, slotTxn.captured.amountInAsset)
-    assertNull(slotTxn.captured.amountOutAsset)
   }
 
   @Test
@@ -406,7 +398,7 @@ internal class Sep24ServiceTest {
       createTestTransactionRequest(depositQuote.id)
     )
     assertEquals(depositQuote.id, slotTxn.captured.quoteId)
-    assertEquals(depositQuote.sellAsset, slotTxn.captured.amountInAsset)
+    assertEquals(depositQuote.sellAsset, slotTxn.captured.sourceAsset)
   }
 
   @Test

@@ -20,11 +20,11 @@ data class Quote(
   @SerialName("buy_delivery_method") val buyDeliveryMethod: String?,
   @SerialName("country_code") val countryCode: String?,
   @SerialName("client_id") val clientId: String?,
-  val fee: FeeDetails?,
+  val fee: RateFee?,
 )
 
 @Serializable
-data class FeeDetails(val total: String?, val asset: String, val details: List<FeeDescription>?)
+data class RateFee(val total: String?, val asset: String, val details: List<RateFeeDetail>?)
 
 @Serializable
-data class FeeDescription(val name: String, val description: String, val amount: String?)
+data class RateFeeDetail(val name: String, val description: String, val amount: String?)

@@ -210,7 +210,6 @@ class SimpleInteractiveUrlConstructorTest {
     assertEquals("deposit", data["kind"] as String)
     assertEquals("100", data["amount"] as String)
     assertEquals("en", data["lang"] as String)
-    assertEquals("123", data["customer_id"] as String)
     assertEquals(
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
       data["amount_in_asset"] as String
@@ -251,7 +250,6 @@ private const val REQUEST_JSON_1 =
   "last_name": "Doe",
   "email_address": "john_doe@stellar.org",
   "lang": "en",
-  "customer_id": "123",  
   "amount": "100"
 }
 """

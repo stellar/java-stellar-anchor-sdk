@@ -27,7 +27,10 @@ import org.stellar.anchor.api.rpc.method.AmountAssetRequest
 import org.stellar.anchor.api.rpc.method.AmountRequest
 import org.stellar.anchor.api.rpc.method.RequestOffchainFundsRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
-import org.stellar.anchor.api.shared.*
+import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.Customers
+import org.stellar.anchor.api.shared.InstructionField
+import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.event.EventService
@@ -226,7 +229,7 @@ class RequestOffchainFundsHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("fee_details or amount_fee is required", ex.message)
+    assertEquals("amount_fee is required", ex.message)
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
@@ -254,7 +257,7 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "All or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set",
+      "All or none of the amount_in, amount_out, and amount_fee should be set",
       ex.message
     )
 
@@ -271,7 +274,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("1", STELLAR_USDC))
-        .feeDetails(FeeDetails("1", FIAT_USD, null))
+        .amountFee(AmountAssetRequest("1", FIAT_USD))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -285,10 +288,10 @@ class RequestOffchainFundsHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
-    request.feeDetails.total = "-1"
+    request.amountFee.amount = "-1"
     var ex = assertThrows<BadRequestException> { handler.handle(request) }
-    assertEquals("fee_details.amount should be non-negative", ex.message)
-    request.feeDetails.total = "1"
+    assertEquals("amount_fee.amount should be non-negative", ex.message)
+    request.amountFee.amount = "1"
 
     request.amountExpected.amount = "-1"
     ex = assertThrows { handler.handle(request) }
@@ -307,7 +310,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("1", STELLAR_USDC))
-        .feeDetails(FeeDetails("1", FIAT_USD, null))
+        .amountFee(AmountAssetRequest("1", FIAT_USD))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -331,9 +334,9 @@ class RequestOffchainFundsHandlerTest {
     assertEquals("amount_out.asset should be stellar asset", ex.message)
     request.amountOut.asset = STELLAR_USDC
 
-    request.feeDetails.asset = STELLAR_USDC
+    request.amountFee.asset = STELLAR_USDC
     ex = assertThrows { handler.handle(request) }
-    assertEquals("fee_details.asset should be non-stellar asset", ex.message)
+    assertEquals("amount_fee.asset should be non-stellar asset", ex.message)
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
@@ -395,7 +398,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
-        .feeDetails(FeeDetails("0.1", FIAT_USD))
+        .amountFee(AmountAssetRequest("0.1", FIAT_USD))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -447,7 +450,6 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
-    expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
@@ -482,7 +484,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
-        .feeDetails(FeeDetails("0.1", FIAT_USD, null))
+        .amountFee(AmountAssetRequest("0.1", FIAT_USD))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -532,7 +534,6 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
-    expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
@@ -619,7 +620,6 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
-    expectedResponse.feeDetails = FeeDetails("0.1", STELLAR_USDC, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
@@ -713,7 +713,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
-        .feeDetails(FeeDetails("0.1", FIAT_USD, null))
+        .amountFee(AmountAssetRequest("0.1", FIAT_USD))
         .amountExpected(AmountRequest("1"))
         .instructions(mapOf("first_name" to InstructionField.builder().build()))
         .build()
@@ -767,7 +767,6 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
-    expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
@@ -815,7 +814,7 @@ class RequestOffchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
-        .feeDetails(FeeDetails("0.1", FIAT_USD, null))
+        .amountFee(AmountAssetRequest("0.1", FIAT_USD))
         .instructions(mapOf("first_name" to InstructionField.builder().build()))
         .build()
     val txn6 = JdbcSep6Transaction()
@@ -867,7 +866,6 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
-    expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
@@ -972,7 +970,6 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
-    expectedResponse.feeDetails = FeeDetails("0.1", STELLAR_USDC, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))

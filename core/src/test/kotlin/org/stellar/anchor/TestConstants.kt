@@ -12,9 +12,7 @@ class TestConstants {
     const val TEST_HOME_DOMAIN = "test.stellar.org"
     const val TEST_HOME_DOMAIN_PATTERN = "*.wildcard.stellar.org"
     const val TEST_JWT_SECRET = "jwt_secret"
-    const val TEST_AMOUNT = "542"
     const val TEST_ASSET = "USDC"
-    const val TEST_OFFCHAIN_ASSET = "iso4217:USD"
     const val TEST_ASSET_ISSUER_ACCOUNT_ID =
       "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     const val TEST_ASSET_SEP38_FORMAT = "stellar:$TEST_ASSET:$TEST_ASSET_ISSUER_ACCOUNT_ID"
