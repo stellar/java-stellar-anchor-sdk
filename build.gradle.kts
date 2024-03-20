@@ -169,13 +169,14 @@ subprojects {
       exclude(group = "ch.qos.logback", module = "logback-classic")
       exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
       exclude(group = "org.slf4j", module = "slf4j-log4j12")
-    }
+      exclude(group = "org.slf4j", module ="slf4j-simple")
+     }
   }
 }
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.6.0"
+  version = "2.6.1"
 
   tasks.jar {
     manifest {

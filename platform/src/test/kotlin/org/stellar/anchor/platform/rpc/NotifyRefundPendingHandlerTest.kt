@@ -38,6 +38,7 @@ import org.stellar.anchor.platform.data.JdbcSep24Refunds
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep6Transaction
 import org.stellar.anchor.platform.service.AnchorMetrics.PLATFORM_RPC_TRANSACTION
+import org.stellar.anchor.platform.utils.toRate
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -343,6 +344,7 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
+    expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn24.amountInAsset)
@@ -458,6 +460,7 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2.2", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
+    expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn24.amountInAsset)
@@ -657,6 +660,7 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
+    expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
@@ -777,6 +781,7 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2.2", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
+    expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
