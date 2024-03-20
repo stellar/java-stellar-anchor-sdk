@@ -30,8 +30,8 @@ public class AuthHelper {
   }
 
   public static AuthHelper forJwtToken(
-      String httpHeader, JwtService jwtService, long jwtExpirationMilliseconds) {
-    AuthHelper authHelper = new AuthHelper(AuthType.JWT, httpHeader);
+      String authorizationHeader, JwtService jwtService, long jwtExpirationMilliseconds) {
+    AuthHelper authHelper = new AuthHelper(AuthType.JWT, authorizationHeader);
     authHelper.jwtService = jwtService;
     authHelper.jwtExpirationMilliseconds = jwtExpirationMilliseconds;
     return authHelper;
@@ -73,7 +73,7 @@ public class AuthHelper {
       case JWT:
         return new AuthHeader<>(authorizationHeader, "Bearer " + createJwt(jwtClass));
       case API_KEY:
-        return new AuthHeader<>("X-Api-Key", apiKey);
+        return new AuthHeader<>(authorizationHeader, apiKey);
       default:
         return null;
     }
