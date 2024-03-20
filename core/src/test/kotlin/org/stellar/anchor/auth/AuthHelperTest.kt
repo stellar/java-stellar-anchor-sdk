@@ -36,7 +36,7 @@ class AuthHelperTest {
   @MethodSource("authHelperTests")
   fun `test AuthHeader creation with different AuthType and authorization headers`(
     authType: AuthType,
-    headerName: String?
+    headerName: String?,
   ) {
     lockAndMockStatic(Calendar::class) {
       val calendarSingleton = mockk<Calendar>(relaxed = true)
