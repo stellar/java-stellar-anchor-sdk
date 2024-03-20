@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.SepTransaction;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep6MoreInfoUrlJwt;
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig;
 import org.stellar.anchor.platform.config.PropertyClientsConfig;
-import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep6.Sep6Transaction;
 import org.stellar.anchor.util.ConfigHelper;
 
@@ -27,7 +27,6 @@ public class Sep6MoreInfoUrlConstructor extends MoreInfoUrlConstructor {
     this.jwtService = jwtService;
   }
 
-  @SneakyThrows
   @Override
   public String construct(SepTransaction txn) {
     return construct((Sep6Transaction) txn);

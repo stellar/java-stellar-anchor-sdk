@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.MoreInfoUrlConstructor
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
@@ -32,7 +33,6 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.client.ClientFinder
 import org.stellar.anchor.config.Sep6Config
 import org.stellar.anchor.event.EventService
-import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts
 import org.stellar.anchor.util.GsonUtils
 

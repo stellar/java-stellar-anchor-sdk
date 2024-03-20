@@ -10,12 +10,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.MoreInfoUrlConstructor
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.api.shared.*
-import org.stellar.anchor.sep24.MoreInfoUrlConstructor
 import org.stellar.anchor.util.GsonUtils
 
 class Sep6TransactionUtilsTest {

@@ -1,13 +1,11 @@
 package org.stellar.anchor.sep6;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.sep.sep6.Sep6TransactionResponse;
 import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.api.shared.Refunds;
-import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 
 public class Sep6TransactionUtils {
 
@@ -19,8 +17,7 @@ public class Sep6TransactionUtils {
    * @return the SEP-6 API transaction object
    */
   public static Sep6TransactionResponse fromTxn(
-      Sep6Transaction txn, MoreInfoUrlConstructor moreInfoUrlConstructor)
-      throws MalformedURLException, URISyntaxException {
+      Sep6Transaction txn, MoreInfoUrlConstructor moreInfoUrlConstructor) {
     Refunds refunds = null;
     if (txn.getRefunds() != null && txn.getRefunds().getPayments() != null) {
       List<RefundPayment> payments = new ArrayList<>();

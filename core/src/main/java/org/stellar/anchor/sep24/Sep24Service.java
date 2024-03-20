@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -49,10 +50,7 @@ import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator;
-import org.stellar.anchor.util.ConfigHelper;
-import org.stellar.anchor.util.CustodyUtils;
-import org.stellar.anchor.util.MetricConstants;
-import org.stellar.anchor.util.TransactionHelper;
+import org.stellar.anchor.util.*;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
@@ -67,7 +65,7 @@ public class Sep24Service {
   final Sep24TransactionStore txnStore;
   final EventService.Session eventSession;
   final InteractiveUrlConstructor interactiveUrlConstructor;
-  final MoreInfoUrlConstructor sep24moreInfoUrlConstructor;
+  final MoreInfoUrlConstructor moreInfoUrlConstructor;
   final CustodyConfig custodyConfig;
   final ExchangeAmountsCalculator exchangeAmountsCalculator;
 
@@ -99,7 +97,7 @@ public class Sep24Service {
       Sep24TransactionStore txnStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
-      MoreInfoUrlConstructor sep24moreInfoUrlConstructor,
+      MoreInfoUrlConstructor moreInfoUrlConstructor,
       CustodyConfig custodyConfig,
       ExchangeAmountsCalculator exchangeAmountsCalculator) {
     debug("appConfig:", appConfig);
@@ -113,7 +111,7 @@ public class Sep24Service {
     this.txnStore = txnStore;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.interactiveUrlConstructor = interactiveUrlConstructor;
-    this.sep24moreInfoUrlConstructor = sep24moreInfoUrlConstructor;
+    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
     this.custodyConfig = custodyConfig;
     this.exchangeAmountsCalculator = exchangeAmountsCalculator;
     info("Sep24Service initialized.");
@@ -495,8 +493,7 @@ public class Sep24Service {
     List<TransactionResponse> list = new ArrayList<>();
     debugF("found {} transactions", txns.size());
     for (Sep24Transaction txn : txns) {
-      TransactionResponse transactionResponse =
-          fromTxn(assetService, sep24moreInfoUrlConstructor, txn);
+      TransactionResponse transactionResponse = fromTxn(assetService, moreInfoUrlConstructor, txn);
       list.add(transactionResponse);
     }
     result.setTransactions(list);
@@ -552,7 +549,7 @@ public class Sep24Service {
     }
     // increment counter
     sep24TransactionQueriedCounter.increment();
-    return Sep24GetTransactionResponse.of(fromTxn(assetService, sep24moreInfoUrlConstructor, txn));
+    return Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, txn));
   }
 
   public InfoResponse getInfo() {
