@@ -1,32 +1,16 @@
 package org.stellar.reference.jwt
 
 import io.jsonwebtoken.Claims
-import io.jsonwebtoken.JwtParser
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.impl.DefaultJwsHeader
+import javax.crypto.spec.SecretKeySpec
 import org.stellar.reference.data.JwtToken
 
 object JwtDecoder {
   fun decode(cipher: String, jwtKey: String): JwtToken {
-    val jwtParser: JwtParser = Jwts.parser()
-    jwtParser.setSigningKey(jwtKey.toByteArray())
-    // Will throw exception if key is invalid
-    val jwt = jwtParser.parseClaimsJws(cipher)
-    val header = jwt.header
+    val secretKeySpec = SecretKeySpec(jwtKey.toByteArray(), Jwts.SIG.HS256.id)
+    val jwt = Jwts.parser().verifyWith(secretKeySpec).build().parseSignedClaims(cipher)
 
-    require(header is DefaultJwsHeader) {
-      // This should not happen
-      "Bad token"
-    }
-
-    val defaultHeader: DefaultJwsHeader = header
-
-    require(defaultHeader.algorithm == io.jsonwebtoken.SignatureAlgorithm.HS256.value) {
-      // Not signed by the JWTService.
-      "Bad token"
-    }
-
-    val claims: Claims = jwt.body
+    val claims: Claims = jwt.payload
 
     @Suppress("UNCHECKED_CAST")
     return JwtToken(

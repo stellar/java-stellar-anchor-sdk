@@ -3,15 +3,24 @@ package org.stellar.anchor.platform.integrationtest
 import com.google.gson.*
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import io.ktor.client.plugins.*
+import io.ktor.http.*
 import java.io.IOException
 import java.util.*
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.client.Sep10Client
 import org.stellar.anchor.platform.*
+import org.stellar.sdk.Transaction
+import org.stellar.walletsdk.auth.WalletSigner
+import org.stellar.walletsdk.horizon.AccountKeyPair
+import org.stellar.walletsdk.horizon.sign
 
 class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
   lateinit var sep10Client: Sep10Client
@@ -84,6 +93,56 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
       exceptionClass = SepNotAuthorizedException::class,
       block = { sep10Client.validate(ValidationRequest.of(challenge.transaction)) },
     )
+  }
+
+  @Test
+  fun testCustodial() = runBlocking {
+    val rnd = wallet.stellar().account().createKeyPair()
+    val memo = 123UL
+    val token = anchor.sep10().authenticate(rnd, memoId = memo)
+    assertEquals(rnd.address, token.account)
+    assertEquals(memo, token.memo)
+  }
+
+  @Test
+  fun testCustodialNoMemo() = runBlocking {
+    val rnd = wallet.stellar().account().createKeyPair()
+    val token = anchor.sep10().authenticate(rnd)
+    assertEquals(rnd.address, token.account)
+  }
+
+  @Test
+  fun testNonCustodial() = runBlocking {
+    val rnd = wallet.stellar().account().createKeyPair()
+    val domainSigner = WalletSigner.DomainSigner("https://demo-wallet-server.stellar.org/sign")
+    val token =
+      anchor
+        .sep10()
+        .authenticate(rnd, domainSigner, clientDomain = "demo-wallet-server.stellar.org")
+    assertEquals(rnd.address, token.account)
+    assertEquals("demo-wallet-server.stellar.org", token.clientDomain)
+  }
+
+  @Test
+  fun testNonCustodialDummy() = runBlocking {
+    val rnd = wallet.stellar().account().createKeyPair()
+    val dummyKey = wallet.stellar().account().createKeyPair()
+    val dummySigner =
+      object : WalletSigner.DefaultSigner() {
+        override suspend fun signWithDomainAccount(
+          transactionXDR: String,
+          networkPassPhrase: String,
+          account: AccountKeyPair
+        ): Transaction {
+          return wallet.stellar().decodeTransaction(transactionXDR).sign(dummyKey) as Transaction
+        }
+      }
+    val ex =
+      assertThrows<ClientRequestException> {
+        anchor
+          .sep10()
+          .authenticate(rnd, dummySigner, clientDomain = "demo-wallet-server.stellar.org")
+      }
   }
 
   class RawStringTypeAdapter : TypeAdapter<String>() {

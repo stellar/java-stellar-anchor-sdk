@@ -6,9 +6,9 @@ import org.stellar.anchor.platform.TestProfileExecutor
 
 abstract class AbstractAuthIntegrationTest {
   companion object {
-    const val ANCHOR_TO_PLATFORM_SECRET = "myAnchorToPlatformSecret"
-    const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
-    const val PLATFORM_TO_CUSTODY_SECRET = "myPlatformToCustodySecret"
+    const val ANCHOR_TO_PLATFORM_SECRET = "myAnchorToPlatformSecret1234567890"
+    const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret1234567890"
+    const val PLATFORM_TO_CUSTODY_SECRET = "myPlatformToCustodySecret1234567890"
     const val PLATFORM_SERVER_PORT = 8085
     const val CUSTODY_SERVER_SERVER_PORT = 8086
     const val REFERENCE_SERVER_PORT = 8091
