@@ -16,7 +16,7 @@ spec:
       - name: sep-server
         image: anchor-platform:local
         args: ["--sep-server"]
-        imagePullPolicy: Always
+        imagePullPolicy: Never
         ports:
         - name: http
           containerPort: 8080

@@ -16,7 +16,7 @@ spec:
       - name: platform
         image: anchor-platform:local
         args: ["--platform-server"]
-        imagePullPolicy: Always
+        imagePullPolicy: Never 
         ports:
         - name: http
           containerPort: 8085

@@ -1,6 +1,8 @@
 package org.stellar.anchor.platform.event;
 
+import static org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.*;
+import static org.apache.kafka.common.config.SaslConfigs.SASL_MECHANISM;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.micrometer.core.instrument.Metrics;
@@ -136,6 +138,11 @@ public class KafkaSession implements EventService.Session {
     if (!isEmpty(kafkaConfig.getClientId())) {
       props.put(CLIENT_ID_CONFIG, kafkaConfig.getClientId());
     }
+    props.put(SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
+    props.put(SASL_MECHANISM, "PLAIN");
+    props.put(
+        "sasl.jaas.config",
+        "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user1\" password=\"INfioH5l7N\";");
     props.put(RETRIES_CONFIG, kafkaConfig.getRetries());
     props.put(LINGER_MS_CONFIG, kafkaConfig.getLingerMs());
     props.put(BATCH_SIZE_CONFIG, kafkaConfig.getBatchSize());
@@ -154,6 +161,11 @@ public class KafkaSession implements EventService.Session {
     if (!isEmpty(kafkaConfig.getClientId())) {
       props.put(ConsumerConfig.CLIENT_ID_CONFIG, kafkaConfig.getClientId());
     }
+    props.put(SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
+    props.put(SASL_MECHANISM, "PLAIN");
+    props.put(
+        "sasl.jaas.config",
+        "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user1\" password=\"INfioH5l7N\";");
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "group-" + sessionName);
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);

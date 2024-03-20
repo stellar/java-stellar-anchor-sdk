@@ -1,50 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ap-observer
+  name: ap-event-processor
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ap-observer
+      app: ap-event-processor
   template:
     metadata:
       labels:
-        app: ap-observer
+        app: ap-event-processor
     spec:
       containers:
-      - name: stellar-observer
+      - name: event-processor
         image: anchor-platform:local
-        args: ["--stellar-observer"]
-        imagePullPolicy: Never 
+        args: ["--event-processor"]
+        imagePullPolicy: Never
         ports:
         - name: http
-          containerPort: 8083
+          containerPort: 8088
           protocol: TCP
-        startupProbe:
-          httpGet:
-            path: /health
-            port: 8083
-          initialDelaySeconds: 120
-          failureThreshold: 10
-          periodSeconds: 10
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8083
-          initialDelaySeconds: 120
-          failureThreshold: 2
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8083
-          initialDelaySeconds: 120
-          periodSeconds: 30
         volumeMounts:
-        - name: config-volume
-          mountPath: /config
-          readOnly: true
+          - name: config-volume
+            mountPath: /config
+            readOnly: true
         env:
         - name: STELLAR_ANCHOR_CONFIG
           value: file:/config/anchor-config.yaml
@@ -61,7 +41,7 @@ spec:
         - name: SECRET_SEP24_MORE_INFO_URL_JWT_SECRET
           value: secret
         resources:
-          requests:
+          requessts:
             memory: 512Mi
             cpu: 500m
           limits:
