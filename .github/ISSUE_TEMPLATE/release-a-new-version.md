@@ -1,7 +1,7 @@
 ---
 name: Release a New Version
 about: Publishing a new release
-title: 'Releas a New Version'
+title: 'Release a New Version'
 labels: ''
 assignees: ''
 
