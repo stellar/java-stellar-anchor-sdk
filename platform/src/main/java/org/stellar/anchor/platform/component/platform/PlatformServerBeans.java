@@ -51,7 +51,8 @@ public class PlatformServerBeans {
         break;
 
       case API_KEY:
-        anchorToPlatformFilter = new ApiKeyFilter(authSecret);
+        anchorToPlatformFilter =
+            new ApiKeyFilter(authSecret, config.getAuth().getApiKey().getHttpHeader());
         break;
 
       default:

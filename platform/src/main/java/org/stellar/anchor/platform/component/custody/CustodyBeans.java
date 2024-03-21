@@ -43,7 +43,8 @@ public class CustodyBeans {
         break;
 
       case API_KEY:
-        platformToCustody = new ApiKeyFilter(authSecret);
+        platformToCustody =
+            new ApiKeyFilter(authSecret, custodyApiConfig.getAuth().getApiKey().getHttpHeader());
         break;
 
       default:
