@@ -28,7 +28,7 @@ internal class ApiKeyFilterTest {
   fun setup() {
     this.request = mockk(relaxed = true)
     this.response = mockk(relaxed = true)
-    this.apiKeyFilter = ApiKeyFilter(API_KEY)
+    this.apiKeyFilter = ApiKeyFilter(API_KEY, "X-Api-Key")
     this.mockFilterChain = mockk(relaxed = true)
   }
 
