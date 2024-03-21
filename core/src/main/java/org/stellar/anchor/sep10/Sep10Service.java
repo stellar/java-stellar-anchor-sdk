@@ -259,7 +259,13 @@ public class Sep10Service {
       String tomlValue = NetUtil.fetch(url);
       Log.debug("Fetched client_domain's stellar.toml.", tomlValue);
 
-      Toml toml = new Toml().read(tomlValue);
+      Toml toml;
+      try {
+        toml = new Toml().read(tomlValue);
+      } catch (Exception ex) {
+        Log.errorEx(ex);
+        throw new SepException("Failed to read toml file (missing or invalid) from url " + url);
+      }
       clientSigningKey = toml.getString("SIGNING_KEY");
       if (clientSigningKey == null) {
         throw new SepException("SIGNING_KEY not present in 'client_domain' TOML");
