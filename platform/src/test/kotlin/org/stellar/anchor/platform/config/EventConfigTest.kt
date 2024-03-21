@@ -77,32 +77,102 @@ class EventConfigTest {
     @JvmStatic
     fun generatedKafkaConfig(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of(0, "no-error", KafkaConfig("localhost:29092", "client_id", 5, 10, 500, 10)),
+        Arguments.of(
+          0,
+          "no-error",
+          KafkaConfig(
+            "localhost:29092",
+            "client_id",
+            5,
+            10,
+            500,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
+        ),
         Arguments.of(
           1,
           "kafka-retries-invalid",
-          KafkaConfig("localhost:29092", "client_id", -1, 10, 500, 10)
+          KafkaConfig(
+            "localhost:29092",
+            "client_id",
+            -1,
+            10,
+            500,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
         ),
         Arguments.of(
           1,
           "kafka-linger-ms-invalid",
-          KafkaConfig("localhost:29092", "client_id", 5, -10, 500, 10)
+          KafkaConfig(
+            "localhost:29092",
+            "client_id",
+            5,
+            -10,
+            500,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
         ),
         Arguments.of(
           1,
           "kafka-batch-size-invalid",
-          KafkaConfig("localhost:29092", "client_id", 5, 10, -1, 10)
+          KafkaConfig(
+            "localhost:29092",
+            "client_id",
+            5,
+            10,
+            -1,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
         ),
         Arguments.of(
           1,
           "kafka-bootstrap-server-empty",
-          KafkaConfig("", "client_id", 1, 10, 500, 10)
+          KafkaConfig(
+            "",
+            "client_id",
+            1,
+            10,
+            500,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
         ),
         Arguments.of(
           1,
           "kafka-bootstrap-server-empty",
-          KafkaConfig(null, "client_id", 1, 10, 500, 10)
-        )
+          KafkaConfig(
+            null,
+            "client_id",
+            1,
+            10,
+            500,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
+        ),
       )
     }
 
@@ -112,7 +182,7 @@ class EventConfigTest {
         Arguments.of(0, "no-error", SqsConfig(true, "us-east-1")),
         Arguments.of(0, "no-error", SqsConfig(false, "us-east-1")),
         Arguments.of(1, "sqs-aws-region-empty", SqsConfig(true, null)),
-        Arguments.of(1, "sqs-aws-region-empty", SqsConfig(false, null))
+        Arguments.of(1, "sqs-aws-region-empty", SqsConfig(false, null)),
       )
     }
 
@@ -122,33 +192,105 @@ class EventConfigTest {
         Arguments.of(
           0,
           "no-error",
-          MskConfig(true, "localhost:29092", "client_id", 5, 10, 500, 10)
+          MskConfig(
+            true,
+            "localhost:29092",
+            "client_id",
+            5,
+            10,
+            500,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
         ),
         Arguments.of(
           1,
           "msk-retries-invalid",
-          MskConfig(true, "localhost:29092", "client_id", -1, 10, 500, 10)
+          MskConfig(
+            true,
+            "localhost:29092",
+            "client_id",
+            -1,
+            10,
+            500,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
         ),
         Arguments.of(
           1,
           "msk-linger-ms-invalid",
-          MskConfig(true, "localhost:29092", "client_id", 5, -10, 500, 10)
+          MskConfig(
+            true,
+            "localhost:29092",
+            "client_id",
+            5,
+            -10,
+            500,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
         ),
         Arguments.of(
           1,
           "msk-batch-size-invalid",
-          MskConfig(true, "localhost:29092", "client_id", 5, 10, -1, 10)
+          MskConfig(
+            true,
+            "localhost:29092",
+            "client_id",
+            5,
+            10,
+            -1,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
         ),
         Arguments.of(
           1,
           "msk-bootstrap-server-empty",
-          MskConfig(true, "", "client_id", 1, 10, 500, 10)
+          MskConfig(
+            true,
+            "",
+            "client_id",
+            1,
+            10,
+            500,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
         ),
         Arguments.of(
           1,
           "msk-bootstrap-server-empty",
-          MskConfig(true, null, "client_id", 1, 10, 500, 10)
-        )
+          MskConfig(
+            true,
+            null,
+            "client_id",
+            1,
+            10,
+            500,
+            10,
+            KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
+            null,
+          ),
+        ),
       )
     }
   }
