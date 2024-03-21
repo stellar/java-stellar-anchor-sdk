@@ -17,14 +17,10 @@ import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 
 class AbstractJwtFilterTest {
-  private lateinit var request: HttpServletRequest
-  private lateinit var response: HttpServletResponse
   private lateinit var jwtService: JwtService
 
   @BeforeEach
   fun setup() {
-    this.request = mockk(relaxed = true)
-    this.response = mockk(relaxed = true)
     val secretConfig = mockk<SecretConfig>(relaxed = true)
     val custodySecretConfig = mockk<CustodySecretConfig>(relaxed = true)
     every { secretConfig.sep10JwtSecretKey } returns "secret"
@@ -36,6 +32,8 @@ class AbstractJwtFilterTest {
   fun `make sure FORBIDDEN is returned when the filter requires header names other than Authorization`(
     method: String
   ) {
+    val request = mockk<HttpServletRequest>(relaxed = true)
+    val response = mockk<HttpServletResponse>(relaxed = true)
     val filterChain = mockk<FilterChain>(relaxed = true)
 
     every { request.method } returns method
