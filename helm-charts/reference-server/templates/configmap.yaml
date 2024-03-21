@@ -9,7 +9,7 @@ data:
       isTest: false
       port: 8091
       horizonEndpoint: https://horizon-testnet.stellar.org
-      platformApiEndpoint: http://ap-platform:8085
+      platformApiEndpoint: http://anchor-platform-svc-platform:8085
       distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
       distributionWalletMemo:
       distributionWalletMemoType:

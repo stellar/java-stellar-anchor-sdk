@@ -1,25 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ap-event-processor
+  name: {{ .Values.fullName }}-svc-{{ .Values.services.eventProcessor.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.fullName }}-event-processor
+    helm.sh/chart: {{ include "common.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.services.eventProcessor.deployment.replicas | default 1 }}
   selector:
     matchLabels:
-      app: ap-event-processor
+      app: {{ .Values.fullName }}-svc-{{ .Values.services.eventProcessor.name }}
   template:
     metadata:
       labels:
-        app: ap-event-processor
+        app: {{ .Values.fullName }}-svc-{{ .Values.services.eventProcessor.name }}
     spec:
       containers:
       - name: event-processor
-        image: anchor-platform:local
+        image: {{ .Values.container.image }}
         args: ["--event-processor"]
-        imagePullPolicy: Never
+        imagePullPolicy: {{ .Values.container.imagePullPolicy }}
         ports:
         - name: http
-          containerPort: 8088
+          containerPort: {{ .Values.services.sep.containerPort | default 8088 }}
           protocol: TCP
         volumeMounts:
           - name: config-volume
@@ -40,13 +45,15 @@ spec:
           value: secret
         - name: SECRET_SEP24_MORE_INFO_URL_JWT_SECRET
           value: secret
+        - name: PLATFORM_API_BASE_URL
+          value: {{ print "http://" .Values.fullName "-svc-" .Values.services.platform.name ":" .Values.services.platform.containerPort | default 8085 }}
         resources:
-          requessts:
-            memory: 512Mi
-            cpu: 500m
+          requests:
+            memory: {{ .Values.services.eventProcessor.deployment.resources.requests.memory }}
+            cpu: {{ .Values.services.eventProcessor.deployment.resources.requests.cpu }}
           limits:
-            memory: 1Gi
-            cpu: 1
+            memory: {{ .Values.services.eventProcessor.deployment.resources.limits.memory }}
+            cpu: {{ .Values.services.eventProcessor.deployment.resources.limits.cpu }}
       volumes:
       - name: config-volume
         configMap:

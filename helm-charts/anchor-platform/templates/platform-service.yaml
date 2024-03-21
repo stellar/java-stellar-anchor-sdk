@@ -1,12 +1,22 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: ap-platform
+  name: {{ .Values.fullName }}-svc-{{ .Values.services.platform.name }}
+  labels:
+    {{- if .Values.services.platform.labels }}
+      {{- range $key, $value := .Values.services.platform.labels }}
+        {{ $key }}: {{ $value | quote }}
+      {{- end }}
+    {{- end}}
+    app.kubernetes.io/name: {{ .Values.fullName }}-platform
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.services.platform.type | default "ClusterIP" }}
   ports:
     - protocol: TCP
-      port: 8085
-      targetPort: 8085
+      port: {{ .Values.services.platform.servicePort | default 8085 }}
+      targetPort: {{ .Values.services.platform.containerPort | default 8085 }}
   selector:
-    app: ap-platform
+    app: {{ .Values.fullName }}-svc-{{ .Values.services.platform.name }}

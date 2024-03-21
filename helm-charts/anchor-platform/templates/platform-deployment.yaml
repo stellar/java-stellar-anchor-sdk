@@ -1,44 +1,49 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ap-platform
+  name: {{ .Values.fullName }}-svc-{{ .Values.services.platform.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.fullName }}-platform
+    helm.sh/chart: {{ include "common.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.services.platform.deployment.replicas | default 1}}
   selector:
     matchLabels:
-      app: ap-platform
+      app: {{ .Values.fullName }}-svc-{{ .Values.services.platform.name }}
   template:
     metadata:
       labels:
-        app: ap-platform
+        app: {{ .Values.fullName }}-svc-{{ .Values.services.platform.name }}
     spec:
       containers:
       - name: platform
-        image: anchor-platform:local
+        image: {{ .Values.container.image }}
         args: ["--platform-server"]
-        imagePullPolicy: Never 
+        imagePullPolicy: {{ .Values.container.imagePullPolicy}}
         ports:
         - name: http
-          containerPort: 8085
+          containerPort: {{ .Values.services.platform.containerPort | default 8085 }}
           protocol: TCP
         startupProbe:
           httpGet:
             path: /health
-            port: 8085
+            port: {{ .Values.services.platform.containerPort | default 8085 }}
           initialDelaySeconds: 120
           failureThreshold: 10
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /health
-            port: 8085
+            port: {{ .Values.services.platform.containerPort | default 8085 }}
           initialDelaySeconds: 120
           failureThreshold: 2
           periodSeconds: 30
         readinessProbe:
           httpGet:
             path: /health
-            port: 8085
+            port: {{ .Values.services.platform.containerPort | default 8085 }}
           initialDelaySeconds: 120
           periodSeconds: 30
         volumeMounts:
@@ -66,11 +71,11 @@ spec:
           value: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
         resources:
           requests:
-            memory: 512Mi
-            cpu: 500m
+            memory: {{ .Values.services.platform.deployment.resources.requests.memory }}
+            cpu: {{ .Values.services.platform.deployment.resources.requests.cpu }}
           limits: 
-            memory: 1Gi
-            cpu: 1
+            memory: {{ .Values.services.platform.deployment.resources.limits.memory }}
+            cpu: {{ .Values.services.platform.deployment.resources.limits.cpu }}
       volumes:
       - name: config-volume
         configMap:
