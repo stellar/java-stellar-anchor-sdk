@@ -99,6 +99,10 @@ anchor_config: |
       type: kafka
       kafka:
         bootstrap_server: kafka:9092
+        security_protocol: SASL_PLAINTEXT
+        sasl_mechanism: PLAIN
+        username: user1 # TODO: move to secrets
+        password: INfioH5l7N
 
   sep1:
     enabled: true

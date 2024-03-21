@@ -31,4 +31,23 @@ public class KafkaConfig {
 
   /** Determines the maximum amount of time to wait for the batch to be filled. */
   int pollTimeoutSeconds;
+
+  public enum SecurityProtocol {
+    PLAINTEXT,
+    SASL_PLAINTEXT
+  }
+
+  public enum SaslMechanism {
+    PLAIN
+  }
+
+  /** The security protocol used to communicate with brokers. */
+  SecurityProtocol securityProtocol;
+
+  /** The SASL mechanism used for authentication. */
+  SaslMechanism saslMechanism;
+
+  String username;
+
+  String password;
 }

@@ -138,11 +138,6 @@ public class KafkaSession implements EventService.Session {
     if (!isEmpty(kafkaConfig.getClientId())) {
       props.put(CLIENT_ID_CONFIG, kafkaConfig.getClientId());
     }
-    props.put(SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
-    props.put(SASL_MECHANISM, "PLAIN");
-    props.put(
-        "sasl.jaas.config",
-        "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user1\" password=\"INfioH5l7N\";");
     props.put(RETRIES_CONFIG, kafkaConfig.getRetries());
     props.put(LINGER_MS_CONFIG, kafkaConfig.getLingerMs());
     props.put(BATCH_SIZE_CONFIG, kafkaConfig.getBatchSize());
@@ -150,6 +145,7 @@ public class KafkaSession implements EventService.Session {
     props.put(RECONNECT_BACKOFF_MS_CONFIG, "1000");
     // maximum reconnect back-off is 10 seconds
     props.put(RECONNECT_BACKOFF_MAX_MS_CONFIG, "10000");
+    configureAuth(props);
 
     return new KafkaProducer<>(props);
   }
@@ -161,18 +157,34 @@ public class KafkaSession implements EventService.Session {
     if (!isEmpty(kafkaConfig.getClientId())) {
       props.put(ConsumerConfig.CLIENT_ID_CONFIG, kafkaConfig.getClientId());
     }
-    props.put(SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
-    props.put(SASL_MECHANISM, "PLAIN");
-    props.put(
-        "sasl.jaas.config",
-        "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user1\" password=\"INfioH5l7N\";");
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "group-" + sessionName);
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    configureAuth(props);
 
     return new KafkaConsumer<>(props);
+  }
+
+  void configureAuth(Properties props) {
+    switch (kafkaConfig.getSecurityProtocol()) {
+      case SASL_PLAINTEXT:
+        props.put(SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
+        props.put(SASL_MECHANISM, "PLAIN");
+        props.put(
+            "sasl.jaas.config",
+            "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
+                + kafkaConfig.getUsername()
+                + "\" password=\""
+                + kafkaConfig.getPassword()
+                + "\";");
+        break;
+      case PLAINTEXT:
+        break;
+      default:
+        throw new IllegalStateException("Unexpected value: " + kafkaConfig.getSecurityProtocol());
+    }
   }
 }
