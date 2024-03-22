@@ -3,10 +3,12 @@ package org.stellar.anchor.platform.component.share;
 import com.google.gson.Gson;
 import java.util.List;
 import javax.validation.Validator;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
@@ -40,15 +42,17 @@ public class UtilityBeans {
   }
 
   @Bean
-  Sep24MoreInfoUrlConstructor sep24MoreInfoUrlConstructor(
-      PropertyClientsConfig clientsConfig, PropertySep24Config sep24Config, JwtService jwtService) {
-    return new Sep24MoreInfoUrlConstructor(clientsConfig, sep24Config.getMoreInfoUrl(), jwtService);
+  @Qualifier("sep6MoreInfoUrlConstructor")
+  MoreInfoUrlConstructor sep6MoreInfoUrlConstructor(
+      PropertyClientsConfig clientsConfig, PropertySep6Config sep6Config, JwtService jwtService) {
+    return new Sep6MoreInfoUrlConstructor(clientsConfig, sep6Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean
-  Sep6MoreInfoUrlConstructor sep6MoreInfoUrlConstructor(
-      PropertyClientsConfig clientsConfig, PropertySep6Config sep6Config, JwtService jwtService) {
-    return new Sep6MoreInfoUrlConstructor(clientsConfig, sep6Config.getMoreInfoUrl(), jwtService);
+  @Qualifier("sep24MoreInfoUrlConstructor")
+  MoreInfoUrlConstructor sep24MoreInfoUrlConstructor(
+      PropertyClientsConfig clientsConfig, PropertySep24Config sep24Config, JwtService jwtService) {
+    return new Sep24MoreInfoUrlConstructor(clientsConfig, sep24Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean

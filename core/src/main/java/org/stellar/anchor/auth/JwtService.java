@@ -15,6 +15,8 @@ import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.CustodyAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;
+import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt;
+import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep6MoreInfoUrlJwt;
 import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.config.SecretConfig;
 
@@ -85,31 +87,9 @@ public class JwtService {
     return builder.signWith(SignatureAlgorithm.HS256, sep10JwtSecret).compact();
   }
 
-  public String encode(Sep6MoreInfoUrlJwt token) throws InvalidConfigException {
-    if (sep6MoreInfoUrlJwtSecret == null) {
-      throw new InvalidConfigException(
-          "Please provide the secret before encoding JWT for Sep6 more_info_url");
-    }
-    return encodeForSep6Sep24Url(token, sep6MoreInfoUrlJwtSecret);
-  }
+  public String encode(MoreInfoUrlJwt token) throws InvalidConfigException {
+    String secret = getMoreInfoUrlSecret(token);
 
-  public String encode(Sep24InteractiveUrlJwt token) throws InvalidConfigException {
-    if (sep24InteractiveUrlJwtSecret == null) {
-      throw new InvalidConfigException(
-          "Please provide the secret before encoding JWT for Sep24 interactive url");
-    }
-    return encodeForSep6Sep24Url(token, sep24InteractiveUrlJwtSecret);
-  }
-
-  public String encode(Sep24MoreInfoUrlJwt token) throws InvalidConfigException {
-    if (sep24MoreInfoUrlJwtSecret == null) {
-      throw new InvalidConfigException(
-          "Please provide the secret before encoding JWT for more_info_url");
-    }
-    return encodeForSep6Sep24Url(token, sep24MoreInfoUrlJwtSecret);
-  }
-
-  private String encodeForSep6Sep24Url(AbstractJwt token, String secret) {
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
         Jwts.builder()
@@ -120,6 +100,35 @@ public class JwtService {
       builder.claim(claim.getKey(), claim.getValue());
     }
     return builder.signWith(SignatureAlgorithm.HS256, secret).compact();
+  }
+
+  private String getMoreInfoUrlSecret(MoreInfoUrlJwt token) throws InvalidConfigException {
+    if (token instanceof Sep6MoreInfoUrlJwt && sep6MoreInfoUrlJwtSecret != null) {
+      return sep6MoreInfoUrlJwtSecret;
+    } else if (token instanceof Sep24MoreInfoUrlJwt && sep24MoreInfoUrlJwtSecret != null) {
+      return sep24MoreInfoUrlJwtSecret;
+    } else {
+      throw new InvalidConfigException(
+          "Please provide the secret before encoding JWT for more_info_url");
+    }
+  }
+
+  public String encode(Sep24InteractiveUrlJwt token) throws InvalidConfigException {
+    if (sep24InteractiveUrlJwtSecret == null) {
+      throw new InvalidConfigException(
+          "Please provide the secret before encoding JWT for Sep24 interactive url");
+    }
+    Instant timeExp = Instant.ofEpochSecond(token.getExp());
+    JwtBuilder builder =
+        Jwts.builder()
+            .setId(token.getJti())
+            .setExpiration(from(timeExp))
+            .setSubject(token.getSub());
+    for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
+      builder.claim(claim.getKey(), claim.getValue());
+    }
+
+    return builder.signWith(SignatureAlgorithm.HS256, sep24InteractiveUrlJwtSecret).compact();
   }
 
   public String encode(CallbackAuthJwt token) throws InvalidConfigException {
@@ -152,7 +161,9 @@ public class JwtService {
       throws NotSupportedException, NoSuchMethodException, InvocationTargetException,
           InstantiationException, IllegalAccessException {
     String secret;
-    if (cls.equals(Sep10Jwt.class)) {
+    if (cls.equals(Sep6MoreInfoUrlJwt.class)) {
+      secret = sep6MoreInfoUrlJwtSecret;
+    } else if (cls.equals(Sep10Jwt.class)) {
       secret = sep10JwtSecret;
     } else if (cls.equals(Sep24InteractiveUrlJwt.class)) {
       secret = sep24InteractiveUrlJwtSecret;
@@ -183,7 +194,9 @@ public class JwtService {
       throw new IllegalArgumentException("Bad token");
     }
 
-    if (cls.equals(Sep10Jwt.class)) {
+    if (cls.equals(Sep6MoreInfoUrlJwt.class)) {
+      return (T) Sep6MoreInfoUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);
+    } else if (cls.equals(Sep10Jwt.class)) {
       return (T) Sep10Jwt.class.getConstructor(Jwt.class).newInstance(jwt);
     } else if (cls.equals(Sep24InteractiveUrlJwt.class)) {
       return (T) Sep24InteractiveUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);

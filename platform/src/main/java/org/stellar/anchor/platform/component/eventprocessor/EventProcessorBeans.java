@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.component.eventprocessor;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
@@ -9,8 +10,6 @@ import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
 import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.platform.event.EventProcessorManager;
-import org.stellar.anchor.platform.service.Sep24MoreInfoUrlConstructor;
-import org.stellar.anchor.platform.service.Sep6MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
@@ -29,8 +28,8 @@ public class EventProcessorBeans {
       Sep6TransactionStore sep6TransactionStore,
       Sep24TransactionStore sep24TransactionStore,
       Sep31TransactionStore sep31TransactionStore,
-      Sep6MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
-      Sep24MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
+      MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
+      MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
     return new EventProcessorManager(
         secretConfig,
         eventProcessorConfig,

@@ -39,7 +39,7 @@ public class UrlConstructorHelper {
         : txn.getSep10Account() + ":" + txn.getSep10AccountMemo();
   }
 
-  public static String getAccount(String memo, String account) {
-    return isEmpty(memo) ? account : account + ":" + memo;
+  public static String getAccount(String sep10Account, String sep10AccountMemo) {
+    return isEmpty(sep10AccountMemo) ? sep10Account : sep10Account + ":" + sep10AccountMemo;
   }
 }

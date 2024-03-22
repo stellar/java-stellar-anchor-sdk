@@ -19,6 +19,7 @@ import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
@@ -28,8 +29,6 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.data.*;
-import org.stellar.anchor.platform.service.Sep24MoreInfoUrlConstructor;
-import org.stellar.anchor.platform.service.Sep6MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.*;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.RefundPayment;
@@ -52,16 +51,16 @@ public class ClientStatusCallbackHandler extends EventHandler {
   private final ClientConfig clientConfig;
   private final Sep6TransactionStore sep6TransactionStore;
   private final AssetService assetService;
-  private final Sep6MoreInfoUrlConstructor sep6MoreInfoUrlConstructor;
-  private final Sep24MoreInfoUrlConstructor sep24MoreInfoUrlConstructor;
+  private final MoreInfoUrlConstructor sep6MoreInfoUrlConstructor;
+  private final MoreInfoUrlConstructor sep24MoreInfoUrlConstructor;
 
   public ClientStatusCallbackHandler(
       SecretConfig secretConfig,
       ClientConfig clientConfig,
       Sep6TransactionStore sep6TransactionStore,
       AssetService assetService,
-      Sep6MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
-      Sep24MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
+      MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
+      MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
     super();
     this.secretConfig = secretConfig;
     this.clientConfig = clientConfig;

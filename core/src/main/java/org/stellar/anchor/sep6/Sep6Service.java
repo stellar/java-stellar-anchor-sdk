@@ -37,7 +37,7 @@ public class Sep6Service {
   private final ExchangeAmountsCalculator exchangeAmountsCalculator;
   private final EventService.Session eventSession;
   private final InfoResponse infoResponse;
-  private final MoreInfoUrlConstructor sep6MoreInfoUrlConstructor;
+  private final MoreInfoUrlConstructor moreInfoUrlConstructor;
   private final Counter sep6TransactionRequestedCounter =
       counter(MetricConstants.SEP6_TRANSACTION_REQUESTED);
   private final Counter sep6TransactionQueriedCounter =
@@ -81,7 +81,7 @@ public class Sep6Service {
     this.eventSession =
         eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
     this.infoResponse = buildInfoResponse();
-    this.sep6MoreInfoUrlConstructor = sep6MoreInfoUrlConstructor;
+    this.moreInfoUrlConstructor = sep6MoreInfoUrlConstructor;
   }
 
   public InfoResponse getInfo() {
@@ -431,7 +431,7 @@ public class Sep6Service {
         txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), request);
     List<Sep6TransactionResponse> responses = new ArrayList<>();
     for (Sep6Transaction txn : transactions) {
-      Sep6TransactionResponse tr = Sep6TransactionUtils.fromTxn(txn, sep6MoreInfoUrlConstructor);
+      Sep6TransactionResponse tr = Sep6TransactionUtils.fromTxn(txn, moreInfoUrlConstructor);
       responses.add(tr);
     }
 
@@ -474,8 +474,7 @@ public class Sep6Service {
     }
 
     sep6TransactionQueriedCounter.increment();
-    return new GetTransactionResponse(
-        Sep6TransactionUtils.fromTxn(txn, sep6MoreInfoUrlConstructor));
+    return new GetTransactionResponse(Sep6TransactionUtils.fromTxn(txn, moreInfoUrlConstructor));
   }
 
   private InfoResponse buildInfoResponse() {

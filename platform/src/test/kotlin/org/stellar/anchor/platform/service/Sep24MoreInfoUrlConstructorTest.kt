@@ -12,12 +12,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
-import org.junit.jupiter.api.parallel.ExecutionMode.*
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.LockStatic
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
+import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.*
 import org.stellar.anchor.config.CustodySecretConfig
