@@ -17,7 +17,7 @@ data:
       enableTest: true
       custodyEnabled: false
       rpcEnabled: false
-    
+
     auth:
       type: NONE
       platformToAnchorSecret: myPlatformToAnchorSecret

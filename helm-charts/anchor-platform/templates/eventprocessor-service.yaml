@@ -15,8 +15,8 @@ metadata:
 spec:
   type: {{ .Values.services.sep.type | default "ClusterIP" }}
   ports:
-  - protocol: TCP
-    port: {{ .Values.services.sep.servicePort | default 8088 }}
-    targetPort: {{ .Values.services.sep.containerPort | default 8088 }}
+    - protocol: TCP
+      port: {{ .Values.services.sep.servicePort | default 8088 }}
+      targetPort: {{ .Values.services.sep.containerPort | default 8088 }}
   selector:
     app: {{ .Values.fullName }}-svc-{{ .Values.services.eventProcessor.name }}

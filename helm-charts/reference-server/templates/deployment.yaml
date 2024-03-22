@@ -13,27 +13,27 @@ spec:
         app: ap-reference
     spec:
       containers:
-      - name: reference
-        image: anchor-platform:local
-        args: ["--kotlin-reference-server"]
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 8091
-        resources:
-          requests:
-            memory: 512Mi
-            cpu: 500m
-          limits:
-            memory: 1Gi
-            cpu: 1
-        volumeMounts:
-        - name: config-volume
-          mountPath: /config
-          readOnly: true
-        env:
-        - name: KT_REFERENCE_SERVER_CONFIG
-          value: /config/config.yaml
+        - name: reference
+          image: anchor-platform:local
+          args: [ "--kotlin-reference-server" ]
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8091
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 500m
+            limits:
+              memory: 1Gi
+              cpu: 1
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+              readOnly: true
+          env:
+            - name: KT_REFERENCE_SERVER_CONFIG
+              value: /config/config.yaml
       volumes:
-      - name: config-volume
-        configMap:
-          name: reference-config
+        - name: config-volume
+          configMap:
+            name: reference-config
