@@ -26,6 +26,8 @@ public class SecretManager
           PropertyCustodySecretConfig.SECRET_CUSTODY_SERVER_AUTH_SECRET,
           PropertySecretConfig.SECRET_DATA_USERNAME,
           PropertySecretConfig.SECRET_DATA_PASSWORD,
+          PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_USERNAME,
+          PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_PASSWORD,
           PropertyCustodySecretConfig.SECRET_FIREBLOCKS_SECRET_KEY,
           PropertyCustodySecretConfig.SECRET_FIREBLOCKS_API_KEY);
 

@@ -89,12 +89,12 @@ spec:
                   key: SEP10_SIGNING_SEED
             - name: PLATFORM_API_BASE_URL
               value: {{ print "http://" .Values.fullName "-svc-" .Values.services.platform.name ":" .Values.services.platform.containerPort | default 8085 }}
-            - name: EVENTS_QUEUE_KAFKA_USERNAME
+            - name: SECRET_EVENTS_QUEUE_KAFKA_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.fullName }}-secrets
                   key: EVENTS_QUEUE_KAFKA_USERNAME
-            - name: EVENTS_QUEUE_KAFKA_PASSWORD
+            - name: SECRET_EVENTS_QUEUE_KAFKA_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.fullName }}-secrets

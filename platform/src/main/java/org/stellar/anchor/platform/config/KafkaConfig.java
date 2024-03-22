@@ -46,8 +46,4 @@ public class KafkaConfig {
 
   /** The SASL mechanism used for authentication. */
   SaslMechanism saslMechanism;
-
-  String username;
-
-  String password;
 }

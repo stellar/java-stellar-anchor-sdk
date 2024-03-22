@@ -22,9 +22,12 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.EventPublishException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.KafkaConfig;
+import org.stellar.anchor.platform.config.PropertySecretConfig;
+import org.stellar.anchor.platform.configurator.SecretManager;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
@@ -128,7 +131,7 @@ public class KafkaSession implements EventService.Session {
     return sessionName;
   }
 
-  private Producer<String, String> createProducer() {
+  private Producer<String, String> createProducer() throws InvalidConfigException {
     Log.debugF("kafkaConfig: {}", kafkaConfig);
 
     Properties props = new Properties();
@@ -150,7 +153,7 @@ public class KafkaSession implements EventService.Session {
     return new KafkaProducer<>(props);
   }
 
-  Consumer<String, String> createConsumer() {
+  Consumer<String, String> createConsumer() throws InvalidConfigException {
     Properties props = new Properties();
 
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
@@ -168,17 +171,38 @@ public class KafkaSession implements EventService.Session {
     return new KafkaConsumer<>(props);
   }
 
-  void configureAuth(Properties props) {
+  void configureAuth(Properties props) throws InvalidConfigException {
     switch (kafkaConfig.getSecurityProtocol()) {
       case SASL_PLAINTEXT:
+        if (isEmpty(
+            SecretManager.getInstance()
+                .get(PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_USERNAME))) {
+          String msg =
+              PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_USERNAME
+                  + " is not set. Please provide the Kafka username.";
+          Log.error(msg);
+          throw new InvalidConfigException(msg);
+        }
+        if (isEmpty(
+            SecretManager.getInstance()
+                .get(PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_PASSWORD))) {
+          String msg =
+              PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_PASSWORD
+                  + " is not set. Please provide the Kafka password.";
+          Log.error(msg);
+          throw new InvalidConfigException(msg);
+        }
+
         props.put(SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
         props.put(SASL_MECHANISM, "PLAIN");
         props.put(
             "sasl.jaas.config",
             "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
-                + kafkaConfig.getUsername()
+                + SecretManager.getInstance()
+                    .get(PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_USERNAME)
                 + "\" password=\""
-                + kafkaConfig.getPassword()
+                + SecretManager.getInstance()
+                    .get(PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_PASSWORD)
                 + "\";");
         break;
       case PLAINTEXT:

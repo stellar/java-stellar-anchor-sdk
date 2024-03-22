@@ -87,12 +87,12 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.fullName }}-secrets
                   key: SEP10_SIGNING_SEED
-            - name: EVENTS_QUEUE_KAFKA_USERNAME
+            - name: SECRET_EVENTS_QUEUE_KAFKA_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.fullName }}-secrets
                   key: EVENTS_QUEUE_KAFKA_USERNAME
-            - name: EVENTS_QUEUE_KAFKA_PASSWORD
+            - name: SECRET_EVENTS_QUEUE_KAFKA_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.fullName }}-secrets
