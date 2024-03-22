@@ -5,8 +5,6 @@ import static org.stellar.anchor.util.MemoHelper.*;
 
 import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Counter;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 import org.stellar.anchor.MoreInfoUrlConstructor;
@@ -71,7 +69,7 @@ public class Sep6Service {
       Sep6TransactionStore txnStore,
       ExchangeAmountsCalculator exchangeAmountsCalculator,
       EventService eventService,
-      MoreInfoUrlConstructor sep6MoreInfoUrlConstructor) {
+      MoreInfoUrlConstructor moreInfoUrlConstructor) {
     this.sep6Config = sep6Config;
     this.assetService = assetService;
     this.requestValidator = requestValidator;
@@ -81,7 +79,7 @@ public class Sep6Service {
     this.eventSession =
         eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
     this.infoResponse = buildInfoResponse();
-    this.moreInfoUrlConstructor = sep6MoreInfoUrlConstructor;
+    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
 
   public InfoResponse getInfo() {
@@ -410,7 +408,7 @@ public class Sep6Service {
   }
 
   public GetTransactionsResponse findTransactions(Sep10Jwt token, GetTransactionsRequest request)
-      throws SepException, MalformedURLException, URISyntaxException {
+      throws SepException {
     // Pre-validation
     if (token == null) {
       throw new SepNotAuthorizedException("missing token");
@@ -440,7 +438,7 @@ public class Sep6Service {
   }
 
   public GetTransactionResponse findTransaction(Sep10Jwt token, GetTransactionRequest request)
-      throws AnchorException, MalformedURLException, URISyntaxException {
+      throws AnchorException {
     // Pre-validation
     if (token == null) {
       throw new SepNotAuthorizedException("missing token");
