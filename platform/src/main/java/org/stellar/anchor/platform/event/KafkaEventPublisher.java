@@ -1,8 +1,6 @@
 package org.stellar.anchor.platform.event;
 
-import static org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.*;
-import static org.apache.kafka.common.config.SaslConfigs.SASL_MECHANISM;
 
 import java.util.Properties;
 import lombok.NoArgsConstructor;
@@ -29,11 +27,6 @@ public class KafkaEventPublisher implements EventPublisher {
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
     props.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-    props.put(SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
-    props.put(SASL_MECHANISM, "PLAIN");
-    props.put(
-        "sasl.jaas.config",
-        "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user1\" password=\"INfioH5l7N\";");
     props.put(CLIENT_ID_CONFIG, kafkaConfig.getClientId());
     props.put(RETRIES_CONFIG, kafkaConfig.getRetries());
     props.put(LINGER_MS_CONFIG, kafkaConfig.getLingerMs());
