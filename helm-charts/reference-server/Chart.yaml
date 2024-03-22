@@ -6,5 +6,5 @@ maintainers:
     email: philip.liu@stellar.org
 sources:
   - "https://github.com/stellar/java-stellar-anchor-sdk"
-name: sep-reference-server
+name: ap-reference-server
 version: 0.1.0

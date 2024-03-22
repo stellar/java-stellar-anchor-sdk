@@ -58,17 +58,45 @@ spec:
         - name: ASSETS_VALUE
           value: /config/assets.yaml
         - name: SECRET_DATA_USERNAME
-          value: postgres
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: POSTGRES_USER
         - name: SECRET_DATA_PASSWORD
-          value: cdb1ajkMih
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: POSTGRES_PASSWORD
         - name: SECRET_SEP24_INTERACTIVE_URL_JWT_SECRET
-          value: secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: SEP24_INTERACTIVE_URL_JWT_SECRET
         - name: SECRET_SEP24_MORE_INFO_URL_JWT_SECRET
-          value: secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: SEP24_MORE_INFO_URL_JWT_SECRET
         - name: SECRET_SEP10_JWT_SECRET
-          value: secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: SEP10_JWT_SECRET
         - name: SECRET_SEP10_SIGNING_SEED
-          value: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: SEP10_SIGNING_SEED
+        - name: EVENTS_QUEUE_KAFKA_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: EVENTS_QUEUE_KAFKA_USERNAME
+        - name: EVENTS_QUEUE_KAFKA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: EVENTS_QUEUE_KAFKA_PASSWORD
         resources:
           requests:
             memory: {{ .Values.services.platform.deployment.resources.requests.memory }}

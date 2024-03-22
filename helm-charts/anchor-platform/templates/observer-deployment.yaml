@@ -58,13 +58,25 @@ spec:
         - name: ASSETS_VALUE
           value: /config/assets.yaml
         - name: SECRET_DATA_USERNAME
-          value: postgres # TODO: move to secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: POSTGRES_USER
         - name: SECRET_DATA_PASSWORD
-          value: cdb1ajkMih # TODO: move to secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: POSTGRES_PASSWORD
         - name: SECRET_SEP24_INTERACTIVE_URL_JWT_SECRET
-          value: secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: SEP24_INTERACTIVE_URL_JWT_SECRET
         - name: SECRET_SEP24_MORE_INFO_URL_JWT_SECRET
-          value: secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.fullName }}-secrets
+              key: SEP24_MORE_INFO_URL_JWT_SECRET
         - name: PLATFORM_API_BASE_URL
           value: {{ print "http://" .Values.fullName "-svc-" .Values.services.platform.name ":" .Values.services.platform.containerPort | default 8085 }}
         resources:
