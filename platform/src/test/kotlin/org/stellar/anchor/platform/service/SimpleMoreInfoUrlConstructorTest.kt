@@ -42,7 +42,7 @@ class SimpleMoreInfoUrlConstructorTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "sep24_jwt_secret"
+    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "sep24_jwt_secret_sep24_jwt_secret"
 
     val clientConfig =
       ClientConfig(

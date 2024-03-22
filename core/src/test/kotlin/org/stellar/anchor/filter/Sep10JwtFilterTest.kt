@@ -42,7 +42,7 @@ internal class Sep10JwtFilterTest {
     this.appConfig = mockk(relaxed = true)
     this.secretConfig = mockk(relaxed = true)
     this.custodySecretConfig = mockk(relaxed = true)
-    every { secretConfig.sep10JwtSecretKey } returns "secret"
+    every { secretConfig.sep10JwtSecretKey } returns "secresecresecresecresecretttttsecret"
     this.jwtService = JwtService(secretConfig, custodySecretConfig)
     this.sep10TokenFilter = Sep10JwtFilter(jwtService)
     this.request = mockk(relaxed = true)
