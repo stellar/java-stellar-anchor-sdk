@@ -6,7 +6,7 @@ class TestConstants {
     const val TEST_ACCOUNT = "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
     const val TEST_CUSTOMER_ID = "test-customer-id"
     const val TEST_MEMO = "123"
-    const val TEST_WEB_AUTH_DOMAIN = "test.stellar.org/auth"
+    const val TEST_WEB_AUTH_DOMAIN = "test.stellar.org"
     const val TEST_CLIENT_DOMAIN = "test.client.stellar.org"
     const val TEST_CLIENT_NAME = "test_client"
     const val TEST_HOME_DOMAIN = "test.stellar.org"

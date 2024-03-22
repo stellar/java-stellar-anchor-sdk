@@ -302,28 +302,36 @@ public class Sep10Service implements ISep10Service {
       throw new SepValidationException("Invalid expiration format: must be UNIX epoch second");
     }
 
-    if (payload.get("url") == null) {
-      throw new SepValidationException("Missing url parameter in JWT");
+    var url = HttpUrl.parse(authUrl());
+
+    if (!claimEquals(payload.get("host"), url.host())) {
+      throw new SepValidationException("Invalid signed host");
+    }
+    if (payload.get("path") == null) {
+      throw new SepValidationException("Missing path in the signed JWT");
+    }
+    var cleanPath = payload.get("path").toString().replaceAll("^/", "").replaceAll("/$", "");
+    var cleanExpectedPath = url.encodedPath().replaceAll("^/", "").replaceAll("/$", "");
+    if (!claimEquals(cleanPath, cleanExpectedPath)) {
+      throw new SepValidationException("Invalid signed path");
     }
 
-    var url = HttpUrl.parse(payload.get("url").toString());
-
-    if (url == null) {
-      throw new SepValidationException("Invalid JWT url");
-    }
-
-    validateQueryParam(url, "account", request.getAccount());
-    validateQueryParam(url, "memo", request.getMemo());
-    validateQueryParam(url, "home_domain", request.getHomeDomain());
-    validateQueryParam(url, "client_domain", request.getClientDomain());
+    validateQueryParam(payload, "account", request.getAccount());
+    validateQueryParam(payload, "memo", request.getMemo());
+    validateQueryParam(payload, "home_domain", request.getHomeDomain());
+    validateQueryParam(payload, "client_domain", request.getClientDomain());
 
     // Validate that client is allowed
     clientFinder.getClientName(request.getClientDomain(), request.getAccount());
   }
 
-  void validateQueryParam(HttpUrl url, String name, String requestParam)
+  private boolean claimEquals(Object claim, String string) {
+    return StringUtils.equals(claim == null ? null : claim.toString(), string);
+  }
+
+  void validateQueryParam(Claims payload, String name, String requestParam)
       throws SepValidationException {
-    if (!StringUtils.equals(url.queryParameter(name), requestParam)) {
+    if (!claimEquals(payload.get(name), requestParam)) {
       throw new SepValidationException(
           "Request query parameter " + name + " doesn't match signed URL query parameter");
     }
@@ -499,7 +507,7 @@ public class Sep10Service implements ISep10Service {
     Memo memo = challenge.getTransaction().getMemo();
     Sep10Jwt sep10Jwt =
         Sep10Jwt.of(
-            "https://" + sep10Config.getWebAuthDomain() + "/auth",
+            authUrl(),
             (memo == null || memo instanceof MemoNone)
                 ? challenge.getClientAccountId()
                 : challenge.getClientAccountId() + ":" + memo,
@@ -510,6 +518,10 @@ public class Sep10Service implements ISep10Service {
             homeDomain);
     debug("jwtToken:", sep10Jwt);
     return jwtService.encode(sep10Jwt);
+  }
+
+  private String authUrl() {
+    return "https://" + sep10Config.getWebAuthDomain() + "/auth";
   }
 
   /**

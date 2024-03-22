@@ -4,13 +4,16 @@ package org.stellar.anchor.sep10
 
 import com.google.common.io.BaseEncoding
 import com.google.gson.annotations.SerializedName
+import io.jsonwebtoken.Jwts
+import io.ktor.http.*
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
 import java.security.SecureRandom
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
-import kotlin.time.Duration.Companion.days
+import kotlinx.datetime.Clock
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.mockwebserver.MockResponse
@@ -59,7 +62,10 @@ import org.stellar.sdk.Network.TESTNET
 import org.stellar.sdk.requests.ErrorResponse
 import org.stellar.sdk.responses.AccountResponse
 import org.stellar.walletsdk.auth.DefaultAuthHeaderSigner
+import org.stellar.walletsdk.auth.createAuthSignToken
+import org.stellar.walletsdk.horizon.AccountKeyPair
 import org.stellar.walletsdk.horizon.SigningKeyPair
+import org.stellar.walletsdk.util.toJava
 
 @Suppress("unused")
 internal class TestSigner(
@@ -575,6 +581,8 @@ internal class Sep10ServiceTest {
   @LockAndMockStatic([Sep10Challenge::class])
   fun `test createChallengeResponse()`() {
     // Given
+    sep10Service = spyk(sep10Service)
+    // Given
     every { sep10Service.newChallenge(any(), any(), any()) } throws
       InvalidSep10ChallengeException("mock error")
     // When
@@ -753,37 +761,70 @@ internal class Sep10ServiceTest {
   // Signature header tests
   //
 
-  //  val domainKp =
-  //    SigningKeyPair.fromSecret("SCYVDFYEHNDNTB2UER2FCYSZAYQFAAZ6BDYXL3BWRQWNL327GZUXY7D7")
-  //  // Signing with a domain signer
-  //  val domainSigner =
-  //    object : DefaultAuthHeaderSigner(100000.days) {
-  //      override fun createToken(
-  //        url: String,
-  //        clientDomain: String?,
-  //        issuer: AccountKeyPair?
-  //      ): String {
-  //        val timeExp = Instant.ofEpochSecond(Clock.System.now().plus(expiration).epochSeconds)
-  //        val builder = createBuilder(timeExp, url)
-  //
-  //        builder.signWith(domainKp.toJava().private, Jwts.SIG.EdDSA)
-  //
-  //        return builder.compact()
-  //      }
-  //    }
-  val custodialSigner = DefaultAuthHeaderSigner(100000.days)
+  val clientDomain = "test-wallet.stellar.org"
+  val domainKp =
+    SigningKeyPair.fromSecret("SCYVDFYEHNDNTB2UER2FCYSZAYQFAAZ6BDYXL3BWRQWNL327GZUXY7D7")
+  // Signing with a domain signer
+  val domainSigner =
+    object : DefaultAuthHeaderSigner() {
+      override fun createToken(
+        claims: Map<String, String>,
+        clientDomain: String?,
+        issuer: AccountKeyPair?
+      ): String {
+        val timeExp = Instant.ofEpochSecond(Clock.System.now().plus(expiration).epochSeconds)
+        val builder = createBuilder(timeExp, claims)
+
+        builder.signWith(domainKp.toJava().private, Jwts.SIG.EdDSA)
+
+        return builder.compact()
+      }
+    }
+  val custodialSigner = DefaultAuthHeaderSigner()
   val custodialKp =
     SigningKeyPair.fromSecret("SBPPLU2KO3PDBLSDFIWARQSW5SAOIHTJDUQIWN3BQS7KPNMVUDSU37QO")
+  val custodialMemo = "1234567"
+  val authEndpoint = "https://$TEST_WEB_AUTH_DOMAIN/auth"
 
   @Test
   fun `test valid signature header for custodial`() {
-    val url = "https://auth.example.com/?account=${custodialKp.address}&memo=1234567"
-    val token = custodialSigner.createToken(url, null, custodialKp)
+    val url = "$authEndpoint/?account=${custodialKp.address}&memo=$custodialMemo"
+    val builder = URLBuilder(url)
+    val params = mapOf("account" to custodialKp.address, "memo" to custodialMemo)
+    val token =
+      createAuthSignToken(
+        custodialKp,
+        builder.host,
+        builder.encodedPath,
+        params,
+        authHeaderSigner = custodialSigner
+      )
 
-    val req = ChallengeRequest.builder().account(custodialKp.address).memo("1234567").build()
+    val req = ChallengeRequest.builder().account(custodialKp.address).memo(custodialMemo).build()
 
     sep10Service.validateAuthorization(req, token, null)
     verify(exactly = 1) { clientFinder.getClientName(null, custodialKp.address) }
+  }
+
+  @Test
+  fun `test valid signature header for noncustodial`() {
+    val url = "$authEndpoint/?account=${custodialKp.address}&client_domain=$clientDomain"
+    val builder = URLBuilder(url)
+    val params = mapOf("account" to custodialKp.address, "client_domain" to clientDomain)
+    val token =
+      createAuthSignToken(
+        SigningKeyPair(KeyPair.random()),
+        builder.host,
+        builder.encodedPath,
+        params,
+        authHeaderSigner = domainSigner
+      )
+
+    val req =
+      ChallengeRequest.builder().account(custodialKp.address).clientDomain(clientDomain).build()
+
+    sep10Service.validateAuthorization(req, token, domainKp.address)
+    verify(exactly = 1) { clientFinder.getClientName(clientDomain, any()) }
   }
 }
 
