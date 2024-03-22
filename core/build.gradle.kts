@@ -7,6 +7,8 @@ plugins {
   alias(libs.plugins.kotlin.jvm)
 }
 
+repositories { maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") } }
+
 dependencies {
   compileOnly(libs.servlet.api)
   compileOnly(libs.slf4j.api)
@@ -39,6 +41,7 @@ dependencies {
   implementation(libs.okhttp3)
   implementation(libs.commons.codec)
   implementation(libs.jjwt)
+  implementation(libs.bcastle)
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
@@ -50,6 +53,7 @@ dependencies {
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)
   testImplementation(libs.coroutines.core)
+  testImplementation(libs.stellar.wallet.sdk)
 }
 
 publishing {

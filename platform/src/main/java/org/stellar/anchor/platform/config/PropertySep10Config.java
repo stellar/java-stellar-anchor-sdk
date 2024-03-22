@@ -35,6 +35,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private AppConfig appConfig;
   private final PropertyClientsConfig clientsConfig;
   private SecretConfig secretConfig;
+  private boolean requireAuthHeader = false;
 
   public PropertySep10Config(
       AppConfig appConfig, PropertyClientsConfig clientsConfig, SecretConfig secretConfig) {

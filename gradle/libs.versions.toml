@@ -6,6 +6,7 @@ assertj = "3.24.2"
 aws-iam-auth = "1.1.4"
 aws-rds = "1.12.248"
 aws-sqs = "1.12.200"
+bcastle = "1.77"
 coroutines = "1.6.4"
 commons-beanutils = "1.9.4"
 commons-cli = "1.5.0"
@@ -27,7 +28,7 @@ jackson-dataformat-yaml = "2.14.0"
 java-stellar-sdk = "0.42.0"
 javax-jaxb-api = "2.3.1"
 javax-transaction-api = "1.3"
-jjwt = "0.9.1"
+jjwt = "0.12.5"
 jsonassert = "1.5.0"
 junit = "5.8.2"
 junit-suite-engine = "1.8.2"
@@ -55,7 +56,7 @@ aws-java-sdk-s3 = "1.12.342"
 sqlite-jdbc = "3.34.0"
 slf4j = "1.7.35"
 slf4j2 = "2.0.5"
-stellar-wallet-sdk = "1.1.0"
+stellar-wallet-sdk = "1.4.0-SNAPSHOT"
 toml4j = "0.7.2"
 
 # Plugin versions
@@ -71,6 +72,7 @@ assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 aws-rds = { module = "com.amazonaws:aws-java-sdk-rds", version.ref = "aws-rds" }
 aws-sqs = { module = "com.amazonaws:aws-java-sdk-sqs", version.ref = "aws-sqs" }
 aws-iam-auth = { module = "software.amazon.msk:aws-msk-iam-auth", version.ref = "aws-iam-auth" }
+bcastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bcastle" }
 commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils" }
 commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
 commons-cli = { module = "commons-cli:commons-cli", version.ref = "commons-cli" }

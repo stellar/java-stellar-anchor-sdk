@@ -232,8 +232,9 @@ class FireblocksApiClientTest {
 
     val claims =
       Jwts.parser()
-        .setSigningKey(getPublicKey())
-        .parseClaimsJws(StringUtils.substringAfter(token, "Bearer "))
+        .verifyWith(getPublicKey())
+        .build()
+        .parseSignedClaims(StringUtils.substringAfter(token, "Bearer "))
         .body
 
     Assertions.assertEquals(API_KEY, claims.subject)

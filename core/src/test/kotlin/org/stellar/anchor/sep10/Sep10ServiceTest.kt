@@ -4,15 +4,16 @@ package org.stellar.anchor.sep10
 
 import com.google.common.io.BaseEncoding
 import com.google.gson.annotations.SerializedName
-import io.mockk.MockKAnnotations
-import io.mockk.every
+import io.jsonwebtoken.Jwts
+import io.ktor.http.*
+import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import io.mockk.spyk
-import io.mockk.verify
 import java.io.IOException
 import java.security.SecureRandom
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
+import kotlinx.datetime.Clock
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.mockwebserver.MockResponse
@@ -43,9 +44,11 @@ import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest
+import org.stellar.anchor.api.sep.sep10.ChallengeResponse
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep10Jwt
+import org.stellar.anchor.client.ClientFinder
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
@@ -58,6 +61,11 @@ import org.stellar.sdk.*
 import org.stellar.sdk.Network.TESTNET
 import org.stellar.sdk.requests.ErrorResponse
 import org.stellar.sdk.responses.AccountResponse
+import org.stellar.walletsdk.auth.DefaultAuthHeaderSigner
+import org.stellar.walletsdk.auth.createAuthSignToken
+import org.stellar.walletsdk.horizon.AccountKeyPair
+import org.stellar.walletsdk.horizon.SigningKeyPair
+import org.stellar.walletsdk.util.toJava
 
 @Suppress("unused")
 internal class TestSigner(
@@ -99,6 +107,7 @@ internal class Sep10ServiceTest {
   @MockK(relaxed = true) lateinit var custodySecretConfig: CustodySecretConfig
   @MockK(relaxed = true) lateinit var sep10Config: Sep10Config
   @MockK(relaxed = true) lateinit var horizon: Horizon
+  @MockK(relaxed = true) lateinit var clientFinder: ClientFinder
 
   private lateinit var jwtService: JwtService
   private lateinit var sep10Service: Sep10Service
@@ -120,7 +129,8 @@ internal class Sep10ServiceTest {
     every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
 
     this.jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
-    this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
+    this.sep10Service =
+      Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService, clientFinder)
     this.httpClient = `create httpClient`()
   }
 
@@ -209,7 +219,8 @@ internal class Sep10ServiceTest {
     every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     val horizon = Horizon(appConfig)
-    this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
+    this.sep10Service =
+      Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService, clientFinder)
 
     // 3 ------ Run tests
     val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
@@ -285,7 +296,8 @@ internal class Sep10ServiceTest {
     every { appConfig.horizonUrl } returns mockHorizonUrl
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     val horizon = Horizon(appConfig)
-    this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
+    this.sep10Service =
+      Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService, clientFinder)
 
     // 3 ------ Run tests
     val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
@@ -528,59 +540,49 @@ internal class Sep10ServiceTest {
   }
 
   @Test
+  @LockAndMockStatic([NetUtil::class])
+  fun `Test fetch signing key`() {
+    mockkStatic(Sep10Helper::class) {
+      // Given
+      every { Sep10Helper.fetchSigningKeyFromClientDomain(any()) } returns clientKeyPair.accountId
+      // When
+      val cr =
+        ChallengeRequest.builder()
+          .account(TEST_ACCOUNT)
+          .memo(null)
+          .homeDomain(TEST_HOME_DOMAIN)
+          .clientDomain(TEST_CLIENT_DOMAIN)
+          .build()
+
+      sep10Service.createChallenge(cr)
+
+      // Then
+      verify(exactly = 1) { sep10Service.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
+    }
+    mockkStatic(Sep10Helper::class) {
+      // Given
+      every { Sep10Helper.fetchSigningKeyFromClientDomain(any()) } throws IOException("mock error")
+      // When
+      val cr =
+        ChallengeRequest.builder()
+          .account(TEST_ACCOUNT)
+          .memo(null)
+          .homeDomain(TEST_HOME_DOMAIN)
+          .clientDomain(TEST_CLIENT_DOMAIN)
+          .build()
+
+      var ioex = assertThrows<IOException> { sep10Service.createChallenge(cr) }
+      // Then
+      assertEquals(ioex.message, "mock error")
+    }
+  }
+
+  @Test
   @LockAndMockStatic([Sep10Challenge::class])
   fun `test createChallengeResponse()`() {
     // Given
     sep10Service = spyk(sep10Service)
-    // When
-    sep10Service.createChallengeResponse(
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(null)
-        .build(),
-      MemoId(1234567890)
-    )
-    // Then
-    verify(exactly = 0) { sep10Service.fetchSigningKeyFromClientDomain(any()) }
-
     // Given
-    every { sep10Service.fetchSigningKeyFromClientDomain(any()) } returns clientKeyPair.accountId
-    // When
-    sep10Service.createChallengeResponse(
-      ChallengeRequest.builder()
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .homeDomain(TEST_HOME_DOMAIN)
-        .clientDomain(TEST_CLIENT_DOMAIN)
-        .build(),
-      MemoId(1234567890)
-    )
-    // Then
-    verify(exactly = 1) { sep10Service.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
-
-    // Given
-    every { sep10Service.fetchSigningKeyFromClientDomain(any()) } throws IOException("mock error")
-    InvalidSep10ChallengeException("mock error")
-    // When
-    val ioex =
-      assertThrows<IOException> {
-        sep10Service.createChallengeResponse(
-          ChallengeRequest.builder()
-            .account(TEST_ACCOUNT)
-            .memo(TEST_MEMO)
-            .homeDomain(TEST_HOME_DOMAIN)
-            .clientDomain(TEST_CLIENT_DOMAIN)
-            .build(),
-          MemoId(1234567890)
-        )
-      }
-    // Then
-    assertEquals(ioex.message, "mock error")
-
-    // Given
-    every { sep10Service.fetchSigningKeyFromClientDomain(any()) } returns null
     every { sep10Service.newChallenge(any(), any(), any()) } throws
       InvalidSep10ChallengeException("mock error")
     // When
@@ -593,7 +595,8 @@ internal class Sep10ServiceTest {
             .homeDomain(TEST_HOME_DOMAIN)
             .clientDomain(TEST_CLIENT_DOMAIN)
             .build(),
-          MemoId(1234567890)
+          MemoId(1234567890),
+          null
         )
       }
     // Then
@@ -716,7 +719,8 @@ internal class Sep10ServiceTest {
     every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     val horizon = Horizon(appConfig)
-    this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
+    this.sep10Service =
+      Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService, clientFinder)
 
     // 3 ------ Setup multisig
     val httpRequest =
@@ -752,4 +756,78 @@ internal class Sep10ServiceTest {
     val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
     assertDoesNotThrow { sep10Service.validateChallenge(validationRequest) }
   }
+
+  // ----------------------
+  // Signature header tests
+  //
+
+  val clientDomain = "test-wallet.stellar.org"
+  val domainKp =
+    SigningKeyPair.fromSecret("SCYVDFYEHNDNTB2UER2FCYSZAYQFAAZ6BDYXL3BWRQWNL327GZUXY7D7")
+  // Signing with a domain signer
+  val domainSigner =
+    object : DefaultAuthHeaderSigner() {
+      override fun createToken(
+        claims: Map<String, String>,
+        clientDomain: String?,
+        issuer: AccountKeyPair?
+      ): String {
+        val timeExp = Instant.ofEpochSecond(Clock.System.now().plus(expiration).epochSeconds)
+        val builder = createBuilder(timeExp, claims)
+
+        builder.signWith(domainKp.toJava().private, Jwts.SIG.EdDSA)
+
+        return builder.compact()
+      }
+    }
+  val custodialSigner = DefaultAuthHeaderSigner()
+  val custodialKp =
+    SigningKeyPair.fromSecret("SBPPLU2KO3PDBLSDFIWARQSW5SAOIHTJDUQIWN3BQS7KPNMVUDSU37QO")
+  val custodialMemo = "1234567"
+  val authEndpoint = "https://$TEST_WEB_AUTH_DOMAIN/auth"
+
+  @Test
+  fun `test valid signature header for custodial`() {
+    val url = "$authEndpoint/?account=${custodialKp.address}&memo=$custodialMemo"
+    val builder = URLBuilder(url)
+    val params = mapOf("account" to custodialKp.address, "memo" to custodialMemo)
+    val token =
+      createAuthSignToken(
+        custodialKp,
+        builder.host,
+        builder.encodedPath,
+        params,
+        authHeaderSigner = custodialSigner
+      )
+
+    val req = ChallengeRequest.builder().account(custodialKp.address).memo(custodialMemo).build()
+
+    sep10Service.validateAuthorization(req, token, null)
+    verify(exactly = 1) { clientFinder.getClientName(null, custodialKp.address) }
+  }
+
+  @Test
+  fun `test valid signature header for noncustodial`() {
+    val url = "$authEndpoint/?account=${custodialKp.address}&client_domain=$clientDomain"
+    val builder = URLBuilder(url)
+    val params = mapOf("account" to custodialKp.address, "client_domain" to clientDomain)
+    val token =
+      createAuthSignToken(
+        SigningKeyPair(KeyPair.random()),
+        builder.host,
+        builder.encodedPath,
+        params,
+        authHeaderSigner = domainSigner
+      )
+
+    val req =
+      ChallengeRequest.builder().account(custodialKp.address).clientDomain(clientDomain).build()
+
+    sep10Service.validateAuthorization(req, token, domainKp.address)
+    verify(exactly = 1) { clientFinder.getClientName(clientDomain, any()) }
+  }
+}
+
+fun Sep10Service.createChallenge(request: ChallengeRequest): ChallengeResponse {
+  return this.createChallenge(request, null)
 }

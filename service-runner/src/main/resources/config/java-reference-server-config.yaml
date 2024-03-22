@@ -27,8 +27,8 @@ anchor.settings:
 # When the receiving part decodes the incoming request token, it needs to verify if the token is still valid (and not expired).
 integration-auth:
   authType: none
-  platformToAnchorSecret: myPlatformToAnchorSecret
-  anchorToPlatformSecret: myAnchorToPlatformSecret
+  platformToAnchorSecret: myPlatformToAnchorSecret1234567890
+  anchorToPlatformSecret: myAnchorToPlatformSecret1234567890
   expirationMilliseconds: 30000
 
 
