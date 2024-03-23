@@ -1,31 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ap-reference
+  name: {{ .Values.fullName }}-svc-{{ .Values.services.ref.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.fullName }}-reference-server
+    helm.sh/chart: {{ include "common.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ap-reference
+      app: {{ .Values.fullName }}-svc-{{ .Values.services.ref.name }}
   template:
     metadata:
       labels:
-        app: ap-reference
+        app: {{ .Values.fullName }}-svc-{{ .Values.services.ref.name }}
     spec:
       containers:
         - name: reference
-          image: anchor-platform:local
+          image: {{ .Values.container.image }}
           args: [ "--kotlin-reference-server" ]
-          imagePullPolicy: Never
+          imagePullPolicy: {{ .Values.container.imagePullPolicy }}
           ports:
-            - containerPort: 8091
+            - name: http
+              containerPort: {{ .Values.services.ref.containerPort | default 8091 }}
+              protocol: TCP
           resources:
             requests:
-              memory: 512Mi
-              cpu: 500m
+              memory: {{ .Values.services.ref.deployment.resources.requests.memory }}
+              cpu: {{ .Values.services.ref.deployment.resources.requests.cpu }}
             limits:
-              memory: 1Gi
-              cpu: "1"
+              memory: {{ .Values.services.ref.deployment.resources.limits.memory }}
+              cpu: {{ .Values.services.ref.deployment.resources.limits.cpu }}
           volumeMounts:
             - name: config-volume
               mountPath: /config

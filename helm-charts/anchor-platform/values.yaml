@@ -67,6 +67,9 @@ services:
           memory: 1Gi
           cpu: 1
 
+callbackApi:
+  url: http://reference-server-svc-reference-server:8091
+
 ingress:
   name: ingress-anchor-platform
   className: nginx
@@ -91,10 +94,7 @@ anchor_config: |
     database: postgres
     flyway_enabled: true
     ddl_auto: update
-  
-  callback_api:
-    base_url: http://ap-reference:8091
-  
+
   events:
     enabled: true
     queue:
