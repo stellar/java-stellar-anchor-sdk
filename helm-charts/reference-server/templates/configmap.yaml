@@ -13,23 +13,13 @@ data:
       distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
       distributionWalletMemo:
       distributionWalletMemoType:
-      secret: SAJW2O2NH5QMMVWYAN352OEXS2RUY675A2HPK5HEG2FRR2NXPYA4OLYN
       enableTest: true
       custodyEnabled: false
       rpcEnabled: false
 
     auth:
       type: NONE
-      platformToAnchorSecret: myPlatformToAnchorSecret
-      anchorToPlatformSecret: myAnchorToPlatformSecret
-      expirationMilliseconds: 30000
-
-    sep24:
-      secret: SAJ34AG5XC7BWGK3GGQGCXERSEP7LZYXBBDMD33NMBASZVNKACEMNEIY
-      interactiveJwtKey: secret_sep24_interactive_url_jwt_secret
 
     data:
       url: postgresql-ref:5432
       database: postgres
-      user: postgres
-      password: XgvqTkecnv
