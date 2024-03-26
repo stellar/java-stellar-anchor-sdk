@@ -31,6 +31,10 @@ events.queue.kafka.client_id:
 events.queue.kafka.linger_ms:
 events.queue.kafka.poll_timeout_seconds:
 events.queue.kafka.retries:
+events.queue.kafka.security_protocol:
+events.queue.kafka.sasl_mechanism:
+events.queue.kafka.username:
+events.queue.kafka.password:
 events.queue.msk.batch_size:
 events.queue.msk.bootstrap_server:
 events.queue.msk.client_id:

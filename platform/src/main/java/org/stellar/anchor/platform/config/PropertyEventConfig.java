@@ -86,6 +86,22 @@ public class PropertyEventConfig implements EventConfig, Validator {
           "kafka-batch-size-invalid",
           "events.queue.kafka.batch_size must be greater than 0");
     }
+
+    if (config.queue.kafka.securityProtocol == null) {
+      errors.rejectValue(
+          "queue.kafka.securityProtocol",
+          "kafka-security-protocol-empty",
+          "events.queue.kafka.security_protocol must be defined");
+    }
+
+    if (config.queue.kafka.securityProtocol == KafkaConfig.SecurityProtocol.SASL_PLAINTEXT) {
+      if (config.queue.kafka.saslMechanism == null) {
+        errors.rejectValue(
+            "queue.kafka.saslMechanism",
+            "kafka-sasl-mechanism-empty",
+            "events.queue.kafka.sasl_mechanism must be defined");
+      }
+    }
   }
 
   void validateMsk(PropertyEventConfig config, Errors errors) {

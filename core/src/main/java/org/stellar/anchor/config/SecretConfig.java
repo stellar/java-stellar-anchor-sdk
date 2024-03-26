@@ -16,4 +16,8 @@ public interface SecretConfig {
   String getDataSourceUsername();
 
   String getDataSourcePassword();
+
+  String getEventsQueueKafkaUsername();
+
+  String getEventsQueueKafkaPassword();
 }
