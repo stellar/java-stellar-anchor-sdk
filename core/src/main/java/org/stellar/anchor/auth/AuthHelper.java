@@ -19,7 +19,7 @@ public class AuthHelper {
   private AuthHelper(AuthType authType) {
     this(authType, "Authorization");
   }
-  
+
   private AuthHelper(AuthType authType, String authorizationHeader) {
     this.authType = authType;
     this.authorizationHeader = authorizationHeader;
