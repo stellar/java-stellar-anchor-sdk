@@ -189,7 +189,7 @@ public class Sep6Controller {
       @RequestParam(required = false, value = "paging_id") String pagingId,
       @RequestParam(required = false, value = "no_older_than") String noOlderThan,
       @RequestParam(required = false, value = "lang") String lang)
-      throws SepException, MalformedURLException, URISyntaxException {
+      throws SepException {
     debugF(
         "/transactions asset_code={} kind={} limit={} paging_id={} no_older_than={} lang={}",
         assetCode,
