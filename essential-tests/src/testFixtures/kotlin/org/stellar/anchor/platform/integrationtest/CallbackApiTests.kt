@@ -63,7 +63,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
     )
 
   private val authHelper =
-    AuthHelper.forJwtToken(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS)
+    AuthHelper.forJwtToken("Authorization", platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS)
 
   private val gson: Gson = GsonUtils.getInstance()
 

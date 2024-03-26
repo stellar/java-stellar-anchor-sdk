@@ -65,6 +65,7 @@ jobs:
           RUN_KOTLIN_REFERENCE_SERVER: true
           RUN_EVENT_PROCESSING_SERVER: true
           RUN_WALLET_SERVER: true
+          KT_REFERENCE_SERVER_CONFIG: /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/config/reference-config.yaml
           SEP1_TOML_VALUE: /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/config/stellar.host.docker.internal.toml
           SEP10_WEB_AUTH_DOMAIN: host.docker.internal:8080
           SEP10_HOME_DOMAINS: host.docker.internal:8080,*.stellar.org

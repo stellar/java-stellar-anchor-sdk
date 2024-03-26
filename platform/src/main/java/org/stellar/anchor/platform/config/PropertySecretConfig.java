@@ -17,6 +17,10 @@ public class PropertySecretConfig implements SecretConfig {
   public static final String SECRET_PLATFORM_API_AUTH_SECRET = "secret.platform_api.auth_secret";
   public static final String SECRET_DATA_USERNAME = "secret.data.username";
   public static final String SECRET_DATA_PASSWORD = "secret.data.password";
+  public static final String SECRET_EVENTS_QUEUE_KAFKA_USERNAME =
+      "secret.events.queue.kafka.username";
+  public static final String SECRET_EVENTS_QUEUE_KAFKA_PASSWORD =
+      "secret.events.queue.kafka.password";
 
   public String getSep6MoreInfoUrlJwtSecret() {
     return SecretManager.getInstance().get(SECRET_SEP_6_MORE_INFO_URL_JWT_SECRET);
@@ -58,5 +62,15 @@ public class PropertySecretConfig implements SecretConfig {
   @Override
   public String getDataSourcePassword() {
     return SecretManager.getInstance().get(SECRET_DATA_PASSWORD);
+  }
+
+  @Override
+  public String getEventsQueueKafkaUsername() {
+    return SecretManager.getInstance().get(SECRET_EVENTS_QUEUE_KAFKA_USERNAME);
+  }
+
+  @Override
+  public String getEventsQueueKafkaPassword() {
+    return SecretManager.getInstance().get(SECRET_EVENTS_QUEUE_KAFKA_PASSWORD);
   }
 }

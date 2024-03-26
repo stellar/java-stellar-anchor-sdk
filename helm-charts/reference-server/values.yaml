@@ -1,0 +1,23 @@
+fullName: reference-server
+
+secretStoreRefName: fake-secret-store
+
+container:
+  image: anchor-platform:local
+  imagePullPolicy: Never
+
+services:
+  ref:
+    containerPort: 8091
+    servicePort: 8091
+    type: ClusterIP
+    name: reference-server
+    deployment:
+      replicas: 1
+      resources:
+        requests:
+          memory: 512Mi
+          cpu: 500m
+        limits:
+          memory: 1Gi
+          cpu: 1

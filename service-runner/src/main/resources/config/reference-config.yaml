@@ -46,3 +46,9 @@ sep24:
   secret: "SAJ34AG5XC7BWGK3GGQGCXERSEP7LZYXBBDMD33NMBASZVNKACEMNEIY"
   # Encryption key for interactive JWT
   interactiveJwtKey: "secret_sep24_interactive_url_jwt_secret"
+
+data:
+  url: reference-db:5433
+  database: postgres
+  user: postgres
+  password: password
