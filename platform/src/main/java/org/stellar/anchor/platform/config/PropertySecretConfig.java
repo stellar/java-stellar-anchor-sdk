@@ -5,6 +5,8 @@ import org.stellar.anchor.platform.configurator.SecretManager;
 
 public class PropertySecretConfig implements SecretConfig {
 
+  public static final String SECRET_SEP_6_MORE_INFO_URL_JWT_SECRET =
+      "secret.sep6.more_info_url.jwt_secret";
   public static final String SECRET_SEP_10_JWT_SECRET = "secret.sep10.jwt_secret";
   public static final String SECRET_SEP_10_SIGNING_SEED = "secret.sep10.signing_seed";
   public static final String SECRET_SEP_24_INTERACTIVE_URL_JWT_SECRET =
@@ -19,6 +21,10 @@ public class PropertySecretConfig implements SecretConfig {
       "secret.events.queue.kafka.username";
   public static final String SECRET_EVENTS_QUEUE_KAFKA_PASSWORD =
       "secret.events.queue.kafka.password";
+
+  public String getSep6MoreInfoUrlJwtSecret() {
+    return SecretManager.getInstance().get(SECRET_SEP_6_MORE_INFO_URL_JWT_SECRET);
+  }
 
   public String getSep10JwtSecretKey() {
     return SecretManager.getInstance().get(SECRET_SEP_10_JWT_SECRET);

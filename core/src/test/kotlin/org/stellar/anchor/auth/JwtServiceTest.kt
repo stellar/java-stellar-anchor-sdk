@@ -15,6 +15,7 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.auth.JwtService.*
+import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 
@@ -36,6 +37,7 @@ internal class JwtServiceTest {
   fun setup() {
     secretConfig = mockk()
     custodySecretConfig = mockk()
+    every { secretConfig.sep6MoreInfoUrlJwtSecret } returns "jwt_secret"
     every { secretConfig.sep10JwtSecretKey } returns "jwt_secret"
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "jwt_secret"
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "jwt_secret"
