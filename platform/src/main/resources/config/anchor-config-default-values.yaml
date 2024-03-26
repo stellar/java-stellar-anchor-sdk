@@ -171,58 +171,6 @@ event_processor:
     # Whether to enable the event delivery to the anchor business server
     enabled: true
 
-##############################
-# Anchor Platform Clients Configuration
-##############################
-# The list of clients for the Anchor server to safely communicate with the outside wallet servers or clients.
-# Each item in the list may contain the following fields:
-#   - name: (required) the name of the client
-#   - type: (required) `custodial` or `noncustodial`
-#
-#   If the type is `custodial`,
-#   - signing_key: (required) the custodial SEP-10 signing key of the client. If the signing key of the client
-#                  is the same as the `signing_key`, the callback will be activated.
-#   - callback_url: (optional) the URL of the client's callback API endpoint. Optional due to some wallets may opt to
-#                  poll instead, or may use polling first before implementing callbacks at a later stage.
-#   - allow_any_destination: (optional) default to false. If set to true, allows any destination for deposits.
-#   - destination_accounts: (optional) list of accounts allowed to be used for the deposit. By default, only SEP-10
-#                  authenticated account can be used to deposit funds into. If allows_any_destinations set to true,
-#                  this configuration option is ignored.
-#   If the type is `noncustodial`,
-#   - domain: (required) the domain of the client. If the `client_domain` field of the transaction is the same as this
-#             domain, the callback will be activated.
-#   - callback_url: (optional) the URL of the client's callback API endpoint
-#   - signing_key: (optional) the signing key of the client. If the public key is specified, the client domain's TOML
-#                 file will be fetched and the `SIGNING_KEY` of the TOML file will be compared with the public key.
-#                 If they don't match, a validation error will be thrown.
-#
-# Examples:
-#     - name: circle
-#       type: custodial
-#       signing_key: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
-#       callback_url: https://callback.circle.com/api/v1/anchor/callback
-#     - name: lobstr
-#       type: noncustodial
-#       domain: lobstr.co
-#       callback_url: https://callback.lobstr.co/api/v2/anchor/callback
-#     - name: vibrant
-#       type: noncustodial
-#       domain: vibrant.co
-#       callback_url: https://callback.vibrant.com/api/v2/anchor/callback
-#       signing_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
-clients:
-#     - name:
-#       type: custodial
-#       signing_key:
-#       callback_url:
-#       allow_any_destination:
-#       destination_accounts:
-#     - name:
-#       type: noncustodial
-#       domain:
-#       callback_url:
-#       signing_key:
-
 ######################
 ## Platform Server Configuration
 ######################
@@ -699,16 +647,27 @@ events:
 #########################
 # Assets Configuration
 #########################
-# Assets are empty by default.
-# Accepts file reference (eg. 'file:assets.yaml') or in-line definition.
+# Assets are empty if not defined.
+# Accepts file reference (eg. 'file:assets.yaml') or in-place definition.
 assets:
-  # The type of the assets definition.
+  # The type of the asset definition.
   # `type` can be one of the following:
-  #     `json`: value field contains the content of the assets in JSON format
-  #     `yaml`: value field contains the content of the assets in YAML format
   #     `file`: value field contains the path to the assets file. The file name can be *.json or *.yaml.
   #     `url`: value contains the url to the assets file. The file name can be *.json or *.yaml.
-  type: json
+  type:
+  # The value of the assets definition depending on the `type` field.
+  value:
+
+##############################
+# Anchor Platform Clients Configuration
+##############################
+# The list of clients for the Anchor server to safely communicate with the outside wallet servers or clients.
+# The list is empty if not defined.
+clients:
+  # `type` can be one of the following.
+  #     `file`: value field contains the path to the assets file. The file name can be *.json or *.yaml.
+  #     `url`: value contains the url to the assets file. The file name can be *.json or *.yaml.
+  type:
   # The value of the assets definition depending on the `type` field.
   value:
 
