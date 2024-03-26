@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Counter;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -30,14 +30,12 @@ public class Sep6Service {
   private final Sep6Config sep6Config;
   private final AssetService assetService;
   private final RequestValidator requestValidator;
-
   private final ClientFinder clientFinder;
   private final Sep6TransactionStore txnStore;
   private final ExchangeAmountsCalculator exchangeAmountsCalculator;
   private final EventService.Session eventSession;
-
   private final InfoResponse infoResponse;
-
+  private final MoreInfoUrlConstructor moreInfoUrlConstructor;
   private final Counter sep6TransactionRequestedCounter =
       counter(MetricConstants.SEP6_TRANSACTION_REQUESTED);
   private final Counter sep6TransactionQueriedCounter =
@@ -70,7 +68,8 @@ public class Sep6Service {
       ClientFinder clientFinder,
       Sep6TransactionStore txnStore,
       ExchangeAmountsCalculator exchangeAmountsCalculator,
-      EventService eventService) {
+      EventService eventService,
+      MoreInfoUrlConstructor moreInfoUrlConstructor) {
     this.sep6Config = sep6Config;
     this.assetService = assetService;
     this.requestValidator = requestValidator;
@@ -80,6 +79,7 @@ public class Sep6Service {
     this.eventSession =
         eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
     this.infoResponse = buildInfoResponse();
+    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
 
   public InfoResponse getInfo() {
@@ -427,8 +427,11 @@ public class Sep6Service {
     // Query the transaction store
     List<Sep6Transaction> transactions =
         txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), request);
-    List<Sep6TransactionResponse> responses =
-        transactions.stream().map(Sep6TransactionUtils::fromTxn).collect(Collectors.toList());
+    List<Sep6TransactionResponse> responses = new ArrayList<>();
+    for (Sep6Transaction txn : transactions) {
+      Sep6TransactionResponse tr = Sep6TransactionUtils.fromTxn(txn, moreInfoUrlConstructor);
+      responses.add(tr);
+    }
 
     sep6TransactionQueriedCounter.increment();
     return new GetTransactionsResponse(responses);
@@ -469,7 +472,7 @@ public class Sep6Service {
     }
 
     sep6TransactionQueriedCounter.increment();
-    return new GetTransactionResponse(Sep6TransactionUtils.fromTxn(txn));
+    return new GetTransactionResponse(Sep6TransactionUtils.fromTxn(txn, moreInfoUrlConstructor));
   }
 
   private InfoResponse buildInfoResponse() {

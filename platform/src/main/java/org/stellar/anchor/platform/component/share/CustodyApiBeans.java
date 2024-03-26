@@ -39,7 +39,7 @@ public class CustodyApiBeans {
       case JWT:
         return AuthHelper.forJwtToken(
             custodyApiConfig.getAuth().getJwt().getHttpHeader(),
-            new JwtService(null, null, null, null, null, authSecret),
+            new JwtService(null, null, null, null, null, null, authSecret),
             Long.parseLong(custodyApiConfig.getAuth().getJwt().getExpirationMilliseconds()));
       case API_KEY:
         return AuthHelper.forApiKey(

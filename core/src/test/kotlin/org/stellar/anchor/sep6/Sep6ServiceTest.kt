@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.MoreInfoUrlConstructor
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
@@ -50,6 +51,7 @@ class Sep6ServiceTest {
   @MockK(relaxed = true) lateinit var exchangeAmountsCalculator: ExchangeAmountsCalculator
   @MockK(relaxed = true) lateinit var eventService: EventService
   @MockK(relaxed = true) lateinit var eventSession: EventService.Session
+  @MockK(relaxed = true) lateinit var sep6MoreInfoUrlConstructor: MoreInfoUrlConstructor
 
   private lateinit var sep6Service: Sep6Service
 
@@ -63,6 +65,7 @@ class Sep6ServiceTest {
     every { eventService.createSession(any(), any()) } returns eventSession
     every { requestValidator.getDepositAsset(TEST_ASSET) } returns asset
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns asset
+    every { sep6MoreInfoUrlConstructor.construct(any()) } returns "https://example.com/more_info"
     sep6Service =
       Sep6Service(
         sep6Config,
@@ -71,7 +74,8 @@ class Sep6ServiceTest {
         clientFinder,
         txnStore,
         exchangeAmountsCalculator,
-        eventService
+        eventService,
+        sep6MoreInfoUrlConstructor,
       )
   }
 
@@ -1380,7 +1384,6 @@ class Sep6ServiceTest {
     txn.kind = "deposit"
     txn.status = "complete"
     txn.statusEta = 5
-    txn.moreInfoUrl = "https://example.com/more_info"
     txn.amountIn = "100"
     txn.amountInAsset = "USD"
     txn.amountOut = "98"

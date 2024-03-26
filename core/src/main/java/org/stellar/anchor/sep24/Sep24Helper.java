@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.BeanUtils;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;

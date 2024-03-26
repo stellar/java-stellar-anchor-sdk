@@ -66,7 +66,7 @@ class AuthHelperTest {
               (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L,
             )
 
-          val jwtService = JwtService(null, null, null, "secret", "secret", "secret")
+          val jwtService = JwtService(null, null, null, null, "secret", "secret", "secret")
           val authHelper =
             AuthHelper.forJwtToken(headerName, jwtService, JWT_EXPIRATION_MILLISECONDS)
           val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()

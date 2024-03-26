@@ -17,6 +17,7 @@ public class SecretManager
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
   final List<String> secretVars =
       Arrays.asList(
+          PropertySecretConfig.SECRET_SEP_6_MORE_INFO_URL_JWT_SECRET,
           PropertySecretConfig.SECRET_SEP_10_JWT_SECRET,
           PropertySecretConfig.SECRET_SEP_10_SIGNING_SEED,
           PropertySecretConfig.SECRET_SEP_24_INTERACTIVE_URL_JWT_SECRET,

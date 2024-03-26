@@ -295,9 +295,21 @@ sep1:
 sep6:
   # Whether to enable SEP-6
   enabled: false
+  # Configures the more_info_url of the transaction response when calling GET /transaction and GET /transactions endpoints.
+  # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#transaction-history
+  #   base_uri: is the base_uri used to construct the more_info_url
+  #   jwt_expiration: the timeout in seconds of the JWT returned with the embedded interactive url of the SEP-6 process.
+  #       The jwt secret must be set by the environment variable: secret.sep6.more_info_url.jwt_secret
+  #   txn_fields: is an optional list of transaction fields that will be appended to the jwt of the more_info url. If empty, no fields from transaction will be appended.
+  #   In addition to the txn_fields, the following fields are also added to the query parameters.
+  #       `transaction_id`: the transaction ID
+  #       `token`: the JWT token
+  more_info_url:
+    base_url: http://localhost:8080/sep6/transaction/more_info
+    jwt_expiration: 600
+    txn_fields:
   # Configures the features flag returned by the SEP-6 /info endpoint
   # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-4
-  #
   features:
     account_creation: false
     claimable_balances: false
@@ -396,10 +408,10 @@ sep24:
   interactive_url:
     # The base URL of the SEP-24 interactive flow
     base_url: http://localhost:8080/sep24/interactive
-    # The list of transaction fields that will be appended to the JWT of the interactive URL
-    txn_fields:
     # The timeout in seconds of the JWT returned with the embedded interactive URL of the SEP-24 process.
     jwt_expiration: 600
+    # The list of transaction fields that will be appended to the JWT of the interactive URL
+    txn_fields:
   # Configures the more_info_url of the transaction response when calling GET /transaction and GET /transactions endpoints.
   # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#shared-fields-for-both-deposits-and-withdrawals
   #   base_uri: is the base_uri used to construct the more_info_url
@@ -412,10 +424,10 @@ sep24:
   more_info_url:
     # The base URL of the SEP-24 more_info_url
     base_url: http://localhost:8080/sep24/transaction/more_info
-    # The list of transaction fields that will be appended to the JWT of the more_info_url
-    txn_fields:
     # The timeout in seconds of the JWT returned with the embedded more_info_url of the SEP-24 process.
     jwt_expiration: 600
+    # The list of transaction fields that will be appended to the JWT of the more_info_url
+    txn_fields:
 
   # Configures the features flag returned by the SEP-24 /info endpoint
   # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#response-2

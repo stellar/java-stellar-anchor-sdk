@@ -84,7 +84,7 @@ public class CallbackApiConfig implements Validator {
       case JWT:
         return AuthHelper.forJwtToken(
             getAuth().getJwt().getHttpHeader(),
-            new JwtService(null, null, null, secret, secret, secret),
+            new JwtService(null, null, null, null, secret, secret, secret),
             Long.parseLong(getAuth().getJwt().getExpirationMilliseconds()));
       case API_KEY:
         return AuthHelper.forApiKey(getAuth().getApiKey().getHttpHeader(), secret);
