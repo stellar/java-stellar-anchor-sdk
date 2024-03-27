@@ -75,7 +75,7 @@ sep1:
 
 sep10:
   enabled: true
-  home_domain: localhost:8080
+  home_domains: localhost:8080
 
 sep12:
   enabled: true
