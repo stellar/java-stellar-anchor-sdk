@@ -3,7 +3,7 @@ package org.stellar.anchor.client;
 import javax.annotation.Nullable;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.SepNotAuthorizedException;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.config.ClientsConfig.ClientConfig;
@@ -24,10 +24,12 @@ public class ClientFinder {
    * @param clientDomain client domain
    * @param account account
    * @return the client ID
-   * @throws BadRequestException if the client is not found or the client domain or name is not
+   * @throws SepNotAuthorizedException if the client is not found or the client domain or name is
+   *     not
    */
   @Nullable
-  public String getClientName(String clientDomain, String account) throws BadRequestException {
+  public String getClientName(String clientDomain, String account)
+      throws SepNotAuthorizedException {
     ClientsConfig.ClientConfig client = getClient(clientDomain, account);
 
     // If client attribution is not required, return the client name
@@ -37,21 +39,21 @@ public class ClientFinder {
 
     // Check if the client domain and name are allowed
     if (client == null) {
-      throw new BadRequestException("Client not found");
+      throw new SepNotAuthorizedException("Client not found");
     }
 
     if (clientDomain != null && !isDomainAllowed(client.getDomain())) {
-      throw new BadRequestException("Client domain not allowed");
+      throw new SepNotAuthorizedException("Client domain not allowed");
     }
     if (!isClientNameAllowed(client.getName())) {
-      throw new BadRequestException("Client name not allowed");
+      throw new SepNotAuthorizedException("Client name not allowed");
     }
 
     return client.getName();
   }
 
   @Nullable
-  public String getClientName(Sep10Jwt token) throws BadRequestException {
+  public String getClientName(Sep10Jwt token) throws SepNotAuthorizedException {
     return getClientName(token.getClientDomain(), token.getAccount());
   }
 

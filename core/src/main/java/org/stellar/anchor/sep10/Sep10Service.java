@@ -5,6 +5,7 @@ import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_CREATED;
 import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_VALIDATED;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.sdk.Network.TESTNET;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -14,12 +15,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-import okhttp3.HttpUrl;
 import org.apache.commons.lang3.StringUtils;
-import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.exception.SepNotAuthorizedException;
-import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10.ValidationRequest;
@@ -267,11 +264,10 @@ public class Sep10Service implements ISep10Service {
   }
 
   void validateAuthorization(
-      ChallengeRequest request, String authorization, String clientSigningKey)
-      throws SepException, BadRequestException {
+      ChallengeRequest request, String authorization, String clientSigningKey) throws SepException {
     if (authorization == null) {
       if (sep10Config.isRequireAuthHeader()) {
-        throw new SepValidationException("Authorization header is required");
+        throw new SepMissingAuthHeaderException("Authorization header is required");
       }
 
       return;
@@ -302,18 +298,15 @@ public class Sep10Service implements ISep10Service {
       throw new SepValidationException("Invalid expiration format: must be UNIX epoch second");
     }
 
-    var url = HttpUrl.parse(authUrl());
-
-    if (!claimEquals(payload.get("host"), url.host())) {
-      throw new SepValidationException("Invalid signed host");
-    }
-    if (payload.get("path") == null) {
-      throw new SepValidationException("Missing path in the signed JWT");
-    }
-    var cleanPath = payload.get("path").toString().replaceAll("^/", "").replaceAll("/$", "");
-    var cleanExpectedPath = url.encodedPath().replaceAll("^/", "").replaceAll("/$", "");
-    if (!claimEquals(cleanPath, cleanExpectedPath)) {
-      throw new SepValidationException("Invalid signed path");
+    if (claimNotEqual(payload.get("web_auth_endpoint"), authUrl())) {
+      if (appConfig.getStellarNetworkPassphrase().equals(TESTNET.getNetworkPassphrase())) {
+        // Allow http for testnet
+        if (claimNotEqual(payload.get("web_auth_endpoint"), authUrl().replace("https", "http"))) {
+          throw new SepValidationException("Invalid web_auth_endpoint in the signed header");
+        }
+      } else {
+        throw new SepValidationException("Invalid web_auth_endpoint in the signed header");
+      }
     }
 
     validateQueryParam(payload, "account", request.getAccount());
@@ -325,13 +318,13 @@ public class Sep10Service implements ISep10Service {
     clientFinder.getClientName(request.getClientDomain(), request.getAccount());
   }
 
-  private boolean claimEquals(Object claim, String string) {
-    return StringUtils.equals(claim == null ? null : claim.toString(), string);
+  private boolean claimNotEqual(Object claim, String string) {
+    return !StringUtils.equals(claim == null ? null : claim.toString(), string);
   }
 
   void validateQueryParam(Claims payload, String name, String requestParam)
       throws SepValidationException {
-    if (!claimEquals(payload.get(name), requestParam)) {
+    if (claimNotEqual(payload.get(name), requestParam)) {
       throw new SepValidationException(
           "Request query parameter " + name + " doesn't match signed URL query parameter");
     }

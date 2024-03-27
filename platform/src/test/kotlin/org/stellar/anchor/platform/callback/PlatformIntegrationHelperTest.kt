@@ -47,9 +47,9 @@ class PlatformIntegrationHelperTest {
             null,
             null,
             null,
-            "secretsecretsecretsecret",
-            "secretsecretsecretsecret",
-            "secretsecretsecretsecret"
+            "ssecretsecretsecretsecretecretsecretsecretsecret",
+            "ssecretsecretsecretsecretecretsecretsecretsecret",
+            "ssecretsecretsecretsecretecretsecretsecretsecret"
           )
         val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
 
