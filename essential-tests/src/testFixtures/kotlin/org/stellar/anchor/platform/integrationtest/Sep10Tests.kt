@@ -18,8 +18,10 @@ import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.client.Sep10Client
 import org.stellar.anchor.platform.*
 import org.stellar.sdk.Transaction
+import org.stellar.walletsdk.auth.DefaultAuthHeaderSigner
 import org.stellar.walletsdk.auth.WalletSigner
 import org.stellar.walletsdk.horizon.AccountKeyPair
+import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
 
 class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
@@ -143,6 +145,17 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
           .sep10()
           .authenticate(rnd, dummySigner, clientDomain = "demo-wallet-server.stellar.org")
       }
+  }
+
+  @Test
+  fun testCustodialWithAuthHeader() = runBlocking {
+    val signer = DefaultAuthHeaderSigner()
+    val accountKp =
+      SigningKeyPair.fromSecret("SBPPLU2KO3PDBLSDFIWARQSW5SAOIHTJDUQIWN3BQS7KPNMVUDSU37QO")
+    val memo = 1234567UL
+
+    anchor.sep10().authenticate(accountKp, memoId = memo, authHeaderSigner = signer)
+    return@runBlocking
   }
 
   class RawStringTypeAdapter : TypeAdapter<String>() {

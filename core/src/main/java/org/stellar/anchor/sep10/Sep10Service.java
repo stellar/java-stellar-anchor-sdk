@@ -16,6 +16,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
@@ -264,8 +266,11 @@ public class Sep10Service implements ISep10Service {
   }
 
   void validateAuthorization(
-      ChallengeRequest request, String authorization, String clientSigningKey) throws SepException {
-    if (authorization == null) {
+      @NotNull ChallengeRequest request,
+      @Nullable String authorization,
+      @Nullable String clientSigningKey)
+      throws SepException {
+    if (authorization == null || authorization.isEmpty()) {
       if (sep10Config.isRequireAuthHeader()) {
         throw new SepMissingAuthHeaderException("Authorization header is required");
       }
@@ -273,14 +278,20 @@ public class Sep10Service implements ISep10Service {
       return;
     }
 
+    if (!authorization.startsWith("Bearer")) {
+      throw new SepValidationException("Invalid JWT token");
+    }
+
+    String token = authorization.replace("Bearer", "").stripLeading();
+
     Jws<Claims> jwt;
 
     // Non-custodial
     if (request.getClientDomain() != null) {
-      jwt = JwtService.getHeaderJwt(clientSigningKey, authorization);
+      jwt = jwtService.getHeaderJwt(clientSigningKey, token);
     } else {
       // Custodial
-      jwt = JwtService.getHeaderJwt(request.getAccount(), authorization);
+      jwt = jwtService.getHeaderJwt(request.getAccount(), token);
     }
 
     Claims payload = jwt.getPayload();

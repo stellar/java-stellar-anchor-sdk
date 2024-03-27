@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
+import java.security.Security;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Map;
@@ -17,6 +18,7 @@ import lombok.SneakyThrows;
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.api.exception.SepValidationException;
@@ -66,6 +68,9 @@ public class JwtService {
     this.callbackAuthSecret = toSecretKeySpecOrNull(callbackAuthSecret);
     this.platformAuthSecret = toSecretKeySpecOrNull(platformAuthSecret);
     this.custodyAuthSecret = toSecretKeySpecOrNull(custodyAuthSecret);
+
+    // Required for Ed25519 keys
+    Security.addProvider(new BouncyCastleProvider());
   }
 
   public String encode(Sep10Jwt token) {
@@ -190,7 +195,7 @@ public class JwtService {
   }
 
   @SneakyThrows
-  public static Jws<Claims> getHeaderJwt(String signingKey, String cipher) {
+  public Jws<Claims> getHeaderJwt(String signingKey, String cipher) {
     var factory = KeyFactory.getInstance("Ed25519");
     var pubKeyInfo =
         new SubjectPublicKeyInfo(
