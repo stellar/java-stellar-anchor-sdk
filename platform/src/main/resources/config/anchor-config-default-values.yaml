@@ -338,25 +338,20 @@ sep10:
   enabled: false
   #
   # The `web_auth_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response
-  # The `web_auth_domain` is optional and will be set to the value of the `home_domain` or `home_domains` if it can only be translated to one domain.
+  # The `web_auth_domain` is optional and will be set to the value of the `home_domains` if "home_domains" can only be translated to one domain.
   # 1) web_auth_domain is optional:
-  #    Ex: home_domain: ap.stellar.org
   #    Ex: home_domains: ap.stellar.org
   # 2) web_auth_domain is required:
   #    Ex: home_domains: ap.stellar.org, sdp.stellar.org
   #    Ex: home_domains: *.sdp.stellar.org
   web_auth_domain:
-  # The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
-  # `home_domain` value must be equal to the host of the toml file. If sep1 is enabled, toml file will be hosted on the SEP server.
-  # This property cannot coexist with `home_domains` and is going to be deprecated. Please use `home_domains` instead.
-  home_domain:
   # The `home_domains` property of SEP-10. This is a list of domains and/or wildcard patterns that the client can use to authenticate.
   # https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
-  # This property cannot coexist with `home_domain`. Please also set web_auth_domain if you have more than one home domain in this list.
+  # Please also set web_auth_domain if you have more than one home domain in this list.
   # The following lists are examples:
   # Ex: home_domains: [ap.stellar.org, *.sdp.stellar.org]
   # Ex: home_domains: ap.stellar.org, *.sdp.stellar.org
-  home_domains:
+  home_domains: localhost:8080
   # Set if the client attribution is required. Client Attribution requires clients to verify their identity by passing
   # a domain in the challenge transaction request and signing the challenge with the ``SIGNING_KEY`` on that domain's
   # SEP-1 stellar.toml. See the SEP-10 section `Verifying Client Application Identity` for more information
