@@ -15,6 +15,8 @@ plugins {
   id("com.bmuschko.docker-remote-api") version "9.3.7"
 }
 
+repositories { maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") } }
+
 dependencies {
   implementation(
       libs.snakeyaml) // used to force the version of snakeyaml (used by springboot) to a safer one.

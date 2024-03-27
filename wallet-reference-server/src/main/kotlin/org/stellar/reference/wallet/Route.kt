@@ -10,6 +10,11 @@ import io.ktor.server.routing.*
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.wallet.CallbackService.Companion.verifySignature
 import org.stellar.sdk.KeyPair
+import org.stellar.walletsdk.StellarConfiguration
+import org.stellar.walletsdk.Wallet
+import org.stellar.walletsdk.auth.WalletSigner
+import org.stellar.walletsdk.horizon.SigningKeyPair
+import org.stellar.walletsdk.horizon.sign
 
 var signer: KeyPair? = null
 val gson: Gson = GsonUtils.getInstance()
@@ -38,4 +43,18 @@ fun Route.callback(config: Config, callbackEventService: CallbackService) {
   }
 
   route("/callbacks/latest") { get { call.respond("GET /callbacks/latest") } }
+}
+
+fun Route.noncustodial(config: Config) {
+  val wallet = Wallet(StellarConfiguration.Testnet)
+  val key = SigningKeyPair.fromSecret(config.secret.key)
+
+  route("/signChallenge") {
+    post {
+      val body = call.receive<WalletSigner.DomainSigner.SigningData>()
+      val transaction = wallet.stellar().decodeTransaction(body.transaction)
+      val signed = transaction.sign(key).toEnvelopeXdrBase64()
+      call.respond(WalletSigner.DomainSigner.SigningData(signed, body.networkPassphrase))
+    }
+  }
 }

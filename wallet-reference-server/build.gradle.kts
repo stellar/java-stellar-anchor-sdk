@@ -7,6 +7,8 @@ plugins {
   alias(libs.plugins.ktor)
 }
 
+repositories { maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") } }
+
 dependencies {
   implementation(libs.bundles.ktor)
   implementation(libs.bundles.ktor.client)
@@ -17,6 +19,7 @@ dependencies {
   implementation(libs.kotlin.logging)
   implementation(libs.slf4j.simple)
   implementation(libs.toml4j)
+  implementation(libs.stellar.wallet.sdk)
   implementation(project(mapOf("path" to ":api-schema")))
 }
 

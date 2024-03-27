@@ -17,6 +17,7 @@ import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.client.Sep10Client
 import org.stellar.anchor.platform.*
+import org.stellar.sdk.KeyPair
 import org.stellar.sdk.Transaction
 import org.stellar.walletsdk.auth.DefaultAuthHeaderSigner
 import org.stellar.walletsdk.auth.WalletSigner
@@ -28,6 +29,10 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
   lateinit var sep10Client: Sep10Client
   lateinit var sep10ClientMultiSig: Sep10Client
   lateinit var webAuthDomain: String
+
+  private val walletDomain = config.env["wallet.server.url"]?.replace("http://", "")!!
+  private val walletUrl = config.env["wallet.server.url"]!!
+  private val domainSinger = WalletSigner.DomainSigner("$walletUrl/signChallenge")
 
   init {
     if (!::sep10Client.isInitialized) {
@@ -115,20 +120,18 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
 
   @Test
   fun testNonCustodial() = runBlocking {
-    val rnd = wallet.stellar().account().createKeyPair()
-    val domainSigner = WalletSigner.DomainSigner("https://demo-wallet-server.stellar.org/sign")
-    val token =
-      anchor
-        .sep10()
-        .authenticate(rnd, domainSigner, clientDomain = "demo-wallet-server.stellar.org")
-    assertEquals(rnd.address, token.account)
-    assertEquals("demo-wallet-server.stellar.org", token.clientDomain)
+    val accountKp = SigningKeyPair(KeyPair.random())
+    val token = anchor.sep10().authenticate(accountKp, domainSinger, clientDomain = walletDomain)
+
+    assertEquals(accountKp.address, token.account)
+    assertEquals(walletDomain, token.clientDomain)
   }
 
   @Test
-  fun testNonCustodialDummy() = runBlocking {
+  fun testNonCustodialWrongKey() = runBlocking {
     val rnd = wallet.stellar().account().createKeyPair()
     val dummyKey = wallet.stellar().account().createKeyPair()
+    // Sign with incorrect noncustodial key
     val dummySigner =
       object : WalletSigner.DefaultSigner() {
         override suspend fun signWithDomainAccount(
@@ -155,6 +158,13 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
     val memo = 1234567UL
 
     anchor.sep10().authenticate(accountKp, memoId = memo, authHeaderSigner = signer)
+    return@runBlocking
+  }
+
+  @Test
+  fun testNonCustodialWithAuthHeader() = runBlocking {
+    val accountKp = SigningKeyPair(KeyPair.random())
+    anchor.sep10().authenticate(accountKp, domainSinger, clientDomain = walletDomain)
     return@runBlocking
   }
 

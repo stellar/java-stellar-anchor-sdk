@@ -32,6 +32,8 @@ dependencies {
   testFixturesImplementation(project(":service-runner"))
   testFixturesImplementation(project(":lib-util"))
 
+  testFixturesImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+
   testImplementation(libs.stellar.wallet.sdk)
 }
 

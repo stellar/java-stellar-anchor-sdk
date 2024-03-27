@@ -462,7 +462,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  @LockAndMockStatic([NetUtil::class])
+  @LockAndMockStatic([NetUtil::class, Sep10Challenge::class])
   fun `Test create challenge request with empty memo`() {
     every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
     val cr =
@@ -609,10 +609,14 @@ internal class Sep10ServiceTest {
     every { NetUtil.fetch(any()) } returns
       "       NETWORK_PASSPHRASE=\"Public Global Stellar Network ; September 2015\"\n"
 
-    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> {
+      Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN, false)
+    }
 
     every { NetUtil.fetch(any()) } answers { throw IOException("Cannot connect") }
-    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> {
+      Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN, false)
+    }
 
     every { NetUtil.fetch(any()) } returns
       """
@@ -621,7 +625,9 @@ internal class Sep10ServiceTest {
       FEDERATION_SERVER="https://preview.lobstr.co/federation/"
       SIGNING_KEY="BADKEY"
       """
-    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> {
+      Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN, false)
+    }
   }
 
   @Test
