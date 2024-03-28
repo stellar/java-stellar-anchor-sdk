@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.fullName }}-svc-{{ .Values.services.platform.name }}
+  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ .Values.fullName }}-platform
     helm.sh/chart: {{ include "common.chart" . }}
