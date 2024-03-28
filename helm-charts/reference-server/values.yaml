@@ -1,4 +1,5 @@
 fullName: reference-server
+namespace: default
 
 secretStoreRefName: fake-secret-store
 

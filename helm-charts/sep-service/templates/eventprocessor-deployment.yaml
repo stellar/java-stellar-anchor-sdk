@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.fullName }}-svc-{{ .Values.services.eventProcessor.name }}
+  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ .Values.fullName }}-event-processor
     helm.sh/chart: {{ include "common.chart" . }}
@@ -14,6 +15,7 @@ spec:
       app: {{ .Values.fullName }}-svc-{{ .Values.services.eventProcessor.name }}
   template:
     metadata:
+      namespace: {{ .Values.namespace }}
       labels:
         app: {{ .Values.fullName }}-svc-{{ .Values.services.eventProcessor.name }}
     spec:
