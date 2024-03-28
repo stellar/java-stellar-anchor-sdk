@@ -20,6 +20,7 @@ import org.stellar.anchor.platform.*
 import org.stellar.sdk.KeyPair
 import org.stellar.sdk.Transaction
 import org.stellar.walletsdk.auth.DefaultAuthHeaderSigner
+import org.stellar.walletsdk.auth.DomainAuthHeaderSigner
 import org.stellar.walletsdk.auth.WalletSigner
 import org.stellar.walletsdk.horizon.AccountKeyPair
 import org.stellar.walletsdk.horizon.SigningKeyPair
@@ -144,9 +145,7 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
       }
     val ex =
       assertThrows<ClientRequestException> {
-        anchor
-          .sep10()
-          .authenticate(rnd, dummySigner, clientDomain = "demo-wallet-server.stellar.org")
+        anchor.sep10().authenticate(rnd, dummySigner, clientDomain = walletDomain)
       }
   }
 
@@ -164,7 +163,15 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
   @Test
   fun testNonCustodialWithAuthHeader() = runBlocking {
     val accountKp = SigningKeyPair(KeyPair.random())
-    anchor.sep10().authenticate(accountKp, domainSinger, clientDomain = walletDomain)
+    val domainAuthHeaderSigner = DomainAuthHeaderSigner("$walletUrl/signHeader")
+    anchor
+      .sep10()
+      .authenticate(
+        accountKp,
+        domainSinger,
+        clientDomain = walletDomain,
+        authHeaderSigner = domainAuthHeaderSigner
+      )
     return@runBlocking
   }
 

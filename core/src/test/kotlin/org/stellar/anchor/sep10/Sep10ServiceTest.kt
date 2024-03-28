@@ -13,6 +13,7 @@ import java.security.SecureRandom
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -773,7 +774,7 @@ internal class Sep10ServiceTest {
   // Signing with a domain signer
   private val domainSigner =
     object : DefaultAuthHeaderSigner() {
-      override fun createToken(
+      override suspend fun createToken(
         claims: Map<String, String>,
         clientDomain: String?,
         issuer: AccountKeyPair?
@@ -793,7 +794,7 @@ internal class Sep10ServiceTest {
   private val authEndpoint = "https://$TEST_WEB_AUTH_DOMAIN/auth"
 
   @Test
-  fun `test valid signature header for custodial`() {
+  fun `test valid signature header for custodial`() = runBlocking {
     val params = mapOf("account" to custodialKp.address, "memo" to custodialMemo)
     val token =
       createAuthSignToken(custodialKp, authEndpoint, params, authHeaderSigner = custodialSigner)
@@ -805,7 +806,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `test valid signature header for noncustodial`() {
+  fun `test valid signature header for noncustodial`() = runBlocking {
     val account = SigningKeyPair(KeyPair.random())
     val params = mapOf("account" to account.address, "client_domain" to clientDomain)
     val token = createAuthSignToken(account, authEndpoint, params, authHeaderSigner = domainSigner)
@@ -817,7 +818,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `test http works for testnet`() {
+  fun `test http works for testnet`() = runBlocking {
     val params = mapOf("account" to custodialKp.address, "memo" to custodialMemo)
     val token =
       createAuthSignToken(
@@ -843,7 +844,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `test invalid signature header for custodial`() {
+  fun `test invalid signature header for custodial`() = runBlocking {
     val params = mapOf("account" to custodialKp.address, "memo" to custodialMemo)
     // Sign with domain singer instead
     val token =
@@ -859,7 +860,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `test invalid signature header for noncustodial`() {
+  fun `test invalid signature header for noncustodial`() = runBlocking {
     val params = mapOf("account" to custodialKp.address, "client_domain" to clientDomain)
     val token =
       createAuthSignToken(
@@ -881,7 +882,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `test invalid url`() {
+  fun `test invalid url`() = runBlocking {
     val params = mapOf("account" to custodialKp.address, "memo" to custodialMemo)
     val token =
       createAuthSignToken(
@@ -901,7 +902,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `test params validation`() {
+  fun `test params validation`() = runBlocking {
     var params = mutableMapOf<String, String>()
     var token =
       createAuthSignToken(custodialKp, authEndpoint, params, authHeaderSigner = custodialSigner)
