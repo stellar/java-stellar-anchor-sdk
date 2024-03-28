@@ -1,0 +1,87 @@
+# Examples of client configurations:
+# custodial_clients:
+#   - name: circle
+#     type: custodial
+#     signing_key: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
+#     callback_url: https://callback.circle.com/api/v1/anchor/callback
+# noncustodial_clients:
+#   - name: lobstr
+#     type: noncustodial
+#     domain: lobstr.co
+#     callback_url: https://callback.lobstr.co/api/v2/anchor/callback
+#   - name: vibrant
+#     type: noncustodial
+#     domain: vibrant.co
+#     callback_url: https://callback.vibrant.com/api/v2/anchor/callback
+#     signing_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
+
+
+openapi: 3.0.0
+info:
+  title: Stellar Anchor Client Configuration API
+  version: "3.0"
+paths: {}
+components:
+  schemas:
+    ClientsConfig:
+      type: object
+      description: |-
+        Configuration for Stellar anchor clients, distinguishing between custodial and non-custodial clients.
+      properties:
+        custodial_clients:
+          type: array
+          description: List of custodial clients. Defaults to an empty list.
+          items:
+            $ref: '#/components/schemas/CustodialClientsConfig'
+        noncustodial_clients:
+          type: array
+          description: List of noncustodial clients. Defaults to an empty list.
+          items:
+            $ref: '#/components/schemas/NonCustodialClientsConfig'
+
+    CustodialClientsConfig:
+      type: object
+      description: |-
+        Configuration details for custodial clients, including their identification, authentication keys, and transaction settings.
+      properties:
+        name:
+          type: string
+          description: The unique name identifying the client.
+        signing_key:
+          type: string
+          description: The public key used for SEP-10 authentication.
+        callback_url:
+          type: string
+          description: Optional endpoint URL for callbacks.
+        allow_any_destination:
+          type: boolean
+          description: Permits sending assets to any destination account when true.
+        destination_accounts:
+          type: array
+          items:
+            type: string
+          description: List of allowed destination accounts for asset transfer.
+      required:
+        - name
+        - signing_key
+
+    NonCustodialClientsConfig:
+      type: object
+      description: |-
+        Configuration details for non-custodial clients, covering domain verification and callback settings.
+      properties:
+        name:
+          type: string
+          description: The unique name identifying the client.
+        domain:
+          type: string
+          description: The domain associated with the client for identity verification.
+        signing_key:
+          type: string
+          description: Public key for verifying client's identity against the domain's TOML file.
+        callback_url:
+          type: string
+          description: Endpoint for callbacks, similar to custodial client settings.
+      required:
+        - name
+        - domain
