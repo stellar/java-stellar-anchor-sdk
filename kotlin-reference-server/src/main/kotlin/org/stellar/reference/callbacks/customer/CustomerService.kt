@@ -5,6 +5,8 @@ import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetCustomerResponse
 import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerResponse
+import org.stellar.anchor.api.sep.sep12.ProvidedFieldStatus
+import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.shared.CustomerField
 import org.stellar.anchor.api.shared.ProvidedCustomerField
 import org.stellar.reference.callbacks.BadRequestException
@@ -12,7 +14,6 @@ import org.stellar.reference.callbacks.NotFoundException
 import org.stellar.reference.dao.CustomerRepository
 import org.stellar.reference.log
 import org.stellar.reference.model.Customer
-import org.stellar.reference.model.Status
 
 class CustomerService(private val customerRepository: CustomerRepository) {
   fun getCustomer(request: GetCustomerRequest): GetCustomerResponse {
@@ -208,7 +209,6 @@ class CustomerService(private val customerRepository: CustomerRepository) {
             customer.mobileNumber,
             "string",
             "The customer's mobile number",
-            optional = true,
           ),
         "email_address" to
           createField(customer.emailAddress, "string", "The customer's email address"),
@@ -397,8 +397,8 @@ class CustomerService(private val customerRepository: CustomerRepository) {
 
     val status =
       when {
-        missingFields.filter { !it.value.optional }.isNotEmpty() -> Status.NEEDS_INFO
-        else -> Status.ACCEPTED
+        missingFields.filter { !it.value.optional }.isNotEmpty() -> Sep12Status.NEEDS_INFO
+        else -> Sep12Status.ACCEPTED
       }.toString()
 
     return GetCustomerResponse.builder()
@@ -428,7 +428,7 @@ class CustomerService(private val customerRepository: CustomerRepository) {
           ProvidedCustomerField.builder()
             .type(type)
             .description(description)
-            .status(Status.ACCEPTED.toString())
+            .status(ProvidedFieldStatus.ACCEPTED.toString())
             .optional(optional)
         if (choices != null) {
           builder = builder.choices(choices)

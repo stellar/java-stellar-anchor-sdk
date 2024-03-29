@@ -32,7 +32,7 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
   fun `test put, get customers`() = runBlocking {
     customerJson
     val customer = Json.decodeFromString<Map<String, String>>(customerJson).toMutableMap()
-    customer.remove("emailAddress")
+    customer.remove("email_address")
 
     // Upload a customer
     printRequest("Calling PUT /customer", customer)
@@ -45,8 +45,9 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
     printResponse(gr)
 
     assertEquals(pr.id, gr.id)
+    assertEquals(Sep12Status.NEEDS_INFO.name, gr.status!!.status)
 
-    customer["emailAddress"] = "john.doe@stellar.org"
+    customer["email_address"] = "john.doe@stellar.org"
 
     // Modify the customer
     printRequest("Calling PUT /customer", customer)
@@ -172,6 +173,7 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
 {
   "first_name": "John",
   "last_name": "Doe",
+  "mobile_number": "1234567890",
   "email_address": "johndoe@test.com",
   "address": "123 Washington Street",
   "city": "San Francisco",
@@ -189,6 +191,7 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
 {
   "first_name": "John",
   "last_name": "Doe",
+  "mobile_number": "1234567890",
   "email_address": "johndoe@test.com",
   "address": "123 Washington Street",
   "city": "San Francisco",
@@ -206,6 +209,7 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
 {
   "first_name": "Jane",
   "last_name": "Doe",
+  "mobile_number": "0123456789",
   "email_address": "janedoe@test.com",
   "address": "321 Washington Street",
   "city": "San Francisco",
