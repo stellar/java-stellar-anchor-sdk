@@ -13,6 +13,7 @@ import org.stellar.anchor.auth.*
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.platform.utils.toSecretKey
 
 @ExtendWith(LockAndMockTest::class)
 class PlatformIntegrationHelperTest {
@@ -47,9 +48,9 @@ class PlatformIntegrationHelperTest {
             null,
             null,
             null,
-            "ssecretsecretsecretsecretecretsecretsecretsecret",
-            "ssecretsecretsecretsecretecretsecretsecretsecret",
-            "ssecretsecretsecretsecretecretsecretsecretsecret"
+            "ssecretsecretsecretsecretecretsecretsecretsecret".toSecretKey(),
+            "ssecretsecretsecretsecretecretsecretsecretsecret".toSecretKey(),
+            "ssecretsecretsecretsecretecretsecretsecretsecret".toSecretKey()
           )
         val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
 

@@ -129,7 +129,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
           }
         }
       }
-      if (isEmpty(secretConfig.getSep24InteractiveUrlJwtSecret())) {
+      if (secretConfig.getSep24InteractiveUrlJwtSecret() == null) {
         errors.reject(
             "sep24-interactive-url-jwt-secret-not-defined",
             "Please set the secret.sep24.interactive_url.jwt_secret or SECRET_SEP24_INTERACTIVE_URL_JWT_SECRET environment variable");
@@ -169,7 +169,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
           }
         }
       }
-      if (isEmpty(secretConfig.getSep24MoreInfoUrlJwtSecret())) {
+      if (secretConfig.getSep24MoreInfoUrlJwtSecret() == null) {
         errors.reject(
             "sep24-more-info-url-jwt-secret-not-defined",
             "Please set the secret.sep24.more_info_url.jwt_secret or SECRET_SEP24_MORE_INFO_URL_JWT_SECRET environment variable");

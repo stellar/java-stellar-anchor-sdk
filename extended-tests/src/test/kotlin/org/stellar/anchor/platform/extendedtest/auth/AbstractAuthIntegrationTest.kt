@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.extendedtest.auth
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.platform.TestProfileExecutor
+import org.stellar.anchor.platform.testutil.toSecretKey
 
 abstract class AbstractAuthIntegrationTest {
   companion object {
@@ -26,18 +27,18 @@ abstract class AbstractAuthIntegrationTest {
         null,
         null,
         null,
-        PLATFORM_TO_ANCHOR_SECRET,
-        ANCHOR_TO_PLATFORM_SECRET,
-        PLATFORM_TO_CUSTODY_SECRET
+        PLATFORM_TO_ANCHOR_SECRET.toSecretKey(),
+        ANCHOR_TO_PLATFORM_SECRET.toSecretKey(),
+        PLATFORM_TO_CUSTODY_SECRET.toSecretKey()
       )
     private val jwtWrongKeyService =
       JwtService(
         null,
         null,
         null,
-        PLATFORM_TO_ANCHOR_SECRET + "bad",
-        ANCHOR_TO_PLATFORM_SECRET + "bad",
-        PLATFORM_TO_CUSTODY_SECRET + "bad"
+        (PLATFORM_TO_ANCHOR_SECRET + "bad").toSecretKey(),
+        (ANCHOR_TO_PLATFORM_SECRET + "bad").toSecretKey(),
+        (PLATFORM_TO_CUSTODY_SECRET + "bad").toSecretKey()
       )
 
     internal val jwtAuthHelper = AuthHelper.forJwtToken(jwtService, 10000)

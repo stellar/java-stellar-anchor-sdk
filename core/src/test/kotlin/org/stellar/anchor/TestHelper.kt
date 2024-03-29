@@ -1,6 +1,8 @@
 package org.stellar.anchor
 
+import javax.crypto.SecretKey
 import org.stellar.anchor.auth.Sep10Jwt
+import org.stellar.anchor.util.KeyUtil.toSecretKeySpecOrNull
 
 class TestHelper {
   companion object {
@@ -26,4 +28,8 @@ class TestHelper {
       )
     }
   }
+}
+
+fun String.toSecretKey(): SecretKey {
+  return toSecretKeySpecOrNull(this)
 }

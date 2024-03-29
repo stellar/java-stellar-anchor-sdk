@@ -1,7 +1,10 @@
 package org.stellar.anchor.auth;
 
+import static org.stellar.anchor.util.KeyUtil.toSecretKeySpecOrNull;
+
 import java.util.Calendar;
 import javax.annotation.Nullable;
+import javax.crypto.SecretKey;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.CustodyAuthJwt;
@@ -21,8 +24,9 @@ public class AuthHelper {
   public static AuthHelper from(AuthType type, String secret, long jwtExpirationMilliseconds) {
     switch (type) {
       case JWT:
+        SecretKey key = toSecretKeySpecOrNull(secret);
         return AuthHelper.forJwtToken(
-            new JwtService(null, null, null, secret, secret, secret), jwtExpirationMilliseconds);
+            new JwtService(null, null, null, key, key, key), jwtExpirationMilliseconds);
       case API_KEY:
         return AuthHelper.forApiKey(secret);
       default:

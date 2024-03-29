@@ -56,6 +56,7 @@ import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.horizon.Horizon
+import org.stellar.anchor.toSecretKey
 import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil
@@ -129,7 +130,7 @@ internal class Sep10ServiceTest {
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
 
     every { secretConfig.sep10SigningSeed } returns TEST_SIGNING_SEED
-    every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
+    every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET.toSecretKey()
 
     this.jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
     this.sep10Service =

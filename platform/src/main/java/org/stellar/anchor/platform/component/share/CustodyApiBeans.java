@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.component.share;
 
+import static org.stellar.anchor.util.KeyUtil.toSecretKeySpecOrNull;
+
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
@@ -38,7 +40,7 @@ public class CustodyApiBeans {
     switch (custodyApiConfig.getAuth().getType()) {
       case JWT:
         return AuthHelper.forJwtToken(
-            new JwtService(null, null, null, null, null, authSecret),
+            new JwtService(null, null, null, null, null, toSecretKeySpecOrNull(authSecret)),
             Long.parseLong(custodyApiConfig.getAuth().getJwt().getExpirationMilliseconds()));
       case API_KEY:
         return AuthHelper.forApiKey(authSecret);

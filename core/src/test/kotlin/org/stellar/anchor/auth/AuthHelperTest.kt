@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.auth.ApiAuthJwt.*
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.lockAndMockStatic
+import org.stellar.anchor.toSecretKey
 import org.stellar.anchor.util.AuthHeader
 
 @Order(86)
@@ -55,9 +56,9 @@ class AuthHelperTest {
               null,
               null,
               null,
-              "secresecresecresecresecretttttsecret",
-              "secresecresecresecresecretttttsecret",
-              "secresecresecresecresecretttttsecret"
+              "secresecresecresecresecretttttsecret".toSecretKey(),
+              "secresecresecresecresecretttttsecret".toSecretKey(),
+              "secresecresecresecresecretttttsecret".toSecretKey()
             )
           val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
           val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()

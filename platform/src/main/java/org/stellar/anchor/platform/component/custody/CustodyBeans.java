@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.component.custody;
 
+import static org.stellar.anchor.util.KeyUtil.toSecretKeySpecOrNull;
+
 import java.util.concurrent.TimeUnit;
 import javax.servlet.Filter;
 import okhttp3.OkHttpClient;
@@ -36,7 +38,8 @@ public class CustodyBeans {
     Filter platformToCustody;
     switch (custodyApiConfig.getAuth().getType()) {
       case JWT:
-        JwtService jwtService = new JwtService(null, null, null, null, null, authSecret);
+        JwtService jwtService =
+            new JwtService(null, null, null, null, null, toSecretKeySpecOrNull(authSecret));
         platformToCustody = new CustodyAuthJwtFilter(jwtService);
         break;
 

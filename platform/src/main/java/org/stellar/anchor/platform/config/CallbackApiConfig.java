@@ -66,6 +66,10 @@ public class CallbackApiConfig implements Validator {
             "Please set environment variable secret.callback_api.auth_secret or SECRET.CALLBACK_API.AUTH_SECRET");
       }
 
+      if (auth.getType().equals(AuthType.JWT)) {
+        secretConfig.getCallbackAuthSecret();
+      }
+
       if (AuthType.JWT == auth.getType()) {
         if (Long.parseLong(auth.getJwt().getExpirationMilliseconds()) < MIN_EXPIRATION) {
           errors.rejectValue(

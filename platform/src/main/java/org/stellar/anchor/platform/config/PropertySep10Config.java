@@ -95,7 +95,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       }
     }
 
-    if (isEmpty(secretConfig.getSep10JwtSecretKey())) {
+    if (secretConfig.getSep10JwtSecretKey() == null) {
       errors.reject(
           "sep10-jwt-secret-empty",
           "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");

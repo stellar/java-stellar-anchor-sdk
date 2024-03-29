@@ -21,6 +21,7 @@ import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.filter.Sep10JwtFilter.APPLICATION_JSON_VALUE
 import org.stellar.anchor.filter.Sep10JwtFilter.JWT_TOKEN
+import org.stellar.anchor.toSecretKey
 
 @Order(85)
 internal class Sep10JwtFilterTest {
@@ -42,7 +43,8 @@ internal class Sep10JwtFilterTest {
     this.appConfig = mockk(relaxed = true)
     this.secretConfig = mockk(relaxed = true)
     this.custodySecretConfig = mockk(relaxed = true)
-    every { secretConfig.sep10JwtSecretKey } returns "secresecresecresecresecretttttsecret"
+    every { secretConfig.sep10JwtSecretKey } returns
+      "secresecresecresecresecretttttsecret".toSecretKey()
     this.jwtService = JwtService(secretConfig, custodySecretConfig)
     this.sep10TokenFilter = Sep10JwtFilter(jwtService)
     this.request = mockk(relaxed = true)

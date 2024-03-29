@@ -66,6 +66,11 @@ public class CustodyApiConfig implements Validator {
             "Please set environment variable secret.custody_server.auth_secret or SECRET.CUSTODY_SERVER.AUTH_SECRET");
       }
 
+      if (auth.getType().equals(JWT)) {
+        // Throws if secret key is invalid
+        secretConfig.getCustodyAuthSecretKey();
+      }
+
       if (List.of(API_KEY, JWT).contains(auth.getType())) {
         if (auth.getSecret() == null) {
           errors.rejectValue(

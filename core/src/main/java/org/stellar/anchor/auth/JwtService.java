@@ -1,12 +1,9 @@
 package org.stellar.anchor.auth;
 
 import static java.util.Date.from;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.Security;
 import java.security.spec.X509EncodedKeySpec;
@@ -50,24 +47,24 @@ public class JwtService {
         secretConfig.getSep10JwtSecretKey(),
         secretConfig.getSep24InteractiveUrlJwtSecret(),
         secretConfig.getSep24MoreInfoUrlJwtSecret(),
-        secretConfig.getCallbackAuthSecret(),
-        secretConfig.getPlatformAuthSecret(),
-        custodySecretConfig.getCustodyAuthSecret());
+        secretConfig.getCallbackAuthSecretKey(),
+        secretConfig.getPlatformAuthSecretKey(),
+        custodySecretConfig.getCustodyAuthSecretKey());
   }
 
   public JwtService(
-      String sep10JwtSecret,
-      String sep24InteractiveUrlJwtSecret,
-      String sep24MoreInfoUrlJwtSecret,
-      String callbackAuthSecret,
-      String platformAuthSecret,
-      String custodyAuthSecret) {
-    this.sep10JwtSecret = toSecretKeySpecOrNull(sep10JwtSecret);
-    this.sep24InteractiveUrlJwtSecret = toSecretKeySpecOrNull(sep24InteractiveUrlJwtSecret);
-    this.sep24MoreInfoUrlJwtSecret = toSecretKeySpecOrNull(sep24MoreInfoUrlJwtSecret);
-    this.callbackAuthSecret = toSecretKeySpecOrNull(callbackAuthSecret);
-    this.platformAuthSecret = toSecretKeySpecOrNull(platformAuthSecret);
-    this.custodyAuthSecret = toSecretKeySpecOrNull(custodyAuthSecret);
+      SecretKey sep10JwtSecret,
+      SecretKey sep24InteractiveUrlJwtSecret,
+      SecretKey sep24MoreInfoUrlJwtSecret,
+      SecretKey callbackAuthSecret,
+      SecretKey platformAuthSecret,
+      SecretKey custodyAuthSecret) {
+    this.sep10JwtSecret = sep10JwtSecret;
+    this.sep24InteractiveUrlJwtSecret = sep24InteractiveUrlJwtSecret;
+    this.sep24MoreInfoUrlJwtSecret = sep24MoreInfoUrlJwtSecret;
+    this.callbackAuthSecret = callbackAuthSecret;
+    this.platformAuthSecret = platformAuthSecret;
+    this.custodyAuthSecret = custodyAuthSecret;
 
     // Required for Ed25519 keys
     Security.addProvider(new BouncyCastleProvider());
@@ -188,10 +185,6 @@ public class JwtService {
     } else {
       return (T) CallbackAuthJwt.class.getConstructor(Jwt.class).newInstance(jwt);
     }
-  }
-
-  private SecretKey toSecretKeySpecOrNull(String secret) {
-    return isEmpty(secret) ? null : Keys.hmacShaKeyFor(((secret.getBytes(StandardCharsets.UTF_8))));
   }
 
   @SneakyThrows

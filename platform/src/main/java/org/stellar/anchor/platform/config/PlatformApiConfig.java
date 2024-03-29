@@ -41,6 +41,10 @@ public class PlatformApiConfig implements Validator {
             "Please set environment variable secret.platform_api.auth_secret or SECRET.PLATFORM_API.AUTH_SECRET");
       }
 
+      if (auth.getType().equals(JWT)) {
+        secretConfig.getPlatformAuthSecretKey();
+      }
+
       PlatformApiConfig config = (PlatformApiConfig) target;
       if (List.of(API_KEY, JWT).contains(config.getAuth().getType())) {
         if (config.getAuth().getSecret() == null) {

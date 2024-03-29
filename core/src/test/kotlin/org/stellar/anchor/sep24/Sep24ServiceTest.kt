@@ -47,6 +47,7 @@ import org.stellar.anchor.event.EventService
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator
+import org.stellar.anchor.toSecretKey
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
@@ -140,9 +141,9 @@ internal class Sep24ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
-    every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
-    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns TEST_JWT_SECRET
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns TEST_JWT_SECRET
+    every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET.toSecretKey()
+    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns TEST_JWT_SECRET.toSecretKey()
+    every { secretConfig.sep24InteractiveUrlJwtSecret } returns TEST_JWT_SECRET.toSecretKey()
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
     jwtService = spyk(JwtService(secretConfig, custodySecretConfig))

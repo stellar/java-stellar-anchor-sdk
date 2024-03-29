@@ -35,6 +35,7 @@ import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
+import org.stellar.anchor.toSecretKey
 import org.stellar.anchor.util.Log.debug
 import org.stellar.anchor.util.StringHelper.json
 
@@ -80,7 +81,8 @@ class Sep38ServiceTest {
     assertEquals(4, assets.size)
 
     // sep10 related:
-    every { secretConfig.sep10JwtSecretKey } returns "secret"
+    every { secretConfig.sep10JwtSecretKey } returns
+      "secretsecresecretsecresecretsecretttsecretsecret".toSecretKey()
     // store/db related:
     every { mockQuoteStore.newInstance() } returns PojoSep38Quote()
     // events related:

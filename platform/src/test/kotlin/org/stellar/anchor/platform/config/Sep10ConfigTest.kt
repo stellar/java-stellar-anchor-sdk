@@ -14,6 +14,7 @@ import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
+import org.stellar.anchor.platform.utils.toSecretKey
 
 class Sep10ConfigTest {
   lateinit var config: PropertySep10Config
@@ -69,7 +70,8 @@ class Sep10ConfigTest {
     errors = BindException(config, "config")
     every { secretConfig.sep10SigningSeed } returns
       "SDNMFWJGLVR4O2XV3SNEJVF53MMLQWYFYFC7HT7JZ5235AXPETHB4K3D"
-    every { secretConfig.sep10JwtSecretKey } returns "secret"
+    every { secretConfig.sep10JwtSecretKey } returns
+      "secresecresecresecresecresecrettttttsecret".toSecretKey()
   }
 
   @Test
