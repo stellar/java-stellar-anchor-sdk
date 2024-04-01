@@ -13,6 +13,7 @@ import org.springframework.validation.Errors
 import org.stellar.anchor.auth.AuthConfig
 import org.stellar.anchor.auth.AuthType.JWT
 import org.stellar.anchor.platform.utils.toSecretKey
+import org.stellar.anchor.util.KeyUtil
 
 class CallbackApiConfigTest {
   lateinit var config: CallbackApiConfig
@@ -78,7 +79,7 @@ class CallbackApiConfigTest {
   @NullSource
   fun `test empty secret`(secretValue: String?) {
     every { secretConfig.callbackAuthSecret } returns secretValue
-    every { secretConfig.callbackAuthSecretKey } returns secretValue?.toSecretKey()
+    every { secretConfig.callbackAuthSecretKey } returns KeyUtil.toSecretKeySpecOrNull(secretValue)
     config.setAuth(
       AuthConfig(
         JWT,
