@@ -15,6 +15,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
+import org.stellar.anchor.toSecretKey
 
 class AbstractJwtFilterTest {
   private lateinit var jwtService: JwtService
@@ -23,7 +24,8 @@ class AbstractJwtFilterTest {
   fun setup() {
     val secretConfig = mockk<SecretConfig>(relaxed = true)
     val custodySecretConfig = mockk<CustodySecretConfig>(relaxed = true)
-    every { secretConfig.sep10JwtSecretKey } returns "secret"
+    every { secretConfig.sep10JwtSecretKey } returns
+      "secretsecresecretsecresecretsecresecretsecresecretsecretttttsecretsecret".toSecretKey()
     this.jwtService = JwtService(secretConfig, custodySecretConfig)
   }
 

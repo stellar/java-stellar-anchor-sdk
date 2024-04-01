@@ -27,7 +27,10 @@ public class CustodyApiConfig implements Validator {
   }
 
   public void setAuth(AuthConfig auth) {
-    auth.setSecret(secretConfig.getCustodyAuthSecret());
+    auth.setSecretString(secretConfig.getCustodyAuthSecret());
+    if (auth.getType().equals(AuthType.JWT)) {
+      auth.setSecretJwt(secretConfig.getCustodyAuthSecretKey());
+    }
     this.auth = auth;
   }
 
@@ -66,13 +69,8 @@ public class CustodyApiConfig implements Validator {
             "Please set environment variable secret.custody_server.auth_secret or SECRET.CUSTODY_SERVER.AUTH_SECRET");
       }
 
-      if (auth.getType().equals(JWT)) {
-        // Throws if secret key is invalid
-        secretConfig.getCustodyAuthSecretKey();
-      }
-
       if (List.of(API_KEY, JWT).contains(auth.getType())) {
-        if (auth.getSecret() == null) {
+        if (auth.getSecretString() == null) {
           errors.rejectValue(
               "secret",
               "empty-secret",

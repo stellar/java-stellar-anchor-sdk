@@ -1,5 +1,7 @@
 package org.stellar.anchor.auth;
 
+import javax.annotation.Nullable;
+import javax.crypto.SecretKey;
 import lombok.*;
 
 @Setter
@@ -8,7 +10,9 @@ import lombok.*;
 @NoArgsConstructor
 public class AuthConfig {
   AuthType type;
-  String secret;
+  String secretString;
+  @Nullable // Only not-null when type is JWT
+  SecretKey secretJwt;
   JwtConfig jwt;
   ApiKeyConfig apiKey;
 

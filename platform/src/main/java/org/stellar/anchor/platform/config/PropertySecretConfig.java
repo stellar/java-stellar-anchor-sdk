@@ -25,8 +25,9 @@ public class PropertySecretConfig implements SecretConfig {
   public static final String SECRET_EVENTS_QUEUE_KAFKA_PASSWORD =
       "secret.events.queue.kafka.password";
 
-  public String getSep6MoreInfoUrlJwtSecret() {
-    return SecretManager.getInstance().get(SECRET_SEP_6_MORE_INFO_URL_JWT_SECRET);
+  public SecretKey getSep6MoreInfoUrlJwtSecret() {
+    return toSecretKeySpecOrNull(
+        SecretManager.getInstance().get(SECRET_SEP_6_MORE_INFO_URL_JWT_SECRET));
   }
 
   public SecretKey getSep10JwtSecretKey() {

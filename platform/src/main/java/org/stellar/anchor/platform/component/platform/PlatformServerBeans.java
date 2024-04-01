@@ -54,7 +54,8 @@ public class PlatformServerBeans {
                 null,
                 config.getSecretConfig().getPlatformAuthSecretKey(),
                 null);
-        anchorToPlatformFilter = new PlatformAuthJwtFilter(jwtService);
+        anchorToPlatformFilter =
+            new PlatformAuthJwtFilter(jwtService, config.getAuth().getJwt().getHttpHeader());
         break;
 
       case API_KEY:

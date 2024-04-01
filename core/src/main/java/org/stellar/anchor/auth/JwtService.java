@@ -100,7 +100,7 @@ public class JwtService {
   }
 
   public String encode(MoreInfoUrlJwt token) throws InvalidConfigException {
-    String secret = getMoreInfoUrlSecret(token);
+    var secret = getMoreInfoUrlSecret(token);
 
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
@@ -109,10 +109,10 @@ public class JwtService {
       builder.claim(claim.getKey(), claim.getValue());
     }
 
-    return builder.signWith(sep24InteractiveUrlJwtSecret, Jwts.SIG.HS256).compact();
+    return builder.signWith(secret, Jwts.SIG.HS256).compact();
   }
 
-  private String getMoreInfoUrlSecret(MoreInfoUrlJwt token) throws InvalidConfigException {
+  private SecretKey getMoreInfoUrlSecret(MoreInfoUrlJwt token) throws InvalidConfigException {
     if (token instanceof Sep6MoreInfoUrlJwt && sep6MoreInfoUrlJwtSecret != null) {
       return sep6MoreInfoUrlJwtSecret;
     } else if (token instanceof Sep24MoreInfoUrlJwt && sep24MoreInfoUrlJwtSecret != null) {
@@ -135,7 +135,7 @@ public class JwtService {
       builder.claim(claim.getKey(), claim.getValue());
     }
 
-    return builder.signWith(sep24MoreInfoUrlJwtSecret, Jwts.SIG.HS256).compact();
+    return builder.signWith(sep24InteractiveUrlJwtSecret, Jwts.SIG.HS256).compact();
   }
 
   public String encode(CallbackAuthJwt token) throws InvalidConfigException {

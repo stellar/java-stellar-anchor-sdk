@@ -61,6 +61,7 @@ class CallbackApiConfigTest {
       AuthConfig(
         JWT,
         null,
+        null,
         AuthConfig.JwtConfig("30000", "Authorization"),
         AuthConfig.ApiKeyConfig("X-Api-Key")
       )
@@ -77,6 +78,7 @@ class CallbackApiConfigTest {
     config.setAuth(
       AuthConfig(
         JWT,
+        null,
         null,
         AuthConfig.JwtConfig("30000", "Authorization"),
         AuthConfig.ApiKeyConfig("X-Api-Key")

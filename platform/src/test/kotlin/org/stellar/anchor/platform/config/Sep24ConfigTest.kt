@@ -18,7 +18,7 @@ import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config.DepositInfoGeneratorType
 import org.stellar.anchor.config.Sep24Config.Features
 import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig
-import org.stellar.anchor.platform.config.PropertySep24Config.MoreInfoUrlConfig
+import org.stellar.anchor.platform.utils.toSecretKey
 
 class Sep24ConfigTest {
   lateinit var config: PropertySep24Config

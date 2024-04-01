@@ -15,6 +15,7 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep6Config
+import org.stellar.anchor.platform.utils.toSecretKey
 
 class Sep6ConfigTest {
   @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
@@ -28,7 +29,8 @@ class Sep6ConfigTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
-    every { secretConfig.sep6MoreInfoUrlJwtSecret } returns "more_info url jwt secret"
+    every { secretConfig.sep6MoreInfoUrlJwtSecret } returns
+      "more_info url jwt secret more_info url jwt secret 12345".toSecretKey()
     config =
       PropertySep6Config(custodyConfig, assetService, secretConfig).apply {
         enabled = true

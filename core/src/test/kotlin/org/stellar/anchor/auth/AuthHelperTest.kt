@@ -77,7 +77,8 @@ class AuthHelperTest {
               "secresecresecresecresecretttttsecret".toSecretKey(),
               "secresecresecresecresecretttttsecret".toSecretKey()
             )
-          val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
+          val authHelper =
+            AuthHelper.forJwtToken(headerName, jwtService, JWT_EXPIRATION_MILLISECONDS)
           val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()
           val wantPlatformAuthHeader =
             AuthHeader(headerName, "Bearer ${jwtService.encode(wantPlatformJwt)}")

@@ -16,12 +16,13 @@ public class PlatformApiClientBeans {
 
   @Bean
   AuthHelper authHelper(PlatformApiConfig platformApiConfig) {
-    String secret = platformApiConfig.getAuth().getSecret();
+    String secret = platformApiConfig.getAuth().getSecretString();
     switch (platformApiConfig.getAuth().getType()) {
       case JWT:
+        var secretJwt = platformApiConfig.getAuth().getSecretJwt();
         return AuthHelper.forJwtToken(
             platformApiConfig.getAuth().getJwt().getHttpHeader(),
-            new JwtService(null, null, null, null, secret, secret, secret),
+            new JwtService(null, null, null, null, secretJwt, secretJwt, secretJwt),
             Long.parseLong(platformApiConfig.getAuth().getJwt().getExpirationMilliseconds()));
       case API_KEY:
         return AuthHelper.forApiKey(

@@ -29,7 +29,10 @@ public class CallbackApiConfig implements Validator {
   }
 
   public void setAuth(AuthConfig auth) {
-    auth.setSecret(secretConfig.getCallbackAuthSecret());
+    auth.setSecretString(secretConfig.getCallbackAuthSecret());
+    if (auth.getType().equals(AuthType.JWT)) {
+      auth.setSecretJwt(secretConfig.getCallbackAuthSecretKey());
+    }
     this.auth = auth;
   }
 
@@ -67,10 +70,6 @@ public class CallbackApiConfig implements Validator {
             "Please set environment variable secret.callback_api.auth_secret or SECRET.CALLBACK_API.AUTH_SECRET");
       }
 
-      if (auth.getType().equals(AuthType.JWT)) {
-        secretConfig.getCallbackAuthSecret();
-      }
-
       if (AuthType.JWT == auth.getType()) {
         if (Long.parseLong(auth.getJwt().getExpirationMilliseconds()) < MIN_EXPIRATION) {
           errors.rejectValue(
@@ -83,12 +82,13 @@ public class CallbackApiConfig implements Validator {
   }
 
   public AuthHelper buildAuthHelper() {
-    String secret = getAuth().getSecret();
+    String secret = getAuth().getSecretString();
     switch (getAuth().getType()) {
       case JWT:
+        var secretJwt = getAuth().getSecretJwt();
         return AuthHelper.forJwtToken(
             getAuth().getJwt().getHttpHeader(),
-            new JwtService(null, null, null, null, secret, secret, secret),
+            new JwtService(null, null, null, null, secretJwt, secretJwt, secretJwt),
             Long.parseLong(getAuth().getJwt().getExpirationMilliseconds()));
       case API_KEY:
         return AuthHelper.forApiKey(getAuth().getApiKey().getHttpHeader(), secret);

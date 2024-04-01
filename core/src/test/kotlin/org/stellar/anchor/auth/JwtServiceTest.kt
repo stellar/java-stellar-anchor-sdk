@@ -34,7 +34,8 @@ internal class JwtServiceTest {
   fun setup() {
     secretConfig = mockk()
     custodySecretConfig = mockk()
-    every { secretConfig.sep6MoreInfoUrlJwtSecret } returns "jwt_secret"
+    every { secretConfig.sep6MoreInfoUrlJwtSecret } returns
+      "jwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrejwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrettjwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secret".toSecretKey()
     every { secretConfig.sep10JwtSecretKey } returns
       "jwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrejwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrettjwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secret".toSecretKey()
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns

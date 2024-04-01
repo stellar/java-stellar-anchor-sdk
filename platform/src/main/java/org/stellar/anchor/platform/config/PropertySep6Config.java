@@ -100,7 +100,7 @@ public class PropertySep6Config implements Sep6Config, Validator {
           }
         }
       }
-      if (isEmpty(secretConfig.getSep6MoreInfoUrlJwtSecret())) {
+      if (secretConfig.getSep6MoreInfoUrlJwtSecret() == null) {
         errors.reject(
             "sep6-more-info-url-jwt-secret-not-defined",
             "Please set the secret.sep6.more_info_url.jwt_secret or SECRET_SEP6_MORE_INFO_URL_JWT_SECRET environment variable");
