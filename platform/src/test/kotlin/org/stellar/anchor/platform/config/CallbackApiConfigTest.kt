@@ -12,6 +12,7 @@ import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.auth.AuthConfig
 import org.stellar.anchor.auth.AuthType.JWT
+import org.stellar.anchor.platform.utils.toSecretKey
 
 class CallbackApiConfigTest {
   lateinit var config: CallbackApiConfig
@@ -56,7 +57,9 @@ class CallbackApiConfigTest {
 
   @Test
   fun `test JWT_TOKEN callback api secret`() {
-    every { secretConfig.callbackAuthSecret } returns "secret"
+    val secret = "secresecresecresecresecresecresecresecresecresecrettttttttttsecret"
+    every { secretConfig.callbackAuthSecret } returns secret
+    every { secretConfig.callbackAuthSecretKey } returns secret.toSecretKey()
     config.setAuth(
       AuthConfig(
         JWT,
@@ -75,6 +78,7 @@ class CallbackApiConfigTest {
   @NullSource
   fun `test empty secret`(secretValue: String?) {
     every { secretConfig.callbackAuthSecret } returns secretValue
+    every { secretConfig.callbackAuthSecretKey } returns secretValue?.toSecretKey()
     config.setAuth(
       AuthConfig(
         JWT,

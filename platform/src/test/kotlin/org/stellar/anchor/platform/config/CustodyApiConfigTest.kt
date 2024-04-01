@@ -30,8 +30,9 @@ class CustodyApiConfigTest {
       "testCustodyApiSecrettestCustodyApiSecret".toSecretKey()
     config = CustodyApiConfig(secretConfig)
     config.baseUrl = "https://test.com"
-    config.auth = AuthConfig()
-    config.auth.type = JWT
+    val authConfig = AuthConfig()
+    authConfig.type = JWT
+    config.auth = authConfig
     config.httpClient = HttpClientConfig(10, 30, 30, 60)
     errors = BindException(config, "config")
   }
