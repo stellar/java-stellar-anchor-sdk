@@ -173,7 +173,6 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
 {
   "first_name": "John",
   "last_name": "Doe",
-  "mobile_number": "1234567890",
   "email_address": "johndoe@test.com",
   "address": "123 Washington Street",
   "city": "San Francisco",
@@ -191,7 +190,6 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
 {
   "first_name": "John",
   "last_name": "Doe",
-  "mobile_number": "1234567890",
   "email_address": "johndoe@test.com",
   "address": "123 Washington Street",
   "city": "San Francisco",
@@ -209,7 +207,6 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
 {
   "first_name": "Jane",
   "last_name": "Doe",
-  "mobile_number": "0123456789",
   "email_address": "janedoe@test.com",
   "address": "321 Washington Street",
   "city": "San Francisco",

@@ -209,6 +209,7 @@ class CustomerService(private val customerRepository: CustomerRepository) {
             customer.mobileNumber,
             "string",
             "The customer's mobile number",
+            optional = true,
           ),
         "email_address" to
           createField(customer.emailAddress, "string", "The customer's email address"),
