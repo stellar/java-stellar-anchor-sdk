@@ -22,6 +22,8 @@ import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.CustodyAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;
+import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt;
+import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep6MoreInfoUrlJwt;
 import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.util.Log;
@@ -34,6 +36,7 @@ public class JwtService {
   public static final String HOME_DOMAIN = "home_domain";
   public static final String CLIENT_NAME = "client_name";
 
+  SecretKey sep6MoreInfoUrlJwtSecret;
   SecretKey sep10JwtSecret;
   SecretKey sep24InteractiveUrlJwtSecret;
   SecretKey sep24MoreInfoUrlJwtSecret;
@@ -44,6 +47,7 @@ public class JwtService {
   public JwtService(SecretConfig secretConfig, CustodySecretConfig custodySecretConfig)
       throws NotSupportedException {
     this(
+        secretConfig.getSep6MoreInfoUrlJwtSecret(),
         secretConfig.getSep10JwtSecretKey(),
         secretConfig.getSep24InteractiveUrlJwtSecret(),
         secretConfig.getSep24MoreInfoUrlJwtSecret(),
@@ -53,12 +57,14 @@ public class JwtService {
   }
 
   public JwtService(
+      SecretKey sep6MoreInfoUrlJwtSecret,
       SecretKey sep10JwtSecret,
       SecretKey sep24InteractiveUrlJwtSecret,
       SecretKey sep24MoreInfoUrlJwtSecret,
       SecretKey callbackAuthSecret,
       SecretKey platformAuthSecret,
       SecretKey custodyAuthSecret) {
+    this.sep6MoreInfoUrlJwtSecret = sep6MoreInfoUrlJwtSecret;
     this.sep10JwtSecret = sep10JwtSecret;
     this.sep24InteractiveUrlJwtSecret = sep24InteractiveUrlJwtSecret;
     this.sep24MoreInfoUrlJwtSecret = sep24MoreInfoUrlJwtSecret;
@@ -93,11 +99,9 @@ public class JwtService {
     return builder.signWith(sep10JwtSecret, Jwts.SIG.HS256).compact();
   }
 
-  public String encode(Sep24InteractiveUrlJwt token) throws InvalidConfigException {
-    if (sep24InteractiveUrlJwtSecret == null) {
-      throw new InvalidConfigException(
-          "Please provide the secret before encoding JWT for Sep24 interactive url");
-    }
+  public String encode(MoreInfoUrlJwt token) throws InvalidConfigException {
+    String secret = getMoreInfoUrlSecret(token);
+
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
         Jwts.builder().id(token.getJti()).expiration(from(timeExp)).subject(token.getSub());
@@ -108,10 +112,21 @@ public class JwtService {
     return builder.signWith(sep24InteractiveUrlJwtSecret, Jwts.SIG.HS256).compact();
   }
 
-  public String encode(Sep24MoreInfoUrlJwt token) throws InvalidConfigException {
-    if (sep24MoreInfoUrlJwtSecret == null) {
+  private String getMoreInfoUrlSecret(MoreInfoUrlJwt token) throws InvalidConfigException {
+    if (token instanceof Sep6MoreInfoUrlJwt && sep6MoreInfoUrlJwtSecret != null) {
+      return sep6MoreInfoUrlJwtSecret;
+    } else if (token instanceof Sep24MoreInfoUrlJwt && sep24MoreInfoUrlJwtSecret != null) {
+      return sep24MoreInfoUrlJwtSecret;
+    } else {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for more_info_url");
+    }
+  }
+
+  public String encode(Sep24InteractiveUrlJwt token) throws InvalidConfigException {
+    if (sep24InteractiveUrlJwtSecret == null) {
+      throw new InvalidConfigException(
+          "Please provide the secret before encoding JWT for Sep24 interactive url");
     }
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
@@ -153,7 +168,9 @@ public class JwtService {
       throws NotSupportedException, NoSuchMethodException, InvocationTargetException,
           InstantiationException, IllegalAccessException {
     SecretKey secret;
-    if (cls.equals(Sep10Jwt.class)) {
+    if (cls.equals(Sep6MoreInfoUrlJwt.class)) {
+      secret = sep6MoreInfoUrlJwtSecret;
+    } else if (cls.equals(Sep10Jwt.class)) {
       secret = sep10JwtSecret;
     } else if (cls.equals(Sep24InteractiveUrlJwt.class)) {
       secret = sep24InteractiveUrlJwtSecret;
@@ -172,7 +189,9 @@ public class JwtService {
 
     Jwt jwt = Jwts.parser().verifyWith(secret).build().parse(cipher);
 
-    if (cls.equals(Sep10Jwt.class)) {
+    if (cls.equals(Sep6MoreInfoUrlJwt.class)) {
+      return (T) Sep6MoreInfoUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);
+    } else if (cls.equals(Sep10Jwt.class)) {
       return (T) Sep10Jwt.class.getConstructor(Jwt.class).newInstance(jwt);
     } else if (cls.equals(Sep24InteractiveUrlJwt.class)) {
       return (T) Sep24InteractiveUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);

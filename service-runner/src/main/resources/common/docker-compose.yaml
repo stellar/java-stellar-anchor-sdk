@@ -39,6 +39,8 @@ services:
     volumes:
       # add mounts for the new config directory
       - ../config:/config
+    environment:
+      KT_REFERENCE_SERVER_CONFIG: /config/reference-config.yaml
 
   kafka:
     platform: linux/x86_64

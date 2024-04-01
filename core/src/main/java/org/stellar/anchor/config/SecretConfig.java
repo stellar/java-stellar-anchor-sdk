@@ -3,6 +3,8 @@ package org.stellar.anchor.config;
 import javax.crypto.SecretKey;
 
 public interface SecretConfig {
+  SecretKey getSep6MoreInfoUrlJwtSecret();
+
   SecretKey getSep10JwtSecretKey();
 
   String getSep10SigningSeed();
@@ -22,4 +24,8 @@ public interface SecretConfig {
   String getDataSourceUsername();
 
   String getDataSourcePassword();
+
+  String getEventsQueueKafkaUsername();
+
+  String getEventsQueueKafkaPassword();
 }

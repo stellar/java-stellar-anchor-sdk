@@ -12,24 +12,23 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
-import org.junit.jupiter.api.parallel.ExecutionMode.*
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.LockStatic
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
+import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.*
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
+import org.stellar.anchor.platform.config.MoreInfoUrlConfig
 import org.stellar.anchor.platform.config.PropertyClientsConfig
-import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.utils.toSecretKey
 import org.stellar.anchor.util.GsonUtils
 
 @Execution(ExecutionMode.SAME_THREAD)
-class SimpleMoreInfoUrlConstructorTest {
+class Sep24MoreInfoUrlConstructorTest {
   companion object {
     private val gson = GsonUtils.getInstance()
   }
@@ -81,9 +80,8 @@ class SimpleMoreInfoUrlConstructorTest {
   @Test
   @LockStatic([Calendar::class])
   fun `test correct config`() {
-    val config =
-      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
-    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val config = gson.fromJson(SIMPLE_CONFIG_JSON, MoreInfoUrlConfig::class.java)
+    val constructor = Sep24MoreInfoUrlConstructor(clientsConfig, config, jwtService)
     val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     val url = constructor.construct(txn)
 
@@ -101,9 +99,8 @@ class SimpleMoreInfoUrlConstructorTest {
   @Test
   @LockStatic([Calendar::class])
   fun `test unknown client domain`() {
-    val config =
-      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
-    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val config = gson.fromJson(SIMPLE_CONFIG_JSON, MoreInfoUrlConfig::class.java)
+    val constructor = Sep24MoreInfoUrlConstructor(clientsConfig, config, jwtService)
     val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     txn.clientDomain = "unknown.com"
     txn.sep10AccountMemo = null
@@ -123,9 +120,8 @@ class SimpleMoreInfoUrlConstructorTest {
   @Test
   @LockStatic([Calendar::class])
   fun `test custodial wallet`() {
-    val config =
-      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
-    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val config = gson.fromJson(SIMPLE_CONFIG_JSON, MoreInfoUrlConfig::class.java)
+    val constructor = Sep24MoreInfoUrlConstructor(clientsConfig, config, jwtService)
     val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     txn.sep10Account = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     txn.clientDomain = null
@@ -146,9 +142,8 @@ class SimpleMoreInfoUrlConstructorTest {
   @Test
   @LockStatic([Calendar::class])
   fun `test non-custodial wallet with missing client domain`() {
-    val config =
-      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
-    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val config = gson.fromJson(SIMPLE_CONFIG_JSON, MoreInfoUrlConfig::class.java)
+    val constructor = Sep24MoreInfoUrlConstructor(clientsConfig, config, jwtService)
     val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     txn.clientDomain = null
 

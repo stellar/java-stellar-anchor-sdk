@@ -19,6 +19,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -30,7 +31,6 @@ import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
 import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.platform.utils.DaemonExecutors;
-import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
@@ -50,8 +50,8 @@ public class EventProcessorManager {
   private final Sep6TransactionStore sep6TransactionStore;
   private final Sep24TransactionStore sep24TransactionStore;
   private final Sep31TransactionStore sep31TransactionStore;
-  private final MoreInfoUrlConstructor moreInfoUrlConstructor;
-
+  private final MoreInfoUrlConstructor sep6MoreInfoUrlConstructor;
+  private final MoreInfoUrlConstructor sep24MoreInfoUrlConstructor;
   private final List<EventProcessor> processors = new ArrayList<>();
 
   public EventProcessorManager(
@@ -64,7 +64,8 @@ public class EventProcessorManager {
       Sep6TransactionStore sep6TransactionStore,
       Sep24TransactionStore sep24TransactionStore,
       Sep31TransactionStore sep31TransactionStore,
-      MoreInfoUrlConstructor moreInfoUrlConstructor) {
+      MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
+      MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
     this.secretConfig = secretConfig;
     this.eventProcessorConfig = eventProcessorConfig;
     this.callbackApiConfig = callbackApiConfig;
@@ -74,7 +75,8 @@ public class EventProcessorManager {
     this.sep6TransactionStore = sep6TransactionStore;
     this.sep24TransactionStore = sep24TransactionStore;
     this.sep31TransactionStore = sep31TransactionStore;
-    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
+    this.sep6MoreInfoUrlConstructor = sep6MoreInfoUrlConstructor;
+    this.sep24MoreInfoUrlConstructor = sep24MoreInfoUrlConstructor;
   }
 
   @PostConstruct
@@ -122,7 +124,8 @@ public class EventProcessorManager {
                     clientConfig,
                     sep6TransactionStore,
                     assetService,
-                    moreInfoUrlConstructor),
+                    sep6MoreInfoUrlConstructor,
+                    sep24MoreInfoUrlConstructor),
                 eventService));
       }
     }

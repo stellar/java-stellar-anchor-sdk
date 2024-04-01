@@ -39,12 +39,13 @@ public class CustodyBeans {
     switch (custodyApiConfig.getAuth().getType()) {
       case JWT:
         JwtService jwtService =
-            new JwtService(null, null, null, null, null, toSecretKeySpecOrNull(authSecret));
+            new JwtService(null, null, null, null, null, null, toSecretKeySpecOrNull(authSecret));
         platformToCustody = new CustodyAuthJwtFilter(jwtService);
         break;
 
       case API_KEY:
-        platformToCustody = new ApiKeyFilter(authSecret);
+        platformToCustody =
+            new ApiKeyFilter(authSecret, custodyApiConfig.getAuth().getApiKey().getHttpHeader());
         break;
 
       default:

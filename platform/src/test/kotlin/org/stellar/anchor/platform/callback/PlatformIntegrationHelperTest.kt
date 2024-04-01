@@ -48,6 +48,7 @@ class PlatformIntegrationHelperTest {
             null,
             null,
             null,
+            null,
             "ssecretsecretsecretsecretecretsecretsecretsecret".toSecretKey(),
             "ssecretsecretsecretsecretecretsecretsecretsecret".toSecretKey(),
             "ssecretsecretsecretsecretecretsecretsecretsecret".toSecretKey()

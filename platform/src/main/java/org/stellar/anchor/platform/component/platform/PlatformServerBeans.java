@@ -47,12 +47,19 @@ public class PlatformServerBeans {
       case JWT:
         JwtService jwtService =
             new JwtService(
-                null, null, null, null, config.getSecretConfig().getPlatformAuthSecretKey(), null);
+                null,
+                null,
+                null,
+                null,
+                null,
+                config.getSecretConfig().getPlatformAuthSecretKey(),
+                null);
         anchorToPlatformFilter = new PlatformAuthJwtFilter(jwtService);
         break;
 
       case API_KEY:
-        anchorToPlatformFilter = new ApiKeyFilter(authSecret);
+        anchorToPlatformFilter =
+            new ApiKeyFilter(authSecret, config.getAuth().getApiKey().getHttpHeader());
         break;
 
       default:

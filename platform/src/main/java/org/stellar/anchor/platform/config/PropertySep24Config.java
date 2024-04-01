@@ -54,18 +54,6 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class InteractiveUrlConfig {
-
-    String baseUrl;
-    long jwtExpiration;
-    List<String> txnFields;
-  }
-
-  @Getter
-  @Setter
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class MoreInfoUrlConfig {
-
     String baseUrl;
     long jwtExpiration;
     List<String> txnFields;
@@ -76,7 +64,6 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class KycFieldsForwarding {
-
     boolean enabled;
   }
 
@@ -140,7 +127,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
   void validateMoreInfoUrlConfig(Errors errors) {
     if (moreInfoUrl == null) {
       errors.rejectValue(
-          "moreInfoUrl", "sep24-moreinfo-url-invalid", "sep24.more-info-url is not defined.");
+          "moreInfoUrl", "sep24-more-info-url-invalid", "sep24.more-info-url is not defined.");
     } else {
       if (!NetUtil.isUrlValid(moreInfoUrl.baseUrl)) {
         errors.rejectValue(
