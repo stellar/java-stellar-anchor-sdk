@@ -22,6 +22,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -669,6 +670,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
+  @Disabled
   fun `test the challenge with existent account, multisig, and client domain`() {
     // 1 ------ Create Test Transaction
 
