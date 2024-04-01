@@ -7,8 +7,6 @@ plugins {
   alias(libs.plugins.kotlin.jvm)
 }
 
-repositories { maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") } }
-
 dependencies {
   compileOnly(libs.servlet.api)
   compileOnly(libs.slf4j.api)

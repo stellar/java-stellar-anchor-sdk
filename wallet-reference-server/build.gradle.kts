@@ -7,8 +7,6 @@ plugins {
   alias(libs.plugins.ktor)
 }
 
-repositories { maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") } }
-
 dependencies {
   implementation(libs.bundles.ktor)
   implementation(libs.bundles.ktor.client)

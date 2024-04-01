@@ -7,8 +7,6 @@ plugins {
   alias(libs.plugins.kotlin.jvm)
 }
 
-repositories { maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") } }
-
 dependencies {
   testImplementation(libs.stellar.wallet.sdk)
   testImplementation(libs.okhttp3.mockserver)
