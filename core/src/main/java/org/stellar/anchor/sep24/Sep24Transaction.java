@@ -18,7 +18,7 @@ public interface Sep24Transaction extends SepTransaction {
    * ID of transaction on external network that either started the deposit or completed the
    * withdrawal.
    *
-   * @return The <code>external_transction_id</code> field of the SEP-24 transaction history.
+   * @return The <code>external_transaction_id</code> field of the SEP-24 transaction history.
    */
   String getExternalTransactionId();
 
@@ -114,7 +114,7 @@ public interface Sep24Transaction extends SepTransaction {
    * Assigned null if the withdraw is not ready to receive payment, for example if KYC is not
    * completed.
    *
-   * <p>If deposit, this is the memo (if any) used to transfer the asset to the to Stellar address
+   * <p>If deposit, this is the memo (if any) used to transfer the asset to Stellar address
    *
    * @return <code>withdraw_memo</code> or <code>deposit_memo</code> of the SEP-24 transaction
    *     history.
@@ -200,30 +200,6 @@ public interface Sep24Transaction extends SepTransaction {
   String getAmountOutAsset();
 
   void setAmountOutAsset(String amountOutAsset);
-
-  /**
-   * Amount of fee charged by anchor.
-   *
-   * @return <code>amount_fee</code> field of the SEP-24 transaction history.
-   */
-  @Deprecated // ANCHOR-636
-  String getAmountFee();
-
-  @Deprecated // ANCHOR-636
-  void setAmountFee(String amountFee);
-
-  /**
-   * The asset in which fees are calculated in. Must be present if the deposit/withdraw was made
-   * using non-equivalent assets. The value must be in SEP-38 Asset Identification Format. See the
-   * Asset Exchanges section for more information.
-   *
-   * @return <code>amount_fee_asset</code> field of the SEP-24 transaction history.
-   */
-  @Deprecated // ANCHOR-636
-  String getAmountFeeAsset();
-
-  @Deprecated // ANCHOR-636
-  void setAmountFeeAsset(String amountFeeAsset);
 
   /**
    * Description of fee charged by the anchor. The schema for this object is defined in the Fee

@@ -34,6 +34,7 @@ import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep6Transaction
 import org.stellar.anchor.platform.service.AnchorMetrics
+import org.stellar.anchor.platform.utils.toRate
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -190,7 +191,7 @@ class RequestCustomerInfoUpdateHandlerTest {
     expectedResponse.status = PENDING_CUSTOMER_INFO_UPDATE
     expectedResponse.amountIn = Amount()
     expectedResponse.amountOut = Amount()
-    expectedResponse.amountFee = Amount()
+    expectedResponse.feeDetails = Amount().toRate()
     expectedResponse.amountExpected = Amount()
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(), StellarId())

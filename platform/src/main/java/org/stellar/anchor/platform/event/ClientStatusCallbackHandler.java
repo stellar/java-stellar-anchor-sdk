@@ -150,10 +150,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
       sep24Txn.setAmountOut(txn.getAmountOut().getAmount());
       sep24Txn.setAmountOutAsset(txn.getAmountOut().getAsset());
     }
-    if (txn.getAmountFee() != null) {
-      sep24Txn.setAmountFee(txn.getAmountFee().getAmount());
-      sep24Txn.setAmountFeeAsset(txn.getAmountFee().getAsset());
-    }
     if (txn.getFeeDetails() != null) {
       sep24Txn.setFeeDetails(txn.getFeeDetails());
     }
@@ -200,10 +196,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
     if (txn.getAmountOut() != null) {
       sep24Txn.setAmountOut(txn.getAmountOut().getAmount());
       sep24Txn.setAmountOutAsset(txn.getAmountOut().getAsset());
-    }
-    if (txn.getAmountFee() != null) {
-      sep24Txn.setAmountFee(txn.getAmountFee().getAmount());
-      sep24Txn.setAmountFeeAsset(txn.getAmountFee().getAsset());
     }
     if (txn.getFeeDetails() != null) {
       sep24Txn.setFeeDetails(txn.getFeeDetails());

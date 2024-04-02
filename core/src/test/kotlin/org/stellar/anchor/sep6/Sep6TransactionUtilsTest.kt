@@ -42,8 +42,6 @@ class Sep6TransactionUtilsTest {
           "amount_in_asset": "USD",
           "amount_out": "99.00",
           "amount_out_asset": "$TEST_ASSET",
-          "amount_fee": "1.00",
-          "amount_fee_asset": "USD",
           "fee_details": {
             "total": "1.00",
             "asset": "USD"

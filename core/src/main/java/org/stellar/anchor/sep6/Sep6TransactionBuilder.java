@@ -94,18 +94,6 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  @Deprecated // ANCHOR-636
-  public Sep6TransactionBuilder amountFee(String amountFee) {
-    txn.setAmountFee(amountFee);
-    return this;
-  }
-
-  @Deprecated // ANCHOR-636
-  public Sep6TransactionBuilder amountFeeAsset(String amountFeeAsset) {
-    txn.setAmountFeeAsset(amountFeeAsset);
-    return this;
-  }
-
   public Sep6TransactionBuilder feeDetails(FeeDetails feeDetails) {
     txn.setFeeDetails(feeDetails);
     return this;

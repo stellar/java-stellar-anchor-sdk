@@ -542,8 +542,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "amount": "95",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "amount_fee": {
-                "amount": "5",
+              "fee_details": {
+                "total": "5",
                 "asset": "iso4217:USD"
               },
               "amount_expected": {

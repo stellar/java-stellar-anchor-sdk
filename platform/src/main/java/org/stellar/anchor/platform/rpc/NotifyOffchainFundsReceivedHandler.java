@@ -74,26 +74,19 @@ public class NotifyOffchainFundsReceivedHandler
     // None of the amounts are provided
     ((request.getAmountIn() == null
             && request.getAmountOut() == null
-            && request.getAmountFee() == null
             && request.getFeeDetails() == null)
         ||
         // All the amounts are provided (allow either amount_fee or fee_details)
         (request.getAmountIn() != null
             && request.getAmountOut() != null
-            && (request.getAmountFee() != null || request.getFeeDetails() != null))
+            && request.getFeeDetails() != null)
         ||
         // Only amount_in is provided
         (request.getAmountIn() != null
             && request.getAmountOut() == null
-            && request.getAmountFee() == null
             && request.getFeeDetails() == null))) {
       throw new InvalidParamsException(
           "Invalid amounts combination provided: all, none or only amount_in should be set");
-    }
-
-    // In case 2nd predicate in previous IF statement was TRUE
-    if (request.getAmountFee() != null && request.getFeeDetails() != null) {
-      throw new InvalidParamsException("Either amount_fee or fee_details should be set");
     }
 
     if (request.getAmountIn() != null) {
@@ -112,16 +105,6 @@ public class NotifyOffchainFundsReceivedHandler
               .amount(request.getAmountOut().getAmount())
               .asset(txn.getAmountOutAsset())
               .build(),
-          assetService);
-    }
-    if (request.getAmountFee() != null) {
-      AssetValidationUtils.validateAsset(
-          "amount_fee",
-          AmountAssetRequest.builder()
-              .amount(request.getAmountFee().getAmount())
-              .asset(txn.getAmountFeeAsset())
-              .build(),
-          true,
           assetService);
     }
     if (request.getFeeDetails() != null) {
@@ -188,11 +171,8 @@ public class NotifyOffchainFundsReceivedHandler
     if (request.getAmountOut() != null) {
       txn.setAmountOut(request.getAmountOut().getAmount());
     }
-    if (request.getAmountFee() != null) {
-      txn.setAmountFee(request.getAmountFee().getAmount());
-    }
     if (request.getFeeDetails() != null) {
-      txn.setAmountFee(request.getFeeDetails().getTotal());
+      txn.setFeeDetails(request.getFeeDetails());
       txn.setFeeDetailsList(request.getFeeDetails().getDetails());
     }
 

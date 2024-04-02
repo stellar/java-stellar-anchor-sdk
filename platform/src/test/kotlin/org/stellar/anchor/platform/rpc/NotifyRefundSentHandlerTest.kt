@@ -419,7 +419,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     val refundPayment = RefundPayment()
@@ -540,7 +539,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = REFUNDED
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2.2", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     val refundPayment1 = RefundPayment()
@@ -661,7 +659,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = REFUNDED
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     val refundPayment = RefundPayment()
@@ -770,7 +767,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     val refundPayment = RefundPayment()
@@ -898,7 +894,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     val refundPayment1 = RefundPayment()
@@ -1074,7 +1069,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
@@ -1208,7 +1202,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = REFUNDED
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2.2", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
@@ -1341,7 +1334,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = REFUNDED
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
@@ -1460,7 +1452,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
@@ -1601,7 +1592,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
@@ -1771,7 +1761,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.amountExpected = Amount(null, STELLAR_USDC)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("1", FIAT_USD)
-    expectedResponse.amountFee = Amount("0", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0", STELLAR_USDC).toRate()
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt

@@ -306,8 +306,7 @@ public class Sep31Service {
     txn.setAmountExpected(quote.getSellAmount());
     txn.setAmountOutAsset(quote.getBuyAsset());
     txn.setAmountOut(quote.getBuyAmount());
-    txn.setAmountFee(quote.getFee().getTotal());
-    txn.setAmountFeeAsset(quote.getFee().getAsset());
+    txn.setFeeDetails(quote.getFee());
   }
 
   /**
@@ -356,8 +355,7 @@ public class Sep31Service {
 
     // Update fee
     String feeStr = formatAmount(fee, scale);
-    txn.setAmountFee(feeStr);
-    txn.setAmountFeeAsset(feeResponse.getAsset());
+    txn.setFeeDetails(new FeeDetails(feeStr, feeResponse.getAsset()));
     Context.get().getFee().setAmount(feeStr);
   }
 

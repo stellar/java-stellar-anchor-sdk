@@ -189,7 +189,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
       NotifyOffchainFundsReceivedRequest.builder()
         .amountIn(AmountRequest("1"))
         .amountOut(AmountRequest("1"))
-        .amountFee(AmountRequest("1"))
+        .feeDetails(FeeDetails("1", STELLAR_USDC))
         .transactionId(TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -216,10 +216,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
     assertEquals("amount_out.amount should be positive", ex.message)
     request.amountOut.amount = "1"
 
-    request.amountFee.amount = "-1"
+    request.feeDetails.total = "-1"
     ex = assertThrows { handler.handle(request) }
-    assertEquals("amount_fee.amount should be non-negative", ex.message)
-    request.amountFee.amount = "1"
+    assertEquals("fee_details.amount should be non-negative", ex.message)
+    request.feeDetails.total = "1"
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
@@ -305,7 +305,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountRequest("1"))
         .amountOut(AmountRequest("0.9"))
-        .amountFee(AmountRequest("0.1"))
+        .feeDetails(FeeDetails("0.1", STELLAR_USDC))
         .externalTransactionId(EXTERNAL_TX_ID)
         .fundsReceivedAt(transferReceivedAt)
         .build()
@@ -365,7 +365,6 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
 
@@ -690,7 +689,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountRequest("1"))
         .amountOut(AmountRequest("0.9"))
-        .amountFee(AmountRequest("0.1"))
+        .feeDetails(FeeDetails("0.1", STELLAR_USDC))
         .externalTransactionId(EXTERNAL_TX_ID)
         .fundsReceivedAt(transferReceivedAt)
         .build()
@@ -750,7 +749,6 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = FeeDetails("0.1", STELLAR_USDC)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
