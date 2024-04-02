@@ -77,7 +77,6 @@ sep10.auth_timeout:
 sep10.client_allow_list:
 sep10.client_attribution_required:
 sep10.enabled:
-sep10.home_domain:
 sep10.home_domains:
 sep10.jwt_timeout:
 sep10.web_auth_domain:
