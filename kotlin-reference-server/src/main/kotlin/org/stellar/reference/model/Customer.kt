@@ -53,3 +53,10 @@ data class Customer(
   @SerialName("proof_of_liveness") val proofOfLiveness: ByteArray? = null,
   @SerialName("referral_id") val referralId: String? = null,
 )
+
+enum class Status {
+  NEEDS_INFO,
+  ACCEPTED,
+  PROCESSING,
+  ERROR,
+}

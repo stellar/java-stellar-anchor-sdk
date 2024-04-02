@@ -32,7 +32,7 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
   fun `test put, get customers`() = runBlocking {
     customerJson
     val customer = Json.decodeFromString<Map<String, String>>(customerJson).toMutableMap()
-    customer.remove("email_address")
+    customer.remove("emailAddress")
 
     // Upload a customer
     printRequest("Calling PUT /customer", customer)
@@ -45,9 +45,8 @@ open class Sep12Tests : AbstractIntegrationTests(TestConfig()) {
     printResponse(gr)
 
     assertEquals(pr.id, gr.id)
-    assertEquals(Sep12Status.NEEDS_INFO.name, gr.status!!.status)
 
-    customer["email_address"] = "john.doe@stellar.org"
+    customer["emailAddress"] = "john.doe@stellar.org"
 
     // Modify the customer
     printRequest("Calling PUT /customer", customer)

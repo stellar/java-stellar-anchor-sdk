@@ -147,10 +147,4 @@ public class Sep12PutCustomerRequest implements Sep12CustomerRequestBase {
 
   @SerializedName("referral_id")
   String referralId;
-
-  @SerializedName("mobile_number_verification")
-  String mobileNumberVerification;
-
-  @SerializedName("email_address_verification")
-  String emailAddressVerification;
 }
