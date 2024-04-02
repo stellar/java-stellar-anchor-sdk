@@ -246,7 +246,6 @@ class Sep12ServiceTest {
         .birthDate("2000-01-01")
         .idIssueDate("2023-12-13")
         .idExpirationDate("2023-12-13T19:33:07Z")
-        .emailAddressVerification("12345678")
         .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
     assertDoesNotThrow { sep12Service.putCustomer(jwtToken, mockPutRequest) }
@@ -262,7 +261,6 @@ class Sep12ServiceTest {
         .birthDate("2000-01-01")
         .idIssueDate("2023-12-13")
         .idExpirationDate("2023-12-13T19:33:07Z")
-        .emailAddressVerification("12345678")
         .build()
     assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
 
