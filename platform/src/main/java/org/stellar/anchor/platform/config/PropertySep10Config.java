@@ -25,7 +25,6 @@ import org.stellar.sdk.*;
 public class PropertySep10Config implements Sep10Config, Validator {
   private Boolean enabled;
   private String webAuthDomain;
-  private String homeDomain;
   private List<String> homeDomains;
   private boolean clientAttributionRequired = false;
   private List<String> clientAllowList = null;
@@ -51,14 +50,11 @@ public class PropertySep10Config implements Sep10Config, Validator {
 
   @PostConstruct
   public void postConstruct() {
-    // Moving home_domain to home_domains. home_domain will be deprecated in 3.0
-    if (homeDomains == null || homeDomains.isEmpty()) {
-      homeDomains = List.of(homeDomain);
-      homeDomain = null;
-    }
-    // If webAuthDomain is not specified and there is 1 and only 1 domain in the home_domains
-    if (isEmpty(webAuthDomain) && homeDomains.size() == 1) {
-      webAuthDomain = homeDomains.get(0);
+    // If webAuthDomain is not specified and there is 1 and only 1 fixed domain in the home_domains
+    if (isEmpty(webAuthDomain)) {
+      if (homeDomains.size() == 1 && !homeDomains.get(0).contains("*")) {
+        webAuthDomain = homeDomains.get(0);
+      }
     }
   }
 
@@ -100,22 +96,13 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");
     }
 
-    if (isEmpty(homeDomain) && (homeDomains == null || homeDomains.isEmpty())) {
-      // Default to localhost:8080 if neither is defined.
-      homeDomains = List.of("localhost:8080");
-    } else if (!isEmpty(homeDomain) && (homeDomains != null && !homeDomains.isEmpty())) {
-      // Reject if both are defined.
-      errors.rejectValue(
-          "homeDomain",
-          "home-domain-coexist",
-          "home_domain and home_domains cannot coexist. Please choose one to use.");
+    if (homeDomains == null || homeDomains.isEmpty()) {
+      errors.reject(
+          "sep10-home-domains-empty",
+          "Please set the sep10.home_domains or SEP10_HOME_DOMAINS environment variable.");
     } else {
-      if (!isEmpty(homeDomain)) {
-        validateDomain(errors, homeDomain);
-      } else {
-        for (String domain : homeDomains) {
-          validateDomain(errors, domain);
-        }
+      for (String domain : homeDomains) {
+        validateDomain(errors, domain);
       }
     }
 
@@ -127,7 +114,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
             "webAuthDomain",
             "sep10-web-auth-domain-too-long",
             format(
-                "The sep10.web_auth_home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
+                "The sep10.web_auth_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
                 webAuthDomain, iaex));
       }
 
@@ -205,7 +192,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       new ManageDataOperation.Builder(String.format("%s %s", domain, "auth"), new byte[64]).build();
     } catch (IllegalArgumentException iaex) {
       errors.rejectValue(
-          "homeDomain",
+          "homeDomains",
           "sep10-home-domain-too-long",
           format(
               "The sep10.home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
@@ -214,9 +201,9 @@ public class PropertySep10Config implements Sep10Config, Validator {
 
     if (!NetUtil.isServerPortValid(domain, false)) {
       errors.rejectValue(
-          "homeDomain",
+          "homeDomains",
           "sep10-home-domain-invalid",
-          "The sep10.home_domain does not have valid format.");
+          format("The sep10.home_domain (%s) does not have valid format.", domain));
     }
   }
 
