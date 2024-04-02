@@ -45,6 +45,11 @@ public class Sep10Helper {
           String.format("SIGNING_KEY %s is not a valid Stellar account Id.", clientSigningKey));
     } catch (IOException e) {
       infoF("Unable to read from {}", url);
+      if (allowHttpRetry) {
+        throw new SepException(
+            String.format("Unable to read from both %s and %s", url, url.replace("https", "http")),
+            e);
+      }
       throw new SepException(String.format("Unable to read from %s", url), e);
     } catch (InvalidConfigException e) {
       infoF("Invalid config: {}", e.getMessage());
