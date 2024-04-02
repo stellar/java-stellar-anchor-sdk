@@ -31,8 +31,7 @@ class Sep10Tests : AbstractIntegrationTests(TestConfig()) {
   lateinit var sep10ClientMultiSig: Sep10Client
   lateinit var webAuthDomain: String
 
-  private val walletDomain =
-    config.env["wallet.server.url"]?.replace("http://", "")!!.replace("localhost", "wallet-server")
+  private val walletDomain = config.env["wallet.server.url"]?.replace("http://", "")!!
   private val walletUrl = config.env["wallet.server.url"]!!
   private val domainSinger = WalletSigner.DomainSigner("$walletUrl/signChallenge")
 
