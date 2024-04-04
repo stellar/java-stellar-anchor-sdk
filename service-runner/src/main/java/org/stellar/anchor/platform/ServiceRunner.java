@@ -57,7 +57,7 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("wallet-reference-server") || cmd.hasOption("all")) {
-        startWalletServer(null, false);
+        startWalletServer(null, true);
         anyServerStarted = true;
       }
 

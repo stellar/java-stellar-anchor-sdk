@@ -10,6 +10,7 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
+import java.io.File
 import mu.KotlinLogging
 
 val log = KotlinLogging.logger {}
@@ -68,5 +69,5 @@ fun stopServer() {
 fun Application.configureRouting(cfg: Config) {
   routing { callback(cfg, CallbackService()) }
   routing { noncustodial(cfg) }
-  routing { staticResources("/.well-known", "assets") }
+  routing { staticFiles("/.well-known", File(cfg.toml.path)) }
 }
