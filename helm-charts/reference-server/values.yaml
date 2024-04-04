@@ -7,6 +7,12 @@ container:
   image: anchor-platform:local
   imagePullPolicy: Never
 
+config:
+  app:
+    platformApiEndpoint: http://anchor-platform-svc-platform:8085
+  data:
+    url: postgresql-ref:5432
+
 services:
   ref:
     containerPort: 8091
