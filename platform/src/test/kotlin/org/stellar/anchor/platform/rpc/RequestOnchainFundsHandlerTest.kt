@@ -1123,7 +1123,9 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "Anchor is not configured to accept memo, memo_type and destination_account",
+      "Anchor is not configured to accept memo, memo_type and destination_account. " +
+        "Please set configuration sep24.deposit_info_generator_type to 'none' " +
+        "if you want to enable this feature",
       ex.message
     )
 
@@ -1674,7 +1676,9 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "Anchor is not configured to accept memo, memo_type and destination_account",
+      "Anchor is not configured to accept memo, memo_type and destination_account. " +
+        "Please set configuration sep24.deposit_info_generator_type to 'none' " +
+        "if you want to enable this feature",
       ex.message
     )
 
