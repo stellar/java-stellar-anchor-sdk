@@ -17,7 +17,6 @@ import static org.stellar.anchor.util.MetricConstants.*;
 import com.google.common.collect.ImmutableSet;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -254,9 +253,8 @@ public class TransactionService {
     validateIfStatusIsSupported(patch.getTransaction().getStatus().toString());
     validateAsset("amount_in", patch.getTransaction().getAmountIn());
     validateAsset("amount_out", patch.getTransaction().getAmountOut());
-    validateAsset("amount_fee", patch.getTransaction().getAmountFee(), true);
 
-    FeeDetails feeDetails = validateAndGetRateFee(patch.getTransaction());
+    FeeDetails feeDetails = patch.getTransaction().getFeeDetails();
 
     JdbcSepTransaction txn = queryTransactionById(patch.getTransaction().getId());
     if (txn == null)
@@ -373,9 +371,6 @@ public class TransactionService {
     // update amount_out
     txnUpdated = updateField(patch, "amountOut.amount", txn, "amountOut", txnUpdated);
     txnUpdated = updateField(patch, "amountOut.asset", txn, "amountOutAsset", txnUpdated);
-    // update amount_fee
-    txnUpdated = updateField(patch, "amountFee.amount", txn, "amountFee", txnUpdated);
-    txnUpdated = updateField(patch, "amountFee.asset", txn, "amountFeeAsset", txnUpdated);
     // update started_at, completed_at, updated_at, transferReceivedAt
     txnUpdated = updateField(patch, txn, "startedAt", txnUpdated);
     txnUpdated = updateField(patch, txn, "updatedAt", txnUpdated);
@@ -392,7 +387,7 @@ public class TransactionService {
           .ifPresent(stellarTransaction -> txn.setStellarTransactionId(stellarTransaction.getId()));
     }
 
-    FeeDetails feeDetails = validateAndGetRateFee(patch);
+    FeeDetails feeDetails = patch.getFeeDetails();
 
     switch (txn.getProtocol()) {
       case "6":
@@ -477,31 +472,6 @@ public class TransactionService {
     }
   }
 
-  FeeDetails validateAndGetRateFee(PlatformTransactionData patch) throws BadRequestException {
-    // If both fee_details and fee is set, validate that they match. If only one set, properly set
-    // the other one.
-    FeeDetails feeDetails = patch.getFeeDetails();
-
-    if (feeDetails != null) {
-      if (patch.getAmountFee() != null) {
-        if (new BigDecimal(patch.getAmountFee().getAmount())
-                .compareTo(new BigDecimal(patch.getFeeDetails().getTotal()))
-            != 0) {
-          throw new BadRequestException(
-              "amount_fee's amount doesn't match amount from fee_details");
-        }
-        if (!patch.getAmountFee().getAsset().equals(patch.getFeeDetails().getAsset())) {
-          throw new BadRequestException("amount_fee's asset doesn't match asset from fee_details");
-        }
-      }
-    } else if (patch.getAmountFee() != null) {
-      feeDetails =
-          new FeeDetails(patch.getAmountFee().getAmount(), patch.getAmountFee().getAsset(), null);
-    }
-
-    return feeDetails;
-  }
-
   /**
    * validateIfStatusIsSupported will check if the provided string is a SepTransactionStatus
    * supported by the PlatformAPI
@@ -575,7 +545,7 @@ public class TransactionService {
           && Objects.equals(txn.getAmountInAsset(), txn.getAmountOutAsset()))
         if (decimal(txn.getAmountIn())
                 .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getFeeDetails().getTotal())))
-            != 0) throw new BadRequestException("amount_in != amount_out + amount_fee");
+            != 0) throw new BadRequestException("amount_in != amount_out + fee_details.total");
     } else {
       // with exchange
       Sep38Quote quote = quoteStore.findByQuoteId(txn.getQuoteId());
@@ -600,14 +570,6 @@ public class TransactionService {
 
       if (!equalsAsDecimals(txn.getAmountOut(), quote.getBuyAmount())) {
         throw new BadRequestException("transaction.amount_out != quote.buy_amount");
-      }
-
-      if (!Objects.equals(txn.getAmountFeeAsset(), quote.getFee().getAsset())) {
-        throw new BadRequestException("transaction.amount_fee_asset != quote.fee.asset");
-      }
-
-      if (!equalsAsDecimals(txn.getAmountFee(), quote.getFee().getTotal())) {
-        throw new BadRequestException("amount_fee != sum(quote.fee.total)");
       }
 
       if (!Objects.equals(txn.getFeeDetails().getAsset(), quote.getFee().getAsset())) {

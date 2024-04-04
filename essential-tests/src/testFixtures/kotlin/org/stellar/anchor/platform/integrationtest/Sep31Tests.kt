@@ -66,6 +66,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
 
     // GET Sep31 transaction
     savedTxn = sep31Client.getTransaction(postTxResponse.id)
+    println(savedTxn.transaction)
     JSONAssert.assertEquals(expectedTxn, json(savedTxn), LENIENT)
     assertEquals(postTxResponse.id, savedTxn.transaction.id)
     assertEquals(postTxResponse.stellarMemo, savedTxn.transaction.stellarMemo)
@@ -381,8 +382,10 @@ private const val expectedTxn =
     "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "amount_out": "1071.4286",
     "amount_out_asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    "amount_fee": "1.00",
-    "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+    "fee_details": {
+      "total": "1.00",
+      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    },
     "stellar_account_id": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
     "stellar_memo_type": "hash"
   }
@@ -623,8 +626,8 @@ private const val expectedAfterPatch =
     "amount": "1071.4286",
     "asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
-  "amount_fee": {
-    "amount": "1.00",
+  "fee_details": {
+    "total": "1.00",
     "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
   "message": "this is the message",

@@ -304,8 +304,8 @@ private const val patchWithdrawTransactionRequest =
           "amount": "10",
           "asset": "iso4217:USD"
         },
-        "amount_fee": {
-          "amount": "1",
+        "fee_details": {
+          "total": "1",
           "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
         },
         "message": "this is the message",
@@ -357,8 +357,8 @@ private const val patchWithdrawTransactionRequest =
           "amount": "100",
           "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
         },
-        "amount_fee": {
-          "amount": "1",
+        "fee_details": {
+          "total": "1",
           "asset": "iso4217:USD"
         },
         "message": "this is the message"
@@ -382,8 +382,8 @@ private const val expectedAfterPatchWithdraw =
     "amount": "10",
     "asset": "iso4217:USD"
   },
-  "amount_fee": {
-    "amount": "1",
+  "fee_details": {
+    "total": "1",
     "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
   "refunds": {
@@ -438,8 +438,8 @@ private const val expectedAfterPatchDeposit =
       "amount": "100",
       "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     },
-    "amount_fee": {
-      "amount": "1",
+    "fee_details": {
+      "total": "1",
       "asset": "iso4217:USD"
     }
   }

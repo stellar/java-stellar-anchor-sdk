@@ -190,7 +190,6 @@ class RequestCustomerInfoUpdateHandlerTest {
     expectedResponse.status = PENDING_CUSTOMER_INFO_UPDATE
     expectedResponse.amountIn = Amount()
     expectedResponse.amountOut = Amount()
-    expectedResponse.amountFee = Amount()
     expectedResponse.amountExpected = Amount()
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(), StellarId())

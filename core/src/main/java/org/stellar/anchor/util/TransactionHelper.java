@@ -98,7 +98,6 @@ public class TransactionHelper {
         .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
         .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
         .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
         .feeDetails(txn.getFeeDetails())
         .quoteId(txn.getQuoteId())
         .startedAt(txn.getStartedAt())
@@ -120,7 +119,6 @@ public class TransactionHelper {
       Sep6Transaction txn, AssetService assetService) {
     String amountInAsset = makeAsset(txn.getAmountInAsset(), assetService, txn);
     String amountOutAsset = makeAsset(txn.getAmountOutAsset(), assetService, txn);
-    String amountFeeAsset = makeAsset(txn.getAmountFeeAsset(), assetService, txn);
     String amountExpectedAsset = makeAsset(null, assetService, txn);
     StellarId customer =
         StellarId.builder().account(txn.getSep10Account()).memo(txn.getSep10AccountMemo()).build();
@@ -134,7 +132,6 @@ public class TransactionHelper {
         .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
         .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
         .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
-        .amountFee(Amount.create(txn.getAmountFee(), amountFeeAsset))
         .feeDetails(txn.getFeeDetails())
         .quoteId(txn.getQuoteId())
         .startedAt(txn.getStartedAt())
@@ -171,7 +168,6 @@ public class TransactionHelper {
 
     String amountInAsset = makeAsset(txn.getAmountInAsset(), assetService, txn);
     String amountOutAsset = makeAsset(txn.getAmountOutAsset(), assetService, txn);
-    String amountFeeAsset = makeAsset(txn.getAmountFeeAsset(), assetService, txn);
     String amountExpectedAsset = makeAsset(null, assetService, txn);
     String sourceAccount = txn.getFromAccount();
 
@@ -183,7 +179,6 @@ public class TransactionHelper {
         .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
         .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
         .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
-        .amountFee(Amount.create(txn.getAmountFee(), amountFeeAsset))
         .feeDetails(txn.getFeeDetails())
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())

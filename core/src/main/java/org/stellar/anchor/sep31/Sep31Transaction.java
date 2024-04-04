@@ -34,18 +34,6 @@ public interface Sep31Transaction extends SepTransaction {
 
   void setAmountOutAsset(String amountOutAsset);
 
-  @Deprecated // ANCHOR-636
-  String getAmountFee();
-
-  @Deprecated // ANCHOR-636
-  void setAmountFee(String amountFee);
-
-  @Deprecated // ANCHOR-636
-  String getAmountFeeAsset();
-
-  @Deprecated // ANCHOR-636
-  void setAmountFeeAsset(String amountFeeAsset);
-
   FeeDetails getFeeDetails();
 
   void setFeeDetails(FeeDetails feeDetails);
@@ -143,8 +131,7 @@ public interface Sep31Transaction extends SepTransaction {
                 .amountInAsset(getAmountInAsset())
                 .amountOut(getAmountOut())
                 .amountOutAsset(getAmountOutAsset())
-                .amountFee(getAmountFee())
-                .amountFeeAsset(getAmountFeeAsset())
+                .feeDetails(getFeeDetails())
                 .stellarAccountId(getStellarAccountId())
                 .stellarMemo(getStellarMemo())
                 .stellarMemoType(getStellarMemoType())

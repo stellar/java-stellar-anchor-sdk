@@ -32,14 +32,6 @@ public class TransactionResponse {
   @SerializedName("amount_out_asset")
   String amountOutAsset;
 
-  @SerializedName("amount_fee")
-  @Deprecated // ANCHOR-636
-  String amountFee;
-
-  @SerializedName("amount_fee_asset")
-  @Deprecated // ANCHOR-636
-  String amountFeeAsset;
-
   @SerializedName("fee_details")
   FeeDetails feeDetails;
 

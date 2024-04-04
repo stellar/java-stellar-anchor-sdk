@@ -150,10 +150,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
       sep24Txn.setAmountOut(txn.getAmountOut().getAmount());
       sep24Txn.setAmountOutAsset(txn.getAmountOut().getAsset());
     }
-    if (txn.getAmountFee() != null) {
-      sep24Txn.setAmountFee(txn.getAmountFee().getAmount());
-      sep24Txn.setAmountFeeAsset(txn.getAmountFee().getAsset());
-    }
     if (txn.getFeeDetails() != null) {
       sep24Txn.setFeeDetails(txn.getFeeDetails());
     }
@@ -190,30 +186,26 @@ public class ClientStatusCallbackHandler extends EventHandler {
   }
 
   private Sep31Transaction fromSep31Txn(GetTransactionResponse txn) {
-    JdbcSep31Transaction sep24Txn = new JdbcSep31Transaction();
-    sep24Txn.setId(txn.getId());
-    sep24Txn.setStatus(txn.getStatus().getStatus());
+    JdbcSep31Transaction sep31Txn = new JdbcSep31Transaction();
+    sep31Txn.setId(txn.getId());
+    sep31Txn.setStatus(txn.getStatus().getStatus());
     if (txn.getAmountIn() != null) {
-      sep24Txn.setAmountIn(txn.getAmountIn().getAmount());
-      sep24Txn.setAmountInAsset(txn.getAmountIn().getAsset());
+      sep31Txn.setAmountIn(txn.getAmountIn().getAmount());
+      sep31Txn.setAmountInAsset(txn.getAmountIn().getAsset());
     }
     if (txn.getAmountOut() != null) {
-      sep24Txn.setAmountOut(txn.getAmountOut().getAmount());
-      sep24Txn.setAmountOutAsset(txn.getAmountOut().getAsset());
-    }
-    if (txn.getAmountFee() != null) {
-      sep24Txn.setAmountFee(txn.getAmountFee().getAmount());
-      sep24Txn.setAmountFeeAsset(txn.getAmountFee().getAsset());
+      sep31Txn.setAmountOut(txn.getAmountOut().getAmount());
+      sep31Txn.setAmountOutAsset(txn.getAmountOut().getAsset());
     }
     if (txn.getFeeDetails() != null) {
-      sep24Txn.setFeeDetails(txn.getFeeDetails());
+      sep31Txn.setFeeDetails(txn.getFeeDetails());
     }
-    sep24Txn.setStartedAt(txn.getStartedAt());
-    sep24Txn.setCompletedAt(txn.getCompletedAt());
-    sep24Txn.setExternalTransactionId(txn.getExternalTransactionId());
-    sep24Txn.setRequiredInfoMessage(txn.getMessage());
-    sep24Txn.setStellarMemo(txn.getMemo());
-    sep24Txn.setStellarMemoType(txn.getMemoType());
+    sep31Txn.setStartedAt(txn.getStartedAt());
+    sep31Txn.setCompletedAt(txn.getCompletedAt());
+    sep31Txn.setExternalTransactionId(txn.getExternalTransactionId());
+    sep31Txn.setRequiredInfoMessage(txn.getMessage());
+    sep31Txn.setStellarMemo(txn.getMemo());
+    sep31Txn.setStellarMemoType(txn.getMemoType());
 
     if (txn.getRefunds() != null) {
       List<RefundPayment> paymentList =
@@ -232,9 +224,9 @@ public class ClientStatusCallbackHandler extends EventHandler {
       refunds.setAmountRefunded(txn.getRefunds().getAmountRefunded().getAmount());
       refunds.setAmountFee(txn.getRefunds().getAmountFee().getAmount());
       refunds.setRefundPayments(paymentList);
-      sep24Txn.setRefunds(refunds);
+      sep31Txn.setRefunds(refunds);
     }
 
-    return sep24Txn;
+    return sep31Txn;
   }
 }
