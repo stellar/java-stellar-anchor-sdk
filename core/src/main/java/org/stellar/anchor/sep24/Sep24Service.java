@@ -600,5 +600,6 @@ public class Sep24Service {
     builder.amountInAsset(quote.getSellAsset());
     builder.amountOut(quote.getBuyAmount());
     builder.amountOutAsset(quote.getBuyAsset());
+    builder.feeDetails(quote.getFee());
   }
 }
