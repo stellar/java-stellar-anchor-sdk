@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: anchor-config
+  namespace: {{ .Values.namespace }}
 data:
   {{ include "common.addMultiline" (list "anchor-config.yaml" .Values.anchor_config )}}
   {{ include "common.addMultiline" (list "sep1.toml" .Values.sep1_toml )}}
