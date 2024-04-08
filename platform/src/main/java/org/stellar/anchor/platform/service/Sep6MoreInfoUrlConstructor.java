@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.service;
 import java.time.Instant;
 import lombok.SneakyThrows;
 import org.stellar.anchor.SepTransaction;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.MoreInfoUrlJwt;
 import org.stellar.anchor.auth.MoreInfoUrlJwt.*;
@@ -15,8 +16,11 @@ import org.stellar.anchor.util.ConfigHelper;
 public class Sep6MoreInfoUrlConstructor extends SimpleMoreInfoUrlConstructor {
 
   public Sep6MoreInfoUrlConstructor(
-      PropertyClientsConfig clientsConfig, MoreInfoUrlConfig config, JwtService jwtService) {
-    super(clientsConfig, config, jwtService);
+      AssetService assetService,
+      PropertyClientsConfig clientsConfig,
+      MoreInfoUrlConfig config,
+      JwtService jwtService) {
+    super(assetService, clientsConfig, config, jwtService);
   }
 
   @Override

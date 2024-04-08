@@ -131,10 +131,22 @@ public class TransactionHelper {
         .kind(PlatformTransactionData.Kind.from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
         .type(txn.getType())
-        .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
-        .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
-        .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
-        .amountFee(Amount.create(txn.getAmountFee(), amountFeeAsset))
+        .amountExpected(
+            (amountExpectedAsset != null)
+                ? new Amount(txn.getAmountExpected(), amountExpectedAsset)
+                : null)
+        .amountIn(
+            (amountInAsset != null && txn.getAmountIn() != null)
+                ? Amount.create(txn.getAmountIn(), amountInAsset)
+                : null)
+        .amountOut(
+            (amountOutAsset != null && txn.getAmountOut() != null)
+                ? Amount.create(txn.getAmountOut(), amountOutAsset)
+                : null)
+        .amountFee(
+            (amountFeeAsset != null && txn.getAmountFee() != null)
+                ? Amount.create(txn.getAmountFee(), amountFeeAsset)
+                : null)
         .feeDetails(txn.getFeeDetails())
         .quoteId(txn.getQuoteId())
         .startedAt(txn.getStartedAt())
@@ -180,10 +192,22 @@ public class TransactionHelper {
         .sep(PlatformTransactionData.Sep.SEP_24)
         .kind(PlatformTransactionData.Kind.from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
-        .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
-        .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
-        .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
-        .amountFee(Amount.create(txn.getAmountFee(), amountFeeAsset))
+        .amountExpected(
+            (amountExpectedAsset != null)
+                ? new Amount(txn.getAmountExpected(), amountExpectedAsset)
+                : null)
+        .amountIn(
+            (amountInAsset != null && txn.getAmountIn() != null)
+                ? Amount.create(txn.getAmountIn(), amountInAsset)
+                : null)
+        .amountOut(
+            (amountOutAsset != null && txn.getAmountOut() != null)
+                ? Amount.create(txn.getAmountOut(), amountOutAsset)
+                : null)
+        .amountFee(
+            (amountFeeAsset != null && txn.getAmountFee() != null)
+                ? Amount.create(txn.getAmountFee(), amountFeeAsset)
+                : null)
         .feeDetails(txn.getFeeDetails())
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
@@ -215,7 +239,7 @@ public class TransactionHelper {
     AssetInfo info = service.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
 
     // Already validated in the interactive flow
-    return info.getSep38AssetName();
+    return (info != null) ? info.getSep38AssetName() : null;
   }
 
   private static String makeAsset(
