@@ -135,11 +135,18 @@ public class TransactionHelper {
             (amountExpectedAsset != null)
                 ? new Amount(txn.getAmountExpected(), amountExpectedAsset)
                 : null)
-        .amountIn((amountInAsset != null) ? Amount.create(txn.getAmountIn(), amountInAsset) : null)
+        .amountIn(
+            (amountInAsset != null && txn.getAmountIn() != null)
+                ? Amount.create(txn.getAmountIn(), amountInAsset)
+                : null)
         .amountOut(
-            (amountOutAsset != null) ? Amount.create(txn.getAmountOut(), amountOutAsset) : null)
+            (amountOutAsset != null && txn.getAmountOut() != null)
+                ? Amount.create(txn.getAmountOut(), amountOutAsset)
+                : null)
         .amountFee(
-            (amountFeeAsset != null) ? Amount.create(txn.getAmountFee(), amountFeeAsset) : null)
+            (amountFeeAsset != null && txn.getAmountFee() != null)
+                ? Amount.create(txn.getAmountFee(), amountFeeAsset)
+                : null)
         .feeDetails(txn.getFeeDetails())
         .quoteId(txn.getQuoteId())
         .startedAt(txn.getStartedAt())
@@ -189,11 +196,18 @@ public class TransactionHelper {
             (amountExpectedAsset != null)
                 ? new Amount(txn.getAmountExpected(), amountExpectedAsset)
                 : null)
-        .amountIn((amountInAsset != null) ? Amount.create(txn.getAmountIn(), amountInAsset) : null)
+        .amountIn(
+            (amountInAsset != null && txn.getAmountIn() != null)
+                ? Amount.create(txn.getAmountIn(), amountInAsset)
+                : null)
         .amountOut(
-            (amountOutAsset != null) ? Amount.create(txn.getAmountOut(), amountOutAsset) : null)
+            (amountOutAsset != null && txn.getAmountOut() != null)
+                ? Amount.create(txn.getAmountOut(), amountOutAsset)
+                : null)
         .amountFee(
-            (amountFeeAsset != null) ? Amount.create(txn.getAmountFee(), amountFeeAsset) : null)
+            (amountFeeAsset != null && txn.getAmountFee() != null)
+                ? Amount.create(txn.getAmountFee(), amountFeeAsset)
+                : null)
         .feeDetails(txn.getFeeDetails())
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
