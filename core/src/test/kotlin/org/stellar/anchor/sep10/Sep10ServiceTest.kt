@@ -995,12 +995,17 @@ internal class Sep10ServiceTest {
     assertThrows<SepMissingAuthHeaderException> {
       sep10Service.validateAuthorizationToken(req, null, null)
     }
+  }
 
-    assertThrows<SepMissingAuthHeaderException> {
+  @Test
+  fun `test invalid header`() {
+    val req = ChallengeRequest.builder().account(custodialKp.address).memo(custodialMemo).build()
+
+    assertThrows<SepValidationException> {
       sep10Service.validateAuthorizationToken(req, "Bearer", null)
     }
 
-    assertThrows<SepMissingAuthHeaderException> {
+    assertThrows<SepValidationException> {
       sep10Service.validateAuthorizationToken(req, "Bearer 1234", null)
     }
   }
