@@ -14,7 +14,6 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-web")
   testImplementation(libs.kotlin.serialization.json)
   testImplementation(libs.ktor.client.json)
-  testImplementation(libs.google.gson)
   // project dependencies
   testImplementation(project(":lib-util"))
   testImplementation(project(":api-schema"))

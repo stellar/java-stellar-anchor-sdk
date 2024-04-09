@@ -1,6 +1,6 @@
 package org.stellar.anchor.sep10;
 
-import static java.lang.String.*;
+import static java.lang.String.format;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_CREATED;
 import static org.stellar.anchor.util.MetricConstants.SEP10_CHALLENGE_VALIDATED;
@@ -13,7 +13,10 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -81,20 +84,33 @@ public class Sep10Service implements ISep10Service {
     validateChallengeRequestClient(request);
     // Validate the validity of the memo
     Memo memo = validateChallengeRequestMemo(request);
-    String clientDomainSigningKey = null;
+
+    // Non-custodial case
     if (!isEmpty(request.getClientDomain())) {
       debugF("Fetching SIGNING_KEY from client_domain: {}", request.getClientDomain());
-      clientDomainSigningKey = fetchSigningKeyFromClientDomain(request.getClientDomain());
+      String clientDomainSigningKey = fetchSigningKeyFromClientDomain(request.getClientDomain());
       debugF("SIGNING_KEY from client_domain fetched: {}", clientDomainSigningKey);
+
+      // Check authorization
+      validateAuthorization(request, authorization, clientDomainSigningKey);
+      // post validations to be defined by the anchor
+      postChallengeRequestValidation(request);
+      // increment counter
+      incrementChallengeRequestCreatedCounter();
+      // Create the challenge
+      return createChallengeResponse(request, memo, clientDomainSigningKey);
     }
-    // Check authorization
-    validateAuthorization(request, authorization, clientDomainSigningKey);
-    // post validations to be defined by the anchor
-    postChallengeRequestValidation(request);
-    // increment counter
-    incrementChallengeRequestCreatedCounter();
-    // Create the challenge
-    return createChallengeResponse(request, memo, clientDomainSigningKey);
+    // Custodial case
+    else {
+      // Check authorization
+      validateAuthorization(request, authorization, null);
+      // post validations to be defined by the anchor
+      postChallengeRequestValidation(request);
+      // increment counter
+      incrementChallengeRequestCreatedCounter();
+      // Create the challenge
+      return createChallengeResponse(request, memo, null);
+    }
   }
 
   public ValidationResponse validateChallenge(ValidationRequest request)
@@ -285,7 +301,7 @@ public class Sep10Service implements ISep10Service {
       throw new SepValidationException("Invalid JWT token");
     }
 
-    String token = authorization.replace("Bearer", "").stripLeading();
+    String token = authorization.replaceAll("^Bearer", "").stripLeading();
 
     Jws<Claims> jwt;
 

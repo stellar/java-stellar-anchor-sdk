@@ -5,6 +5,7 @@ import javax.crypto.SecretKey;
 public interface SecretConfig {
   SecretKey getSep6MoreInfoUrlJwtSecret();
 
+  @Deprecated // TODO: ANCHOR-667
   SecretKey getSep10JwtSecretKey();
 
   String getSep10SigningSeed();
