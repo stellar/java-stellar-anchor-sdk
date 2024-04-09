@@ -493,6 +493,7 @@ class Sep31ServiceTest {
           .amountOutAsset("USD")
           .amountFee("2")
           .amountFeeAsset("USDC")
+          .feeDetails(FeeDetails("2", "USDC"))
           .stellarAccountId("GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY")
           .stellarMemo("123456")
           .stellarMemoType("text")
