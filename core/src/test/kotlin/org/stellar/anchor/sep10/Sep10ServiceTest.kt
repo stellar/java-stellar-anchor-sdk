@@ -995,6 +995,14 @@ internal class Sep10ServiceTest {
     assertThrows<SepMissingAuthHeaderException> {
       sep10Service.validateAuthorizationToken(req, null, null)
     }
+
+    assertThrows<SepMissingAuthHeaderException> {
+      sep10Service.validateAuthorizationToken(req, "Bearer", null)
+    }
+
+    assertThrows<SepMissingAuthHeaderException> {
+      sep10Service.validateAuthorizationToken(req, "Bearer 1234", null)
+    }
   }
 }
 

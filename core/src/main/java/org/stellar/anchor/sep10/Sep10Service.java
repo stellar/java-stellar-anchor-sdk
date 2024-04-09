@@ -68,7 +68,8 @@ public class Sep10Service implements ISep10Service {
     Log.info("Sep10Service initialized.");
   }
 
-  public ChallengeResponse createChallenge(ChallengeRequest request, String authorization)
+  public ChallengeResponse createChallenge(
+      @NotNull ChallengeRequest request, @Nullable String authorization)
       throws SepException, BadRequestException {
     info("Creating SEP-10 challenge.");
 
