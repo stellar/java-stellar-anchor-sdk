@@ -21,6 +21,7 @@ import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.util.KeyUtil;
 import org.stellar.anchor.util.NetUtil;
 
 @Getter
@@ -116,11 +117,13 @@ public class PropertySep24Config implements Sep24Config, Validator {
           }
         }
       }
-      if (secretConfig.getSep24InteractiveUrlJwtSecret() == null) {
+      if (isEmpty(secretConfig.getSep24InteractiveUrlJwtSecret())) {
         errors.reject(
             "sep24-interactive-url-jwt-secret-not-defined",
             "Please set the secret.sep24.interactive_url.jwt_secret or SECRET_SEP24_INTERACTIVE_URL_JWT_SECRET environment variable");
       }
+
+      KeyUtil.validateJWTSecret(secretConfig.getSep24InteractiveUrlJwtSecret());
     }
   }
 
@@ -156,11 +159,13 @@ public class PropertySep24Config implements Sep24Config, Validator {
           }
         }
       }
-      if (secretConfig.getSep24MoreInfoUrlJwtSecret() == null) {
+      if (isEmpty(secretConfig.getSep24MoreInfoUrlJwtSecret())) {
         errors.reject(
             "sep24-more-info-url-jwt-secret-not-defined",
             "Please set the secret.sep24.more_info_url.jwt_secret or SECRET_SEP24_MORE_INFO_URL_JWT_SECRET environment variable");
       }
+
+      KeyUtil.validateJWTSecret(secretConfig.getSep24MoreInfoUrlJwtSecret());
     }
   }
 

@@ -10,4 +10,8 @@ public final class KeyUtil {
   public static SecretKey toSecretKeySpecOrNull(String secret) {
     return isEmpty(secret) ? null : Keys.hmacShaKeyFor(((secret.getBytes(StandardCharsets.UTF_8))));
   }
+
+  public static void validateJWTSecret(String secret) {
+    toSecretKeySpecOrNull(secret);
+  }
 }

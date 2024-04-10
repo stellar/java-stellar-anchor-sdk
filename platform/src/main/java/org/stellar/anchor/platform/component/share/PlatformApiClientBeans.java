@@ -19,10 +19,9 @@ public class PlatformApiClientBeans {
     String secret = platformApiConfig.getAuth().getSecretString();
     switch (platformApiConfig.getAuth().getType()) {
       case JWT:
-        var secretJwt = platformApiConfig.getAuth().getSecretJwt();
         return AuthHelper.forJwtToken(
             platformApiConfig.getAuth().getJwt().getHttpHeader(),
-            JwtService.builder().platformAuthSecret(secretJwt).build(),
+            JwtService.builder().platformAuthSecret(secret).build(),
             Long.parseLong(platformApiConfig.getAuth().getJwt().getExpirationMilliseconds()));
       case API_KEY:
         return AuthHelper.forApiKey(

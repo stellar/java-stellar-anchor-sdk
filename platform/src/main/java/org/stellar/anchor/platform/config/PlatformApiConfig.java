@@ -11,6 +11,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.auth.AuthConfig;
 import org.stellar.anchor.auth.AuthType;
+import org.stellar.anchor.util.KeyUtil;
 
 @Data
 public class PlatformApiConfig implements Validator {
@@ -24,9 +25,6 @@ public class PlatformApiConfig implements Validator {
 
   public void setAuth(AuthConfig auth) {
     auth.setSecretString(secretConfig.getPlatformAuthSecret());
-    if (auth.getType().equals(AuthType.JWT)) {
-      auth.setSecretJwt(secretConfig.getPlatformAuthSecretKey());
-    }
     this.auth = auth;
   }
 
@@ -46,6 +44,9 @@ public class PlatformApiConfig implements Validator {
 
       PlatformApiConfig config = (PlatformApiConfig) target;
       if (List.of(API_KEY, JWT).contains(config.getAuth().getType())) {
+        if (AuthType.JWT == auth.getType()) {
+          KeyUtil.validateJWTSecret(secretConfig.getPlatformAuthSecret());
+        }
         if (config.getAuth().getSecretString() == null) {
           errors.rejectValue(
               "secret",

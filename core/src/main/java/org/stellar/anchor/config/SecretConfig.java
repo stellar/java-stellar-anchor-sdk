@@ -1,26 +1,20 @@
 package org.stellar.anchor.config;
 
-import javax.crypto.SecretKey;
-
 public interface SecretConfig {
-  SecretKey getSep6MoreInfoUrlJwtSecret();
+  String getSep6MoreInfoUrlJwtSecret();
 
   @Deprecated // TODO: ANCHOR-667
-  SecretKey getSep10JwtSecretKey();
+  String getSep10JwtSecretKey();
 
   String getSep10SigningSeed();
 
-  SecretKey getSep24InteractiveUrlJwtSecret();
+  String getSep24InteractiveUrlJwtSecret();
 
-  SecretKey getSep24MoreInfoUrlJwtSecret();
+  String getSep24MoreInfoUrlJwtSecret();
 
   String getCallbackAuthSecret();
 
-  SecretKey getCallbackAuthSecretKey();
-
   String getPlatformAuthSecret();
-
-  SecretKey getPlatformAuthSecretKey();
 
   String getDataSourceUsername();
 

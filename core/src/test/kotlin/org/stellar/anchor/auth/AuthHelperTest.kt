@@ -1,6 +1,7 @@
 package org.stellar.anchor.auth
 
-import io.mockk.*
+import io.mockk.every
+import io.mockk.mockk
 import java.time.Instant
 import java.util.*
 import java.util.stream.Stream
@@ -13,7 +14,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.stellar.anchor.auth.ApiAuthJwt.*
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.lockAndMockStatic
-import org.stellar.anchor.toSecretKey
 import org.stellar.anchor.util.AuthHeader
 
 @Order(86)
@@ -68,15 +68,11 @@ class AuthHelperTest {
             )
 
           val jwtService =
-            JwtService(
-              null,
-              null,
-              null,
-              null,
-              "secresecresecresecresecretttttsecret".toSecretKey(),
-              "secresecresecresecresecretttttsecret".toSecretKey(),
-              "secresecresecresecresecretttttsecret".toSecretKey()
-            )
+            JwtService.builder()
+              .callbackAuthSecret("secret__________________________________")
+              .platformAuthSecret("secret__________________________________")
+              .custodyAuthSecret("secret__________________________________")
+              .build()
           val authHelper =
             AuthHelper.forJwtToken(headerName, jwtService, JWT_EXPIRATION_MILLISECONDS)
           val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()

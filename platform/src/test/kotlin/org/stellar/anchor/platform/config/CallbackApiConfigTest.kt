@@ -13,7 +13,6 @@ import org.springframework.validation.Errors
 import org.stellar.anchor.auth.AuthConfig
 import org.stellar.anchor.auth.AuthType.JWT
 import org.stellar.anchor.platform.utils.setupMock
-import org.stellar.anchor.util.KeyUtil
 
 class CallbackApiConfigTest {
   lateinit var config: CallbackApiConfig
@@ -63,7 +62,6 @@ class CallbackApiConfigTest {
       AuthConfig(
         JWT,
         null,
-        null,
         AuthConfig.JwtConfig("30000", "Authorization"),
         AuthConfig.ApiKeyConfig("X-Api-Key")
       )
@@ -77,11 +75,9 @@ class CallbackApiConfigTest {
   @NullSource
   fun `test empty secret`(secretValue: String?) {
     every { secretConfig.callbackAuthSecret } returns secretValue
-    every { secretConfig.callbackAuthSecretKey } returns KeyUtil.toSecretKeySpecOrNull(secretValue)
     config.setAuth(
       AuthConfig(
         JWT,
-        null,
         null,
         AuthConfig.JwtConfig("30000", "Authorization"),
         AuthConfig.ApiKeyConfig("X-Api-Key")

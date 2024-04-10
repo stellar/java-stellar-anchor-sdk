@@ -36,8 +36,7 @@ public class CustodyBeans {
     Filter platformToCustody;
     switch (custodyApiConfig.getAuth().getType()) {
       case JWT:
-        var authSecretJwt = custodyApiConfig.getAuth().getSecretJwt();
-        JwtService jwtService = JwtService.builder().custodyAuthSecret(authSecretJwt).build();
+        JwtService jwtService = JwtService.builder().custodyAuthSecret(authSecret).build();
         platformToCustody =
             new CustodyAuthJwtFilter(
                 jwtService, custodyApiConfig.getAuth().getJwt().getHttpHeader());

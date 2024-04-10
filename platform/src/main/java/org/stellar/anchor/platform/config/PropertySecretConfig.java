@@ -1,8 +1,5 @@
 package org.stellar.anchor.platform.config;
 
-import static org.stellar.anchor.util.KeyUtil.toSecretKeySpecOrNull;
-
-import javax.crypto.SecretKey;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.configurator.SecretManager;
 
@@ -25,13 +22,12 @@ public class PropertySecretConfig implements SecretConfig {
   public static final String SECRET_EVENTS_QUEUE_KAFKA_PASSWORD =
       "secret.events.queue.kafka.password";
 
-  public SecretKey getSep6MoreInfoUrlJwtSecret() {
-    return toSecretKeySpecOrNull(
-        SecretManager.getInstance().get(SECRET_SEP_6_MORE_INFO_URL_JWT_SECRET));
+  public String getSep6MoreInfoUrlJwtSecret() {
+    return SecretManager.getInstance().get(SECRET_SEP_6_MORE_INFO_URL_JWT_SECRET);
   }
 
-  public SecretKey getSep10JwtSecretKey() {
-    return toSecretKeySpecOrNull(SecretManager.getInstance().get(SECRET_SEP_10_JWT_SECRET));
+  public String getSep10JwtSecretKey() {
+    return SecretManager.getInstance().get(SECRET_SEP_10_JWT_SECRET);
   }
 
   public String getSep10SigningSeed() {
@@ -39,15 +35,13 @@ public class PropertySecretConfig implements SecretConfig {
   }
 
   @Override
-  public SecretKey getSep24InteractiveUrlJwtSecret() {
-    return toSecretKeySpecOrNull(
-        SecretManager.getInstance().get(SECRET_SEP_24_INTERACTIVE_URL_JWT_SECRET));
+  public String getSep24InteractiveUrlJwtSecret() {
+    return SecretManager.getInstance().get(SECRET_SEP_24_INTERACTIVE_URL_JWT_SECRET);
   }
 
   @Override
-  public SecretKey getSep24MoreInfoUrlJwtSecret() {
-    return toSecretKeySpecOrNull(
-        SecretManager.getInstance().get(SECRET_SEP_24_MORE_INFO_URL_JWT_SECRET));
+  public String getSep24MoreInfoUrlJwtSecret() {
+    return SecretManager.getInstance().get(SECRET_SEP_24_MORE_INFO_URL_JWT_SECRET);
   }
 
   @Override
@@ -56,18 +50,8 @@ public class PropertySecretConfig implements SecretConfig {
   }
 
   @Override
-  public SecretKey getCallbackAuthSecretKey() {
-    return toSecretKeySpecOrNull(getCallbackAuthSecret());
-  }
-
-  @Override
   public String getPlatformAuthSecret() {
     return SecretManager.getInstance().get(SECRET_PLATFORM_API_AUTH_SECRET);
-  }
-
-  @Override
-  public SecretKey getPlatformAuthSecretKey() {
-    return toSecretKeySpecOrNull(getPlatformAuthSecret());
   }
 
   @Override

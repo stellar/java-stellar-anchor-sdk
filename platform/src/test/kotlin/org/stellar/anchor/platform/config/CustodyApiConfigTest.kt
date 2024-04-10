@@ -14,7 +14,6 @@ import org.stellar.anchor.auth.AuthConfig
 import org.stellar.anchor.auth.AuthType.JWT
 import org.stellar.anchor.auth.AuthType.NONE
 import org.stellar.anchor.config.CustodySecretConfig
-import org.stellar.anchor.platform.utils.toSecretKey
 
 class CustodyApiConfigTest {
 
@@ -26,8 +25,6 @@ class CustodyApiConfigTest {
   fun setUp() {
     secretConfig = mockk()
     every { secretConfig.custodyAuthSecret } returns "testCustodyApiSecrettestCustodyApiSecret"
-    every { secretConfig.custodyAuthSecretKey } returns
-      "testCustodyApiSecrettestCustodyApiSecret".toSecretKey()
     config = CustodyApiConfig(secretConfig)
     config.baseUrl = "https://test.com"
     val authConfig = AuthConfig()
