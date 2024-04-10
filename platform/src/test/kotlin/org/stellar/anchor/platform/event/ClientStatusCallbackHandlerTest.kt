@@ -92,8 +92,9 @@ class ClientStatusCallbackHandlerTest {
     // header example: "X-Stellar-Signature": "t=....., s=......"
     // Get the signature from request
 
-    every { Sep6TransactionUtils.fromTxn(any(), any()) } returns mockk<Sep6TransactionResponse>()
-    every { fromTxn(any(), any(), any()) } returns mockk<TransactionResponse>()
+    every { Sep6TransactionUtils.fromTxn(any(), any(), any()) } returns
+      mockk<Sep6TransactionResponse>()
+    every { fromTxn(any(), any(), any(), any()) } returns mockk<TransactionResponse>()
 
     val payload = json(event)
     val request =
