@@ -22,7 +22,7 @@ public class PlatformApiClientBeans {
         var secretJwt = platformApiConfig.getAuth().getSecretJwt();
         return AuthHelper.forJwtToken(
             platformApiConfig.getAuth().getJwt().getHttpHeader(),
-            new JwtService(null, null, null, null, secretJwt, secretJwt, secretJwt),
+            JwtService.builder().platformAuthSecret(secretJwt).build(),
             Long.parseLong(platformApiConfig.getAuth().getJwt().getExpirationMilliseconds()));
       case API_KEY:
         return AuthHelper.forApiKey(

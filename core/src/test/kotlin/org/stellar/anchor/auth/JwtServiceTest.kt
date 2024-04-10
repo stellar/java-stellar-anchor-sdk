@@ -1,7 +1,6 @@
 package org.stellar.anchor.auth
 
 import io.jsonwebtoken.MalformedJwtException
-import io.mockk.every
 import io.mockk.mockk
 import java.util.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -14,7 +13,7 @@ import org.stellar.anchor.auth.JwtService.*
 import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
-import org.stellar.anchor.toSecretKey
+import org.stellar.anchor.setupMock
 
 internal class JwtServiceTest {
   companion object {
@@ -34,20 +33,8 @@ internal class JwtServiceTest {
   fun setup() {
     secretConfig = mockk()
     custodySecretConfig = mockk()
-    every { secretConfig.sep6MoreInfoUrlJwtSecret } returns
-      "jwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrejwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrettjwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secret".toSecretKey()
-    every { secretConfig.sep10JwtSecretKey } returns
-      "jwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrejwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrettjwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secret".toSecretKey()
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns
-      "jwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrejwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrettjwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secret".toSecretKey()
-    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns
-      "jwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrejwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrettjwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secret".toSecretKey()
-    every { secretConfig.callbackAuthSecretKey } returns
-      "jwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrejwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrettjwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secret".toSecretKey()
-    every { secretConfig.platformAuthSecretKey } returns
-      "jwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrejwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrettjwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secret".toSecretKey()
-    every { custodySecretConfig.custodyAuthSecretKey } returns
-      "jwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrejwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secrettjwt_secrejwt_secrejwt_secrejwt_secrettttjwt_secret".toSecretKey()
+    secretConfig.setupMock()
+    custodySecretConfig.setupMock()
   }
 
   @Test
@@ -118,8 +105,6 @@ internal class JwtServiceTest {
 
   @Test
   fun `make sure decoding bad cipher test throws an error`() {
-    every { secretConfig.sep10JwtSecretKey } returns
-      "jwt_secrejwt_secrejwt_secrejwt_secrejwt_secretttttjwt_secret".toSecretKey()
     val jwtService = JwtService(secretConfig, custodySecretConfig)
 
     assertThrows<MalformedJwtException> {

@@ -37,7 +37,6 @@ import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_TOML
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN_PATTERN
-import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_SIGNING_SEED
 import org.stellar.anchor.TestConstants.Companion.TEST_WEB_AUTH_DOMAIN
@@ -56,7 +55,7 @@ import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.horizon.Horizon
-import org.stellar.anchor.toSecretKey
+import org.stellar.anchor.setupMock
 import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil
@@ -129,8 +128,7 @@ internal class Sep10ServiceTest {
 
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
 
-    every { secretConfig.sep10SigningSeed } returns TEST_SIGNING_SEED
-    every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET.toSecretKey()
+    secretConfig.setupMock()
 
     this.jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
     this.sep10Service =

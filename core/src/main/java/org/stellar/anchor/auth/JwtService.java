@@ -10,6 +10,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Map;
 import javax.crypto.SecretKey;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
@@ -30,6 +31,7 @@ import org.stellar.anchor.util.Log;
 import org.stellar.sdk.KeyPair;
 
 @Getter
+@Builder
 public class JwtService {
   // SEP-24 specific claims
   public static final String CLIENT_DOMAIN = "client_domain";

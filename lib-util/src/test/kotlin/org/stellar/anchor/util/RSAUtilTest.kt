@@ -45,9 +45,6 @@ class RSAUtilTest {
     val sig = sign(payload, privateKey)
     val validationResult = isValidSignature(sig, payload, publicKey)
     assertTrue(validationResult)
-
-    println("Private key: $privateStr")
-    println("Public key: $publicString")
   }
 
   @Test

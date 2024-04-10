@@ -40,7 +40,7 @@ public class CustodyApiBeans {
         var authSecretJwt = custodyApiConfig.getAuth().getSecretJwt();
         return AuthHelper.forJwtToken(
             custodyApiConfig.getAuth().getJwt().getHttpHeader(),
-            new JwtService(null, null, null, null, null, null, authSecretJwt),
+            JwtService.builder().custodyAuthSecret(authSecretJwt).build(),
             Long.parseLong(custodyApiConfig.getAuth().getJwt().getExpirationMilliseconds()));
       case API_KEY:
         return AuthHelper.forApiKey(

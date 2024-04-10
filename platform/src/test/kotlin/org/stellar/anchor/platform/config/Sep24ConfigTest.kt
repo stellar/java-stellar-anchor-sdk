@@ -18,7 +18,7 @@ import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config.DepositInfoGeneratorType
 import org.stellar.anchor.config.Sep24Config.Features
 import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig
-import org.stellar.anchor.platform.utils.toSecretKey
+import org.stellar.anchor.platform.utils.setupMock
 
 class Sep24ConfigTest {
   lateinit var config: PropertySep24Config
@@ -32,10 +32,7 @@ class Sep24ConfigTest {
     secretConfig = mockk()
     custodyConfig = mockk()
     assetService = DefaultAssetService.fromJsonResource("test_assets.json")
-    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns
-      "more_info url jwjwttjwt secremore_info url jwjwttjwt secrettmore_info url jwjwttjwt secret".toSecretKey()
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns
-      "interactive url jwt secreinteractive url jwt secrettinteractive url jwt secret".toSecretKey()
+    secretConfig.setupMock()
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
 
     config = PropertySep24Config(secretConfig, custodyConfig, assetService)

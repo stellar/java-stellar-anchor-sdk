@@ -46,14 +46,9 @@ public class PlatformServerBeans {
     switch (config.getAuth().getType()) {
       case JWT:
         JwtService jwtService =
-            new JwtService(
-                null,
-                null,
-                null,
-                null,
-                null,
-                config.getSecretConfig().getPlatformAuthSecretKey(),
-                null);
+            JwtService.builder()
+                .platformAuthSecret(config.getSecretConfig().getPlatformAuthSecretKey())
+                .build();
         anchorToPlatformFilter =
             new PlatformAuthJwtFilter(jwtService, config.getAuth().getJwt().getHttpHeader());
         break;

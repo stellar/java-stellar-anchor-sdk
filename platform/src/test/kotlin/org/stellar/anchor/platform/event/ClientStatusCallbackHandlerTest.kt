@@ -22,6 +22,7 @@ import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.platform.service.Sep24MoreInfoUrlConstructor
 import org.stellar.anchor.platform.service.Sep6MoreInfoUrlConstructor
+import org.stellar.anchor.platform.utils.setupMock
 import org.stellar.anchor.sep24.Sep24Helper
 import org.stellar.anchor.sep24.Sep24Helper.fromTxn
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -66,8 +67,7 @@ class ClientStatusCallbackHandlerTest {
     sep24MoreInfoUrlConstructor = mockk<Sep24MoreInfoUrlConstructor>()
 
     secretConfig = mockk()
-    every { secretConfig.sep10SigningSeed } returns
-      "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF"
+    secretConfig.setupMock()
     signer = KeyPair.fromSecretSeed(secretConfig.sep10SigningSeed)
 
     ts = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toString()
