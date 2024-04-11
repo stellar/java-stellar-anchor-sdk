@@ -29,7 +29,6 @@ import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer1Json
 import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.anchor.util.KeyUtil
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(ExecutionMode.SAME_THREAD)
@@ -54,12 +53,12 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
 
   private val platformToAnchorJwtService =
     JwtService(
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.sep6.more_info_url.jwt_secret"]!!),
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.sep10.jwt_secret"]!!),
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.sep24.interactive_url.jwt_secret"]!!),
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.sep24.more_info_url.jwt_secret"]!!),
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.callback_api.auth_secret"]!!),
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.platform_api.auth_secret"]!!),
+      config.env["secret.sep6.more_info_url.jwt_secret"]!!,
+      config.env["secret.sep10.jwt_secret"]!!,
+      config.env["secret.sep24.interactive_url.jwt_secret"]!!,
+      config.env["secret.sep24.more_info_url.jwt_secret"]!!,
+      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.platform_api.auth_secret"]!!,
       null
     )
 

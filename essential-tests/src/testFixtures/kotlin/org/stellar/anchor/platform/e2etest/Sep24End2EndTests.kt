@@ -32,7 +32,6 @@ import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.anchor.util.KeyUtil.toSecretKeySpecOrNull
 import org.stellar.anchor.util.Log.debug
 import org.stellar.anchor.util.Log.info
 import org.stellar.reference.client.AnchorReferenceServerClient
@@ -68,13 +67,13 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   private val walletServerClient = WalletServerClient(Url(config.env["wallet.server.url"]!!))
   private val jwtService: JwtService =
     JwtService(
-      toSecretKeySpecOrNull(config.env["secret.sep6.more_info_url.jwt_secret"]!!),
-      toSecretKeySpecOrNull(config.env["secret.sep10.jwt_secret"]!!),
-      toSecretKeySpecOrNull(config.env["secret.sep24.interactive_url.jwt_secret"]!!),
-      toSecretKeySpecOrNull(config.env["secret.sep24.more_info_url.jwt_secret"]!!),
-      toSecretKeySpecOrNull(config.env["secret.callback_api.auth_secret"]!!),
-      toSecretKeySpecOrNull(config.env["secret.platform_api.auth_secret"]!!),
-      toSecretKeySpecOrNull(config.env["secret.custody_server.auth_secret"]!!)
+      config.env["secret.sep6.more_info_url.jwt_secret"]!!,
+      config.env["secret.sep10.jwt_secret"]!!,
+      config.env["secret.sep24.interactive_url.jwt_secret"]!!,
+      config.env["secret.sep24.more_info_url.jwt_secret"]!!,
+      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.platform_api.auth_secret"]!!,
+      config.env["secret.custody_server.auth_secret"]!!
     )
 
   @ParameterizedTest

@@ -26,7 +26,6 @@ import org.stellar.anchor.platform.gson
 import org.stellar.anchor.platform.printRequest
 import org.stellar.anchor.platform.printResponse
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.anchor.util.KeyUtil
 import org.stellar.anchor.util.StringHelper.json
 import org.stellar.walletsdk.anchor.IncompleteDepositTransaction
 import org.stellar.walletsdk.anchor.IncompleteWithdrawalTransaction
@@ -40,12 +39,12 @@ import org.stellar.walletsdk.asset.IssuedAssetId
 class Sep24Tests : AbstractIntegrationTests(TestConfig()) {
   private val jwtService: JwtService =
     JwtService(
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.sep6.more_info_url.jwt_secret"]!!),
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.sep10.jwt_secret"]!!),
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.sep24.interactive_url.jwt_secret"]!!),
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.sep24.more_info_url.jwt_secret"]!!),
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.callback_api.auth_secret"]!!),
-      KeyUtil.toSecretKeySpecOrNull(config.env["secret.platform_api.auth_secret"]!!),
+      config.env["secret.sep6.more_info_url.jwt_secret"]!!,
+      config.env["secret.sep10.jwt_secret"]!!,
+      config.env["secret.sep24.interactive_url.jwt_secret"]!!,
+      config.env["secret.sep24.more_info_url.jwt_secret"]!!,
+      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.platform_api.auth_secret"]!!,
       null
     )
 
