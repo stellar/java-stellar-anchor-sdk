@@ -493,7 +493,9 @@ public class Sep24Service {
     List<TransactionResponse> list = new ArrayList<>();
     debugF("found {} transactions", txns.size());
     for (Sep24Transaction txn : txns) {
-      TransactionResponse transactionResponse = fromTxn(assetService, moreInfoUrlConstructor, txn);
+      String lang = validateLanguage(appConfig, txReq.getLang());
+      TransactionResponse transactionResponse =
+          fromTxn(assetService, moreInfoUrlConstructor, txn, lang);
       list.add(transactionResponse);
     }
     result.setTransactions(list);
@@ -549,7 +551,8 @@ public class Sep24Service {
     }
     // increment counter
     sep24TransactionQueriedCounter.increment();
-    return Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, txn));
+    String lang = validateLanguage(appConfig, txReq.getLang());
+    return Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, txn, lang));
   }
 
   public InfoResponse getInfo() {

@@ -27,7 +27,8 @@ class Sep6TransactionUtilsTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { sep6MoreInfoUrlConstructor.construct(any()) } returns "https://example.com/more_info"
+    every { sep6MoreInfoUrlConstructor.construct(any(), any()) } returns
+      "https://example.com/more_info"
   }
 
   private val apiTxn =
@@ -202,7 +203,7 @@ class Sep6TransactionUtilsTest {
 
     JSONAssert.assertEquals(
       apiTxn,
-      gson.toJson(Sep6TransactionUtils.fromTxn(databaseTxn, sep6MoreInfoUrlConstructor)),
+      gson.toJson(Sep6TransactionUtils.fromTxn(databaseTxn, sep6MoreInfoUrlConstructor, null)),
       JSONCompareMode.STRICT
     )
   }

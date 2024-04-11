@@ -31,6 +31,7 @@ import org.stellar.anchor.util.GsonUtils
 class Sep24MoreInfoUrlConstructorTest {
   companion object {
     private val gson = GsonUtils.getInstance()
+    private const val LANG = "en"
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
@@ -82,7 +83,7 @@ class Sep24MoreInfoUrlConstructorTest {
     val config = gson.fromJson(SIMPLE_CONFIG_JSON, MoreInfoUrlConfig::class.java)
     val constructor = Sep24MoreInfoUrlConstructor(clientsConfig, config, jwtService)
     val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
-    val url = constructor.construct(txn)
+    val url = constructor.construct(txn, LANG)
 
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
     val cipher = params["token"]!![0]
@@ -104,7 +105,7 @@ class Sep24MoreInfoUrlConstructorTest {
     txn.clientDomain = "unknown.com"
     txn.sep10AccountMemo = null
 
-    val url = constructor.construct(txn)
+    val url = constructor.construct(txn, LANG)
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
     val cipher = params["token"]!![0]
 
@@ -113,7 +114,6 @@ class Sep24MoreInfoUrlConstructorTest {
     testJwt(jwt)
     assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO", jwt.sub)
     assertEquals("unknown.com", claims["client_domain"])
-    assertEquals(null, claims["client_name"])
   }
 
   @Test
@@ -125,7 +125,7 @@ class Sep24MoreInfoUrlConstructorTest {
     txn.sep10Account = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     txn.clientDomain = null
 
-    val url = constructor.construct(txn)
+    val url = constructor.construct(txn, LANG)
 
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
     val cipher = params["token"]!![0]
@@ -146,12 +146,15 @@ class Sep24MoreInfoUrlConstructorTest {
     val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     txn.clientDomain = null
 
-    assertThrows<SepValidationException> { constructor.construct(txn) }
+    assertThrows<SepValidationException> { constructor.construct(txn, LANG) }
   }
 
   private fun testJwt(jwt: Sep24MoreInfoUrlJwt) {
     assertEquals("txn_123", jwt.jti as String)
     Assertions.assertTrue(Instant.ofEpochSecond(jwt.exp).isAfter(Instant.now()))
+
+    val data = jwt.claims["data"] as Map<String, String>
+    assertEquals(LANG, data["lang"] as String)
   }
 }
 

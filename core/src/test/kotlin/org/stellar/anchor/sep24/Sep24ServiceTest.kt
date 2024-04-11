@@ -149,7 +149,7 @@ internal class Sep24ServiceTest {
     val strToken = jwtService.encode(testInteractiveUrlJwt)
     every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
-    every { moreInfoUrlConstructor.construct(any()) } returns
+    every { moreInfoUrlConstructor.construct(any(), any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
     every { clientsConfig.getClientConfigByDomain(any()) } returns clientConfig
     every { clientFinder.getClientName(any()) } returns TEST_CLIENT_NAME

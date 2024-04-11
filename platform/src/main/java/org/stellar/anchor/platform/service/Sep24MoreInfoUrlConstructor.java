@@ -19,14 +19,15 @@ public class Sep24MoreInfoUrlConstructor extends SimpleMoreInfoUrlConstructor {
   }
 
   @Override
-  public String construct(SepTransaction txn) {
+  public String construct(SepTransaction txn, String lang) {
     Sep24Transaction sep24Txn = (Sep24Transaction) txn;
     return construct(
         sep24Txn.getClientDomain(),
         sep24Txn.getSep10Account(),
         sep24Txn.getSep10AccountMemo(),
         sep24Txn.getTransactionId(),
-        sep24Txn);
+        sep24Txn,
+        lang);
   }
 
   @Override
