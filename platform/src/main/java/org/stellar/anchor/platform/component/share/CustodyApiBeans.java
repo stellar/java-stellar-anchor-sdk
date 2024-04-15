@@ -34,12 +34,12 @@ public class CustodyApiBeans {
   }
 
   AuthHelper buildAuthHelper(CustodyApiConfig custodyApiConfig) {
-    String authSecret = custodyApiConfig.getAuth().getSecret();
+    String authSecret = custodyApiConfig.getAuth().getSecretString();
     switch (custodyApiConfig.getAuth().getType()) {
       case JWT:
         return AuthHelper.forJwtToken(
             custodyApiConfig.getAuth().getJwt().getHttpHeader(),
-            new JwtService(null, null, null, null, null, null, authSecret),
+            JwtService.builder().custodyAuthSecret(authSecret).build(),
             Long.parseLong(custodyApiConfig.getAuth().getJwt().getExpirationMilliseconds()));
       case API_KEY:
         return AuthHelper.forApiKey(

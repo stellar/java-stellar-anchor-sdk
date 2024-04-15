@@ -7,8 +7,6 @@ plugins {
   alias(libs.plugins.kotlin.jvm)
 }
 
-repositories { maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") } }
-
 dependencies {
   testImplementation(libs.stellar.wallet.sdk)
   testImplementation(libs.okhttp3.mockserver)
@@ -16,6 +14,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-web")
   testImplementation(libs.kotlin.serialization.json)
   testImplementation(libs.ktor.client.json)
+  testImplementation(libs.google.gson)
   // project dependencies
   testImplementation(project(":lib-util"))
   testImplementation(project(":api-schema"))

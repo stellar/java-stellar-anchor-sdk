@@ -11,7 +11,7 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestHelper
-import org.stellar.anchor.api.exception.BadRequestException
+import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.client.ClientFinder
 import org.stellar.anchor.config.ClientsConfig
 import org.stellar.anchor.config.Sep10Config
@@ -74,21 +74,21 @@ class ClientFinderTest {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns null
     every { clientsConfig.getClientConfigBySigningKey(token.account) } returns null
 
-    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
+    assertThrows<SepNotAuthorizedException> { clientFinder.getClientName(token) }
   }
 
   @Test
   fun `test getClientName with client not found by domain`() {
     every { sep10Config.allowedClientDomains } returns listOf("nothing")
 
-    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
+    assertThrows<SepNotAuthorizedException> { clientFinder.getClientName(token) }
   }
 
   @Test
   fun `test getClientName with client not found by name`() {
     every { sep10Config.allowedClientNames } returns listOf("nothing")
 
-    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
+    assertThrows<SepNotAuthorizedException> { clientFinder.getClientName(token) }
   }
 
   @Test

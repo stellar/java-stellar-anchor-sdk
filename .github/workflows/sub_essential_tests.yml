@@ -69,6 +69,7 @@ jobs:
           SEP1_TOML_VALUE: /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/config/stellar.host.docker.internal.toml
           SEP10_WEB_AUTH_DOMAIN: host.docker.internal:8080
           SEP10_HOME_DOMAINS: host.docker.internal:8080,*.stellar.org
+          TOML_PATH: /home/runner/java-stellar-anchor-sdk/wallet-reference-server/src/main/resources/toml
         run: |
           cp /home/runner/java-stellar-anchor-sdk/service-runner/build/libs/anchor-platform-runner-*.jar /home/runner/anchor-platform-runner.jar
           java -jar /home/runner/anchor-platform-runner.jar -t &
@@ -78,6 +79,14 @@ jobs:
         uses: mydea/action-wait-for-api@v1
         with:
           url: "http://localhost:8080/.well-known/stellar.toml"
+          expected-status: "200"
+          timeout: "300"
+          interval: "1"
+
+      - name: Wait for the wallet server to start and get ready
+        uses: mydea/action-wait-for-api@v1
+        with:
+          url: "http://localhost:8092/.well-known/stellar.toml"
           expected-status: "200"
           timeout: "300"
           interval: "1"

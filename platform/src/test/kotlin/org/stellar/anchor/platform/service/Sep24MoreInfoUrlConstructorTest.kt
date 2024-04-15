@@ -24,6 +24,7 @@ import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig
 import org.stellar.anchor.platform.config.PropertyClientsConfig
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.utils.setupMock
 import org.stellar.anchor.util.GsonUtils
 
 @Execution(ExecutionMode.SAME_THREAD)
@@ -42,7 +43,7 @@ class Sep24MoreInfoUrlConstructorTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "sep24_jwt_secret"
+    secretConfig.setupMock()
 
     val clientConfig =
       ClientConfig(

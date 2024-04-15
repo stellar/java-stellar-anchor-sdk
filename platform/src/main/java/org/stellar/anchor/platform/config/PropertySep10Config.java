@@ -17,6 +17,7 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
+import org.stellar.anchor.util.KeyUtil;
 import org.stellar.anchor.util.NetUtil;
 import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.*;
@@ -35,6 +36,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private AppConfig appConfig;
   private final PropertyClientsConfig clientsConfig;
   private SecretConfig secretConfig;
+  private boolean requireAuthHeader = false;
 
   public PropertySep10Config(
       AppConfig appConfig, PropertyClientsConfig clientsConfig, SecretConfig secretConfig) {
@@ -99,6 +101,9 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "sep10-jwt-secret-empty",
           "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");
     }
+
+    KeyUtil.rejectWeakJWTSecret(
+        secretConfig.getSep10JwtSecretKey(), errors, "secret.sep10.jwt_secret");
 
     if (isEmpty(homeDomain) && (homeDomains == null || homeDomains.isEmpty())) {
       // Default to localhost:8080 if neither is defined.

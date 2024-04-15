@@ -162,8 +162,10 @@ public class SepBeans {
       SecretConfig secretConfig,
       Sep10Config sep10Config,
       Horizon horizon,
-      JwtService jwtService) {
-    return new Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService);
+      JwtService jwtService,
+      ClientFinder clientFinder) {
+    return new Sep10Service(
+        appConfig, secretConfig, sep10Config, horizon, jwtService, clientFinder);
   }
 
   @Bean
