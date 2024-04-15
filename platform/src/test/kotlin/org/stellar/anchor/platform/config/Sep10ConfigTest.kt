@@ -238,6 +238,14 @@ class Sep10ConfigTest {
     }
   }
 
+  @Test
+  fun `validate JWT`() {
+    every { secretConfig.sep10JwtSecretKey }.returns("tooshort")
+    config.validateConfig(errors)
+    assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "hmac-weak-secret")
+  }
+
   companion object {
     @JvmStatic
     fun generatedHomeDomainsTestConfig(): Stream<Arguments> {

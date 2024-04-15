@@ -69,7 +69,8 @@ public class CustodyApiConfig implements Validator {
 
       if (List.of(API_KEY, JWT).contains(auth.getType())) {
         if (AuthType.JWT == auth.getType()) {
-          KeyUtil.validateJWTSecret(secretConfig.getCustodyAuthSecret());
+          KeyUtil.rejectWeakJWTSecret(
+              secretConfig.getCustodyAuthSecret(), errors, "secret.custody_server.auth_secret");
         }
 
         if (auth.getSecretString() == null) {

@@ -94,6 +94,14 @@ class Sep6ConfigTest {
     Assertions.assertEquals("sep6-more-info-url-jwt-secret-not-defined", errors.allErrors[0].code)
   }
 
+  @Test
+  fun `validate interactive JWT`() {
+    every { secretConfig.sep6MoreInfoUrlJwtSecret }.returns("tooshort")
+    config.validate(config, errors)
+    Assertions.assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "hmac-weak-secret")
+  }
+
   @CsvSource(value = ["NONE", "SELF"])
   @ParameterizedTest
   fun `test validation rejecting custody enabled and non-custodial deposit info generator`(

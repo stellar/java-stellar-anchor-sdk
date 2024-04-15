@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.config
 import io.mockk.every
 import io.mockk.mockk
 import java.lang.Long.MIN_VALUE
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
@@ -89,6 +90,22 @@ class Sep24ConfigTest {
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns null
     config.validate(config, errors)
     assertEquals("sep24-interactive-url-jwt-secret-not-defined", errors.allErrors[0].code)
+  }
+
+  @Test
+  fun `validate interactive JWT`() {
+    every { secretConfig.sep24InteractiveUrlJwtSecret }.returns("tooshort")
+    config.validate(config, errors)
+    Assertions.assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "hmac-weak-secret")
+  }
+
+  @Test
+  fun `validate more_info JWT`() {
+    every { secretConfig.sep24MoreInfoUrlJwtSecret }.returns("tooshort")
+    config.validate(config, errors)
+    Assertions.assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "hmac-weak-secret")
   }
 
   @ParameterizedTest

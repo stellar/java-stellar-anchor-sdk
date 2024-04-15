@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -86,5 +87,21 @@ class CallbackApiConfigTest {
     config.validateAuth(errors)
     assertEquals(1, errors.errorCount)
     assertEquals("empty-secret-callback-api-secret", errors.allErrors[0].code)
+  }
+
+  @Test
+  fun `validate JWT`() {
+    every { secretConfig.callbackAuthSecret }.returns("tooshort")
+    config.setAuth(
+      AuthConfig(
+        JWT,
+        null,
+        AuthConfig.JwtConfig("30000", "Authorization"),
+        AuthConfig.ApiKeyConfig("X-Api-Key")
+      )
+    )
+    config.validateAuth(errors)
+    Assertions.assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "hmac-weak-secret")
   }
 }

@@ -69,7 +69,9 @@ public class CallbackApiConfig implements Validator {
       }
 
       if (AuthType.JWT == auth.getType()) {
-        KeyUtil.validateJWTSecret(secretConfig.getCallbackAuthSecret());
+        KeyUtil.rejectWeakJWTSecret(
+            secretConfig.getCallbackAuthSecret(), errors, "secret.callback_api.auth_secret");
+
         if (Long.parseLong(auth.getJwt().getExpirationMilliseconds()) < MIN_EXPIRATION) {
           errors.rejectValue(
               "auth",

@@ -45,7 +45,8 @@ public class PlatformApiConfig implements Validator {
       PlatformApiConfig config = (PlatformApiConfig) target;
       if (List.of(API_KEY, JWT).contains(config.getAuth().getType())) {
         if (AuthType.JWT == auth.getType()) {
-          KeyUtil.validateJWTSecret(secretConfig.getPlatformAuthSecret());
+          KeyUtil.rejectWeakJWTSecret(
+              secretConfig.getPlatformAuthSecret(), errors, "secret.platform_api.auth_secret");
         }
         if (config.getAuth().getSecretString() == null) {
           errors.rejectValue(

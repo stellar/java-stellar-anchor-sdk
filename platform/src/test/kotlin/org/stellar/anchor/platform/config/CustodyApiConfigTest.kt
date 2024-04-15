@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -146,5 +147,21 @@ class CustodyApiConfigTest {
     config.httpClient.callTimeout = callTimeout
     config.validate(config, errors)
     assertErrorCode(errors, "custody-server-http-client-call-timeout-invalid")
+  }
+
+  @Test
+  fun `validate JWT`() {
+    every { secretConfig.custodyAuthSecret }.returns("tooshort")
+    config.setAuth(
+      AuthConfig(
+        JWT,
+        null,
+        AuthConfig.JwtConfig("30000", "Authorization"),
+        AuthConfig.ApiKeyConfig("X-Api-Key")
+      )
+    )
+    config.validate(config, errors)
+    Assertions.assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "hmac-weak-secret")
   }
 }

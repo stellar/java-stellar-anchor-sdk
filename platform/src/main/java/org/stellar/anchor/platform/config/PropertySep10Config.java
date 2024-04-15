@@ -102,7 +102,8 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");
     }
 
-    KeyUtil.validateJWTSecret(secretConfig.getSep10JwtSecretKey());
+    KeyUtil.rejectWeakJWTSecret(
+        secretConfig.getSep10JwtSecretKey(), errors, "secret.sep10.jwt_secret");
 
     if (isEmpty(homeDomain) && (homeDomains == null || homeDomains.isEmpty())) {
       // Default to localhost:8080 if neither is defined.
