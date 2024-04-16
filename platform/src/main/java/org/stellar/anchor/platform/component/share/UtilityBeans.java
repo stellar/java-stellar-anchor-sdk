@@ -44,15 +44,23 @@ public class UtilityBeans {
   @Bean
   @Qualifier("sep6MoreInfoUrlConstructor")
   MoreInfoUrlConstructor sep6MoreInfoUrlConstructor(
-      PropertyClientsConfig clientsConfig, PropertySep6Config sep6Config, JwtService jwtService) {
-    return new Sep6MoreInfoUrlConstructor(clientsConfig, sep6Config.getMoreInfoUrl(), jwtService);
+      AssetService assetService,
+      PropertyClientsConfig clientsConfig,
+      PropertySep6Config sep6Config,
+      JwtService jwtService) {
+    return new Sep6MoreInfoUrlConstructor(
+        assetService, clientsConfig, sep6Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean
   @Qualifier("sep24MoreInfoUrlConstructor")
   MoreInfoUrlConstructor sep24MoreInfoUrlConstructor(
-      PropertyClientsConfig clientsConfig, PropertySep24Config sep24Config, JwtService jwtService) {
-    return new Sep24MoreInfoUrlConstructor(clientsConfig, sep24Config.getMoreInfoUrl(), jwtService);
+      AssetService assetService,
+      PropertyClientsConfig clientsConfig,
+      PropertySep24Config sep24Config,
+      JwtService jwtService) {
+    return new Sep24MoreInfoUrlConstructor(
+        assetService, clientsConfig, sep24Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean

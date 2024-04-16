@@ -7,24 +7,30 @@ import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.SepTransaction;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.MoreInfoUrlJwt;
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig;
 import org.stellar.anchor.platform.config.PropertyClientsConfig;
 
 public abstract class SimpleMoreInfoUrlConstructor implements MoreInfoUrlConstructor {
+  final AssetService assetService;
   PropertyClientsConfig clientsConfig;
   final MoreInfoUrlConfig config;
   private final JwtService jwtService;
 
   public SimpleMoreInfoUrlConstructor(
-      PropertyClientsConfig clientsConfig, MoreInfoUrlConfig config, JwtService jwtService) {
+      AssetService assetService,
+      PropertyClientsConfig clientsConfig,
+      MoreInfoUrlConfig config,
+      JwtService jwtService) {
+    this.assetService = assetService;
     this.clientsConfig = clientsConfig;
     this.config = config;
     this.jwtService = jwtService;
   }
 
-  public abstract String construct(SepTransaction txn);
+  public abstract String construct(SepTransaction txn, String lang);
 
   @SneakyThrows
   public String construct(
@@ -32,13 +38,16 @@ public abstract class SimpleMoreInfoUrlConstructor implements MoreInfoUrlConstru
       String memo,
       String sep10Account,
       String transactionId,
-      SepTransaction txn) {
+      SepTransaction txn,
+      String lang) {
 
     MoreInfoUrlJwt token = getBaseToken(clientDomain, memo, sep10Account, transactionId);
 
-    // add txn_fields to token
+    // add lang to token
     Map<String, String> data = new HashMap<>();
-    UrlConstructorHelper.addTxnFields(data, txn, config.getTxnFields());
+    data.put("lang", lang);
+    // add txn_fields to token
+    UrlConstructorHelper.addTxnFields(assetService, data, txn, config.getTxnFields());
     token.claim("data", data);
 
     // build url

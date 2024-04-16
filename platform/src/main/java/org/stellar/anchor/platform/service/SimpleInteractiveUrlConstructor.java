@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.auth.JwtService.HOME_DOMAIN;
+import static org.stellar.anchor.platform.service.UrlConstructorHelper.addTxnFields;
 import static org.stellar.anchor.sep24.Sep24Service.INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.Log.debugF;
@@ -16,6 +17,7 @@ import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.PutCustomerRequest;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt;
@@ -28,17 +30,19 @@ import org.stellar.anchor.util.GsonUtils;
 
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   public static final String FORWARD_KYC_CUSTOMER_TYPE = "sep24-customer";
-
+  private final AssetService assetService;
   private final PropertyClientsConfig clientsConfig;
   private final PropertySep24Config sep24Config;
   private final CustomerIntegration customerIntegration;
   private final JwtService jwtService;
 
   public SimpleInteractiveUrlConstructor(
+      AssetService assetService,
       PropertyClientsConfig clientsConfig,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
+    this.assetService = assetService;
     this.clientsConfig = clientsConfig;
     this.sep24Config = sep24Config;
     this.customerIntegration = customerIntegration;
@@ -96,7 +100,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
     Map<String, String> data =
         new HashMap<>(extractRequiredJwtFieldsFromRequest(request, asset, homeDomain));
     // Add fields defined in txnFields
-    UrlConstructorHelper.addTxnFields(data, txn, sep24Config.getInteractiveUrl().getTxnFields());
+    addTxnFields(assetService, data, txn, sep24Config.getInteractiveUrl().getTxnFields());
 
     token.claim("data", data);
 

@@ -210,7 +210,7 @@ public class TransactionHelper {
     AssetInfo info = service.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
 
     // Already validated in the interactive flow
-    return info.getSep38AssetName();
+    return (info != null) ? info.getSep38AssetName() : null;
   }
 
   private static String makeAsset(

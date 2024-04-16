@@ -1,4 +1,5 @@
 fullName: anchor-platform
+namespace: default
 
 secretStoreRefName: fake-secret-store
 
@@ -67,8 +68,9 @@ services:
           memory: 1Gi
           cpu: 1
 
-callbackApi:
-  url: http://reference-server-svc-reference-server:8091
+config:
+  callbackApi:
+    baseUrl: http://reference-server-svc-reference-server:8091
 
 ingress:
   name: ingress-anchor-platform

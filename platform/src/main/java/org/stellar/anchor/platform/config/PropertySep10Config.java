@@ -17,6 +17,7 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
+import org.stellar.anchor.util.KeyUtil;
 import org.stellar.anchor.util.NetUtil;
 import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.*;
@@ -25,6 +26,7 @@ import org.stellar.sdk.*;
 public class PropertySep10Config implements Sep10Config, Validator {
   private Boolean enabled;
   private String webAuthDomain;
+  private String homeDomain;
   private List<String> homeDomains;
   private boolean clientAttributionRequired = false;
   private List<String> clientAllowList = null;
@@ -34,6 +36,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private AppConfig appConfig;
   private final PropertyClientsConfig clientsConfig;
   private SecretConfig secretConfig;
+  private boolean requireAuthHeader = false;
 
   public PropertySep10Config(
       AppConfig appConfig, PropertyClientsConfig clientsConfig, SecretConfig secretConfig) {
@@ -95,6 +98,9 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "sep10-jwt-secret-empty",
           "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");
     }
+
+    KeyUtil.rejectWeakJWTSecret(
+        secretConfig.getSep10JwtSecretKey(), errors, "secret.sep10.jwt_secret");
 
     if (homeDomains == null || homeDomains.isEmpty()) {
       errors.reject(
@@ -192,7 +198,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       new ManageDataOperation.Builder(String.format("%s %s", domain, "auth"), new byte[64]).build();
     } catch (IllegalArgumentException iaex) {
       errors.rejectValue(
-          "homeDomains",
+          "homeDomain",
           "sep10-home-domain-too-long",
           format(
               "The sep10.home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
@@ -201,9 +207,9 @@ public class PropertySep10Config implements Sep10Config, Validator {
 
     if (!NetUtil.isServerPortValid(domain, false)) {
       errors.rejectValue(
-          "homeDomains",
+          "homeDomain",
           "sep10-home-domain-invalid",
-          format("The sep10.home_domain (%s) does not have valid format.", domain));
+          "The sep10.home_domain does not have valid format.");
     }
   }
 

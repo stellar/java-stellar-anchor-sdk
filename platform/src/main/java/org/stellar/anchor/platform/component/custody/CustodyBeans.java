@@ -31,12 +31,12 @@ public class CustodyBeans {
   @Bean
   public FilterRegistrationBean<Filter> platformToCustodyTokenFilter(
       CustodyApiConfig custodyApiConfig) {
-    String authSecret = custodyApiConfig.getAuth().getSecret();
+    String authSecret = custodyApiConfig.getAuth().getSecretString();
 
     Filter platformToCustody;
     switch (custodyApiConfig.getAuth().getType()) {
       case JWT:
-        JwtService jwtService = new JwtService(null, null, null, null, null, null, authSecret);
+        JwtService jwtService = JwtService.builder().custodyAuthSecret(authSecret).build();
         platformToCustody =
             new CustodyAuthJwtFilter(
                 jwtService, custodyApiConfig.getAuth().getJwt().getHttpHeader());

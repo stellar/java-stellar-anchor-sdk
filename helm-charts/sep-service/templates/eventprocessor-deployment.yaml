@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.fullName }}-svc-{{ .Values.services.eventProcessor.name }}
+  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ .Values.fullName }}-event-processor
     helm.sh/chart: {{ include "common.chart" . }}
@@ -14,6 +15,7 @@ spec:
       app: {{ .Values.fullName }}-svc-{{ .Values.services.eventProcessor.name }}
   template:
     metadata:
+      namespace: {{ .Values.namespace }}
       labels:
         app: {{ .Values.fullName }}-svc-{{ .Values.services.eventProcessor.name }}
     spec:
@@ -60,7 +62,7 @@ spec:
             - name: PLATFORM_API_BASE_URL
               value: {{ print "http://" .Values.fullName "-svc-" .Values.services.platform.name ":" .Values.services.platform.containerPort }}
             - name: CALLBACK_API_BASE_URL
-              value: {{ .Values.callbackApi.url }}
+              value: {{ .Values.config.callbackApi.baseUrl }}
             - name: SECRET_EVENTS_QUEUE_KAFKA_USERNAME
               valueFrom:
                 secretKeyRef:
