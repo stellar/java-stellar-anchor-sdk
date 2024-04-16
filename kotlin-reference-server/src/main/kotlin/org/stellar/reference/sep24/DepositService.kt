@@ -83,7 +83,7 @@ class DepositService(private val cfg: Config) {
           amountIn = AmountAssetRequest(asset = "iso4217:USD", amount = amount.toPlainString()),
           amountOut =
             AmountAssetRequest(asset = stellarAsset, amount = amount.subtract(fee).toPlainString()),
-          amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = fee.toPlainString())
+          feeDetails = FeeDetails(total = fee.toPlainString(), asset = "iso4217:USD")
         )
       )
     } else {
@@ -94,7 +94,7 @@ class DepositService(private val cfg: Config) {
           message = "waiting on the user to transfer funds",
           amountIn = Amount(amount.toPlainString(), stellarAsset),
           amountOut = Amount(amount.subtract(fee).toPlainString(), stellarAsset),
-          amountFee = Amount(fee.toPlainString(), stellarAsset)
+          feeDetails = FeeDetails(fee.toPlainString(), stellarAsset)
         )
       )
     }
