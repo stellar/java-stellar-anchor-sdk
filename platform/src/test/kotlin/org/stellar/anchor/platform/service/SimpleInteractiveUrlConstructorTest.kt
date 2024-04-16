@@ -32,6 +32,7 @@ import org.stellar.anchor.platform.config.PropertyClientsConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor.FORWARD_KYC_CUSTOMER_TYPE
+import org.stellar.anchor.platform.utils.setupMock
 import org.stellar.anchor.util.GsonUtils
 
 @Suppress("UNCHECKED_CAST")
@@ -60,7 +61,7 @@ class SimpleInteractiveUrlConstructorTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns "sep24_jwt_secret"
+    secretConfig.setupMock()
 
     val clientConfig =
       ClientConfig(

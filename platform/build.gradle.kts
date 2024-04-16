@@ -35,6 +35,7 @@ dependencies {
   implementation(libs.jackson.dataformat.yaml)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
   implementation(libs.jjwt)
+  implementation(libs.bcastle)
   implementation(libs.log4j2.api)
   implementation(libs.log4j2.core)
   implementation(libs.log4j2.slf4j)

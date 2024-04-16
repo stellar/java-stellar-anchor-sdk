@@ -62,7 +62,7 @@ spec:
             - name: PLATFORM_API_BASE_URL
               value: {{ print "http://" .Values.fullName "-svc-" .Values.services.platform.name ":" .Values.services.platform.containerPort }}
             - name: CALLBACK_API_BASE_URL
-              value: {{ .Values.callbackApi.url }}
+              value: {{ .Values.config.callbackApi.baseUrl }}
             - name: SECRET_EVENTS_QUEUE_KAFKA_USERNAME
               valueFrom:
                 secretKeyRef:

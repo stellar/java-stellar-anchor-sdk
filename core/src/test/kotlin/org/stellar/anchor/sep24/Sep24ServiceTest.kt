@@ -22,7 +22,6 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
-import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_OFFCHAIN_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
@@ -48,6 +47,7 @@ import org.stellar.anchor.event.EventService
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator
+import org.stellar.anchor.setupMock
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
@@ -141,9 +141,7 @@ internal class Sep24ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
-    every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
-    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns TEST_JWT_SECRET
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns TEST_JWT_SECRET
+    secretConfig.setupMock()
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
     jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
@@ -151,7 +149,7 @@ internal class Sep24ServiceTest {
     val strToken = jwtService.encode(testInteractiveUrlJwt)
     every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
-    every { moreInfoUrlConstructor.construct(any()) } returns
+    every { moreInfoUrlConstructor.construct(any(), any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
     every { clientsConfig.getClientConfigByDomain(any()) } returns clientConfig
     every { clientFinder.getClientName(any()) } returns TEST_CLIENT_NAME
