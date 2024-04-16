@@ -1121,27 +1121,4 @@ class TransactionServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Transaction is missing.", ex.message)
   }
-
-  //  @Test
-  //  fun `validateAndGetRateFee test`() {
-  //    val data = PlatformTransactionData()
-  //    data.feeDetails = Amount("10", "USDC").toRate()
-  //
-  //    assertEquals(Amount("10", "USDC").toRate(), transactionService.validateAndGetRateFee(data))
-  //
-  //    data.feeDetails = FeeDetails("10", "USDC", listOf(FeeDescription("test", "10")))
-  //    assertEquals(
-  //      FeeDetails("10", "USDC", listOf(FeeDescription("test", "10"))),
-  //      transactionService.validateAndGetRateFee(data)
-  //    )
-  //
-  //    data.feeDetails = Amount("9", "USDC").toRate()
-  //    var ex = assertThrows<BadRequestException> { transactionService.validateAndGetRateFee(data)
-  // }
-  //    assertEquals("fee_details's amount doesn't match amount from fee_details", ex.message)
-  //
-  //    data.feeDetails = Amount("10", "NOTUSDC").toRate()
-  //    ex = assertThrows<BadRequestException> { transactionService.validateAndGetRateFee(data) }
-  //    assertEquals("fee_details's asset doesn't match asset from fee_details", ex.message)
-  //  }
 }
