@@ -79,6 +79,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.fullName }}-secrets
                   key: SEP24_MORE_INFO_URL_JWT_SECRET
+            - name: SECRET_SEP6_MORE_INFO_URL_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.fullName }}-secrets
+                  key: SEP6_MORE_INFO_URL_JWT_SECRET
             - name: PLATFORM_API_BASE_URL
               value: {{ print "http://" .Values.fullName "-svc-" .Values.services.platform.name ":" .Values.services.platform.containerPort | default 8085 }}
           resources:
