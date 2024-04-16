@@ -15,6 +15,7 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep6Config
+import org.stellar.anchor.platform.utils.setupMock
 
 class Sep6ConfigTest {
   @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
@@ -28,7 +29,7 @@ class Sep6ConfigTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
-    every { secretConfig.sep6MoreInfoUrlJwtSecret } returns "more_info url jwt secret"
+    secretConfig.setupMock {}
     config =
       PropertySep6Config(custodyConfig, assetService, secretConfig).apply {
         enabled = true
@@ -88,9 +89,17 @@ class Sep6ConfigTest {
 
   @Test
   fun `test validation rejecting missing more_info_url jwt secret`() {
-    every { secretConfig.sep6MoreInfoUrlJwtSecret } returns null
+    secretConfig.setupMock { every { secretConfig.sep6MoreInfoUrlJwtSecret } returns null }
     config.validate(config, errors)
     Assertions.assertEquals("sep6-more-info-url-jwt-secret-not-defined", errors.allErrors[0].code)
+  }
+
+  @Test
+  fun `validate interactive JWT`() {
+    every { secretConfig.sep6MoreInfoUrlJwtSecret }.returns("tooshort")
+    config.validate(config, errors)
+    Assertions.assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "hmac-weak-secret")
   }
 
   @CsvSource(value = ["NONE", "SELF"])

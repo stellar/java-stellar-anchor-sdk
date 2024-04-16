@@ -132,6 +132,7 @@ public class SepBeans {
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep6"})
   Sep6Service sep6Service(
+      AppConfig appConfig,
       Sep6Config sep6Config,
       AssetService assetService,
       ClientFinder clientFinder,
@@ -143,6 +144,7 @@ public class SepBeans {
     ExchangeAmountsCalculator exchangeAmountsCalculator =
         new ExchangeAmountsCalculator(sep38QuoteStore);
     return new Sep6Service(
+        appConfig,
         sep6Config,
         assetService,
         requestValidator,
@@ -160,8 +162,10 @@ public class SepBeans {
       SecretConfig secretConfig,
       Sep10Config sep10Config,
       Horizon horizon,
-      JwtService jwtService) {
-    return new Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService);
+      JwtService jwtService,
+      ClientFinder clientFinder) {
+    return new Sep10Service(
+        appConfig, secretConfig, sep10Config, horizon, jwtService, clientFinder);
   }
 
   @Bean

@@ -14,6 +14,7 @@ import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
+import org.stellar.anchor.platform.utils.setupMock
 
 class Sep10ConfigTest {
   lateinit var config: PropertySep10Config
@@ -67,9 +68,7 @@ class Sep10ConfigTest {
     config.enabled = true
     config.homeDomains = listOf("stellar.org")
     errors = BindException(config, "config")
-    every { secretConfig.sep10SigningSeed } returns
-      "SDNMFWJGLVR4O2XV3SNEJVF53MMLQWYFYFC7HT7JZ5235AXPETHB4K3D"
-    every { secretConfig.sep10JwtSecretKey } returns "secret"
+    secretConfig.setupMock()
   }
 
   @Test
@@ -229,6 +228,14 @@ class Sep10ConfigTest {
 
     config.validateConfig(errors)
     assertEquals(hasError, errors.hasErrors())
+  }
+
+  @Test
+  fun `validate JWT`() {
+    every { secretConfig.sep10JwtSecretKey }.returns("tooshort")
+    config.validateConfig(errors)
+    assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "hmac-weak-secret")
   }
 
   companion object {

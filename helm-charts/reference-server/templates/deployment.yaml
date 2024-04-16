@@ -41,6 +41,10 @@ spec:
           env:
             - name: KT_REFERENCE_SERVER_CONFIG
               value: /config/config.yaml
+            - name: APP.PLATFORM_API_ENDPOINT
+              value: {{ .Values.config.app.platformApiEndpoint }}
+            - name: DATA.URL
+              value: {{ .Values.config.data.url }}
             - name: DATA.USER
               valueFrom:
                 secretKeyRef:

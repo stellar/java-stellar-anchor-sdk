@@ -8,8 +8,6 @@ import static org.stellar.anchor.util.OkHttpUtil.buildJsonRequestBody;
 import static org.stellar.anchor.util.StringHelper.json;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -111,8 +109,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
         .build();
   }
 
-  private String getPayload(AnchorEvent event)
-      throws AnchorException, MalformedURLException, URISyntaxException {
+  private String getPayload(AnchorEvent event) throws AnchorException {
     switch (event.getTransaction().getSep()) {
       case SEP_6:
         // TODO: remove dependence on the transaction store
@@ -120,13 +117,13 @@ public class ClientStatusCallbackHandler extends EventHandler {
             sep6TransactionStore.findByTransactionId(event.getTransaction().getId());
         org.stellar.anchor.api.sep.sep6.GetTransactionResponse sep6TxnRes =
             new org.stellar.anchor.api.sep.sep6.GetTransactionResponse(
-                Sep6TransactionUtils.fromTxn(sep6Txn, sep6MoreInfoUrlConstructor));
+                Sep6TransactionUtils.fromTxn(sep6Txn, sep6MoreInfoUrlConstructor, null));
         return json(sep6TxnRes);
       case SEP_24:
         Sep24Transaction sep24Txn = fromSep24Txn(event.getTransaction());
         Sep24GetTransactionResponse txn24Response =
             Sep24GetTransactionResponse.of(
-                fromTxn(assetService, sep24MoreInfoUrlConstructor, sep24Txn));
+                fromTxn(assetService, sep24MoreInfoUrlConstructor, sep24Txn, null));
         return json(txn24Response);
       case SEP_31:
         Sep31Transaction sep31Txn = fromSep31Txn(event.getTransaction());

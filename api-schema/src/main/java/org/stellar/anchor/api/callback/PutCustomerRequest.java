@@ -152,6 +152,12 @@ public class PutCustomerRequest {
   @SerializedName("referral_id")
   String referralId;
 
+  @SerializedName("mobile_number_verification")
+  String mobileNumberVerification;
+
+  @SerializedName("email_address_verification")
+  String emailAddressVerification;
+
   public static PutCustomerRequest from(Sep12PutCustomerRequest request) {
     return gson.fromJson(gson.toJson(request), PutCustomerRequest.class);
   }

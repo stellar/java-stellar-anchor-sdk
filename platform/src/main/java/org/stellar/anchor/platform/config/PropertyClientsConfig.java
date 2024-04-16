@@ -105,7 +105,7 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     if (!isEmpty(clientConfig.getSigningKey())) {
       try {
         String clientSigningKey =
-            Sep10Helper.fetchSigningKeyFromClientDomain(clientConfig.getDomain());
+            Sep10Helper.fetchSigningKeyFromClientDomain(clientConfig.getDomain(), false);
         if (!clientConfig.getSigningKey().equals(clientSigningKey)) {
           errors.reject(
               "client-signing-key-does-not-match",

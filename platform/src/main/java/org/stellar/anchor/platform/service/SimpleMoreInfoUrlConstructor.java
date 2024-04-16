@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.platform.service.UrlConstructorHelper.addTxnFields;
-
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +30,7 @@ public abstract class SimpleMoreInfoUrlConstructor implements MoreInfoUrlConstru
     this.jwtService = jwtService;
   }
 
-  public abstract String construct(SepTransaction txn);
+  public abstract String construct(SepTransaction txn, String lang);
 
   @SneakyThrows
   public String construct(
@@ -40,14 +38,16 @@ public abstract class SimpleMoreInfoUrlConstructor implements MoreInfoUrlConstru
       String memo,
       String sep10Account,
       String transactionId,
-      SepTransaction txn) {
+      SepTransaction txn,
+      String lang) {
 
     MoreInfoUrlJwt token = getBaseToken(clientDomain, memo, sep10Account, transactionId);
 
-    // add txn_fields to token
+    // add lang to token
     Map<String, String> data = new HashMap<>();
-    addTxnFields(assetService, data, txn, config.getTxnFields());
-
+    data.put("lang", lang);
+    // add txn_fields to token
+    UrlConstructorHelper.addTxnFields(assetService, data, txn, config.getTxnFields());
     token.claim("data", data);
 
     // build url

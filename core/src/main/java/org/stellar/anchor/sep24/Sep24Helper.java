@@ -6,8 +6,6 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 
 import com.google.gson.Gson;
 import java.math.BigDecimal;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.BeanUtils;
@@ -74,25 +72,25 @@ public class Sep24Helper {
    * @param assetService The asset service.
    * @param moreInfoUrlConstructor The more info URL constructor.
    * @param txn The SEP-24 transaction.
+   * @param lang The language code from the SEP-24 GET /transaction(s) request.
    * @return The SEP-24 transaction response.
-   * @throws MalformedURLException If the more info URL is malformed.
-   * @throws URISyntaxException If the more info URL is malformed.
    * @throws SepException If the transaction kind is not supported.
    */
   public static TransactionResponse fromTxn(
       AssetService assetService,
       MoreInfoUrlConstructor moreInfoUrlConstructor,
-      Sep24Transaction txn)
-      throws MalformedURLException, URISyntaxException, SepException {
+      Sep24Transaction txn,
+      String lang)
+      throws SepException {
     debugF(
         "Converting Sep24Transaction to Transaction Response. kind={}, transactionId={}",
         txn.getKind(),
         txn.getTransactionId());
     TransactionResponse response;
     if (txn.getKind().equals(Sep24Transaction.Kind.DEPOSIT.toString())) {
-      response = fromDepositTxn(txn, moreInfoUrlConstructor);
+      response = fromDepositTxn(txn, moreInfoUrlConstructor, lang);
     } else if (txn.getKind().equals(WITHDRAWAL.toString())) {
-      response = fromWithdrawTxn(txn, moreInfoUrlConstructor);
+      response = fromWithdrawTxn(txn, moreInfoUrlConstructor, lang);
     } else {
       throw new SepException(String.format("unsupported txn kind:%s", txn.getKind()));
     }
@@ -104,8 +102,7 @@ public class Sep24Helper {
   }
 
   public static TransactionResponse fromDepositTxn(
-      Sep24Transaction txn, MoreInfoUrlConstructor moreInfoUrlConstructor)
-      throws MalformedURLException, URISyntaxException {
+      Sep24Transaction txn, MoreInfoUrlConstructor moreInfoUrlConstructor, String lang) {
 
     DepositTransactionResponse txnR =
         gson.fromJson(gson.toJson(txn), DepositTransactionResponse.class);
@@ -115,14 +112,13 @@ public class Sep24Helper {
     txnR.setDepositMemo(txn.getMemo());
     txnR.setDepositMemoType(txn.getMemoType());
 
-    txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
+    txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn, lang));
 
     return txnR;
   }
 
   public static WithdrawTransactionResponse fromWithdrawTxn(
-      Sep24Transaction txn, MoreInfoUrlConstructor moreInfoUrlConstructor)
-      throws MalformedURLException, URISyntaxException {
+      Sep24Transaction txn, MoreInfoUrlConstructor moreInfoUrlConstructor, String lang) {
 
     WithdrawTransactionResponse txnR =
         gson.fromJson(gson.toJson(txn), WithdrawTransactionResponse.class);
@@ -133,7 +129,7 @@ public class Sep24Helper {
     txnR.setWithdrawMemoType(txn.getMemoType());
     txnR.setWithdrawAnchorAccount(txn.getWithdrawAnchorAccount());
 
-    txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
+    txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn, lang));
 
     return txnR;
   }
