@@ -106,6 +106,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       errors.reject(
           "sep10-home-domains-empty",
           "Please set the sep10.home_domains or SEP10_HOME_DOMAINS environment variable.");
+    } else {
       for (String domain : homeDomains) {
         validateDomain(errors, domain);
       }
