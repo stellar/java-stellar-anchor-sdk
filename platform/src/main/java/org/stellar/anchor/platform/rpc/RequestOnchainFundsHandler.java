@@ -88,19 +88,13 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
     // If none of the accepted combinations of input parameters satisfies -> throw an exception
     if (!((request.getAmountIn() == null
             && request.getAmountOut() == null
-            && request.getAmountFee() == null
             && request.getFeeDetails() == null
             && request.getAmountExpected() == null)
         || (request.getAmountIn() != null
             && request.getAmountOut() != null
-            && (request.getAmountFee() != null || request.getFeeDetails() != null)))) {
+            && request.getFeeDetails() != null))) {
       throw new InvalidParamsException(
-          "All or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set");
-    }
-
-    // In case 2nd predicate in previous IF statement was TRUE
-    if (request.getFeeDetails() != null && request.getAmountFee() != null) {
-      throw new InvalidParamsException("Either fee_details or amount_fee should be set");
+          "All or none of the amount_in, amount_out, and fee_details should be set");
     }
 
     if (request.getAmountIn() != null) {
@@ -114,12 +108,6 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
         throw new InvalidParamsException("amount_out.asset should be non-stellar asset");
       }
       AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), true, assetService);
-    }
-    if (request.getAmountFee() != null) {
-      if (!AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
-        throw new InvalidParamsException("amount_fee.asset should be stellar asset");
-      }
-      AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
     }
     if (request.getFeeDetails() != null) {
       if (!AssetValidationUtils.isStellarAsset(request.getFeeDetails().getAsset())) {
@@ -143,9 +131,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
     if (request.getAmountOut() == null && txn.getAmountOut() == null) {
       throw new InvalidParamsException("amount_out is required");
     }
-    if (request.getAmountFee() == null
-        && request.getFeeDetails() == null
-        && txn.getAmountFee() == null) {
+    if (request.getFeeDetails() == null && txn.getAmountFee() == null) {
       throw new InvalidParamsException("fee_details or amount_fee is required");
     }
 
@@ -228,10 +214,6 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
     if (request.getAmountOut() != null) {
       txn.setAmountOut(request.getAmountOut().getAmount());
       txn.setAmountOutAsset(request.getAmountOut().getAsset());
-    }
-    if (request.getAmountFee() != null) {
-      txn.setAmountFee(request.getAmountFee().getAmount());
-      txn.setAmountFeeAsset(request.getAmountFee().getAsset());
     }
     if (request.getFeeDetails() != null) {
       txn.setAmountFee(request.getFeeDetails().getTotal());

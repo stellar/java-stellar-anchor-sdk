@@ -608,7 +608,6 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.completedAt = sep31TxnCapture.captured.completedAt
     expectedResponse.amountIn = Amount()
     expectedResponse.amountOut = Amount()
-    expectedResponse.amountFee = Amount()
     expectedResponse.amountExpected = Amount()
     expectedResponse.customers = Customers(StellarId(), StellarId())
 

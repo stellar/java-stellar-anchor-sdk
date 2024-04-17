@@ -18,10 +18,6 @@ public class NotifyAmountsUpdatedRequest extends RpcMethodParamsRequest {
   @NotNull
   private AmountRequest amountOut;
 
-  @SerializedName("amount_fee")
-  @Deprecated // ANCHOR-636
-  private AmountRequest amountFee;
-
   @SerializedName("fee_details")
   private FeeDetails feeDetails;
 }

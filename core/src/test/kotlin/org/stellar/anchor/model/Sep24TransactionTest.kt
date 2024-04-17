@@ -32,9 +32,9 @@ internal class Sep24TransactionTest {
     assertEquals(txn.completedAt, instantNow)
     assertEquals(txn.withdrawAnchorAccount, "account")
     assertEquals(txn.memo, "memo")
-    assertEquals(txn.amountFee, "20")
+    assertEquals(txn.feeDetails.total, "20")
     assertEquals(txn.amountInAsset, "USDC_In")
     assertEquals(txn.amountOutAsset, "USDC_Out")
-    assertEquals(txn.amountFeeAsset, "USDC_Fee")
+    assertEquals(txn.feeDetails.asset, "USDC_Fee")
   }
 }

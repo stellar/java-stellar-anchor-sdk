@@ -45,14 +45,8 @@ public class Sep31GetTransactionResponse {
     @SerializedName("amount_out_asset")
     String amountOutAsset;
 
-    @SerializedName("amount_fee")
-    String amountFee;
-
     @SerializedName("fee_details")
     FeeDetails feeDetails;
-
-    @SerializedName("amount_fee_asset")
-    String amountFeeAsset;
 
     @SerializedName("stellar_account_id")
     String stellarAccountId;

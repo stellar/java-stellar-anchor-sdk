@@ -27,10 +27,7 @@ import org.stellar.anchor.api.rpc.method.AmountAssetRequest
 import org.stellar.anchor.api.rpc.method.AmountRequest
 import org.stellar.anchor.api.rpc.method.RequestOnchainFundsRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
-import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.Customers
-import org.stellar.anchor.api.shared.SepDepositInfo
-import org.stellar.anchor.api.shared.StellarId
+import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
@@ -264,7 +261,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "All or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set",
+      "All or none of the amount_in, amount_out, and fee_details should be set",
       ex.message
     )
 
@@ -280,7 +277,7 @@ class RequestOnchainFundsHandlerTest {
       RequestOnchainFundsRequest.builder()
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("1", FIAT_USD))
-        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(FeeDetails("1", STELLAR_USDC))
         .transactionId(TX_ID)
         .memo(TEXT_MEMO)
         .memoType(INVALID_MEMO_TYPE)
@@ -311,7 +308,7 @@ class RequestOnchainFundsHandlerTest {
       RequestOnchainFundsRequest.builder()
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("1", FIAT_USD))
-        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(FeeDetails("1", STELLAR_USDC))
         .transactionId(TX_ID)
         .memo(HASH_MEMO)
         .memoType(HASH_MEMO_TYPE)
@@ -342,7 +339,7 @@ class RequestOnchainFundsHandlerTest {
       RequestOnchainFundsRequest.builder()
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("1", FIAT_USD))
-        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(FeeDetails("1", STELLAR_USDC))
         .transactionId(TX_ID)
         .destinationAccount(DESTINATION_ACCOUNT)
         .build()
@@ -371,7 +368,7 @@ class RequestOnchainFundsHandlerTest {
       RequestOnchainFundsRequest.builder()
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("1", FIAT_USD))
-        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(FeeDetails("1", STELLAR_USDC))
         .transactionId(TX_ID)
         .memo(TEXT_MEMO)
         .memoType(TEXT_MEMO_TYPE)
@@ -402,7 +399,7 @@ class RequestOnchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("1", FIAT_USD))
-        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(FeeDetails("1", STELLAR_USDC))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -417,10 +414,10 @@ class RequestOnchainFundsHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
-    request.amountFee.amount = "-1"
+    request.feeDetails.total = "-1"
     var ex = assertThrows<BadRequestException> { handler.handle(request) }
-    assertEquals("amount_fee.amount should be non-negative", ex.message)
-    request.amountFee.amount = "1"
+    assertEquals("fee_details.amount should be non-negative", ex.message)
+    request.feeDetails.total = "1"
 
     request.amountExpected.amount = "-1"
     ex = assertThrows { handler.handle(request) }
@@ -439,7 +436,7 @@ class RequestOnchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("1", FIAT_USD))
-        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(FeeDetails("1", STELLAR_USDC))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -464,11 +461,10 @@ class RequestOnchainFundsHandlerTest {
     assertEquals("amount_out.asset should be non-stellar asset", ex.message)
     request.amountOut.asset = FIAT_USD
 
-    request.amountFee.asset = FIAT_USD
+    request.feeDetails.asset = FIAT_USD
     ex = assertThrows { handler.handle(request) }
-    assertEquals("amount_fee.asset should be stellar asset", ex.message)
+    assertEquals("fee_details.asset should be stellar asset", ex.message)
 
-    request.amountFee = null
     request.feeDetails = Amount("10", FIAT_USD).toRate()
     ex = assertThrows { handler.handle(request) }
     assertEquals("fee_details.asset should be stellar asset", ex.message)
@@ -619,7 +615,6 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -674,7 +669,7 @@ class RequestOnchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("0.9", FIAT_USD))
-        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .feeDetails(FeeDetails("0.1", STELLAR_USDC))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -737,7 +732,6 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -776,7 +770,7 @@ class RequestOnchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("0.9", FIAT_USD))
-        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .feeDetails(FeeDetails("0.1", STELLAR_USDC))
         .amountExpected(AmountRequest("1"))
         .memo(TEXT_MEMO)
         .memoType(TEXT_MEMO_TYPE)
@@ -846,7 +840,6 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -885,7 +878,7 @@ class RequestOnchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("0.9", FIAT_USD))
-        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .feeDetails(FeeDetails("0.1", STELLAR_USDC))
         .memo(TEXT_MEMO)
         .memoType(TEXT_MEMO_TYPE)
         .destinationAccount(DESTINATION_ACCOUNT)
@@ -947,7 +940,6 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -1052,7 +1044,6 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -1109,7 +1100,7 @@ class RequestOnchainFundsHandlerTest {
         .memoType(TEXT_MEMO_TYPE)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("1", FIAT_USD))
-        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(FeeDetails("1", STELLAR_USDC))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -1286,7 +1277,6 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
@@ -1342,7 +1332,7 @@ class RequestOnchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("0.9", FIAT_USD))
-        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .feeDetails(FeeDetails("0.1", STELLAR_USDC))
         .amountExpected(AmountRequest("1"))
         .build()
     val txn6 = JdbcSep6Transaction()
@@ -1403,7 +1393,6 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
@@ -1443,7 +1432,7 @@ class RequestOnchainFundsHandlerTest {
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("0.9", FIAT_USD))
-        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .feeDetails(FeeDetails("0.1", STELLAR_USDC))
         .memo(TEXT_MEMO)
         .memoType(TEXT_MEMO_TYPE)
         .destinationAccount(DESTINATION_ACCOUNT)
@@ -1501,7 +1490,6 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
@@ -1604,8 +1592,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("0.9", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
-    expectedResponse.feeDetails = expectedResponse.amountFee.toRate()
+    expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.memo = TEXT_MEMO
@@ -1662,7 +1649,7 @@ class RequestOnchainFundsHandlerTest {
         .memoType(TEXT_MEMO_TYPE)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("1", FIAT_USD))
-        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(FeeDetails("1", STELLAR_USDC))
         .build()
     val txn6 = JdbcSep6Transaction()
     txn6.status = INCOMPLETE.toString()

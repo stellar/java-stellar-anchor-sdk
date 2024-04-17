@@ -171,29 +171,6 @@ public interface Sep6Transaction extends SepTransaction {
 
   void setAmountOutAsset(String amountOutAsset);
 
-  /**
-   * The amount of fee charged by the anchor.
-   *
-   * @return the amount of fee charged by the anchor.
-   */
-  @Deprecated // ANCHOR-636
-  String getAmountFee();
-
-  @Deprecated // ANCHOR-636
-  void setAmountFee(String amountFee);
-
-  /**
-   * The asset in which fees are calculated in. Must be present if the deposit/withdrawal was made
-   * using non-equivalent assets. The value must bein SEP-38 Asset Identification format.
-   *
-   * @return the asset in which fees are calculated in.
-   */
-  @Deprecated // ANCHOR-636
-  String getAmountFeeAsset();
-
-  @Deprecated // ANCHOR-636
-  void setAmountFeeAsset(String amountFeeAsset);
-
   void setFeeDetails(FeeDetails feeDetails);
 
   /**

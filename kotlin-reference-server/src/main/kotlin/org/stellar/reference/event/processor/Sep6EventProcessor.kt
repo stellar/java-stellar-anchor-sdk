@@ -160,7 +160,7 @@ class Sep6EventProcessor(
               NotifyAmountsUpdatedRequest(
                 transactionId = transaction.id,
                 amountOut = AmountRequest(amount = transaction.amountIn.amount),
-                amountFee = AmountRequest(amount = "0"),
+                feeDetails = FeeDetails(total = "0", asset = transaction.amountExpected.asset),
               ),
             )
           }
@@ -248,7 +248,7 @@ class Sep6EventProcessor(
                       asset = transaction.amountExpected.asset,
                       amount = transaction.amountExpected.amount,
                     ),
-                  amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                  feeDetails = FeeDetails(total = "0", asset = "iso4217:USD"),
                   instructions = instructions,
                 ),
               )
@@ -261,7 +261,7 @@ class Sep6EventProcessor(
                   amountIn = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
                   amountOut =
                     AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0"),
-                  amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                  feeDetails = FeeDetails(total = "0", asset = "iso4217:USD"),
                   instructions = instructions,
                 ),
               )
@@ -289,8 +289,7 @@ class Sep6EventProcessor(
                       asset = "iso4217:USD",
                       amount = transaction.amountExpected.amount,
                     ),
-                  amountFee =
-                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0"),
+                  feeDetails = FeeDetails(total = "0", asset = transaction.amountExpected.asset),
                 ),
               )
             } else {
@@ -301,7 +300,7 @@ class Sep6EventProcessor(
                   message = "Please deposit to the following address",
                   amountIn = AmountAssetRequest(transaction.amountExpected.asset, "0"),
                   amountOut = AmountAssetRequest("iso4217:USD", "0"),
-                  amountFee = AmountAssetRequest(transaction.amountExpected.asset, "0"),
+                  feeDetails = FeeDetails("0", transaction.amountExpected.asset),
                 ),
               )
             }

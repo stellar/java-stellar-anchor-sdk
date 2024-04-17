@@ -24,10 +24,6 @@ public class NotifyOnchainFundsReceivedRequest extends RpcMethodParamsRequest {
   @SerializedName("amount_out")
   private AmountRequest amountOut;
 
-  @SerializedName("amount_fee")
-  @Deprecated // ANCHOR-636
-  private AmountRequest amountFee;
-
   @SerializedName("fee_details")
   private FeeDetails feeDetails;
 }

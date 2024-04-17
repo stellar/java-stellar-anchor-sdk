@@ -43,8 +43,6 @@ class Sep6TransactionUtilsTest {
           "amount_in_asset": "USD",
           "amount_out": "99.00",
           "amount_out_asset": "$TEST_ASSET",
-          "amount_fee": "1.00",
-          "amount_fee_asset": "USD",
           "fee_details": {
             "total": "1.00",
             "asset": "USD"
@@ -155,8 +153,6 @@ class Sep6TransactionUtilsTest {
         amountInAsset = "USD"
         amountOut = "99.00"
         amountOutAsset = "USDC"
-        amountFee = "1.00"
-        amountFeeAsset = "USD"
         feeDetails = FeeDetails("1.00", "USD", null)
         amountExpected = "100.00"
         sep10Account = TEST_ACCOUNT

@@ -288,7 +288,6 @@ class NotifyTransactionRecoveryHandlerTest {
     expectedResponse.amountIn = Amount(null, null)
     expectedResponse.amountOut = Amount(null, null)
     expectedResponse.amountExpected = Amount(null, null)
-    expectedResponse.amountFee = Amount(null, null)
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))

@@ -527,8 +527,8 @@ private const val EXPECTED_TRANSACTION_RESPONSE =
     "amount": "0.9",
     "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   },
-  "amount_fee": {
-    "amount": "0.1",
+  "fee_details": {
+    "total": "0.1",
     "asset": "iso4217:USD"
   },
   "amount_expected": {
@@ -577,8 +577,8 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
     "amount": "99.5",
     "asset": "iso4217:USD"
   },
-  "amount_fee": {
-    "amount": "0.5",
+  "fee_details": {
+    "total": "0.5",
     "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   },
   "completed_at": "2023-08-08T14:07:28.799297Z",
@@ -647,8 +647,8 @@ private const val REQUEST_OFFCHAIN_FUNDS_REQUEST =
         "amount": "0.9",
         "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     },
-    "amount_fee": {
-        "amount": "0.1",
+    "fee_details": {
+        "total": "0.1",
         "asset": "iso4217:USD"
     },
     "amount_expected": {
@@ -662,15 +662,15 @@ private const val NOTIFY_OFFCHAIN_FUNDS_RECEIVED_REQUEST =
     "message": "test message",
     "amount_in": {
         "amount": "1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "asset": "iso4217:USD"
     },
     "amount_out": {
         "amount": "0.9",
         "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     },
-    "amount_fee": {
-        "amount": "0.1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    "fee_details": {
+        "total": "0.1",
+        "asset": "iso4217:USD"
     },
     "external_transaction_id": "1"
   }"""
@@ -688,8 +688,8 @@ private const val REQUEST_ONCHAIN_FUNDS_REQUEST =
       "amount": "99.5",
       "asset": "iso4217:USD"
     },
-    "amount_fee": {
-      "amount": "0.5",
+    "fee_details": {
+      "total": "0.5",
       "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     },
     "amount_expected": {
