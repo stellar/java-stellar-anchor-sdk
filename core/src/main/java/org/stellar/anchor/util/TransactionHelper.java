@@ -129,9 +129,18 @@ public class TransactionHelper {
         .kind(PlatformTransactionData.Kind.from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
         .type(txn.getType())
-        .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
-        .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
-        .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
+        .amountExpected(
+            (amountExpectedAsset != null)
+                ? new Amount(txn.getAmountExpected(), amountExpectedAsset)
+                : null)
+        .amountIn(
+            (amountInAsset != null && txn.getAmountIn() != null)
+                ? Amount.create(txn.getAmountIn(), amountInAsset)
+                : null)
+        .amountOut(
+            (amountOutAsset != null && txn.getAmountOut() != null)
+                ? Amount.create(txn.getAmountOut(), amountOutAsset)
+                : null)
         .feeDetails(txn.getFeeDetails())
         .quoteId(txn.getQuoteId())
         .startedAt(txn.getStartedAt())
@@ -176,9 +185,18 @@ public class TransactionHelper {
         .sep(PlatformTransactionData.Sep.SEP_24)
         .kind(PlatformTransactionData.Kind.from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
-        .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
-        .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
-        .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
+        .amountExpected(
+            (amountExpectedAsset != null)
+                ? new Amount(txn.getAmountExpected(), amountExpectedAsset)
+                : null)
+        .amountIn(
+            (amountInAsset != null && txn.getAmountIn() != null)
+                ? Amount.create(txn.getAmountIn(), amountInAsset)
+                : null)
+        .amountOut(
+            (amountOutAsset != null && txn.getAmountOut() != null)
+                ? Amount.create(txn.getAmountOut(), amountOutAsset)
+                : null)
         .feeDetails(txn.getFeeDetails())
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())

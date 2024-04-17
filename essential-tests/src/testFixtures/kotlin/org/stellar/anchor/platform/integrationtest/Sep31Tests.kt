@@ -66,7 +66,6 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
 
     // GET Sep31 transaction
     savedTxn = sep31Client.getTransaction(postTxResponse.id)
-    println(savedTxn.transaction)
     JSONAssert.assertEquals(expectedTxn, json(savedTxn), LENIENT)
     assertEquals(postTxResponse.id, savedTxn.transaction.id)
     assertEquals(postTxResponse.stellarMemo, savedTxn.transaction.stellarMemo)
