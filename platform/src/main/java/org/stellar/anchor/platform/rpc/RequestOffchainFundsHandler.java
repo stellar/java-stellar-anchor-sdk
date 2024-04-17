@@ -63,7 +63,7 @@ public class RequestOffchainFundsHandler extends RpcMethodHandler<RequestOffchai
             && request.getFeeDetails() == null
             && request.getAmountExpected() == null)
         ||
-        // All the amounts are provided (allow either amount_fee or fee_details)
+        // All the amounts are provided
         (request.getAmountIn() != null
             && request.getAmountOut() != null
             && request.getFeeDetails() != null))) {

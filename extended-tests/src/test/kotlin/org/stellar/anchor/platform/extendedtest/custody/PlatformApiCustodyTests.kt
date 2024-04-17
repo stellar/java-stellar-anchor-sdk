@@ -236,7 +236,8 @@ private const val SEP_24_DEPOSIT_COMPLETE_FULL_FLOW_ACTION_REQUESTS =
         "amount": 1
       },
       "fee_details": {
-        "amount": 0
+        "total": 0,
+        "asset": "iso4217:USD"
       }
     }
   },
@@ -461,8 +462,8 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS =
           "amount": "1",
           "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
         },
-        "fee_details": {
-          "total": "0",
+        "amount_fee": {
+          "amount": "0",
           "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
         }
       }
