@@ -29,7 +29,7 @@ spec:
   rules:
     - {{- if .Values.ingress.rules }}
       {{- if .Values.ingress.rules.host }}
-      host: {{ .Values.ingress.rules }}
+      host: {{ .Values.ingress.rules.host }}
       {{- end }}
       {{- end }}
       http:
