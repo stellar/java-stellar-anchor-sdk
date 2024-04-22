@@ -21,8 +21,6 @@ class CallbackApiEventProcessorTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this)
-    //    eventHandler = Mockito.mock(CallbackApiEventHandler::class.java)
-    //    backoffTimer = ExponentialBackoffTimer(1, 8)
     eventProcessor =
       spyk(
         CallbackApiEventProcessor(

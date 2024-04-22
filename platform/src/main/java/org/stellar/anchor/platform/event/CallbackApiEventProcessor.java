@@ -25,6 +25,9 @@ public class CallbackApiEventProcessor extends EventProcessor {
   @Override
   void handleEventWithRetry(AnchorEvent event) {
     boolean isProcessed = false;
+    // For every event, reset the timer.
+    getBackoffTimer().reset();
+    // Infinite retry until the event is processed or the thread is interrupted.
     while (!isProcessed && !currentThread().isInterrupted()) {
       try {
         if (eventHandler.handleEvent(event)) {
