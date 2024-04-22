@@ -16,19 +16,20 @@ import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableExcepti
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
 import org.stellar.anchor.api.sep.CustomerInfoNeededResponse;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
+import org.stellar.anchor.util.Log;
 
 public abstract class AbstractControllerExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler({SepValidationException.class, BadRequestException.class})
   public SepExceptionResponse handleBadRequest(AnchorException ex) {
-    errorEx(ex);
+    Log.infoF("Bad request: {}", ex.getMessage());
     return new SepExceptionResponse(ex.getMessage());
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public SepExceptionResponse handleMissingParams(MissingServletRequestParameterException ex) {
-    errorEx(ex);
+    Log.infoF("Missing server request parameters: {}", ex.getMessage());
     String name = ex.getParameterName();
     return new SepExceptionResponse(String.format("The \"%s\" parameter is missing.", name));
   }
@@ -36,55 +37,56 @@ public abstract class AbstractControllerExceptionHandler {
   @ExceptionHandler(HttpMessageNotReadableException.class)
   @ResponseStatus(value = HttpStatus.BAD_REQUEST)
   public SepExceptionResponse handleRandomException(HttpMessageNotReadableException ex) {
-    errorEx(ex);
+    Log.infoF("Spring is unable to read HTTP message: {}", ex.getMessage());
     return new SepExceptionResponse("Your request body is wrong in some way.");
   }
 
   @ResponseStatus(HttpStatus.FORBIDDEN)
   @ExceptionHandler({SepNotAuthorizedException.class})
   public SepExceptionResponse handleAuthError(SepException ex) {
-    errorEx(ex);
+    Log.infoF("SEP-10 authorization failure: {}", ex.getMessage());
     return new SepExceptionResponse(ex.getMessage());
   }
 
   @ExceptionHandler(SepCustomerInfoNeededException.class)
   @ResponseStatus(value = HttpStatus.FORBIDDEN)
   public CustomerInfoNeededResponse handle(SepCustomerInfoNeededException ex) {
+    Log.infoF("Customer information is needed: {}", ex.getMessage());
     return new CustomerInfoNeededResponse(ex.getFields());
   }
 
   @ExceptionHandler({SepNotFoundException.class, NotFoundException.class})
   @ResponseStatus(value = HttpStatus.NOT_FOUND)
   SepExceptionResponse handleNotFound(AnchorException ex) {
-    errorEx(ex);
+    Log.infoF("Not found: {}", ex.getMessage());
     return new SepExceptionResponse(ex.getMessage());
   }
 
   @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
   @ExceptionHandler({NotSupportedException.class})
   public SepExceptionResponse handleNotImplementedError(Exception ex) {
-    errorEx(ex);
+    Log.infoF("Not implemented: {}", ex.getMessage());
     return new SepExceptionResponse(ex.getMessage());
   }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler({CustodyBadRequestException.class})
   public CustodyExceptionResponse handleCustodyBadRequest(AnchorException ex) {
-    errorEx(ex);
+    Log.infoF("Bad request (custody server): {}", ex.getMessage());
     return new CustodyExceptionResponse(ex.getMessage());
   }
 
   @ResponseStatus(value = HttpStatus.NOT_FOUND)
   @ExceptionHandler({CustodyNotFoundException.class})
   public CustodyExceptionResponse handleCustodyNotFound(AnchorException ex) {
-    errorEx(ex);
+    Log.infoF("Resource not found (custody server): {}", ex.getMessage());
     return new CustodyExceptionResponse(ex.getMessage());
   }
 
   @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
   @ExceptionHandler({CustodyTooManyRequestsException.class})
   public CustodyExceptionResponse handleCustodyTooManyRequestsError(AnchorException ex) {
-    errorEx(ex);
+    Log.infoF("Too many requests (custody server): {}", ex.getMessage());
     return new CustodyExceptionResponse(ex.getMessage());
   }
 
