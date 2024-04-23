@@ -18,16 +18,20 @@ spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if .Values.ingress.tls }}
   tls:
+    {{- if .Values.ingress.tls.host }}
     - hosts:
         - {{ .Values.ingress.tls.host }}
+    {{- end }}
     {{- if .Values.ingress.tls.secretName }}
       secretName: {{ .Values.ingress.tls.secretName }}
     {{- end }}
   {{- end }}
   rules:
-    - {{- if .Values.ingress.rules.host }}
+    - {{- if .Values.ingress.rules }}
+      {{- if .Values.ingress.rules.host }}
       host: {{ .Values.ingress.rules.host }}
-    {{- end }}
+      {{- end }}
+      {{- end }}
       http:
         paths:
           - path: /
