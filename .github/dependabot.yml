@@ -11,6 +11,10 @@ updates:
       interval: "weekly"
       time: "09:00"
       timezone: "US/Pacific"
+    # ignore all version updates but keep security updates
+    ignore:
+      - dependency-name: "*"
+        update-types: [version-update:semver-major, version-update:semver-minor, version-update:semver-patch]
     commit-message:
       prefix: "[Gradle]"
     open-pull-requests-limit: 10
@@ -26,6 +30,9 @@ updates:
       interval: "weekly"
       time: "09:00"
       timezone: "US/Pacific"
+    ignore:
+      - dependency-name: "*"
+        update-types: [ version-update:semver-major, version-update:semver-minor, version-update:semver-patch ]
     commit-message:
       prefix: "[Docker]"
     open-pull-requests-limit: 10
