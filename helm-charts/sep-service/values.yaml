@@ -69,9 +69,6 @@ services:
           cpu: 1
 
 config:
-  callback_api:
-    base_url: http://reference-server-svc-reference-server:8091
-
   app_logging:
     stellar_level: DEBUG
     request_logger_enabled: true
@@ -87,6 +84,12 @@ config:
     database: postgres
     flyway_enabled: true
     ddl_auto: update
+
+  callback_api:
+    base_url: http://reference-server-svc-reference-server:8091
+
+  platform_api:
+    base_url: http://anchor-platform-svc-platform:8085
 
   events:
     enabled: true
