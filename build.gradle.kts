@@ -60,10 +60,12 @@ subprojects {
       logger.warn("!!! WARNING !!!")
       logger.warn("=================")
       logger.warn(
-          "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
-          javaVersion)
+        "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
+        javaVersion,
+      )
       logger.warn(
-          "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM")
+        "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM"
+      )
     }
 
     if (javaVersion < "11") {
@@ -140,8 +142,9 @@ subprojects {
     test {
       useJUnitPlatform()
       systemProperty(
-          "junit.jupiter.testclass.order.default",
-          "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation")
+        "junit.jupiter.testclass.order.default",
+        "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation",
+      )
 
       exclude("**/AnchorPlatformCustodyEnd2EndTest**")
       exclude("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
@@ -163,15 +166,6 @@ subprojects {
       filter { line -> line.replace("%APP_VERSION_TOKEN%", rootProject.version.toString()) }
     }
   }
-
-  configurations {
-    all {
-      exclude(group = "ch.qos.logback", module = "logback-classic")
-      exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-      exclude(group = "org.slf4j", module = "slf4j-log4j12")
-      exclude(group = "org.slf4j", module ="slf4j-simple")
-     }
-  }
 }
 
 allprojects {
@@ -181,8 +175,8 @@ allprojects {
   tasks.jar {
     manifest {
       attributes(
-          mapOf(
-              "Implementation-Title" to project.name, "Implementation-Version" to project.version))
+        mapOf("Implementation-Title" to project.name, "Implementation-Version" to project.version)
+      )
     }
   }
 }
@@ -194,7 +188,7 @@ tasks.register("printUsage") {
     // ANSI escape code to reset
     val reset = "\u001B[0m"
     println(
-        """
+      """
                   ${green}${bold}Usage: ./gradlew <task>${reset}
                   
                   Available custom tasks:
@@ -206,7 +200,8 @@ tasks.register("printUsage") {
                     - ${bold}dockerComposeStop${reset}: Runs docker-compose down to stop Postgres, Kafka, etc.
                     - ${bold}anchorTest${reset}: Runs stellar anchor tests. Set `TEST_HOME_DOMAIN` and `TEST_SEPS` environment variables to customize the tests.
     """
-            .trimIndent())
+        .trimIndent()
+    )
   }
 }
 

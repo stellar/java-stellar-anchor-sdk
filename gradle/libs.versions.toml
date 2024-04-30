@@ -40,7 +40,6 @@ kotlin-logging = "3.0.2"
 kotlinx-json = "1.5.1"
 ktor = "2.3.10"
 log4j = "2.23.1"
-log4j-template-json = "2.19.0"
 lombok = "1.18.22"
 mockk = "1.13.10"
 micrometer-prometheus = "1.12.5"
@@ -55,7 +54,6 @@ spring-kafka = "2.9.13"
 spring-aws-messaging = "2.2.6.RELEASE"
 aws-java-sdk-s3 = "1.12.342"
 sqlite-jdbc = "3.43.2.2"
-slf4j = "1.7.35"
 slf4j2 = "2.0.13"
 stellar-wallet-sdk = "1.5.0"
 toml4j = "0.7.2"
@@ -114,22 +112,26 @@ kotlin-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref
 kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version.ref = "kotlin-logging" }
 ktor-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
 ktor-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
+ktor-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
+ktor-cors-jvm = { module = "io.ktor:ktor-server-cors-jvm", version.ref = "ktor" }
 ktor-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
+ktor-serialization-gson-jvm = { module = "io.ktor:ktor-serialization-gson-jvm", version.ref = "ktor" }
+ktor-serialization-kotlinx-json-jvm = { module = "io.ktor:ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
 ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
+ktor-server-openapi = { module = "io.ktor:ktor-server-openapi", version.ref = "ktor" }
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
 log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
-# TODO: upgrade to log4j2
-log4j-template-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j-template-json" }
+log4j-template-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer-prometheus" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
@@ -154,10 +156,10 @@ spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-me
 aws-java-sdk-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk-s3" }
 
 [bundles]
-slf4j = ["slf4j-api", "slf4j-log4j12"]
+slf4j = ["slf4j-api", "slf4j-log4j12", "slf4j-simple"]
 junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine", "kotlin-stdlib", "kotlin-junit", "mockk"]
 kafka = ["kafka-clients", "kafka-connect", "kafka-json-schema"]
-ktor = ["ktor-core", "ktor-content-negotiation", "ktor-netty", "ktor-yaml", "ktor-cors", "ktor-server-auth", "ktor-server-auth-jwt"]
+ktor = ["ktor-core", "ktor-content-negotiation", "ktor-netty", "ktor-yaml", "ktor-cors", "ktor-server-auth", "ktor-server-auth-jwt", "ktor-call-logging", "ktor-cors-jvm", "ktor-serialization-gson-jvm", "ktor-serialization-kotlinx-json-jvm", "ktor-server-openapi"]
 ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-client-json", "ktor-client-okhttp"]
 exposed = ["exposed", "exposed-jdbc"]
 
