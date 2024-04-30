@@ -42,14 +42,7 @@ dependencies {
 // This it to exclude logback-classic from the dependencies to avoid multiple slf4j bindings.
 configurations {
   all {
-    // For SLF4J logging, we choose log4j-slf4j-impl over
-    //   log4j-to-slf4j,
-    //   slf4j-log4j12,
-    //   and slf4j-simple.
     exclude(group = "ch.qos.logback", module = "logback-classic")
-    exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-    exclude(group = "org.slf4j", module = "slf4j-log4j12")
-    exclude(group = "org.slf4j", module = "slf4j-simple")
   }
 }
 

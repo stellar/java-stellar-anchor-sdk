@@ -40,6 +40,7 @@ kotlin-logging = "3.0.2"
 kotlinx-json = "1.5.1"
 ktor = "2.3.10"
 log4j = "2.23.1"
+logback-classic = "1.5.6"
 lombok = "1.18.22"
 mockk = "1.13.10"
 micrometer-prometheus = "1.12.5"
@@ -125,11 +126,13 @@ ktor-serialization-kotlinx-json-jvm = { module = "io.ktor:ktor-serialization-kot
 ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
-ktor-server-openapi = { module = "io.ktor:ktor-server-openapi", version.ref = "ktor" }
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
+ktor-server-openapi = { module = "io.ktor:ktor-server-openapi", version.ref = "ktor" }
+ktor-server-test = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
 log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-classic" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 log4j-template-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }

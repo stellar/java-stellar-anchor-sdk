@@ -10,5 +10,3 @@ target/
 */generated/*
 *.tgz
 .vscode
-docs/.*
-docs/index.html

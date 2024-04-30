@@ -166,6 +166,14 @@ subprojects {
       filter { line -> line.replace("%APP_VERSION_TOKEN%", rootProject.version.toString()) }
     }
   }
+
+  configurations {
+    all {
+      exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
+      exclude(group = "org.slf4j", module = "slf4j-log4j12")
+      exclude(group = "org.slf4j", module = "slf4j-simple")
+    }
+  }
 }
 
 allprojects {
