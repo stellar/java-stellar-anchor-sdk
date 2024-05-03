@@ -11,6 +11,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.stellar.admin.server.AdminServerKt;
 import org.stellar.anchor.api.shared.Metadata;
 import org.stellar.reference.ReferenceServerStartKt;
 import org.stellar.reference.wallet.WalletServerStartKt;
@@ -26,6 +27,7 @@ public class ServiceRunner {
     try {
       CommandLine cmd = parser.parse(options, args);
       boolean anyServerStarted = false;
+
       if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
         startSepServer(null);
         anyServerStarted = true;
@@ -48,6 +50,11 @@ public class ServiceRunner {
 
       if (cmd.hasOption("event-processor") || cmd.hasOption("all")) {
         startEventProcessingServer(null);
+        anyServerStarted = true;
+      }
+
+      if (cmd.hasOption("admin-server") || cmd.hasOption("all")) {
+        startAdminServer(null, true);
         anyServerStarted = true;
       }
 
@@ -92,6 +99,7 @@ public class ServiceRunner {
     options.addOption(
         "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
     options.addOption("e", "event-processor", false, "Start the event processor.");
+    options.addOption("m", "admin-server", false, "Start Admin server.");
     options.addOption("k", "kotlin-reference-server", false, "Start Kotlin reference server.");
     options.addOption("w", "wallet-reference-server", false, "Start wallet reference server.");
     options.addOption("t", "test-profile-runner", false, "Run the stack with test profile.");
@@ -121,6 +129,16 @@ public class ServiceRunner {
   public static ConfigurableApplicationContext startEventProcessingServer(Map<String, String> env) {
     info("Starting event processing server...");
     return new EventProcessingServer().start(env);
+  }
+
+  public static void startAdminServer(Map<String, String> env, boolean wait) {
+    try {
+      info("Starting Admin server...");
+      AdminServerKt.startServer(env, wait);
+    } catch (Exception e) {
+      errorEx("Error starting Admin server", e);
+      throw e;
+    }
   }
 
   public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {

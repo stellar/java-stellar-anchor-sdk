@@ -35,6 +35,7 @@ dependencies {
   implementation(project(":lib-util"))
   implementation(project(":core"))
   implementation(project(":platform"))
+  implementation(project(":admin-server"))
   implementation(project(":kotlin-reference-server"))
   implementation(project(":wallet-reference-server"))
 }

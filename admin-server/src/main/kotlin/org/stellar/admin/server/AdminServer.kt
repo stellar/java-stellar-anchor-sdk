@@ -3,11 +3,14 @@ package org.stellar.admin.server
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import org.stellar.admin.server.plugins.*
+import org.stellar.anchor.util.Log.*
 
 const val APAS_CONFIG_STORE = "APAS_CONFIG_STORE"
 const val APAS_HOST = "APAS_HOST"
 const val APAS_PORT = "APAS_PORT"
 const val APAS_AUTH = "APAS_AUTH"
+
+lateinit var adminServer: NettyApplicationEngine
 
 /**
  * Start the admin server.
@@ -34,15 +37,22 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
     envMap?.get(APAS_CONFIG_STORE)
       ?: "postgresql://localhost/apas?user=apas&password=password&ssl=true"
 
-  embeddedServer(Netty, port = bindPort, host = bindHost) {
-      configureHTTP()
-      configureMonitoring()
-      configureSerialization()
-      configureAdministration()
-      configureRouting()
-      configureStaticFilesRouting()
-    }
-    .start(wait = true)
+  adminServer =
+    embeddedServer(Netty, port = bindPort, host = bindHost) {
+        configureHTTP()
+        configureMonitoring()
+        configureSerialization()
+        configureAdministration()
+        configureRouting()
+        configureStaticFilesRouting()
+      }
+      .start(wait = true)
+}
+
+fun stopServer() {
+  info("Stopping admin server...")
+  adminServer.stop(5000, 30000)
+  info("Admin server stopped...")
 }
 
 fun main(args: Array<String>) {

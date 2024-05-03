@@ -15,6 +15,7 @@ import org.stellar.anchor.util.Log.info
 
 const val RUN_DOCKER = "run.docker"
 const val RUN_ALL_SERVERS = "run.all.servers"
+const val RUN_ADMIN_SERVER = "run.admin.server"
 const val RUN_SEP_SERVER = "run.sep.server"
 const val RUN_PLATFORM_SERVER = "run.platform.server"
 const val RUN_EVENT_PROCESSING_SERVER = "run.event.processing.server"
@@ -55,6 +56,7 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartObserver: Boolean = false
   private var shouldStartCustodyServer: Boolean = false
   private var shouldStartEventProcessingServer: Boolean = false
+  private var shouldStartAdminServer: Boolean = false
   private var shouldStartKotlinReferenceServer: Boolean = false
   private var custodyEnabled: Boolean = false
 
@@ -73,6 +75,7 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartEventProcessingServer = config.env[RUN_EVENT_PROCESSING_SERVER].toBoolean()
     shouldStartKotlinReferenceServer = config.env[RUN_KOTLIN_REFERENCE_SERVER].toBoolean()
     shouldStartWalletServer = config.env[RUN_WALLET_SERVER].toBoolean()
+    shouldStartAdminServer = config.env[RUN_ADMIN_SERVER].toBoolean()
 
     val custodyType = config.env["custody.type"]
     if (custodyType != null) {
@@ -105,6 +108,9 @@ class TestProfileExecutor(val config: TestConfig) {
       }
       if (shouldStartAllServers || shouldStartWalletServer) {
         jobs += scope.launch { ServiceRunner.startWalletServer(envMap, wait) }
+      }
+      if (shouldStartAllServers || shouldStartAdminServer) {
+        jobs += scope.launch { ServiceRunner.startAdminServer(envMap, wait) }
       }
       if ((shouldStartAllServers || shouldStartObserver) && !custodyEnabled) {
         jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
@@ -180,6 +186,7 @@ class TestProfileExecutor(val config: TestConfig) {
 
     if (shouldStartAllServers || shouldStartKotlinReferenceServer) org.stellar.reference.stop()
     if (shouldStartAllServers || shouldStartWalletServer) org.stellar.reference.wallet.stop()
+    if (shouldStartAllServers || shouldStartAdminServer) org.stellar.admin.server.stopServer()
   }
 
   private fun shutdownDocker() {
