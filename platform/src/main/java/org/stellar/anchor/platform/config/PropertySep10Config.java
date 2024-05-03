@@ -132,7 +132,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
             "webAuthDomain",
             "sep10-web-auth-domain-too-long",
             format(
-                "The sep10.web_auth_home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
+                "The sep10.web_auth_home_domain (%s) is longer than the maximum length (59) of a domain. Error=%s",
                 webAuthDomain, iaex));
       }
 
@@ -213,7 +213,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "homeDomain",
           "sep10-home-domain-too-long",
           format(
-              "The sep10.home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
+              "The sep10.home_domain (%s) is longer than the maximum length (59) of a domain. Error=%s",
               domain, iaex));
     }
 
