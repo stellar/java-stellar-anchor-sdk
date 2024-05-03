@@ -43,6 +43,8 @@ spec:
               value: /config/config.yaml
             - name: APP.PLATFORM_API_ENDPOINT
               value: {{ .Values.config.app.platformApiEndpoint }}
+            - name: APP.HORIZON_ENDPOINT
+              value: {{ .Values.config.app.horizonEndpoint }}
             - name: DATA.URL
               value: {{ .Values.config.data.url }}
             - name: DATA.USER
