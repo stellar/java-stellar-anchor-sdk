@@ -43,7 +43,6 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
         configureMonitoring()
         configureSerialization()
         configureRouting()
-        configureStaticFilesRouting()
       }
       .start(wait = true)
 }
