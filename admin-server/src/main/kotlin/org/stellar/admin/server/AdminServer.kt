@@ -42,7 +42,6 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
         configureHTTP()
         configureMonitoring()
         configureSerialization()
-        configureAdministration()
         configureRouting()
         configureStaticFilesRouting()
       }
