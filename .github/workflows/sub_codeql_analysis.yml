@@ -1,6 +1,9 @@
 name: CodeQL Analysis Workflow
 
 on:
+  # allows this workflow to be called from another workflow
+  workflow_dispatch:
+  workflow_call:
   push:
     branches: [ "develop" ]
   pull_request:
