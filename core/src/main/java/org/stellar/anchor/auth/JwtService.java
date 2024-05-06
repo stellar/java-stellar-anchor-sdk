@@ -1,6 +1,7 @@
 package org.stellar.anchor.auth;
 
 import static java.util.Date.from;
+import static org.stellar.anchor.auth.AuthHelper.jwtsBuilder;
 
 import io.jsonwebtoken.*;
 import java.lang.reflect.InvocationTargetException;
@@ -81,8 +82,10 @@ public class JwtService {
   public String encode(Sep10Jwt token) {
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     Instant timeIat = Instant.ofEpochSecond(token.getIat());
+
     JwtBuilder builder =
-        Jwts.builder()
+        jwtsBuilder()
+            .json(JwtsGsonSerializer.getInstance())
             .id(token.getJti())
             .issuer(token.getIss())
             .subject(token.getSub())
@@ -106,7 +109,11 @@ public class JwtService {
 
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
-        Jwts.builder().id(token.getJti()).expiration(from(timeExp)).subject(token.getSub());
+        jwtsBuilder()
+            .json(JwtsGsonSerializer.getInstance())
+            .id(token.getJti())
+            .expiration(from(timeExp))
+            .subject(token.getSub());
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
     }
@@ -132,7 +139,11 @@ public class JwtService {
     }
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
-        Jwts.builder().id(token.getJti()).expiration(from(timeExp)).subject(token.getSub());
+        jwtsBuilder()
+            .json(JwtsGsonSerializer.getInstance())
+            .id(token.getJti())
+            .expiration(from(timeExp))
+            .subject(token.getSub());
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
     }
@@ -164,7 +175,11 @@ public class JwtService {
 
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     Instant timeIat = Instant.ofEpochSecond(token.getIat());
-    JwtBuilder builder = Jwts.builder().issuedAt(from(timeIat)).expiration(from(timeExp));
+    JwtBuilder builder =
+        jwtsBuilder()
+            .json(JwtsGsonSerializer.getInstance())
+            .issuedAt(from(timeIat))
+            .expiration(from(timeExp));
 
     return builder.signWith(KeyUtil.toSecretKeySpecOrNull(secret), Jwts.SIG.HS256).compact();
   }

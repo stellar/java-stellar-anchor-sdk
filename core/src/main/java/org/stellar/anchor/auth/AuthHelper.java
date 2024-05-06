@@ -1,5 +1,7 @@
 package org.stellar.anchor.auth;
 
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
 import java.util.Calendar;
 import javax.annotation.Nullable;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -64,6 +66,10 @@ public class AuthHelper {
   @Nullable
   public AuthHeader<String, String> createCustodyAuthHeader() throws InvalidConfigException {
     return createAuthHeader(CustodyAuthJwt.class);
+  }
+
+  public static JwtBuilder jwtsBuilder() {
+    return Jwts.builder().json(JwtsGsonSerializer.getInstance());
   }
 
   @Nullable
