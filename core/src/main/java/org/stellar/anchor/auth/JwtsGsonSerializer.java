@@ -2,13 +2,14 @@ package org.stellar.anchor.auth;
 
 import com.google.gson.Gson;
 import io.jsonwebtoken.io.SerializationException;
+import io.jsonwebtoken.io.Serializer;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import lombok.SneakyThrows;
 import org.stellar.anchor.util.GsonUtils;
 
-public class JwtsGsonSerializer implements io.jsonwebtoken.io.Serializer<Map<String, ?>> {
+public class JwtsGsonSerializer implements Serializer<Map<String, ?>> {
   public static final JwtsGsonSerializer instance = new JwtsGsonSerializer();
   private static final Gson gson = GsonUtils.getInstance();
 

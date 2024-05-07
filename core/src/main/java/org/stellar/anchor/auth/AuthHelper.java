@@ -1,6 +1,7 @@
 package org.stellar.anchor.auth;
 
 import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.JwtParserBuilder;
 import io.jsonwebtoken.Jwts;
 import java.util.Calendar;
 import javax.annotation.Nullable;
@@ -70,6 +71,10 @@ public class AuthHelper {
 
   public static JwtBuilder jwtsBuilder() {
     return Jwts.builder().json(JwtsGsonSerializer.getInstance());
+  }
+
+  public static JwtParserBuilder jwtsParser() {
+    return Jwts.parser().json(JwtsGsonDeserializer.getInstance());
   }
 
   @Nullable
