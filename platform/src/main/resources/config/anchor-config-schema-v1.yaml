@@ -46,6 +46,7 @@ events.queue.sqs.use_iam:
 events.queue.type:
 languages:
 metrics.enabled:
+metrics.prefix:
 metrics.extended_metrics.enabled:
 metrics.extended_metrics.run_interval:
 payment_observer.context_path:
