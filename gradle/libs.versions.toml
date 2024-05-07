@@ -127,7 +127,6 @@ ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
-ktor-server-openapi = { module = "io.ktor:ktor-server-openapi", version.ref = "ktor" }
 ktor-server-test = { module = "io.ktor:ktor-server-tests-jvm", version.ref = "ktor" }
 log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
@@ -162,7 +161,7 @@ aws-java-sdk-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws
 slf4j = ["slf4j-api", "slf4j-log4j12", "slf4j-simple"]
 junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine", "kotlin-stdlib", "kotlin-junit", "mockk"]
 kafka = ["kafka-clients", "kafka-connect", "kafka-json-schema"]
-ktor = ["ktor-core", "ktor-content-negotiation", "ktor-netty", "ktor-yaml", "ktor-cors", "ktor-server-auth", "ktor-server-auth-jwt", "ktor-call-logging", "ktor-cors-jvm", "ktor-serialization-gson-jvm", "ktor-serialization-kotlinx-json-jvm", "ktor-server-openapi"]
+ktor = ["ktor-core", "ktor-content-negotiation", "ktor-netty", "ktor-yaml", "ktor-cors", "ktor-server-auth", "ktor-server-auth-jwt", "ktor-call-logging", "ktor-cors-jvm", "ktor-serialization-gson-jvm", "ktor-serialization-kotlinx-json-jvm"]
 ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-client-json", "ktor-client-okhttp"]
 exposed = ["exposed", "exposed-jdbc"]
 
