@@ -624,6 +624,8 @@ custody:
 metrics:
   # If true, enable metrics will be enabled.
   enabled: false
+  # If set, all metrics will be prefixed with the specified prefix.
+  prefix:
 
 
 #########################
