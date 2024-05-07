@@ -8,11 +8,10 @@ import java.util.Map;
 import org.stellar.anchor.util.GsonUtils;
 
 public class JwtsGsonDeserializer implements Deserializer<Map<String, ?>> {
-  public static final JwtsGsonDeserializer instance = new JwtsGsonDeserializer();
   private static final Gson gson = GsonUtils.getInstance();
 
-  public static JwtsGsonDeserializer getInstance() {
-    return instance;
+  public static JwtsGsonDeserializer newInstance() {
+    return new JwtsGsonDeserializer();
   }
 
   @Override

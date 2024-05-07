@@ -10,11 +10,10 @@ import lombok.SneakyThrows;
 import org.stellar.anchor.util.GsonUtils;
 
 public class JwtsGsonSerializer implements Serializer<Map<String, ?>> {
-  public static final JwtsGsonSerializer instance = new JwtsGsonSerializer();
   private static final Gson gson = GsonUtils.getInstance();
 
-  public static JwtsGsonSerializer getInstance() {
-    return instance;
+  public static JwtsGsonSerializer newInstance() {
+    return new JwtsGsonSerializer();
   }
 
   @Override

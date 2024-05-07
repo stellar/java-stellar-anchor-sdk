@@ -70,11 +70,11 @@ public class AuthHelper {
   }
 
   public static JwtBuilder jwtsBuilder() {
-    return Jwts.builder().json(JwtsGsonSerializer.getInstance());
+    return Jwts.builder().json(JwtsGsonSerializer.newInstance());
   }
 
   public static JwtParserBuilder jwtsParser() {
-    return Jwts.parser().json(JwtsGsonDeserializer.getInstance());
+    return Jwts.parser().json(JwtsGsonDeserializer.newInstance());
   }
 
   @Nullable
