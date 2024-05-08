@@ -34,4 +34,5 @@ apply(from = "$rootDir/scripts.gradle.kts")
 @Suppress("UNCHECKED_CAST")
 val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
 
-tasks.test { exclude("**/org/stellar/anchor/platform/extendedtest/**") }
+// Disable for test stability
+//tasks.test { exclude("**/org/stellar/anchor/platform/extendedtest/**") }

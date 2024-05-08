@@ -61,7 +61,8 @@ apply(from = "$rootDir/scripts.gradle.kts")
 val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
 
 tasks.test {
-  enableTestConcurrency(this)
+  // Disable for test stability
+  // enableTestConcurrency(this)
   testLogging {
     exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     events = setOf(org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED)
