@@ -188,6 +188,9 @@ public class NotifyRefundPendingHandler extends RpcMethodHandler<NotifyRefundPen
       case SEP_6:
         JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
 
+        // For withdrawals only update status to pending_anchor to mark that refund has been
+        // initiated . Actual Refund
+        // object will be passed in the next update (notify_refund_sent), as it's not yet known.
         if (ImmutableSet.of(WITHDRAWAL, WITHDRAWAL_EXCHANGE).contains(Kind.from(txn6.getKind()))) {
           return;
         }
