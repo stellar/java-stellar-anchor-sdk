@@ -9,8 +9,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.sep.sep6.GetTransactionResponse
@@ -28,7 +26,6 @@ import org.stellar.walletsdk.asset.IssuedAssetId
 import org.stellar.walletsdk.horizon.sign
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Execution(ExecutionMode.CONCURRENT)
 open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
   private val maxTries = 30
   private val anchorReferenceServerClient =

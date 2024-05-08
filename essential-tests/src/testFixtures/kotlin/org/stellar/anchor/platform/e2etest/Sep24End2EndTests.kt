@@ -13,8 +13,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -52,7 +50,6 @@ const val DEPOSIT_FUND_CLIENT_SECRET_1 = "SDNZAK6LCYNR4HYEFBZY3I2KLRDLSCE5RCF6HZ
 const val DEPOSIT_FUND_CLIENT_SECRET_2 = "SCW2SJEPTL4K7FFPFOFABFEFZJCG6LHULWVJX6JLIJ7TYIKTL6P473HM"
 
 @TestInstance(PER_CLASS)
-@Execution(CONCURRENT)
 open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
   private val client = HttpClient {
     install(HttpTimeout) {
