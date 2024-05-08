@@ -18,12 +18,31 @@ class PropertyClientsConfigTest {
     configs = PropertyClientsConfig()
     errors = BindException(configs, "config")
   }
+
   @Test
-  fun `test valid custodial client`() {
+  fun `test postConstruct`() {
+    val config = ClientConfig()
+    config.name = "sampleName"
+    config.signingKey = "sampleSigningKey"
+    config.domain = "sampleDomain"
+
+    configs.clients.add(config)
+    configs.postConstruct()
+
+    Assertions.assertEquals(config.signingKey, config.signingKeys.first())
+    Assertions.assertEquals(config.domain, config.domains.first())
+  }
+
+  @Test
+  fun `test valid custodial client with multiple signing keys`() {
     val config = ClientConfig()
     config.name = "circle"
     config.type = CUSTODIAL
-    config.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
+    config.signingKeys =
+      setOf(
+        "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
+        "GACYKME36AI6UYAV7A5ZUA6MG4C4K2VAPNYMW5YLOM6E7GS6FSHDPV4F"
+      )
     config.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
     configs.clients.add(config)
 
@@ -35,21 +54,21 @@ class PropertyClientsConfigTest {
   fun `test invalid custodial client with empty signing key`() {
     val config = ClientConfig()
     config.signingKey = ""
+    config.signingKeys = emptySet()
     configs.clients.add(config)
 
     configs.validateCustodialClient(config, errors)
     Assertions.assertEquals(1, errors.errorCount)
-    assertErrorCode(errors, "empty-client-signing-key")
+    assertErrorCode(errors, "empty-client-signing-keys")
   }
 
   @Test
-  fun `test valid non-custodial client`() {
+  fun `test valid non-custodial client with multiple domains`() {
     val config = ClientConfig()
     config.name = "lobstr"
     config.type = NONCUSTODIAL
-    config.domain = "lobstr.co"
+    config.domains = setOf("lobstr.co", "lobstr.com")
     config.callbackUrl = "https://callback.lobstr.co/api/v2/anchor/callback"
-    config.signingKey = "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"
     configs.clients.add(config)
 
     configs.validate(configs, errors)
@@ -60,23 +79,11 @@ class PropertyClientsConfigTest {
   fun `test invalid non-custodial client with empty domain and callback url`() {
     val config = ClientConfig()
     config.domain = ""
+    config.domains = emptySet()
     config.callbackUrl = "  "
     configs.clients.add(config)
 
     configs.validateNonCustodialClient(config, errors)
     Assertions.assertEquals(2, errors.errorCount)
-  }
-
-  @Test
-  fun `test invalid non-custodial client signing key does not match`() {
-    val config = ClientConfig()
-    config.domain = "lobstr.co"
-    config.callbackUrl = "https://callback.lobstr.co/api/v2/anchor/callback"
-    config.signingKey = "Invalid-signing-key"
-    configs.clients.add(config)
-
-    configs.validateNonCustodialClient(config, errors)
-    Assertions.assertEquals(1, errors.errorCount)
-    assertErrorCode(errors, "client-signing-key-does-not-match")
   }
 }

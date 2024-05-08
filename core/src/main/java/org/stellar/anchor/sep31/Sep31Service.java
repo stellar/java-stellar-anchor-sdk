@@ -24,12 +24,7 @@ import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 import io.micrometer.core.instrument.Counter;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.Data;
@@ -596,8 +591,13 @@ public class Sep31Service {
     if (sep10Config.isClientAttributionRequired() && client == null) {
       throw new BadRequestException("Client not found");
     }
-    if (client != null && !sep10Config.getAllowedClientDomains().contains(client.getDomain())) {
-      client = null;
+
+    if (client != null) {
+      boolean hasDomainIntersection =
+          new HashSet<>(sep10Config.getAllowedClientDomains()).containsAll(client.getDomains());
+      if (!hasDomainIntersection) {
+        client = null;
+      }
     }
     return client == null ? null : client.getName();
   }

@@ -45,9 +45,8 @@ public class PropertySep10Config implements Sep10Config, Validator {
     this.secretConfig = secretConfig;
     this.knownCustodialAccountList =
         clientsConfig.getClients().stream()
-            .filter(
-                cfg -> cfg.getType() == CUSTODIAL && StringHelper.isNotEmpty(cfg.getSigningKey()))
-            .map(ClientConfig::getSigningKey)
+            .filter(cfg -> cfg.getType() == CUSTODIAL && !cfg.getSigningKeys().isEmpty())
+            .flatMap(cfg -> cfg.getSigningKeys().stream())
             .collect(Collectors.toList());
   }
 
@@ -170,8 +169,8 @@ public class PropertySep10Config implements Sep10Config, Validator {
     if (clientAttributionRequired) {
       List<String> nonCustodialClientNames =
           clientsConfig.clients.stream()
-              .filter(cfg -> cfg.getType() == NONCUSTODIAL && isNotEmpty(cfg.getDomain()))
-              .map(ClientConfig::getName)
+              .filter(cfg -> cfg.getType() == NONCUSTODIAL && !cfg.getDomains().isEmpty())
+              .flatMap(cfg -> cfg.getDomains().stream())
               .collect(Collectors.toList());
 
       if (nonCustodialClientNames.isEmpty()) {
@@ -230,18 +229,18 @@ public class PropertySep10Config implements Sep10Config, Validator {
     // if clientAllowList is not defined, all client domains from the clients section are allowed.
     if (clientAllowList == null || clientAllowList.isEmpty()) {
       return clientsConfig.clients.stream()
-          .map(ClientConfig::getDomain)
-          .filter(StringHelper::isNotEmpty)
+          .filter(cfg -> cfg.getDomains() != null && !cfg.getDomains().isEmpty())
+          .flatMap(cfg -> cfg.getDomains().stream())
           .collect(Collectors.toList());
     }
 
     // If clientAllowList is defined, only the clients in the allow list are allowed.
     return clientAllowList.stream()
-        .map(
+        .flatMap(
             domain ->
                 (clientsConfig.getClientConfigByName(domain) == null)
                     ? null
-                    : clientsConfig.getClientConfigByName(domain).getDomain())
+                    : clientsConfig.getClientConfigByName(domain).getDomains().stream())
         .filter(StringHelper::isNotEmpty)
         .collect(Collectors.toList());
   }

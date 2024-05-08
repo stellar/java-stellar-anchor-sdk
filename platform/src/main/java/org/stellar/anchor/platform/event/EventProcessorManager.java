@@ -93,11 +93,13 @@ public class EventProcessorManager {
         switch (clientConfig.getType()) {
           case CUSTODIAL:
             processorName =
-                CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX + clientConfig.getSigningKey();
+                CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
+                    + clientConfig.getSigningKeys().stream().findFirst();
             break;
           case NONCUSTODIAL:
             processorName =
-                CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX + clientConfig.getDomain();
+                CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
+                    + clientConfig.getDomains().stream().findFirst();
             break;
           default:
             errorF("Unknown client type: {}", clientConfig.getType());

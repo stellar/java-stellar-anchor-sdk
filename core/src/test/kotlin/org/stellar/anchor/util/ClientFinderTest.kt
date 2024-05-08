@@ -24,8 +24,10 @@ class ClientFinderTest {
       ClientsConfig.ClientConfig(
         "name",
         ClientsConfig.ClientType.CUSTODIAL,
-        "signing-key",
-        "domain",
+        null,
+        setOf("signing-key"),
+        null,
+        setOf("domain"),
         "http://localhost:8000",
         false,
         emptySet()
@@ -41,7 +43,7 @@ class ClientFinderTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { sep10Config.isClientAttributionRequired } returns true
-    every { sep10Config.allowedClientDomains } returns listOf(clientConfig.domain)
+    every { sep10Config.allowedClientDomains } returns clientConfig.domains.toList()
     every { sep10Config.allowedClientNames } returns listOf(clientConfig.name)
     every {
       clientsConfig.getClientConfigByDomain(ExchangeAmountsCalculatorTest.token.clientDomain)

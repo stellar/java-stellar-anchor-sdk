@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.config;
 
+import static io.jsonwebtoken.lang.Collections.setOf;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
@@ -9,13 +10,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.PostConstruct;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.config.ClientsConfig;
-import org.stellar.anchor.sep10.Sep10Helper;
 
 @Data
 public class PropertyClientsConfig implements ClientsConfig, Validator {
@@ -24,14 +24,32 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
   Map<String, String> domainToClientNameMap = null;
   Map<String, String> signingKeyToClientNameMap = null;
 
+  @PostConstruct
+  public void postConstruct() {
+    clients.forEach(
+        clientConfig -> {
+          if (!isEmpty(clientConfig.getSigningKey())
+              && (clientConfig.getSigningKeys() == null
+                  || clientConfig.getSigningKeys().isEmpty())) {
+            clientConfig.setSigningKeys(setOf(clientConfig.getSigningKey()));
+          }
+          if (!isEmpty(clientConfig.getDomain())
+              && (clientConfig.getDomains() == null || clientConfig.getDomains().isEmpty())) {
+            clientConfig.setDomains(setOf(clientConfig.getDomain()));
+          }
+        });
+  }
+
   @Override
   public ClientsConfig.ClientConfig getClientConfigBySigningKey(String signingKey) {
     if (signingKeyToClientNameMap == null) {
       signingKeyToClientNameMap = Maps.newHashMap();
       clients.forEach(
           clientConfig -> {
-            if (clientConfig.getSigningKey() != null) {
-              signingKeyToClientNameMap.put(clientConfig.getSigningKey(), clientConfig.getName());
+            if (clientConfig.getSigningKeys() != null && !clientConfig.getSigningKeys().isEmpty()) {
+              for (String key : clientConfig.getSigningKeys()) {
+                signingKeyToClientNameMap.put(key, clientConfig.getName());
+              }
             }
           });
     }
@@ -44,8 +62,10 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
       domainToClientNameMap = Maps.newHashMap();
       clients.forEach(
           clientConfig -> {
-            if (clientConfig.getDomain() != null) {
-              domainToClientNameMap.put(clientConfig.getDomain(), clientConfig.getName());
+            if (clientConfig.getDomains() != null && !clientConfig.getDomains().isEmpty()) {
+              for (String domainName : clientConfig.getDomains()) {
+                domainToClientNameMap.put(domainName, clientConfig.getName());
+              }
             }
           });
     }
@@ -84,9 +104,10 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
   }
 
   public void validateCustodialClient(ClientConfig clientConfig, Errors errors) {
-    if (isEmpty(clientConfig.getSigningKey())) {
+    if (clientConfig.getSigningKeys() == null || clientConfig.getSigningKeys().isEmpty()) {
       errors.reject(
-          "empty-client-signing-key", "The client.signingKey cannot be empty and must be defined");
+          "empty-client-signing-keys",
+          "The client.signingKeys cannot be empty and must be defined");
     }
     if (!isEmpty(clientConfig.getCallbackUrl())) {
       try {
@@ -98,24 +119,9 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
   }
 
   public void validateNonCustodialClient(ClientConfig clientConfig, Errors errors) {
-    if (isEmpty(clientConfig.getDomain())) {
-      errors.reject("empty-client-domain", "The client.domain cannot be empty and must be defined");
-    }
-
-    if (!isEmpty(clientConfig.getSigningKey())) {
-      try {
-        String clientSigningKey =
-            Sep10Helper.fetchSigningKeyFromClientDomain(clientConfig.getDomain(), false);
-        if (!clientConfig.getSigningKey().equals(clientSigningKey)) {
-          errors.reject(
-              "client-signing-key-does-not-match",
-              "The client.signingKey does not matched any valid registered keys");
-        }
-      } catch (SepException e) {
-        errors.reject(
-            "client-signing-key-toml-read-failure",
-            "SIGNING_KEY not present in 'client_domain' TOML or TOML file does not exist");
-      }
+    if (clientConfig.getDomains() == null || clientConfig.getDomains().isEmpty()) {
+      errors.reject(
+          "empty-client-domains", "The client.domains cannot be empty and must be defined");
     }
 
     if (!isEmpty(clientConfig.getCallbackUrl())) {

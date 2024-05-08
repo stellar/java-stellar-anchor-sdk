@@ -8,7 +8,7 @@ import org.stellar.anchor.platform.config.PropertyClientsConfig;
 @Configuration
 public class ClientsBeans {
   @Bean
-  @ConfigurationProperties(prefix = "")
+  @ConfigurationProperties(prefix = "clients")
   PropertyClientsConfig clientsConfig() {
     return new PropertyClientsConfig();
   }
