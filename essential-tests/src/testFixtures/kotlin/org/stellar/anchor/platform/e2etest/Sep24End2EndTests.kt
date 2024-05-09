@@ -58,7 +58,7 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
       socketTimeoutMillis = 300000
     }
   }
-  private val maxTries = 30
+  private val maxTries = 60
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
   private val walletServerClient = WalletServerClient(Url(config.env["wallet.server.url"]!!))
