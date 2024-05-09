@@ -592,7 +592,7 @@ public class Sep31Service {
       throw new BadRequestException("Client not found");
     }
 
-    if (client != null) {
+    if (client != null && client.getDomains() != null) {
       boolean hasDomainIntersection =
           new HashSet<>(sep10Config.getAllowedClientDomains()).containsAll(client.getDomains());
       if (!hasDomainIntersection) {

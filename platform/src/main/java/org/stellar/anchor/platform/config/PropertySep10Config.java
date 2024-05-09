@@ -169,8 +169,8 @@ public class PropertySep10Config implements Sep10Config, Validator {
     if (clientAttributionRequired) {
       List<String> nonCustodialClientNames =
           clientsConfig.clients.stream()
-              .filter(cfg -> cfg.getType() == NONCUSTODIAL && !cfg.getDomains().isEmpty())
-              .flatMap(cfg -> cfg.getDomains().stream())
+              .filter(cfg -> cfg.getType() == NONCUSTODIAL)
+              .map(ClientConfig::getName)
               .collect(Collectors.toList());
 
       if (nonCustodialClientNames.isEmpty()) {
