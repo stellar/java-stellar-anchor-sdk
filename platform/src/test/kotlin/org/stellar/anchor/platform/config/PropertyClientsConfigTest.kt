@@ -29,7 +29,9 @@ class PropertyClientsConfigTest {
     configs.clients.add(config)
     configs.postConstruct()
 
+    Assertions.assertEquals(1, config.signingKeys.size)
     Assertions.assertEquals(config.signingKey, config.signingKeys.first())
+    Assertions.assertEquals(1, config.signingKeys.size)
     Assertions.assertEquals(config.domain, config.domains.first())
   }
 
@@ -48,6 +50,18 @@ class PropertyClientsConfigTest {
 
     configs.validate(configs, errors)
     Assertions.assertFalse(errors.hasErrors())
+
+    val getConfigResult1 =
+      configs.getClientConfigBySigningKey(
+        "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
+      )
+    Assertions.assertEquals(config, getConfigResult1)
+
+    val getConfigResult2 =
+      configs.getClientConfigBySigningKey(
+        "GACYKME36AI6UYAV7A5ZUA6MG4C4K2VAPNYMW5YLOM6E7GS6FSHDPV4F"
+      )
+    Assertions.assertEquals(config, getConfigResult2)
   }
 
   @Test
@@ -73,6 +87,12 @@ class PropertyClientsConfigTest {
 
     configs.validate(configs, errors)
     Assertions.assertFalse(errors.hasErrors())
+
+    val getConfigResult1 = configs.getClientConfigByDomain("lobstr.co")
+    Assertions.assertEquals(config, getConfigResult1)
+
+    val getConfigResult2 = configs.getClientConfigByDomain("lobstr.com")
+    Assertions.assertEquals(config, getConfigResult2)
   }
 
   @Test

@@ -26,6 +26,9 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
 
   @PostConstruct
   public void postConstruct() {
+    // In favor of migrating to signingKeys and domains, copy signingKey to signingKeys and domain
+    // to domains if signingKeys and domains are not set, otherwise signingKey and domain will be
+    // ignored
     clients.forEach(
         clientConfig -> {
           if (!isEmpty(clientConfig.getSigningKey())

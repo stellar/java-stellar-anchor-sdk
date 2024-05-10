@@ -12,9 +12,9 @@ public interface ClientsConfig {
   class ClientConfig {
     String name;
     ClientType type;
-    @Deprecated String signingKey;
+    @Deprecated String signingKey; // ANCHOR-696
     Set<String> signingKeys;
-    @Deprecated String domain;
+    @Deprecated String domain; // ANCHOR-696
     Set<String> domains;
     String callbackUrl;
     boolean allowAnyDestination = false;

@@ -43,7 +43,7 @@ public class ClientFinder {
       throw new SepNotAuthorizedException("Client not found");
     }
 
-    if (clientDomain != null && !isClientDomainsAllowed(client)) {
+    if (clientDomain != null && !isClientAllowed(client)) {
       throw new SepNotAuthorizedException("Client domain not allowed");
     }
     if (!isClientNameAllowed(client.getName())) {
@@ -65,13 +65,8 @@ public class ClientFinder {
     return clientByDomain != null ? clientByDomain : clientByAccount;
   }
 
-  private boolean isClientDomainsAllowed(ClientConfig client) {
+  private boolean isClientAllowed(ClientConfig client) {
     return new HashSet<>(sep10Config.getAllowedClientDomains()).containsAll(client.getDomains())
-        || sep10Config.getAllowedClientDomains().isEmpty();
-  }
-
-  private boolean isDomainAllowed(String domain) {
-    return sep10Config.getAllowedClientDomains().contains(domain)
         || sep10Config.getAllowedClientDomains().isEmpty();
   }
 
