@@ -81,7 +81,7 @@ class ClientFinderTest {
 
   @Test
   fun `test getClientName with client not found by domain`() {
-    every { sep10Config.allowedClientDomains } returns listOf("nothing")
+    every { sep10Config.allowedClientNames } returns listOf("nothing")
 
     assertThrows<SepNotAuthorizedException> { clientFinder.getClientName(token) }
   }
@@ -94,16 +94,8 @@ class ClientFinderTest {
   }
 
   @Test
-  fun `test getClientName with all domains allowed`() {
-    every { sep10Config.allowedClientDomains } returns emptyList()
-    val clientId = clientFinder.getClientName(token)
-
-    assertEquals(clientConfig.name, clientId)
-  }
-
-  @Test
   fun `test getClientName with all names allowed`() {
-    every { sep10Config.allowedClientNames } returns emptyList()
+    every { sep10Config.allowedClientNames } returns listOf(clientConfig.name)
     val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)

@@ -289,18 +289,8 @@ class Sep31ServiceTest {
       return Stream.of(
         Arguments.of(listOf<String>(), false, null, false),
         Arguments.of(listOf<String>(), true, null, true),
-        Arguments.of(
-          listOf(lobstrClientConfig.domains.first()),
-          false,
-          lobstrClientConfig.name,
-          false
-        ),
-        Arguments.of(
-          listOf(lobstrClientConfig.domains.first()),
-          true,
-          lobstrClientConfig.name,
-          true
-        ),
+        Arguments.of(listOf(lobstrClientConfig.name), false, lobstrClientConfig.name, false),
+        Arguments.of(listOf(lobstrClientConfig.name), true, lobstrClientConfig.name, true),
       )
     }
   }
@@ -798,7 +788,7 @@ class Sep31ServiceTest {
       }
 
     // mock client config
-    every { sep10Config.allowedClientDomains } returns listOf("vibrant.stellar.org")
+    every { sep10Config.allowedClientNames } returns listOf("vibrant")
     every { clientsConfig.getClientConfigBySigningKey(any()) } returns
       ClientsConfig.ClientConfig().apply {
         domains = setOf("vibrant.stellar.org")
@@ -1100,12 +1090,12 @@ class Sep31ServiceTest {
   @ParameterizedTest
   @MethodSource("generateGetClientNameTestConfig")
   fun `test getClientName when`(
-    allowedClientDomains: List<String>,
+    allowedClientNames: List<String>,
     isClientAttributionRequired: Boolean,
     expectedClientName: String?,
     shouldThrowExceptionWithInvalidInput: Boolean,
   ) {
-    every { sep10Config.allowedClientDomains } returns allowedClientDomains
+    every { sep10Config.allowedClientNames } returns allowedClientNames
     every { sep10Config.isClientAttributionRequired } returns isClientAttributionRequired
     every {
       clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKeys.first())

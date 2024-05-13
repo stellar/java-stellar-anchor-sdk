@@ -591,7 +591,7 @@ public class Sep31Service {
     if (sep10Config.isClientAttributionRequired() && client == null) {
       throw new BadRequestException("Client not found");
     }
-
+    System.out.println(Arrays.toString(sep10Config.getAllowedClientNames().toArray()));
     if (client != null && !sep10Config.getAllowedClientNames().contains(client.getName()))
       client = null;
     return client == null ? null : client.getName();
