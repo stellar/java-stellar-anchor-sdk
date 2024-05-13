@@ -40,6 +40,7 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.Log;
 
 public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
 
@@ -75,7 +76,9 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
 
   public GetTransactionResponse handle(Object requestParams) throws AnchorException {
     T request = gson.fromJson(gson.toJson(requestParams), requestType);
+    Log.infoF("Processing RPC request {}", request);
     JdbcSepTransaction txn = getTransaction(request.getTransactionId());
+    Log.debugF("SEP transaction before request is executed {}", txn);
 
     if (txn == null) {
       throw new InvalidRequestException(
@@ -105,6 +108,8 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     }
 
     updateTransaction(txn, request);
+
+    Log.debugF("Transaction after update is executed {}", txn);
 
     GetTransactionResponse txResponse = toGetTransactionResponse(txn, assetService);
 
