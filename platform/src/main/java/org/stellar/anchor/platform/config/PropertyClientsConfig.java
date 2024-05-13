@@ -27,17 +27,13 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
   @PostConstruct
   public void postConstruct() {
     // In favor of migrating to signingKeys and domains, copy signingKey to signingKeys and domain
-    // to domains if signingKeys and domains are not set, otherwise signingKey and domain will be
-    // ignored
+    // to domains if signingKeys and domains are not set.
     clients.forEach(
         clientConfig -> {
-          if (!isEmpty(clientConfig.getSigningKey())
-              && (clientConfig.getSigningKeys() == null
-                  || clientConfig.getSigningKeys().isEmpty())) {
+          if (!isEmpty(clientConfig.getSigningKey())) {
             clientConfig.setSigningKeys(setOf(clientConfig.getSigningKey()));
           }
-          if (!isEmpty(clientConfig.getDomain())
-              && (clientConfig.getDomains() == null || clientConfig.getDomains().isEmpty())) {
+          if (!isEmpty(clientConfig.getDomain())) {
             clientConfig.setDomains(setOf(clientConfig.getDomain()));
           }
         });
@@ -113,6 +109,13 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
           "empty-client-signing-keys",
           "The client.signingKeys cannot be empty and must be defined");
     }
+    if (!isEmpty(clientConfig.getSigningKey())
+        && clientConfig.getSigningKeys() != null
+        && !clientConfig.getSigningKeys().isEmpty()) {
+      errors.reject(
+          "client-signing-keys-conflict",
+          "The client.signingKey and The client.signingKeys cannot coexist, please choose one to use");
+    }
     if (!isEmpty(clientConfig.getCallbackUrl())) {
       try {
         new URL(clientConfig.getCallbackUrl());
@@ -127,6 +130,13 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
         && (clientConfig.getDomains() == null || clientConfig.getDomains().isEmpty())) {
       errors.reject(
           "empty-client-domains", "The client.domains cannot be empty and must be defined");
+    }
+    if (!isEmpty(clientConfig.getDomain())
+        && clientConfig.getDomains() != null
+        && !clientConfig.getDomains().isEmpty()) {
+      errors.reject(
+          "client-domains-conflict",
+          "The client.domain and the client.domains cannot coexist, please choose one to use");
     }
 
     if (!isEmpty(clientConfig.getCallbackUrl())) {

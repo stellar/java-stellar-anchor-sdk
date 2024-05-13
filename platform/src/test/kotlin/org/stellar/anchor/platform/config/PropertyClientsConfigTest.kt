@@ -77,6 +77,22 @@ class PropertyClientsConfigTest {
   }
 
   @Test
+  fun `test invalid custodial client with both signing key and signing keys`() {
+    val config = ClientConfig()
+    config.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
+    config.signingKeys =
+      setOf(
+        "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
+        "GACYKME36AI6UYAV7A5ZUA6MG4C4K2VAPNYMW5YLOM6E7GS6FSHDPV4F"
+      )
+    configs.clients.add(config)
+
+    configs.validateCustodialClient(config, errors)
+    Assertions.assertEquals(1, errors.errorCount)
+    assertErrorCode(errors, "client-signing-keys-conflict")
+  }
+
+  @Test
   fun `test valid non-custodial client with multiple domains`() {
     val config = ClientConfig()
     config.name = "lobstr"
@@ -105,5 +121,17 @@ class PropertyClientsConfigTest {
 
     configs.validateNonCustodialClient(config, errors)
     Assertions.assertEquals(2, errors.errorCount)
+  }
+
+  @Test
+  fun `test invalid non-custodial client with both domain and domains`() {
+    val config = ClientConfig()
+    config.domain = "lobstr.co"
+    config.domains = setOf("lobstr.co", "lobstr.com")
+    configs.clients.add(config)
+
+    configs.validateNonCustodialClient(config, errors)
+    Assertions.assertEquals(1, errors.errorCount)
+    assertErrorCode(errors, "client-domains-conflict")
   }
 }
