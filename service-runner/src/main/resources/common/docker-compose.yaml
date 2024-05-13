@@ -79,3 +79,13 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
     command: -p 5433
+
+  stellar-quickstart:
+    image: stellar/quickstart:v424-testing
+    ports:
+      - "8000:8000"
+#    command: --local --standalone
+    environment:
+      - ENABLE_LOGS=true
+      - ENABLE_SOROBAN_DIAGNOSTIC_EVENTS=true
+      - NETWORK=local

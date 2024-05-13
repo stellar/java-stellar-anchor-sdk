@@ -20,3 +20,9 @@ services:
     extends:
       file: common/docker-compose.yaml
       service: reference-db
+
+  stellar-quickstart:
+    hostname: stellar-quickstart
+    extends:
+      file: common/docker-compose.yaml
+      service: stellar-quickstart
