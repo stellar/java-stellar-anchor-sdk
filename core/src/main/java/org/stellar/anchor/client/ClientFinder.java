@@ -1,6 +1,5 @@
 package org.stellar.anchor.client;
 
-import java.util.HashSet;
 import javax.annotation.Nullable;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -38,15 +37,12 @@ public class ClientFinder {
       return client != null ? client.getName() : null;
     }
 
-    // Check if the client domain and name are allowed
+    // Check if the client is allowed
     if (client == null) {
       throw new SepNotAuthorizedException("Client not found");
     }
 
-    if (clientDomain != null && !isClientAllowed(client)) {
-      throw new SepNotAuthorizedException("Client domain not allowed");
-    }
-    if (!isClientNameAllowed(client.getName())) {
+    if (!sep10Config.getAllowedClientNames().contains(client.getName())) {
       throw new SepNotAuthorizedException("Client name not allowed");
     }
 
@@ -63,15 +59,5 @@ public class ClientFinder {
     ClientConfig clientByDomain = clientsConfig.getClientConfigByDomain(clientDomain);
     ClientConfig clientByAccount = clientsConfig.getClientConfigBySigningKey(account);
     return clientByDomain != null ? clientByDomain : clientByAccount;
-  }
-
-  private boolean isClientAllowed(ClientConfig client) {
-    return new HashSet<>(sep10Config.getAllowedClientDomains()).containsAll(client.getDomains())
-        || sep10Config.getAllowedClientDomains().isEmpty();
-  }
-
-  private boolean isClientNameAllowed(String name) {
-    return sep10Config.getAllowedClientNames().contains(name)
-        || sep10Config.getAllowedClientNames().isEmpty();
   }
 }
