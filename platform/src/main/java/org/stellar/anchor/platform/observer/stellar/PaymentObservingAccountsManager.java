@@ -53,9 +53,9 @@ public class PaymentObservingAccountsManager {
   }
 
   public void evictAndPersist() {
-    Log.info("Evicting old accounts...");
+    Log.debug("Evicting old accounts...");
     this.evict(getEvictMaxIdleTime());
-    Log.info("Persisting accounts...");
+    Log.debug("Persisting accounts...");
     for (ObservingAccount account : this.getAccounts()) {
       store.upsert(account.account, account.lastObserved);
     }
