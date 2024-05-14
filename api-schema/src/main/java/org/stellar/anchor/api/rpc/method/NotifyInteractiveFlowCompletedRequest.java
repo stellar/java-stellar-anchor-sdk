@@ -1,6 +1,7 @@
 package org.stellar.anchor.api.rpc.method;
 
 import com.google.gson.annotations.SerializedName;
+import java.time.Instant;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,4 +32,7 @@ public class NotifyInteractiveFlowCompletedRequest extends RpcMethodParamsReques
 
   @SerializedName("amount_expected")
   private AmountRequest amountExpected;
+
+  @SerializedName("user_action_required_by")
+  Instant userActionRequiredBy;
 }

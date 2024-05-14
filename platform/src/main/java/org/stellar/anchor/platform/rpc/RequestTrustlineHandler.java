@@ -100,5 +100,9 @@ public class RequestTrustlineHandler extends RpcMethodHandler<RequestTrustReques
 
   @Override
   protected void updateTransactionWithRpcRequest(
-      JdbcSepTransaction txn, RequestTrustRequest request) {}
+      JdbcSepTransaction txn, RequestTrustRequest request) {
+    if (request.getUserActionRequiredBy() != null) {
+      txn.setUserActionRequiredBy(request.getUserActionRequiredBy());
+    }
+  }
 }

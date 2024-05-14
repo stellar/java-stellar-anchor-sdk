@@ -163,6 +163,8 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     boolean shouldClearMessageStatus =
         !isErrorStatus(nextStatus) && isErrorStatus(SepTransactionStatus.from(txn.getStatus()));
 
+    txn.setUserActionRequiredBy(null);
+
     updateTransactionWithRpcRequest(txn, request);
 
     txn.setUpdatedAt(Instant.now());

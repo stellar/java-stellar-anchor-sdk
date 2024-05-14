@@ -238,6 +238,9 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       txn.setAmountFeeAsset(request.getFeeDetails().getAsset());
       txn.setFeeDetailsList(request.getFeeDetails().getDetails());
     }
+    if (request.getUserActionRequiredBy() != null) {
+      txn.setUserActionRequiredBy(request.getUserActionRequiredBy());
+    }
 
     switch (Sep.from(txn.getProtocol())) {
       case SEP_6:

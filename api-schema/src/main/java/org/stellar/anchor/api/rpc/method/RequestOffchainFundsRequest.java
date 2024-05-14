@@ -1,6 +1,7 @@
 package org.stellar.anchor.api.rpc.method;
 
 import com.google.gson.annotations.SerializedName;
+import java.time.Instant;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,4 +34,7 @@ public class RequestOffchainFundsRequest extends RpcMethodParamsRequest {
 
   @SerializedName("instructions")
   Map<String, InstructionField> instructions;
+
+  @SerializedName("user_action_required_by")
+  Instant userActionRequiredBy;
 }

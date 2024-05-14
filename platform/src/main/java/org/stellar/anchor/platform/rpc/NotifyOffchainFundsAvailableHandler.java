@@ -88,5 +88,8 @@ public class NotifyOffchainFundsAvailableHandler
     if (request.getExternalTransactionId() != null) {
       txn.setExternalTransactionId(request.getExternalTransactionId());
     }
+    if (request.getUserActionRequiredBy() != null) {
+      txn.setUserActionRequiredBy(request.getUserActionRequiredBy());
+    }
   }
 }

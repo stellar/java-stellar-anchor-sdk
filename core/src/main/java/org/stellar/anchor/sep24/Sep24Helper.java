@@ -25,6 +25,7 @@ public class Sep24Helper {
     if (txn.getToAccount() != null) txnR.setTo(txn.getToAccount());
     if (txn.getStartedAt() != null) txnR.setStartedAt(txn.getStartedAt());
     if (txn.getCompletedAt() != null) txnR.setCompletedAt(txn.getCompletedAt());
+    if (txn.getUserActionRequiredBy() != null) txnR.setUserActionRequiredBy(txn.getCompletedAt());
   }
 
   static TransactionResponse updateRefundInfo(

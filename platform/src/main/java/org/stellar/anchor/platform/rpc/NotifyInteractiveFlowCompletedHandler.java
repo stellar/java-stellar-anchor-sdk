@@ -167,5 +167,9 @@ public class NotifyInteractiveFlowCompletedHandler
     } else {
       txn24.setAmountExpected(txn.getAmountIn());
     }
+
+    if (request.getUserActionRequiredBy() != null) {
+      txn.setUserActionRequiredBy(request.getUserActionRequiredBy());
+    }
   }
 }
