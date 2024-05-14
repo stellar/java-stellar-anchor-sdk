@@ -157,7 +157,7 @@ public class JwtService {
   }
 
   private String encode(ApiAuthJwt token, String secret) throws InvalidConfigException {
-    if (platformAuthSecret == null) {
+    if (secret == null) {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for API Authentication");
     }
