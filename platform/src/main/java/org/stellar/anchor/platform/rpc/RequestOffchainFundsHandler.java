@@ -184,9 +184,7 @@ public class RequestOffchainFundsHandler extends RpcMethodHandler<RequestOffchai
       txn.setAmountFeeAsset(request.getFeeDetails().getAsset());
       txn.setFeeDetailsList(request.getFeeDetails().getDetails());
     }
-    if (request.getUserActionRequiredBy() != null) {
-      txn.setUserActionRequiredBy(request.getUserActionRequiredBy());
-    }
+
     switch (Sep.from(txn.getProtocol())) {
       case SEP_6:
         JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;

@@ -6,13 +6,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
+import org.stellar.anchor.api.rpc.method.features.SupportsUserActionRequiredBy;
 import org.stellar.anchor.api.shared.FeeDetails;
 
 @Data
 @SuperBuilder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class RequestOnchainFundsRequest extends RpcMethodParamsRequest {
+public class RequestOnchainFundsRequest extends RpcMethodParamsRequest
+    implements SupportsUserActionRequiredBy {
 
   @SerializedName("amount_in")
   private AmountAssetRequest amountIn;

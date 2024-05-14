@@ -24,6 +24,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.method.RpcMethod;
 import org.stellar.anchor.api.rpc.method.RpcMethodParamsRequest;
+import org.stellar.anchor.api.rpc.method.features.SupportsUserActionRequiredBy;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
@@ -151,7 +152,7 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     requestValidator.validate(request);
   }
 
-  private void updateTransaction(JdbcSepTransaction txn, T request) throws AnchorException {
+  protected void updateTransaction(JdbcSepTransaction txn, T request) throws AnchorException {
     validate(txn, request);
 
     SepTransactionStatus nextStatus = getNextStatus(txn, request);
@@ -163,6 +164,11 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     boolean shouldClearMessageStatus =
         !isErrorStatus(nextStatus) && isErrorStatus(SepTransactionStatus.from(txn.getStatus()));
 
+    if (request instanceof SupportsUserActionRequiredBy
+        && ((SupportsUserActionRequiredBy) request).getUserActionRequiredBy() != null) {
+      txn.setUserActionRequiredBy(
+          ((SupportsUserActionRequiredBy) request).getUserActionRequiredBy());
+    }
     txn.setUserActionRequiredBy(null);
 
     updateTransactionWithRpcRequest(txn, request);

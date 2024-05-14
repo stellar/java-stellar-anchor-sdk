@@ -88,9 +88,5 @@ public class RequestCustomerInfoUpdateHandler
         txn6.setRequiredCustomerInfoUpdates(request.getRequiredCustomerInfoUpdates());
       }
     }
-
-    if (request.getUserActionRequiredBy() != null) {
-      txn.setUserActionRequiredBy(request.getUserActionRequiredBy());
-    }
   }
 }
