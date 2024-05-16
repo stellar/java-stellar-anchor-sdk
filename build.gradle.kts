@@ -51,8 +51,8 @@ subprojects {
     maven { url = uri("https://jitpack.io") }
   }
 
-  /** Specifies JDK-11 */
-  java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
+  /** Specifies JDK-17 */
+  java { toolchain { languageVersion.set(JavaLanguageVersion.of(17)) } }
 
   spotless {
     java {
