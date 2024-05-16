@@ -55,21 +55,6 @@ subprojects {
   java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
 
   spotless {
-    val javaVersion = System.getProperty("java.version")
-    if (javaVersion >= "17") {
-      logger.warn("!!! WARNING !!!")
-      logger.warn("=================")
-      logger.warn(
-          "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
-          javaVersion)
-      logger.warn(
-          "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM")
-    }
-
-    if (javaVersion < "11") {
-      throw GradleException("Java 11 or greater is required for spotless Gradle plugin.")
-    }
-
     java {
       importOrder("java", "javax", "org.stellar")
       removeUnusedImports()
