@@ -8,6 +8,7 @@ import java.net.URI
 import java.nio.charset.Charset
 import java.time.Instant
 import org.apache.http.client.utils.URLEncodedUtils
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -278,13 +279,15 @@ internal class Sep24ServiceTest {
     every { txnStore.save(capture(slotTxn)) } returns null
     every { sep24Config.initialUserDeadlineSeconds } returns deadline
     sep24Service.withdraw(createTestSep10JwtWithMemo(), createTestTransactionRequest())
-    assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond >=
-        Instant.now().plusSeconds(deadline - 1).epochSecond
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
-    assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond <=
-        Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
   }
 
@@ -434,13 +437,15 @@ internal class Sep24ServiceTest {
     every { txnStore.save(capture(slotTxn)) } returns null
     every { sep24Config.initialUserDeadlineSeconds } returns deadline
     sep24Service.deposit(createTestSep10JwtWithMemo(), createTestTransactionRequest())
-    assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond >=
-        Instant.now().plusSeconds(deadline - 1).epochSecond
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
-    assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond <=
-        Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
   }
 

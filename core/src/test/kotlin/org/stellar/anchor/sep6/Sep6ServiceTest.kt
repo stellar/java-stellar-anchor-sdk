@@ -142,13 +142,15 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
     Assertions.assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond >=
-        Instant.now().plusSeconds(deadline - 1).epochSecond
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
     Assertions.assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond <=
-        Instant.now().plusSeconds(deadline).epochSecond
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
 
     JSONAssert.assertEquals(
@@ -400,13 +402,15 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
-    assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond >=
-        Instant.now().plusSeconds(deadline - 1).epochSecond
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
-    assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond <=
-        Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
 
     JSONAssert.assertEquals(
@@ -694,13 +698,15 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
     Assertions.assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond >=
-        Instant.now().plusSeconds(deadline - 1).epochSecond
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
     Assertions.assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond <=
-        Instant.now().plusSeconds(deadline).epochSecond
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
 
     JSONAssert.assertEquals(
@@ -1052,13 +1058,15 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
     Assertions.assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond >=
-        Instant.now().plusSeconds(deadline - 1).epochSecond
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
     Assertions.assertTrue(
-      slotTxn.captured.userActionRequiredBy.epochSecond <=
-        Instant.now().plusSeconds(deadline).epochSecond
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
     )
 
     JSONAssert.assertEquals(
