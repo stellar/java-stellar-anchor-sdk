@@ -881,7 +881,7 @@ class RequestOnchainFundsHandlerTest {
 
   @Test
   fun test_handle_sep24_ok_withUserActionRequiredBy() {
-    val now = Instant.now()
+    val actionRequiredBy = Instant.now().plusSeconds(100)
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
@@ -891,7 +891,7 @@ class RequestOnchainFundsHandlerTest {
         .memo(TEXT_MEMO)
         .memoType(TEXT_MEMO_TYPE)
         .destinationAccount(DESTINATION_ACCOUNT)
-        .userActionRequiredBy(now)
+        .userActionRequiredBy(actionRequiredBy)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -937,7 +937,7 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.memoType = TEXT_MEMO_TYPE
     expectedSep24Txn.toAccount = DESTINATION_ACCOUNT
     expectedSep24Txn.withdrawAnchorAccount = DESTINATION_ACCOUNT
-    expectedSep24Txn.userActionRequiredBy = now
+    expectedSep24Txn.userActionRequiredBy = actionRequiredBy
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -958,7 +958,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
-    expectedResponse.userActionRequiredBy = now
+    expectedResponse.userActionRequiredBy = actionRequiredBy
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

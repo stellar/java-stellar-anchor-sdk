@@ -250,14 +250,14 @@ class NotifyInteractiveFlowCompletedHandlerTest {
 
   @Test
   fun test_handle_ok_withoutAmountExpectedWithUserAction() {
-    val now = Instant.now()
+    val requiredBy = Instant.now().plusSeconds(100)
     val request =
       NotifyInteractiveFlowCompletedRequest.builder()
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
         .amountFee(AmountAssetRequest("0.1", FIAT_USD))
-        .userActionRequiredBy(now)
+        .userActionRequiredBy(requiredBy)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -294,7 +294,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.amountFeeAsset = FIAT_USD
     expectedSep24Txn.amountExpected = "1"
-    expectedSep24Txn.userActionRequiredBy = now
+    expectedSep24Txn.userActionRequiredBy = requiredBy
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -312,7 +312,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.userActionRequiredBy = now
+    expectedResponse.userActionRequiredBy = requiredBy
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

@@ -211,8 +211,12 @@ class RequestTrustlineHandlerTest {
   @Test
   fun test_handle_sep24_ok() {
     val now = Instant.now()
+    val actionRequiredBy = Instant.now().plusSeconds(100)
     val request =
-      RequestTrustRequest.builder().transactionId(TX_ID).userActionRequiredBy(now).build()
+      RequestTrustRequest.builder()
+        .transactionId(TX_ID)
+        .userActionRequiredBy(actionRequiredBy)
+        .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
@@ -242,7 +246,7 @@ class RequestTrustlineHandlerTest {
     expectedSep24Txn.status = PENDING_TRUST.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.transferReceivedAt = now
-    expectedSep24Txn.userActionRequiredBy = now
+    expectedSep24Txn.userActionRequiredBy = actionRequiredBy
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -256,7 +260,7 @@ class RequestTrustlineHandlerTest {
     expectedResponse.status = PENDING_TRUST
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.userActionRequiredBy = now
+    expectedResponse.userActionRequiredBy = actionRequiredBy
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

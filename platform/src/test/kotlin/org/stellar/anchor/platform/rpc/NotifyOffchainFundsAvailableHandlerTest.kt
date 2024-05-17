@@ -285,12 +285,12 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
   @Test
   fun test_handle_sep24_ok_deposit_withoutExternalTxIdWithActionRequiredBy() {
-    val now = Instant.now()
+    val actionRequiredBy = Instant.now().plusSeconds(100)
     val transferReceivedAt = Instant.now()
     val request =
       NotifyOffchainFundsAvailableRequest.builder()
         .transactionId(TX_ID)
-        .userActionRequiredBy(now)
+        .userActionRequiredBy(actionRequiredBy)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -320,7 +320,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
     expectedSep24Txn.status = PENDING_USR_TRANSFER_COMPLETE.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
-    expectedSep24Txn.userActionRequiredBy = now
+    expectedSep24Txn.userActionRequiredBy = actionRequiredBy
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -334,7 +334,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_COMPLETE
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
-    expectedResponse.userActionRequiredBy = now
+    expectedResponse.userActionRequiredBy = actionRequiredBy
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
