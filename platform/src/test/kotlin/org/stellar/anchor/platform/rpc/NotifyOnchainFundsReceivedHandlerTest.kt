@@ -288,6 +288,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     txn24.amountInAsset = FIAT_USD
     txn24.amountOutAsset = STELLAR_USDC
     txn24.amountFeeAsset = STELLAR_USDC
+    txn24.userActionRequiredBy = Instant.now()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
