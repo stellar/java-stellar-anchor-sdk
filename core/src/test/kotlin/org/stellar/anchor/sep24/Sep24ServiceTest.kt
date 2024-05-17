@@ -271,6 +271,24 @@ internal class Sep24ServiceTest {
   }
 
   @Test
+  fun `test withdraw with user_action_required_by`() {
+    val slotTxn = slot<Sep24Transaction>()
+    val now = Instant.now()
+    val deadline = 100L
+    every { txnStore.save(capture(slotTxn)) } returns null
+    every { sep24Config.initialUserDeadlineSeconds } returns deadline
+    sep24Service.withdraw(createTestSep10JwtWithMemo(), createTestTransactionRequest())
+    assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond >=
+        Instant.now().plusSeconds(deadline - 1).epochSecond
+    )
+    assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond <=
+        Instant.now().plusSeconds(deadline).epochSecond
+    )
+  }
+
+  @Test
   fun `test withdrawal with no token and no request failure`() {
     assertThrows<SepValidationException> {
       sep24Service.withdraw(null, createTestTransactionRequest())
@@ -406,6 +424,24 @@ internal class Sep24ServiceTest {
     )
     assertEquals(depositQuote.id, slotTxn.captured.quoteId)
     assertEquals(depositQuote.sellAsset, slotTxn.captured.amountInAsset)
+  }
+
+  @Test
+  fun `test deposit with user_action_required_by`() {
+    val slotTxn = slot<Sep24Transaction>()
+    val now = Instant.now()
+    val deadline = 100L
+    every { txnStore.save(capture(slotTxn)) } returns null
+    every { sep24Config.initialUserDeadlineSeconds } returns deadline
+    sep24Service.deposit(createTestSep10JwtWithMemo(), createTestTransactionRequest())
+    assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond >=
+        Instant.now().plusSeconds(deadline - 1).epochSecond
+    )
+    assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond <=
+        Instant.now().plusSeconds(deadline).epochSecond
+    )
   }
 
   @Test

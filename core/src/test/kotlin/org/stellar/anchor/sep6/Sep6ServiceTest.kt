@@ -7,6 +7,8 @@ import java.time.Instant
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -96,6 +98,8 @@ class Sep6ServiceTest {
 
   @Test
   fun `test deposit`() {
+    val deadline = 100L
+    every { sep6Config.initialUserDeadlineSeconds }.returns(deadline)
     val slotTxn = slot<Sep6Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
 
@@ -138,6 +142,14 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    Assertions.assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond >=
+        Instant.now().plusSeconds(deadline - 1).epochSecond
+    )
+    Assertions.assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond <=
+        Instant.now().plusSeconds(deadline).epochSecond
+    )
 
     JSONAssert.assertEquals(
       Sep6ServiceTestData.depositTxnEventJson,
@@ -326,6 +338,8 @@ class Sep6ServiceTest {
 
   @Test
   fun `test deposit-exchange with quote`() {
+    val deadline = 100L
+    every { sep6Config.initialUserDeadlineSeconds }.returns(deadline)
     val sourceAsset = "iso4217:USD"
     val destinationAsset = TEST_ASSET
     val amount = "100"
@@ -386,6 +400,14 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond >=
+        Instant.now().plusSeconds(deadline - 1).epochSecond
+    )
+    assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond <=
+        Instant.now().plusSeconds(deadline).epochSecond
+    )
 
     JSONAssert.assertEquals(
       Sep6ServiceTestData.depositExchangeTxnEventJson,
@@ -626,6 +648,8 @@ class Sep6ServiceTest {
 
   @Test
   fun `test withdraw`() {
+    val deadline = 100L
+    every { sep6Config.initialUserDeadlineSeconds }.returns(deadline)
     val slotTxn = slot<Sep6Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
 
@@ -670,6 +694,14 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    Assertions.assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond >=
+        Instant.now().plusSeconds(deadline - 1).epochSecond
+    )
+    Assertions.assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond <=
+        Instant.now().plusSeconds(deadline).epochSecond
+    )
 
     JSONAssert.assertEquals(
       Sep6ServiceTestData.withdrawTxnEventJson,
@@ -971,6 +1003,8 @@ class Sep6ServiceTest {
 
   @Test
   fun `test withdraw-exchange without quote`() {
+    val deadline = 100L
+    every { sep6Config.initialUserDeadlineSeconds }.returns(deadline)
     val sourceAsset = TEST_ASSET
     val destinationAsset = "iso4217:USD"
 
@@ -1018,6 +1052,14 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    Assertions.assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond >=
+        Instant.now().plusSeconds(deadline - 1).epochSecond
+    )
+    Assertions.assertTrue(
+      slotTxn.captured.userActionRequiredBy.epochSecond <=
+        Instant.now().plusSeconds(deadline).epochSecond
+    )
 
     JSONAssert.assertEquals(
       Sep6ServiceTestData.withdrawExchangeTxnWithoutQuoteEventJson,

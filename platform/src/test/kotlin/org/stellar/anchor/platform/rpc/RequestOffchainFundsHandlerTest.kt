@@ -402,6 +402,7 @@ class RequestOffchainFundsHandlerTest {
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.userActionRequiredBy = Instant.now()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -476,13 +477,15 @@ class RequestOffchainFundsHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_ok_withoutAmountExpected() {
+  fun test_handle_sep24_ok_withUserActionRequiredBy() {
+    val now = Instant.now()
     val request =
       RequestOffchainFundsRequest.builder()
         .transactionId(TX_ID)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
         .feeDetails(FeeDetails("0.1", FIAT_USD, null))
+        .userActionRequiredBy(now)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -518,6 +521,7 @@ class RequestOffchainFundsHandlerTest {
     expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.amountFeeAsset = FIAT_USD
     expectedSep24Txn.amountExpected = "1"
+    expectedSep24Txn.userActionRequiredBy = now
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -535,6 +539,7 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.userActionRequiredBy = now
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
