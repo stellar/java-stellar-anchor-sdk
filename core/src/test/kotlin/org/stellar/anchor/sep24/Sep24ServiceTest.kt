@@ -274,7 +274,6 @@ internal class Sep24ServiceTest {
   @Test
   fun `test withdraw with user_action_required_by`() {
     val slotTxn = slot<Sep24Transaction>()
-    val now = Instant.now()
     val deadline = 100L
     every { txnStore.save(capture(slotTxn)) } returns null
     every { sep24Config.initialUserDeadlineSeconds } returns deadline
@@ -432,7 +431,6 @@ internal class Sep24ServiceTest {
   @Test
   fun `test deposit with user_action_required_by`() {
     val slotTxn = slot<Sep24Transaction>()
-    val now = Instant.now()
     val deadline = 100L
     every { txnStore.save(capture(slotTxn)) } returns null
     every { sep24Config.initialUserDeadlineSeconds } returns deadline

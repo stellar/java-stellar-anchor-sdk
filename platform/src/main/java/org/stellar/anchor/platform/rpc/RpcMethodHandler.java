@@ -149,6 +149,13 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
 
   protected void validate(JdbcSepTransaction txn, T request)
       throws InvalidParamsException, InvalidRequestException, BadRequestException {
+    if (request instanceof SupportsUserActionRequiredBy
+        && ((SupportsUserActionRequiredBy) request).getUserActionRequiredBy() != null) {
+      if (txn.getUserActionRequiredBy().isBefore(Instant.now())) {
+        throw new InvalidParamsException("user_action_required_by can not be in the past");
+      }
+    }
+
     requestValidator.validate(request);
   }
 
