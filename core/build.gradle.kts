@@ -119,10 +119,3 @@ publishing {
   apply<SigningPlugin>()
   configure<SigningExtension> { sign(publishing.publications) }
 }
-
-apply(from = "$rootDir/scripts.gradle.kts")
-
-@Suppress("UNCHECKED_CAST")
-val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
-
-tasks.test { enableTestConcurrency(this) }

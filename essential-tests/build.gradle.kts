@@ -35,13 +35,7 @@ dependencies {
 
 tasks { bootJar { enabled = false } }
 
-// The following is to enable test concurrency
-apply(from = "$rootDir/scripts.gradle.kts")
-@Suppress("UNCHECKED_CAST")
-val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
-
 tasks.test {
-  enableTestConcurrency(this)
   exclude("**/org/stellar/anchor/platform/*Test.class")
   exclude("**/org/stellar/anchor/platform/integrationtest/**")
   exclude("**/org/stellar/anchor/platform/e2etest/**")
