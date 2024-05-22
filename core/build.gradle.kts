@@ -39,6 +39,7 @@ dependencies {
   implementation(libs.okhttp3)
   implementation(libs.commons.codec)
   implementation(libs.jjwt)
+  implementation(libs.bcastle)
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
@@ -50,6 +51,7 @@ dependencies {
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)
   testImplementation(libs.coroutines.core)
+  testImplementation(libs.stellar.wallet.sdk)
 }
 
 publishing {
@@ -117,10 +119,3 @@ publishing {
   apply<SigningPlugin>()
   configure<SigningExtension> { sign(publishing.publications) }
 }
-
-apply(from = "$rootDir/scripts.gradle.kts")
-
-@Suppress("UNCHECKED_CAST")
-val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
-
-tasks.test { enableTestConcurrency(this) }

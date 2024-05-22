@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
@@ -33,7 +34,6 @@ import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
-import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Service;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
@@ -132,23 +132,27 @@ public class SepBeans {
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep6"})
   Sep6Service sep6Service(
+      AppConfig appConfig,
       Sep6Config sep6Config,
       AssetService assetService,
       ClientFinder clientFinder,
       Sep6TransactionStore txnStore,
       EventService eventService,
-      Sep38QuoteStore sep38QuoteStore) {
+      Sep38QuoteStore sep38QuoteStore,
+      MoreInfoUrlConstructor sep6MoreInfoUrlConstructor) {
     RequestValidator requestValidator = new RequestValidator(assetService);
     ExchangeAmountsCalculator exchangeAmountsCalculator =
         new ExchangeAmountsCalculator(sep38QuoteStore);
     return new Sep6Service(
+        appConfig,
         sep6Config,
         assetService,
         requestValidator,
         clientFinder,
         txnStore,
         exchangeAmountsCalculator,
-        eventService);
+        eventService,
+        sep6MoreInfoUrlConstructor);
   }
 
   @Bean
@@ -158,8 +162,10 @@ public class SepBeans {
       SecretConfig secretConfig,
       Sep10Config sep10Config,
       Horizon horizon,
-      JwtService jwtService) {
-    return new Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService);
+      JwtService jwtService,
+      ClientFinder clientFinder) {
+    return new Sep10Service(
+        appConfig, secretConfig, sep10Config, horizon, jwtService, clientFinder);
   }
 
   @Bean
@@ -183,7 +189,7 @@ public class SepBeans {
       Sep24TransactionStore sep24TransactionStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
-      MoreInfoUrlConstructor moreInfoUrlConstructor,
+      MoreInfoUrlConstructor sep24MoreInfoUrlConstructor,
       CustodyConfig custodyConfig,
       Sep38QuoteStore sep38QuoteStore) {
     ExchangeAmountsCalculator exchangeAmountsCalculator =
@@ -198,7 +204,7 @@ public class SepBeans {
         sep24TransactionStore,
         eventService,
         interactiveUrlConstructor,
-        moreInfoUrlConstructor,
+        sep24MoreInfoUrlConstructor,
         custodyConfig,
         exchangeAmountsCalculator);
   }
@@ -214,6 +220,7 @@ public class SepBeans {
   }
 
   @Bean
+  @ConditionalOnAnySepsEnabled(seps = {"sep31"})
   Sep31DepositInfoGenerator sep31DepositInfoGenerator(
       Sep31Config sep31Config,
       PaymentObservingAccountsManager paymentObservingAccountsManager,

@@ -67,15 +67,6 @@ public interface Sep6Transaction extends SepTransaction {
   void setStatusEta(Long statusEta);
 
   /**
-   * A URL that the user can visit if they want more infomration about their account / status.
-   *
-   * @return the more info URL.
-   */
-  String getMoreInfoUrl();
-
-  void setMoreInfoUrl(String moreInfoUrl);
-
-  /**
    * <code>deposit</code>, <code>deposit-exchange</code>, <code>withdrawal</code> or <code>
    * withdrawal-exchange</code>.
    *

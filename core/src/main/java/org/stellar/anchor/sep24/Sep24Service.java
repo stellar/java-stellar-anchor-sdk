@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -49,10 +50,7 @@ import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator;
-import org.stellar.anchor.util.ConfigHelper;
-import org.stellar.anchor.util.CustodyUtils;
-import org.stellar.anchor.util.MetricConstants;
-import org.stellar.anchor.util.TransactionHelper;
+import org.stellar.anchor.util.*;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
@@ -206,6 +204,10 @@ public class Sep24Service {
             .assetCode(assetCode)
             .assetIssuer(asset.getIssuer())
             .startedAt(Instant.now())
+            .userActionRequiredBy(
+                sep24Config.getInitialUserDeadlineSeconds() == null
+                    ? null
+                    : Instant.now().plusSeconds(sep24Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
@@ -399,6 +401,10 @@ public class Sep24Service {
             .assetCode(assetCode)
             .assetIssuer(depositRequest.get("asset_issuer"))
             .startedAt(Instant.now())
+            .userActionRequiredBy(
+                sep24Config.getInitialUserDeadlineSeconds() == null
+                    ? null
+                    : Instant.now().plusSeconds(sep24Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(destinationAccount)
@@ -495,7 +501,9 @@ public class Sep24Service {
     List<TransactionResponse> list = new ArrayList<>();
     debugF("found {} transactions", txns.size());
     for (Sep24Transaction txn : txns) {
-      TransactionResponse transactionResponse = fromTxn(assetService, moreInfoUrlConstructor, txn);
+      String lang = validateLanguage(appConfig, txReq.getLang());
+      TransactionResponse transactionResponse =
+          fromTxn(assetService, moreInfoUrlConstructor, txn, lang);
       list.add(transactionResponse);
     }
     result.setTransactions(list);
@@ -551,7 +559,8 @@ public class Sep24Service {
     }
     // increment counter
     sep24TransactionQueriedCounter.increment();
-    return Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, txn));
+    String lang = validateLanguage(appConfig, txReq.getLang());
+    return Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, txn, lang));
   }
 
   public InfoResponse getInfo() {
@@ -602,5 +611,6 @@ public class Sep24Service {
     builder.amountInAsset(quote.getSellAsset());
     builder.amountOut(quote.getBuyAmount());
     builder.amountOutAsset(quote.getBuyAsset());
+    builder.feeDetails(quote.getFee());
   }
 }

@@ -31,6 +31,7 @@ import org.stellar.anchor.platform.config.PropertyClientsConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor.FORWARD_KYC_CUSTOMER_TYPE
+import org.stellar.anchor.platform.utils.setupMock
 import org.stellar.anchor.util.GsonUtils
 
 @Suppress("UNCHECKED_CAST")
@@ -58,21 +59,24 @@ class SimpleInteractiveUrlConstructorTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns "sep24_jwt_secret"
+    secretConfig.setupMock()
 
     val clientConfig =
       ClientConfig(
         "lobstr",
         NONCUSTODIAL,
-        "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-        "lobstr.co",
+        null,
+        setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
+        null,
+        setOf("lobstr.co"),
         "https://callback.lobstr.co/api/v2/anchor/callback",
         false,
         null
       )
     every { clientsConfig.getClientConfigByDomain(any()) } returns null
-    every { clientsConfig.getClientConfigByDomain(clientConfig.domain) } returns clientConfig
-    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKey) } returns
+    every { clientsConfig.getClientConfigByDomain(clientConfig.domains.first()) } returns
+      clientConfig
+    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKeys.first()) } returns
       clientConfig
     every {
       clientsConfig.getClientConfigBySigningKey(
@@ -82,8 +86,10 @@ class SimpleInteractiveUrlConstructorTest {
       ClientConfig(
         "some-wallet",
         CUSTODIAL,
-        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         null,
+        setOf("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
+        null,
+        emptySet(),
         null,
         false,
         null

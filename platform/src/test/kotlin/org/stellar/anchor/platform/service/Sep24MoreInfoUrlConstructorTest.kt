@@ -12,25 +12,26 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
-import org.junit.jupiter.api.parallel.ExecutionMode.*
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.LockStatic
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
+import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.*
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
+import org.stellar.anchor.platform.config.MoreInfoUrlConfig
 import org.stellar.anchor.platform.config.PropertyClientsConfig
-import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.utils.setupMock
 import org.stellar.anchor.util.GsonUtils
 
 @Execution(ExecutionMode.SAME_THREAD)
-class SimpleMoreInfoUrlConstructorTest {
+class Sep24MoreInfoUrlConstructorTest {
   companion object {
     private val gson = GsonUtils.getInstance()
+    private const val LANG = "en"
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
@@ -42,21 +43,24 @@ class SimpleMoreInfoUrlConstructorTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "sep24_jwt_secret"
+    secretConfig.setupMock()
 
     val clientConfig =
       ClientConfig(
         "lobstr",
         NONCUSTODIAL,
-        "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-        "lobstr.co",
+        null,
+        setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
+        null,
+        setOf("lobstr.co"),
         "https://callback.lobstr.co/api/v2/anchor/callback",
         false,
         null
       )
     every { clientsConfig.getClientConfigByDomain(any()) } returns null
-    every { clientsConfig.getClientConfigByDomain(clientConfig.domain) } returns clientConfig
-    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKey) } returns
+    every { clientsConfig.getClientConfigByDomain(clientConfig.domains.first()) } returns
+      clientConfig
+    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKeys.first()) } returns
       clientConfig
     every {
       clientsConfig.getClientConfigBySigningKey(
@@ -66,7 +70,9 @@ class SimpleMoreInfoUrlConstructorTest {
       ClientConfig(
         "some-wallet",
         CUSTODIAL,
-        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+        null,
+        setOf("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
+        null,
         null,
         null,
         false,
@@ -79,11 +85,10 @@ class SimpleMoreInfoUrlConstructorTest {
   @Test
   @LockStatic([Calendar::class])
   fun `test correct config`() {
-    val config =
-      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
-    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val config = gson.fromJson(SIMPLE_CONFIG_JSON, MoreInfoUrlConfig::class.java)
+    val constructor = Sep24MoreInfoUrlConstructor(clientsConfig, config, jwtService)
     val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
-    val url = constructor.construct(txn)
+    val url = constructor.construct(txn, LANG)
 
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
     val cipher = params["token"]!![0]
@@ -99,14 +104,13 @@ class SimpleMoreInfoUrlConstructorTest {
   @Test
   @LockStatic([Calendar::class])
   fun `test unknown client domain`() {
-    val config =
-      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
-    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val config = gson.fromJson(SIMPLE_CONFIG_JSON, MoreInfoUrlConfig::class.java)
+    val constructor = Sep24MoreInfoUrlConstructor(clientsConfig, config, jwtService)
     val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     txn.clientDomain = "unknown.com"
     txn.sep10AccountMemo = null
 
-    val url = constructor.construct(txn)
+    val url = constructor.construct(txn, LANG)
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
     val cipher = params["token"]!![0]
 
@@ -115,20 +119,18 @@ class SimpleMoreInfoUrlConstructorTest {
     testJwt(jwt)
     assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO", jwt.sub)
     assertEquals("unknown.com", claims["client_domain"])
-    assertEquals(null, claims["client_name"])
   }
 
   @Test
   @LockStatic([Calendar::class])
   fun `test custodial wallet`() {
-    val config =
-      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
-    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val config = gson.fromJson(SIMPLE_CONFIG_JSON, MoreInfoUrlConfig::class.java)
+    val constructor = Sep24MoreInfoUrlConstructor(clientsConfig, config, jwtService)
     val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     txn.sep10Account = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     txn.clientDomain = null
 
-    val url = constructor.construct(txn)
+    val url = constructor.construct(txn, LANG)
 
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
     val cipher = params["token"]!![0]
@@ -144,18 +146,20 @@ class SimpleMoreInfoUrlConstructorTest {
   @Test
   @LockStatic([Calendar::class])
   fun `test non-custodial wallet with missing client domain`() {
-    val config =
-      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
-    val constructor = SimpleMoreInfoUrlConstructor(clientsConfig, config, jwtService)
+    val config = gson.fromJson(SIMPLE_CONFIG_JSON, MoreInfoUrlConfig::class.java)
+    val constructor = Sep24MoreInfoUrlConstructor(clientsConfig, config, jwtService)
     val txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
     txn.clientDomain = null
 
-    assertThrows<SepValidationException> { constructor.construct(txn) }
+    assertThrows<SepValidationException> { constructor.construct(txn, LANG) }
   }
 
   private fun testJwt(jwt: Sep24MoreInfoUrlJwt) {
     assertEquals("txn_123", jwt.jti as String)
     Assertions.assertTrue(Instant.ofEpochSecond(jwt.exp).isAfter(Instant.now()))
+
+    val data = jwt.claims["data"] as Map<String, String>
+    assertEquals(LANG, data["lang"] as String)
   }
 }
 

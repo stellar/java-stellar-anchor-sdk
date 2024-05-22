@@ -1,11 +1,13 @@
 package org.stellar.anchor.api.rpc.method;
 
 import com.google.gson.annotations.SerializedName;
+import java.time.Instant;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
+import org.stellar.anchor.api.rpc.method.features.SupportsUserActionRequiredBy;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.InstructionField;
 
@@ -13,7 +15,8 @@ import org.stellar.anchor.api.shared.InstructionField;
 @SuperBuilder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class RequestOffchainFundsRequest extends RpcMethodParamsRequest {
+public class RequestOffchainFundsRequest extends RpcMethodParamsRequest
+    implements SupportsUserActionRequiredBy {
 
   @SerializedName("amount_in")
   private AmountAssetRequest amountIn;
@@ -33,4 +36,7 @@ public class RequestOffchainFundsRequest extends RpcMethodParamsRequest {
 
   @SerializedName("instructions")
   Map<String, InstructionField> instructions;
+
+  @SerializedName("user_action_required_by")
+  Instant userActionRequiredBy;
 }

@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Test Profile: host.docker.internal" type="JetRunConfigurationType">
     <envs>
-      <env name="TEST_PROFILE_NAME" value="host-docker-internal" />
+      <env name=";KT_REFERENCE_SERVER_CONFIG" value="service-runner/src/main/resources/config/reference-config.yamlTEST_PROFILE_NAME=host-docker-internal" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunTestProfile" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />

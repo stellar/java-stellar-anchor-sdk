@@ -14,6 +14,7 @@ import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
+import org.stellar.anchor.platform.utils.setupMock
 
 class Sep10ConfigTest {
   lateinit var config: PropertySep10Config
@@ -31,7 +32,9 @@ class Sep10ConfigTest {
       ClientConfig(
         "unknown",
         CUSTODIAL,
-        "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
+        null,
+        setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"),
+        null,
         null,
         null,
         false,
@@ -43,8 +46,10 @@ class Sep10ConfigTest {
       ClientConfig(
         "lobstr",
         NONCUSTODIAL,
-        "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ",
-        "lobstr.co",
+        null,
+        setOf("GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"),
+        null,
+        setOf("lobstr.co"),
         "https://callback.lobstr.co/api/v2/anchor/callback",
         false,
         null
@@ -55,8 +60,10 @@ class Sep10ConfigTest {
       ClientConfig(
         "circle",
         NONCUSTODIAL,
-        "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE",
-        "circle.com",
+        null,
+        setOf("GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"),
+        null,
+        setOf("circle.com"),
         "https://callback.circle.com/api/v2/anchor/callback",
         false,
         null
@@ -67,9 +74,7 @@ class Sep10ConfigTest {
     config.enabled = true
     config.homeDomain = "stellar.org"
     errors = BindException(config, "config")
-    every { secretConfig.sep10SigningSeed } returns
-      "SDNMFWJGLVR4O2XV3SNEJVF53MMLQWYFYFC7HT7JZ5235AXPETHB4K3D"
-    every { secretConfig.sep10JwtSecretKey } returns "secret"
+    secretConfig.setupMock()
   }
 
   @Test
@@ -102,25 +107,28 @@ class Sep10ConfigTest {
 
   @Test
   fun `test ClientsConfig getClientConfigByDomain`() {
-    assertEquals(clientsConfig.getClientConfigByDomain("unknown"), null)
-    assertEquals(clientsConfig.getClientConfigByDomain("lobstr.co"), clientsConfig.clients[1])
-    assertEquals(clientsConfig.getClientConfigByDomain("circle.com"), clientsConfig.clients[2])
+    assertEquals(
+      null,
+      clientsConfig.getClientConfigByDomain("unknown"),
+    )
+    assertEquals(clientsConfig.clients[1], clientsConfig.getClientConfigByDomain("lobstr.co"))
+    assertEquals(clientsConfig.clients[2], clientsConfig.getClientConfigByDomain("circle.com"))
   }
 
   @Test
   fun `test ClientsConfig getClientConfigBySigningKey`() {
     assertEquals(clientsConfig.getClientConfigBySigningKey("unknown"), null)
     assertEquals(
+      clientsConfig.clients[1],
       clientsConfig.getClientConfigBySigningKey(
         "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"
-      ),
-      clientsConfig.clients[1]
+      )
     )
     assertEquals(
+      clientsConfig.clients[2],
       clientsConfig.getClientConfigBySigningKey(
         "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"
-      ),
-      clientsConfig.clients[2]
+      )
     )
   }
 
@@ -237,6 +245,14 @@ class Sep10ConfigTest {
       config.postConstruct()
       assertEquals(numberOfHomeDomains, config.homeDomains.size)
     }
+  }
+
+  @Test
+  fun `validate JWT`() {
+    every { secretConfig.sep10JwtSecretKey }.returns("tooshort")
+    config.validateConfig(errors)
+    assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "hmac-weak-secret")
   }
 
   companion object {

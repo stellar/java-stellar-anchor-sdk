@@ -11,7 +11,7 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestHelper
-import org.stellar.anchor.api.exception.BadRequestException
+import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.client.ClientFinder
 import org.stellar.anchor.config.ClientsConfig
 import org.stellar.anchor.config.Sep10Config
@@ -24,8 +24,10 @@ class ClientFinderTest {
       ClientsConfig.ClientConfig(
         "name",
         ClientsConfig.ClientType.CUSTODIAL,
-        "signing-key",
-        "domain",
+        null,
+        setOf("signing-key"),
+        null,
+        setOf("domain"),
         "http://localhost:8000",
         false,
         emptySet()
@@ -41,7 +43,7 @@ class ClientFinderTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { sep10Config.isClientAttributionRequired } returns true
-    every { sep10Config.allowedClientDomains } returns listOf(clientConfig.domain)
+    every { sep10Config.allowedClientDomains } returns clientConfig.domains.toList()
     every { sep10Config.allowedClientNames } returns listOf(clientConfig.name)
     every {
       clientsConfig.getClientConfigByDomain(ExchangeAmountsCalculatorTest.token.clientDomain)
@@ -74,34 +76,26 @@ class ClientFinderTest {
     every { clientsConfig.getClientConfigByDomain(token.clientDomain) } returns null
     every { clientsConfig.getClientConfigBySigningKey(token.account) } returns null
 
-    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
+    assertThrows<SepNotAuthorizedException> { clientFinder.getClientName(token) }
   }
 
   @Test
   fun `test getClientName with client not found by domain`() {
-    every { sep10Config.allowedClientDomains } returns listOf("nothing")
+    every { sep10Config.allowedClientNames } returns listOf("nothing")
 
-    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
+    assertThrows<SepNotAuthorizedException> { clientFinder.getClientName(token) }
   }
 
   @Test
   fun `test getClientName with client not found by name`() {
     every { sep10Config.allowedClientNames } returns listOf("nothing")
 
-    assertThrows<BadRequestException> { clientFinder.getClientName(token) }
-  }
-
-  @Test
-  fun `test getClientName with all domains allowed`() {
-    every { sep10Config.allowedClientDomains } returns emptyList()
-    val clientId = clientFinder.getClientName(token)
-
-    assertEquals(clientConfig.name, clientId)
+    assertThrows<SepNotAuthorizedException> { clientFinder.getClientName(token) }
   }
 
   @Test
   fun `test getClientName with all names allowed`() {
-    every { sep10Config.allowedClientNames } returns emptyList()
+    every { sep10Config.allowedClientNames } returns listOf(clientConfig.name)
     val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)

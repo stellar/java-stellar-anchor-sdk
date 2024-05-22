@@ -8,12 +8,14 @@ import java.net.URI
 import java.nio.charset.Charset
 import java.time.Instant
 import org.apache.http.client.utils.URLEncodedUtils
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.stellar.anchor.MoreInfoUrlConstructor
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_AMOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
@@ -21,7 +23,6 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
-import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_OFFCHAIN_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
@@ -47,6 +48,7 @@ import org.stellar.anchor.event.EventService
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator
+import org.stellar.anchor.setupMock
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
@@ -140,9 +142,7 @@ internal class Sep24ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
-    every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
-    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns TEST_JWT_SECRET
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns TEST_JWT_SECRET
+    secretConfig.setupMock()
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
     jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
@@ -150,7 +150,7 @@ internal class Sep24ServiceTest {
     val strToken = jwtService.encode(testInteractiveUrlJwt)
     every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
-    every { moreInfoUrlConstructor.construct(any()) } returns
+    every { moreInfoUrlConstructor.construct(any(), any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
     every { clientsConfig.getClientConfigByDomain(any()) } returns clientConfig
     every { clientFinder.getClientName(any()) } returns TEST_CLIENT_NAME
@@ -269,6 +269,25 @@ internal class Sep24ServiceTest {
     )
     assertEquals(withdrawQuote.id, slotTxn.captured.quoteId)
     assertEquals(withdrawQuote.buyAsset, slotTxn.captured.amountOutAsset)
+  }
+
+  @Test
+  fun `test withdraw with user_action_required_by`() {
+    val slotTxn = slot<Sep24Transaction>()
+    val deadline = 100L
+    every { txnStore.save(capture(slotTxn)) } returns null
+    every { sep24Config.initialUserDeadlineSeconds } returns deadline
+    sep24Service.withdraw(createTestSep10JwtWithMemo(), createTestTransactionRequest())
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
+    Assertions.assertTrue(
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
   }
 
   @Test
@@ -407,6 +426,25 @@ internal class Sep24ServiceTest {
     )
     assertEquals(depositQuote.id, slotTxn.captured.quoteId)
     assertEquals(depositQuote.sellAsset, slotTxn.captured.amountInAsset)
+  }
+
+  @Test
+  fun `test deposit with user_action_required_by`() {
+    val slotTxn = slot<Sep24Transaction>()
+    val deadline = 100L
+    every { txnStore.save(capture(slotTxn)) } returns null
+    every { sep24Config.initialUserDeadlineSeconds } returns deadline
+    sep24Service.deposit(createTestSep10JwtWithMemo(), createTestTransactionRequest())
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
+    Assertions.assertTrue(
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
   }
 
   @Test

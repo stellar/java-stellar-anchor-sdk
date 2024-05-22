@@ -152,6 +152,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val request = NotifyCustomerInfoUpdatedRequest.builder().transactionId(TX_ID).build()
     val txn31 = JdbcSep31Transaction()
     txn31.status = PENDING_CUSTOMER_INFO_UPDATE.toString()
+    txn31.userActionRequiredBy = Instant.now()
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 

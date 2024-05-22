@@ -7,11 +7,14 @@ import java.time.Instant
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.MoreInfoUrlConstructor
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
@@ -30,6 +33,7 @@ import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.client.ClientFinder
+import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep6Config
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts
@@ -43,6 +47,7 @@ class Sep6ServiceTest {
 
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
+  @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var sep6Config: Sep6Config
   @MockK(relaxed = true) lateinit var requestValidator: RequestValidator
   @MockK(relaxed = true) lateinit var clientFinder: ClientFinder
@@ -50,6 +55,7 @@ class Sep6ServiceTest {
   @MockK(relaxed = true) lateinit var exchangeAmountsCalculator: ExchangeAmountsCalculator
   @MockK(relaxed = true) lateinit var eventService: EventService
   @MockK(relaxed = true) lateinit var eventSession: EventService.Session
+  @MockK(relaxed = true) lateinit var sep6MoreInfoUrlConstructor: MoreInfoUrlConstructor
 
   private lateinit var sep6Service: Sep6Service
 
@@ -63,15 +69,19 @@ class Sep6ServiceTest {
     every { eventService.createSession(any(), any()) } returns eventSession
     every { requestValidator.getDepositAsset(TEST_ASSET) } returns asset
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns asset
+    every { sep6MoreInfoUrlConstructor.construct(any(), any()) } returns
+      "https://example.com/more_info"
     sep6Service =
       Sep6Service(
+        appConfig,
         sep6Config,
         assetService,
         requestValidator,
         clientFinder,
         txnStore,
         exchangeAmountsCalculator,
-        eventService
+        eventService,
+        sep6MoreInfoUrlConstructor,
       )
   }
 
@@ -88,6 +98,8 @@ class Sep6ServiceTest {
 
   @Test
   fun `test deposit`() {
+    val deadline = 100L
+    every { sep6Config.initialUserDeadlineSeconds }.returns(deadline)
     val slotTxn = slot<Sep6Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
 
@@ -130,6 +142,16 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
+    Assertions.assertTrue(
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
 
     JSONAssert.assertEquals(
       Sep6ServiceTestData.depositTxnEventJson,
@@ -318,6 +340,8 @@ class Sep6ServiceTest {
 
   @Test
   fun `test deposit-exchange with quote`() {
+    val deadline = 100L
+    every { sep6Config.initialUserDeadlineSeconds }.returns(deadline)
     val sourceAsset = "iso4217:USD"
     val destinationAsset = TEST_ASSET
     val amount = "100"
@@ -378,6 +402,16 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
+    Assertions.assertTrue(
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
 
     JSONAssert.assertEquals(
       Sep6ServiceTestData.depositExchangeTxnEventJson,
@@ -618,6 +652,8 @@ class Sep6ServiceTest {
 
   @Test
   fun `test withdraw`() {
+    val deadline = 100L
+    every { sep6Config.initialUserDeadlineSeconds }.returns(deadline)
     val slotTxn = slot<Sep6Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
 
@@ -662,6 +698,16 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
+    Assertions.assertTrue(
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
 
     JSONAssert.assertEquals(
       Sep6ServiceTestData.withdrawTxnEventJson,
@@ -963,6 +1009,8 @@ class Sep6ServiceTest {
 
   @Test
   fun `test withdraw-exchange without quote`() {
+    val deadline = 100L
+    every { sep6Config.initialUserDeadlineSeconds }.returns(deadline)
     val sourceAsset = TEST_ASSET
     val destinationAsset = "iso4217:USD"
 
@@ -1010,6 +1058,16 @@ class Sep6ServiceTest {
     )
     assert(slotTxn.captured.id.isNotEmpty())
     assertNotNull(slotTxn.captured.startedAt)
+    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
+    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
+    Assertions.assertTrue(
+      dbDeadline >= expectedDeadline - 2,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
+    Assertions.assertTrue(
+      dbDeadline <= expectedDeadline,
+      "Expected $expectedDeadline got $dbDeadline}"
+    )
 
     JSONAssert.assertEquals(
       Sep6ServiceTestData.withdrawExchangeTxnWithoutQuoteEventJson,
@@ -1380,7 +1438,6 @@ class Sep6ServiceTest {
     txn.kind = "deposit"
     txn.status = "complete"
     txn.statusEta = 5
-    txn.moreInfoUrl = "https://example.com/more_info"
     txn.amountIn = "100"
     txn.amountInAsset = "USD"
     txn.amountOut = "98"

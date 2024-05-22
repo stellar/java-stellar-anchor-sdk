@@ -2,12 +2,13 @@ package org.stellar.anchor.sep6;
 
 import static io.micrometer.core.instrument.Metrics.counter;
 import static org.stellar.anchor.util.MemoHelper.*;
+import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
 import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Counter;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
+import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -18,6 +19,7 @@ import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.client.ClientFinder;
+import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts;
@@ -27,17 +29,16 @@ import org.stellar.anchor.util.TransactionHelper;
 import org.stellar.sdk.Memo;
 
 public class Sep6Service {
+  private final AppConfig appConfig;
   private final Sep6Config sep6Config;
   private final AssetService assetService;
   private final RequestValidator requestValidator;
-
   private final ClientFinder clientFinder;
   private final Sep6TransactionStore txnStore;
   private final ExchangeAmountsCalculator exchangeAmountsCalculator;
   private final EventService.Session eventSession;
-
   private final InfoResponse infoResponse;
-
+  private final MoreInfoUrlConstructor moreInfoUrlConstructor;
   private final Counter sep6TransactionRequestedCounter =
       counter(MetricConstants.SEP6_TRANSACTION_REQUESTED);
   private final Counter sep6TransactionQueriedCounter =
@@ -64,13 +65,16 @@ public class Sep6Service {
           MetricConstants.TV_SEP6_DEPOSIT_EXCHANGE);
 
   public Sep6Service(
+      AppConfig appConfig,
       Sep6Config sep6Config,
       AssetService assetService,
       RequestValidator requestValidator,
       ClientFinder clientFinder,
       Sep6TransactionStore txnStore,
       ExchangeAmountsCalculator exchangeAmountsCalculator,
-      EventService eventService) {
+      EventService eventService,
+      MoreInfoUrlConstructor moreInfoUrlConstructor) {
+    this.appConfig = appConfig;
     this.sep6Config = sep6Config;
     this.assetService = assetService;
     this.requestValidator = requestValidator;
@@ -80,6 +84,7 @@ public class Sep6Service {
     this.eventSession =
         eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
     this.infoResponse = buildInfoResponse();
+    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
   }
 
   public InfoResponse getInfo() {
@@ -127,6 +132,10 @@ public class Sep6Service {
             .assetIssuer(asset.getIssuer())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
+            .userActionRequiredBy(
+                sep6Config.getInitialUserDeadlineSeconds() == null
+                    ? null
+                    : Instant.now().plusSeconds(sep6Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(request.getAccount())
@@ -221,6 +230,10 @@ public class Sep6Service {
             .feeDetails(amounts.feeDetails)
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
+            .userActionRequiredBy(
+                sep6Config.getInitialUserDeadlineSeconds() == null
+                    ? null
+                    : Instant.now().plusSeconds(sep6Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(request.getAccount())
@@ -294,6 +307,10 @@ public class Sep6Service {
             .amountInAsset(asset.getSep38AssetName())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
+            .userActionRequiredBy(
+                sep6Config.getInitialUserDeadlineSeconds() == null
+                    ? null
+                    : Instant.now().plusSeconds(sep6Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
@@ -383,6 +400,10 @@ public class Sep6Service {
             .feeDetails(amounts.getFeeDetails())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
+            .userActionRequiredBy(
+                sep6Config.getInitialUserDeadlineSeconds() == null
+                    ? null
+                    : Instant.now().plusSeconds(sep6Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
@@ -427,8 +448,12 @@ public class Sep6Service {
     // Query the transaction store
     List<Sep6Transaction> transactions =
         txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), request);
-    List<Sep6TransactionResponse> responses =
-        transactions.stream().map(Sep6TransactionUtils::fromTxn).collect(Collectors.toList());
+    List<Sep6TransactionResponse> responses = new ArrayList<>();
+    for (Sep6Transaction txn : transactions) {
+      String lang = validateLanguage(appConfig, request.getLang());
+      Sep6TransactionResponse tr = Sep6TransactionUtils.fromTxn(txn, moreInfoUrlConstructor, lang);
+      responses.add(tr);
+    }
 
     sep6TransactionQueriedCounter.increment();
     return new GetTransactionsResponse(responses);
@@ -469,7 +494,9 @@ public class Sep6Service {
     }
 
     sep6TransactionQueriedCounter.increment();
-    return new GetTransactionResponse(Sep6TransactionUtils.fromTxn(txn));
+    String lang = validateLanguage(appConfig, request.getLang());
+    return new GetTransactionResponse(
+        Sep6TransactionUtils.fromTxn(txn, moreInfoUrlConstructor, lang));
   }
 
   private InfoResponse buildInfoResponse() {

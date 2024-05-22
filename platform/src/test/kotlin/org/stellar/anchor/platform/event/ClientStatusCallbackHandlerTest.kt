@@ -20,7 +20,9 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.platform.config.PropertySecretConfig
-import org.stellar.anchor.sep24.MoreInfoUrlConstructor
+import org.stellar.anchor.platform.service.Sep24MoreInfoUrlConstructor
+import org.stellar.anchor.platform.service.Sep6MoreInfoUrlConstructor
+import org.stellar.anchor.platform.utils.setupMock
 import org.stellar.anchor.sep24.Sep24Helper
 import org.stellar.anchor.sep24.Sep24Helper.fromTxn
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -43,7 +45,8 @@ class ClientStatusCallbackHandlerTest {
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
-  @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
+  @MockK(relaxed = true) lateinit var sep6MoreInfoUrlConstructor: Sep6MoreInfoUrlConstructor
+  @MockK(relaxed = true) lateinit var sep24MoreInfoUrlConstructor: Sep24MoreInfoUrlConstructor
 
   @BeforeEach
   fun setUp() {
@@ -60,11 +63,11 @@ class ClientStatusCallbackHandlerTest {
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
 
     assetService = mockk<AssetService>()
-    moreInfoUrlConstructor = mockk<MoreInfoUrlConstructor>()
+    sep6MoreInfoUrlConstructor = mockk<Sep6MoreInfoUrlConstructor>()
+    sep24MoreInfoUrlConstructor = mockk<Sep24MoreInfoUrlConstructor>()
 
     secretConfig = mockk()
-    every { secretConfig.sep10SigningSeed } returns
-      "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF"
+    secretConfig.setupMock()
     signer = KeyPair.fromSecretSeed(secretConfig.sep10SigningSeed)
 
     ts = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()).toString()
@@ -78,7 +81,8 @@ class ClientStatusCallbackHandlerTest {
         clientConfig,
         sep6TransactionStore,
         assetService,
-        moreInfoUrlConstructor
+        sep6MoreInfoUrlConstructor,
+        sep24MoreInfoUrlConstructor
       )
   }
 
@@ -88,8 +92,9 @@ class ClientStatusCallbackHandlerTest {
     // header example: "X-Stellar-Signature": "t=....., s=......"
     // Get the signature from request
 
-    every { Sep6TransactionUtils.fromTxn(any()) } returns mockk<Sep6TransactionResponse>()
-    every { fromTxn(any(), any(), any()) } returns mockk<TransactionResponse>()
+    every { Sep6TransactionUtils.fromTxn(any(), any(), any()) } returns
+      mockk<Sep6TransactionResponse>()
+    every { fromTxn(any(), any(), any(), any()) } returns mockk<TransactionResponse>()
 
     val payload = json(event)
     val request =
