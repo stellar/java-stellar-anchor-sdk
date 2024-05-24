@@ -16,6 +16,8 @@ dependencies {
   // Lombok should be used by all subprojects to reduce Java verbosity
   annotationProcessor(libs.lombok)
 
+  implementation("io.jsonwebtoken:jjwt-gson:0.12.5")
+
   implementation(libs.spring.kafka)
   implementation(libs.spring.data.commons)
 

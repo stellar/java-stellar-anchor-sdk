@@ -140,7 +140,7 @@ class Sep24Tests : AbstractIntegrationTests(TestConfig()) {
     val jwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
     assertEquals(response.id, jwt.jti)
     assertNotNull(jwt.claims["data"])
-    assertNotNull((jwt.claims["data"] as HashMap<*, *>)["asset"])
+    assertNotNull((jwt.claims["data"] as Map<*, *>)["asset"])
   }
 
   /*
