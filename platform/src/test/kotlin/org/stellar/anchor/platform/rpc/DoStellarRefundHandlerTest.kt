@@ -406,6 +406,7 @@ class DoStellarRefundHandlerTest {
     txn24.amountFee = "0.1"
     txn24.refundMemo = MEMO
     txn24.refundMemoType = MEMO_TYPE
+    txn24.userActionRequiredBy = Instant.now()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 

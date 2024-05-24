@@ -317,6 +317,12 @@ sep6:
   ##     none: deposit address, memo and memo type should be provided by the business in PATCH/RPC request.
   #
   deposit_info_generator_type: self
+  # Deadline set for the user on transaction creation.
+  # This value indicates to user that they have to take this amount of minutes before transaction will automatically
+  # be moved to the next status (e.g. expired). Business should handle status movement, and the Anchor Platform does
+  # NOT support automatic status movement.
+  # If value is zero, negative or null, no deadline is set (default behaviour)
+  initial_user_deadline_seconds: -1
 
 ######################
 # SEP-10 Configuration
@@ -447,6 +453,14 @@ sep24:
   kyc_fields_forwarding:
     # Whether to enable the KYC fields forwarding.
     enabled: true
+
+  # Deadline set for the user on transaction creation.
+  # This value indicates to user that they have to take this amount of minutes before transaction will automatically
+  # be moved to the next status (e.g. expired). Business should handle status movement, and the Anchor Platform does
+  # NOT support automatic status movement.
+  # If value is zero, negative or null, no deadline is set (default behaviour)
+  initial_user_deadline_seconds: -1
+
 
 ######################
 # SEP-31 Configuration
