@@ -19,6 +19,7 @@ public class PojoSep24Transaction implements Sep24Transaction {
   Instant startedAt;
   Instant completedAt;
   Instant updatedAt;
+  Instant userActionRequiredBy;
   String requestAssetCode;
   String requestAssetIssuer;
   String sep10Account;

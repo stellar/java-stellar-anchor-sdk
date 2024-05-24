@@ -367,6 +367,7 @@ class NotifyRefundSentHandlerTest {
     txn24.amountFeeAsset = FIAT_USD
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountInAsset = STELLAR_USDC
+    txn24.userActionRequiredBy = Instant.now()
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()

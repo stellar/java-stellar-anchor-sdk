@@ -55,6 +55,10 @@ public class Sep6TransactionUtils {
             .startedAt(txn.getStartedAt().toString())
             .updatedAt(txn.getUpdatedAt().toString())
             .completedAt(txn.getCompletedAt() != null ? txn.getCompletedAt().toString() : null)
+            .userActionRequiredBy(
+                txn.getUserActionRequiredBy() != null
+                    ? txn.getUserActionRequiredBy().toString()
+                    : null)
             .stellarTransactionId(txn.getStellarTransactionId())
             .externalTransactionId(txn.getExternalTransactionId())
             .from(txn.getFromAccount())

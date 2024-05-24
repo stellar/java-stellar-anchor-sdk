@@ -36,8 +36,10 @@ public class PaymentObservingAccountsManager {
               account.getAccount(), account.getLastObserved(), AccountType.TRANSIENT);
       upsert(oa);
     }
+  }
 
-    // Start the eviction task
+  public void start() {
+    Log.debug("Start the eviction task...");
     ScheduledExecutorService scheduler = DaemonExecutors.newScheduledThreadPool(1);
     scheduler.scheduleAtFixedRate(
         this::evictAndPersist, 60, getEvictPeriod().getSeconds(), TimeUnit.SECONDS);

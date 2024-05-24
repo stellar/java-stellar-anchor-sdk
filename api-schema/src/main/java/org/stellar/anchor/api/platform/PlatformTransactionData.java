@@ -60,6 +60,9 @@ public class PlatformTransactionData {
   @SerializedName("completed_at")
   Instant completedAt;
 
+  @SerializedName("user_action_required_by")
+  Instant userActionRequiredBy;
+
   @SerializedName("transfer_received_at")
   Instant transferReceivedAt;
 

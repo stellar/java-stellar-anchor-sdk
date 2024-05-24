@@ -90,6 +90,19 @@ class Sep24Tests : AbstractIntegrationTests(TestConfig()) {
       "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
       savedWithdrawTxn.from?.address
     )
+
+    val requestLang = "es-AR"
+    val langTx = anchor.sep24().getTransactionBy(token, id = response.id, lang = requestLang)
+    val claims =
+      jwtService
+        .decode(
+          UriComponentsBuilder.fromUriString(langTx.moreInfoUrl).build().queryParams["token"]!![0],
+          Sep24MoreInfoUrlJwt::class.java
+        )
+        .claims["data"]
+    var lang = (claims as Map<String, String>)["lang"]
+    assertEquals(requestLang, lang)
+
     // check the returning Sep24InteractiveUrlJwt
     val params = UriComponentsBuilder.fromUriString(response.url).build().queryParams
     val cipher = params["token"]!![0]

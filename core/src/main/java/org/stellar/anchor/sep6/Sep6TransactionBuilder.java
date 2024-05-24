@@ -54,6 +54,11 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
+  public Sep6TransactionBuilder userActionRequiredBy(Instant time) {
+    txn.setUserActionRequiredBy(time);
+    return this;
+  }
+
   public Sep6TransactionBuilder completedAt(Instant time) {
     txn.setCompletedAt(time);
     return this;
