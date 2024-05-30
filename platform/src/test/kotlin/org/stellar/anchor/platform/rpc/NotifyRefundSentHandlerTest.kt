@@ -6,6 +6,7 @@ import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.bouncycastle.jcajce.provider.asymmetric.EXTERNAL
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -326,6 +327,7 @@ class NotifyRefundSentHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val payment = JdbcSep24RefundPayment()
     payment.id = "1"
+    payment.idType = IdType.EXTERNAL.toString()
     payment.amount = "1"
     payment.fee = "0"
 
@@ -373,6 +375,7 @@ class NotifyRefundSentHandlerTest {
     val anchorEventCapture = slot<AnchorEvent>()
     val payment = JdbcSep24RefundPayment()
     payment.id = request.refund.id
+    payment.idType = IdType.EXTERNAL.toString()
     payment.amount = request.refund.amount.amount
     payment.fee = request.refund.amountFee.amount
 
@@ -484,10 +487,12 @@ class NotifyRefundSentHandlerTest {
     val anchorEventCapture = slot<AnchorEvent>()
     val payment1 = JdbcSep24RefundPayment()
     payment1.id = "1"
+    payment1.idType = IdType.EXTERNAL.toString()
     payment1.amount = "1"
     payment1.fee = "0.1"
     val payment2 = JdbcSep24RefundPayment()
     payment2.id = request.refund.id
+    payment2.idType = IdType.EXTERNAL.toString()
     payment2.amount = request.refund.amount.amount
     payment2.fee = request.refund.amountFee.amount
     val refunds = JdbcSep24Refunds()
@@ -614,6 +619,7 @@ class NotifyRefundSentHandlerTest {
     val anchorEventCapture = slot<AnchorEvent>()
     val payment = JdbcSep24RefundPayment()
     payment.id = "1"
+    payment.idType = IdType.EXTERNAL.toString()
     payment.amount = "1"
     payment.fee = "0"
 
@@ -719,6 +725,7 @@ class NotifyRefundSentHandlerTest {
     val anchorEventCapture = slot<AnchorEvent>()
     val payment = JdbcSep24RefundPayment()
     payment.id = "1"
+    payment.idType = IdType.EXTERNAL.toString()
     payment.amount = "1"
     payment.fee = "0.1"
     val refunds = JdbcSep24Refunds()
@@ -835,10 +842,12 @@ class NotifyRefundSentHandlerTest {
     val anchorEventCapture = slot<AnchorEvent>()
     val payment1 = JdbcSep24RefundPayment()
     payment1.id = request.refund.id
+    payment1.idType = IdType.EXTERNAL.toString()
     payment1.amount = "1"
     payment1.fee = "0.1"
     val payment2 = JdbcSep24RefundPayment()
     payment2.id = "2"
+    payment2.idType = IdType.EXTERNAL.toString()
     payment2.amount = "0.1"
     payment2.fee = "0"
     val refunds = JdbcSep24Refunds()
@@ -878,10 +887,12 @@ class NotifyRefundSentHandlerTest {
     expectedRefunds.amountFee = "0.2"
     val expectedPayment1 = JdbcSep24RefundPayment()
     expectedPayment1.id = request.refund.id
+    expectedPayment1.idType = IdType.EXTERNAL.toString()
     expectedPayment1.amount = "1.5"
     expectedPayment1.fee = "0.2"
     val expectedPayment2 = JdbcSep24RefundPayment()
     expectedPayment2.id = "2"
+    expectedPayment2.idType = IdType.EXTERNAL.toString()
     expectedPayment2.amount = "0.1"
     expectedPayment2.fee = "0"
     expectedRefunds.payments = listOf(expectedPayment2, expectedPayment1)
@@ -967,6 +978,7 @@ class NotifyRefundSentHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val payment = JdbcSep24RefundPayment()
     payment.id = "1"
+    payment.idType = IdType.EXTERNAL.toString()
     payment.amount = "1"
     payment.fee = "0.1"
     val refunds = JdbcSep24Refunds()

@@ -355,6 +355,7 @@ class DoStellarRefundHandlerTest {
 
     val payment = JdbcSep24RefundPayment()
     payment.id = "1"
+    payment.idType = RefundPayment.IdType.STELLAR.toString()
     payment.amount = "0.1"
     payment.fee = "0"
     val refunds = JdbcSep24Refunds()
