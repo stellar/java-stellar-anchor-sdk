@@ -275,8 +275,10 @@ class Sep31ServiceTest {
       ClientsConfig.ClientConfig(
         "lobstr",
         ClientsConfig.ClientType.NONCUSTODIAL,
-        "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-        "lobstr.co",
+        null,
+        setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
+        null,
+        setOf("lobstr.co"),
         "https://callback.lobstr.co/api/v2/anchor/callback",
         false,
         null
@@ -287,8 +289,8 @@ class Sep31ServiceTest {
       return Stream.of(
         Arguments.of(listOf<String>(), false, null, false),
         Arguments.of(listOf<String>(), true, null, true),
-        Arguments.of(listOf(lobstrClientConfig.domain), false, lobstrClientConfig.name, false),
-        Arguments.of(listOf(lobstrClientConfig.domain), true, lobstrClientConfig.name, true),
+        Arguments.of(listOf(lobstrClientConfig.name), false, lobstrClientConfig.name, false),
+        Arguments.of(listOf(lobstrClientConfig.name), true, lobstrClientConfig.name, true),
       )
     }
   }
@@ -784,10 +786,10 @@ class Sep31ServiceTest {
       }
 
     // mock client config
-    every { sep10Config.allowedClientDomains } returns listOf("vibrant.stellar.org")
+    every { sep10Config.allowedClientNames } returns listOf("vibrant")
     every { clientsConfig.getClientConfigBySigningKey(any()) } returns
       ClientsConfig.ClientConfig().apply {
-        domain = "vibrant.stellar.org"
+        domains = setOf("vibrant.stellar.org")
         name = "vibrant"
       }
 
@@ -1086,18 +1088,19 @@ class Sep31ServiceTest {
   @ParameterizedTest
   @MethodSource("generateGetClientNameTestConfig")
   fun `test getClientName when`(
-    allowedClientDomains: List<String>,
+    allowedClientNames: List<String>,
     isClientAttributionRequired: Boolean,
     expectedClientName: String?,
     shouldThrowExceptionWithInvalidInput: Boolean,
   ) {
-    every { sep10Config.allowedClientDomains } returns allowedClientDomains
+    every { sep10Config.allowedClientNames } returns allowedClientNames
     every { sep10Config.isClientAttributionRequired } returns isClientAttributionRequired
-    every { clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKey) } returns
-      lobstrClientConfig
+    every {
+      clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKeys.first())
+    } returns lobstrClientConfig
 
     // client name should be returned for valid input
-    val clientName = sep31Service.getClientName(lobstrClientConfig.signingKey)
+    val clientName = sep31Service.getClientName(lobstrClientConfig.signingKeys.first())
     assertEquals(expectedClientName, clientName)
 
     // exception maybe thrown for invalid input

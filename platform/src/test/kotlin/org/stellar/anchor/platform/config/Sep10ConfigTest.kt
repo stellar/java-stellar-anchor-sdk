@@ -32,7 +32,9 @@ class Sep10ConfigTest {
       ClientConfig(
         "unknown",
         CUSTODIAL,
-        "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
+        null,
+        setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"),
+        null,
         null,
         null,
         false,
@@ -44,8 +46,10 @@ class Sep10ConfigTest {
       ClientConfig(
         "lobstr",
         NONCUSTODIAL,
-        "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ",
-        "lobstr.co",
+        null,
+        setOf("GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"),
+        null,
+        setOf("lobstr.co"),
         "https://callback.lobstr.co/api/v2/anchor/callback",
         false,
         null
@@ -56,8 +60,10 @@ class Sep10ConfigTest {
       ClientConfig(
         "circle",
         NONCUSTODIAL,
-        "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE",
-        "circle.com",
+        null,
+        setOf("GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"),
+        null,
+        setOf("circle.com"),
         "https://callback.circle.com/api/v2/anchor/callback",
         false,
         null
@@ -101,25 +107,28 @@ class Sep10ConfigTest {
 
   @Test
   fun `test ClientsConfig getClientConfigByDomain`() {
-    assertEquals(clientsConfig.getClientConfigByDomain("unknown"), null)
-    assertEquals(clientsConfig.getClientConfigByDomain("lobstr.co"), clientsConfig.clients[1])
-    assertEquals(clientsConfig.getClientConfigByDomain("circle.com"), clientsConfig.clients[2])
+    assertEquals(
+      null,
+      clientsConfig.getClientConfigByDomain("unknown"),
+    )
+    assertEquals(clientsConfig.clients[1], clientsConfig.getClientConfigByDomain("lobstr.co"))
+    assertEquals(clientsConfig.clients[2], clientsConfig.getClientConfigByDomain("circle.com"))
   }
 
   @Test
   fun `test ClientsConfig getClientConfigBySigningKey`() {
     assertEquals(clientsConfig.getClientConfigBySigningKey("unknown"), null)
     assertEquals(
+      clientsConfig.clients[1],
       clientsConfig.getClientConfigBySigningKey(
         "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"
-      ),
-      clientsConfig.clients[1]
+      )
     )
     assertEquals(
+      clientsConfig.clients[2],
       clientsConfig.getClientConfigBySigningKey(
         "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"
-      ),
-      clientsConfig.clients[2]
+      )
     )
   }
 

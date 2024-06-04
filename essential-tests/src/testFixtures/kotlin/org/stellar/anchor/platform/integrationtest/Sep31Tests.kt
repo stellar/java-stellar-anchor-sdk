@@ -135,20 +135,32 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
       )
     assertOrderCorrect(all.reversed(), descTxs.records)
 
-    patchForTest(tx3, tx2)
+    patchForTest(tx3, tx2, tx1)
 
     // OrderBy test
-    val orderByTxs =
+    var orderByTxs =
       getTransactions(orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT, pageSize = 1000)
     assertOrderCorrect(listOf(tx2, tx3, tx1), orderByTxs.records)
 
-    val orderByDesc =
+    var orderByDesc =
       getTransactions(
         orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT,
         order = DESC,
         pageSize = 1000
       )
     assertOrderCorrect(listOf(tx3, tx2, tx1), orderByDesc.records)
+
+    orderByTxs =
+      getTransactions(orderBy = TransactionsOrderBy.USER_ACTION_REQUIRED_BY, pageSize = 1000)
+    assertOrderCorrect(listOf(tx1, tx2, tx3), orderByTxs.records)
+
+    orderByDesc =
+      getTransactions(
+        orderBy = TransactionsOrderBy.USER_ACTION_REQUIRED_BY,
+        order = DESC,
+        pageSize = 1000
+      )
+    assertOrderCorrect(listOf(tx2, tx1, tx3), orderByDesc.records)
 
     // Statuses test
     val statusesTxs = getTransactions(statuses = listOf(PENDING_SENDER, REFUNDED), pageSize = 1000)
@@ -186,7 +198,11 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     )
   }
 
-  private fun patchForTest(tx3: Sep31PostTransactionResponse, tx2: Sep31PostTransactionResponse) {
+  private fun patchForTest(
+    tx3: Sep31PostTransactionResponse,
+    tx2: Sep31PostTransactionResponse,
+    tx1: Sep31PostTransactionResponse
+  ) {
     platformApiClient.patchTransaction(
       PatchTransactionsRequest.builder()
         .records(
@@ -198,7 +214,15 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
               builder()
                 .id(tx2.id)
                 .transferReceivedAt(Instant.now().minusSeconds(12345))
+                .userActionRequiredBy(Instant.now().plusSeconds(10))
                 .status(REFUNDED)
+                .build()
+            ),
+            PatchTransactionRequest(
+              builder()
+                .id(tx1.id)
+                .userActionRequiredBy(Instant.now())
+                .status(PENDING_SENDER)
                 .build()
             )
           )

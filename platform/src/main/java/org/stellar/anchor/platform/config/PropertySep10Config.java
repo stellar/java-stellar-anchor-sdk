@@ -45,9 +45,8 @@ public class PropertySep10Config implements Sep10Config, Validator {
     this.secretConfig = secretConfig;
     this.knownCustodialAccountList =
         clientsConfig.getClients().stream()
-            .filter(
-                cfg -> cfg.getType() == CUSTODIAL && StringHelper.isNotEmpty(cfg.getSigningKey()))
-            .map(ClientConfig::getSigningKey)
+            .filter(cfg -> cfg.getType() == CUSTODIAL && !cfg.getSigningKeys().isEmpty())
+            .flatMap(cfg -> cfg.getSigningKeys().stream())
             .collect(Collectors.toList());
   }
 
@@ -120,7 +119,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
             "webAuthDomain",
             "sep10-web-auth-domain-too-long",
             format(
-                "The sep10.web_auth_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
+                "The sep10.web_auth_domain (%s) is longer than the maximum length (59) of a domain. Error=%s",
                 webAuthDomain, iaex));
       }
 
@@ -158,7 +157,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
     if (clientAttributionRequired) {
       List<String> nonCustodialClientNames =
           clientsConfig.clients.stream()
-              .filter(cfg -> cfg.getType() == NONCUSTODIAL && isNotEmpty(cfg.getDomain()))
+              .filter(cfg -> cfg.getType() == NONCUSTODIAL)
               .map(ClientConfig::getName)
               .collect(Collectors.toList());
 
@@ -201,7 +200,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "homeDomain",
           "sep10-home-domain-too-long",
           format(
-              "The sep10.home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
+              "The sep10.home_domain (%s) is longer than the maximum length (59) of a domain. Error=%s",
               domain, iaex));
     }
 
@@ -218,18 +217,15 @@ public class PropertySep10Config implements Sep10Config, Validator {
     // if clientAllowList is not defined, all client domains from the clients section are allowed.
     if (clientAllowList == null || clientAllowList.isEmpty()) {
       return clientsConfig.clients.stream()
-          .map(ClientConfig::getDomain)
-          .filter(StringHelper::isNotEmpty)
+          .filter(cfg -> cfg.getDomains() != null && !cfg.getDomains().isEmpty())
+          .flatMap(cfg -> cfg.getDomains().stream())
           .collect(Collectors.toList());
     }
 
     // If clientAllowList is defined, only the clients in the allow list are allowed.
     return clientAllowList.stream()
-        .map(
-            domain ->
-                (clientsConfig.getClientConfigByName(domain) == null)
-                    ? null
-                    : clientsConfig.getClientConfigByName(domain).getDomain())
+        .filter(domain -> clientsConfig.getClientConfigByName(domain) != null)
+        .flatMap(domain -> clientsConfig.getClientConfigByName(domain).getDomains().stream())
         .filter(StringHelper::isNotEmpty)
         .collect(Collectors.toList());
   }
