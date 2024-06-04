@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.fullName }}-svc-{{ .Values.services.ref.name }}
+  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ .Values.fullName }}-reference-server
     helm.sh/chart: {{ include "common.chart" . }}
@@ -14,6 +15,10 @@ spec:
       app: {{ .Values.fullName }}-svc-{{ .Values.services.ref.name }}
   template:
     metadata:
+      {{- if .Values.services.ref.deployment.annotations }}
+      annotations:
+        {{- toYaml .Values.services.ref.deployment.annotations | nindent 8 }}
+      {{- end }}
       labels:
         app: {{ .Values.fullName }}-svc-{{ .Values.services.ref.name }}
     spec:
@@ -40,6 +45,12 @@ spec:
           env:
             - name: KT_REFERENCE_SERVER_CONFIG
               value: /config/config.yaml
+            - name: APP.PLATFORM_API_ENDPOINT
+              value: {{ .Values.config.app.platformApiEndpoint }}
+            - name: APP.HORIZON_ENDPOINT
+              value: {{ .Values.config.app.horizonEndpoint }}
+            - name: DATA.URL
+              value: {{ .Values.config.data.url }}
             - name: DATA.USER
               valueFrom:
                 secretKeyRef:

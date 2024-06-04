@@ -14,6 +14,7 @@ import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
+import org.stellar.anchor.platform.utils.setupMock
 
 class Sep10ConfigTest {
   lateinit var config: PropertySep10Config
@@ -31,7 +32,9 @@ class Sep10ConfigTest {
       ClientConfig(
         "unknown",
         CUSTODIAL,
-        "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
+        null,
+        setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"),
+        null,
         null,
         null,
         false,
@@ -43,8 +46,10 @@ class Sep10ConfigTest {
       ClientConfig(
         "lobstr",
         NONCUSTODIAL,
-        "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ",
-        "lobstr.co",
+        null,
+        setOf("GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"),
+        null,
+        setOf("lobstr.co"),
         "https://callback.lobstr.co/api/v2/anchor/callback",
         false,
         null
@@ -55,8 +60,10 @@ class Sep10ConfigTest {
       ClientConfig(
         "circle",
         NONCUSTODIAL,
-        "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE",
-        "circle.com",
+        null,
+        setOf("GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"),
+        null,
+        setOf("circle.com"),
         "https://callback.circle.com/api/v2/anchor/callback",
         false,
         null
@@ -65,11 +72,9 @@ class Sep10ConfigTest {
 
     config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
     config.enabled = true
-    config.homeDomain = "stellar.org"
+    config.homeDomains = listOf("stellar.org")
     errors = BindException(config, "config")
-    every { secretConfig.sep10SigningSeed } returns
-      "SDNMFWJGLVR4O2XV3SNEJVF53MMLQWYFYFC7HT7JZ5235AXPETHB4K3D"
-    every { secretConfig.sep10JwtSecretKey } returns "secret"
+    secretConfig.setupMock()
   }
 
   @Test
@@ -102,25 +107,28 @@ class Sep10ConfigTest {
 
   @Test
   fun `test ClientsConfig getClientConfigByDomain`() {
-    assertEquals(clientsConfig.getClientConfigByDomain("unknown"), null)
-    assertEquals(clientsConfig.getClientConfigByDomain("lobstr.co"), clientsConfig.clients[1])
-    assertEquals(clientsConfig.getClientConfigByDomain("circle.com"), clientsConfig.clients[2])
+    assertEquals(
+      null,
+      clientsConfig.getClientConfigByDomain("unknown"),
+    )
+    assertEquals(clientsConfig.clients[1], clientsConfig.getClientConfigByDomain("lobstr.co"))
+    assertEquals(clientsConfig.clients[2], clientsConfig.getClientConfigByDomain("circle.com"))
   }
 
   @Test
   fun `test ClientsConfig getClientConfigBySigningKey`() {
     assertEquals(clientsConfig.getClientConfigBySigningKey("unknown"), null)
     assertEquals(
+      clientsConfig.clients[1],
       clientsConfig.getClientConfigBySigningKey(
         "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"
-      ),
-      clientsConfig.clients[1]
+      )
     )
     assertEquals(
+      clientsConfig.clients[2],
       clientsConfig.getClientConfigBySigningKey(
         "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"
-      ),
-      clientsConfig.clients[2]
+      )
     )
   }
 
@@ -155,7 +163,7 @@ class Sep10ConfigTest {
   @ValueSource(strings = ["stellar.org", "moneygram.com", "localhost", "127.0.0.1:80"])
   fun `test valid home domains`(value: String) {
     config.webAuthDomain = value
-    config.homeDomain = value
+    config.homeDomains = listOf(value)
     config.validateConfig(errors)
     assertFalse(errors.hasErrors())
   }
@@ -195,7 +203,7 @@ class Sep10ConfigTest {
       ]
   )
   fun `test invalid home domains`(value: String, expectedErrorCode: String) {
-    config.homeDomain = value
+    config.homeDomains = listOf(value)
     config.validateConfig(errors)
     assertTrue(errors.hasErrors())
     assertErrorCode(errors, expectedErrorCode)
@@ -204,7 +212,7 @@ class Sep10ConfigTest {
   @Test
   fun `test if web_auth_domain is not set, default to the domain of the host_url`() {
     config.webAuthDomain = null
-    config.homeDomain = "www.stellar.org"
+    config.homeDomains = listOf("www.stellar.org")
     config.postConstruct()
     assertEquals("www.stellar.org", config.webAuthDomain)
   }
@@ -212,43 +220,43 @@ class Sep10ConfigTest {
   @Test
   fun `test if web_auth_domain is set, it is not default to the domain of the host_url`() {
     config.webAuthDomain = "localhost:8080"
-    config.homeDomain = "www.stellar.org"
+    config.homeDomains = listOf("www.stellar.org")
     config.postConstruct()
     assertEquals("localhost:8080", config.webAuthDomain)
   }
 
   @ParameterizedTest
   @MethodSource("generatedHomeDomainsTestConfig")
-  fun `test web_auth_domain, home_domain and home_domains in valid config format`(
+  fun `test web_auth_domain and home_domains in valid config format`(
     webAuthDomain: String?,
-    homeDomain: String?,
     homeDomains: List<String>?,
     hasError: Boolean,
-    numberOfHomeDomains: Int
   ) {
     config.webAuthDomain = webAuthDomain
-    config.homeDomain = homeDomain
     config.homeDomains = homeDomains
 
     config.validateConfig(errors)
     assertEquals(hasError, errors.hasErrors())
+  }
 
-    if (!hasError) {
-      config.postConstruct()
-      assertEquals(numberOfHomeDomains, config.homeDomains.size)
-    }
+  @Test
+  fun `validate JWT`() {
+    every { secretConfig.sep10JwtSecretKey }.returns("tooshort")
+    config.validateConfig(errors)
+    assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "hmac-weak-secret")
   }
 
   companion object {
     @JvmStatic
     fun generatedHomeDomainsTestConfig(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of(null, null, null, false, 1),
-        Arguments.of(null, "www.stellar.org", listOf("www.stellar.org", "www.losbstr.co"), true, 0),
-        Arguments.of(null, "www.stellar.org", emptyList<String>(), false, 1),
-        Arguments.of("localhost:8080", "", listOf("www.stellar.org", "www.losbstr.co"), false, 2),
-        Arguments.of("localhost:8080", "", listOf("*.stellar.org"), false, 1),
-        Arguments.of("", "", listOf("*.stellar.org"), true, 1),
+        Arguments.of(null, null, true),
+        Arguments.of(null, listOf("www.stellar.org", "www.losbstr.co"), true),
+        Arguments.of(null, emptyList<String>(), true),
+        Arguments.of("localhost:8080", listOf("www.stellar.org", "www.losbstr.co"), false),
+        Arguments.of("localhost:8080", listOf("*.stellar.org"), false),
+        Arguments.of("", listOf("*.stellar.org"), true),
       )
     }
   }

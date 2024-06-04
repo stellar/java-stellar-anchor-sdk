@@ -41,10 +41,6 @@ public class PlatformTransactionData {
   @SerializedName("amount_out")
   Amount amountOut;
 
-  @SerializedName("amount_fee")
-  @Deprecated // ANCHOR-636
-  Amount amountFee;
-
   @SerializedName("fee_details")
   FeeDetails feeDetails;
 
@@ -59,6 +55,9 @@ public class PlatformTransactionData {
 
   @SerializedName("completed_at")
   Instant completedAt;
+
+  @SerializedName("user_action_required_by")
+  Instant userActionRequiredBy;
 
   @SerializedName("transfer_received_at")
   Instant transferReceivedAt;

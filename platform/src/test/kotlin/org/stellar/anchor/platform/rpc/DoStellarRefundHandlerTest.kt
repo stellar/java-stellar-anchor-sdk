@@ -355,6 +355,7 @@ class DoStellarRefundHandlerTest {
 
     val payment = JdbcSep24RefundPayment()
     payment.id = "1"
+    payment.idType = RefundPayment.IdType.STELLAR.toString()
     payment.amount = "0.1"
     payment.fee = "0"
     val refunds = JdbcSep24Refunds()
@@ -406,6 +407,7 @@ class DoStellarRefundHandlerTest {
     txn24.amountFee = "0.1"
     txn24.refundMemo = MEMO
     txn24.refundMemoType = MEMO_TYPE
+    txn24.userActionRequiredBy = Instant.now()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -454,7 +456,6 @@ class DoStellarRefundHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1.1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.refundMemo = MEMO
@@ -546,7 +547,6 @@ class DoStellarRefundHandlerTest {
     expectedResponse.amountExpected = Amount(null, STELLAR_USDC)
     expectedResponse.amountIn = Amount("1.1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("1", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
@@ -911,7 +911,6 @@ class DoStellarRefundHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1.1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt

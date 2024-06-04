@@ -12,28 +12,34 @@ import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue
-import org.stellar.anchor.platform.event.EventProcessorManager.EventProcessor
 import org.stellar.anchor.util.ExponentialBackoffTimer
 
-class EventProcessorTest {
+class ClientStatusCallbackProcessorTest {
   @MockK(relaxed = true) lateinit var event: AnchorEvent
-  @MockK(relaxed = true) lateinit var eventHandler: EventHandler
+  @MockK(relaxed = true) lateinit var eventHandler: ClientStatusCallbackHandler
   @MockK(relaxed = true) lateinit var eventService: EventService
   @MockK(relaxed = true) lateinit var httpErrorBackoffTimer: ExponentialBackoffTimer
   @MockK(relaxed = true) lateinit var networkErrorBackoffTimer: ExponentialBackoffTimer
-  private lateinit var eventProcessor: EventProcessor
+  private lateinit var eventProcessor: ClientStatusCallbackProcessor
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this)
     eventProcessor =
-      spyk(EventProcessor("TEST PROCESSOR", EventQueue.TRANSACTION, eventHandler, eventService))
+      spyk(
+        ClientStatusCallbackProcessor(
+          "TEST PROCESSOR",
+          EventQueue.TRANSACTION,
+          eventService,
+          eventHandler
+        )
+      )
   }
 
   @Test
   fun `test that the event is not retried if the event handler returns true`() {
     every { eventHandler.handleEvent(event) } returns true
-    eventProcessor.handleEvent(event)
+    eventProcessor.handleEventWithRetry(event)
     // Check if handleEvent is called only once
     verify(exactly = 1) { eventHandler.handleEvent(any()) }
     // Check if incrementProcessCount is called
@@ -45,8 +51,7 @@ class EventProcessorTest {
     every { eventHandler.handleEvent(event) } returns false
     every { eventProcessor.httpErrorBackoffTimer } returns httpErrorBackoffTimer
     every { eventProcessor.networkBackoffTimer } returns networkErrorBackoffTimer
-
-    eventProcessor.handleEvent(event)
+    eventProcessor.handleEventWithRetry(event)
 
     // Check if handleEvent is called 3 times
     verify(exactly = 3) { eventHandler.handleEvent(any()) }
@@ -73,7 +78,7 @@ class EventProcessorTest {
         }
       }
 
-    eventProcessor.handleEvent(event)
+    eventProcessor.handleEventWithRetry(event)
 
     // Check if handleEvent is called `attempts` times
     verify(atLeast = 1, atMost = 3) { eventHandler.handleEvent(any()) }
@@ -104,7 +109,7 @@ class EventProcessorTest {
     every { eventProcessor.httpErrorBackoffTimer } returns httpErrorBackoffTimer
     every { eventProcessor.networkBackoffTimer } returns networkErrorBackoffTimer
 
-    eventProcessor.handleEvent(event)
+    eventProcessor.handleEventWithRetry(event)
 
     // Check if handleEvent is called 1 times
     verify(exactly = 1) { eventHandler.handleEvent(any()) }

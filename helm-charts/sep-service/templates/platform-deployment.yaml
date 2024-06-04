@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.fullName }}-svc-{{ .Values.services.platform.name }}
+  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ .Values.fullName }}-platform
     helm.sh/chart: {{ include "common.chart" . }}
@@ -14,6 +15,10 @@ spec:
       app: {{ .Values.fullName }}-svc-{{ .Values.services.platform.name }}
   template:
     metadata:
+      {{- if .Values.services.platform.deployment.annotations }}
+      annotations:
+        {{- toYaml .Values.services.platform.deployment.annotations | nindent 8 }}
+      {{- end }}
       labels:
         app: {{ .Values.fullName }}-svc-{{ .Values.services.platform.name }}
     spec:
@@ -77,6 +82,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.fullName }}-secrets
                   key: SEP24_MORE_INFO_URL_JWT_SECRET
+            - name: SECRET_SEP6_MORE_INFO_URL_JWT_SECRET
+              valueFrom:
+                  secretKeyRef:
+                    name: {{ .Values.fullName }}-secrets
+                    key: SEP6_MORE_INFO_URL_JWT_SECRET
             - name: SECRET_SEP10_JWT_SECRET
               valueFrom:
                 secretKeyRef:

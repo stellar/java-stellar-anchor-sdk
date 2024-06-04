@@ -281,8 +281,10 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "amount_in_asset": "iso4217:USD",
           "amount_out": "0",
           "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amount_fee": "0",
-          "amount_fee_asset": "iso4217:USD",
+          "fee_details": {
+              "total": "0",
+              "asset": "iso4217:USD"
+          },
           "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
       }
@@ -299,8 +301,10 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "amount_in_asset": "iso4217:USD",
           "amount_out": "8.8235",
           "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amount_fee": "1.00",
-          "amount_fee_asset": "iso4217:USD",
+          "fee_details": {
+            "total": "1.00",
+            "asset": "iso4217:USD"
+          },
           "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
       }
@@ -329,8 +333,10 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amount_out": "0",
           "amount_out_asset": "iso4217:USD",
-          "amount_fee": "0",
-          "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "fee_details": {
+            "total": "0",
+            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+          },
           "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
       }
@@ -347,8 +353,10 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amount_out": "8.5714",
           "amount_out_asset": "iso4217:USD",
-          "amount_fee": "1.00",
-          "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "fee_details": {
+            "total": "1.00",
+            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+          },
           "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
       }

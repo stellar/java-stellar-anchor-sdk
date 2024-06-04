@@ -14,10 +14,11 @@ public class Sep6TransactionUtils {
    *
    * @param txn the SEP-6 database transaction object
    * @param moreInfoUrlConstructor the more_info_url constructor created from SEP-6 config
+   * @param lang the language code from the SEP-6 GET /transaction(s) request.
    * @return the SEP-6 API transaction object
    */
   public static Sep6TransactionResponse fromTxn(
-      Sep6Transaction txn, MoreInfoUrlConstructor moreInfoUrlConstructor) {
+      Sep6Transaction txn, MoreInfoUrlConstructor moreInfoUrlConstructor, String lang) {
     Refunds refunds = null;
     if (txn.getRefunds() != null && txn.getRefunds().getPayments() != null) {
       List<RefundPayment> payments = new ArrayList<>();
@@ -43,17 +44,19 @@ public class Sep6TransactionUtils {
             .kind(txn.getKind())
             .status(txn.getStatus())
             .statusEta(txn.getStatusEta())
-            .moreInfoUrl(moreInfoUrlConstructor.construct(txn))
+            .moreInfoUrl(moreInfoUrlConstructor.construct(txn, lang))
             .amountIn(txn.getAmountIn())
             .amountInAsset(txn.getAmountInAsset())
             .amountOut(txn.getAmountOut())
             .amountOutAsset(txn.getAmountOutAsset())
-            .amountFee(txn.getAmountFee())
-            .amountFeeAsset(txn.getAmountFeeAsset())
             .feeDetails(txn.getFeeDetails())
             .startedAt(txn.getStartedAt().toString())
             .updatedAt(txn.getUpdatedAt().toString())
             .completedAt(txn.getCompletedAt() != null ? txn.getCompletedAt().toString() : null)
+            .userActionRequiredBy(
+                txn.getUserActionRequiredBy() != null
+                    ? txn.getUserActionRequiredBy().toString()
+                    : null)
             .stellarTransactionId(txn.getStellarTransactionId())
             .externalTransactionId(txn.getExternalTransactionId())
             .from(txn.getFromAccount())

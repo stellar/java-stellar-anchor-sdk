@@ -1,17 +1,25 @@
 package org.stellar.anchor.auth;
 
-import static java.util.Date.*;
+import static java.util.Date.from;
+import static org.stellar.anchor.auth.AuthHelper.jwtsBuilder;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.impl.DefaultJwsHeader;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.Security;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Map;
+import lombok.Builder;
 import lombok.Getter;
-import org.apache.commons.codec.binary.Base64;
+import lombok.SneakyThrows;
+import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.NotSupportedException;
+import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.CustodyAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;
@@ -19,8 +27,12 @@ import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt;
 import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep6MoreInfoUrlJwt;
 import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.config.SecretConfig;
+import org.stellar.anchor.util.KeyUtil;
+import org.stellar.anchor.util.Log;
+import org.stellar.sdk.KeyPair;
 
 @Getter
+@Builder
 public class JwtService {
   // SEP-24 specific claims
   public static final String CLIENT_DOMAIN = "client_domain";
@@ -55,26 +67,30 @@ public class JwtService {
       String callbackAuthSecret,
       String platformAuthSecret,
       String custodyAuthSecret) {
-    this.sep6MoreInfoUrlJwtSecret = toBase64OrNull(sep6MoreInfoUrlJwtSecret);
-    this.sep10JwtSecret = toBase64OrNull(sep10JwtSecret);
-    this.sep24InteractiveUrlJwtSecret = toBase64OrNull(sep24InteractiveUrlJwtSecret);
-    this.sep24MoreInfoUrlJwtSecret = toBase64OrNull(sep24MoreInfoUrlJwtSecret);
-    this.callbackAuthSecret = toBase64OrNull(callbackAuthSecret);
-    this.platformAuthSecret = toBase64OrNull(platformAuthSecret);
-    this.custodyAuthSecret = toBase64OrNull(custodyAuthSecret);
+    this.sep6MoreInfoUrlJwtSecret = sep6MoreInfoUrlJwtSecret;
+    this.sep10JwtSecret = sep10JwtSecret;
+    this.sep24InteractiveUrlJwtSecret = sep24InteractiveUrlJwtSecret;
+    this.sep24MoreInfoUrlJwtSecret = sep24MoreInfoUrlJwtSecret;
+    this.callbackAuthSecret = callbackAuthSecret;
+    this.platformAuthSecret = platformAuthSecret;
+    this.custodyAuthSecret = custodyAuthSecret;
+
+    // Required for Ed25519 keys
+    Security.addProvider(new BouncyCastleProvider());
   }
 
   public String encode(Sep10Jwt token) {
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     Instant timeIat = Instant.ofEpochSecond(token.getIat());
+
     JwtBuilder builder =
-        Jwts.builder()
-            .setId(token.getJti())
-            .setIssuer(token.getIss())
-            .setSubject(token.getSub())
-            .setIssuedAt(from(timeIat))
-            .setExpiration(from(timeExp))
-            .setSubject(token.getSub());
+        jwtsBuilder()
+            .id(token.getJti())
+            .issuer(token.getIss())
+            .subject(token.getSub())
+            .issuedAt(from(timeIat))
+            .expiration(from(timeExp))
+            .subject(token.getSub());
 
     if (token.getClientDomain() != null) {
       builder.claim(CLIENT_DOMAIN, token.getClientDomain());
@@ -84,22 +100,20 @@ public class JwtService {
       builder.claim(HOME_DOMAIN, token.getHomeDomain());
     }
 
-    return builder.signWith(SignatureAlgorithm.HS256, sep10JwtSecret).compact();
+    return signJWT(builder, sep10JwtSecret);
   }
 
   public String encode(MoreInfoUrlJwt token) throws InvalidConfigException {
-    String secret = getMoreInfoUrlSecret(token);
+    var secret = getMoreInfoUrlSecret(token);
 
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
-        Jwts.builder()
-            .setId(token.getJti())
-            .setExpiration(from(timeExp))
-            .setSubject(token.getSub());
+        jwtsBuilder().id(token.getJti()).expiration(from(timeExp)).subject(token.getSub());
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
     }
-    return builder.signWith(SignatureAlgorithm.HS256, secret).compact();
+
+    return signJWT(builder, secret);
   }
 
   private String getMoreInfoUrlSecret(MoreInfoUrlJwt token) throws InvalidConfigException {
@@ -120,15 +134,16 @@ public class JwtService {
     }
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
-        Jwts.builder()
-            .setId(token.getJti())
-            .setExpiration(from(timeExp))
-            .setSubject(token.getSub());
+        jwtsBuilder().id(token.getJti()).expiration(from(timeExp)).subject(token.getSub());
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
     }
 
-    return builder.signWith(SignatureAlgorithm.HS256, sep24InteractiveUrlJwtSecret).compact();
+    return signJWT(builder, sep24InteractiveUrlJwtSecret);
+  }
+
+  private String signJWT(JwtBuilder builder, String secret) {
+    return builder.signWith(KeyUtil.toSecretKeySpecOrNull(secret), Jwts.SIG.HS256).compact();
   }
 
   public String encode(CallbackAuthJwt token) throws InvalidConfigException {
@@ -144,16 +159,16 @@ public class JwtService {
   }
 
   private String encode(ApiAuthJwt token, String secret) throws InvalidConfigException {
-    if (platformAuthSecret == null) {
+    if (secret == null) {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for API Authentication");
     }
 
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     Instant timeIat = Instant.ofEpochSecond(token.getIat());
-    JwtBuilder builder = Jwts.builder().setIssuedAt(from(timeIat)).setExpiration(from(timeExp));
+    JwtBuilder builder = jwtsBuilder().issuedAt(from(timeIat)).expiration(from(timeExp));
 
-    return builder.signWith(SignatureAlgorithm.HS256, secret).compact();
+    return builder.signWith(KeyUtil.toSecretKeySpecOrNull(secret), Jwts.SIG.HS256).compact();
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
@@ -180,19 +195,11 @@ public class JwtService {
           String.format("The Jwt class:[%s] is not supported", cls.getName()));
     }
 
-    JwtParser jwtParser = Jwts.parser();
-    jwtParser.setSigningKey(secret);
-    Jwt jwt = jwtParser.parseClaimsJws(cipher);
-    Header header = jwt.getHeader();
-    if (!(header instanceof DefaultJwsHeader)) {
-      // This should not happen
-      throw new IllegalArgumentException("Bad token");
-    }
-    DefaultJwsHeader defaultHeader = (DefaultJwsHeader) header;
-    if (!defaultHeader.getAlgorithm().equals(SignatureAlgorithm.HS256.getValue())) {
-      // Not signed by the JWTService.
-      throw new IllegalArgumentException("Bad token");
-    }
+    Jwt jwt =
+        AuthHelper.jwtsParser()
+            .verifyWith(KeyUtil.toSecretKeySpecOrNull(secret))
+            .build()
+            .parse(cipher);
 
     if (cls.equals(Sep6MoreInfoUrlJwt.class)) {
       return (T) Sep6MoreInfoUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);
@@ -211,7 +218,21 @@ public class JwtService {
     }
   }
 
-  private String toBase64OrNull(String value) {
-    return value == null ? null : Base64.encodeBase64String(value.getBytes(StandardCharsets.UTF_8));
+  @SneakyThrows
+  public Jws<Claims> getHeaderJwt(String signingKey, String cipher) {
+    var factory = KeyFactory.getInstance("Ed25519");
+    var pubKeyInfo =
+        new SubjectPublicKeyInfo(
+            new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
+            KeyPair.fromAccountId(signingKey).getPublicKey());
+    var x509KeySpec = new X509EncodedKeySpec(pubKeyInfo.getEncoded());
+    var jcaPublicKey = factory.generatePublic(x509KeySpec);
+
+    try {
+      return AuthHelper.jwtsParser().verifyWith(jcaPublicKey).build().parseSignedClaims(cipher);
+    } catch (Exception e) {
+      Log.debugF("Invalid header signature {}", e.getMessage());
+      throw new SepValidationException("Invalid header signature");
+    }
   }
 }

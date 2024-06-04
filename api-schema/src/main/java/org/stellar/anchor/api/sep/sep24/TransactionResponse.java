@@ -32,14 +32,6 @@ public class TransactionResponse {
   @SerializedName("amount_out_asset")
   String amountOutAsset;
 
-  @SerializedName("amount_fee")
-  @Deprecated // ANCHOR-636
-  String amountFee;
-
-  @SerializedName("amount_fee_asset")
-  @Deprecated // ANCHOR-636
-  String amountFeeAsset;
-
   @SerializedName("fee_details")
   FeeDetails feeDetails;
 
@@ -48,6 +40,9 @@ public class TransactionResponse {
 
   @SerializedName("completed_at")
   Instant completedAt;
+
+  @SerializedName("user_action_required_by")
+  Instant userActionRequiredBy;
 
   @SerializedName("stellar_transaction_id")
   String stellarTransactionId;

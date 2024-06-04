@@ -90,6 +90,19 @@ class Sep24Tests : AbstractIntegrationTests(TestConfig()) {
       "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
       savedWithdrawTxn.from?.address
     )
+
+    val requestLang = "es-AR"
+    val langTx = anchor.sep24().getTransactionBy(token, id = response.id, lang = requestLang)
+    val claims =
+      jwtService
+        .decode(
+          UriComponentsBuilder.fromUriString(langTx.moreInfoUrl).build().queryParams["token"]!![0],
+          Sep24MoreInfoUrlJwt::class.java
+        )
+        .claims["data"]
+    var lang = (claims as Map<String, String>)["lang"]
+    assertEquals(requestLang, lang)
+
     // check the returning Sep24InteractiveUrlJwt
     val params = UriComponentsBuilder.fromUriString(response.url).build().queryParams
     val cipher = params["token"]!![0]
@@ -127,7 +140,7 @@ class Sep24Tests : AbstractIntegrationTests(TestConfig()) {
     val jwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
     assertEquals(response.id, jwt.jti)
     assertNotNull(jwt.claims["data"])
-    assertNotNull((jwt.claims["data"] as HashMap<*, *>)["asset"])
+    assertNotNull((jwt.claims["data"] as Map<*, *>)["asset"])
   }
 
   /*
@@ -304,8 +317,8 @@ private const val patchWithdrawTransactionRequest =
           "amount": "10",
           "asset": "iso4217:USD"
         },
-        "amount_fee": {
-          "amount": "1",
+        "fee_details": {
+          "total": "1",
           "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
         },
         "message": "this is the message",
@@ -321,6 +334,7 @@ private const val patchWithdrawTransactionRequest =
           "payments": [
             {
               "id": 1,
+              "id_type": "stellar",
               "amount": {
                 "amount": "0.6",
                 "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
@@ -332,6 +346,7 @@ private const val patchWithdrawTransactionRequest =
             },
             {
               "id": 2,
+              "id_type": "stellar",
               "amount": {
                 "amount": "0.4",
                 "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
@@ -357,8 +372,8 @@ private const val patchWithdrawTransactionRequest =
           "amount": "100",
           "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
         },
-        "amount_fee": {
-          "amount": "1",
+        "fee_details": {
+          "total": "1",
           "asset": "iso4217:USD"
         },
         "message": "this is the message"
@@ -382,8 +397,8 @@ private const val expectedAfterPatchWithdraw =
     "amount": "10",
     "asset": "iso4217:USD"
   },
-  "amount_fee": {
-    "amount": "1",
+  "fee_details": {
+    "total": "1",
     "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
   "refunds": {
@@ -438,8 +453,8 @@ private const val expectedAfterPatchDeposit =
       "amount": "100",
       "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     },
-    "amount_fee": {
-      "amount": "1",
+    "fee_details": {
+      "total": "1",
       "asset": "iso4217:USD"
     }
   }

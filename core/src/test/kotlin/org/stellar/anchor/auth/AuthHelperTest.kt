@@ -1,6 +1,7 @@
 package org.stellar.anchor.auth
 
-import io.mockk.*
+import io.mockk.every
+import io.mockk.mockk
 import java.time.Instant
 import java.util.*
 import java.util.stream.Stream
@@ -66,17 +67,33 @@ class AuthHelperTest {
               (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L,
             )
 
-          val jwtService = JwtService(null, null, null, null, "secret", "secret", "secret")
-          val authHelper =
+          var jwtService =
+            JwtService.builder()
+              .platformAuthSecret("secret__________________________________")
+              .build()
+          var authHelper =
             AuthHelper.forJwtToken(headerName, jwtService, JWT_EXPIRATION_MILLISECONDS)
+
           val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()
           val wantPlatformAuthHeader =
             AuthHeader(headerName, "Bearer ${jwtService.encode(wantPlatformJwt)}")
           assertEquals(wantPlatformAuthHeader, gotPlatformAuthHeader)
+
+          jwtService =
+            JwtService.builder()
+              .callbackAuthSecret("secret__________________________________")
+              .build()
+          authHelper = AuthHelper.forJwtToken(headerName, jwtService, JWT_EXPIRATION_MILLISECONDS)
           val gotCallbackAuthHeader = authHelper.createCallbackAuthHeader()
           val wantCallbackAuthHeader =
             AuthHeader(headerName, "Bearer ${jwtService.encode(wantCallbackJwt)}")
           assertEquals(wantCallbackAuthHeader, gotCallbackAuthHeader)
+
+          jwtService =
+            JwtService.builder()
+              .custodyAuthSecret("secret__________________________________")
+              .build()
+          authHelper = AuthHelper.forJwtToken(headerName, jwtService, JWT_EXPIRATION_MILLISECONDS)
           val gotCustodyAuthHeader = authHelper.createCustodyAuthHeader()
           val wantCustodyAuthHeader =
             AuthHeader(headerName, "Bearer ${jwtService.encode(wantCustodyJwt)}")

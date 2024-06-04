@@ -29,6 +29,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE
 import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.Customers
+import org.stellar.anchor.api.shared.FeeDetails
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
@@ -149,7 +150,7 @@ class NotifyAmountsUpdatedHandlerTest {
       NotifyAmountsUpdatedRequest.builder()
         .transactionId(TX_ID)
         .amountOut(AmountRequest("1"))
-        .amountFee(AmountRequest("1"))
+        .feeDetails(FeeDetails("1", STELLAR_USDC))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -165,10 +166,10 @@ class NotifyAmountsUpdatedHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
-    request.amountFee.amount = "-1"
+    request.feeDetails.total = "-1"
     val ex = assertThrows<BadRequestException> { handler.handle(request) }
-    assertEquals("amount_fee.amount should be non-negative", ex.message)
-    request.amountFee.amount = "1"
+    assertEquals("fee_details.amount should be non-negative", ex.message)
+    request.feeDetails.total = "1"
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
@@ -250,7 +251,7 @@ class NotifyAmountsUpdatedHandlerTest {
       NotifyAmountsUpdatedRequest.builder()
         .transactionId(TX_ID)
         .amountOut(AmountRequest("0.9"))
-        .amountFee(AmountRequest("0.1"))
+        .feeDetails(FeeDetails("0.1", STELLAR_USDC))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -261,6 +262,7 @@ class NotifyAmountsUpdatedHandlerTest {
     txn24.amountFeeAsset = STELLAR_USDC
     txn24.amountFee = "0.2"
     txn24.transferReceivedAt = transferReceivedAt
+    txn24.userActionRequiredBy = Instant.now()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -301,7 +303,6 @@ class NotifyAmountsUpdatedHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
@@ -385,7 +386,7 @@ class NotifyAmountsUpdatedHandlerTest {
       NotifyAmountsUpdatedRequest.builder()
         .transactionId(TX_ID)
         .amountOut(AmountRequest("0.9"))
-        .amountFee(AmountRequest("0.1"))
+        .feeDetails(FeeDetails("0.1", STELLAR_USDC))
         .build()
     val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_ANCHOR.toString()
@@ -438,7 +439,6 @@ class NotifyAmountsUpdatedHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt

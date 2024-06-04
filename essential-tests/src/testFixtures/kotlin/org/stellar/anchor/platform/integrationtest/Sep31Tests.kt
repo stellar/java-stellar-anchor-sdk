@@ -135,20 +135,32 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
       )
     assertOrderCorrect(all.reversed(), descTxs.records)
 
-    patchForTest(tx3, tx2)
+    patchForTest(tx3, tx2, tx1)
 
     // OrderBy test
-    val orderByTxs =
+    var orderByTxs =
       getTransactions(orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT, pageSize = 1000)
     assertOrderCorrect(listOf(tx2, tx3, tx1), orderByTxs.records)
 
-    val orderByDesc =
+    var orderByDesc =
       getTransactions(
         orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT,
         order = DESC,
         pageSize = 1000
       )
     assertOrderCorrect(listOf(tx3, tx2, tx1), orderByDesc.records)
+
+    orderByTxs =
+      getTransactions(orderBy = TransactionsOrderBy.USER_ACTION_REQUIRED_BY, pageSize = 1000)
+    assertOrderCorrect(listOf(tx1, tx2, tx3), orderByTxs.records)
+
+    orderByDesc =
+      getTransactions(
+        orderBy = TransactionsOrderBy.USER_ACTION_REQUIRED_BY,
+        order = DESC,
+        pageSize = 1000
+      )
+    assertOrderCorrect(listOf(tx2, tx1, tx3), orderByDesc.records)
 
     // Statuses test
     val statusesTxs = getTransactions(statuses = listOf(PENDING_SENDER, REFUNDED), pageSize = 1000)
@@ -186,7 +198,11 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     )
   }
 
-  private fun patchForTest(tx3: Sep31PostTransactionResponse, tx2: Sep31PostTransactionResponse) {
+  private fun patchForTest(
+    tx3: Sep31PostTransactionResponse,
+    tx2: Sep31PostTransactionResponse,
+    tx1: Sep31PostTransactionResponse
+  ) {
     platformApiClient.patchTransaction(
       PatchTransactionsRequest.builder()
         .records(
@@ -198,7 +214,15 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
               builder()
                 .id(tx2.id)
                 .transferReceivedAt(Instant.now().minusSeconds(12345))
+                .userActionRequiredBy(Instant.now().plusSeconds(10))
                 .status(REFUNDED)
+                .build()
+            ),
+            PatchTransactionRequest(
+              builder()
+                .id(tx1.id)
+                .userActionRequiredBy(Instant.now())
+                .status(PENDING_SENDER)
                 .build()
             )
           )
@@ -381,8 +405,10 @@ private const val expectedTxn =
     "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "amount_out": "1071.4286",
     "amount_out_asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    "amount_fee": "1.00",
-    "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+    "fee_details": {
+      "total": "1.00",
+      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    },
     "stellar_account_id": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
     "stellar_memo_type": "hash"
   }
@@ -623,8 +649,8 @@ private const val expectedAfterPatch =
     "amount": "1071.4286",
     "asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
-  "amount_fee": {
-    "amount": "1.00",
+  "fee_details": {
+    "total": "1.00",
     "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
   "message": "this is the message",

@@ -17,6 +17,7 @@ import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerResponse
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.*
 import org.stellar.anchor.auth.Sep10Jwt
@@ -31,6 +32,7 @@ import org.stellar.anchor.platform.config.PropertyClientsConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor.FORWARD_KYC_CUSTOMER_TYPE
+import org.stellar.anchor.platform.utils.setupMock
 import org.stellar.anchor.util.GsonUtils
 
 @Suppress("UNCHECKED_CAST")
@@ -43,6 +45,7 @@ class SimpleInteractiveUrlConstructorTest {
       Stream.of(Arguments.of(SEP24_CONFIG_JSON_1, REQUEST_JSON_1, TXN_JSON_1))
   }
 
+  @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig
   @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
@@ -58,21 +61,24 @@ class SimpleInteractiveUrlConstructorTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns "sep24_jwt_secret"
+    secretConfig.setupMock()
 
     val clientConfig =
       ClientConfig(
         "lobstr",
         NONCUSTODIAL,
-        "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-        "lobstr.co",
+        null,
+        setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
+        null,
+        setOf("lobstr.co"),
         "https://callback.lobstr.co/api/v2/anchor/callback",
         false,
-        null
+        null,
       )
     every { clientsConfig.getClientConfigByDomain(any()) } returns null
-    every { clientsConfig.getClientConfigByDomain(clientConfig.domain) } returns clientConfig
-    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKey) } returns
+    every { clientsConfig.getClientConfigByDomain(clientConfig.domains.first()) } returns
+      clientConfig
+    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKeys.first()) } returns
       clientConfig
     every {
       clientsConfig.getClientConfigBySigningKey(
@@ -82,11 +88,13 @@ class SimpleInteractiveUrlConstructorTest {
       ClientConfig(
         "some-wallet",
         CUSTODIAL,
-        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         null,
+        setOf("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
+        null,
+        emptySet(),
         null,
         false,
-        null
+        null,
       )
     every { testAsset.sep38AssetName } returns
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
@@ -106,7 +114,13 @@ class SimpleInteractiveUrlConstructorTest {
     val testTxn = gson.fromJson(txnJson, JdbcSep24Transaction::class.java)
 
     val constructor =
-      SimpleInteractiveUrlConstructor(clientsConfig, testConfig, customerIntegration, jwtService)
+      SimpleInteractiveUrlConstructor(
+        assetService,
+        clientsConfig,
+        testConfig,
+        customerIntegration,
+        jwtService,
+      )
 
     var jwt =
       parseJwtFromUrl(
@@ -150,7 +164,13 @@ class SimpleInteractiveUrlConstructorTest {
     val testTxn = gson.fromJson(TXN_JSON_1, JdbcSep24Transaction::class.java)
 
     val constructor =
-      SimpleInteractiveUrlConstructor(clientsConfig, testConfig, customerIntegration, jwtService)
+      SimpleInteractiveUrlConstructor(
+        assetService,
+        clientsConfig,
+        testConfig,
+        customerIntegration,
+        jwtService,
+      )
 
     testTxn.clientDomain = null
     assertThrows<SepValidationException> {
@@ -165,7 +185,13 @@ class SimpleInteractiveUrlConstructorTest {
     every { customerIntegration.putCustomer(capture(capturedPutCustomerRequest)) } returns
       PutCustomerResponse()
     val constructor =
-      SimpleInteractiveUrlConstructor(clientsConfig, sep24Config, customerIntegration, jwtService)
+      SimpleInteractiveUrlConstructor(
+        assetService,
+        clientsConfig,
+        sep24Config,
+        customerIntegration,
+        jwtService,
+      )
     sep24Config.kycFieldsForwarding.isEnabled = true
     every { sep10Jwt.account }.returns("test_account")
     every { sep10Jwt.accountMemo }.returns("123")
@@ -183,14 +209,15 @@ class SimpleInteractiveUrlConstructorTest {
   fun `when kycFieldsForwarding is disabled, the customerIntegration should not receive the kyc fields`() {
     val customerIntegration: CustomerIntegration = mockk()
     val constructor =
-      SimpleInteractiveUrlConstructor(clientsConfig, sep24Config, customerIntegration, jwtService)
+      SimpleInteractiveUrlConstructor(
+        assetService,
+        clientsConfig,
+        sep24Config,
+        customerIntegration,
+        jwtService,
+      )
     sep24Config.kycFieldsForwarding.isEnabled = false
-    constructor.construct(
-      txn,
-      request as HashMap<String, String>?,
-      testAsset,
-      sep10Jwt,
-    )
+    constructor.construct(txn, request as HashMap<String, String>?, testAsset, sep10Jwt)
     verify(exactly = 0) { customerIntegration.putCustomer(any()) }
   }
 
@@ -207,13 +234,13 @@ class SimpleInteractiveUrlConstructorTest {
 
     // Transaction data
     val data = claims["data"] as Map<String, String>
-    assertEquals("deposit", data["kind"] as String)
+    assertEquals("DEPOSIT", data["kind"] as String)
     assertEquals("100", data["amount"] as String)
     assertEquals("en", data["lang"] as String)
     assertEquals("123", data["customer_id"] as String)
     assertEquals(
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      data["amount_in_asset"] as String
+      data["asset"] as String,
     )
     assertEquals("en", data["lang"] as String)
     assertNull(data["email_address"])

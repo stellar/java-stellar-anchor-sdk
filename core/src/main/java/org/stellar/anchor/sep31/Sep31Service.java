@@ -24,12 +24,7 @@ import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 import io.micrometer.core.instrument.Counter;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.Data;
@@ -306,8 +301,7 @@ public class Sep31Service {
     txn.setAmountExpected(quote.getSellAmount());
     txn.setAmountOutAsset(quote.getBuyAsset());
     txn.setAmountOut(quote.getBuyAmount());
-    txn.setAmountFee(quote.getFee().getTotal());
-    txn.setAmountFeeAsset(quote.getFee().getAsset());
+    txn.setFeeDetails(quote.getFee());
   }
 
   /**
@@ -356,8 +350,7 @@ public class Sep31Service {
 
     // Update fee
     String feeStr = formatAmount(fee, scale);
-    txn.setAmountFee(feeStr);
-    txn.setAmountFeeAsset(feeResponse.getAsset());
+    txn.setFeeDetails(new FeeDetails(feeStr, feeResponse.getAsset()));
     Context.get().getFee().setAmount(feeStr);
   }
 
@@ -596,9 +589,9 @@ public class Sep31Service {
     if (sep10Config.isClientAttributionRequired() && client == null) {
       throw new BadRequestException("Client not found");
     }
-    if (client != null && !sep10Config.getAllowedClientDomains().contains(client.getDomain())) {
+    System.out.println(Arrays.toString(sep10Config.getAllowedClientNames().toArray()));
+    if (client != null && !sep10Config.getAllowedClientNames().contains(client.getName()))
       client = null;
-    }
     return client == null ? null : client.getName();
   }
 
