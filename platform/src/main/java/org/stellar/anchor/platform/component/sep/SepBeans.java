@@ -221,6 +221,7 @@ public class SepBeans {
   }
 
   @Bean
+  @ConditionalOnAnySepsEnabled(seps = {"sep31"})
   Sep31DepositInfoGenerator sep31DepositInfoGenerator(
       Sep31Config sep31Config,
       PaymentObservingAccountsManager paymentObservingAccountsManager,

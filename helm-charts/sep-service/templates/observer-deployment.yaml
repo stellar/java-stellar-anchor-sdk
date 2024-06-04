@@ -15,6 +15,10 @@ spec:
       app: {{ .Values.fullName }}-svc-{{ .Values.services.observer.name }}
   template:
     metadata:
+      {{- if .Values.services.observer.deployment.annotations }}
+      annotations:
+        {{- toYaml .Values.services.observer.deployment.annotations | nindent 8 }}
+      {{- end }}
       namespace: {{ .Values.namespace }}
       labels:
         app: {{ .Values.fullName }}-svc-{{ .Values.services.observer.name }}
@@ -84,8 +88,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.fullName }}-secrets
                   key: SEP6_MORE_INFO_URL_JWT_SECRET
-            - name: PLATFORM_API_BASE_URL
-              value: {{ print "http://" .Values.fullName "-svc-" .Values.services.platform.name ":" .Values.services.platform.containerPort | default 8085 }}
           resources:
             requests:
               memory: {{ .Values.services.observer.deployment.resources.requests.memory }}

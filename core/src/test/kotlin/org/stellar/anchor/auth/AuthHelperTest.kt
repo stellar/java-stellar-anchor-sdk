@@ -67,22 +67,33 @@ class AuthHelperTest {
               (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L,
             )
 
-          val jwtService =
+          var jwtService =
             JwtService.builder()
-              .callbackAuthSecret("secret__________________________________")
               .platformAuthSecret("secret__________________________________")
-              .custodyAuthSecret("secret__________________________________")
               .build()
-          val authHelper =
+          var authHelper =
             AuthHelper.forJwtToken(headerName, jwtService, JWT_EXPIRATION_MILLISECONDS)
+
           val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()
           val wantPlatformAuthHeader =
             AuthHeader(headerName, "Bearer ${jwtService.encode(wantPlatformJwt)}")
           assertEquals(wantPlatformAuthHeader, gotPlatformAuthHeader)
+
+          jwtService =
+            JwtService.builder()
+              .callbackAuthSecret("secret__________________________________")
+              .build()
+          authHelper = AuthHelper.forJwtToken(headerName, jwtService, JWT_EXPIRATION_MILLISECONDS)
           val gotCallbackAuthHeader = authHelper.createCallbackAuthHeader()
           val wantCallbackAuthHeader =
             AuthHeader(headerName, "Bearer ${jwtService.encode(wantCallbackJwt)}")
           assertEquals(wantCallbackAuthHeader, gotCallbackAuthHeader)
+
+          jwtService =
+            JwtService.builder()
+              .custodyAuthSecret("secret__________________________________")
+              .build()
+          authHelper = AuthHelper.forJwtToken(headerName, jwtService, JWT_EXPIRATION_MILLISECONDS)
           val gotCustodyAuthHeader = authHelper.createCustodyAuthHeader()
           val wantCustodyAuthHeader =
             AuthHeader(headerName, "Bearer ${jwtService.encode(wantCustodyJwt)}")

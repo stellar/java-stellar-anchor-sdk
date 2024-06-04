@@ -103,6 +103,7 @@ public class TransactionHelper {
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
+        .userActionRequiredBy(txn.getUserActionRequiredBy())
         .transferReceivedAt(txn.getTransferReceivedAt())
         .message(txn.getRequiredInfoMessage()) // Assuming these are meant to be the same.
         .refunds(refunds)
@@ -146,6 +147,7 @@ public class TransactionHelper {
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
+        .userActionRequiredBy(txn.getUserActionRequiredBy())
         .transferReceivedAt(txn.getTransferReceivedAt())
         .message(txn.getMessage())
         .refunds(txn.getRefunds())
@@ -201,6 +203,7 @@ public class TransactionHelper {
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
+        .userActionRequiredBy(txn.getUserActionRequiredBy())
         .message(txn.getMessage())
         .refunds(refunds)
         .stellarTransactions(txn.getStellarTransactions())
