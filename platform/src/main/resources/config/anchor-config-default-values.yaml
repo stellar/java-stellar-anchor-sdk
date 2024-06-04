@@ -180,8 +180,7 @@ event_processor:
 #   - type: (required) `custodial` or `noncustodial`
 #
 #   If the type is `custodial`,
-#   - signing_key: (required) the custodial SEP-10 signing key of the client. If the signing key of the client
-#                  is the same as the `signing_key`, the callback will be activated.
+#   - signing_keys: (required) the custodial SEP-10 signing keys of the client.
 #   - callback_url: (optional) the URL of the client's callback API endpoint. Optional due to some wallets may opt to
 #                  poll instead, or may use polling first before implementing callbacks at a later stage.
 #   - allow_any_destination: (optional) default to false. If set to true, allows any destination for deposits.
@@ -189,39 +188,33 @@ event_processor:
 #                  authenticated account can be used to deposit funds into. If allows_any_destinations set to true,
 #                  this configuration option is ignored.
 #   If the type is `noncustodial`,
-#   - domain: (required) the domain of the client. If the `client_domain` field of the transaction is the same as this
-#             domain, the callback will be activated.
+#   - domains: (required) the domain of the client.
 #   - callback_url: (optional) the URL of the client's callback API endpoint
-#   - signing_key: (optional) the signing key of the client. If the public key is specified, the client domain's TOML
-#                 file will be fetched and the `SIGNING_KEY` of the TOML file will be compared with the public key.
-#                 If they don't match, a validation error will be thrown.
 #
 # Examples:
 #     - name: circle
 #       type: custodial
-#       signing_key: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
+#       signing_keys: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2,GACYKME36AI6UYAV7A5ZUA6MG4C4K2VAPNYMW5YLOM6E7GS6FSHDPV4F
 #       callback_url: https://callback.circle.com/api/v1/anchor/callback
 #     - name: lobstr
 #       type: noncustodial
-#       domain: lobstr.co
+#       domains: lobstr.co,lobstr.com
 #       callback_url: https://callback.lobstr.co/api/v2/anchor/callback
 #     - name: vibrant
 #       type: noncustodial
 #       domain: vibrant.co
 #       callback_url: https://callback.vibrant.com/api/v2/anchor/callback
-#       signing_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
 clients:
 #     - name:
 #       type: custodial
-#       signing_key:
+#       signing_keys:
 #       callback_url:
 #       allow_any_destination:
 #       destination_accounts:
 #     - name:
 #       type: noncustodial
-#       domain:
+#       domains:
 #       callback_url:
-#       signing_key:
 
 ######################
 ## Platform Server Configuration
@@ -324,6 +317,12 @@ sep6:
   ##     none: deposit address, memo and memo type should be provided by the business in PATCH/RPC request.
   #
   deposit_info_generator_type: self
+  # Deadline set for the user on transaction creation.
+  # This value indicates to user that they have to take this amount of minutes before transaction will automatically
+  # be moved to the next status (e.g. expired). Business should handle status movement, and the Anchor Platform does
+  # NOT support automatic status movement.
+  # If value is zero, negative or null, no deadline is set (default behaviour)
+  initial_user_deadline_seconds: -1
 
 ######################
 # SEP-10 Configuration
@@ -449,6 +448,14 @@ sep24:
   kyc_fields_forwarding:
     # Whether to enable the KYC fields forwarding.
     enabled: true
+
+  # Deadline set for the user on transaction creation.
+  # This value indicates to user that they have to take this amount of minutes before transaction will automatically
+  # be moved to the next status (e.g. expired). Business should handle status movement, and the Anchor Platform does
+  # NOT support automatic status movement.
+  # If value is zero, negative or null, no deadline is set (default behaviour)
+  initial_user_deadline_seconds: -1
+
 
 ######################
 # SEP-31 Configuration
@@ -619,6 +626,8 @@ custody:
 metrics:
   # If true, enable metrics will be enabled.
   enabled: false
+  # If set, all metrics will be prefixed with the specified prefix.
+  prefix:
 
 
 #########################
