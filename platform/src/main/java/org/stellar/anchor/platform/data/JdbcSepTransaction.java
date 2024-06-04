@@ -71,6 +71,10 @@ public abstract class JdbcSepTransaction {
   @Column(name = "transfer_received_at")
   Instant transferReceivedAt;
 
+  @SerializedName("user_action_required_by")
+  @Column(name = "user_action_required_by")
+  Instant userActionRequiredBy;
+
   @SerializedName("stellar_transaction_id")
   @Column(name = "stellar_transaction_id")
   String stellarTransactionId;

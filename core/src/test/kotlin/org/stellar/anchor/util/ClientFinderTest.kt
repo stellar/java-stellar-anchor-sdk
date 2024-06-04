@@ -24,8 +24,10 @@ class ClientFinderTest {
       ClientsConfig.ClientConfig(
         "name",
         ClientsConfig.ClientType.CUSTODIAL,
-        "signing-key",
-        "domain",
+        null,
+        setOf("signing-key"),
+        null,
+        setOf("domain"),
         "http://localhost:8000",
         false,
         emptySet()
@@ -41,7 +43,7 @@ class ClientFinderTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { sep10Config.isClientAttributionRequired } returns true
-    every { sep10Config.allowedClientDomains } returns listOf(clientConfig.domain)
+    every { sep10Config.allowedClientDomains } returns clientConfig.domains.toList()
     every { sep10Config.allowedClientNames } returns listOf(clientConfig.name)
     every {
       clientsConfig.getClientConfigByDomain(ExchangeAmountsCalculatorTest.token.clientDomain)
@@ -79,7 +81,7 @@ class ClientFinderTest {
 
   @Test
   fun `test getClientName with client not found by domain`() {
-    every { sep10Config.allowedClientDomains } returns listOf("nothing")
+    every { sep10Config.allowedClientNames } returns listOf("nothing")
 
     assertThrows<SepNotAuthorizedException> { clientFinder.getClientName(token) }
   }
@@ -92,16 +94,8 @@ class ClientFinderTest {
   }
 
   @Test
-  fun `test getClientName with all domains allowed`() {
-    every { sep10Config.allowedClientDomains } returns emptyList()
-    val clientId = clientFinder.getClientName(token)
-
-    assertEquals(clientConfig.name, clientId)
-  }
-
-  @Test
   fun `test getClientName with all names allowed`() {
-    every { sep10Config.allowedClientNames } returns emptyList()
+    every { sep10Config.allowedClientNames } returns listOf(clientConfig.name)
     val clientId = clientFinder.getClientName(token)
 
     assertEquals(clientConfig.name, clientId)

@@ -51,27 +51,10 @@ subprojects {
     maven { url = uri("https://jitpack.io") }
   }
 
-  /** Specifies JDK-11 */
-  java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
+  /** Specifies JDK-17 */
+  java { toolchain { languageVersion.set(JavaLanguageVersion.of(17)) } }
 
   spotless {
-    val javaVersion = System.getProperty("java.version")
-    if (javaVersion >= "17") {
-      logger.warn("!!! WARNING !!!")
-      logger.warn("=================")
-      logger.warn(
-        "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
-        javaVersion,
-      )
-      logger.warn(
-        "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM"
-      )
-    }
-
-    if (javaVersion < "11") {
-      throw GradleException("Java 11 or greater is required for spotless Gradle plugin.")
-    }
-
     java {
       importOrder("java", "javax", "org.stellar")
       removeUnusedImports()
@@ -142,9 +125,8 @@ subprojects {
     test {
       useJUnitPlatform()
       systemProperty(
-        "junit.jupiter.testclass.order.default",
-        "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation",
-      )
+          "junit.jupiter.testclass.order.default",
+          "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation")
 
       exclude("**/AnchorPlatformCustodyEnd2EndTest**")
       exclude("**/AnchorPlatformCustodyApiRpcEnd2EndTest**")
@@ -169,22 +151,23 @@ subprojects {
 
   configurations {
     all {
+      exclude(group = "ch.qos.logback", module = "logback-classic")
       exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
       exclude(group = "org.slf4j", module = "slf4j-log4j12")
-      exclude(group = "org.slf4j", module = "slf4j-simple")
-    }
+      exclude(group = "org.slf4j", module ="slf4j-simple")
+     }
   }
 }
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.6.2"
+  version = "2.7.0"
 
   tasks.jar {
     manifest {
       attributes(
-        mapOf("Implementation-Title" to project.name, "Implementation-Version" to project.version)
-      )
+          mapOf(
+              "Implementation-Title" to project.name, "Implementation-Version" to project.version))
     }
   }
 }
@@ -196,7 +179,7 @@ tasks.register("printUsage") {
     // ANSI escape code to reset
     val reset = "\u001B[0m"
     println(
-      """
+        """
                   ${green}${bold}Usage: ./gradlew <task>${reset}
                   
                   Available custom tasks:
@@ -208,8 +191,7 @@ tasks.register("printUsage") {
                     - ${bold}dockerComposeStop${reset}: Runs docker-compose down to stop Postgres, Kafka, etc.
                     - ${bold}anchorTest${reset}: Runs stellar anchor tests. Set `TEST_HOME_DOMAIN` and `TEST_SEPS` environment variables to customize the tests.
     """
-        .trimIndent()
-    )
+            .trimIndent())
   }
 }
 
