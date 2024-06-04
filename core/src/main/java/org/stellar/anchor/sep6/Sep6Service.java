@@ -132,10 +132,6 @@ public class Sep6Service {
             .assetIssuer(asset.getIssuer())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
-            .userActionRequiredBy(
-                sep6Config.getInitialUserDeadlineSeconds() == null
-                    ? null
-                    : Instant.now().plusSeconds(sep6Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(request.getAccount())
@@ -230,10 +226,6 @@ public class Sep6Service {
             .feeDetails(amounts.feeDetails)
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
-            .userActionRequiredBy(
-                sep6Config.getInitialUserDeadlineSeconds() == null
-                    ? null
-                    : Instant.now().plusSeconds(sep6Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(request.getAccount())
@@ -307,10 +299,6 @@ public class Sep6Service {
             .amountInAsset(asset.getSep38AssetName())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
-            .userActionRequiredBy(
-                sep6Config.getInitialUserDeadlineSeconds() == null
-                    ? null
-                    : Instant.now().plusSeconds(sep6Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
@@ -400,10 +388,6 @@ public class Sep6Service {
             .feeDetails(amounts.getFeeDetails())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
-            .userActionRequiredBy(
-                sep6Config.getInitialUserDeadlineSeconds() == null
-                    ? null
-                    : Instant.now().plusSeconds(sep6Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)

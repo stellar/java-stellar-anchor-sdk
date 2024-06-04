@@ -14,7 +14,6 @@ import org.stellar.anchor.sep24.Sep24RefundPayment;
 @NoArgsConstructor
 public class JdbcSep24RefundPayment implements Sep24RefundPayment {
   String id;
-  String idType;
   String amount;
   String fee;
 }

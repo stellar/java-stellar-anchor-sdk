@@ -137,7 +137,6 @@ public interface Sep31Transaction extends SepTransaction {
                 .stellarMemoType(getStellarMemoType())
                 .startedAt(getStartedAt())
                 .completedAt(getCompletedAt())
-                .userActionRequiredBy(getUserActionRequiredBy())
                 .stellarTransactionId(getStellarTransactionId())
                 .externalTransactionId(getExternalTransactionId())
                 .refunded(getRefunded())

@@ -4,10 +4,6 @@ metadata:
   name: anchor-config
   namespace: {{ .Values.namespace }}
 data:
+  {{ include "common.addMultiline" (list "anchor-config.yaml" .Values.anchor_config )}}
   {{ include "common.addMultiline" (list "sep1.toml" .Values.sep1_toml )}}
   {{ include "common.addMultiline" (list "assets.yaml" .Values.assets_config )}}
-  anchor-config.yaml: |
-    version: 1
-    {{- range $key, $value := .Values.config }}
-    {{ $key }}: {{ toYaml $value | nindent 6 }}
-    {{- end }}

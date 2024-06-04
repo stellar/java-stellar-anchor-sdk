@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.jetbrains.annotations.Nullable;
 
 public interface Sep6Config {
   boolean isEnabled();
@@ -13,9 +12,6 @@ public interface Sep6Config {
   Features getFeatures();
 
   DepositInfoGeneratorType getDepositInfoGeneratorType();
-
-  @Nullable
-  Long getInitialUserDeadlineSeconds();
 
   @Getter
   @Setter

@@ -376,7 +376,6 @@ public class TransactionService {
     txnUpdated = updateField(patch, txn, "updatedAt", txnUpdated);
     txnUpdated = updateField(patch, txn, "completedAt", txnUpdated);
     txnUpdated = updateField(patch, txn, "transferReceivedAt", txnUpdated);
-    txnUpdated = updateField(patch, txn, "userActionRequiredBy", txnUpdated);
     // update external_transaction_id
     txnUpdated = updateField(patch, txn, "externalTransactionId", txnUpdated);
     // update stellar_transactions

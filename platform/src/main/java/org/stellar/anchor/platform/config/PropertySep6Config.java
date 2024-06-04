@@ -9,7 +9,6 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import lombok.*;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -32,7 +31,6 @@ public class PropertySep6Config implements Sep6Config, Validator {
   boolean enabled;
   Features features;
   DepositInfoGeneratorType depositInfoGeneratorType;
-  Long initialUserDeadlineSeconds;
   CustodyConfig custodyConfig;
   AssetService assetService;
   MoreInfoUrlConfig moreInfoUrl;
@@ -43,13 +41,6 @@ public class PropertySep6Config implements Sep6Config, Validator {
     this.custodyConfig = custodyConfig;
     this.assetService = assetService;
     this.secretConfig = secretConfig;
-  }
-
-  @PostConstruct
-  public void postConstruct() {
-    if (initialUserDeadlineSeconds != null && initialUserDeadlineSeconds <= 0) {
-      initialUserDeadlineSeconds = null;
-    }
   }
 
   @Override

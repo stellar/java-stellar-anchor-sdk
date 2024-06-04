@@ -1,11 +1,13 @@
 package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT_EXCHANGE;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_REFUND_PENDING;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
 import static org.stellar.anchor.util.AssetHelper.getAssetCode;
 import static org.stellar.anchor.util.MathHelper.*;
 
@@ -29,7 +31,6 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.api.shared.Refunds;
-import org.stellar.anchor.api.shared.SepRefunds;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.metrics.MetricsService;
@@ -68,72 +69,29 @@ public class NotifyRefundPendingHandler extends RpcMethodHandler<NotifyRefundPen
       throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
 
-    Sep sep = Sep.from(txn.getProtocol());
-    SepRefunds refunds;
-    PlatformTransactionData.Kind kind;
-    if (sep == SEP_6) {
-      kind = Kind.from(((JdbcSep6Transaction) txn).getKind());
-      refunds = ((JdbcSep6Transaction) txn).getRefunds();
-    } else if (sep == SEP_24) {
-      kind = Kind.from(((JdbcSep24Transaction) txn).getKind());
-      refunds = ((JdbcSep24Transaction) txn).getRefunds();
-    } else {
-      throw new InvalidRequestException(
-          String.format(
-              "RPC method[%s] is not supported for protocol[%s]",
-              getRpcMethod(), txn.getProtocol()));
+    AssetValidationUtils.validateAsset(
+        "refund.amount",
+        AmountAssetRequest.builder()
+            .amount(request.getRefund().getAmount().getAmount())
+            .asset(txn.getAmountInAsset())
+            .build(),
+        assetService);
+    AssetValidationUtils.validateAsset(
+        "refund.amountFee",
+        AmountAssetRequest.builder()
+            .amount(request.getRefund().getAmountFee().getAmount())
+            .asset(txn.getAmountInAsset())
+            .build(),
+        true,
+        assetService);
+
+    if (!txn.getAmountInAsset().equals(request.getRefund().getAmount().getAsset())) {
+      throw new InvalidParamsException(
+          "refund.amount.asset does not match transaction amount_in_asset");
     }
-
-    if (ImmutableSet.of(DEPOSIT, DEPOSIT_EXCHANGE).contains(kind)) {
-      if (request.getRefund() == null) {
-        throw new InvalidParamsException("refund must not be null");
-      }
-
-      AssetValidationUtils.validateAsset(
-          "refund.amount",
-          AmountAssetRequest.builder()
-              .amount(request.getRefund().getAmount().getAmount())
-              .asset(txn.getAmountInAsset())
-              .build(),
-          assetService);
-      AssetValidationUtils.validateAsset(
-          "refund.amountFee",
-          AmountAssetRequest.builder()
-              .amount(request.getRefund().getAmountFee().getAmount())
-              .asset(txn.getAmountInAsset())
-              .build(),
-          true,
-          assetService);
-
-      if (!txn.getAmountInAsset().equals(request.getRefund().getAmount().getAsset())) {
-        throw new InvalidParamsException(
-            "refund.amount.asset does not match transaction amount_in_asset");
-      }
-      if (!txn.getAmountFeeAsset().equals(request.getRefund().getAmountFee().getAsset())) {
-        throw new InvalidParamsException(
-            "refund.amount_fee.asset does not match match transaction amount_fee_asset");
-      }
-
-      AssetInfo assetInfo = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
-
-      var amount = request.getRefund().getAmount().getAmount();
-      var amountFee = request.getRefund().getAmountFee().getAmount();
-
-      BigDecimal totalRefunded;
-      if (refunds == null || !refunds.hasRefundPayments()) {
-        totalRefunded = sum(assetInfo, amount, amountFee);
-      } else {
-        var amountRefunded =
-            refunds instanceof Refunds
-                ? ((Refunds) refunds).getAmountRefunded().getAmount()
-                : ((Sep24Refunds) refunds).getAmountRefunded();
-        totalRefunded = sum(assetInfo, amountRefunded, amount, amountFee);
-      }
-
-      BigDecimal amountIn = decimal(txn.getAmountIn(), assetInfo);
-      if (totalRefunded.compareTo(amountIn) > 0) {
-        throw new InvalidParamsException("Refund amount exceeds amount_in");
-      }
+    if (!txn.getAmountFeeAsset().equals(request.getRefund().getAmountFee().getAsset())) {
+      throw new InvalidParamsException(
+          "refund.amount_fee.asset does not match match transaction amount_fee_asset");
     }
   }
 
@@ -146,16 +104,56 @@ public class NotifyRefundPendingHandler extends RpcMethodHandler<NotifyRefundPen
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyRefundPendingRequest request)
       throws InvalidParamsException, InvalidRequestException {
-    var kind =
-        txn instanceof JdbcSep6Transaction
-            ? Kind.from(((JdbcSep6Transaction) txn).getKind())
-            : Kind.from(((JdbcSep24Transaction) txn).getKind());
+    String amount;
+    String amountFee;
+    switch (PlatformTransactionData.Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+        AssetInfo assetInfo6 = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
 
-    if (ImmutableSet.of(WITHDRAWAL, WITHDRAWAL_EXCHANGE).contains(kind)) {
-      return PENDING_ANCHOR;
+        Refunds refunds = txn6.getRefunds();
+        amount = request.getRefund().getAmount().getAmount();
+        amountFee = request.getRefund().getAmountFee().getAmount();
+
+        BigDecimal totalRefunded6;
+        if (refunds == null || refunds.getPayments() == null) {
+          totalRefunded6 = sum(assetInfo6, amount, amountFee);
+        } else {
+          totalRefunded6 =
+              sum(assetInfo6, refunds.getAmountRefunded().getAmount(), amount, amountFee);
+        }
+
+        BigDecimal amountIn6 = decimal(txn.getAmountIn(), assetInfo6);
+        if (totalRefunded6.compareTo(amountIn6) > 0) {
+          throw new InvalidParamsException("Refund amount exceeds amount_in");
+        }
+
+        return PENDING_EXTERNAL;
+      case SEP_24:
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        AssetInfo assetInfo = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
+
+        Sep24Refunds sep24Refunds = txn24.getRefunds();
+        amount = request.getRefund().getAmount().getAmount();
+        amountFee = request.getRefund().getAmountFee().getAmount();
+
+        BigDecimal totalRefunded;
+        if (sep24Refunds == null || sep24Refunds.getRefundPayments() == null) {
+          totalRefunded = sum(assetInfo, amount, amountFee);
+        } else {
+          totalRefunded = sum(assetInfo, sep24Refunds.getAmountRefunded(), amount, amountFee);
+        }
+
+        BigDecimal amountIn = decimal(txn.getAmountIn(), assetInfo);
+        if (totalRefunded.compareTo(amountIn) > 0) {
+          throw new InvalidParamsException("Refund amount exceeds amount_in");
+        }
+
+        return PENDING_EXTERNAL;
     }
-
-    return PENDING_EXTERNAL;
+    throw new InvalidRequestException(
+        String.format(
+            "RPC method[%s] is not supported for protocol[%s]", getRpcMethod(), txn.getProtocol()));
   }
 
   @Override
@@ -165,7 +163,7 @@ public class NotifyRefundPendingHandler extends RpcMethodHandler<NotifyRefundPen
       if (ImmutableSet.of(DEPOSIT, DEPOSIT_EXCHANGE).contains(Kind.from(txn6.getKind()))) {
         return Set.of(PENDING_ANCHOR);
       }
-      return Set.of(PENDING_USR_TRANSFER_COMPLETE, PENDING_EXTERNAL);
+      return emptySet();
     }
 
     if (SEP_24 == Sep.from(txn.getProtocol())) {
@@ -173,7 +171,6 @@ public class NotifyRefundPendingHandler extends RpcMethodHandler<NotifyRefundPen
       if (DEPOSIT == Kind.from(txn24.getKind())) {
         return Set.of(PENDING_ANCHOR);
       }
-      return Set.of(PENDING_USR_TRANSFER_COMPLETE, PENDING_EXTERNAL);
     }
     return emptySet();
   }
@@ -187,13 +184,6 @@ public class NotifyRefundPendingHandler extends RpcMethodHandler<NotifyRefundPen
     switch (PlatformTransactionData.Sep.from(txn.getProtocol())) {
       case SEP_6:
         JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
-
-        // For withdrawals only update status to pending_anchor to mark that refund has been
-        // initiated . Actual Refund
-        // object will be passed in the next update (notify_refund_sent), as it's not yet known.
-        if (ImmutableSet.of(WITHDRAWAL, WITHDRAWAL_EXCHANGE).contains(Kind.from(txn6.getKind()))) {
-          return;
-        }
 
         RefundPayment requestPayment =
             RefundPayment.builder()
@@ -253,14 +243,9 @@ public class NotifyRefundPendingHandler extends RpcMethodHandler<NotifyRefundPen
       case SEP_24:
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
-        if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-          return;
-        }
-
         Sep24RefundPayment refundPayment =
             JdbcSep24RefundPayment.builder()
                 .id(requestRefund.getId())
-                .idType(RefundPayment.IdType.EXTERNAL.toString())
                 .amount(requestRefund.getAmount().getAmount())
                 .fee(requestRefund.getAmountFee().getAmount())
                 .build();

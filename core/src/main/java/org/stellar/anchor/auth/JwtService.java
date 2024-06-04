@@ -1,7 +1,6 @@
 package org.stellar.anchor.auth;
 
 import static java.util.Date.from;
-import static org.stellar.anchor.auth.AuthHelper.jwtsBuilder;
 
 import io.jsonwebtoken.*;
 import java.lang.reflect.InvocationTargetException;
@@ -82,9 +81,8 @@ public class JwtService {
   public String encode(Sep10Jwt token) {
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     Instant timeIat = Instant.ofEpochSecond(token.getIat());
-
     JwtBuilder builder =
-        jwtsBuilder()
+        Jwts.builder()
             .id(token.getJti())
             .issuer(token.getIss())
             .subject(token.getSub())
@@ -108,7 +106,7 @@ public class JwtService {
 
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
-        jwtsBuilder().id(token.getJti()).expiration(from(timeExp)).subject(token.getSub());
+        Jwts.builder().id(token.getJti()).expiration(from(timeExp)).subject(token.getSub());
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
     }
@@ -134,7 +132,7 @@ public class JwtService {
     }
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     JwtBuilder builder =
-        jwtsBuilder().id(token.getJti()).expiration(from(timeExp)).subject(token.getSub());
+        Jwts.builder().id(token.getJti()).expiration(from(timeExp)).subject(token.getSub());
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
     }
@@ -159,14 +157,14 @@ public class JwtService {
   }
 
   private String encode(ApiAuthJwt token, String secret) throws InvalidConfigException {
-    if (secret == null) {
+    if (platformAuthSecret == null) {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for API Authentication");
     }
 
     Instant timeExp = Instant.ofEpochSecond(token.getExp());
     Instant timeIat = Instant.ofEpochSecond(token.getIat());
-    JwtBuilder builder = jwtsBuilder().issuedAt(from(timeIat)).expiration(from(timeExp));
+    JwtBuilder builder = Jwts.builder().issuedAt(from(timeIat)).expiration(from(timeExp));
 
     return builder.signWith(KeyUtil.toSecretKeySpecOrNull(secret), Jwts.SIG.HS256).compact();
   }
@@ -195,11 +193,7 @@ public class JwtService {
           String.format("The Jwt class:[%s] is not supported", cls.getName()));
     }
 
-    Jwt jwt =
-        AuthHelper.jwtsParser()
-            .verifyWith(KeyUtil.toSecretKeySpecOrNull(secret))
-            .build()
-            .parse(cipher);
+    Jwt jwt = Jwts.parser().verifyWith(KeyUtil.toSecretKeySpecOrNull(secret)).build().parse(cipher);
 
     if (cls.equals(Sep6MoreInfoUrlJwt.class)) {
       return (T) Sep6MoreInfoUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);
@@ -229,7 +223,7 @@ public class JwtService {
     var jcaPublicKey = factory.generatePublic(x509KeySpec);
 
     try {
-      return AuthHelper.jwtsParser().verifyWith(jcaPublicKey).build().parseSignedClaims(cipher);
+      return Jwts.parser().verifyWith(jcaPublicKey).build().parseSignedClaims(cipher);
     } catch (Exception e) {
       Log.debugF("Invalid header signature {}", e.getMessage());
       throw new SepValidationException("Invalid header signature");

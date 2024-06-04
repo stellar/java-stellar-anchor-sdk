@@ -204,10 +204,6 @@ public class Sep24Service {
             .assetCode(assetCode)
             .assetIssuer(asset.getIssuer())
             .startedAt(Instant.now())
-            .userActionRequiredBy(
-                sep24Config.getInitialUserDeadlineSeconds() == null
-                    ? null
-                    : Instant.now().plusSeconds(sep24Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
@@ -401,10 +397,6 @@ public class Sep24Service {
             .assetCode(assetCode)
             .assetIssuer(depositRequest.get("asset_issuer"))
             .startedAt(Instant.now())
-            .userActionRequiredBy(
-                sep24Config.getInitialUserDeadlineSeconds() == null
-                    ? null
-                    : Instant.now().plusSeconds(sep24Config.getInitialUserDeadlineSeconds()))
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())
             .toAccount(destinationAccount)

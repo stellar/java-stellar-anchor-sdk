@@ -8,7 +8,6 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,7 +39,6 @@ public class PropertySep24Config implements Sep24Config, Validator {
   SecretConfig secretConfig;
   Features features;
   DepositInfoGeneratorType depositInfoGeneratorType;
-  Long initialUserDeadlineSeconds;
   CustodyConfig custodyConfig;
   KycFieldsForwarding kycFieldsForwarding;
   AssetService assetService;
@@ -68,13 +66,6 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @NoArgsConstructor
   public static class KycFieldsForwarding {
     boolean enabled;
-  }
-
-  @PostConstruct
-  public void postConstruct() {
-    if (initialUserDeadlineSeconds != null && initialUserDeadlineSeconds <= 0) {
-      initialUserDeadlineSeconds = null;
-    }
   }
 
   @Override

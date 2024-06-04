@@ -37,12 +37,15 @@ public class ClientFinder {
       return client != null ? client.getName() : null;
     }
 
-    // Check if the client is allowed
+    // Check if the client domain and name are allowed
     if (client == null) {
       throw new SepNotAuthorizedException("Client not found");
     }
 
-    if (!sep10Config.getAllowedClientNames().contains(client.getName())) {
+    if (clientDomain != null && !isDomainAllowed(client.getDomain())) {
+      throw new SepNotAuthorizedException("Client domain not allowed");
+    }
+    if (!isClientNameAllowed(client.getName())) {
       throw new SepNotAuthorizedException("Client name not allowed");
     }
 
@@ -59,5 +62,15 @@ public class ClientFinder {
     ClientConfig clientByDomain = clientsConfig.getClientConfigByDomain(clientDomain);
     ClientConfig clientByAccount = clientsConfig.getClientConfigBySigningKey(account);
     return clientByDomain != null ? clientByDomain : clientByAccount;
+  }
+
+  private boolean isDomainAllowed(String domain) {
+    return sep10Config.getAllowedClientDomains().contains(domain)
+        || sep10Config.getAllowedClientDomains().isEmpty();
+  }
+
+  private boolean isClientNameAllowed(String name) {
+    return sep10Config.getAllowedClientNames().contains(name)
+        || sep10Config.getAllowedClientNames().isEmpty();
   }
 }

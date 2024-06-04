@@ -12,10 +12,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.Refunds;
-import org.stellar.anchor.api.shared.SepRefunds;
 
 @SuppressWarnings("unused")
-public interface Sep24Refunds extends SepRefunds {
+public interface Sep24Refunds {
   String getAmountRefunded();
 
   void setAmountRefunded(String amountRefunded);

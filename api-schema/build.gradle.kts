@@ -14,4 +14,8 @@ dependencies {
   annotationProcessor(libs.lombok)
 }
 
+apply(from = "$rootDir/scripts.gradle.kts")
+@Suppress("UNCHECKED_CAST")
+val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
 
+tasks.test { enableTestConcurrency(this) }

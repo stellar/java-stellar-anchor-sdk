@@ -8,7 +8,6 @@ import java.net.URI
 import java.nio.charset.Charset
 import java.time.Instant
 import org.apache.http.client.utils.URLEncodedUtils
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -272,25 +271,6 @@ internal class Sep24ServiceTest {
   }
 
   @Test
-  fun `test withdraw with user_action_required_by`() {
-    val slotTxn = slot<Sep24Transaction>()
-    val deadline = 100L
-    every { txnStore.save(capture(slotTxn)) } returns null
-    every { sep24Config.initialUserDeadlineSeconds } returns deadline
-    sep24Service.withdraw(createTestSep10JwtWithMemo(), createTestTransactionRequest())
-    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
-    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
-    Assertions.assertTrue(
-      dbDeadline >= expectedDeadline - 2,
-      "Expected $expectedDeadline got $dbDeadline}"
-    )
-    Assertions.assertTrue(
-      dbDeadline <= expectedDeadline,
-      "Expected $expectedDeadline got $dbDeadline}"
-    )
-  }
-
-  @Test
   fun `test withdrawal with no token and no request failure`() {
     assertThrows<SepValidationException> {
       sep24Service.withdraw(null, createTestTransactionRequest())
@@ -426,25 +406,6 @@ internal class Sep24ServiceTest {
     )
     assertEquals(depositQuote.id, slotTxn.captured.quoteId)
     assertEquals(depositQuote.sellAsset, slotTxn.captured.amountInAsset)
-  }
-
-  @Test
-  fun `test deposit with user_action_required_by`() {
-    val slotTxn = slot<Sep24Transaction>()
-    val deadline = 100L
-    every { txnStore.save(capture(slotTxn)) } returns null
-    every { sep24Config.initialUserDeadlineSeconds } returns deadline
-    sep24Service.deposit(createTestSep10JwtWithMemo(), createTestTransactionRequest())
-    val dbDeadline = slotTxn.captured.userActionRequiredBy.epochSecond
-    val expectedDeadline = Instant.now().plusSeconds(deadline).epochSecond
-    Assertions.assertTrue(
-      dbDeadline >= expectedDeadline - 2,
-      "Expected $expectedDeadline got $dbDeadline}"
-    )
-    Assertions.assertTrue(
-      dbDeadline <= expectedDeadline,
-      "Expected $expectedDeadline got $dbDeadline}"
-    )
   }
 
   @Test

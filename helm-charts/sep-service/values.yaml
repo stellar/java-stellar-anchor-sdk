@@ -69,6 +69,18 @@ services:
           cpu: 1
 
 config:
+  callbackApi:
+    baseUrl: http://reference-server-svc-reference-server:8091
+
+ingress:
+  name: ingress-anchor-platform
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+anchor_config: |
+  version: 1
+
   app_logging:
     stellar_level: DEBUG
     request_logger_enabled: true
@@ -85,12 +97,6 @@ config:
     flyway_enabled: true
     ddl_auto: update
 
-  callback_api:
-    base_url: http://reference-server-svc-reference-server:8091
-
-  platform_api:
-    base_url: http://anchor-platform-svc-platform:8085
-
   events:
     enabled: true
     queue:
@@ -105,18 +111,18 @@ config:
     toml:
       type: file
       value: /config/sep1.toml
-
+  
   sep6:
     enabled: true
-
+  
   sep10:
     enabled: true
     web_auth_domain: localhost:8080
     home_domains: localhost:8080
-
+  
   sep12:
     enabled: true
-
+  
   sep31:
     enabled: true
 
@@ -129,12 +135,6 @@ config:
       base_url: http://localhost:8091
     more_info_url:
       base_url: http://localhost:8091
-
-ingress:
-  name: ingress-anchor-platform
-  className: nginx
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 
 sep1_toml: |
   ACCOUNTS = ["GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"]
