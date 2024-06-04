@@ -46,6 +46,7 @@ events.queue.sqs.use_iam:
 events.queue.type:
 languages:
 metrics.enabled:
+metrics.prefix:
 metrics.extended_metrics.enabled:
 metrics.extended_metrics.run_interval:
 payment_observer.context_path:
@@ -92,6 +93,7 @@ sep24.more_info_url.base_url:
 sep24.more_info_url.jwt_expiration:
 sep24.more_info_url.txn_fields:
 sep24.deposit_info_generator_type:
+sep24.initial_user_deadline_seconds:
 sep31.deposit_info_generator_type:
 sep31.enabled:
 sep31.payment_type:
@@ -104,6 +106,7 @@ sep6.more_info_url.jwt_expiration:
 sep6.more_info_url.txn_fields:
 sep6.features.account_creation:
 sep6.features.claimable_balances:
+sep6.initial_user_deadline_seconds:
 sep_server.context_path:
 sep_server.management_server_port:
 sep_server.port:

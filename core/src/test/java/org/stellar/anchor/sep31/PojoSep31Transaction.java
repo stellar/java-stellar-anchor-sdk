@@ -26,6 +26,7 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String stellarMemoType;
   Instant startedAt;
   Instant completedAt;
+  Instant userActionRequiredBy;
   String stellarTransactionId;
   List<StellarTransaction> stellarTransactions;
   String externalTransactionId;

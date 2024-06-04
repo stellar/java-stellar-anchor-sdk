@@ -41,6 +41,9 @@ public class TransactionResponse {
   @SerializedName("completed_at")
   Instant completedAt;
 
+  @SerializedName("user_action_required_by")
+  Instant userActionRequiredBy;
+
   @SerializedName("stellar_transaction_id")
   String stellarTransactionId;
 
