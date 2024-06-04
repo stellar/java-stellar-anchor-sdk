@@ -297,6 +297,7 @@ class NotifyRefundPendingHandlerTest {
     val anchorEventCapture = slot<AnchorEvent>()
     val payment = JdbcSep24RefundPayment()
     payment.id = request.refund.id
+    payment.idType = RefundPayment.IdType.EXTERNAL.toString()
     payment.amount = request.refund.amount.amount
     payment.fee = request.refund.amountFee.amount
 
@@ -408,6 +409,7 @@ class NotifyRefundPendingHandlerTest {
     val anchorEventCapture = slot<AnchorEvent>()
     val payment = JdbcSep24RefundPayment()
     payment.id = request.refund.id
+    payment.idType = RefundPayment.IdType.EXTERNAL.toString()
     payment.amount = request.refund.amount.amount
     payment.fee = request.refund.amountFee.amount
     val refunds = JdbcSep24Refunds()

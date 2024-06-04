@@ -260,6 +260,7 @@ public class NotifyRefundPendingHandler extends RpcMethodHandler<NotifyRefundPen
         Sep24RefundPayment refundPayment =
             JdbcSep24RefundPayment.builder()
                 .id(requestRefund.getId())
+                .idType(RefundPayment.IdType.EXTERNAL.toString())
                 .amount(requestRefund.getAmount().getAmount())
                 .fee(requestRefund.getAmountFee().getAmount())
                 .build();

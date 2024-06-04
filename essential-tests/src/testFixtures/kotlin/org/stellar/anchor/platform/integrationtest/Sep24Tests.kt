@@ -334,6 +334,7 @@ private const val patchWithdrawTransactionRequest =
           "payments": [
             {
               "id": 1,
+              "id_type": "stellar",
               "amount": {
                 "amount": "0.6",
                 "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
@@ -345,6 +346,7 @@ private const val patchWithdrawTransactionRequest =
             },
             {
               "id": 2,
+              "id_type": "stellar",
               "amount": {
                 "amount": "0.4",
                 "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"

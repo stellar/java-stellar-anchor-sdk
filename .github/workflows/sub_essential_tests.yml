@@ -106,7 +106,7 @@ jobs:
         run: |
           docker run --network host -v /home/runner/java-stellar-anchor-sdk/platform/src/test/resources://config stellar/anchor-tests:v0.6.10 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
 
-      - name: Upload Essential Tests Report
+      - name: Upload Essential Tests report
         if: always()
         uses: actions/upload-artifact@v3
         with:
