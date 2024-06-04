@@ -70,9 +70,6 @@ public class Sep6TransactionResponse {
   @SerializedName("completed_at")
   String completedAt;
 
-  @SerializedName("user_action_required_by")
-  String userActionRequiredBy;
-
   @SerializedName("stellar_transaction_id")
   String stellarTransactionId;
 

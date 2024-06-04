@@ -262,7 +262,6 @@ class NotifyAmountsUpdatedHandlerTest {
     txn24.amountFeeAsset = STELLAR_USDC
     txn24.amountFee = "0.2"
     txn24.transferReceivedAt = transferReceivedAt
-    txn24.userActionRequiredBy = Instant.now()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 

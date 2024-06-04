@@ -67,18 +67,15 @@ class SimpleInteractiveUrlConstructorTest {
       ClientConfig(
         "lobstr",
         NONCUSTODIAL,
-        null,
-        setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
-        null,
-        setOf("lobstr.co"),
+        "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+        "lobstr.co",
         "https://callback.lobstr.co/api/v2/anchor/callback",
         false,
         null,
       )
     every { clientsConfig.getClientConfigByDomain(any()) } returns null
-    every { clientsConfig.getClientConfigByDomain(clientConfig.domains.first()) } returns
-      clientConfig
-    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKeys.first()) } returns
+    every { clientsConfig.getClientConfigByDomain(clientConfig.domain) } returns clientConfig
+    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKey) } returns
       clientConfig
     every {
       clientsConfig.getClientConfigBySigningKey(
@@ -88,10 +85,8 @@ class SimpleInteractiveUrlConstructorTest {
       ClientConfig(
         "some-wallet",
         CUSTODIAL,
+        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         null,
-        setOf("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
-        null,
-        emptySet(),
         null,
         false,
         null,

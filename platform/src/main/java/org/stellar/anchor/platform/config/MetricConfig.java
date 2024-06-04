@@ -9,7 +9,6 @@ import org.stellar.anchor.config.AppConfig;
 @Data
 public class MetricConfig implements Validator {
   private boolean enabled = false;
-  private String prefix = "";
 
   @Override
   public boolean supports(@NotNull Class<?> clazz) {

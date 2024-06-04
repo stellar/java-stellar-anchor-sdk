@@ -15,10 +15,6 @@ spec:
       app: {{ .Values.fullName }}-svc-{{ .Values.services.ref.name }}
   template:
     metadata:
-      {{- if .Values.services.ref.deployment.annotations }}
-      annotations:
-        {{- toYaml .Values.services.ref.deployment.annotations | nindent 8 }}
-      {{- end }}
       labels:
         app: {{ .Values.fullName }}-svc-{{ .Values.services.ref.name }}
     spec:
@@ -47,8 +43,6 @@ spec:
               value: /config/config.yaml
             - name: APP.PLATFORM_API_ENDPOINT
               value: {{ .Values.config.app.platformApiEndpoint }}
-            - name: APP.HORIZON_ENDPOINT
-              value: {{ .Values.config.app.horizonEndpoint }}
             - name: DATA.URL
               value: {{ .Values.config.data.url }}
             - name: DATA.USER

@@ -3,7 +3,7 @@
 <!-- TOC -->
 
 * [How to set up the development environment](#how-to-set-up-the-development-environment)
-    * [Install JDK 17](#install-jdk-17)
+    * [Install JDK 11](#install-jdk-11)
     * [Checkout the Project](#checkout-the-project)
     * [Set up `docker`](#set-up-docker)
     * [Set up your hosts file](#set-up-your-hosts-file)
@@ -27,10 +27,10 @@
 
 <!-- TOC -->
 
-## Install JDK 17
+## Install JDK 11
 
 Before you start, please make sure you
-have [JDK-17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) installed on your machine.
+have [JDK-11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html) installed on your machine.
 
 To check if you have it installed, run:
 

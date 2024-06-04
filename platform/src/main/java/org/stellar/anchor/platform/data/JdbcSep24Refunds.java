@@ -41,9 +41,4 @@ public class JdbcSep24Refunds implements Sep24Refunds {
             String.format("Error casting %s to JdbcSep24RefundPayment", rp.getClass()));
     }
   }
-
-  @Override
-  public boolean hasRefundPayments() {
-    return payments != null;
-  }
 }

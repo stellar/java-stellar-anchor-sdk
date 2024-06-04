@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest-8-cores
     steps:
       #############################################
-      # Setup JDK 17
+      # Setup JDK 11
       # Download, and Extract java-stellar-anchor-sdk.tar
       # Setup hostnames (/etc/hosts)
       #############################################
-      - name: Set up JDK 17
+      - name: Set up JDK 11
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'adopt'
 
       - name: Download java-stellar-anchor-sdk.tar
@@ -106,7 +106,7 @@ jobs:
         run: |
           docker run --network host -v /home/runner/java-stellar-anchor-sdk/platform/src/test/resources://config stellar/anchor-tests:v0.6.10 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
 
-      - name: Upload Essential Tests report
+      - name: Upload Essential Tests Report
         if: always()
         uses: actions/upload-artifact@v3
         with:

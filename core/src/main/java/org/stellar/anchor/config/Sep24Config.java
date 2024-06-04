@@ -11,8 +11,6 @@ public interface Sep24Config {
 
   DepositInfoGeneratorType getDepositInfoGeneratorType();
 
-  Long getInitialUserDeadlineSeconds();
-
   @Getter
   @Setter
   class Features {

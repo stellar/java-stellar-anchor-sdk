@@ -27,8 +27,7 @@ import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 
-@Disabled // TODO re-enable tests: https://stellarorg.atlassian.net/browse/ANCHOR-693
-// TODO add refund flow test for withdrawal: https://stellarorg.atlassian.net/browse/ANCHOR-694
+@Disabled
 class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   private val gson = GsonUtils.getInstance()
 

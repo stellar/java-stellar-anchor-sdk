@@ -41,11 +41,6 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
-  public Sep24TransactionBuilder userActionRequiredBy(Instant time) {
-    txn.setUserActionRequiredBy(time);
-    return this;
-  }
-
   public Sep24TransactionBuilder completedAt(Instant time) {
     txn.setCompletedAt(time);
     return this;

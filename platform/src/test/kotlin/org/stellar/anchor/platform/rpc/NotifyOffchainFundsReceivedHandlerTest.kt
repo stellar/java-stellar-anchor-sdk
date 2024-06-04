@@ -404,7 +404,6 @@ class NotifyOffchainFundsReceivedHandlerTest {
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountInAsset = FIAT_USD
-    txn24.userActionRequiredBy = Instant.now()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 

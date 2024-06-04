@@ -56,7 +56,12 @@ dependencies {
   testImplementation(libs.okhttp3.tls)
 }
 
+apply(from = "$rootDir/scripts.gradle.kts")
+@Suppress("UNCHECKED_CAST")
+val enableTestConcurrency = extra["enableTestConcurrency"] as (Test) -> Unit
+
 tasks.test {
+  enableTestConcurrency(this)
   testLogging {
     exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     events = setOf(org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED)
