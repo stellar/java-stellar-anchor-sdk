@@ -12,9 +12,6 @@ include("core")
 /** Anchor Platform */
 include("platform")
 
-/** Admin Server */
-include("admin-server")
-
 /** Reference Server */
 include("kotlin-reference-server")
 
