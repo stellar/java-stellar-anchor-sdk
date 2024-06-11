@@ -22,13 +22,13 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.*
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
-import org.stellar.anchor.config.ClientsConfig.ClientConfig
-import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
-import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.CUSTODIAL
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.NONCUSTODIAL
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.callback.PlatformIntegrationHelperTest.Companion.TEST_HOME_DOMAIN
-import org.stellar.anchor.platform.config.PropertyClientsConfig
+import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor.FORWARD_KYC_CUSTOMER_TYPE
@@ -47,7 +47,7 @@ class SimpleInteractiveUrlConstructorTest {
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
-  @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig
+  @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig_DEPRECATED
   @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var testAsset: AssetInfo
@@ -64,7 +64,7 @@ class SimpleInteractiveUrlConstructorTest {
     secretConfig.setupMock()
 
     val clientConfig =
-      ClientConfig(
+      ClientConfig_DEPRECATED(
         "lobstr",
         NONCUSTODIAL,
         null,
@@ -85,7 +85,7 @@ class SimpleInteractiveUrlConstructorTest {
         "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       )
     } returns
-      ClientConfig(
+      ClientConfig_DEPRECATED(
         "some-wallet",
         CUSTODIAL,
         null,

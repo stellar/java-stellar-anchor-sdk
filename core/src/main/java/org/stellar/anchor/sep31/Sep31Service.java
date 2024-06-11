@@ -59,8 +59,8 @@ import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.ClientsConfig;
-import org.stellar.anchor.config.ClientsConfig.ClientConfig;
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED;
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep31Config;
@@ -79,7 +79,7 @@ public class Sep31Service {
   private final Sep31TransactionStore sep31TransactionStore;
   private final Sep31DepositInfoGenerator sep31DepositInfoGenerator;
   private final Sep38QuoteStore sep38QuoteStore;
-  private final ClientsConfig clientsConfig;
+  private final ClientsConfig_DEPRECATED clientsConfig;
   private final AssetService assetService;
   private final FeeIntegration feeIntegration;
   private final CustomerIntegration customerIntegration;
@@ -97,7 +97,7 @@ public class Sep31Service {
       Sep31TransactionStore sep31TransactionStore,
       Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
-      ClientsConfig clientsConfig,
+      ClientsConfig_DEPRECATED clientsConfig,
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
@@ -585,7 +585,7 @@ public class Sep31Service {
   }
 
   String getClientName(String account) throws BadRequestException {
-    ClientConfig client = clientsConfig.getClientConfigBySigningKey(account);
+    ClientConfig_DEPRECATED client = clientsConfig.getClientConfigBySigningKey(account);
     if (sep10Config.isClientAttributionRequired() && client == null) {
       throw new BadRequestException("Client not found");
     }

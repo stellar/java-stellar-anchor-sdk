@@ -93,6 +93,7 @@ class TestProfileExecutor(val config: TestConfig) {
       val envMap = config.env
 
       envMap["assets.value"] = getResourceFile(envMap["assets.value"]!!).absolutePath
+      envMap["clients.value"] = getResourceFile(envMap["clients.value"]!!).absolutePath
       if (envMap["sep1.toml.type"] != "url" && envMap["sep1.toml.type"] != "string") {
         envMap["sep1.toml.value"] = getResourceFile(envMap["sep1.toml.value"]!!).absolutePath
       }

@@ -8,7 +8,7 @@ import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
-import org.stellar.anchor.platform.config.PropertyClientsConfig;
+import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED;
 import org.stellar.anchor.platform.event.EventProcessorManager;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -22,7 +22,7 @@ public class EventProcessorBeans {
       SecretConfig secretConfig,
       EventProcessorConfig eventProcessorConfig,
       CallbackApiConfig callbackApiConfig,
-      PropertyClientsConfig clientsConfig,
+      PropertyClientsConfig_DEPRECATED clientsConfig,
       EventService eventService,
       AssetService assetService,
       Sep6TransactionStore sep6TransactionStore,

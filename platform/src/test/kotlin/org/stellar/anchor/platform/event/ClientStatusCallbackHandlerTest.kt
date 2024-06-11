@@ -17,8 +17,8 @@ import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.sep24.TransactionResponse
 import org.stellar.anchor.api.sep.sep6.Sep6TransactionResponse
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.config.ClientsConfig.ClientConfig
-import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.CUSTODIAL
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.platform.service.Sep24MoreInfoUrlConstructor
 import org.stellar.anchor.platform.service.Sep6MoreInfoUrlConstructor
@@ -36,7 +36,7 @@ import org.stellar.sdk.KeyPair
 class ClientStatusCallbackHandlerTest {
   private lateinit var handler: ClientStatusCallbackHandler
   private lateinit var secretConfig: PropertySecretConfig
-  private lateinit var clientConfig: ClientConfig
+  private lateinit var clientConfig: ClientConfig_DEPRECATED
   private lateinit var signer: KeyPair
   private lateinit var ts: String
   private lateinit var event: AnchorEvent
@@ -50,7 +50,7 @@ class ClientStatusCallbackHandlerTest {
 
   @BeforeEach
   fun setUp() {
-    clientConfig = ClientConfig()
+    clientConfig = ClientConfig_DEPRECATED()
     clientConfig.type = CUSTODIAL
     clientConfig.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
     clientConfig.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"

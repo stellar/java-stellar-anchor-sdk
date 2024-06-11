@@ -62,7 +62,9 @@ public class SepBeans {
   @Bean
   @ConfigurationProperties(prefix = "sep10")
   Sep10Config sep10Config(
-      AppConfig appConfig, SecretConfig secretConfig, PropertyClientsConfig clientsConfig) {
+      AppConfig appConfig,
+      SecretConfig secretConfig,
+      PropertyClientsConfig_DEPRECATED clientsConfig) {
     return new PropertySep10Config(appConfig, clientsConfig, secretConfig);
   }
 
@@ -125,7 +127,7 @@ public class SepBeans {
 
   @Bean
   @ConditionalOnAnySepsEnabled(seps = {"sep6", "sep24"})
-  ClientFinder clientFinder(Sep10Config sep10Config, ClientsConfig clientsConfig) {
+  ClientFinder clientFinder(Sep10Config sep10Config, ClientsConfig_DEPRECATED clientsConfig) {
     return new ClientFinder(sep10Config, clientsConfig);
   }
 
@@ -182,7 +184,7 @@ public class SepBeans {
   Sep24Service sep24Service(
       AppConfig appConfig,
       Sep24Config sep24Config,
-      ClientsConfig clientsConfig,
+      ClientsConfig_DEPRECATED clientsConfig,
       AssetService assetService,
       JwtService jwtService,
       ClientFinder clientFinder,
@@ -212,7 +214,7 @@ public class SepBeans {
   @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
       AssetService assetService,
-      PropertyClientsConfig clientsConfig,
+      PropertyClientsConfig_DEPRECATED clientsConfig,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
@@ -253,7 +255,7 @@ public class SepBeans {
       Sep31TransactionStore sep31TransactionStore,
       Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
-      PropertyClientsConfig clientsConfig,
+      PropertyClientsConfig_DEPRECATED clientsConfig,
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,

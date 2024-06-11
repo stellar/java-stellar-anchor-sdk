@@ -5,23 +5,23 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
-import org.stellar.anchor.config.ClientsConfig.ClientConfig
-import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
-import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.CUSTODIAL
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.NONCUSTODIAL
 
-class PropertyClientsConfigTest {
-  private lateinit var configs: PropertyClientsConfig
+class PropertyClientsConfigDEPRECATEDDEPRECATEDTest {
+  private lateinit var configs: PropertyClientsConfig_DEPRECATED
   private lateinit var errors: Errors
 
   @BeforeEach
   fun setUp() {
-    configs = PropertyClientsConfig()
+    configs = PropertyClientsConfig_DEPRECATED()
     errors = BindException(configs, "config")
   }
 
   @Test
   fun `test postConstruct`() {
-    val config = ClientConfig()
+    val config = ClientConfig_DEPRECATED()
     config.name = "sampleName"
     config.signingKey = "sampleSigningKey"
     config.domain = "sampleDomain"
@@ -37,7 +37,7 @@ class PropertyClientsConfigTest {
 
   @Test
   fun `test valid custodial client with multiple signing keys`() {
-    val config = ClientConfig()
+    val config = ClientConfig_DEPRECATED()
     config.name = "circle"
     config.type = CUSTODIAL
     config.signingKeys =
@@ -66,7 +66,7 @@ class PropertyClientsConfigTest {
 
   @Test
   fun `test invalid custodial client with empty signing key`() {
-    val config = ClientConfig()
+    val config = ClientConfig_DEPRECATED()
     config.signingKey = ""
     config.signingKeys = emptySet()
     configs.clients.add(config)
@@ -78,7 +78,7 @@ class PropertyClientsConfigTest {
 
   @Test
   fun `test invalid custodial client with both signing key and signing keys`() {
-    val config = ClientConfig()
+    val config = ClientConfig_DEPRECATED()
     config.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
     config.signingKeys =
       setOf(
@@ -94,7 +94,7 @@ class PropertyClientsConfigTest {
 
   @Test
   fun `test valid non-custodial client with multiple domains`() {
-    val config = ClientConfig()
+    val config = ClientConfig_DEPRECATED()
     config.name = "lobstr"
     config.type = NONCUSTODIAL
     config.domains = setOf("lobstr.co", "lobstr.com")
@@ -113,7 +113,7 @@ class PropertyClientsConfigTest {
 
   @Test
   fun `test invalid non-custodial client with empty domain and callback url`() {
-    val config = ClientConfig()
+    val config = ClientConfig_DEPRECATED()
     config.domain = ""
     config.domains = emptySet()
     config.callbackUrl = "  "
@@ -125,7 +125,7 @@ class PropertyClientsConfigTest {
 
   @Test
   fun `test invalid non-custodial client with both domain and domains`() {
-    val config = ClientConfig()
+    val config = ClientConfig_DEPRECATED()
     config.domain = "lobstr.co"
     config.domains = setOf("lobstr.co", "lobstr.com")
     configs.clients.add(config)

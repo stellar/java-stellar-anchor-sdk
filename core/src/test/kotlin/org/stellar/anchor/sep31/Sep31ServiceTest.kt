@@ -272,9 +272,9 @@ class Sep31ServiceTest {
       }
   """
     private val lobstrClientConfig =
-      ClientsConfig.ClientConfig(
+      ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED(
         "lobstr",
-        ClientsConfig.ClientType.NONCUSTODIAL,
+        ClientsConfig_DEPRECATED.ClientType.NONCUSTODIAL,
         null,
         setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
         null,
@@ -302,7 +302,7 @@ class Sep31ServiceTest {
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) lateinit var custodySecretConfig: CustodySecretConfig
-  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig
+  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig_DEPRECATED
   @MockK(relaxed = true) lateinit var sep10Config: Sep10Config
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
@@ -788,7 +788,7 @@ class Sep31ServiceTest {
     // mock client config
     every { sep10Config.allowedClientNames } returns listOf("vibrant")
     every { clientsConfig.getClientConfigBySigningKey(any()) } returns
-      ClientsConfig.ClientConfig().apply {
+      ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED().apply {
         domains = setOf("vibrant.stellar.org")
         name = "vibrant"
       }
