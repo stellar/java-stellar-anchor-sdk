@@ -16,9 +16,11 @@ import org.stellar.anchor.api.rpc.method.features.SupportsUserActionRequiredBy;
 public class RequestCustomerInfoUpdateRequest extends RpcMethodParamsRequest
     implements SupportsUserActionRequiredBy {
 
+  @Deprecated
   @SerializedName("required_customer_info_message")
   private String requiredCustomerInfoMessage;
 
+  @Deprecated
   @SerializedName("required_customer_info_updates")
   private List<String> requiredCustomerInfoUpdates;
 
