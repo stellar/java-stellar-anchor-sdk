@@ -335,12 +335,12 @@ class Sep6EventProcessor(
     val missingFields = verifyKyc(customer.account, customer.memo, kind)
     runBlocking {
       if (missingFields.isNotEmpty()) {
+        customerService.requestKycForTransaction(event.payload.transaction.id, missingFields)
         sepHelper.rpcAction(
           RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE.toString(),
           RequestCustomerInfoUpdateHandler(
             transactionId = event.payload.transaction.id,
             message = "Please update your info",
-            requiredCustomerInfoUpdates = missingFields,
           ),
         )
       }

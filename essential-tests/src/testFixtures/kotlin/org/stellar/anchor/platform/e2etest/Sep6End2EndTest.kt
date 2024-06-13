@@ -63,7 +63,8 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
+    val customer =
+      anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
 
     val deposit =
       sep6Client.deposit(
@@ -79,7 +80,13 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
 
     // Supply missing KYC info to continue with the transaction
     val additionalRequiredFields =
-      sep6Client.getTransaction(mapOf("id" to deposit.id)).transaction.requiredCustomerInfoUpdates
+      anchor
+        .customer(token)
+        .get(id = customer.id, memo = memo, transactionId = deposit.id)
+        .fields
+        ?.filter { it.key != null && it.value?.optional == false }
+        ?.map { it.key!! }
+        .orEmpty()
     anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! }, memo)
     Log.info("Submitted additional KYC info: $additionalRequiredFields")
     Log.info("Bank transfer complete")
@@ -127,7 +134,8 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
+    val customer =
+      anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
 
     val withdraw =
       sep6Client.withdraw(
@@ -138,7 +146,13 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
 
     // Supply missing financial account info to continue with the transaction
     val additionalRequiredFields =
-      sep6Client.getTransaction(mapOf("id" to withdraw.id)).transaction.requiredCustomerInfoUpdates
+      anchor
+        .customer(token)
+        .get(id = customer.id, memo = memo, transactionId = withdraw.id)
+        .fields
+        ?.filter { it.key != null && it.value?.optional == false }
+        ?.map { it.key!! }
+        .orEmpty()
     anchor.customer(token).add(additionalRequiredFields.associateWith { customerInfo[it]!! }, memo)
     Log.info("Submitted additional KYC info: $additionalRequiredFields")
 

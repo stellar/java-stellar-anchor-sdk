@@ -15,6 +15,7 @@ import org.stellar.reference.dao.CustomerRepository
 import org.stellar.reference.dao.TransactionKYCRepository
 import org.stellar.reference.log
 import org.stellar.reference.model.Customer
+import org.stellar.reference.model.TransactionKYC
 
 class CustomerService(
   private val customerRepository: CustomerRepository,
@@ -41,6 +42,7 @@ class CustomerService(
       }
     if (request.transactionId != null) {
       val transactionKYC = transactionKYCRepository.get(request.transactionId)
+      log.info { "Transaction KYC: $transactionKYC" }
       if (transactionKYC != null) {
         return convertCustomerToResponse(customer, request.type, transactionKYC.requiredFields)
       }
@@ -166,6 +168,11 @@ class CustomerService(
       )
       return PutCustomerResponse(id)
     }
+  }
+
+  fun requestKycForTransaction(id: String, requiredFields: List<String>) {
+    val kyc = TransactionKYC(id, null, requiredFields)
+    transactionKYCRepository.create(kyc)
   }
 
   fun deleteCustomer(id: String) {
