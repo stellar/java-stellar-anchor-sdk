@@ -42,7 +42,6 @@ class CustomerService(
       }
     if (request.transactionId != null) {
       val transactionKYC = transactionKYCRepository.get(request.transactionId)
-      log.info { "Transaction KYC: $transactionKYC" }
       if (transactionKYC != null) {
         return convertCustomerToResponse(customer, request.type, transactionKYC.requiredFields)
       }
