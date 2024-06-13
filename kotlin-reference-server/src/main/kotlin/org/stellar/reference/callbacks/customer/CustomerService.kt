@@ -170,8 +170,11 @@ class CustomerService(
     }
   }
 
-  fun requestKycForTransaction(id: String, requiredFields: List<String>) {
-    val kyc = TransactionKYC(id, null, requiredFields)
+  fun requestAdditionalFieldsForTransaction(id: String, requiredFields: List<String>) {
+    val kyc = TransactionKYC(id, requiredFields)
+    if (transactionKYCRepository.get(id) != null) {
+      transactionKYCRepository.delete(id)
+    }
     transactionKYCRepository.create(kyc)
   }
 
