@@ -1,5 +1,6 @@
 package org.stellar.anchor.client;
 
+import com.google.gson.annotations.SerializedName;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,13 +17,8 @@ public class CustodialClientConfig implements ClientConfig {
    */
   @NonNull String name;
 
-  /**
-   * The public key used for SEP-10 authentication. If a SEP-10 request is signed with this key, the
-   * service will activate the callback if the callback_url is provided.
-   */
-  String signingKey; // ANCHOR-696
-
   /** The public keys used for SEP-10 authentication. */
+  @SerializedName("signing_keys")
   Set<String> signingKeys;
 
   /**
@@ -30,6 +26,7 @@ public class CustodialClientConfig implements ClientConfig {
    * actions. Optional due to some wallets may opt to poll instead, or may use polling first before
    * implementing callbacks at a later stage.
    */
+  @SerializedName("callback_url")
   String callbackUrl;
 
   /**
@@ -37,11 +34,13 @@ public class CustodialClientConfig implements ClientConfig {
    * account. Defaults to false which enforcing the destination account be listed in the
    * destination_accounts list.
    */
+  @SerializedName("allow_any_destination")
   boolean allowAnyDestination = false;
 
   /**
    * A list of destination accounts that the client is allowed to send assets to. If
    * allow_any_destination is set to false, the destination account must be in this list.
    */
+  @SerializedName("destination_accounts")
   Set<String> destinationAccounts;
 }

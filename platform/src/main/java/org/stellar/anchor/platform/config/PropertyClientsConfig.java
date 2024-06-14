@@ -1,19 +1,28 @@
 package org.stellar.anchor.platform.config;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static org.stellar.anchor.client.DefaultClientService.*;
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.error;
 
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.client.DefaultClientService;
+import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.client.CustodialClientConfig;
+import org.stellar.anchor.client.NonCustodialClientConfig;
 import org.stellar.anchor.config.ClientsConfig;
-import org.stellar.anchor.util.StringHelper;
 
 @Data
 public class PropertyClientsConfig implements ClientsConfig, Validator {
-  ClientsConfigType type;
+  String type;
   String value;
+  List<CustodialClientConfig> custodial = emptyList();
+  List<NonCustodialClientConfig> noncustodial = emptyList();
 
   @Override
   public boolean supports(@NotNull Class<?> clazz) {
@@ -22,38 +31,46 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
 
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    // TODO(jiahui): ANCHOR-622 Support more types of clients config
-    if (this.getType() == null) {
-      errors.reject("invalid-no-type-defined", "clients.type is empty. Please define.");
-    }
-    if (StringHelper.isEmpty(this.getValue())) {
-      errors.reject("invalid-no-value-defined", "clients.value is empty. Please define.");
+    if (type.equals(CLIENTS_CONFIG_TYPE_FILE)) {
+      // validate file type
+      Map<String, Object> map = emptyMap();
+      try {
+        map = parseFileToMap(this.getValue());
+      } catch (InvalidConfigException e) {
+        error("Error loading clients file", e);
+        errors.reject(
+            "clients-file-not-valid", "Cannot read from clients file: " + this.getValue());
+      }
+      // validate file content
+      validateCustodialClients(getCustodialClientsFromMap(map), errors);
+      validateNonCustodialClients(getNonCustodialClientsFromMap(map), errors);
     } else {
-      switch (this.getType()) {
-        case FILE:
-          try {
-            DefaultClientService.fromClientsConfig(this);
-          } catch (Exception ex) {
-            error("Error loading clients file", ex);
-            errors.reject(
-                "clients-file-not-valid", "Cannot read from clients file: " + this.getValue());
-          }
-          break;
-        case YAML:
-          try {
-            DefaultClientService.fromYamlResourceFile(this.getValue());
-          } catch (Exception ex) {
-            error("Error loading clients YAML", ex);
-            errors.reject(
-                "invalid-clients-yaml-format",
-                "clients.value does not contain a valid YAML string for clients");
-          }
-          break;
-        default:
-          errors.reject(
-              "invalid-type-defined",
-              String.format("clients.type:%s is not supported.", this.getType()));
-          break;
+      // validate inline config
+      validateCustodialClients(custodial, errors);
+      validateNonCustodialClients(noncustodial, errors);
+    }
+  }
+
+  void validateCustodialClients(List<CustodialClientConfig> clients, Errors errors) {
+    for (CustodialClientConfig client : clients) {
+      debugF("Validating custodial client {}", client);
+      if (client.getSigningKeys() == null || client.getSigningKeys().isEmpty()) {
+        errors.reject(
+            "invalid-custodial-client-config",
+            String.format(
+                "Custodial client %s must have at least one signing key", client.getName()));
+      }
+    }
+  }
+
+  void validateNonCustodialClients(List<NonCustodialClientConfig> clients, Errors errors) {
+    for (NonCustodialClientConfig client : clients) {
+      debugF("Validating noncustodial client {}", client);
+      if (client.getDomains() == null || client.getDomains().isEmpty()) {
+        errors.reject(
+            "invalid-noncustodial-client-config",
+            String.format(
+                "NonCustodial client %s must have at least one domain", client.getName()));
       }
     }
   }

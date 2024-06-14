@@ -11,6 +11,8 @@ callback_api.base_url:
 callback_api.check_certificate:
 clients.type:
 clients.value:
+clients.custodial:
+clients.noncustodial:
 clients: # ANCHOR-622 remove after migration
 data.database:
 data.ddl_auto:

@@ -1,20 +1,17 @@
 package org.stellar.anchor.config;
 
-import com.google.gson.annotations.SerializedName;
+import java.util.List;
+import org.stellar.anchor.client.CustodialClientConfig;
+import org.stellar.anchor.client.NonCustodialClientConfig;
 
 public interface ClientsConfig {
-  ClientsConfigType getType();
+  String CLIENTS_CONFIG_TYPE_FILE = "file";
+
+  String getType();
 
   String getValue();
 
-  enum ClientsConfigType {
-    @SerializedName("json")
-    JSON,
-    @SerializedName("yaml")
-    YAML,
-    @SerializedName("file")
-    FILE,
-    @SerializedName("url")
-    URL;
-  }
+  List<CustodialClientConfig> getCustodial();
+
+  List<NonCustodialClientConfig> getNoncustodial();
 }

@@ -676,13 +676,39 @@ assets:
 ##############################
 # The list of clients for the Anchor server to safely communicate with the outside wallet servers or clients.
 # The list is empty if not defined.
+# You can either use a file to provide the configuration or define it inline.
+# Use only one of the following combinations:
 clients:
-  # `type` can be one of the following.
-  #     `file`: value field contains the path to the assets file. The file name can be *.json or *.yaml.
-  #     `url`: value contains the url to the assets file. The file name can be *.json or *.yaml.
+  # Option 1: Use a file to provide the configuration.
+  # Specify the type as 'file' and provide the file path in the value field.
+  # The file can only be in .yaml or .json format.
+  # The file content should follow the format used in Option 2.
+  #
+  # type: file
+  # value: path/to/file.yaml
+
+  # Option 2: Define custodial and noncustodial clients inline.
+  # Comment out the type and value fields above and define your clients directly here.
+  #
+  # custodial:
+  #   - name: client1
+  #     signingKeys:
+  #       - singingKey1
+  #       - singingKey2
+  #     callbackUrl: http://client1/callbacks
+  #     allowAnyDestination: false
+  #     destinationAccounts:
+  #       - GDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+  #
+  # noncustodial:
+  #   - name: client2
+  #     domains:
+  #       - client2.com
+  #     callbackUrl: null
   type:
-  # The value of the clients definition depending on the `type` field.
   value:
+  custodial:
+  noncustodial:
 
 ################################
 # Data Configuration
