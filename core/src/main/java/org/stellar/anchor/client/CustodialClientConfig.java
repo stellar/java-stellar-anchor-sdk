@@ -30,16 +30,17 @@ public class CustodialClientConfig implements ClientConfig {
   String callbackUrl;
 
   /**
-   * A boolean flag that, when set to true, permits the client to send assets to any destination
-   * account. Defaults to false which enforcing the destination account be listed in the
+   * A boolean flag that, when set to true, allows deposits to be received from any destination
+   * account. Defaults to false, which enforces that the destination account must be listed in the
    * destination_accounts list.
    */
   @SerializedName("allow_any_destination")
   boolean allowAnyDestination = false;
 
   /**
-   * A list of destination accounts that the client is allowed to send assets to. If
-   * allow_any_destination is set to false, the destination account must be in this list.
+   * list of accounts allowed to be used for the deposit. By default, only SEP-10 authenticated
+   * account can be used to deposit funds into. If allows_any_destinations set to true, this
+   * configuration option is ignored.
    */
   @SerializedName("destination_accounts")
   Set<String> destinationAccounts;
