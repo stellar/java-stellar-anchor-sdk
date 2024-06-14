@@ -1,4 +1,3 @@
-
 services:
   platform:
     extends:

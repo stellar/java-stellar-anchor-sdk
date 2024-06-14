@@ -1,4 +1,3 @@
-
 services:
   kafka:
     hostname: kafka
