@@ -30,9 +30,8 @@ public class CustodialClientConfig implements ClientConfig {
   String callbackUrl;
 
   /**
-   * A boolean flag that, when set to true, allows deposits to be received from any destination
-   * account. Defaults to false, which enforces that the destination account must be listed in the
-   * destination_accounts list.
+   * A boolean flag that, when set to true, allows any destination for deposits. Defaults to false,
+   * which enforces that the destination account must be listed in the destination_accounts list.
    */
   @SerializedName("allow_any_destination")
   boolean allowAnyDestination = false;
