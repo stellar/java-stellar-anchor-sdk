@@ -10,6 +10,7 @@ import org.stellar.reference.callbacks.uniqueaddress.UniqueAddressService
 import org.stellar.reference.client.PlatformClient
 import org.stellar.reference.dao.JdbcCustomerRepository
 import org.stellar.reference.dao.JdbcQuoteRepository
+import org.stellar.reference.dao.JdbcTransactionKYCRepository
 import org.stellar.reference.event.EventService
 import org.stellar.reference.sep24.DepositService
 import org.stellar.reference.sep24.WithdrawalService
@@ -30,11 +31,12 @@ object ServiceContainer {
       "jdbc:postgresql://${config.dataSettings.url}/${config.dataSettings.database}",
       driver = "org.postgresql.Driver",
       user = config.dataSettings.user,
-      password = config.dataSettings.password
+      password = config.dataSettings.password,
     )
   private val customerRepo = JdbcCustomerRepository(database)
+  private val transactionKYCRepo = JdbcTransactionKYCRepository(database)
   private val quotesRepo = JdbcQuoteRepository(database)
-  val customerService = CustomerService(customerRepo)
+  val customerService = CustomerService(customerRepo, transactionKYCRepo)
   val feeService = FeeService(customerRepo)
   val rateService = RateService(quotesRepo)
   val uniqueAddressService = UniqueAddressService(config.appSettings)
@@ -48,6 +50,6 @@ object ServiceContainer {
           socketTimeoutMillis = 5000
         }
       },
-      config.appSettings.platformApiEndpoint
+      config.appSettings.platformApiEndpoint,
     )
 }

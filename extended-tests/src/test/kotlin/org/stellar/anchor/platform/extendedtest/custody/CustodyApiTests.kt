@@ -404,7 +404,7 @@ private const val WEBHOOK_REQUEST =
     "destinationAddressDescription": "",
     "destinationTag": "",
     "status": "CONFIRMING",
-    "txHash": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+    "txHash": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
     "subStatus": "CONFIRMED",
     "signedBy": [],
     "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
@@ -470,7 +470,7 @@ private const val REFUND_WEBHOOK_REQUEST =
     "destinationAddressDescription": "",
     "destinationTag": "12345",
     "status": "CONFIRMING",
-    "txHash": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+    "txHash": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
     "subStatus": "CONFIRMED",
     "signedBy": [],
     "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
@@ -539,7 +539,7 @@ private const val EXPECTED_TRANSACTION_RESPONSE =
   "external_transaction_id": "1",
   "stellar_transactions": [
     {
-      "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+      "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
       "payments": [
         {
           "amount": {
@@ -594,7 +594,7 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
     },
     "payments": [
       {
-        "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+        "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
         "id_type": "stellar",
         "amount": {
           "amount": "1.0000000",
@@ -609,7 +609,7 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
   },
   "stellar_transactions": [
     {
-      "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+      "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
       "memo": "testTag",
       "memo_type": "id",
       "payments": [
@@ -703,7 +703,7 @@ private const val NOTIFY_ONCHAIN_FUNDS_RECEIVED_REQUEST =
   {
     "transaction_id": "TX_ID",
     "message": "test message 1",
-    "stellar_transaction_id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2"
+    "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
   }
 """
 

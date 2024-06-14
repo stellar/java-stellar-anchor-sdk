@@ -18,6 +18,9 @@ public class Sep12GetCustomerRequest implements Sep12CustomerRequestBase {
   String account;
   String memo;
 
+  @SerializedName("transaction_id")
+  String transactionId;
+
   @SerializedName("memo_type")
   String memoType;
 
