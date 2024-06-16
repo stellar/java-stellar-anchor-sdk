@@ -82,7 +82,7 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
     val additionalRequiredFields =
       anchor
         .customer(token)
-        .get(id = customer.id, memo = memo, transactionId = deposit.id)
+        .get(transactionId = deposit.id)
         .fields
         ?.filter { it.key != null && it.value?.optional == false }
         ?.map { it.key!! }
@@ -148,7 +148,7 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
     val additionalRequiredFields =
       anchor
         .customer(token)
-        .get(id = customer.id, memo = memo, transactionId = withdraw.id)
+        .get(transactionId = withdraw.id)
         .fields
         ?.filter { it.key != null && it.value?.optional == false }
         ?.map { it.key!! }
