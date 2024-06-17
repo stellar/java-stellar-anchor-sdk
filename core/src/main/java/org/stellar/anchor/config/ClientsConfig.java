@@ -1,32 +1,17 @@
 package org.stellar.anchor.config;
 
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.List;
+import org.stellar.anchor.client.CustodialClientConfig;
+import org.stellar.anchor.client.NonCustodialClientConfig;
 
 public interface ClientsConfig {
-  @Data
-  @AllArgsConstructor
-  @NoArgsConstructor
-  class ClientConfig {
-    String name;
-    ClientType type;
-    @Deprecated String signingKey; // ANCHOR-696
-    Set<String> signingKeys;
-    @Deprecated String domain; // ANCHOR-696
-    Set<String> domains;
-    String callbackUrl;
-    boolean allowAnyDestination = false;
-    Set<String> destinationAccounts;
-  }
+  String CLIENTS_CONFIG_TYPE_FILE = "file";
 
-  enum ClientType {
-    CUSTODIAL,
-    NONCUSTODIAL
-  }
+  String getType();
 
-  ClientConfig getClientConfigBySigningKey(String signingKey);
+  String getValue();
 
-  ClientConfig getClientConfigByDomain(String domain);
+  List<CustodialClientConfig> getCustodial();
+
+  List<NonCustodialClientConfig> getNoncustodial();
 }

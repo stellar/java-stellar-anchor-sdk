@@ -9,7 +9,11 @@ callback_api.auth.jwt.http_header:
 callback_api.auth.type:
 callback_api.base_url:
 callback_api.check_certificate:
-clients:
+clients.type:
+clients.value:
+clients.custodial:
+clients.noncustodial:
+clients: # ANCHOR-622 remove after migration
 data.database:
 data.ddl_auto:
 data.flyway_baseline_on_migrate:

@@ -121,9 +121,9 @@ internal class Sep24ServiceTest {
 
   @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
 
-  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig
+  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig_DEPRECATED
 
-  @MockK(relaxed = true) lateinit var clientConfig: ClientsConfig.ClientConfig
+  @MockK(relaxed = true) lateinit var clientConfig: ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED
 
   @MockK(relaxed = true) lateinit var sep38QuoteStore: Sep38QuoteStore
 

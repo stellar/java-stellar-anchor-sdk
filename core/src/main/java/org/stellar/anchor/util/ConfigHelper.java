@@ -3,7 +3,7 @@ package org.stellar.anchor.util;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import org.stellar.anchor.api.exception.SepValidationException;
-import org.stellar.anchor.config.ClientsConfig;
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED;
 import org.stellar.anchor.sep24.Sep24Transaction;
 
 public final class ConfigHelper {
@@ -18,13 +18,14 @@ public final class ConfigHelper {
    * @return client config by the predicate. If not found, returns null.
    * @throws SepValidationException if the client config failed to validate.
    */
-  public static ClientsConfig.ClientConfig getClientConfig(
-      ClientsConfig clientsConfig, String clientDomain, String sep10Account)
+  public static ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED getClientConfig(
+      ClientsConfig_DEPRECATED clientsConfig, String clientDomain, String sep10Account)
       throws SepValidationException {
-    ClientsConfig.ClientConfig clientConfig;
+    ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED clientConfig;
     if (isEmpty(clientDomain)) {
       clientConfig = clientsConfig.getClientConfigBySigningKey(sep10Account);
-      if (clientConfig != null && clientConfig.getType() == ClientsConfig.ClientType.NONCUSTODIAL) {
+      if (clientConfig != null
+          && clientConfig.getType() == ClientsConfig_DEPRECATED.ClientType.NONCUSTODIAL) {
         throw new SepValidationException("Non-custodial clients must specify a client_domain");
       }
     } else {
@@ -33,8 +34,8 @@ public final class ConfigHelper {
     return clientConfig;
   }
 
-  public static ClientsConfig.ClientConfig getClientConfig(
-      ClientsConfig clientsConfig, Sep24Transaction txn) throws SepValidationException {
+  public static ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED getClientConfig(
+      ClientsConfig_DEPRECATED clientsConfig, Sep24Transaction txn) throws SepValidationException {
     return getClientConfig(clientsConfig, txn.getClientDomain(), txn.getSep10Account());
   }
 }

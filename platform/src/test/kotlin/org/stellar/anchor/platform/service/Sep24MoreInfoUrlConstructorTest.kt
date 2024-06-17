@@ -18,13 +18,13 @@ import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt
-import org.stellar.anchor.config.ClientsConfig.ClientConfig
-import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
-import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.CUSTODIAL
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.NONCUSTODIAL
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig
-import org.stellar.anchor.platform.config.PropertyClientsConfig
+import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.utils.setupMock
 import org.stellar.anchor.util.GsonUtils
@@ -38,7 +38,7 @@ class Sep24MoreInfoUrlConstructorTest {
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
-  @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig
+  @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig_DEPRECATED
   @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
 
   private lateinit var jwtService: JwtService
@@ -49,7 +49,7 @@ class Sep24MoreInfoUrlConstructorTest {
     secretConfig.setupMock()
 
     val clientConfig =
-      ClientConfig(
+      ClientConfig_DEPRECATED(
         "lobstr",
         NONCUSTODIAL,
         null,
@@ -70,7 +70,7 @@ class Sep24MoreInfoUrlConstructorTest {
         "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       )
     } returns
-      ClientConfig(
+      ClientConfig_DEPRECATED(
         "some-wallet",
         CUSTODIAL,
         null,

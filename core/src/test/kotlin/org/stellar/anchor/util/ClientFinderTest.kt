@@ -13,7 +13,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.client.ClientFinder
-import org.stellar.anchor.config.ClientsConfig
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.sep6.ExchangeAmountsCalculatorTest
 
@@ -21,9 +21,9 @@ class ClientFinderTest {
   companion object {
     val token = TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO)
     val clientConfig =
-      ClientsConfig.ClientConfig(
+      ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED(
         "name",
-        ClientsConfig.ClientType.CUSTODIAL,
+        ClientsConfig_DEPRECATED.ClientType.CUSTODIAL,
         null,
         setOf("signing-key"),
         null,
@@ -35,7 +35,7 @@ class ClientFinderTest {
   }
 
   @MockK(relaxed = true) lateinit var sep10Config: Sep10Config
-  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig
+  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig_DEPRECATED
 
   private lateinit var clientFinder: ClientFinder
 

@@ -45,7 +45,7 @@ public class UtilityBeans {
   @Qualifier("sep6MoreInfoUrlConstructor")
   MoreInfoUrlConstructor sep6MoreInfoUrlConstructor(
       AssetService assetService,
-      PropertyClientsConfig clientsConfig,
+      PropertyClientsConfig_DEPRECATED clientsConfig,
       PropertySep6Config sep6Config,
       JwtService jwtService) {
     return new Sep6MoreInfoUrlConstructor(
@@ -56,7 +56,7 @@ public class UtilityBeans {
   @Qualifier("sep24MoreInfoUrlConstructor")
   MoreInfoUrlConstructor sep24MoreInfoUrlConstructor(
       AssetService assetService,
-      PropertyClientsConfig clientsConfig,
+      PropertyClientsConfig_DEPRECATED clientsConfig,
       PropertySep24Config sep24Config,
       JwtService jwtService) {
     return new Sep24MoreInfoUrlConstructor(

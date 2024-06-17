@@ -11,17 +11,17 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.MoreInfoUrlJwt;
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig;
-import org.stellar.anchor.platform.config.PropertyClientsConfig;
+import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED;
 
 public abstract class SimpleMoreInfoUrlConstructor implements MoreInfoUrlConstructor {
   final AssetService assetService;
-  PropertyClientsConfig clientsConfig;
+  PropertyClientsConfig_DEPRECATED clientsConfig;
   final MoreInfoUrlConfig config;
   private final JwtService jwtService;
 
   public SimpleMoreInfoUrlConstructor(
       AssetService assetService,
-      PropertyClientsConfig clientsConfig,
+      PropertyClientsConfig_DEPRECATED clientsConfig,
       MoreInfoUrlConfig config,
       JwtService jwtService) {
     this.assetService = assetService;

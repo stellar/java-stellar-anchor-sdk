@@ -23,7 +23,6 @@ import org.stellar.anchor.config.*
 import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
-import org.stellar.anchor.platform.service.Sep31DepositInfoSelfGenerator
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
 
@@ -56,7 +55,7 @@ class Sep31DepositInfoGeneratorTest {
   @MockK(relaxed = true) private lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) private lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) private lateinit var quoteStore: Sep38QuoteStore
-  @MockK(relaxed = true) private lateinit var clientsConfig: ClientsConfig
+  @MockK(relaxed = true) private lateinit var clientsConfig: ClientsConfig_DEPRECATED
   @MockK(relaxed = true) private lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var eventPublishService: EventService

@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.config;
 
 import static java.lang.String.format;
-import static org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL;
-import static org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL;
+import static org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.CUSTODIAL;
+import static org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.NONCUSTODIAL;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.ClientsConfig.ClientConfig;
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.util.KeyUtil;
@@ -34,12 +34,14 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private Integer jwtTimeout = 86400;
   private List<String> knownCustodialAccountList;
   private AppConfig appConfig;
-  private final PropertyClientsConfig clientsConfig;
+  private final PropertyClientsConfig_DEPRECATED clientsConfig;
   private SecretConfig secretConfig;
   private boolean requireAuthHeader = false;
 
   public PropertySep10Config(
-      AppConfig appConfig, PropertyClientsConfig clientsConfig, SecretConfig secretConfig) {
+      AppConfig appConfig,
+      PropertyClientsConfig_DEPRECATED clientsConfig,
+      SecretConfig secretConfig) {
     this.appConfig = appConfig;
     this.clientsConfig = clientsConfig;
     this.secretConfig = secretConfig;
@@ -158,7 +160,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       List<String> nonCustodialClientNames =
           clientsConfig.clients.stream()
               .filter(cfg -> cfg.getType() == NONCUSTODIAL)
-              .map(ClientConfig::getName)
+              .map(ClientConfig_DEPRECATED::getName)
               .collect(Collectors.toList());
 
       if (nonCustodialClientNames.isEmpty()) {
@@ -235,7 +237,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
     // if clientAllowList is not defined, all clients from the clients section are allowed.
     if (clientAllowList == null || clientAllowList.isEmpty()) {
       return clientsConfig.clients.stream()
-          .map(ClientConfig::getName)
+          .map(ClientConfig_DEPRECATED::getName)
           .filter(StringHelper::isNotEmpty)
           .collect(Collectors.toList());
     }

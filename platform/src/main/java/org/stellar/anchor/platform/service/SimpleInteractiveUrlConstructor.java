@@ -21,7 +21,8 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt;
-import org.stellar.anchor.platform.config.PropertyClientsConfig;
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED;
+import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED;
 import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
@@ -31,14 +32,14 @@ import org.stellar.anchor.util.GsonUtils;
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   public static final String FORWARD_KYC_CUSTOMER_TYPE = "sep24-customer";
   private final AssetService assetService;
-  private final PropertyClientsConfig clientsConfig;
+  private final PropertyClientsConfig_DEPRECATED clientsConfig;
   private final PropertySep24Config sep24Config;
   private final CustomerIntegration customerIntegration;
   private final JwtService jwtService;
 
   public SimpleInteractiveUrlConstructor(
       AssetService assetService,
-      PropertyClientsConfig clientsConfig,
+      PropertyClientsConfig_DEPRECATED clientsConfig,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
@@ -79,7 +80,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   @SneakyThrows
   String constructToken(
       Sep24Transaction txn, Map<String, String> request, AssetInfo asset, String homeDomain) {
-    PropertyClientsConfig.ClientConfig clientConfig =
+    ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED clientConfig =
         ConfigHelper.getClientConfig(clientsConfig, txn);
 
     debugF(

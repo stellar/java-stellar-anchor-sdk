@@ -44,7 +44,7 @@ import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.client.ClientFinder;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.ClientsConfig;
+import org.stellar.anchor.config.ClientsConfig_DEPRECATED;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
@@ -58,7 +58,7 @@ public class Sep24Service {
 
   final AppConfig appConfig;
   final Sep24Config sep24Config;
-  final ClientsConfig clientsConfig;
+  final ClientsConfig_DEPRECATED clientsConfig;
   final AssetService assetService;
   final JwtService jwtService;
   final ClientFinder clientFinder;
@@ -90,7 +90,7 @@ public class Sep24Service {
   public Sep24Service(
       AppConfig appConfig,
       Sep24Config sep24Config,
-      ClientsConfig clientsConfig,
+      ClientsConfig_DEPRECATED clientsConfig,
       AssetService assetService,
       JwtService jwtService,
       ClientFinder clientFinder,
@@ -331,7 +331,7 @@ public class Sep24Service {
     }
 
     if (!destinationAccount.equals(token.getAccount())) {
-      ClientsConfig.ClientConfig clientConfig =
+      ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED clientConfig =
           ConfigHelper.getClientConfig(clientsConfig, token.getClientDomain(), token.getAccount());
       if (clientConfig != null && clientConfig.getDestinationAccounts() != null) {
         if (!clientConfig.getDestinationAccounts().contains(destinationAccount)) {
