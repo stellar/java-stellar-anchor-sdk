@@ -125,7 +125,7 @@ public class SepBeans {
   }
 
   @Bean
-  @ConditionalOnAnySepsEnabled(seps = {"sep6", "sep24"})
+  @ConditionalOnAnySepsEnabled(seps = {"sep6", "sep10", "sep24"})
   ClientFinder clientFinder(Sep10Config sep10Config, ClientsConfig clientsConfig) {
     return new ClientFinder(sep10Config, clientsConfig);
   }
