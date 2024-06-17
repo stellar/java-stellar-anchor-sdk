@@ -1,17 +1,18 @@
 package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL_EXCHANGE;
-import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
+import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_TRANSACTION_ON_HOLD;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.HashSet;
 import java.util.Set;
-import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
-import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
+import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
-import org.stellar.anchor.api.rpc.method.NotifyOffchainFundsAvailableRequest;
+import org.stellar.anchor.api.rpc.method.NotifyTransactionOnHoldRequest;
 import org.stellar.anchor.api.rpc.method.RpcMethod;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
@@ -25,10 +26,10 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
-public class NotifyOffchainFundsAvailableHandler
-    extends RpcMethodHandler<NotifyOffchainFundsAvailableRequest> {
+public class NotifyTransactionOnHoldHandler
+    extends RpcMethodHandler<NotifyTransactionOnHoldRequest> {
 
-  public NotifyOffchainFundsAvailableHandler(
+  public NotifyTransactionOnHoldHandler(
       Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
@@ -44,48 +45,44 @@ public class NotifyOffchainFundsAvailableHandler
         assetService,
         eventService,
         metricsService,
-        NotifyOffchainFundsAvailableRequest.class);
+        NotifyTransactionOnHoldRequest.class);
   }
 
   @Override
   public RpcMethod getRpcMethod() {
-    return NOTIFY_OFFCHAIN_FUNDS_AVAILABLE;
+    return NOTIFY_TRANSACTION_ON_HOLD;
   }
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, NotifyOffchainFundsAvailableRequest request)
-      throws InvalidRequestException {
-    return PENDING_USR_TRANSFER_COMPLETE;
+      JdbcSepTransaction txn, NotifyTransactionOnHoldRequest request) {
+    return ON_HOLD;
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    switch (Sep.from(txn.getProtocol())) {
-      case SEP_6:
+    if (Set.of(SEP_6, SEP_24).contains(Sep.from(txn.getProtocol()))) {
+      Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
+      supportedStatuses.add(PENDING_USR_TRANSFER_START);
+      Sep from = Sep.from(txn.getProtocol());
+      if (from == SEP_6) {
         JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
-        if (ImmutableSet.of(WITHDRAWAL, WITHDRAWAL_EXCHANGE).contains(Kind.from(txn6.getKind()))
-            && areFundsReceived(txn6)) {
-          return Set.of(PENDING_ANCHOR, ON_HOLD);
+        if (ImmutableSet.of(WITHDRAWAL, WITHDRAWAL_EXCHANGE)
+            .contains(PlatformTransactionData.Kind.from((txn6).getKind()))) {
+          supportedStatuses.add(PENDING_ANCHOR);
         }
-        break;
-      case SEP_24:
+      } else if (from == SEP_24) {
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-        if (WITHDRAWAL == Kind.from(txn24.getKind()) && areFundsReceived(txn24)) {
-          return Set.of(PENDING_ANCHOR, ON_HOLD);
+        if (WITHDRAWAL == PlatformTransactionData.Kind.from(txn24.getKind())) {
+          supportedStatuses.add(PENDING_ANCHOR);
         }
-        break;
-      default:
-        break;
+      }
+      return supportedStatuses;
     }
     return emptySet();
   }
 
   @Override
   protected void updateTransactionWithRpcRequest(
-      JdbcSepTransaction txn, NotifyOffchainFundsAvailableRequest request) {
-    if (request.getExternalTransactionId() != null) {
-      txn.setExternalTransactionId(request.getExternalTransactionId());
-    }
-  }
+      JdbcSepTransaction txn, NotifyTransactionOnHoldRequest request) {}
 }
