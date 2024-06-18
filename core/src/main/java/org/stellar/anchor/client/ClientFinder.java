@@ -28,8 +28,7 @@ public class ClientFinder {
   @Nullable
   public String getClientName(String clientDomain, String account)
       throws SepNotAuthorizedException {
-    ClientConfig client =
-        clientService.getClientConfigByDomainAndSep10Account(clientDomain, account);
+    ClientConfig client = getClient(clientDomain, account);
 
     // If client attribution is not required, return the client name
     if (!sep10Config.isClientAttributionRequired()) {
@@ -51,5 +50,12 @@ public class ClientFinder {
   @Nullable
   public String getClientName(Sep10Jwt token) throws SepNotAuthorizedException {
     return getClientName(token.getClientDomain(), token.getAccount());
+  }
+
+  @Nullable
+  private ClientConfig getClient(String clientDomain, String account) {
+    ClientConfig clientByDomain = clientService.getClientConfigByDomain(clientDomain);
+    ClientConfig clientByAccount = clientService.getClientConfigBySigningKey(account);
+    return clientByDomain != null ? clientByDomain : clientByAccount;
   }
 }
