@@ -35,6 +35,8 @@ import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.client.ClientService
+import org.stellar.anchor.client.CustodialClientConfig
 import org.stellar.anchor.config.*
 import org.stellar.anchor.config.CustodyConfig.CustodyType.NONE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
@@ -271,17 +273,14 @@ class Sep31ServiceTest {
         }
       }
   """
-    private val lobstrClientConfig =
-      ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED(
-        "lobstr",
-        ClientsConfig_DEPRECATED.ClientType.NONCUSTODIAL,
-        null,
-        setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
-        null,
-        setOf("lobstr.co"),
-        "https://callback.lobstr.co/api/v2/anchor/callback",
+
+    private val custodialClientConfig =
+      CustodialClientConfig(
+        "custodialClient",
+        setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"),
+        "https://exmaple.com/callback",
         false,
-        null
+        emptySet(),
       )
 
     @JvmStatic
@@ -289,8 +288,8 @@ class Sep31ServiceTest {
       return Stream.of(
         Arguments.of(listOf<String>(), false, null, false),
         Arguments.of(listOf<String>(), true, null, true),
-        Arguments.of(listOf(lobstrClientConfig.name), false, lobstrClientConfig.name, false),
-        Arguments.of(listOf(lobstrClientConfig.name), true, lobstrClientConfig.name, true),
+        Arguments.of(listOf(custodialClientConfig.name), false, custodialClientConfig.name, false),
+        Arguments.of(listOf(custodialClientConfig.name), true, custodialClientConfig.name, true),
       )
     }
   }
@@ -302,7 +301,7 @@ class Sep31ServiceTest {
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) lateinit var custodySecretConfig: CustodySecretConfig
-  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig_DEPRECATED
+  @MockK(relaxed = true) lateinit var clientService: ClientService
   @MockK(relaxed = true) lateinit var sep10Config: Sep10Config
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
@@ -344,7 +343,7 @@ class Sep31ServiceTest {
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
-        clientsConfig,
+        clientService,
         assetService,
         feeIntegration,
         customerIntegration,
@@ -397,7 +396,7 @@ class Sep31ServiceTest {
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
-        clientsConfig,
+        clientService,
         assetServiceQuotesNotSupported,
         feeIntegration,
         customerIntegration,
@@ -787,11 +786,8 @@ class Sep31ServiceTest {
 
     // mock client config
     every { sep10Config.allowedClientNames } returns listOf("vibrant")
-    every { clientsConfig.getClientConfigBySigningKey(any()) } returns
-      ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED().apply {
-        domains = setOf("vibrant.stellar.org")
-        name = "vibrant"
-      }
+    every { clientService.getClientConfigBySigningKey(any()) } returns
+      CustodialClientConfig().apply { name = "vibrant" }
 
     // mock transaction save
     val slotTxn = slot<Sep31Transaction>()
@@ -929,7 +925,7 @@ class Sep31ServiceTest {
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
-        clientsConfig,
+        clientService,
         assetServiceQuotesNotSupported,
         feeIntegration,
         customerIntegration,
@@ -1096,15 +1092,15 @@ class Sep31ServiceTest {
     every { sep10Config.allowedClientNames } returns allowedClientNames
     every { sep10Config.isClientAttributionRequired } returns isClientAttributionRequired
     every {
-      clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKeys.first())
-    } returns lobstrClientConfig
+      clientService.getClientConfigBySigningKey(custodialClientConfig.signingKeys.first())
+    } returns custodialClientConfig
 
     // client name should be returned for valid input
-    val clientName = sep31Service.getClientName(lobstrClientConfig.signingKeys.first())
+    val clientName = sep31Service.getClientName(custodialClientConfig.signingKeys.first())
     assertEquals(expectedClientName, clientName)
 
     // exception maybe thrown for invalid input
-    every { clientsConfig.getClientConfigBySigningKey("Invalid Public Key") } returns null
+    every { clientService.getClientConfigBySigningKey("Invalid Public Key") } returns null
     if (!shouldThrowExceptionWithInvalidInput) {
       val clientNameNotFound = sep31Service.getClientName("Invalid Public Key")
       assertNull(clientNameNotFound)

@@ -13,13 +13,15 @@ import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.config.ClientsConfig_DEPRECATED;
+import org.stellar.anchor.client.ClientConfig;
+import org.stellar.anchor.client.ClientService;
+import org.stellar.anchor.client.CustodialClientConfig;
+import org.stellar.anchor.client.NonCustodialClientConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
-import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
@@ -32,7 +34,7 @@ public class EventProcessorManager {
   private final SecretConfig secretConfig;
   private final EventProcessorConfig eventProcessorConfig;
   private final CallbackApiConfig callbackApiConfig;
-  private final PropertyClientsConfig_DEPRECATED clientsConfig;
+  private final ClientService clientService;
   private final EventService eventService;
   private final AssetService assetService;
   private final Sep6TransactionStore sep6TransactionStore;
@@ -46,7 +48,7 @@ public class EventProcessorManager {
       SecretConfig secretConfig,
       EventProcessorConfig eventProcessorConfig,
       CallbackApiConfig callbackApiConfig,
-      PropertyClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientService,
       EventService eventService,
       AssetService assetService,
       Sep6TransactionStore sep6TransactionStore,
@@ -57,7 +59,7 @@ public class EventProcessorManager {
     this.secretConfig = secretConfig;
     this.eventProcessorConfig = eventProcessorConfig;
     this.callbackApiConfig = callbackApiConfig;
-    this.clientsConfig = clientsConfig;
+    this.clientService = clientService;
     this.eventService = eventService;
     this.assetService = assetService;
     this.sep6TransactionStore = sep6TransactionStore;
@@ -82,30 +84,27 @@ public class EventProcessorManager {
     // Create a processor of the client status callback handler for each client defined in the
     // clientsConfig
     if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
-      for (ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED clientConfig :
-          clientsConfig.getClients()) {
+      for (ClientConfig clientConfig : clientService.getAllClients()) {
         if (StringUtils.isEmpty(clientConfig.getCallbackUrl())) {
           Log.info(String.format("Client status callback skipped: %s", json(clientConfig)));
           continue;
         }
 
         String processorName;
-        switch (clientConfig.getType()) {
-          case CUSTODIAL:
-            processorName =
-                CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
-                    + clientConfig.getSigningKeys().stream();
-            break;
-          case NONCUSTODIAL:
-            processorName =
-                CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
-                    + clientConfig.getDomains().stream();
-            break;
-          default:
-            errorF("Unknown client type: {}", clientConfig.getType());
-            throw new InternalServerErrorException(
-                "Unknown client type: " + clientConfig.getType());
+        if (clientConfig instanceof CustodialClientConfig) {
+          processorName =
+              CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
+                  + String.join(",", ((CustodialClientConfig) clientConfig).getSigningKeys());
+        } else if (clientConfig instanceof NonCustodialClientConfig) {
+          processorName =
+              CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
+                  + String.join(",", ((NonCustodialClientConfig) clientConfig).getDomains());
+        } else {
+          errorF("Unknown client type: {}", clientConfig.getClass().getName());
+          throw new InternalServerErrorException(
+              "Unknown client type: " + clientConfig.getClass().getName());
         }
+
         processors.add(
             new ClientStatusCallbackProcessor(
                 processorName,

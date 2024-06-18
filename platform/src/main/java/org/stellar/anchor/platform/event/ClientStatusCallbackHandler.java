@@ -24,7 +24,7 @@ import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED;
+import org.stellar.anchor.client.ClientConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.sep24.*;
@@ -46,7 +46,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
           .callTimeout(10, TimeUnit.MINUTES)
           .build();
   private final SecretConfig secretConfig;
-  private final ClientConfig_DEPRECATED clientConfig;
+  private final ClientConfig clientConfig;
   private final Sep6TransactionStore sep6TransactionStore;
   private final AssetService assetService;
   private final MoreInfoUrlConstructor sep6MoreInfoUrlConstructor;
@@ -54,7 +54,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
 
   public ClientStatusCallbackHandler(
       SecretConfig secretConfig,
-      ClientConfig_DEPRECATED clientConfig,
+      ClientConfig clientConfig,
       Sep6TransactionStore sep6TransactionStore,
       AssetService assetService,
       MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,

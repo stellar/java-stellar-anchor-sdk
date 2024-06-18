@@ -62,10 +62,8 @@ public class SepBeans {
   @Bean
   @ConfigurationProperties(prefix = "sep10")
   Sep10Config sep10Config(
-      AppConfig appConfig,
-      SecretConfig secretConfig,
-      PropertyClientsConfig_DEPRECATED clientsConfig) {
-    return new PropertySep10Config(appConfig, clientsConfig, secretConfig);
+      AppConfig appConfig, SecretConfig secretConfig, ClientService clientService) {
+    return new PropertySep10Config(appConfig, clientService, secretConfig);
   }
 
   @Bean
@@ -255,7 +253,7 @@ public class SepBeans {
       Sep31TransactionStore sep31TransactionStore,
       Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
-      PropertyClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientService,
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
@@ -269,7 +267,7 @@ public class SepBeans {
         sep31TransactionStore,
         sep31DepositInfoGenerator,
         sep38QuoteStore,
-        clientsConfig,
+        clientService,
         assetService,
         feeIntegration,
         customerIntegration,

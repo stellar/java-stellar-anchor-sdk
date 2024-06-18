@@ -26,7 +26,7 @@ class DefaultClientServiceTest {
     }
 
     // check listing function.
-    val clients = dcs.listAllClients()
+    val clients = dcs.getAllClients()
     Assertions.assertEquals(3, clients.size)
     JSONAssert.assertEquals(expectedAllClientsJson, gson.toJson(clients), JSONCompareMode.LENIENT)
   }

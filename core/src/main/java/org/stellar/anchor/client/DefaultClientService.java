@@ -1,5 +1,6 @@
 package org.stellar.anchor.client;
 
+import static java.util.Collections.emptyList;
 import static org.stellar.anchor.config.ClientsConfig.CLIENTS_CONFIG_TYPE_FILE;
 
 import com.google.gson.Gson;
@@ -10,6 +11,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -19,11 +21,12 @@ import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.GsonUtils;
 import org.yaml.snakeyaml.Yaml;
 
+@Getter
 @NoArgsConstructor
 public class DefaultClientService implements ClientService {
   static final Gson gson = GsonUtils.getInstance();
-  List<CustodialClientConfig> custodialClients;
-  List<NonCustodialClientConfig> nonCustodialClients;
+  List<CustodialClientConfig> custodialClients = emptyList();
+  List<NonCustodialClientConfig> nonCustodialClients = emptyList();
 
   /**
    * Creates a DefaultClientService instance based on the provided ClientsConfig.
@@ -94,8 +97,23 @@ public class DefaultClientService implements ClientService {
     return createDCSFromMap(map);
   }
 
+  public ClientConfig getClientConfigByName(String name) {
+    for (CustodialClientConfig client : custodialClients) {
+      if (client.getName().equals(name)) {
+        return client;
+      }
+    }
+    for (NonCustodialClientConfig client : nonCustodialClients) {
+      if (client.getName().equals(name)) {
+        return client;
+      }
+    }
+
+    return null;
+  }
+
   @Override
-  public List<ClientConfig> listAllClients() {
+  public List<ClientConfig> getAllClients() {
     List<ClientConfig> clients = new ArrayList<>();
     if (custodialClients != null) {
       clients.addAll(custodialClients);
