@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.component.sep;
 
-import java.io.IOException;
 import java.util.Optional;
 import javax.servlet.Filter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -16,6 +15,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.client.ClientFinder;
+import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
@@ -121,14 +121,14 @@ public class SepBeans {
 
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep1"})
-  Sep1Service sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
+  Sep1Service sep1Service(Sep1Config sep1Config) {
     return new Sep1Service(sep1Config);
   }
 
   @Bean
   @ConditionalOnAnySepsEnabled(seps = {"sep6", "sep24"})
-  ClientFinder clientFinder(Sep10Config sep10Config, ClientsConfig_DEPRECATED clientsConfig) {
-    return new ClientFinder(sep10Config, clientsConfig);
+  ClientFinder clientFinder(Sep10Config sep10Config, ClientService clientService) {
+    return new ClientFinder(sep10Config, clientService);
   }
 
   @Bean
@@ -184,7 +184,7 @@ public class SepBeans {
   Sep24Service sep24Service(
       AppConfig appConfig,
       Sep24Config sep24Config,
-      ClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientService,
       AssetService assetService,
       JwtService jwtService,
       ClientFinder clientFinder,
@@ -199,7 +199,7 @@ public class SepBeans {
     return new Sep24Service(
         appConfig,
         sep24Config,
-        clientsConfig,
+        clientService,
         assetService,
         jwtService,
         clientFinder,
@@ -214,12 +214,12 @@ public class SepBeans {
   @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
       AssetService assetService,
-      PropertyClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientService,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
     return new SimpleInteractiveUrlConstructor(
-        assetService, clientsConfig, sep24Config, customerIntegration, jwtService);
+        assetService, clientService, sep24Config, customerIntegration, jwtService);
   }
 
   @Bean

@@ -5,15 +5,13 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.stellar.anchor.api.exception.SepNotAuthorizedException;
 import org.stellar.anchor.auth.Sep10Jwt;
-import org.stellar.anchor.config.ClientsConfig_DEPRECATED;
-import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED;
 import org.stellar.anchor.config.Sep10Config;
 
 /** Finds the client name for a SEP-10 JWT. */
 @RequiredArgsConstructor
 public class ClientFinder {
   @NonNull private final Sep10Config sep10Config;
-  @NonNull private final ClientsConfig_DEPRECATED clientsConfig;
+  @NonNull private final ClientService clientService;
 
   /**
    * Returns the client name for a pair of client domain/account. If the client attribution is not
@@ -30,7 +28,7 @@ public class ClientFinder {
   @Nullable
   public String getClientName(String clientDomain, String account)
       throws SepNotAuthorizedException {
-    ClientConfig_DEPRECATED client = getClient(clientDomain, account);
+    ClientConfig client = getClient(clientDomain, account);
 
     // If client attribution is not required, return the client name
     if (!sep10Config.isClientAttributionRequired()) {
@@ -55,9 +53,9 @@ public class ClientFinder {
   }
 
   @Nullable
-  private ClientConfig_DEPRECATED getClient(String clientDomain, String account) {
-    ClientConfig_DEPRECATED clientByDomain = clientsConfig.getClientConfigByDomain(clientDomain);
-    ClientConfig_DEPRECATED clientByAccount = clientsConfig.getClientConfigBySigningKey(account);
+  private ClientConfig getClient(String clientDomain, String account) {
+    ClientConfig clientByDomain = clientService.getClientConfigByDomain(clientDomain);
+    ClientConfig clientByAccount = clientService.getClientConfigBySigningKey(account);
     return clientByDomain != null ? clientByDomain : clientByAccount;
   }
 }

@@ -12,6 +12,7 @@ import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.horizon.Horizon;
@@ -45,22 +46,22 @@ public class UtilityBeans {
   @Qualifier("sep6MoreInfoUrlConstructor")
   MoreInfoUrlConstructor sep6MoreInfoUrlConstructor(
       AssetService assetService,
-      PropertyClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientService,
       PropertySep6Config sep6Config,
       JwtService jwtService) {
     return new Sep6MoreInfoUrlConstructor(
-        assetService, clientsConfig, sep6Config.getMoreInfoUrl(), jwtService);
+        assetService, clientService, sep6Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean
   @Qualifier("sep24MoreInfoUrlConstructor")
   MoreInfoUrlConstructor sep24MoreInfoUrlConstructor(
       AssetService assetService,
-      PropertyClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientService,
       PropertySep24Config sep24Config,
       JwtService jwtService) {
     return new Sep24MoreInfoUrlConstructor(
-        assetService, clientsConfig, sep24Config.getMoreInfoUrl(), jwtService);
+        assetService, clientService, sep24Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean

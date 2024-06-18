@@ -1,0 +1,14 @@
+custodial:
+    - name: some-wallet
+      signing_keys:
+        - GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
+        - GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+noncustodial:
+    - name: lobstr
+      domains:
+        - lobstr.co
+      callback_url: https://callback.lobstr.co/api/v2/anchor/callback
+    - name: circle
+      domains:
+        - circle.com
+      callback_url: https://callback.circle.com/api/v2/anchor/callback

@@ -7,7 +7,6 @@ import java.util.stream.Stream
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -15,20 +14,17 @@ import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerResponse
-import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.*
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
-import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED
-import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.CUSTODIAL
-import org.stellar.anchor.config.ClientsConfig_DEPRECATED.ClientType.NONCUSTODIAL
+import org.stellar.anchor.client.ClientService
+import org.stellar.anchor.client.DefaultClientService
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.callback.PlatformIntegrationHelperTest.Companion.TEST_HOME_DOMAIN
-import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor.FORWARD_KYC_CUSTOMER_TYPE
@@ -47,7 +43,6 @@ class SimpleInteractiveUrlConstructorTest {
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
-  @MockK(relaxed = true) private lateinit var clientsConfig: PropertyClientsConfig_DEPRECATED
   @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var testAsset: AssetInfo
@@ -57,45 +52,13 @@ class SimpleInteractiveUrlConstructorTest {
   private lateinit var sep24Config: PropertySep24Config
   private lateinit var request: HashMap<String, String>
   private lateinit var txn: JdbcSep24Transaction
+  private lateinit var clientService: ClientService
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     secretConfig.setupMock()
-
-    val clientConfig =
-      ClientConfig_DEPRECATED(
-        "lobstr",
-        NONCUSTODIAL,
-        null,
-        setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
-        null,
-        setOf("lobstr.co"),
-        "https://callback.lobstr.co/api/v2/anchor/callback",
-        false,
-        null,
-      )
-    every { clientsConfig.getClientConfigByDomain(any()) } returns null
-    every { clientsConfig.getClientConfigByDomain(clientConfig.domains.first()) } returns
-      clientConfig
-    every { clientsConfig.getClientConfigBySigningKey(clientConfig.signingKeys.first()) } returns
-      clientConfig
-    every {
-      clientsConfig.getClientConfigBySigningKey(
-        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-      )
-    } returns
-      ClientConfig_DEPRECATED(
-        "some-wallet",
-        CUSTODIAL,
-        null,
-        setOf("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
-        null,
-        emptySet(),
-        null,
-        false,
-        null,
-      )
+    clientService = DefaultClientService.fromYamlResourceFile("test_clients.yaml")
     every { testAsset.sep38AssetName } returns
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     every { sep10Jwt.homeDomain } returns TEST_HOME_DOMAIN
@@ -116,7 +79,7 @@ class SimpleInteractiveUrlConstructorTest {
     val constructor =
       SimpleInteractiveUrlConstructor(
         assetService,
-        clientsConfig,
+        clientService,
         testConfig,
         customerIntegration,
         jwtService,
@@ -158,27 +121,6 @@ class SimpleInteractiveUrlConstructorTest {
   }
 
   @Test
-  fun `test non-custodial wallet with missing client domain`() {
-    val testConfig = gson.fromJson(SEP24_CONFIG_JSON_1, PropertySep24Config::class.java)
-    val testRequest = gson.fromJson(REQUEST_JSON_1, HashMap::class.java)
-    val testTxn = gson.fromJson(TXN_JSON_1, JdbcSep24Transaction::class.java)
-
-    val constructor =
-      SimpleInteractiveUrlConstructor(
-        assetService,
-        clientsConfig,
-        testConfig,
-        customerIntegration,
-        jwtService,
-      )
-
-    testTxn.clientDomain = null
-    assertThrows<SepValidationException> {
-      constructor.construct(testTxn, testRequest as HashMap<String, String>?, testAsset, sep10Jwt)
-    }
-  }
-
-  @Test
   fun `when kycFieldsForwarding is enabled, the customerIntegration should receive the kyc fields`() {
     val customerIntegration: CustomerIntegration = mockk()
     val capturedPutCustomerRequest = slot<PutCustomerRequest>()
@@ -187,7 +129,7 @@ class SimpleInteractiveUrlConstructorTest {
     val constructor =
       SimpleInteractiveUrlConstructor(
         assetService,
-        clientsConfig,
+        clientService,
         sep24Config,
         customerIntegration,
         jwtService,
@@ -211,7 +153,7 @@ class SimpleInteractiveUrlConstructorTest {
     val constructor =
       SimpleInteractiveUrlConstructor(
         assetService,
-        clientsConfig,
+        clientService,
         sep24Config,
         customerIntegration,
         jwtService,
