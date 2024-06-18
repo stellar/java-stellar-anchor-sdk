@@ -8,6 +8,7 @@ import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_TRANSACTION_ON_
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
 import com.google.common.collect.ImmutableSet;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
@@ -84,5 +85,9 @@ public class NotifyTransactionOnHoldHandler
 
   @Override
   protected void updateTransactionWithRpcRequest(
-      JdbcSepTransaction txn, NotifyTransactionOnHoldRequest request) {}
+      JdbcSepTransaction txn, NotifyTransactionOnHoldRequest request) {
+    if (txn.getTransferReceivedAt() == null) {
+      txn.setTransferReceivedAt(Instant.now());
+    }
+  }
 }
