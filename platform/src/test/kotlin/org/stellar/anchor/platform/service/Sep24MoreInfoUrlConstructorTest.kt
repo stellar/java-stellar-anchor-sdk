@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.service
 
 import io.mockk.MockKAnnotations
-import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.util.*
@@ -16,9 +15,7 @@ import org.stellar.anchor.LockStatic
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt
-import org.stellar.anchor.client.ClientService
-import org.stellar.anchor.client.CustodialClientConfig
-import org.stellar.anchor.client.NonCustodialClientConfig
+import org.stellar.anchor.client.DefaultClientService
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig
@@ -35,41 +32,15 @@ class Sep24MoreInfoUrlConstructorTest {
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
-  @MockK(relaxed = true) private lateinit var clientService: ClientService
   @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
 
   private lateinit var jwtService: JwtService
-
+  private lateinit var clientService: DefaultClientService
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     secretConfig.setupMock()
-    val custodialClient =
-      CustodialClientConfig(
-        "some-wallet",
-        setOf("signing-key", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
-        "http://localhost:8000",
-        false,
-        emptySet()
-      )
-    val nonCustodialClient =
-      NonCustodialClientConfig(
-        "lobstr",
-        setOf("lobstr.co"),
-        "https://callback.lobstr.co/api/v2/anchor/callback",
-      )
-
-    every { clientService.getClientConfigByDomain(any()) } returns null
-    every { clientService.getClientConfigByDomain(nonCustodialClient.domains.first()) } returns
-      nonCustodialClient
-    every { clientService.getClientConfigBySigningKey(custodialClient.signingKeys.first()) } returns
-      custodialClient
-    every {
-      clientService.getClientConfigBySigningKey(
-        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-      )
-    } returns custodialClient
-
+    clientService = DefaultClientService.fromYamlResourceFile("test_clients.yaml")
     jwtService = JwtService(secretConfig, custodySecretConfig)
   }
 

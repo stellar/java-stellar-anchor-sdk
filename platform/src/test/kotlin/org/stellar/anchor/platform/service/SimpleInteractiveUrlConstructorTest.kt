@@ -21,8 +21,7 @@ import org.stellar.anchor.auth.JwtService.*
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.client.ClientService
-import org.stellar.anchor.client.CustodialClientConfig
-import org.stellar.anchor.client.NonCustodialClientConfig
+import org.stellar.anchor.client.DefaultClientService
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.callback.PlatformIntegrationHelperTest.Companion.TEST_HOME_DOMAIN
@@ -43,7 +42,6 @@ class SimpleInteractiveUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
-  @MockK(relaxed = true) private lateinit var clientService: ClientService
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
@@ -54,36 +52,13 @@ class SimpleInteractiveUrlConstructorTest {
   private lateinit var sep24Config: PropertySep24Config
   private lateinit var request: HashMap<String, String>
   private lateinit var txn: JdbcSep24Transaction
+  private lateinit var clientService: ClientService
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     secretConfig.setupMock()
-
-    val custodialClient =
-      CustodialClientConfig(
-        "some-wallet",
-        setOf("signing-key", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
-        "http://localhost:8000",
-        false,
-        emptySet()
-      )
-    val nonCustodialClient =
-      NonCustodialClientConfig(
-        "lobstr",
-        setOf("lobstr.co"),
-        "https://callback.lobstr.co/api/v2/anchor/callback",
-      )
-    every { clientService.getClientConfigByDomain(any()) } returns null
-    every { clientService.getClientConfigByDomain(nonCustodialClient.domains.first()) } returns
-      nonCustodialClient
-    every { clientService.getClientConfigBySigningKey(custodialClient.signingKeys.first()) } returns
-      custodialClient
-    every {
-      clientService.getClientConfigBySigningKey(
-        "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-      )
-    } returns custodialClient
+    clientService = DefaultClientService.fromYamlResourceFile("test_clients.yaml")
     every { testAsset.sep38AssetName } returns
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     every { sep10Jwt.homeDomain } returns TEST_HOME_DOMAIN

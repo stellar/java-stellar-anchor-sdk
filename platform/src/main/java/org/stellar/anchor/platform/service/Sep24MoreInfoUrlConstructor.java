@@ -11,7 +11,6 @@ import org.stellar.anchor.client.ClientConfig;
 import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig;
 import org.stellar.anchor.sep24.Sep24Transaction;
-import org.stellar.anchor.util.ConfigHelper;
 
 public class Sep24MoreInfoUrlConstructor extends SimpleMoreInfoUrlConstructor {
   public Sep24MoreInfoUrlConstructor(
@@ -39,7 +38,7 @@ public class Sep24MoreInfoUrlConstructor extends SimpleMoreInfoUrlConstructor {
   public MoreInfoUrlJwt getBaseToken(
       String clientDomain, String sep10Account, String sep10AccountMemo, String transactionId) {
     ClientConfig clientConfig =
-        ConfigHelper.getClientConfig(clientsService, clientDomain, sep10Account);
+        clientsService.getClientConfigByDomainAndSep10Account(clientDomain, sep10Account);
     return new Sep24MoreInfoUrlJwt(
         UrlConstructorHelper.getAccount(sep10Account, sep10AccountMemo),
         transactionId,

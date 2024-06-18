@@ -59,7 +59,7 @@ public class Sep24Service {
 
   final AppConfig appConfig;
   final Sep24Config sep24Config;
-  final ClientService clientsService;
+  final ClientService clientService;
   final AssetService assetService;
   final JwtService jwtService;
   final ClientFinder clientFinder;
@@ -105,7 +105,7 @@ public class Sep24Service {
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
     this.sep24Config = sep24Config;
-    this.clientsService = clientsService;
+    this.clientService = clientsService;
     this.assetService = assetService;
     this.jwtService = jwtService;
     this.clientFinder = clientFinder;
@@ -333,7 +333,7 @@ public class Sep24Service {
 
     if (!destinationAccount.equals(token.getAccount())) {
       CustodialClientConfig clientConfig =
-          clientsService.getClientConfigBySigningKey(token.getAccount());
+          clientService.getClientConfigBySigningKey(token.getAccount());
       if (clientConfig != null && clientConfig.getDestinationAccounts() != null) {
         if (!clientConfig.getDestinationAccounts().contains(destinationAccount)) {
           infoF(
