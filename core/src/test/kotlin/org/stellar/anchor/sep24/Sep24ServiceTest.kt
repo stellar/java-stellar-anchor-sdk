@@ -126,8 +126,6 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var clientService: ClientService
 
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
-  //  private val clientService: ClientService =
-  //    DefaultClientService.fromYamlResourceFile("test_clients.yaml")
 
   private lateinit var jwtService: JwtService
   private lateinit var sep24Service: Sep24Service
