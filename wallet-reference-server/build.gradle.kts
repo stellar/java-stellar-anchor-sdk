@@ -26,7 +26,7 @@ dependencies {
 tasks {
   compileKotlin {
     dependsOn("spotlessKotlinApply")
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "17"
   }
 
   test { useJUnitPlatform() }

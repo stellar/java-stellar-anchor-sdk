@@ -442,7 +442,7 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS =
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 3",
-      "stellar_transaction_id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
       "amount_in": {
         "amount": "1"
       }
@@ -588,7 +588,7 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "message": "test message 3",
       "stellar_transactions": [
         {
-          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+          "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
@@ -640,7 +640,7 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "message": "test message 4",
       "stellar_transactions": [
         {
-          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+          "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
@@ -717,7 +717,7 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       },
       "stellar_transactions": [
         {
-          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+          "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
@@ -754,7 +754,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_REQUESTS
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 1",
-      "stellar_transaction_id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2"
+      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
     }
   },
   {
@@ -828,7 +828,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       "message": "test message 1",
       "stellar_transactions": [
         {
-          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+          "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
@@ -883,7 +883,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       "message": "test message 2",
       "stellar_transactions": [
         {
-          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+          "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
@@ -963,7 +963,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       },
       "stellar_transactions": [
         {
-          "id": "68eafbdf2aa95c4a5aaddb7021f321a607096b2aa1913096b8d6f06e44ea0ec2",
+          "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
