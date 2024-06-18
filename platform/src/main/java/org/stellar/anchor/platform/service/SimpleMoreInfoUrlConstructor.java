@@ -10,22 +10,22 @@ import org.stellar.anchor.SepTransaction;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.MoreInfoUrlJwt;
+import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig;
-import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED;
 
 public abstract class SimpleMoreInfoUrlConstructor implements MoreInfoUrlConstructor {
   final AssetService assetService;
-  PropertyClientsConfig_DEPRECATED clientsConfig;
+  final ClientService clientsService;
   final MoreInfoUrlConfig config;
   private final JwtService jwtService;
 
   public SimpleMoreInfoUrlConstructor(
       AssetService assetService,
-      PropertyClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientsService,
       MoreInfoUrlConfig config,
       JwtService jwtService) {
     this.assetService = assetService;
-    this.clientsConfig = clientsConfig;
+    this.clientsService = clientsService;
     this.config = config;
     this.jwtService = jwtService;
   }

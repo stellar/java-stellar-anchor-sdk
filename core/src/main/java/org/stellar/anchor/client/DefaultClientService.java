@@ -81,14 +81,14 @@ public class DefaultClientService implements ClientService {
   }
 
   public static DefaultClientService fromYamlResourceFile(String yamlResourceFilePath)
-      throws IOException, SepNotFoundException, InvalidConfigException {
+      throws IOException, SepNotFoundException {
     String resource = FileUtil.getResourceFileAsString(yamlResourceFilePath);
     Map<String, Object> map = new Yaml().load(resource);
     return createDCSFromMap(map);
   }
 
   public static DefaultClientService fromJsonResourceFile(String jsonResourceFilePath)
-      throws IOException, SepNotFoundException, InvalidConfigException {
+      throws IOException, SepNotFoundException {
     String resource = FileUtil.getResourceFileAsString(jsonResourceFilePath);
     Map<String, Object> map = gson.fromJson(resource, Map.class);
     return createDCSFromMap(map);
@@ -104,5 +104,25 @@ public class DefaultClientService implements ClientService {
       clients.addAll(nonCustodialClients);
     }
     return clients;
+  }
+
+  @Override
+  public CustodialClientConfig getClientConfigBySigningKey(String signingKey) {
+    for (CustodialClientConfig client : custodialClients) {
+      if (client.getSigningKeys() != null && client.getSigningKeys().contains(signingKey)) {
+        return client;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public NonCustodialClientConfig getClientConfigByDomain(String domain) {
+    for (NonCustodialClientConfig client : nonCustodialClients) {
+      if (client.getDomains() != null && client.getDomains().contains(domain)) {
+        return client;
+      }
+    }
+    return null;
   }
 }

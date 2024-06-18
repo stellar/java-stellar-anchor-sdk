@@ -7,19 +7,19 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.MoreInfoUrlJwt;
 import org.stellar.anchor.auth.MoreInfoUrlJwt.*;
-import org.stellar.anchor.config.ClientsConfig_DEPRECATED;
+import org.stellar.anchor.client.ClientConfig;
+import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig;
-import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.util.ConfigHelper;
 
 public class Sep24MoreInfoUrlConstructor extends SimpleMoreInfoUrlConstructor {
   public Sep24MoreInfoUrlConstructor(
       AssetService asserService,
-      PropertyClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientsService,
       MoreInfoUrlConfig config,
       JwtService jwtService) {
-    super(asserService, clientsConfig, config, jwtService);
+    super(asserService, clientsService, config, jwtService);
   }
 
   @Override
@@ -38,8 +38,8 @@ public class Sep24MoreInfoUrlConstructor extends SimpleMoreInfoUrlConstructor {
   @SneakyThrows
   public MoreInfoUrlJwt getBaseToken(
       String clientDomain, String sep10Account, String sep10AccountMemo, String transactionId) {
-    ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED clientConfig =
-        ConfigHelper.getClientConfig(clientsConfig, clientDomain, sep10Account);
+    ClientConfig clientConfig =
+        ConfigHelper.getClientConfig(clientsService, clientDomain, sep10Account);
     return new Sep24MoreInfoUrlJwt(
         UrlConstructorHelper.getAccount(sep10Account, sep10AccountMemo),
         transactionId,

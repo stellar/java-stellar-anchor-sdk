@@ -21,8 +21,8 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt;
-import org.stellar.anchor.config.ClientsConfig_DEPRECATED;
-import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED;
+import org.stellar.anchor.client.ClientConfig;
+import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
@@ -32,19 +32,19 @@ import org.stellar.anchor.util.GsonUtils;
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   public static final String FORWARD_KYC_CUSTOMER_TYPE = "sep24-customer";
   private final AssetService assetService;
-  private final PropertyClientsConfig_DEPRECATED clientsConfig;
+  private final ClientService clientsService;
   private final PropertySep24Config sep24Config;
   private final CustomerIntegration customerIntegration;
   private final JwtService jwtService;
 
   public SimpleInteractiveUrlConstructor(
       AssetService assetService,
-      PropertyClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientsService,
       PropertySep24Config sep24Config,
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
     this.assetService = assetService;
-    this.clientsConfig = clientsConfig;
+    this.clientsService = clientsService;
     this.sep24Config = sep24Config;
     this.customerIntegration = customerIntegration;
     this.jwtService = jwtService;
@@ -80,13 +80,12 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   @SneakyThrows
   String constructToken(
       Sep24Transaction txn, Map<String, String> request, AssetInfo asset, String homeDomain) {
-    ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED clientConfig =
-        ConfigHelper.getClientConfig(clientsConfig, txn);
+    ClientConfig clientConfig = ConfigHelper.getClientConfig(clientsService, txn);
 
     debugF(
         "Resolving configs for token construct. Got config: {}, all configs: {}",
         clientConfig,
-        clientsConfig);
+        clientsService);
 
     Sep24InteractiveUrlJwt token =
         new Sep24InteractiveUrlJwt(

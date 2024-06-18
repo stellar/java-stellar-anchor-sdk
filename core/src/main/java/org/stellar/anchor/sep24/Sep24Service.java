@@ -43,8 +43,9 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.client.ClientFinder;
+import org.stellar.anchor.client.ClientService;
+import org.stellar.anchor.client.CustodialClientConfig;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.ClientsConfig_DEPRECATED;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
@@ -58,7 +59,7 @@ public class Sep24Service {
 
   final AppConfig appConfig;
   final Sep24Config sep24Config;
-  final ClientsConfig_DEPRECATED clientsConfig;
+  final ClientService clientsService;
   final AssetService assetService;
   final JwtService jwtService;
   final ClientFinder clientFinder;
@@ -90,7 +91,7 @@ public class Sep24Service {
   public Sep24Service(
       AppConfig appConfig,
       Sep24Config sep24Config,
-      ClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientsService,
       AssetService assetService,
       JwtService jwtService,
       ClientFinder clientFinder,
@@ -104,7 +105,7 @@ public class Sep24Service {
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
     this.sep24Config = sep24Config;
-    this.clientsConfig = clientsConfig;
+    this.clientsService = clientsService;
     this.assetService = assetService;
     this.jwtService = jwtService;
     this.clientFinder = clientFinder;
@@ -331,8 +332,8 @@ public class Sep24Service {
     }
 
     if (!destinationAccount.equals(token.getAccount())) {
-      ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED clientConfig =
-          ConfigHelper.getClientConfig(clientsConfig, token.getClientDomain(), token.getAccount());
+      CustodialClientConfig clientConfig =
+          clientsService.getClientConfigBySigningKey(token.getAccount());
       if (clientConfig != null && clientConfig.getDestinationAccounts() != null) {
         if (!clientConfig.getDestinationAccounts().contains(destinationAccount)) {
           infoF(

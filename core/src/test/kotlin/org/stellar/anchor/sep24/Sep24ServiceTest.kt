@@ -42,7 +42,7 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
-import org.stellar.anchor.client.ClientFinder
+import org.stellar.anchor.client.*
 import org.stellar.anchor.config.*
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.sep38.PojoSep38Quote
@@ -121,13 +121,13 @@ internal class Sep24ServiceTest {
 
   @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
 
-  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig_DEPRECATED
-
-  @MockK(relaxed = true) lateinit var clientConfig: ClientsConfig_DEPRECATED.ClientConfig_DEPRECATED
-
   @MockK(relaxed = true) lateinit var sep38QuoteStore: Sep38QuoteStore
 
+  @MockK(relaxed = true) lateinit var clientService: ClientService
+
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
+  //  private val clientService: ClientService =
+  //    DefaultClientService.fromYamlResourceFile("test_clients.yaml")
 
   private lateinit var jwtService: JwtService
   private lateinit var sep24Service: Sep24Service
@@ -152,7 +152,20 @@ internal class Sep24ServiceTest {
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     every { moreInfoUrlConstructor.construct(any(), any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
-    every { clientsConfig.getClientConfigByDomain(any()) } returns clientConfig
+    every { clientService.getClientConfigByDomain(any()) } returns
+      NonCustodialClientConfig(
+        "reference",
+        setOf("wallet-server:8092"),
+        "http://wallet-server:8092/callbacks"
+      )
+    every { clientService.getClientConfigBySigningKey(any()) } returns
+      CustodialClientConfig(
+        "referenceCustodial",
+        setOf("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"),
+        null,
+        false,
+        null,
+      )
     every { clientFinder.getClientName(any()) } returns TEST_CLIENT_NAME
     calculator = ExchangeAmountsCalculator(sep38QuoteStore)
 
@@ -160,7 +173,7 @@ internal class Sep24ServiceTest {
       Sep24Service(
         appConfig,
         sep24Config,
-        clientsConfig,
+        clientService,
         assetService,
         jwtService,
         clientFinder,
@@ -458,7 +471,6 @@ internal class Sep24ServiceTest {
 
   @Test
   fun `test deposit to unknown account`() {
-    every { clientConfig.destinationAccounts }.returns(null)
     val request = createTestTransactionRequest()
     val unknownAccount = "GC6TP2RCW665CBOTMR5Q2JXNRK77FWV2FCTHNQXS3FNDMWZCGJBJ4QCY"
     request["account"] = unknownAccount
@@ -479,7 +491,14 @@ internal class Sep24ServiceTest {
     every { txnStore.save(capture(slotTxn)) } returns null
 
     val whitelistedAccount = "GC6TP2RCW665CBOTMR5Q2JXNRK77FWV2FCTHNQXS3FNDMWZCGJBJ4QCY"
-    every { clientConfig.destinationAccounts }.returns(setOf(whitelistedAccount))
+    every { clientService.getClientConfigBySigningKey(any()) } returns
+      CustodialClientConfig(
+        "referenceCustodial",
+        setOf("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"),
+        null,
+        false,
+        setOf(whitelistedAccount),
+      )
     val request = createTestTransactionRequest()
     request["account"] = whitelistedAccount
 
