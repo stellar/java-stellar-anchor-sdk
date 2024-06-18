@@ -7,6 +7,7 @@ import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_OFFCHAIN_FUNDS_
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
 import com.google.common.collect.ImmutableSet;
+import java.time.Instant;
 import java.util.Set;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
@@ -86,6 +87,9 @@ public class NotifyOffchainFundsAvailableHandler
       JdbcSepTransaction txn, NotifyOffchainFundsAvailableRequest request) {
     if (request.getExternalTransactionId() != null) {
       txn.setExternalTransactionId(request.getExternalTransactionId());
+    }
+    if (txn.getTransferReceivedAt() == null) {
+      txn.setTransferReceivedAt(Instant.now());
     }
   }
 }
