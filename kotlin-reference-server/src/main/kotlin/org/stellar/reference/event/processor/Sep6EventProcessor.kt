@@ -315,7 +315,7 @@ class Sep6EventProcessor(
   }
 
   private fun verifyKyc(sep10Account: String, sep10AccountMemo: String?, kind: Kind): List<String> {
-    val customer =
+    val customer = runBlocking {
       customerService.getCustomer(
         GetCustomerRequest.builder()
           .account(sep10Account)
@@ -323,6 +323,7 @@ class Sep6EventProcessor(
           .memoType(if (sep10AccountMemo != null) "id" else null)
           .build()
       )
+    }
     val providedFields = customer.providedFields.keys
     return requiredKyc
       .plus(if (kind == Kind.DEPOSIT) depositRequiredKyc else withdrawRequiredKyc)
@@ -335,12 +336,15 @@ class Sep6EventProcessor(
     val missingFields = verifyKyc(customer.account, customer.memo, kind)
     runBlocking {
       if (missingFields.isNotEmpty()) {
+        customerService.requestAdditionalFieldsForTransaction(
+          event.payload.transaction.id,
+          missingFields,
+        )
         sepHelper.rpcAction(
           RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE.toString(),
           RequestCustomerInfoUpdateHandler(
             transactionId = event.payload.transaction.id,
             message = "Please update your info",
-            requiredCustomerInfoUpdates = missingFields,
           ),
         )
       }

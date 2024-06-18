@@ -60,6 +60,9 @@ public class PlatformTransactionData {
   @SerializedName("completed_at")
   Instant completedAt;
 
+  @SerializedName("user_action_required_by")
+  Instant userActionRequiredBy;
+
   @SerializedName("transfer_received_at")
   Instant transferReceivedAt;
 
@@ -108,9 +111,11 @@ public class PlatformTransactionData {
   @SerializedName("required_info_updates")
   List<String> requiredInfoUpdates;
 
+  @Deprecated
   @SerializedName("required_customer_info_message")
   String requiredCustomerInfoMessage;
 
+  @Deprecated
   @SerializedName("required_customer_info_updates")
   List<String> requiredCustomerInfoUpdates;
 

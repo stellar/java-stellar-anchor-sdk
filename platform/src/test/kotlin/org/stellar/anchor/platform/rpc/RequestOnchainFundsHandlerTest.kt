@@ -567,6 +567,7 @@ class RequestOnchainFundsHandlerTest {
     txn24.kind = WITHDRAWAL.kind
     txn24.requestAssetCode = STELLAR_USDC_CODE
     txn24.requestAssetIssuer = STELLAR_USDC_ISSUER
+    txn24.userActionRequiredBy = Instant.now()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
@@ -879,7 +880,8 @@ class RequestOnchainFundsHandlerTest {
   }
 
   @Test
-  fun test_handle_sep24_ok_withoutAmountExpected() {
+  fun test_handle_sep24_ok_withUserActionRequiredBy() {
+    val actionRequiredBy = Instant.now().plusSeconds(100)
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
@@ -889,6 +891,7 @@ class RequestOnchainFundsHandlerTest {
         .memo(TEXT_MEMO)
         .memoType(TEXT_MEMO_TYPE)
         .destinationAccount(DESTINATION_ACCOUNT)
+        .userActionRequiredBy(actionRequiredBy)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -934,6 +937,7 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.memoType = TEXT_MEMO_TYPE
     expectedSep24Txn.toAccount = DESTINATION_ACCOUNT
     expectedSep24Txn.withdrawAnchorAccount = DESTINATION_ACCOUNT
+    expectedSep24Txn.userActionRequiredBy = actionRequiredBy
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -954,6 +958,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
+    expectedResponse.userActionRequiredBy = actionRequiredBy
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

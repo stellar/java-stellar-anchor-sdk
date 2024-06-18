@@ -172,7 +172,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
                     payment.setAmount(refundPayment.getAmount().getAmount());
                     payment.setFee(refundPayment.getFee().getAmount());
                     payment.setId(refundPayment.getId());
-
+                    payment.setIdType(refundPayment.getIdType().toString());
                     return payment;
                   })
               .collect(Collectors.toList());

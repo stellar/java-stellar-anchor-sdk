@@ -255,6 +255,7 @@ class NotifyOnchainFundsSentHandlerTest {
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = transferReceivedAt
+    txn24.userActionRequiredBy = Instant.now()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
