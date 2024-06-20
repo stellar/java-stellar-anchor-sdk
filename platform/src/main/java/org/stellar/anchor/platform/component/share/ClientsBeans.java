@@ -8,16 +8,9 @@ import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.client.DefaultClientService;
 import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.platform.config.PropertyClientsConfig;
-import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED;
 
 @Configuration
 public class ClientsBeans {
-  @Bean
-  @ConfigurationProperties(prefix = "")
-  PropertyClientsConfig_DEPRECATED clientsConfigDeprecated() {
-    return new PropertyClientsConfig_DEPRECATED();
-  }
-
   @Bean
   @ConfigurationProperties(prefix = "clients")
   ClientsConfig clientsConfig() {

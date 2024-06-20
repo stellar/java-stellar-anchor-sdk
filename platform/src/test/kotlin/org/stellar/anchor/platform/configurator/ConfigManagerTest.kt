@@ -29,23 +29,20 @@ class ConfigManagerTest {
     every { configManager.getConfigFileAsResource(any()) } returns testingConfigFile
 
     val config = configManager.processConfigurations(null)
+    System.out.println(config.toStringMap())
+    System.out.println(config.get("clients.noncustodial[0]"))
     assertEquals(config.get("languages").value, "tw, en, fr")
-    assertEquals(config.get("clients[0].name").value, "vibrant")
-    assertEquals(config.get("clients[0].domain").value, "vibrant.co")
+    assertEquals(config.get("clients.noncustodial[0].name").value, "vibrant")
+    assertEquals(config.get("clients.noncustodial[0].domains[0]").value, "vibrant.co")
     assertEquals(
-      config.get("clients[0].callback_url").value,
+      config.get("clients.noncustodial[0].callback_url").value,
       "https://callback.vibrant.com/api/v2/anchor/callback"
     )
-    assertEquals(
-      config.get("clients[0].signing_key").value,
-      "GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU"
-    )
 
-    assertEquals(config.get("clients[1].name").value, "lobstr")
-    assertEquals(config.get("clients[1].type").value, "noncustodial")
-    assertEquals(config.get("clients[1].domain").value, "lobstr.co")
+    assertEquals(config.get("clients.noncustodial[1].name").value, "lobstr")
+    assertEquals(config.get("clients.noncustodial[1].domains[0]").value, "lobstr.co")
     assertEquals(
-      config.get("clients[1].callback_url").value,
+      config.get("clients.noncustodial[1].callback_url").value,
       "https://callback.lobstr.co/api/v2/anchor/callback"
     )
   }

@@ -4,11 +4,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
-import org.stellar.anchor.platform.config.PropertyClientsConfig_DEPRECATED;
 import org.stellar.anchor.platform.event.EventProcessorManager;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -22,7 +22,7 @@ public class EventProcessorBeans {
       SecretConfig secretConfig,
       EventProcessorConfig eventProcessorConfig,
       CallbackApiConfig callbackApiConfig,
-      PropertyClientsConfig_DEPRECATED clientsConfig,
+      ClientService clientService,
       EventService eventService,
       AssetService assetService,
       Sep6TransactionStore sep6TransactionStore,
@@ -34,7 +34,7 @@ public class EventProcessorBeans {
         secretConfig,
         eventProcessorConfig,
         callbackApiConfig,
-        clientsConfig,
+        clientService,
         eventService,
         assetService,
         sep6TransactionStore,
