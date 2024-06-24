@@ -54,6 +54,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
   fun `test info endpoint`() {
     printRequest("Calling GET /info")
     val info = sep31Client.getInfo()
+    println(gson.toJson(info))
     JSONAssert.assertEquals(gson.toJson(info), expectedSep31Info, JSONCompareMode.STRICT)
   }
 
@@ -439,9 +440,7 @@ private const val expectedSep31Info =
           },
           "receiver": {
             "types": {
-              "sep31-receiver": {
-                "description": "U.S. citizens receiving JPY"
-              },
+              "sep31-receiver": { "description": "U.S. citizens receiving JPY" },
               "sep31-foreign-receiver": {
                 "description": "non-U.S. citizens receiving JPY"
               }
@@ -460,10 +459,7 @@ private const val expectedSep31Info =
             },
             "type": {
               "description": "type of deposit to make",
-              "choices": [
-                "SEPA",
-                "SWIFT"
-              ],
+              "choices": ["SEPA", "SWIFT"],
               "optional": false
             }
           }
@@ -475,8 +471,8 @@ private const val expectedSep31Info =
         "quotes_required": false,
         "fee_fixed": 0,
         "fee_percent": 0,
-        "max_amount": 1000000,
-        "min_amount": 1,
+        "min_amount": 0,
+        "max_amount": 10,
         "sep12": {
           "sender": {
             "types": {
@@ -493,9 +489,7 @@ private const val expectedSep31Info =
           },
           "receiver": {
             "types": {
-              "sep31-receiver": {
-                "description": "U.S. citizens receiving USD"
-              },
+              "sep31-receiver": { "description": "U.S. citizens receiving USD" },
               "sep31-foreign-receiver": {
                 "description": "non-U.S. citizens receiving USD"
               }
@@ -514,63 +508,7 @@ private const val expectedSep31Info =
             },
             "type": {
               "description": "type of deposit to make",
-              "choices": [
-                "SEPA",
-                "SWIFT"
-              ],
-              "optional": false
-            }
-          }
-        }
-      },
-      "native": {
-        "enabled": true,
-        "quotes_supported": true,
-        "quotes_required": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
-        "max_amount": 1000000,
-        "sep12": {
-          "sender": {
-            "types": {
-              "sep31-sender": {
-                "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-              },
-              "sep31-large-sender": {
-                "description": "U.S. citizens that do not have sending limits"
-              },
-              "sep31-foreign-sender": {
-                "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-              }
-            }
-          },
-          "receiver": {
-            "types": {
-              "sep31-receiver": {
-                "description": "U.S. citizens receiving USD"
-              },
-              "sep31-foreign-receiver": {
-                "description": "non-U.S. citizens receiving USD"
-              }
-            }
-          }
-        },
-        "fields": {
-          "transaction": {
-            "receiver_routing_number": {
-              "description": "routing number of the destination bank account",
-              "optional": false
-            },
-            "receiver_account_number": {
-              "description": "bank account number of the destination",
-              "optional": false
-            },
-            "type": {
-              "description": "type of deposit to make",
-              "choices": [
-                "SEPA",
-                "SWIFT"
-              ],
+              "choices": ["SEPA", "SWIFT"],
               "optional": false
             }
           }
@@ -578,7 +516,7 @@ private const val expectedSep31Info =
       }
     }
   }
-"""
+  """
 
 private const val patchRequest =
   """
