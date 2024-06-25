@@ -190,7 +190,7 @@ assets:
   # Fiat
   - schema: iso4217
     code: USD
-    significant_decimals: 2
+    significant_decimals: 7
     # TODO: these should not be checked
     deposit:
       enabled: false
@@ -215,7 +215,7 @@ assets:
     sep38_enabled: true
   - schema: iso4217
     code: CAD
-    significant_decimals: 2
+    significant_decimals: 7
     # TODO: these should not be checked
     deposit:
       enabled: false
