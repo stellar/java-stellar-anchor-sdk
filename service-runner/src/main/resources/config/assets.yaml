@@ -56,7 +56,6 @@ assets:
               - SWIFT
     sep38:
       exchangeable_assets:
-        - stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
         - iso4217:USD
         - iso4217:CAD
     sep6_enabled: true
@@ -114,7 +113,6 @@ assets:
               - SWIFT
     sep38:
       exchangeable_assets:
-        - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
         - iso4217:USD
         - iso4217:CAD
     sep24_enabled: true
