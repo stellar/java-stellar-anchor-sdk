@@ -176,88 +176,60 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
     private val expectedSep6Info =
       """
       {
-          "deposit": {
-              "USDC": {
-                  "enabled": true,
-                  "authentication_required": true,
-                  "min_amount": 1,
-                  "fields": {
-                      "type": {
-                          "description": "type of deposit to make",
-                          "choices": [
-                              "SEPA",
-                              "SWIFT"
-                          ],
-                          "optional": false
-                      }
-                  }
+        "deposit": {
+          "USDC": {
+            "enabled": true,
+            "authentication_required": true,
+            "min_amount": 0,
+            "max_amount": 10,
+            "fields": {
+              "type": {
+                "description": "type of deposit to make",
+                "choices": ["SEPA", "SWIFT"],
+                "optional": false
               }
-          },
-          "deposit-exchange": {
-              "USDC": {
-                  "enabled": true,
-                  "authentication_required": true,
-                  "min_amount": 1,
-                  "fields": {
-                      "type": {
-                          "description": "type of deposit to make",
-                          "choices": [
-                              "SEPA",
-                              "SWIFT"
-                          ],
-                          "optional": false
-                      }
-                  }
-              }
-          },
-          "withdraw": {
-              "USDC": {
-                  "enabled": true,
-                  "authentication_required": true,
-                  "max_amount": 1000000,
-                  "types": {
-                      "cash": {
-                          "fields": {}
-                      },
-                      "bank_account": {
-                          "fields": {}
-                      }
-                  }
-              }
-          },
-          "withdraw-exchange": {
-              "USDC": {
-                  "enabled": true,
-                  "authentication_required": true,
-                  "max_amount": 1000000,
-                  "types": {
-                      "cash": {
-                          "fields": {}
-                      },
-                      "bank_account": {
-                          "fields": {}
-                      }
-                  }
-              }
-          },
-          "fee": {
-              "enabled": false,
-              "description": "Fee endpoint is not supported."
-          },
-          "transactions": {
-              "enabled": true,
-              "authentication_required": true
-          },
-          "transaction": {
-              "enabled": true,
-              "authentication_required": true
-          },
-          "features": {
-              "account_creation": false,
-              "claimable_balances": false
+            }
           }
+        },
+        "deposit-exchange": {
+          "USDC": {
+            "enabled": true,
+            "authentication_required": true,
+            "min_amount": 0,
+            "max_amount": 10,
+            "fields": {
+              "type": {
+                "description": "type of deposit to make",
+                "choices": ["SEPA", "SWIFT"],
+                "optional": false
+              }
+            }
+          }
+        },
+        "withdraw": {
+          "USDC": {
+            "enabled": true,
+            "authentication_required": true,
+            "min_amount": 0,
+            "max_amount": 10,
+            "types": { "cash": { "fields": {} }, "bank_account": { "fields": {} } }
+          }
+        },
+        "withdraw-exchange": {
+          "USDC": {
+            "enabled": true,
+            "authentication_required": true,
+            "min_amount": 0,
+            "max_amount": 10,
+            "types": { "cash": { "fields": {} }, "bank_account": { "fields": {} } }
+          }
+        },
+        "fee": { "enabled": false, "description": "Fee endpoint is not supported." },
+        "transactions": { "enabled": true, "authentication_required": true },
+        "transaction": { "enabled": true, "authentication_required": true },
+        "features": { "account_creation": false, "claimable_balances": false }
       }
-    """
+      """
         .trimIndent()
 
     private val expectedSep6DepositResponse =
@@ -345,7 +317,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "status": "incomplete",
           "amount_in": "10",
           "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amount_out": "8.5714",
+          "amount_out": "8.57",
           "amount_out_asset": "iso4217:USD",
           "amount_fee": "1.00",
           "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
