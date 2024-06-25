@@ -5092,8 +5092,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" },
-                "receiver": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" }
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5174,8 +5174,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" },
-                "receiver": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" }
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5310,8 +5310,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" },
-                "receiver": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" }
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5368,8 +5368,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" },
-                "receiver": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" }
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5426,8 +5426,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" },
-                "receiver": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" }
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5484,8 +5484,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" },
-                "receiver": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" }
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5542,8 +5542,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" },
-                "receiver": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" }
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5601,8 +5601,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "external_transaction_id": "ext123456789",
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" },
-                "receiver": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" }
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5661,8 +5661,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "external_transaction_id": "ext123456789",
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" },
-                "receiver": { "id": "09908c7a-c508-45f7-9138-37c6ea995ab9" }
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
