@@ -56,7 +56,7 @@ Kotlin reference server.
 
 ```shell
 docker build --build-arg BASE_IMAGE=gradle:7.6.4-jdk17 -t anchor-platform:local ./
-docker-compose -f service-runner/src/main/resources/docker-compose.yaml up -d
+docker compose -f service-runner/src/main/resources/docker-compose.yaml up -d
 ```
 
 The [Stellar Demo Wallet](https://demo-wallet.stellar.org) can be used to interact with the Anchor Platform. To get
