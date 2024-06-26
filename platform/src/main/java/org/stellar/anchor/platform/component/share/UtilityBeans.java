@@ -45,6 +45,8 @@ public class UtilityBeans {
   @Qualifier("sep6MoreInfoUrlConstructor")
   MoreInfoUrlConstructor sep6MoreInfoUrlConstructor(
       PropertyClientsConfig clientsConfig, PropertySep6Config sep6Config, JwtService jwtService) {
+    System.out.println("sep6Config");
+    System.out.println(sep6Config.getMoreInfoUrl());
     return new Sep6MoreInfoUrlConstructor(clientsConfig, sep6Config.getMoreInfoUrl(), jwtService);
   }
 

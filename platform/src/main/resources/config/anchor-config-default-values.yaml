@@ -297,10 +297,10 @@ sep6:
   #   In addition to the txn_fields, the following fields are also added to the query parameters.
   #       `transaction_id`: the transaction ID
   #       `token`: the JWT token
-  more_info_url:
-    base_url: http://localhost:8080/sep6/transaction/more_info
-    jwt_expiration: 600
-    txn_fields:
+#  more_info_url:
+#    base_url: http://localhost:8080/sep6/transaction/more_info
+#    jwt_expiration: 600
+#    txn_fields:
   # Configures the features flag returned by the SEP-6 /info endpoint
   # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-4
   features:
