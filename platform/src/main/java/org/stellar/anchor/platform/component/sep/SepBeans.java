@@ -12,7 +12,6 @@ import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
-import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.client.ClientFinder;
@@ -125,7 +124,7 @@ public class SepBeans {
   }
 
   @Bean
-  @ConditionalOnAnySepsEnabled(seps = {"sep6", "sep10", "sep24"})
+  @ConditionalOnAnySepsEnabled(seps = {"sep6", "sep24"})
   ClientFinder clientFinder(Sep10Config sep10Config, ClientService clientService) {
     return new ClientFinder(sep10Config, clientService);
   }
@@ -174,9 +173,8 @@ public class SepBeans {
   Sep12Service sep12Service(
       CustomerIntegration customerIntegration,
       AssetService assetService,
-      PlatformApiClient platformApiClient,
       EventService eventService) {
-    return new Sep12Service(customerIntegration, assetService, platformApiClient, eventService);
+    return new Sep12Service(customerIntegration, assetService, eventService);
   }
 
   @Bean

@@ -36,7 +36,7 @@ object ServiceContainer {
   private val customerRepo = JdbcCustomerRepository(database)
   private val transactionKYCRepo = JdbcTransactionKYCRepository(database)
   private val quotesRepo = JdbcQuoteRepository(database)
-  val customerService = CustomerService(customerRepo, transactionKYCRepo, sepHelper)
+  val customerService = CustomerService(customerRepo, transactionKYCRepo)
   val feeService = FeeService(customerRepo)
   val rateService = RateService(quotesRepo)
   val uniqueAddressService = UniqueAddressService(config.appSettings)

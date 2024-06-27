@@ -52,7 +52,6 @@ public interface Sep24TransactionStore {
    */
   List<Sep24Transaction> findTransactions(
       String accountId, String accountMemo, GetTransactionsRequest request) throws SepException;
-
   /**
    * Save a transaction.
    *

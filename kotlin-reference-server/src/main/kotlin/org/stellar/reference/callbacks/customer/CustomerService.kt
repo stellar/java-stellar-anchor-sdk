@@ -15,36 +15,14 @@ import org.stellar.reference.dao.CustomerRepository
 import org.stellar.reference.dao.TransactionKYCRepository
 import org.stellar.reference.log
 import org.stellar.reference.model.Customer
-import org.stellar.reference.model.TransactionKYC
-import org.stellar.reference.service.SepHelper
 
 class CustomerService(
   private val customerRepository: CustomerRepository,
   private val transactionKYCRepository: TransactionKYCRepository,
-  private val sepHelper: SepHelper,
 ) {
-  suspend fun getCustomer(request: GetCustomerRequest): GetCustomerResponse {
+  fun getCustomer(request: GetCustomerRequest): GetCustomerResponse {
     val customer =
       when {
-        // FIXME: This implementation relies on transaction.customer.sender account and memo to be
-        // set which means it only works for SEP-6 transactions.
-        request.transactionId != null -> {
-          val transaction = sepHelper.getTransaction(request.transactionId)
-          val sender = transaction.customers!!.sender
-          val memoType = if (sender!!.memo != null) "id" else null
-
-          val customer =
-            customerRepository.get(sender.account!!, sender.memo, memoType)
-              ?: Customer(stellarAccount = sender.account, memo = sender.memo, memoType = memoType)
-
-          // Determine if this transaction requires additional fields
-          val transactionKYC = transactionKYCRepository.get(request.transactionId)
-          if (transactionKYC != null) {
-            return convertCustomerToResponse(customer, request.type, transactionKYC.requiredFields)
-          }
-
-          customer
-        }
         request.id != null -> {
           customerRepository.get(request.id)
             ?: throw NotFoundException("customer for 'id' '${request.id}' not found", request.id)
@@ -61,6 +39,12 @@ class CustomerService(
           throw BadRequestException("Either id or account must be provided")
         }
       }
+    if (request.transactionId != null) {
+      val transactionKYC = transactionKYCRepository.get(request.transactionId)
+      if (transactionKYC != null) {
+        return convertCustomerToResponse(customer, request.type, transactionKYC.requiredFields)
+      }
+    }
     return convertCustomerToResponse(customer, request.type, emptyList())
   }
 
@@ -182,14 +166,6 @@ class CustomerService(
       )
       return PutCustomerResponse(id)
     }
-  }
-
-  fun requestAdditionalFieldsForTransaction(id: String, requiredFields: List<String>) {
-    val kyc = TransactionKYC(id, requiredFields)
-    if (transactionKYCRepository.get(id) != null) {
-      transactionKYCRepository.delete(id)
-    }
-    transactionKYCRepository.create(kyc)
   }
 
   fun deleteCustomer(id: String) {

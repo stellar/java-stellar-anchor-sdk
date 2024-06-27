@@ -27,6 +27,7 @@ class JdbcTransactionKYCRepository(private val db: Database) : TransactionKYCRep
           .mapNotNull {
             TransactionKYC(
               transactionId = it[TransactionKYCs.transactionId],
+              customerId = it[TransactionKYCs.customerId],
               requiredFields =
                 GsonUtils.getInstance()
                   .fromJson<List<String>>(it[TransactionKYCs.requiredFields], List::class.java),
@@ -39,6 +40,7 @@ class JdbcTransactionKYCRepository(private val db: Database) : TransactionKYCRep
     transaction(db) {
       TransactionKYCs.insert {
         it[transactionId] = transactionKYC.transactionId
+        it[customerId] = transactionKYC.customerId
         it[requiredFields] = GsonUtils.getInstance().toJson(transactionKYC.requiredFields)
       }
     }
@@ -47,6 +49,7 @@ class JdbcTransactionKYCRepository(private val db: Database) : TransactionKYCRep
   override fun update(transactionId: String, requiredFields: String, customerId: String?) {
     transaction(db) {
       TransactionKYCs.update({ TransactionKYCs.transactionId.eq(transactionId) }) {
+        it[TransactionKYCs.customerId] = customerId
         it[TransactionKYCs.requiredFields] = requiredFields
       }
     }

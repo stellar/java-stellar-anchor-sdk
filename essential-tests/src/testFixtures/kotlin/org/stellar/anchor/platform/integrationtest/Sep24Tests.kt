@@ -462,19 +462,54 @@ private const val expectedAfterPatchDeposit =
 
 private const val expectedSep24Info =
   """
-  {
-    "deposit": {
-      "native": { "enabled": true, "minAmount": 0.0, "maxAmount": 10.0 },
-      "USDC": { "enabled": true, "minAmount": 0.0, "maxAmount": 10.0 }
+{
+  "deposit": {
+    "JPYC": {
+      "enabled": true
     },
-    "withdraw": {
-      "native": { "enabled": true, "minAmount": 0.0, "maxAmount": 10.0 },
-      "USDC": { "enabled": true, "minAmount": 0.0, "maxAmount": 10.0 }
+    "native": {
+      "enabled": true,
+      "maxAmount": 1000000.0
     },
-    "fee": { "enabled": false },
-    "features": { "accountCreation": false, "claimableBalances": false }
+    "USD": {
+      "enabled": true,
+      "minAmount": 0.0,
+      "maxAmount": 10000.0
+    },
+    "USDC": {
+      "enabled": true,
+      "minAmount": 1.0,
+      "maxAmount": 1000000.0
+    }
+  },
+  "withdraw": {
+    "JPYC": {
+      "enabled": true
+    },
+    "native": {
+      "enabled": true,
+      "maxAmount": 1000000.0
+    },
+    "USD": {
+      "enabled": true,
+      "minAmount": 0.0,
+      "maxAmount": 10000.0
+    },
+    "USDC": {
+      "enabled": true,
+      "minAmount": 1.0,
+      "maxAmount": 1000000.0
+    }
+  },
+  "fee": {
+    "enabled": false
+  },
+  "features": {
+    "accountCreation": false,
+    "claimableBalances": false
   }
-  """
+}
+"""
 
 private const val expectedWithdrawTransactionResponse =
   """

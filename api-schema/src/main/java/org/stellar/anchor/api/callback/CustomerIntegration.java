@@ -35,4 +35,15 @@ public interface CustomerIntegration {
    * @throws AnchorException if error happens
    */
   void deleteCustomer(String id) throws AnchorException;
+
+  /**
+   * The request for verification.
+   *
+   * @param request The PUT request of a customer.
+   * @return The response.
+   * @throws AnchorException if error happens
+   */
+  @SuppressWarnings("RedundantThrows")
+  PutCustomerVerificationResponse putVerification(PutCustomerVerificationRequest request)
+      throws AnchorException;
 }

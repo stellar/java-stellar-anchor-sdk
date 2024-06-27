@@ -12,7 +12,28 @@ import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
-import org.stellar.anchor.platform.rpc.*;
+import org.stellar.anchor.platform.rpc.DoStellarPaymentHandler;
+import org.stellar.anchor.platform.rpc.DoStellarRefundHandler;
+import org.stellar.anchor.platform.rpc.NotifyAmountsUpdatedHandler;
+import org.stellar.anchor.platform.rpc.NotifyCustomerInfoUpdatedHandler;
+import org.stellar.anchor.platform.rpc.NotifyInteractiveFlowCompletedHandler;
+import org.stellar.anchor.platform.rpc.NotifyOffchainFundsAvailableHandler;
+import org.stellar.anchor.platform.rpc.NotifyOffchainFundsPendingHandler;
+import org.stellar.anchor.platform.rpc.NotifyOffchainFundsReceivedHandler;
+import org.stellar.anchor.platform.rpc.NotifyOffchainFundsSentHandler;
+import org.stellar.anchor.platform.rpc.NotifyOnchainFundsReceivedHandler;
+import org.stellar.anchor.platform.rpc.NotifyOnchainFundsSentHandler;
+import org.stellar.anchor.platform.rpc.NotifyRefundPendingHandler;
+import org.stellar.anchor.platform.rpc.NotifyRefundSentHandler;
+import org.stellar.anchor.platform.rpc.NotifyTransactionErrorHandler;
+import org.stellar.anchor.platform.rpc.NotifyTransactionExpiredHandler;
+import org.stellar.anchor.platform.rpc.NotifyTransactionRecoveryHandler;
+import org.stellar.anchor.platform.rpc.NotifyTrustSetHandler;
+import org.stellar.anchor.platform.rpc.RequestCustomerInfoUpdateHandler;
+import org.stellar.anchor.platform.rpc.RequestOffchainFundsHandler;
+import org.stellar.anchor.platform.rpc.RequestOnchainFundsHandler;
+import org.stellar.anchor.platform.rpc.RequestTrustlineHandler;
+import org.stellar.anchor.platform.rpc.RpcMethodHandler;
 import org.stellar.anchor.platform.service.RpcService;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
@@ -317,25 +338,6 @@ public class RpcActionBeans {
         eventService,
         metricsService,
         transactionPendingTrustRepo);
-  }
-
-  @Bean
-  NotifyTransactionOnHoldHandler notifyTransactionOnHoldHandler(
-      Sep6TransactionStore txn6Store,
-      Sep24TransactionStore txn24Store,
-      Sep31TransactionStore txn31Store,
-      RequestValidator requestValidator,
-      AssetService assetService,
-      EventService eventService,
-      MetricsService metricsService) {
-    return new NotifyTransactionOnHoldHandler(
-        txn6Store,
-        txn24Store,
-        txn31Store,
-        requestValidator,
-        assetService,
-        eventService,
-        metricsService);
   }
 
   @Bean

@@ -14,16 +14,12 @@ import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.platform.CustomerUpdatedResponse
-import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.sep.sep12.Sep12CustomerRequestBase
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.shared.CustomerField
-import org.stellar.anchor.api.shared.Customers
 import org.stellar.anchor.api.shared.ProvidedCustomerField
-import org.stellar.anchor.api.shared.StellarId
-import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.Sep10Jwt
@@ -88,7 +84,6 @@ class Sep12ServiceTest {
   private lateinit var sep12Service: Sep12Service
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var assetService: AssetService
-  @MockK(relaxed = true) private lateinit var platformApiClient: PlatformApiClient
   @MockK(relaxed = true) private lateinit var eventService: EventService
   @MockK(relaxed = true) private lateinit var eventSession: EventService.Session
 
@@ -102,7 +97,7 @@ class Sep12ServiceTest {
     every { assetService.listAllAssets() } returns assets
     every { eventService.createSession(any(), any()) } returns eventSession
 
-    sep12Service = Sep12Service(customerIntegration, assetService, platformApiClient, eventService)
+    sep12Service = Sep12Service(customerIntegration, assetService, eventService)
   }
 
   @Test
@@ -174,30 +169,6 @@ class Sep12ServiceTest {
     jwtToken = createJwtToken(TEST_MUXED_ACCOUNT)
     every { mockRequestBase.memo } returns TEST_MEMO
     assertDoesNotThrow { sep12Service.validateRequestAndTokenMemos(mockRequestBase, jwtToken) }
-  }
-
-  @Test
-  fun `test get and put sets request account and memo using transaction`() {
-    val transaction =
-      GetTransactionResponse.builder()
-        .customers(
-          Customers.builder()
-            .sender(StellarId.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).build())
-            .build()
-        )
-        .build()
-    every { platformApiClient.getTransaction(any()) } returns transaction
-    val jwtToken = createJwtToken(TEST_ACCOUNT)
-
-    val putRequestBase = Sep12PutCustomerRequest.builder().transactionId("id").build()
-    assertDoesNotThrow { sep12Service.validateGetOrPutRequest(putRequestBase, jwtToken) }
-    assertEquals(TEST_ACCOUNT, putRequestBase.account)
-    assertEquals(TEST_MEMO, putRequestBase.memo)
-
-    val getRequestBase = Sep12GetCustomerRequest.builder().transactionId("id").build()
-    assertDoesNotThrow { sep12Service.validateGetOrPutRequest(getRequestBase, jwtToken) }
-    assertEquals(TEST_ACCOUNT, getRequestBase.account)
-    assertEquals(TEST_MEMO, getRequestBase.memo)
   }
 
   @Test
@@ -301,7 +272,7 @@ class Sep12ServiceTest {
     assertEquals(AnchorEvent.Type.CUSTOMER_UPDATED, kycUpdateEventSlot.captured.type)
     assertEquals(
       CustomerUpdatedResponse(mockCallbackApiPutCustomerResponse.id),
-      kycUpdateEventSlot.captured.customer,
+      kycUpdateEventSlot.captured.customer
     )
 
     // validate the response
