@@ -60,6 +60,13 @@ class Sep6ConfigTest {
   }
 
   @Test
+  fun `test validation passed without more_info_url config`() {
+    config.moreInfoUrl = null
+    config.validate(config, errors)
+    Assertions.assertFalse(errors.hasErrors())
+  }
+
+  @Test
   fun `test validation rejecting undefined features config`() {
     config.features = null
     config.validate(config, errors)
