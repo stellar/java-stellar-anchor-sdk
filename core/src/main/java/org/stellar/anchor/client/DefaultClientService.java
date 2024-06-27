@@ -53,17 +53,12 @@ public class DefaultClientService implements ClientService {
   public static Map<String, Object> parseFileToMap(String filePath) throws InvalidConfigException {
     try {
       String fileContent = FileUtil.read(Path.of(filePath));
-      String fileExtension = FilenameUtils.getExtension(filePath).toLowerCase();
-      Map<String, Object> map;
-      if ("yaml".equals(fileExtension) || "yml".equals(fileExtension)) {
-        map = new Yaml().load(fileContent);
-      } else if ("json".equals(fileExtension)) {
-        map = gson.fromJson(fileContent, new TypeToken<Map<String, Object>>() {}.getType());
-      } else {
-        throw new InvalidConfigException(
+      return switch (FilenameUtils.getExtension(filePath).toLowerCase()) {
+        case "yaml", "yml" -> new Yaml().load(fileContent);
+        case "json" -> gson.fromJson(fileContent, Map.class);
+        default -> throw new InvalidConfigException(
             String.format("%s is not a supported file format", filePath));
-      }
-      return map;
+      };
     } catch (Exception ex) {
       throw new InvalidConfigException(
           List.of(String.format("Cannot read from clients file: %s", filePath)), ex);

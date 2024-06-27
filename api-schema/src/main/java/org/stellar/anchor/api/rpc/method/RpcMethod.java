@@ -66,10 +66,7 @@ public enum RpcMethod {
   NOTIFY_AMOUNTS_UPDATED("notify_amounts_updated"),
 
   @SerializedName("notify_transaction_recovery")
-  NOTIFY_TRANSACTION_RECOVERY("notify_transaction_recovery"),
-
-  @SerializedName("notify_transaction_on_hold")
-  NOTIFY_TRANSACTION_ON_HOLD("notify_transaction_on_hold");
+  NOTIFY_TRANSACTION_RECOVERY("notify_transaction_recovery");
 
   private final String method;
 

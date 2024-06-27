@@ -185,7 +185,6 @@ class RateService(private val quoteRepository: QuoteRepository) {
 
   companion object {
     val fiatUSD = "iso4217:USD"
-    val fiatCAD = "iso4217:CAD"
     val stellarCircleUSDCtest =
       "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     val stellarUSDCtest = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
@@ -207,8 +206,6 @@ class RateService(private val quoteRepository: QuoteRepository) {
         Pair(stellarJPYC, stellarCircleUSDCtest) to "120",
         Pair(stellarUSDCprod, stellarJPYC) to "0.0084",
         Pair(stellarJPYC, stellarUSDCprod) to "120",
-        Pair(fiatCAD, stellarUSDCtest) to "0.73",
-        Pair(stellarUSDCtest, fiatCAD) to "1.37",
       )
 
     private fun getPrice(sellAsset: String, buyAsset: String): String? {

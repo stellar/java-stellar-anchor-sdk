@@ -14,8 +14,4 @@ public interface Sep12CustomerRequestBase {
   String getMemoType();
 
   void setMemoType(String memoType);
-
-  String getTransactionId();
-
-  void setTransactionId(String transactionId);
 }

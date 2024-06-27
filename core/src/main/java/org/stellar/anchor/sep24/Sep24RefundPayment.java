@@ -30,7 +30,6 @@ public interface Sep24RefundPayment {
   String getAmount();
 
   void setAmount(String amount);
-
   /**
    * The amount charged as a fee for processing the refund, in units of amount_in_asset.
    *
