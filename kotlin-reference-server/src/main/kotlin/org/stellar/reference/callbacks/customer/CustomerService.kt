@@ -64,10 +64,17 @@ class CustomerService(
     return convertCustomerToResponse(customer, request.type, emptyList())
   }
 
-  fun upsertCustomer(request: PutCustomerRequest): PutCustomerResponse {
+  suspend fun upsertCustomer(request: PutCustomerRequest): PutCustomerResponse {
     log.info("Upserting customer: $request")
     val customer =
       when {
+        request.transactionId != null -> {
+          val transaction = sepHelper.getTransaction(request.transactionId)
+          val sender = transaction.customers!!.sender
+          val memoType = if (sender!!.memo != null) "id" else null
+
+          customerRepository.get(sender.account!!, sender.memo, memoType)
+        }
         request.id != null -> customerRepository.get(request.id)
         request.account != null ->
           customerRepository.get(request.account, request.memo, request.memoType)
