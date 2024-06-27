@@ -50,9 +50,15 @@ class Sep6EventProcessor(
   override suspend fun onTransactionCreated(event: SendEventRequest) {
     when (val kind = event.payload.transaction!!.kind) {
       Kind.DEPOSIT,
-      Kind.WITHDRAWAL -> {
+      Kind.DEPOSIT_EXCHANGE,
+      Kind.WITHDRAWAL,
+      Kind.WITHDRAWAL_EXCHANGE -> {
         requestKyc(event)
-        requestCustomerFunds(event.payload.transaction)
+        try {
+          requestCustomerFunds(event.payload.transaction)
+        } catch (e: Exception) {
+          log.error("Error requesting customer funds", e)
+        }
       }
       else -> {
         log.warn("Received transaction created event with unsupported kind: $kind")
@@ -66,8 +72,10 @@ class Sep6EventProcessor(
 
   override suspend fun onTransactionStatusChanged(event: SendEventRequest) {
     when (val kind = event.payload.transaction!!.kind) {
-      Kind.DEPOSIT -> onDepositTransactionStatusChanged(event)
-      Kind.WITHDRAWAL -> onWithdrawTransactionStatusChanged(event)
+      Kind.DEPOSIT,
+      Kind.DEPOSIT_EXCHANGE -> onDepositTransactionStatusChanged(event)
+      Kind.WITHDRAWAL,
+      Kind.WITHDRAWAL_EXCHANGE -> onWithdrawTransactionStatusChanged(event)
       else -> {
         log.warn("Received transaction created event with unsupported kind: $kind")
       }
@@ -79,7 +87,7 @@ class Sep6EventProcessor(
     when (val status = transaction.status) {
       PENDING_ANCHOR -> {
         val customer = transaction.customers.sender
-        if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isNotEmpty()) {
+        if (verifyKyc(customer.account, customer.memo, transaction.kind).isNotEmpty()) {
           requestKyc(event)
           return
         }
@@ -221,15 +229,40 @@ class Sep6EventProcessor(
   private fun requestCustomerFunds(transaction: GetTransactionResponse) {
     val customer = transaction.customers.sender
     when (transaction.kind) {
-      Kind.DEPOSIT -> {
-        val instructions =
+      Kind.DEPOSIT,
+      Kind.DEPOSIT_EXCHANGE -> {
+        val usdDepositInstructions =
           mapOf(
             "organization.bank_number" to
               InstructionField(value = "121122676", description = "US Bank routing number"),
             "organization.bank_account_number" to
               InstructionField(value = "13719713158835300", description = "US Bank account number"),
           )
-        if (verifyKyc(customer.account, customer.memo, Kind.DEPOSIT).isEmpty()) {
+        val cadDepositInstructions =
+          mapOf(
+            "organization.bank_number" to
+              InstructionField(value = "121122676", description = "CA Bank routing number"),
+            "organization.bank_account_number" to
+              InstructionField(value = "13719713158835300", description = "CA Bank account number"),
+          )
+        val sourceAsset =
+          when (transaction.kind) {
+            Kind.DEPOSIT -> "iso4217:USD"
+            Kind.DEPOSIT_EXCHANGE -> transaction.amountIn.asset
+            else -> throw RuntimeException("Unsupported kind: ${transaction.kind}")
+          }
+        val isDepositExchange = transaction.kind == Kind.DEPOSIT_EXCHANGE
+        val isUsdOrCadAsset = sourceAsset == "iso4217:USD" || sourceAsset == "iso4217:CAD"
+
+        val instructions =
+          when {
+            isDepositExchange && isUsdOrCadAsset ->
+              if (sourceAsset == "iso4217:USD") usdDepositInstructions else cadDepositInstructions
+            isDepositExchange -> throw RuntimeException("Unsupported asset: $sourceAsset")
+            else -> usdDepositInstructions
+          }
+
+        if (verifyKyc(customer.account, customer.memo, transaction.kind).isEmpty()) {
           runBlocking {
             if (transaction.amountExpected.amount != null) {
               // The amount was specified at transaction initialization
@@ -240,7 +273,7 @@ class Sep6EventProcessor(
                   message = "Please deposit the amount to the following bank account",
                   amountIn =
                     AmountAssetRequest(
-                      asset = "iso4217:USD",
+                      asset = sourceAsset,
                       amount = transaction.amountExpected.amount,
                     ),
                   amountOut =
@@ -248,7 +281,7 @@ class Sep6EventProcessor(
                       asset = transaction.amountExpected.asset,
                       amount = transaction.amountExpected.amount,
                     ),
-                  feeDetails = FeeDetails(total = "0", asset = "iso4217:USD"),
+                  feeDetails = FeeDetails(total = "0", asset = sourceAsset),
                   instructions = instructions,
                 ),
               )
@@ -258,10 +291,10 @@ class Sep6EventProcessor(
                 RequestOffchainFundsRequest(
                   transactionId = transaction.id,
                   message = "Please deposit to the following bank account",
-                  amountIn = AmountAssetRequest(asset = "iso4217:USD", amount = "0"),
+                  amountIn = AmountAssetRequest(asset = sourceAsset, amount = "0"),
                   amountOut =
                     AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0"),
-                  feeDetails = FeeDetails(total = "0", asset = "iso4217:USD"),
+                  feeDetails = FeeDetails(total = "0", asset = sourceAsset),
                   instructions = instructions,
                 ),
               )
@@ -269,8 +302,15 @@ class Sep6EventProcessor(
           }
         }
       }
-      Kind.WITHDRAWAL -> {
-        if (verifyKyc(customer.account, customer.memo, Kind.WITHDRAWAL).isEmpty()) {
+      Kind.WITHDRAWAL,
+      Kind.WITHDRAWAL_EXCHANGE -> {
+        val destinationAsset =
+          when (transaction.kind) {
+            Kind.WITHDRAWAL -> "iso4217:USD"
+            Kind.WITHDRAWAL_EXCHANGE -> transaction.amountOut.asset
+            else -> throw RuntimeException("Unsupported kind: ${transaction.kind}")
+          }
+        if (verifyKyc(customer.account, customer.memo, transaction.kind).isEmpty()) {
           runBlocking {
             if (transaction.amountExpected.amount != null) {
               // The amount was specified at transaction initialization
@@ -286,7 +326,7 @@ class Sep6EventProcessor(
                     ),
                   amountOut =
                     AmountAssetRequest(
-                      asset = "iso4217:USD",
+                      asset = destinationAsset,
                       amount = transaction.amountExpected.amount,
                     ),
                   feeDetails = FeeDetails(total = "0", asset = transaction.amountExpected.asset),
@@ -299,7 +339,7 @@ class Sep6EventProcessor(
                   transactionId = transaction.id,
                   message = "Please deposit to the following address",
                   amountIn = AmountAssetRequest(transaction.amountExpected.asset, "0"),
-                  amountOut = AmountAssetRequest("iso4217:USD", "0"),
+                  amountOut = AmountAssetRequest(destinationAsset, "0"),
                   feeDetails = FeeDetails("0", transaction.amountExpected.asset),
                 ),
               )
@@ -314,7 +354,7 @@ class Sep6EventProcessor(
   }
 
   private fun verifyKyc(sep10Account: String, sep10AccountMemo: String?, kind: Kind): List<String> {
-    val customer =
+    val customer = runBlocking {
       customerService.getCustomer(
         GetCustomerRequest.builder()
           .account(sep10Account)
@@ -322,9 +362,13 @@ class Sep6EventProcessor(
           .memoType(if (sep10AccountMemo != null) "id" else null)
           .build()
       )
+    }
     val providedFields = customer.providedFields.keys
     return requiredKyc
-      .plus(if (kind == Kind.DEPOSIT) depositRequiredKyc else withdrawRequiredKyc)
+      .plus(
+        if (kind == Kind.DEPOSIT || kind == Kind.DEPOSIT_EXCHANGE) depositRequiredKyc
+        else withdrawRequiredKyc
+      )
       .filter { !providedFields.contains(it) }
   }
 
@@ -334,12 +378,15 @@ class Sep6EventProcessor(
     val missingFields = verifyKyc(customer.account, customer.memo, kind)
     runBlocking {
       if (missingFields.isNotEmpty()) {
+        customerService.requestAdditionalFieldsForTransaction(
+          event.payload.transaction.id,
+          missingFields,
+        )
         sepHelper.rpcAction(
           RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE.toString(),
           RequestCustomerInfoUpdateHandler(
             transactionId = event.payload.transaction.id,
             message = "Please update your info",
-            requiredCustomerInfoUpdates = missingFields,
           ),
         )
       }

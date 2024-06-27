@@ -12,7 +12,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
-import lombok.SneakyThrows;
 import okhttp3.*;
 import okhttp3.HttpUrl.Builder;
 import org.springframework.http.HttpStatus;
@@ -188,14 +187,6 @@ public class RestCustomerIntegration implements CustomerIntegration {
     if (!List.of(HttpStatus.OK.value(), HttpStatus.NO_CONTENT.value()).contains(response.code())) {
       throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
     }
-  }
-
-  @SneakyThrows
-  @Override
-  public PutCustomerVerificationResponse putVerification(PutCustomerVerificationRequest request) {
-    // the Platform Callback API doesn't support verification.
-    // if it does in the future we can implement this method
-    throw new UnsupportedOperationException("not implemented");
   }
 
   Builder getCustomerUrlBuilder() {
