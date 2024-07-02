@@ -2,9 +2,10 @@ package org.stellar.anchor.platform.data;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.mergeStatusesList;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.Table;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.Table;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
@@ -42,7 +43,7 @@ public class AllTransactionsRepositoryImpl<T> implements AllTransactionsReposito
             params.getPageSize(),
             params.getPageNumber() * params.getPageSize());
 
-    javax.persistence.Query query = em.createNativeQuery(nativeQuery, entityClass);
+    Query query = em.createNativeQuery(nativeQuery, entityClass);
 
     List<T> results = query.getResultList();
 

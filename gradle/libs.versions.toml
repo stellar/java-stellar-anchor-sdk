@@ -24,7 +24,7 @@ google-gson = "2.10.1"
 httpclient = "4.5.13"
 h2database = "2.2.224"
 hibernate-types = "2.18.0"
-hoplite = "2.7.0"
+hoplite = "2.7.5"
 jackson-dataformat-yaml = "2.14.0"
 java-stellar-sdk = "0.42.0"
 javax-jaxb-api = "2.3.1"
@@ -49,13 +49,11 @@ postgresql = "42.7.3"
 reactor-core = "3.4.14"
 reactor-netty = "1.0.15"
 scala-library = "2.13.9"
-servlet-api = "2.5"
-snakeyaml = "1.33"
+servlet-api = "6.0.0"
 spring-kafka = "2.9.13"
 spring-aws-messaging = "2.2.6.RELEASE"
 aws-java-sdk-s3 = "1.12.342"
 sqlite-jdbc = "3.43.2.2"
-slf4j = "1.7.35"
 slf4j2 = "2.0.13"
 stellar-wallet-sdk = "1.7.0"
 toml4j = "0.7.2"
@@ -63,7 +61,7 @@ tomcat-embed-core = "9.0.87"
 
 # Plugin versions
 spotless = "6.25.0"
-spring-boot = "2.7.18"
+spring-boot = "3.2.4"
 spring-dependency-management = "1.1.0"
 jacoco = "0.8.10"
 
@@ -124,10 +122,9 @@ ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
-log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
+log4j2-slf4j2 = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
 log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
-snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 # TODO: upgrade to log4j2
 log4j-template-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j-template-json" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
@@ -140,7 +137,7 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor-core" }
 reactor-netty = { module = "io.projectreactor.netty:reactor-netty", version.ref = "reactor-netty" }
 scala-library = { module = "org.scala-lang:scala-library", version.ref = "scala-library" }
-servlet-api = { module = "javax.servlet:servlet-api", version.ref = "servlet-api" }
+servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "servlet-api" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j2" }
 slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j2" }

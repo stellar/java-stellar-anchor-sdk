@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
+import jakarta.persistence.*;
 import java.time.Instant;
-import javax.persistence.*;
 import lombok.Data;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.sep38.Sep38Quote;

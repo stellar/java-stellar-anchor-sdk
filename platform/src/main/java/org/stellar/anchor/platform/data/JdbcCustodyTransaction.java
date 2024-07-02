@@ -2,19 +2,13 @@ package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
 import com.vladmihalcea.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
 import java.time.Instant;
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.TypeDef;
 
 @Getter
 @Setter
@@ -22,7 +16,7 @@ import org.hibernate.annotations.TypeDef;
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "custody_transaction")
-@TypeDef(name = "json", typeClass = JsonType.class)
+@Convert(converter = JsonType.class)
 @NoArgsConstructor
 @AllArgsConstructor
 public class JdbcCustodyTransaction {

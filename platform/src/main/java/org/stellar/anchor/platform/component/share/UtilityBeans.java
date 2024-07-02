@@ -37,7 +37,7 @@ public class UtilityBeans {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "")
+  @ConfigurationProperties(prefix = "app")
   AppConfig appConfig() {
     return new PropertyAppConfig();
   }

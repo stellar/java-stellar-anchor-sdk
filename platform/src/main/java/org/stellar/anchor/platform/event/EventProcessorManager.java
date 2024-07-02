@@ -3,10 +3,10 @@ package org.stellar.anchor.platform.event;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.StringHelper.json;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.MoreInfoUrlConstructor;

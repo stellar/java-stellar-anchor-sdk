@@ -38,10 +38,9 @@ dependencies {
   implementation(libs.bcastle)
   implementation(libs.log4j2.api)
   implementation(libs.log4j2.core)
-  implementation(libs.log4j2.slf4j)
+  implementation(libs.log4j2.slf4j2)
   implementation(libs.okhttp3)
-  // used to force the version of snakeyaml (used by springboot) to a safer one.
-  implementation(libs.snakeyaml)
+  implementation(libs.servlet.api)
   implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
   implementation(libs.sqlite.jdbc)

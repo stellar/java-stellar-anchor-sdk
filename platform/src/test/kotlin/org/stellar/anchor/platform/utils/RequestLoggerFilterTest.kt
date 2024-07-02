@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.utils
 
 import io.mockk.*
-import javax.servlet.FilterChain
+import jakarta.servlet.FilterChain
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.mock.web.MockHttpServletRequest
