@@ -571,13 +571,17 @@ public class Sep24Service {
     Map<String, InfoResponse.OperationResponse> depositMap = new HashMap<>();
     Map<String, InfoResponse.OperationResponse> withdrawMap = new HashMap<>();
     for (AssetInfo asset : assets) {
-      if (asset.getDeposit().getEnabled())
-        depositMap.put(
-            asset.getCode(), InfoResponse.OperationResponse.fromAssetOperation(asset.getDeposit()));
-      if (asset.getWithdraw().getEnabled())
-        withdrawMap.put(
-            asset.getCode(),
-            InfoResponse.OperationResponse.fromAssetOperation(asset.getWithdraw()));
+      // iso4217 assets do not have deposit/withdraw configurations
+      if (asset.getSchema().equals(AssetInfo.Schema.stellar)) {
+        if (asset.getDeposit().getEnabled())
+          depositMap.put(
+              asset.getCode(),
+              InfoResponse.OperationResponse.fromAssetOperation(asset.getDeposit()));
+        if (asset.getWithdraw().getEnabled())
+          withdrawMap.put(
+              asset.getCode(),
+              InfoResponse.OperationResponse.fromAssetOperation(asset.getWithdraw()));
+      }
     }
 
     return InfoResponse.builder()
