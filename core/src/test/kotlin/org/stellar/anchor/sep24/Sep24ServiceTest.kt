@@ -676,8 +676,6 @@ internal class Sep24ServiceTest {
   fun `test GET info`() {
     val response = sep24Service.info
 
-    println(gson.toJson(response))
-
     assertEquals(3, response.deposit.size)
     assertEquals(2, response.withdraw.size)
     assertNotNull(response.deposit["USDC"])
