@@ -523,7 +523,7 @@ public class Sep6Service {
             .build();
 
     for (AssetInfo asset : assetService.listAllAssets()) {
-      if (asset.getSep6Enabled()) {
+      if (asset.getSep6Enabled() && asset.getSchema().equals(AssetInfo.Schema.stellar)) {
 
         if (asset.getDeposit().getEnabled()) {
           List<String> methods = asset.getDeposit().getMethods();

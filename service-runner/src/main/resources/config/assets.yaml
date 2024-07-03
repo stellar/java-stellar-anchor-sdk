@@ -191,11 +191,6 @@ assets:
   - schema: iso4217
     code: USD
     significant_decimals: 7
-    # TODO: these should not be checked
-    deposit:
-      enabled: false
-    withdraw:
-      enabled: false
     send:
       min_amount: 0
       max_amount: 1000000
@@ -216,11 +211,6 @@ assets:
   - schema: iso4217
     code: CAD
     significant_decimals: 7
-    # TODO: these should not be checked
-    deposit:
-      enabled: false
-    withdraw:
-      enabled: false
     send:
       min_amount: 0
       max_amount: 1000000
