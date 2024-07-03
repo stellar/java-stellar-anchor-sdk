@@ -20,7 +20,6 @@ import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
-import org.stellar.anchor.sep6.Sep6Transaction;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class RequestCustomerInfoUpdateHandler
@@ -77,16 +76,6 @@ public class RequestCustomerInfoUpdateHandler
   @Override
   protected void updateTransactionWithRpcRequest(
       JdbcSepTransaction txn, RequestCustomerInfoUpdateRequest request) {
-    if (Sep.from(txn.getProtocol()) == SEP_6) {
-      Sep6Transaction txn6 = (Sep6Transaction) txn;
-
-      if (request.getRequiredCustomerInfoMessage() != null) {
-        txn6.setRequiredCustomerInfoMessage(request.getRequiredCustomerInfoMessage());
-      }
-
-      if (request.getRequiredCustomerInfoUpdates() != null) {
-        txn6.setRequiredCustomerInfoUpdates(request.getRequiredCustomerInfoUpdates());
-      }
-    }
+    return;
   }
 }

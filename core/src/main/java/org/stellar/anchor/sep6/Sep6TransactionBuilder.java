@@ -189,17 +189,6 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  public Sep6TransactionBuilder requiredCustomerInfoMessage(String requiredCustomerInfoMessage) {
-    txn.setRequiredCustomerInfoMessage(requiredCustomerInfoMessage);
-    return this;
-  }
-
-  public Sep6TransactionBuilder requiredCustomerInfoUpdates(
-      List<String> requiredCustomerInfoUpdates) {
-    txn.setRequiredCustomerInfoUpdates(requiredCustomerInfoUpdates);
-    return this;
-  }
-
   public Sep6TransactionBuilder instructions(Map<String, InstructionField> instructions) {
     txn.setInstructions(instructions);
     return this;

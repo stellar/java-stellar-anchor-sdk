@@ -344,26 +344,6 @@ public interface Sep6Transaction extends SepTransaction {
   void setRequiredInfoUpdates(List<String> requiredInfoUpdates);
 
   /**
-   * A human-readable message indicating why the SEP-12 information provided by the user is not
-   * sufficient to complete the transaction.
-   *
-   * @return the required customer info message.
-   */
-  String getRequiredCustomerInfoMessage();
-
-  void setRequiredCustomerInfoMessage(String requiredCustomerInfoMessage);
-
-  /**
-   * A set of SEP-9 fields that require update from the user via SEP-12. This field is only relevant
-   * when `status` is `pending_customer_info_update`.
-   *
-   * @return the required customer info updates.
-   */
-  List<String> getRequiredCustomerInfoUpdates();
-
-  void setRequiredCustomerInfoUpdates(List<String> requiredCustomerInfoUpdates);
-
-  /**
    * Describes how to complete the off-chain deposit.
    *
    * @return the deposit instructions.

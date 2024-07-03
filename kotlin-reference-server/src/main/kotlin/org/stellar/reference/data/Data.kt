@@ -90,10 +90,7 @@ data class RequestOnchainFundsRequest(
 @Serializable
 data class RequestCustomerInfoUpdateHandler(
   @SerialName("transaction_id") override val transactionId: String,
-  override val message: String?,
-  @SerialName("required_customer_info_message") val requiredCustomerInfoMessage: String? = null,
-  @SerialName("required_customer_info_updates")
-  val requiredCustomerInfoUpdates: List<String>? = null,
+  override val message: String?
 ) : RpcActionParamsRequest()
 
 @Serializable

@@ -133,15 +133,6 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
   @Type(type = "json")
   List<String> requiredInfoUpdates;
 
-  @SerializedName("required_customer_info_message")
-  @Column(name = "required_customer_info_message")
-  String requiredCustomerInfoMessage;
-
-  @SerializedName("required_customer_info_updates")
-  @Column(name = "required_customer_info_updates")
-  @Type(type = "json")
-  List<String> requiredCustomerInfoUpdates;
-
   @Column(name = "instructions")
   @Type(type = "json")
   Map<String, InstructionField> instructions;
