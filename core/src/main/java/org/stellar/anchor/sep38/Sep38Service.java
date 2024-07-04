@@ -201,17 +201,19 @@ public class Sep38Service {
     }
 
     // Check SEP31 send limits
-    if (sellAsset == null) {
-      throw new BadRequestException("Unsupported sell asset.");
-    }
-    String[] assetCode = sellAsset.getAsset().split(":");
-    AssetInfo asset = assetService.getAsset(assetCode[1]);
-    Long sendMinLimit = asset.getSend().getMinAmount();
-    Long sendMaxLimit = asset.getSend().getMaxAmount();
+    if (context == SEP31) {
+      if (sellAsset == null) {
+        throw new BadRequestException("Unsupported sell asset.");
+      }
+      String[] assetCode = sellAsset.getAsset().split(":");
+      AssetInfo asset = assetService.getAsset(assetCode[1]);
+      Long sendMinLimit = asset.getSend().getMinAmount();
+      Long sendMaxLimit = asset.getSend().getMaxAmount();
 
-    // SEP31: when sell_amount is specified
-    if (context == SEP31 && sellAmount != null) {
-      validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
+      // When sell_amount is specified
+      if (sellAmount != null) {
+        validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
+      }
     }
 
     GetRateRequest.GetRateRequestBuilder rrBuilder =
@@ -235,8 +237,13 @@ public class Sep38Service {
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
     GetRateResponse.Rate rate = rateResponse.getRate();
 
-    // SEP31: when buy_amount is specified (sell amount found from rate integration)
-    if (context == SEP31 && buyAmount != null) {
+    // Check SEP31 sell_amount from rate integration when buy_amount is specified
+    if (context == SEP31 && isNotEmpty(buyAmount)) {
+      String[] assetCode = sellAsset.getAsset().split(":");
+      AssetInfo asset = assetService.getAsset(assetCode[1]);
+      Long sendMinLimit = asset.getSend().getMinAmount();
+      Long sendMaxLimit = asset.getSend().getMaxAmount();
+
       validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
     }
 
@@ -341,17 +348,19 @@ public class Sep38Service {
     }
 
     // Check SEP31 send limits
-    if (sellAsset == null) {
-      throw new BadRequestException("Unsupported sell asset.");
-    }
-    String[] assetCode = sellAsset.getAsset().split(":");
-    AssetInfo asset = assetService.getAsset(assetCode[1]);
-    Long sendMinLimit = asset.getSend().getMinAmount();
-    Long sendMaxLimit = asset.getSend().getMaxAmount();
+    if (context == SEP31) {
+      if (sellAsset == null) {
+        throw new BadRequestException("Unsupported sell asset.");
+      }
+      String[] assetCode = sellAsset.getAsset().split(":");
+      AssetInfo asset = assetService.getAsset(assetCode[1]);
+      Long sendMinLimit = asset.getSend().getMinAmount();
+      Long sendMaxLimit = asset.getSend().getMaxAmount();
 
-    // SEP31: when sell_amount is specified
-    if (context == SEP31 && request.getSellAmount() != null) {
-      validateAmountLimit("sell_", request.getSellAmount(), sendMinLimit, sendMaxLimit);
+      // When sell_amount is specified
+      if (request.getSellAmount() != null) {
+        validateAmountLimit("sell_", request.getSellAmount(), sendMinLimit, sendMaxLimit);
+      }
     }
 
     GetRateRequest.GetRateRequestBuilder getRateRequestBuilder =
@@ -401,8 +410,13 @@ public class Sep38Service {
     responseBuilder =
         responseBuilder.totalPrice(totalPrice).sellAmount(sellAmount).buyAmount(buyAmount);
 
-    // SEP31: when buy_amount is specified (sell amount found from rate integration)
+    // Check SEP31 sell_amount from rate integration when buy_amount is specified
     if (context == SEP31 && isNotEmpty(buyAmount)) {
+      String[] assetCode = sellAsset.getAsset().split(":");
+      AssetInfo asset = assetService.getAsset(assetCode[1]);
+      Long sendMinLimit = asset.getSend().getMinAmount();
+      Long sendMaxLimit = asset.getSend().getMaxAmount();
+
       validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
     }
 
