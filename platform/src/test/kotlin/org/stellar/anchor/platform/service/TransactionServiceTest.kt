@@ -714,14 +714,6 @@ class TransactionServiceTest {
         "completed_at": "2023-10-31T21:16:44.652008Z",
         "stellar_transaction_id": "a8b7f7ba67a5c63975512aa113c5a177e675c5e195a2e15920b39f5a5a91f306",
         "message": "Funds sent to user",
-        "required_customer_info_updates": [
-          "id_type",
-          "id_country_code",
-          "id_issue_date",
-          "id_expiration_date",
-          "id_number",
-          "address"
-        ],
         "instructions": {
           "organization.bank_number": {
             "value": "121122676",
@@ -1077,14 +1069,6 @@ class TransactionServiceTest {
         "completed_at": "2023-10-31T21:16:44.652008Z",
         "message": "Funds sent to user",
         "customers": { "sender": {}, "receiver": {} },
-        "required_customer_info_updates": [
-          "id_type",
-          "id_country_code",
-          "id_issue_date",
-          "id_expiration_date",
-          "id_number",
-          "address"
-        ],
         "instructions": {
           "organization.bank_number": {
             "value": "121122676",

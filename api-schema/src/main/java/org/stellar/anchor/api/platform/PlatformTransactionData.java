@@ -107,14 +107,6 @@ public class PlatformTransactionData {
   @SerializedName("required_info_updates")
   List<String> requiredInfoUpdates;
 
-  @Deprecated
-  @SerializedName("required_customer_info_message")
-  String requiredCustomerInfoMessage;
-
-  @Deprecated
-  @SerializedName("required_customer_info_updates")
-  List<String> requiredCustomerInfoUpdates;
-
   Map<String, InstructionField> instructions;
 
   public enum Sep {

@@ -163,8 +163,6 @@ public class TransactionHelper {
         .refundMemoType(txn.getRefundMemoType())
         .requiredInfoMessage(txn.getRequiredInfoMessage())
         .requiredInfoUpdates(txn.getRequiredInfoUpdates())
-        .requiredCustomerInfoMessage(txn.getRequiredCustomerInfoMessage())
-        .requiredCustomerInfoUpdates(txn.getRequiredCustomerInfoUpdates())
         .instructions(txn.getInstructions())
         .customers(Customers.builder().sender(customer).receiver(customer).build())
         .build();
