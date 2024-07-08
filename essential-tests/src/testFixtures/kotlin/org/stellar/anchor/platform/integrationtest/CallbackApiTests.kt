@@ -53,7 +53,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
 
   private val platformToAnchorJwtService =
     JwtService(
-      config.env["secret.sep6.more_info_url.jwt_secret"]!!,
+      config.env["secret.sep6.more_info_url.jwt_secret"],
       config.env["secret.sep10.jwt_secret"]!!,
       config.env["secret.sep24.interactive_url.jwt_secret"]!!,
       config.env["secret.sep24.more_info_url.jwt_secret"]!!,

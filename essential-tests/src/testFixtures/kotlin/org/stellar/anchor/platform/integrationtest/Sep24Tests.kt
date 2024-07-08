@@ -39,7 +39,7 @@ import org.stellar.walletsdk.asset.IssuedAssetId
 class Sep24Tests : AbstractIntegrationTests(TestConfig()) {
   private val jwtService: JwtService =
     JwtService(
-      config.env["secret.sep6.more_info_url.jwt_secret"]!!,
+      config.env["secret.sep6.more_info_url.jwt_secret"],
       config.env["secret.sep10.jwt_secret"]!!,
       config.env["secret.sep24.interactive_url.jwt_secret"]!!,
       config.env["secret.sep24.more_info_url.jwt_secret"]!!,
@@ -462,54 +462,19 @@ private const val expectedAfterPatchDeposit =
 
 private const val expectedSep24Info =
   """
-{
-  "deposit": {
-    "JPYC": {
-      "enabled": true
+  {
+    "deposit": {
+      "native": { "enabled": true, "minAmount": 0.0, "maxAmount": 10.0 },
+      "USDC": { "enabled": true, "minAmount": 0.0, "maxAmount": 10.0 }
     },
-    "native": {
-      "enabled": true,
-      "maxAmount": 1000000.0
+    "withdraw": {
+      "native": { "enabled": true, "minAmount": 0.0, "maxAmount": 10.0 },
+      "USDC": { "enabled": true, "minAmount": 0.0, "maxAmount": 10.0 }
     },
-    "USD": {
-      "enabled": true,
-      "minAmount": 0.0,
-      "maxAmount": 10000.0
-    },
-    "USDC": {
-      "enabled": true,
-      "minAmount": 1.0,
-      "maxAmount": 1000000.0
-    }
-  },
-  "withdraw": {
-    "JPYC": {
-      "enabled": true
-    },
-    "native": {
-      "enabled": true,
-      "maxAmount": 1000000.0
-    },
-    "USD": {
-      "enabled": true,
-      "minAmount": 0.0,
-      "maxAmount": 10000.0
-    },
-    "USDC": {
-      "enabled": true,
-      "minAmount": 1.0,
-      "maxAmount": 1000000.0
-    }
-  },
-  "fee": {
-    "enabled": false
-  },
-  "features": {
-    "accountCreation": false,
-    "claimableBalances": false
+    "fee": { "enabled": false },
+    "features": { "accountCreation": false, "claimableBalances": false }
   }
-}
-"""
+  """
 
 private const val expectedWithdrawTransactionResponse =
   """
