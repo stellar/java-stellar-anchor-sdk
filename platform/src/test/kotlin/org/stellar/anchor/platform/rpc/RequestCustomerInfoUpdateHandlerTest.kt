@@ -227,11 +227,7 @@ class RequestCustomerInfoUpdateHandlerTest {
 
   @Test
   fun test_handle_sep6_unsupportedStatus() {
-    val request =
-      RequestCustomerInfoUpdateRequest.builder()
-        .transactionId(TX_ID)
-        .requiredCustomerInfoUpdates(listOf("email_address", "family_name", "given_name"))
-        .build()
+    val request = RequestCustomerInfoUpdateRequest.builder().transactionId(TX_ID).build()
     val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_USR_TRANSFER_START.toString()
     txn6.kind = DEPOSIT.toString()
@@ -271,11 +267,7 @@ class RequestCustomerInfoUpdateHandlerTest {
       ]
   )
   fun test_handle_sep6_ok(kind: String, status: String) {
-    val request =
-      RequestCustomerInfoUpdateRequest.builder()
-        .transactionId(TX_ID)
-        .requiredCustomerInfoUpdates(listOf("email_address", "family_name", "given_name"))
-        .build()
+    val request = RequestCustomerInfoUpdateRequest.builder().transactionId(TX_ID).build()
     val txn6 = JdbcSep6Transaction()
     txn6.status = status
     txn6.kind = kind
@@ -301,8 +293,6 @@ class RequestCustomerInfoUpdateHandlerTest {
     expectedSep6Txn.kind = kind
     expectedSep6Txn.status = PENDING_CUSTOMER_INFO_UPDATE.toString()
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
-    expectedSep6Txn.requiredCustomerInfoUpdates =
-      listOf("email_address", "family_name", "given_name")
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -317,8 +307,6 @@ class RequestCustomerInfoUpdateHandlerTest {
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
-    expectedResponse.requiredCustomerInfoUpdates =
-      listOf("email_address", "family_name", "given_name")
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

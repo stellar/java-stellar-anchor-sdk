@@ -846,8 +846,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "jsonrpc": "2.0",
             "params": {
               "transaction_id": "TX_ID",
-              "message": "test message 1",
-              "required_customer_info_updates": ["first_name", "last_name"]
+              "message": "test message 1"
             }
           },
           {
@@ -956,8 +955,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "receiver": {
                   "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
                 }
-              },
-              "required_customer_info_updates": ["first_name", "last_name"]
+              }
             },
             "id": "1"
           },
@@ -991,8 +989,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "receiver": {
                   "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
                 }
-              },
-              "required_customer_info_updates": ["first_name", "last_name"]
+              }
             },
             "id": "2"
           },
@@ -1028,8 +1025,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "receiver": {
                   "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
                 }
-              },
-              "required_customer_info_updates": ["first_name", "last_name"]
+              }
             },
             "id": "3"
           },
@@ -1065,8 +1061,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "receiver": {
                   "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
                 }
-              },
-              "required_customer_info_updates": ["first_name", "last_name"]
+              }
             },
             "id": "4"
           },
@@ -1102,8 +1097,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "receiver": {
                   "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
                 }
-              },
-              "required_customer_info_updates": ["first_name", "last_name"]
+              }
             },
             "id": "5"
           },
@@ -1157,8 +1151,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "receiver": {
                   "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
                 }
-              },
-              "required_customer_info_updates": ["first_name", "last_name"]
+              }
             },
             "id": "6"
           }

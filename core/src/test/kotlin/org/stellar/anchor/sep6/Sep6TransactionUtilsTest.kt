@@ -96,11 +96,6 @@ class Sep6TransactionUtilsTest {
           "required_info_updates": [
               "some_field"
           ],
-          "required_customer_info_message": "need more customer info",
-          "required_customer_info_updates": [
-              "first_name",
-              "last_name"
-          ],
           "instructions": {
               "key": {
                   "value": "1234",
@@ -192,8 +187,6 @@ class Sep6TransactionUtilsTest {
         refundMemoType = "text"
         requiredInfoMessage = "need more info"
         requiredInfoUpdates = listOf("some_field")
-        requiredCustomerInfoMessage = "need more customer info"
-        requiredCustomerInfoUpdates = listOf("first_name", "last_name")
         instructions = mapOf("key" to InstructionField("1234", "Bank account number"))
       }
 

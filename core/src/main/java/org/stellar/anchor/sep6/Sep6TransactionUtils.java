@@ -65,8 +65,6 @@ public class Sep6TransactionUtils {
             .refunds(refunds)
             .requiredInfoMessage(txn.getRequiredInfoMessage())
             .requiredInfoUpdates(txn.getRequiredInfoUpdates())
-            .requiredCustomerInfoMessage(txn.getRequiredCustomerInfoMessage())
-            .requiredCustomerInfoUpdates(txn.getRequiredCustomerInfoUpdates())
             .instructions(txn.getInstructions());
 
     if (Sep6Transaction.Kind.valueOf(txn.getKind().toUpperCase().replace("-", "_")).isDeposit()) {

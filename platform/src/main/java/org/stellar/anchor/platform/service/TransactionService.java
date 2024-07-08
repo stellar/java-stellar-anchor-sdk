@@ -395,8 +395,6 @@ public class TransactionService {
         JdbcSep6Transaction sep6Txn = (JdbcSep6Transaction) txn;
         txnUpdated = updateField(patch, sep6Txn, "requiredInfoMessage", txnUpdated);
         txnUpdated = updateField(patch, sep6Txn, "requiredInfoUpdates", txnUpdated);
-        txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoMessage", txnUpdated);
-        txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoUpdates", txnUpdated);
         txnUpdated = updateField(patch, sep6Txn, "instructions", txnUpdated);
         if (feeDetails != null) {
           sep6Txn.setFeeDetails(feeDetails);
