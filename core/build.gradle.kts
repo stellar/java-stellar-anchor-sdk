@@ -29,7 +29,7 @@ dependencies {
 
   // TODO: Consider to simplify
   implementation(libs.micrometer.prometheus)
-  implementation(libs.javax.transaction.api)
+  implementation(libs.jakarta.transaction.api)
 
   implementation(libs.commons.beanutils)
   implementation(libs.commons.io)

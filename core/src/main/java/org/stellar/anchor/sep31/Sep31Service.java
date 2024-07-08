@@ -22,11 +22,11 @@ import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 
 import io.micrometer.core.instrument.Counter;
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.CustomerIntegration;

@@ -29,7 +29,5 @@ public interface JdbcSep31TransactionRepo
   Integer findByStatusCount(@Param("status") String status);
 
   Optional<JdbcSep31Transaction> findByStellarAccountIdAndStellarMemoAndStatus(
-      @Param("stellar_account_id") String accountId,
-      @Param("stellar_memo") String memo,
-      @Param("status") String status);
+      String stellarAccountId, String stellarMemo, String status);
 }

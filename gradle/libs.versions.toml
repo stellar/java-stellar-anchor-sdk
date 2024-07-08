@@ -27,8 +27,9 @@ hibernate-types = "3.8.1"
 hoplite = "2.7.5"
 jackson-dataformat-yaml = "2.14.0"
 java-stellar-sdk = "0.42.0"
+# todo: replace this
 javax-jaxb-api = "2.3.1"
-javax-transaction-api = "1.3"
+jakarta-transaction-api = "2.0.1"
 jjwt = "0.12.5"
 jsonassert = "1.5.0"
 junit = "5.8.2"
@@ -97,7 +98,7 @@ hoplite-yaml = { module = "com.sksamuel.hoplite:hoplite-yaml", version.ref = "ho
 jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }
 java-stellar-sdk = { module = "com.github.stellar:java-stellar-sdk", version.ref = "java-stellar-sdk" }
 javax-jaxb-api = { module = "javax.xml.bind:jaxb-api", version.ref = "javax-jaxb-api" }
-javax-transaction-api = { module = "javax.transaction:javax.transaction-api", version.ref = "javax-transaction-api" }
+jakarta-transaction-api = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction-api" }
 jjwt = { module = "io.jsonwebtoken:jjwt", version.ref = "jjwt" }
 jsonassert = { module = "org.skyscreamer:jsonassert", version.ref = "jsonassert" }
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
