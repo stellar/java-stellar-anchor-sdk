@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.data;
 
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.Getter;
@@ -13,7 +12,6 @@ import lombok.Setter;
 @Access(AccessType.FIELD)
 @NoArgsConstructor
 @Table(name = "stellar_payment_observing_account")
-@Convert(converter = JsonType.class)
 public class PaymentObservingAccount {
   public PaymentObservingAccount(String account, Instant lastObserved) {
     this.account = account;

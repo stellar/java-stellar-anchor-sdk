@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +17,6 @@ import org.stellar.anchor.sep24.Sep24Transaction;
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "sep24_transaction")
-@Convert(converter = JsonType.class)
 @NoArgsConstructor
 public class JdbcSep24Transaction extends JdbcSepTransaction
     implements Sep24Transaction, SepTransaction {

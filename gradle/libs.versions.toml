@@ -23,7 +23,7 @@ flyway-core = "8.5.13"
 google-gson = "2.10.1"
 httpclient = "4.5.13"
 h2database = "2.2.224"
-hibernate-types = "2.18.0"
+hibernate-types = "3.8.1"
 hoplite = "2.7.5"
 jackson-dataformat-yaml = "2.14.0"
 java-stellar-sdk = "0.42.0"
@@ -90,7 +90,7 @@ flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core"
 google-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
 httpclient = { module = "org.apache.httpcomponents:httpclient", version.ref = "httpclient" }
 h2database = { module = "com.h2database:h2", version.ref = "h2database" }
-hibernate-types = { module = "com.vladmihalcea:hibernate-types-55", version.ref = "hibernate-types" }
+hibernate-types = { module = "io.hypersistence:hypersistence-utils-hibernate-63", version.ref = "hibernate-types" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
 hoplite-yaml = { module = "com.sksamuel.hoplite:hoplite-yaml", version.ref = "hoplite" }
 jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }

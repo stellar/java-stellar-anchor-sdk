@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.component.eventprocessor;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.MoreInfoUrlConstructor;
@@ -28,8 +29,9 @@ public class EventProcessorBeans {
       Sep6TransactionStore sep6TransactionStore,
       Sep24TransactionStore sep24TransactionStore,
       Sep31TransactionStore sep31TransactionStore,
-      MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
-      MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
+      @Qualifier("sep6MoreInfoUrlConstructor") MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
+      @Qualifier("sep24MoreInfoUrlConstructor")
+          MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
     return new EventProcessorManager(
         secretConfig,
         eventProcessorConfig,

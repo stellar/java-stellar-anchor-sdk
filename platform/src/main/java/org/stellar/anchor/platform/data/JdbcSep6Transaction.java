@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +19,6 @@ import org.stellar.anchor.sep6.Sep6Transaction;
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "sep6_transaction")
-@Convert(converter = JsonType.class)
 @NoArgsConstructor
 public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Transaction {
   public String getProtocol() {

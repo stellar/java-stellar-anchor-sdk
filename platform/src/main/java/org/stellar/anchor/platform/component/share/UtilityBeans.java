@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.component.share;
 
 import com.google.gson.Gson;
+import jakarta.validation.Validator;
 import java.util.List;
-import javax.validation.Validator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;

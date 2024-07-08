@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
@@ -16,7 +15,6 @@ import lombok.Setter;
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "transaction_pending_trust")
-@Convert(converter = JsonType.class)
 @NoArgsConstructor
 @AllArgsConstructor
 public class JdbcTransactionPendingTrust {
