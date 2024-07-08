@@ -41,6 +41,7 @@ dependencies {
   implementation(libs.log4j2.slf4j2)
   implementation(libs.okhttp3)
   implementation(libs.servlet.api)
+  implementation(libs.spring.retry)
   implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
   implementation(libs.sqlite.jdbc)

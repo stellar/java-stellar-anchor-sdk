@@ -50,7 +50,8 @@ reactor-core = "3.4.14"
 reactor-netty = "1.0.15"
 scala-library = "2.13.9"
 servlet-api = "6.0.0"
-spring-kafka = "2.9.13"
+spring-kafka = "3.2.1"
+spring-retry = "2.0.6"
 spring-aws-messaging = "2.2.6.RELEASE"
 aws-java-sdk-s3 = "1.12.342"
 sqlite-jdbc = "3.43.2.2"
@@ -146,6 +147,7 @@ stellar-wallet-sdk = { module = "org.stellar:wallet-sdk", version.ref = "stellar
 toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
 tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat-embed-core" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
+spring-retry = { module = "org.springframework.retry:spring-retry", version.ref = "spring-retry" }
 spring-data-commons = { module = "org.springframework.data:spring-data-commons", version.ref = "spring-boot" }
 spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-messaging", version.ref = "spring-aws-messaging" }
 aws-java-sdk-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk-s3" }
