@@ -22,6 +22,7 @@ public class PropertyAppConfig implements AppConfig, Validator {
   @Value("${stellar_network.horizon_url}")
   private String horizonUrl;
 
+  @Value("${languages}")
   private List<String> languages;
 
   @Override

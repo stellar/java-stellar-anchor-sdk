@@ -1,3 +1,4 @@
+import org.apache.tools.ant.taskdefs.condition.JavaVersion
 import org.apache.tools.ant.taskdefs.condition.Os
 
 // The alias call in plugins scope produces IntelliJ false error which is suppressed here.
@@ -113,6 +114,7 @@ subprojects {
   tasks {
     compileJava {
       options.encoding = "UTF-8"
+      options.compilerArgs.add("-parameters")
 
       /** Enforces google-java-format at Java compilation. */
       dependsOn("spotlessApply")
