@@ -43,7 +43,7 @@ dependencies {
   implementation(libs.jjwt)
   implementation(libs.bcastle)
   implementation(libs.reactor.core)
-  implementation(libs.javax.jaxb.api)
+  implementation(libs.jakarta.xml.bind.api)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(project(":api-schema"))
