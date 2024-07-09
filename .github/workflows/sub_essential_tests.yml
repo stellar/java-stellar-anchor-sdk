@@ -48,7 +48,7 @@ jobs:
 
 
       - name: Pull Stellar Validation Tests Docker Image
-        run: docker pull stellar/anchor-tests:v0.6.10 &
+        run: docker pull stellar/anchor-tests:v0.6.12 &
 
       - name: Run Kafka, Postgres, and Sep24 UI with docker-compose
         env:
@@ -104,7 +104,7 @@ jobs:
 
       - name: Run Stellar validation tool
         run: |
-          docker run --network host -v /home/runner/java-stellar-anchor-sdk/platform/src/test/resources://config stellar/anchor-tests:v0.6.10 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
+          docker run --network host -v /home/runner/java-stellar-anchor-sdk/platform/src/test/resources://config stellar/anchor-tests:v0.6.12 --home-domain http://host.docker.internal:8080 --seps 1 6 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json --verbose
 
       - name: Upload Essential Tests report
         if: always()
