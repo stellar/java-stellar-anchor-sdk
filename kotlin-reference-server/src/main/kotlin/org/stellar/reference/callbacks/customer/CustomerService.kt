@@ -100,14 +100,18 @@ class CustomerService(
           birthDate = request.birthDate ?: customer.birthDate,
           birthPlace = request.birthPlace ?: customer.birthPlace,
           birthCountryCode = request.birthCountryCode ?: customer.birthCountryCode,
+          bankName = request.bankName ?: customer.bankName,
           bankAccountNumber = request.bankAccountNumber ?: customer.bankAccountNumber,
           bankAccountType = request.bankAccountType ?: customer.bankAccountType,
           bankNumber = request.bankNumber ?: customer.bankNumber,
           bankPhoneNumber = request.bankPhoneNumber ?: customer.bankPhoneNumber,
           bankBranchNumber = request.bankBranchNumber ?: customer.bankBranchNumber,
+          externalTransferMemo = request.externalTransferMemo ?: customer.externalTransferMemo,
           clabeNumber = request.clabeNumber ?: customer.clabeNumber,
           cbuNumber = request.cbuNumber ?: customer.cbuNumber,
           cbuAlias = request.cbuAlias ?: customer.cbuAlias,
+          mobileMoneyNumber = request.mobileMoneyNumber ?: customer.mobileMoneyNumber,
+          mobileMoneyProvider = request.mobileMoneyProvider ?: customer.mobileMoneyProvider,
           cryptoAddress = request.cryptoAddress ?: customer.cryptoAddress,
           cryptoMemo = request.cryptoMemo ?: customer.cryptoMemo,
           taxId = request.taxId ?: customer.taxId,
@@ -155,14 +159,18 @@ class CustomerService(
           birthDate = request.birthDate,
           birthPlace = request.birthPlace,
           birthCountryCode = request.birthCountryCode,
+          bankName = request.bankName,
           bankAccountNumber = request.bankAccountNumber,
           bankAccountType = request.bankAccountType,
           bankNumber = request.bankNumber,
           bankPhoneNumber = request.bankPhoneNumber,
           bankBranchNumber = request.bankBranchNumber,
+          externalTransferMemo = request.externalTransferMemo,
           clabeNumber = request.clabeNumber,
           cbuNumber = request.cbuNumber,
           cbuAlias = request.cbuAlias,
+          mobileMoneyNumber = request.mobileMoneyNumber,
+          mobileMoneyProvider = request.mobileMoneyProvider,
           cryptoAddress = request.cryptoAddress,
           cryptoMemo = request.cryptoMemo,
           taxId = request.taxId,
@@ -295,6 +303,13 @@ class CustomerService(
             "The customer's birth country code",
             optional = !requiredFields.contains("birth_country_code"),
           ),
+        "bank_name" to
+          createField(
+            customer.bankName,
+            "string",
+            "The customer's bank name",
+            optional = !requiredFields.contains("bank_name"),
+          ),
         "bank_account_number" to
           createField(
             customer.bankAccountNumber,
@@ -331,6 +346,13 @@ class CustomerService(
             "The customer's bank branch number",
             optional = !requiredFields.contains("bank_branch_number"),
           ),
+        "external_transfer_memo" to
+          createField(
+            customer.externalTransferMemo,
+            "string",
+            "The external transfer memo",
+            optional = !requiredFields.contains("external_transfer_memo"),
+          ),
         "clabe_number" to
           createField(
             customer.clabeNumber,
@@ -351,6 +373,20 @@ class CustomerService(
             "string",
             "The customer's CBU alias",
             optional = !requiredFields.contains("cbu_alias"),
+          ),
+        "mobile_money_number" to
+          createField(
+            customer.mobileMoneyNumber,
+            "string",
+            "The customer's mobile money number",
+            optional = !requiredFields.contains("mobile_money_number"),
+          ),
+        "mobile_money_provider" to
+          createField(
+            customer.mobileMoneyProvider,
+            "string",
+            "The customer's mobile money provider",
+            optional = !requiredFields.contains("mobile_money_provider"),
           ),
         "crypto_address" to
           createField(
