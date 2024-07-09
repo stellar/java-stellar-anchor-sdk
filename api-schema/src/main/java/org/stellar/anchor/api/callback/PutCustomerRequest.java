@@ -67,6 +67,9 @@ public class PutCustomerRequest {
   @SerializedName("birth_country_code")
   String birthCountryCode;
 
+  @SerializedName("bank_name")
+  String bankName;
+
   @SerializedName("bank_account_number")
   String bankAccountNumber;
 
@@ -82,6 +85,9 @@ public class PutCustomerRequest {
   @SerializedName("bank_branch_number")
   String bankBranchNumber;
 
+  @SerializedName("external_transfer_memo")
+  String externalTransferMemo;
+
   @SerializedName("clabe_number")
   String clabeNumber;
 
@@ -91,9 +97,16 @@ public class PutCustomerRequest {
   @SerializedName("cbu_alias")
   String cbuAlias;
 
+  @SerializedName("mobile_money_number")
+  String mobileMoneyNumber;
+
+  @SerializedName("mobile_money_provider")
+  String mobileMoneyProvider;
+
   @SerializedName("crypto_address")
   String cryptoAddress;
 
+  @Deprecated
   @SerializedName("crypto_memo")
   String cryptoMemo;
 
