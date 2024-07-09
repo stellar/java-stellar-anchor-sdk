@@ -133,6 +133,7 @@ fun getJarFile(): File? {
 
   return if (classUrl != null && "jar" == classUrl.protocol) {
     val jarPath = classUrl.path.substring(5, classUrl.path.indexOf('!'))
+    info(classUrl.path)
     File(URLDecoder.decode(jarPath, "UTF-8"))
   } else {
     null
