@@ -143,6 +143,7 @@ sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j2" }
 slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j2" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j2" }
+slf4j-jul-bridge = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j2" }
 stellar-wallet-sdk = { module = "org.stellar:wallet-sdk", version.ref = "stellar-wallet-sdk" }
 toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
 tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat-embed-core" }
@@ -153,7 +154,7 @@ spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-me
 aws-java-sdk-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk-s3" }
 
 [bundles]
-slf4j = ["slf4j-api", "slf4j-log4j12"]
+slf4j = ["slf4j-api", "slf4j-log4j12", "slf4j-jul-bridge"]
 junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine", "kotlin-stdlib", "kotlin-junit", "mockk"]
 kafka = ["kafka-clients", "kafka-connect", "kafka-json-schema"]
 ktor = ["ktor-core", "ktor-content-negotiation", "ktor-netty", "ktor-yaml", "ktor-cors", "ktor-server-auth", "ktor-server-auth-jwt"]
