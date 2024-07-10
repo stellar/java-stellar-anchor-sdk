@@ -1,5 +1,6 @@
 package org.stellar.reference.plugins
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -8,7 +9,6 @@ import io.ktor.util.logging.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
 import org.stellar.reference.ClientException
 import org.stellar.reference.data.ErrorResponse
 import org.stellar.reference.data.Success
@@ -30,10 +30,10 @@ fun Route.testSep31(receiveService: ReceiveService) {
 
         call.respond(Success(transactionId))
       } catch (e: ClientException) {
-        log.error(e)
+        log.error { e }
         call.respond(HttpStatusCode.BadRequest, ErrorResponse(e.message!!))
       } catch (e: Exception) {
-        log.error(e)
+        log.error { e }
         call.respond(
           HttpStatusCode.InternalServerError,
           ErrorResponse("Error occurred: ${e.message}"),

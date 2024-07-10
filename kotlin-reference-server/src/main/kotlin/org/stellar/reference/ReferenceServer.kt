@@ -1,10 +1,10 @@
 package org.stellar.reference
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
 import org.stellar.reference.di.ConfigContainer
 import org.stellar.reference.di.EventConsumerContainer
 import org.stellar.reference.di.ReferenceServerContainer
@@ -21,7 +21,7 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
   ConfigContainer.init(envMap)
   eventConsumingExecutor = DaemonExecutors.newFixedThreadPool(1)
   eventConsumingExecutor.submit {
-    log.info("Starting event consumer")
+    log.info { "Starting event consumer" }
     runBlocking { EventConsumerContainer.eventConsumer.start() }
   }
 
@@ -31,10 +31,10 @@ fun startServer(envMap: Map<String, String>?, wait: Boolean) {
 }
 
 fun stopServer() {
-  log.info("Stopping event consumer...")
+  log.info { "Stopping event consumer..." }
   EventConsumerContainer.eventConsumer.stop()
 
-  log.info("Stopping Kotlin business reference server...")
+  log.info { "Stopping Kotlin business reference server..." }
   ReferenceServerContainer.server.stop(5000, 30000)
 
   eventConsumingExecutor.shutdown()

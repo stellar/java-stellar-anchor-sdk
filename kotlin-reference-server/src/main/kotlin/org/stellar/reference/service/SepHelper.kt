@@ -1,6 +1,7 @@
 package org.stellar.reference.service
 
 import com.google.gson.reflect.TypeToken
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -14,7 +15,6 @@ import java.util.Base64
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
 import org.apache.commons.codec.binary.Hex
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.data.*

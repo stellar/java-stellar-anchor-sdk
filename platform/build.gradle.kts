@@ -22,7 +22,6 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-aop")
   implementation("org.springframework.boot:spring-boot-starter-validation")
 
-  implementation(libs.abdera)
   implementation(libs.aws.rds)
   implementation(libs.aws.iam.auth)
   implementation(libs.commons.beanutils)
@@ -42,7 +41,6 @@ dependencies {
   implementation(libs.okhttp3)
   implementation(libs.servlet.api)
   implementation(libs.spring.retry)
-  implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
   implementation(libs.sqlite.jdbc)
 

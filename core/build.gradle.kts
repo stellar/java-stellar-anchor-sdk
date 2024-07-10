@@ -21,10 +21,6 @@ dependencies {
   implementation(libs.spring.kafka)
   implementation(libs.spring.data.commons)
 
-  implementation(
-    libs.scala.library
-  ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
-  // one.
   implementation(libs.bundles.kafka)
 
   // TODO: Consider to simplify
@@ -37,7 +33,6 @@ dependencies {
   implementation(libs.log4j2.core)
   implementation(libs.httpclient)
   implementation(libs.google.gson)
-  implementation(libs.toml4j)
   implementation(libs.okhttp3)
   implementation(libs.commons.codec)
   implementation(libs.jjwt)

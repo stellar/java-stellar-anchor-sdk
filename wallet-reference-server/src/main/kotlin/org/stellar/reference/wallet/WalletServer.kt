@@ -1,6 +1,7 @@
 package org.stellar.reference.wallet
 
 import com.sksamuel.hoplite.*
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -11,7 +12,6 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
 import java.io.File
-import mu.KotlinLogging
 
 val log = KotlinLogging.logger {}
 lateinit var walletServer: NettyApplicationEngine

@@ -65,7 +65,7 @@ class CustomerService(
   }
 
   fun upsertCustomer(request: PutCustomerRequest): PutCustomerResponse {
-    log.info("Upserting customer: $request")
+    log.info { "Upserting customer: $request" }
     val customer =
       when {
         request.id != null -> customerRepository.get(request.id)

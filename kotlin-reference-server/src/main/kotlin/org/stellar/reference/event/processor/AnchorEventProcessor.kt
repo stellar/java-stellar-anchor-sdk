@@ -14,34 +14,34 @@ class AnchorEventProcessor(
     try {
       when (event.type) {
         AnchorEvent.Type.TRANSACTION_CREATED.type -> {
-          log.info("Received transaction created event")
+          log.info { "Received transaction created event" }
           processor.onTransactionCreated(event)
         }
         AnchorEvent.Type.TRANSACTION_STATUS_CHANGED.type -> {
-          log.info("Received transaction status changed event")
+          log.info { "Received transaction status changed event" }
           processor.onTransactionStatusChanged(event)
         }
         AnchorEvent.Type.TRANSACTION_ERROR.type -> {
-          log.info("Received transaction error event")
+          log.info { "Received transaction error event" }
           processor.onTransactionError(event)
         }
         AnchorEvent.Type.CUSTOMER_UPDATED.type -> {
-          log.info("Received customer updated event")
+          log.info { "Received customer updated event" }
           // Only SEP-6 listens to this event
           sep6EventProcessor.onCustomerUpdated(event)
         }
         AnchorEvent.Type.QUOTE_CREATED.type -> {
-          log.info("Received quote created event")
+          log.info { "Received quote created event" }
           processor.onQuoteCreated(event)
         }
         else -> {
-          log.warn(
+          log.warn {
             "Received event of type ${event.type} which is not supported by the reference server"
-          )
+          }
         }
       }
     } catch (e: Exception) {
-      log.error("Error processing event: $event", e)
+      log.error(e) { "Error processing event: $event" }
     }
   }
 
