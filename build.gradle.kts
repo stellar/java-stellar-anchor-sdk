@@ -113,6 +113,7 @@ subprojects {
   tasks {
     compileJava {
       options.encoding = "UTF-8"
+      options.compilerArgs.add("-parameters")
 
       /** Enforces google-java-format at Java compilation. */
       dependsOn("spotlessApply")
@@ -155,6 +156,7 @@ subprojects {
       exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
       exclude(group = "org.slf4j", module = "slf4j-log4j12")
       exclude(group = "org.slf4j", module ="slf4j-simple")
+      exclude(group = "commons-logging", module = "commons-logging")
      }
   }
 }

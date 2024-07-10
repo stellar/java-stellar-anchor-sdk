@@ -16,7 +16,7 @@ dependencies {
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
   implementation(libs.jjwt)
   implementation(libs.bcastle)
-  implementation(libs.javax.jaxb.api)
+  implementation(libs.jakarta.xml.bind.api)
   implementation(libs.kotlin.logging)
   implementation(libs.slf4j.simple)
   implementation(libs.h2database)

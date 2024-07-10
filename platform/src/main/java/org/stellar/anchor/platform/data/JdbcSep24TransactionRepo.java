@@ -4,12 +4,14 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.lang.NonNull;
 import org.stellar.anchor.sep24.Sep24Transaction;
 
 public interface JdbcSep24TransactionRepo
-    extends PagingAndSortingRepository<JdbcSep24Transaction, String>,
+    extends CrudRepository<JdbcSep24Transaction, String>,
+        PagingAndSortingRepository<JdbcSep24Transaction, String>,
         AllTransactionsRepository<JdbcSep24Transaction> {
   Optional<JdbcSep24Transaction> findById(@NonNull String id);
 

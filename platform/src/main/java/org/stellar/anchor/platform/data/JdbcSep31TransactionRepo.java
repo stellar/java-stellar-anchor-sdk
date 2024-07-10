@@ -6,12 +6,14 @@ import java.util.Optional;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.stellar.anchor.sep31.Sep31Transaction;
 
 public interface JdbcSep31TransactionRepo
-    extends PagingAndSortingRepository<JdbcSep31Transaction, String>,
+    extends CrudRepository<JdbcSep31Transaction, String>,
+        PagingAndSortingRepository<JdbcSep31Transaction, String>,
         AllTransactionsRepository<JdbcSep31Transaction> {
   @NotNull
   Optional<JdbcSep31Transaction> findById(@NonNull String id);
@@ -27,7 +29,5 @@ public interface JdbcSep31TransactionRepo
   Integer findByStatusCount(@Param("status") String status);
 
   Optional<JdbcSep31Transaction> findByStellarAccountIdAndStellarMemoAndStatus(
-      @Param("stellar_account_id") String accountId,
-      @Param("stellar_memo") String memo,
-      @Param("status") String status);
+      String stellarAccountId, String stellarMemo, String status);
 }

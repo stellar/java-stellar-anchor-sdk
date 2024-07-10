@@ -1,7 +1,8 @@
 package org.stellar.anchor.platform.component.sep;
 
+import jakarta.servlet.Filter;
 import java.util.Optional;
-import javax.servlet.Filter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -99,12 +100,10 @@ public class SepBeans {
     registrationBean.addUrlPatterns("/sep6/deposit-exchange/*");
     registrationBean.addUrlPatterns("/sep6/withdraw/*");
     registrationBean.addUrlPatterns("/sep6/withdraw-exchange/*");
-    registrationBean.addUrlPatterns("/sep6/transaction");
-    registrationBean.addUrlPatterns("/sep6/transactions*");
+    registrationBean.addUrlPatterns("/sep6/transaction/*");
     registrationBean.addUrlPatterns("/sep6/transactions/*");
     registrationBean.addUrlPatterns("/sep12/*");
-    registrationBean.addUrlPatterns("/sep24/transaction");
-    registrationBean.addUrlPatterns("/sep24/transactions*");
+    registrationBean.addUrlPatterns("/sep24/transaction/*");
     registrationBean.addUrlPatterns("/sep24/transactions/*");
     registrationBean.addUrlPatterns("/sep31/transactions");
     registrationBean.addUrlPatterns("/sep31/transactions/*");
@@ -140,7 +139,7 @@ public class SepBeans {
       Sep6TransactionStore txnStore,
       EventService eventService,
       Sep38QuoteStore sep38QuoteStore,
-      MoreInfoUrlConstructor sep6MoreInfoUrlConstructor) {
+      @Qualifier("sep6MoreInfoUrlConstructor") MoreInfoUrlConstructor sep6MoreInfoUrlConstructor) {
     RequestValidator requestValidator = new RequestValidator(assetService);
     ExchangeAmountsCalculator exchangeAmountsCalculator =
         new ExchangeAmountsCalculator(sep38QuoteStore);
@@ -191,7 +190,7 @@ public class SepBeans {
       Sep24TransactionStore sep24TransactionStore,
       EventService eventService,
       InteractiveUrlConstructor interactiveUrlConstructor,
-      MoreInfoUrlConstructor sep24MoreInfoUrlConstructor,
+      @Qualifier("sep24MoreInfoUrlConstructor") MoreInfoUrlConstructor sep24MoreInfoUrlConstructor,
       CustodyConfig custodyConfig,
       Sep38QuoteStore sep38QuoteStore) {
     ExchangeAmountsCalculator exchangeAmountsCalculator =

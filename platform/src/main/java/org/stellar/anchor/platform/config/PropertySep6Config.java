@@ -5,11 +5,11 @@ import static org.stellar.anchor.config.Sep6Config.DepositInfoGeneratorType.SELF
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
 
+import jakarta.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import lombok.*;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;

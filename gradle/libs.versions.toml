@@ -15,7 +15,7 @@ commons-codec = "1.15"
 commons-io = "2.11.0"
 commons-validator = "1.8.0"
 commons-text = "1.10.0"
-docker-compose-rule = "1.9.0"
+docker-compose-rule = "2.3.0"
 dotenv = "2.3.2"
 exposed = "0.49.0"
 findbugs-jsr305 = "3.0.2"
@@ -23,12 +23,12 @@ flyway-core = "8.5.13"
 google-gson = "2.10.1"
 httpclient = "4.5.13"
 h2database = "2.2.224"
-hibernate-types = "2.18.0"
-hoplite = "2.7.0"
-jackson-dataformat-yaml = "2.14.0"
+hibernate-types = "3.8.1"
+hoplite = "2.7.5"
+jackson-dataformat-yaml = "2.17.2"
 java-stellar-sdk = "0.42.0"
-javax-jaxb-api = "2.3.1"
-javax-transaction-api = "1.3"
+jakarta-xml-bind-api = "4.0.2"
+jakarta-transaction-api = "2.0.1"
 jjwt = "0.12.5"
 jsonassert = "1.5.0"
 junit = "5.8.2"
@@ -49,13 +49,12 @@ postgresql = "42.7.3"
 reactor-core = "3.4.14"
 reactor-netty = "1.0.15"
 scala-library = "2.13.9"
-servlet-api = "2.5"
-snakeyaml = "1.33"
-spring-kafka = "2.9.13"
+servlet-api = "6.0.0"
+spring-kafka = "3.2.1"
+spring-retry = "2.0.6"
 spring-aws-messaging = "2.2.6.RELEASE"
 aws-java-sdk-s3 = "1.12.342"
 sqlite-jdbc = "3.43.2.2"
-slf4j = "1.7.35"
 slf4j2 = "2.0.13"
 stellar-wallet-sdk = "1.7.0"
 toml4j = "0.7.2"
@@ -63,7 +62,7 @@ tomcat-embed-core = "9.0.87"
 
 # Plugin versions
 spotless = "6.25.0"
-spring-boot = "2.7.18"
+spring-boot = "3.2.4"
 spring-dependency-management = "1.1.0"
 jacoco = "0.8.10"
 
@@ -92,13 +91,13 @@ flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core"
 google-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
 httpclient = { module = "org.apache.httpcomponents:httpclient", version.ref = "httpclient" }
 h2database = { module = "com.h2database:h2", version.ref = "h2database" }
-hibernate-types = { module = "com.vladmihalcea:hibernate-types-55", version.ref = "hibernate-types" }
+hibernate-types = { module = "io.hypersistence:hypersistence-utils-hibernate-63", version.ref = "hibernate-types" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
 hoplite-yaml = { module = "com.sksamuel.hoplite:hoplite-yaml", version.ref = "hoplite" }
 jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }
 java-stellar-sdk = { module = "com.github.stellar:java-stellar-sdk", version.ref = "java-stellar-sdk" }
-javax-jaxb-api = { module = "javax.xml.bind:jaxb-api", version.ref = "javax-jaxb-api" }
-javax-transaction-api = { module = "javax.transaction:javax.transaction-api", version.ref = "javax-transaction-api" }
+jakarta-xml-bind-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jakarta-xml-bind-api" }
+jakarta-transaction-api = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction-api" }
 jjwt = { module = "io.jsonwebtoken:jjwt", version.ref = "jjwt" }
 jsonassert = { module = "org.skyscreamer:jsonassert", version.ref = "jsonassert" }
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
@@ -124,10 +123,9 @@ ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
-log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
+log4j2-slf4j2 = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
 log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
-snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 # TODO: upgrade to log4j2
 log4j-template-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j-template-json" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
@@ -140,21 +138,23 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor-core" }
 reactor-netty = { module = "io.projectreactor.netty:reactor-netty", version.ref = "reactor-netty" }
 scala-library = { module = "org.scala-lang:scala-library", version.ref = "scala-library" }
-servlet-api = { module = "javax.servlet:servlet-api", version.ref = "servlet-api" }
+servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "servlet-api" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j2" }
 slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j2" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j2" }
+slf4j-jul-bridge = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j2" }
 stellar-wallet-sdk = { module = "org.stellar:wallet-sdk", version.ref = "stellar-wallet-sdk" }
 toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
 tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat-embed-core" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
+spring-retry = { module = "org.springframework.retry:spring-retry", version.ref = "spring-retry" }
 spring-data-commons = { module = "org.springframework.data:spring-data-commons", version.ref = "spring-boot" }
 spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-messaging", version.ref = "spring-aws-messaging" }
 aws-java-sdk-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk-s3" }
 
 [bundles]
-slf4j = ["slf4j-api", "slf4j-log4j12"]
+slf4j = ["slf4j-api", "slf4j-log4j12", "slf4j-jul-bridge"]
 junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine", "kotlin-stdlib", "kotlin-junit", "mockk"]
 kafka = ["kafka-clients", "kafka-connect", "kafka-json-schema"]
 ktor = ["ktor-core", "ktor-content-negotiation", "ktor-netty", "ktor-yaml", "ktor-cors", "ktor-server-auth", "ktor-server-auth-jwt"]

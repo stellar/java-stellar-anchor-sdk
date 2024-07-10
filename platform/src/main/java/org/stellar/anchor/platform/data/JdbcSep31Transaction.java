@@ -2,14 +2,13 @@ package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
 import java.util.Map;
-import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.SepTransaction;
 import org.stellar.anchor.api.sep.operation.Sep31Operation;
@@ -22,7 +21,6 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "sep31_transaction")
-@TypeDef(name = "json", typeClass = JsonType.class)
 @NoArgsConstructor
 public class JdbcSep31Transaction extends JdbcSepTransaction
     implements Sep31Transaction, SepTransaction {
@@ -112,7 +110,7 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   Boolean refunded;
 
   @Column(columnDefinition = "json")
-  @Type(type = "json")
+  @JdbcTypeCode(SqlTypes.JSON)
   JdbcSep31Refunds refunds;
 
   public Sep31Refunds getRefunds() {

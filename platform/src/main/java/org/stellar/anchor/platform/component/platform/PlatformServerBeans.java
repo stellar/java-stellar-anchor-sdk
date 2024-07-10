@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.component.platform;
 
+import jakarta.servlet.Filter;
 import java.util.Optional;
-import javax.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

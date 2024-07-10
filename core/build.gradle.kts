@@ -29,7 +29,7 @@ dependencies {
 
   // TODO: Consider to simplify
   implementation(libs.micrometer.prometheus)
-  implementation(libs.javax.transaction.api)
+  implementation(libs.jakarta.transaction.api)
 
   implementation(libs.commons.beanutils)
   implementation(libs.commons.io)
@@ -43,7 +43,7 @@ dependencies {
   implementation(libs.jjwt)
   implementation(libs.bcastle)
   implementation(libs.reactor.core)
-  implementation(libs.javax.jaxb.api)
+  implementation(libs.jakarta.xml.bind.api)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(project(":api-schema"))
