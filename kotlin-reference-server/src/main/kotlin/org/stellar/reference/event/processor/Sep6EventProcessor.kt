@@ -57,17 +57,17 @@ class Sep6EventProcessor(
         try {
           requestCustomerFunds(event.payload.transaction)
         } catch (e: Exception) {
-          log.error("Error requesting customer funds", e)
+          log.error(e) { "Error requesting customer funds" }
         }
       }
       else -> {
-        log.warn("Received transaction created event with unsupported kind: $kind")
+        log.warn { "Received transaction created event with unsupported kind: $kind" }
       }
     }
   }
 
   override suspend fun onTransactionError(event: SendEventRequest) {
-    log.warn("Received transaction error event: $event")
+    log.warn { "Received transaction error event: $event" }
   }
 
   override suspend fun onTransactionStatusChanged(event: SendEventRequest) {
@@ -77,7 +77,7 @@ class Sep6EventProcessor(
       Kind.WITHDRAWAL,
       Kind.WITHDRAWAL_EXCHANGE -> onWithdrawTransactionStatusChanged(event)
       else -> {
-        log.warn("Received transaction created event with unsupported kind: $kind")
+        log.warn { "Received transaction created event with unsupported kind: $kind" }
       }
     }
   }
@@ -142,10 +142,10 @@ class Sep6EventProcessor(
           ),
         )
       COMPLETED -> {
-        log.info("Transaction ${transaction.id} completed")
+        log.info { "Transaction ${transaction.id} completed" }
       }
       else -> {
-        log.warn("Received transaction status changed event with unsupported status: $status")
+        log.warn { "Received transaction status changed event with unsupported status: $status" }
       }
     }
   }
@@ -204,10 +204,10 @@ class Sep6EventProcessor(
           )
         }
       COMPLETED -> {
-        log.info("Transaction ${transaction.id} completed")
+        log.info { "Transaction ${transaction.id} completed" }
       }
       else -> {
-        log.warn("Received transaction status changed event with unsupported status: $status")
+        log.warn { "Received transaction status changed event with unsupported status: $status" }
       }
     }
   }
@@ -348,7 +348,7 @@ class Sep6EventProcessor(
         }
       }
       else -> {
-        log.warn("Received transaction created event with unsupported kind: ${transaction.kind}")
+        log.warn { "Received transaction created event with unsupported kind: ${transaction.kind}" }
       }
     }
   }

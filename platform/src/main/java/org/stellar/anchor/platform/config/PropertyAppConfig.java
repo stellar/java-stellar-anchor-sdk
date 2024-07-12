@@ -3,9 +3,10 @@ package org.stellar.anchor.platform.config;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.sdk.Network.*;
 
+import java.util.IllformedLocaleException;
 import java.util.List;
+import java.util.Locale;
 import lombok.Data;
-import org.apache.abdera.i18n.rfc4646.Lang;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.Errors;
@@ -75,8 +76,8 @@ public class PropertyAppConfig implements AppConfig, Validator {
     if (config.getLanguages() != null) {
       for (String lang : config.getLanguages()) {
         try {
-          Lang.parse(lang);
-        } catch (IllegalArgumentException iaex) {
+          new Locale.Builder().setLanguageTag(lang);
+        } catch (IllformedLocaleException ex) {
           errors.rejectValue(
               "languages",
               "languages-invalid",

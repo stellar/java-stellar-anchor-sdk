@@ -1,8 +1,8 @@
 package org.stellar.reference.sep24
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.math.BigDecimal
 import java.math.RoundingMode
-import mu.KotlinLogging
 import org.stellar.reference.data.*
 import org.stellar.reference.service.SepHelper
 

@@ -75,21 +75,12 @@ subprojects {
 
   dependencies {
     // `rootProject` is required here if we want to use the libs object in the root project.
-    implementation(rootProject.libs.findbugs.jsr305)
+    implementation(rootProject.libs.spotbugs.annotations)
     implementation(rootProject.libs.aws.sqs)
     implementation(rootProject.libs.postgresql)
-    // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
-    // one.
-    implementation(rootProject.libs.scala.library)
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
     implementation(rootProject.libs.log4j.template.json)
-
-    // Although the following libraries are transitive dependencies, we are including them here to
-    // override the version
-    // for security vulnerabilities.
-    implementation(rootProject.libs.spring.aws.messaging)
-    implementation(rootProject.libs.aws.java.sdk.s3)
 
     // The common dependencies are declared here because we would like to have a uniform unit
     // testing across all subprojects.

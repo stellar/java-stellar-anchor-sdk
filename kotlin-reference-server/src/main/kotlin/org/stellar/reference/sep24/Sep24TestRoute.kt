@@ -1,5 +1,6 @@
 package org.stellar.reference.sep24
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -9,7 +10,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
 import org.stellar.reference.ClientException
 import org.stellar.reference.jwt.JwtDecoder
 import org.stellar.reference.service.SepHelper
@@ -20,17 +20,17 @@ fun Route.testSep24(
   sep24: SepHelper,
   depositService: DepositService,
   withdrawalService: WithdrawalService,
-  jwtKey: String
+  jwtKey: String,
 ) {
   route("/sep24/interactive") {
     get {
-      log.info("Called /sep24/interactive with parameters ${call.parameters}")
+      log.info { "Called /sep24/interactive with parameters ${call.parameters}" }
 
       val token =
         JwtDecoder.decode(
           call.parameters["token"]
             ?: throw ClientException("Missing token parameter in the request"),
-          jwtKey
+          jwtKey,
         )
 
       val transactionId = token.transactionId
@@ -42,9 +42,9 @@ fun Route.testSep24(
       val transaction = sep24.getTransaction(transactionId)
       var amountExpected = token.data["amount"]?.toBigDecimal()
       if (amountExpected == null) {
-        log.info(
+        log.info {
           "Missing amountExpected.amount field. Using default value: 10 to simulate the amount was entered by the user in the interactive flow."
-        )
+        }
         amountExpected = "10".toBigDecimal()
       }
       try {
@@ -74,7 +74,7 @@ fun Route.testSep24(
                 account,
                 stellarAsset,
                 memo,
-                memoType
+                memoType,
               )
             }
           }
@@ -94,17 +94,17 @@ fun Route.testSep24(
           else ->
             call.respondText(
               "The only supported operations are \"deposit\" or \"withdrawal\"",
-              status = HttpStatusCode.BadRequest
+              status = HttpStatusCode.BadRequest,
             )
         }
       } catch (e: ClientException) {
-        log.error(e)
+        log.error { e }
         call.respondText(e.message!!, status = HttpStatusCode.BadRequest)
       } catch (e: Exception) {
-        log.error(e)
+        log.error { e }
         call.respondText(
           "Error occurred: ${e.message}",
-          status = HttpStatusCode.InternalServerError
+          status = HttpStatusCode.InternalServerError,
         )
       }
     }
