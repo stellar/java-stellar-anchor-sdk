@@ -276,6 +276,10 @@ class Sep12ServiceTest {
         .idIssueDate("2023-12-13")
         .idExpirationDate("2023-12-13T19:33:07Z")
         .emailAddressVerification("12345678")
+        .bankName("Bank of America")
+        .mobileMoneyNumber("12345678")
+        .mobileMoneyProvider("M-PESA")
+        .externalTransferMemo("memo")
         .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
     assertDoesNotThrow { sep12Service.putCustomer(jwtToken, mockPutRequest) }
@@ -292,6 +296,10 @@ class Sep12ServiceTest {
         .idIssueDate("2023-12-13")
         .idExpirationDate("2023-12-13T19:33:07Z")
         .emailAddressVerification("12345678")
+        .bankName("Bank of America")
+        .mobileMoneyNumber("12345678")
+        .mobileMoneyProvider("M-PESA")
+        .externalTransferMemo("memo")
         .build()
     assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
 

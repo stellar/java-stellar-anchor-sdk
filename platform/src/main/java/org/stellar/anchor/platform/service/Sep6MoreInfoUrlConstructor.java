@@ -25,6 +25,9 @@ public class Sep6MoreInfoUrlConstructor extends SimpleMoreInfoUrlConstructor {
   @Override
   public String construct(SepTransaction txn, String lang) {
     Sep6Transaction sep6Txn = (Sep6Transaction) txn;
+    if (config == null) {
+      return null;
+    }
     return construct(
         sep6Txn.getClientDomain(),
         sep6Txn.getSep10Account(),
