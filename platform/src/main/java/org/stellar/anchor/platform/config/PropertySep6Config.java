@@ -79,10 +79,7 @@ public class PropertySep6Config implements Sep6Config, Validator {
   }
 
   void validateMoreInfoUrlConfig(Errors errors) {
-    if (moreInfoUrl == null) {
-      errors.rejectValue(
-          "moreInfoUrl", "sep6-more-info-url-invalid", "sep6.more-info-url is not defined.");
-    } else {
+    if (moreInfoUrl != null) {
       if (!NetUtil.isUrlValid(moreInfoUrl.baseUrl)) {
         errors.rejectValue(
             "moreInfoUrl",

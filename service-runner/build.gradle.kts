@@ -94,7 +94,7 @@ val dockerPullAnchorTest by
     tasks.register<DockerPullImage>("pullDockerImage") {
       println("Pulling the docker image.")
       group = "docker"
-      image.set("stellar/anchor-tests:v0.6.10")
+      image.set("stellar/anchor-tests:latest")
     }
 
 val dockerCreateAnchorTest by
