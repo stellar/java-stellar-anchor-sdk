@@ -8,7 +8,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.http.HttpStatus;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.GsonUtils;
 
@@ -22,7 +21,6 @@ public abstract class BaseApiClient {
           .writeTimeout(10, TimeUnit.MINUTES)
           .callTimeout(10, TimeUnit.MINUTES)
           .build();
-  final AuthHelper authHelper;
   final String endpoint;
 
   /**
@@ -31,8 +29,7 @@ public abstract class BaseApiClient {
    * @param authHelper the AuthHelper to use for authentication.
    * @param endpoint the API endpoint.
    */
-  protected BaseApiClient(AuthHelper authHelper, String endpoint) {
-    this.authHelper = authHelper;
+  protected BaseApiClient(String endpoint) {
     this.endpoint = endpoint;
   }
 
@@ -55,9 +52,11 @@ public abstract class BaseApiClient {
     Request.Builder requestBuilder =
         new Request.Builder().header("Content-Type", "application/json");
 
-    AuthHeader<String, String> authHeader = authHelper.createPlatformServerAuthHeader();
+    AuthHeader<String, String> authHeader = createAuthHeader();
     return authHeader == null
         ? requestBuilder
         : requestBuilder.header(authHeader.getName(), authHeader.getValue());
   }
+
+  abstract AuthHeader<String, String> createAuthHeader() throws InvalidConfigException;
 }
