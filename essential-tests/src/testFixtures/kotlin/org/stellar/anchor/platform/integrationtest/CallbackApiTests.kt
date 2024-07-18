@@ -18,6 +18,7 @@ import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
+import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.client.Sep12Client
@@ -63,7 +64,12 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
     )
 
   private val authHelper =
-    AuthHelper.forJwtToken("Authorization", platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS)
+    AuthHelper.forJwtToken(
+      "Authorization",
+      platformToAnchorJwtService,
+      JWT_EXPIRATION_MILLISECONDS,
+      CallbackAuthJwt::class.java
+    )
 
   private val gson: Gson = GsonUtils.getInstance()
 

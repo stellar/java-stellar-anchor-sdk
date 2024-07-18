@@ -1,110 +1,124 @@
 package org.stellar.anchor.auth;
 
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.JwtParserBuilder;
-import io.jsonwebtoken.Jwts;
 import java.util.Calendar;
-import javax.annotation.Nullable;
+import lombok.SneakyThrows;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.CustodyAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;
 import org.stellar.anchor.util.AuthHeader;
 
-public class AuthHelper {
-  public final AuthType authType;
-
-  public final String authorizationHeader;
-  private JwtService jwtService;
-  private long jwtExpirationMilliseconds;
-  private String apiKey;
-
-  private AuthHelper(AuthType authType) {
-    this(authType, "Authorization");
+public interface AuthHelper {
+  static <T> AuthHelper forJwtToken(
+      JwtService jwtService, long jwtExpirationMilliseconds, Class<T> jwtClass) {
+    return forJwtToken("Authorization", jwtService, jwtExpirationMilliseconds, jwtClass);
   }
 
-  private AuthHelper(AuthType authType, String authorizationHeader) {
-    this.authType = authType;
-    this.authorizationHeader = authorizationHeader;
+  static <T> AuthHelper forJwtToken(
+      String authorizationHeader,
+      JwtService jwtService,
+      long jwtExpirationMilliseconds,
+      Class<T> jwtClass) {
+    return new JwtAuthHelper<>(
+        authorizationHeader, jwtService, jwtExpirationMilliseconds, jwtClass);
   }
 
-  public static AuthHelper forJwtToken(JwtService jwtService, long jwtExpirationMilliseconds) {
-    return forJwtToken("Authorization", jwtService, jwtExpirationMilliseconds);
+  static AuthHelper forApiKey(String apiKey) {
+    return new ApiAuthHelper(apiKey);
   }
 
-  public static AuthHelper forJwtToken(
-      String authorizationHeader, JwtService jwtService, long jwtExpirationMilliseconds) {
-    AuthHelper authHelper = new AuthHelper(AuthType.JWT, authorizationHeader);
-    authHelper.jwtService = jwtService;
-    authHelper.jwtExpirationMilliseconds = jwtExpirationMilliseconds;
-    return authHelper;
+  static AuthHelper forApiKey(String authorizationHeader, String apiKey) {
+    return new ApiAuthHelper(apiKey);
   }
 
-  public static AuthHelper forApiKey(String apiKey) {
-    return forApiKey("X-Api-Key", apiKey);
+  static AuthHelper forNone() {
+    return new NoneAuthHelper();
   }
 
-  public static AuthHelper forApiKey(String authorizationHeader, String apiKey) {
-    AuthHelper authHelper = new AuthHelper(AuthType.API_KEY, authorizationHeader);
-    authHelper.apiKey = apiKey;
-    return authHelper;
-  }
+  AuthType getAuthType();
 
-  public static AuthHelper forNone() {
-    return new AuthHelper(AuthType.NONE);
-  }
+  AuthHeader<String, String> createAuthHeader();
 
-  @Nullable
-  public AuthHeader<String, String> createPlatformServerAuthHeader() throws InvalidConfigException {
-    return createAuthHeader(PlatformAuthJwt.class);
-  }
+  class NoneAuthHelper implements AuthHelper {
+    @Override
+    public AuthType getAuthType() {
+      return AuthType.NONE;
+    }
 
-  @Nullable
-  public AuthHeader<String, String> createCallbackAuthHeader() throws InvalidConfigException {
-    return createAuthHeader(CallbackAuthJwt.class);
-  }
-
-  @Nullable
-  public AuthHeader<String, String> createCustodyAuthHeader() throws InvalidConfigException {
-    return createAuthHeader(CustodyAuthJwt.class);
-  }
-
-  public static JwtBuilder jwtsBuilder() {
-    return Jwts.builder().json(JwtsGsonSerializer.newInstance());
-  }
-
-  public static JwtParserBuilder jwtsParser() {
-    return Jwts.parser().json(JwtsGsonDeserializer.newInstance());
-  }
-
-  @Nullable
-  private <T extends ApiAuthJwt> AuthHeader<String, String> createAuthHeader(Class<T> jwtClass)
-      throws InvalidConfigException {
-    switch (authType) {
-      case JWT:
-        return new AuthHeader<>(authorizationHeader, "Bearer " + createJwt(jwtClass));
-      case API_KEY:
-        return new AuthHeader<>(authorizationHeader, apiKey);
-      default:
-        return null;
+    @Override
+    public AuthHeader<String, String> createAuthHeader() {
+      return null;
     }
   }
 
-  private <T extends ApiAuthJwt> String createJwt(Class<T> jwtClass) throws InvalidConfigException {
-    long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
-    long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
+  class ApiAuthHelper implements AuthHelper {
+    private final String apiKey;
+    private final String authorizationHeader;
 
-    if (jwtClass == CallbackAuthJwt.class) {
-      CallbackAuthJwt token = new CallbackAuthJwt(issuedAt, expirationTime);
-      return jwtService.encode(token);
-    } else if (jwtClass == PlatformAuthJwt.class) {
-      PlatformAuthJwt token = new PlatformAuthJwt(issuedAt, expirationTime);
-      return jwtService.encode(token);
-    } else if (jwtClass == CustodyAuthJwt.class) {
-      CustodyAuthJwt token = new CustodyAuthJwt(issuedAt, expirationTime);
-      return jwtService.encode(token);
-    } else {
-      throw new InvalidConfigException("Invalid JWT class: " + jwtClass);
+    @Override
+    public AuthType getAuthType() {
+      return AuthType.API_KEY;
+    }
+
+    public ApiAuthHelper(String apiKey, String authorizationHeader) {
+      this.apiKey = apiKey;
+      this.authorizationHeader = authorizationHeader;
+    }
+
+    public ApiAuthHelper(String apiKey) {
+      this(apiKey, "X-Api-Key");
+    }
+
+    @Override
+    public AuthHeader<String, String> createAuthHeader() {
+      return new AuthHeader<>(authorizationHeader, apiKey);
+    }
+  }
+
+  class JwtAuthHelper<T> implements AuthHelper {
+    private final String authorizationHeader;
+    private final JwtService jwtService;
+    private final long jwtExpirationMilliseconds;
+    private final Class<T> jwtClass;
+
+    @Override
+    public AuthType getAuthType() {
+      return AuthType.JWT;
+    }
+
+    public JwtAuthHelper(
+        String authorizationHeader,
+        JwtService jwtService,
+        long jwtExpirationMilliseconds,
+        Class<T> jwtClass) {
+      this.authorizationHeader = authorizationHeader;
+      this.jwtService = jwtService;
+      this.jwtExpirationMilliseconds = jwtExpirationMilliseconds;
+      this.jwtClass = jwtClass;
+    }
+
+    @Override
+    public AuthHeader<String, String> createAuthHeader() {
+      return new AuthHeader<>(authorizationHeader, "Bearer " + createJwt());
+    }
+
+    @SneakyThrows
+    private String createJwt() {
+      long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
+      long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
+
+      if (jwtClass == CallbackAuthJwt.class) {
+        CallbackAuthJwt token = new CallbackAuthJwt(issuedAt, expirationTime);
+        return jwtService.encode(token);
+      } else if (jwtClass == PlatformAuthJwt.class) {
+        PlatformAuthJwt token = new PlatformAuthJwt(issuedAt, expirationTime);
+        return jwtService.encode(token);
+      } else if (jwtClass == CustodyAuthJwt.class) {
+        CustodyAuthJwt token = new CustodyAuthJwt(issuedAt, expirationTime);
+        return jwtService.encode(token);
+      } else {
+        throw new InvalidConfigException("Invalid JWT class: " + jwtClass);
+      }
     }
   }
 }

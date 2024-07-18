@@ -98,7 +98,7 @@ public class CustodyApiClient {
 
   private Request.Builder getRequestBuilder() throws InvalidConfigException {
     Request.Builder requestBuilder = new Request.Builder();
-    AuthHeader<String, String> authHeader = authHelper.createCustodyAuthHeader();
+    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
     return authHeader == null
         ? requestBuilder
         : requestBuilder.header(authHeader.getName(), authHeader.getValue());
