@@ -98,7 +98,7 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         gson
       )
     // Assert the request does not throw a 403.
-    assertThrows<NotFoundException> {
+    assertThrows<UnauthorizedException> {
       rci.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
   }
@@ -113,7 +113,7 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         gson
       )
     // Assert the request does not throw a 403.
-    assertThrows<BadRequestException> { rri.getRate(GetRateRequest.builder().build()) }
+    assertThrows<UnauthorizedException> { rri.getRate(GetRateRequest.builder().build()) }
   }
 
   @Test
@@ -126,7 +126,7 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         gson
       )
     // Assert the request does not throw a 403.
-    assertThrows<BadRequestException> { rfi.getFee(GetFeeRequest.builder().build()) }
+    assertThrows<UnauthorizedException> { rfi.getFee(GetFeeRequest.builder().build()) }
   }
 
   @Test
@@ -138,7 +138,7 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         platformJwtWrongKeyAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> {
+    assertThrows<UnauthorizedException> {
       badTokenClient.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
 
@@ -149,7 +149,7 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         platformJwtWrongKeyAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> {
+    assertThrows<UnauthorizedException> {
       expiredTokenClient.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
   }
@@ -163,7 +163,7 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         platformJwtWrongKeyAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> { badTokenClient.getRate(GetRateRequest.builder().build()) }
+    assertThrows<UnauthorizedException> { badTokenClient.getRate(GetRateRequest.builder().build()) }
 
     val expiredTokenClient =
       RestRateIntegration(
@@ -172,7 +172,7 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         platformJwtExpiredAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> {
+    assertThrows<UnauthorizedException> {
       expiredTokenClient.getRate(GetRateRequest.builder().build())
     }
   }
@@ -186,7 +186,7 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         platformJwtWrongKeyAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> { badTokenClient.getFee(GetFeeRequest.builder().build()) }
+    assertThrows<UnauthorizedException> { badTokenClient.getFee(GetFeeRequest.builder().build()) }
 
     val expiredTokenClient =
       RestFeeIntegration(
@@ -195,7 +195,7 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         platformJwtExpiredAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> {
+    assertThrows<UnauthorizedException> {
       expiredTokenClient.getFee(GetFeeRequest.builder().build())
     }
   }

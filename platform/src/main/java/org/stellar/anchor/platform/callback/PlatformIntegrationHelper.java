@@ -46,7 +46,8 @@ public class PlatformIntegrationHelper {
     }
   }
 
-  public static AnchorException httpError(String responseContent, int responseCode, Gson gson) {
+  public static AnchorException httpError(String responseContent, int responseCode, Gson gson)
+      throws AnchorException {
     Log.infoF(
         "Error returned from the Anchor Backend.\nresponseCode={}\nContent={}",
         responseCode,
@@ -67,6 +68,8 @@ public class PlatformIntegrationHelper {
                 : HttpStatus.valueOf(responseCode).getReasonPhrase();
 
     switch (HttpStatus.valueOf(responseCode)) {
+      case UNAUTHORIZED: // 401
+        throw new UnauthorizedException(errorMessage);
       case UNPROCESSABLE_ENTITY: // 422
       case BAD_REQUEST: // 400
         return new BadRequestException(errorMessage);
