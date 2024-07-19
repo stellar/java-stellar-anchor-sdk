@@ -559,6 +559,7 @@ public class Sep31Service {
         rateIntegration
             .getRate(
                 GetRateRequest.builder()
+                    .type(GetRateRequest.Type.INDICATIVE)
                     .sellAmount(request.getAmount())
                     .sellAsset(assetName)
                     .buyAsset(
