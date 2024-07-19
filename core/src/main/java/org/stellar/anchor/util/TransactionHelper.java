@@ -3,8 +3,8 @@ package org.stellar.anchor.util;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
 
 import com.google.common.collect.ImmutableSet;
+import jakarta.annotation.Nullable;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;

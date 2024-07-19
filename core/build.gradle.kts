@@ -22,6 +22,7 @@ dependencies {
   implementation(libs.commons.io)
   implementation(libs.google.gson)
   implementation(libs.httpclient)
+  implementation(libs.jakarta.annotation.api)
   implementation(libs.jakarta.transaction.api)
   implementation(libs.jakarta.validation.api)
   implementation(libs.jjwt)

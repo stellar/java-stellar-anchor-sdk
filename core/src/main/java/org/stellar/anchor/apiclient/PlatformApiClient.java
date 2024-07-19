@@ -5,13 +5,13 @@ import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_ONCHAIN_FUNDS_S
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_REFUND_SENT;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_TRANSACTION_ERROR;
 
+import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
-import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.RequestBody;
