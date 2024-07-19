@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.JwtUtil.jwtsBuilder;
 import static org.stellar.anchor.util.OkHttpUtil.TYPE_JSON;
 
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -13,7 +14,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
-import javax.validation.constraints.NotNull;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;

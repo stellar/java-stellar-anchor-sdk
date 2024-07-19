@@ -16,16 +16,19 @@ docker-compose-rule = "2.3.0"
 exposed = "0.52.0"
 spotbugs-annotations = "4.8.6"
 flyway-core = "10.15.2"
+google-guava = "33.2.1-jre"
 google-gson = "2.11.0"
 httpclient = "5.3.1"
 httpcore = "5.2.5"
 h2database = "2.2.224"
 hibernate-types = "3.8.1"
 hoplite = "2.7.5"
+jackson-annotations = "2.17.2"
 jackson-dataformat-yaml = "2.17.2"
 java-stellar-sdk = "0.42.0"
 jakarta-xml-bind-api = "4.0.2"
 jakarta-transaction-api = "2.0.1"
+jakarta-validation-api = "3.1.0"
 jjwt = "0.12.5"
 jsonassert = "1.5.0"
 junit = "5.10.3"
@@ -77,16 +80,19 @@ exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "e
 spotbugs-annotations = { module = "com.github.spotbugs:spotbugs-annotations", version.ref = "spotbugs-annotations" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core" }
 google-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
+google-guava = { module = "com.google.guava:guava", version.ref = "google-guava" }
 httpclient = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpclient" }
 httpcore = { module = "org.apache.httpcomponents.core5:httpcore5", version.ref = "httpcore"}
 h2database = { module = "com.h2database:h2", version.ref = "h2database" }
 hibernate-types = { module = "io.hypersistence:hypersistence-utils-hibernate-63", version.ref = "hibernate-types" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
 hoplite-yaml = { module = "com.sksamuel.hoplite:hoplite-yaml", version.ref = "hoplite" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson-annotations" }
 jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }
 java-stellar-sdk = { module = "com.github.stellar:java-stellar-sdk", version.ref = "java-stellar-sdk" }
 jakarta-xml-bind-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jakarta-xml-bind-api" }
 jakarta-transaction-api = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction-api" }
+jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation-api"}
 jjwt = { module = "io.jsonwebtoken:jjwt", version.ref = "jjwt" }
 jsonassert = { module = "org.skyscreamer:jsonassert", version.ref = "jsonassert" }
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }

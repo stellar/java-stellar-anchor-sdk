@@ -1,6 +1,6 @@
 package org.stellar.anchor.client
 
-import com.google.common.reflect.TypeToken
+import com.google.gson.reflect.TypeToken
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
