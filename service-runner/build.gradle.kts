@@ -19,11 +19,10 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
 
   implementation(libs.commons.cli)
+  implementation(libs.coroutines.core)
   implementation(libs.docker.compose.rule)
   implementation(libs.google.gson)
   implementation(libs.kotlin.serialization.json)
-  implementation(libs.okhttp3)
-  implementation(libs.coroutines.core)
 
   // From projects
   implementation(project(":api-schema"))
