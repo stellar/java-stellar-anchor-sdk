@@ -6,8 +6,8 @@ import com.google.gson.Gson;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
-import javax.validation.constraints.NotNull;
 import lombok.SneakyThrows;
 import org.apache.hc.core5.http.HttpStatus;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
@@ -33,16 +33,14 @@ public class ApiKeyFilter implements Filter {
   @Override
   public void doFilter(
       ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) {
-    if (!(servletRequest instanceof HttpServletRequest)) {
+    if (!(servletRequest instanceof HttpServletRequest request)) {
       throw new ServletException("the request must be a HttpServletRequest");
     }
 
-    if (!(servletResponse instanceof HttpServletResponse)) {
+    if (!(servletResponse instanceof HttpServletResponse response)) {
       throw new ServletException("the request must be a HttpServletRequest");
     }
 
-    HttpServletRequest request = (HttpServletRequest) servletRequest;
-    HttpServletResponse response = (HttpServletResponse) servletResponse;
     Log.infoF(
         "Applying ApiKeyFilter on request {} {}?{}",
         request.getMethod(),
