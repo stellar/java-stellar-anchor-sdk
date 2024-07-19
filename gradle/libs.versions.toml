@@ -6,25 +6,28 @@ aws-iam-auth = "2.1.1"
 aws-rds = "1.12.759"
 aws-sqs = "1.12.757"
 bcastle = "1.77"
-coroutines = "1.8.1"
 commons-beanutils = "1.9.4"
 commons-cli = "1.8.0"
 commons-codec = "1.17.0"
 commons-io = "2.16.1"
 commons-text = "1.12.0"
+coroutines = "1.8.1"
 docker-compose-rule = "2.3.0"
 exposed = "0.52.0"
-spotbugs-annotations = "4.8.6"
 flyway-core = "10.15.2"
+google-guava = "33.2.1-jre"
 google-gson = "2.11.0"
-httpclient = "5.3.1"
-h2database = "2.2.224"
 hibernate-types = "3.8.1"
 hoplite = "2.7.5"
+httpclient = "5.3.1"
+httpcore = "5.2.5"
+jackson-annotations = "2.17.2"
 jackson-dataformat-yaml = "2.17.2"
-java-stellar-sdk = "0.42.0"
-jakarta-xml-bind-api = "4.0.2"
+jakarta-annotation-api = "3.0.0"
 jakarta-transaction-api = "2.0.1"
+jakarta-validation-api = "3.1.0"
+jakarta-xml-bind-api = "4.0.2"
+java-stellar-sdk = "0.42.0"
 jjwt = "0.12.5"
 jsonassert = "1.5.0"
 junit = "5.10.3"
@@ -38,17 +41,17 @@ ktor = "2.3.10"
 log4j = "2.23.1"
 log4j-template-json = "2.23.1"
 lombok = "1.18.22"
-mockk = "1.13.10"
 micrometer-prometheus = "1.13.2"
+mockk = "1.13.10"
 okhttp3 = "4.12.0"
 postgresql = "42.7.3"
-reactor-core = "3.6.8"
-reactor-netty = "1.1.21"
 servlet-api = "6.0.0"
+slf4j2 = "2.0.13"
+snakeyaml = "2.2"
+spotbugs-annotations = "4.8.6"
+spring-context = "6.1.11"
 spring-kafka = "3.2.1"
 spring-retry = "2.0.6"
-sqlite-jdbc = "3.46.0.0"
-slf4j2 = "2.0.13"
 stellar-wallet-sdk = "1.7.0"
 
 # Plugin versions
@@ -60,31 +63,34 @@ jacoco = "0.8.10"
 [libraries]
 apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apache-commons-lang3" }
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+aws-iam-auth = { module = "software.amazon.msk:aws-msk-iam-auth", version.ref = "aws-iam-auth" }
 aws-rds = { module = "com.amazonaws:aws-java-sdk-rds", version.ref = "aws-rds" }
 aws-sqs = { module = "com.amazonaws:aws-java-sdk-sqs", version.ref = "aws-sqs" }
-aws-iam-auth = { module = "software.amazon.msk:aws-msk-iam-auth", version.ref = "aws-iam-auth" }
 bcastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bcastle" }
 commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils" }
-commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
 commons-cli = { module = "commons-cli:commons-cli", version.ref = "commons-cli" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
+commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 docker-compose-rule = { module = "com.palantir.docker.compose:docker-compose-junit-jupiter", version.ref = "docker-compose-rule" }
 exposed = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
-spotbugs-annotations = { module = "com.github.spotbugs:spotbugs-annotations", version.ref = "spotbugs-annotations" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core" }
 google-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
-httpclient = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpclient" }
-h2database = { module = "com.h2database:h2", version.ref = "h2database" }
+google-guava = { module = "com.google.guava:guava", version.ref = "google-guava" }
 hibernate-types = { module = "io.hypersistence:hypersistence-utils-hibernate-63", version.ref = "hibernate-types" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }
 hoplite-yaml = { module = "com.sksamuel.hoplite:hoplite-yaml", version.ref = "hoplite" }
+httpclient = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpclient" }
+httpcore = { module = "org.apache.httpcomponents.core5:httpcore5", version.ref = "httpcore" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson-annotations" }
 jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }
-java-stellar-sdk = { module = "com.github.stellar:java-stellar-sdk", version.ref = "java-stellar-sdk" }
-jakarta-xml-bind-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jakarta-xml-bind-api" }
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation-api" }
 jakarta-transaction-api = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction-api" }
+jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation-api" }
+jakarta-xml-bind-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jakarta-xml-bind-api" }
+java-stellar-sdk = { module = "com.github.stellar:java-stellar-sdk", version.ref = "java-stellar-sdk" }
 jjwt = { module = "io.jsonwebtoken:jjwt", version.ref = "jjwt" }
 jsonassert = { module = "org.skyscreamer:jsonassert", version.ref = "jsonassert" }
 junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
@@ -93,45 +99,45 @@ junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref 
 junit-suite-engine = { module = "org.junit.platform:junit-platform-suite-engine", version.ref = "junit-suite-engine" }
 kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
 kafka-json-schema = { module = "io.confluent:kafka-json-schema-serializer", version.ref = "kafka-json-schema" }
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
-kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
 kotlin-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
-ktor-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
-ktor-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
-ktor-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
+ktor-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktor-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
-ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
-ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
-log4j2-slf4j2 = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
-log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
-log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 log4j-template-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j-template-json" }
+log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j2-slf4j2 = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer-prometheus" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
-okhttp3 = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
 okhttp3-mockserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp3" }
 okhttp3-tls = { module = "com.squareup.okhttp3:okhttp-tls", version.ref = "okhttp3" }
+okhttp3 = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
-reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor-core" }
-reactor-netty = { module = "io.projectreactor.netty:reactor-netty", version.ref = "reactor-netty" }
 servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "servlet-api" }
-sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j2" }
+slf4j-jul-bridge = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j2" }
 slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j2" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j2" }
-slf4j-jul-bridge = { module = "org.slf4j:jul-to-slf4j", version.ref = "slf4j2" }
-stellar-wallet-sdk = { module = "org.stellar:wallet-sdk", version.ref = "stellar-wallet-sdk" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
+spotbugs-annotations = { module = "com.github.spotbugs:spotbugs-annotations", version.ref = "spotbugs-annotations" }
+spring-context = { module = "org.springframework:spring-context", version.ref = "spring-context" }
+spring-data-commons = { module = "org.springframework.data:spring-data-commons", version.ref = "spring-boot" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-retry = { module = "org.springframework.retry:spring-retry", version.ref = "spring-retry" }
-spring-data-commons = { module = "org.springframework.data:spring-data-commons", version.ref = "spring-boot" }
+stellar-wallet-sdk = { module = "org.stellar:wallet-sdk", version.ref = "stellar-wallet-sdk" }
 
 [bundles]
 slf4j = ["slf4j-api", "slf4j-log4j12", "slf4j-jul-bridge"]

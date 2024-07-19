@@ -7,7 +7,7 @@ import io.mockk.impl.annotations.MockK
 import java.net.URI
 import java.nio.charset.Charset
 import java.time.Instant
-import org.apache.http.client.utils.URLEncodedUtils
+import org.apache.hc.core5.net.URLEncodedUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach

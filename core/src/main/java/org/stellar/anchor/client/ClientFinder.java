@@ -1,6 +1,6 @@
 package org.stellar.anchor.client;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.stellar.anchor.api.exception.SepNotAuthorizedException;

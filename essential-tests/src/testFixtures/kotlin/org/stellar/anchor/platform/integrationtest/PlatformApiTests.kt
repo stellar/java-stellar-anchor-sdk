@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.reflect.TypeToken
-import org.apache.http.HttpStatus.SC_OK
+import org.apache.hc.core5.http.HttpStatus.SC_OK
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization

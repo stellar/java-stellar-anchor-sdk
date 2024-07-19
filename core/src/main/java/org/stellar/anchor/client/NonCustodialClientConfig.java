@@ -1,8 +1,8 @@
 package org.stellar.anchor.client;
 
 import com.google.gson.annotations.SerializedName;
+import jakarta.annotation.Nonnull;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

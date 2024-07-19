@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep38;
 
+import lombok.NonNull;
 import org.stellar.anchor.api.exception.SepException;
-import reactor.util.annotation.NonNull;
 
 /** This interface is for the SEP adapter service to query/save the quote document. */
 public interface Sep38QuoteStore {

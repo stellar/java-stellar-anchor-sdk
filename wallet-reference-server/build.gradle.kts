@@ -10,15 +10,15 @@ plugins {
 dependencies {
   implementation(libs.bundles.ktor)
   implementation(libs.bundles.ktor.client)
+  implementation(libs.bcastle)
   implementation(libs.google.gson)
   implementation(libs.hoplite.core)
   implementation(libs.hoplite.yaml)
-  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
+  implementation(libs.jjwt)
   implementation(libs.kotlin.logging)
   implementation(libs.slf4j.simple)
   implementation(libs.stellar.wallet.sdk)
-  implementation(libs.jjwt)
-  implementation(libs.bcastle)
+  implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
   implementation(project(mapOf("path" to ":api-schema")))
 }
 

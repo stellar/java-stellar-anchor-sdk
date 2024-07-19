@@ -8,7 +8,7 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.apache.http.HttpStatus
+import org.apache.hc.core5.http.HttpStatus
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource

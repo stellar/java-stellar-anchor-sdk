@@ -1,7 +1,7 @@
 package org.stellar.anchor.util;
 
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.domain.Sort;

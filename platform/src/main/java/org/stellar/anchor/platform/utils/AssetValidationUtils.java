@@ -3,10 +3,10 @@ package org.stellar.anchor.platform.utils;
 import static java.util.stream.Collectors.toList;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 import org.apache.commons.collections.CollectionUtils;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.rpc.method.AmountAssetRequest;
