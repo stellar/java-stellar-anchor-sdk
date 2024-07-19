@@ -6,6 +6,7 @@ plugins {
 }
 
 dependencies {
+  implementation(libs.httpcore)
   implementation(libs.bundles.junit)
   implementation(libs.commons.text)
   implementation(libs.coroutines.core)

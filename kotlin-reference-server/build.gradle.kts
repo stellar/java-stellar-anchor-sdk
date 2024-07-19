@@ -8,6 +8,7 @@ plugins {
 }
 
 dependencies {
+  implementation(libs.httpcore)
   implementation(libs.bundles.ktor)
   implementation(libs.bundles.ktor.client)
   implementation(libs.google.gson)

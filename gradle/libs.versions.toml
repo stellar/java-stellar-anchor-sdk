@@ -18,6 +18,7 @@ spotbugs-annotations = "4.8.6"
 flyway-core = "10.15.2"
 google-gson = "2.11.0"
 httpclient = "5.3.1"
+httpcore = "5.2.5"
 h2database = "2.2.224"
 hibernate-types = "3.8.1"
 hoplite = "2.7.5"
@@ -77,6 +78,7 @@ spotbugs-annotations = { module = "com.github.spotbugs:spotbugs-annotations", ve
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core" }
 google-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
 httpclient = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "httpclient" }
+httpcore = { module = "org.apache.httpcomponents.core5:httpcore5", version.ref = "httpcore"}
 h2database = { module = "com.h2database:h2", version.ref = "h2database" }
 hibernate-types = { module = "io.hypersistence:hypersistence-utils-hibernate-63", version.ref = "hibernate-types" }
 hoplite-core = { module = "com.sksamuel.hoplite:hoplite-core", version.ref = "hoplite" }

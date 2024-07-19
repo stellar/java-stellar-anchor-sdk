@@ -22,6 +22,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-aop")
   implementation("org.springframework.boot:spring-boot-starter-validation")
 
+  implementation(libs.postgresql)
+  implementation(libs.aws.sqs)
   implementation(libs.aws.rds)
   implementation(libs.aws.iam.auth)
   implementation(libs.commons.beanutils)

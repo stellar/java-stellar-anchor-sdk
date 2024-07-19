@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.AuthHeader;

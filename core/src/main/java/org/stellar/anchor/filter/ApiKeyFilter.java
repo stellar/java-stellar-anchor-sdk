@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import javax.validation.constraints.NotNull;
 import lombok.SneakyThrows;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;

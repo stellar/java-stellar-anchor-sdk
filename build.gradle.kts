@@ -76,8 +76,6 @@ subprojects {
   dependencies {
     // `rootProject` is required here if we want to use the libs object in the root project.
     implementation(rootProject.libs.spotbugs.annotations)
-    implementation(rootProject.libs.aws.sqs)
-    implementation(rootProject.libs.postgresql)
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
     implementation(rootProject.libs.log4j.template.json)

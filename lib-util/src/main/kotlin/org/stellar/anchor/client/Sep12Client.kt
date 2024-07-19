@@ -7,7 +7,8 @@ import okhttp3.MultipartBody
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.apache.http.HttpStatus.*
+import org.apache.hc.core5.http.HttpStatus.SC_ACCEPTED
+import org.apache.hc.core5.http.HttpStatus.SC_FORBIDDEN
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep12.Sep12DeleteCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
