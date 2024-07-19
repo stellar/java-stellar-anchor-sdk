@@ -49,7 +49,12 @@ class PlatformIntegrationHelperTest {
             .platformAuthSecret("secret__________________________________")
             .custodyAuthSecret("secret__________________________________")
             .build()
-        val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
+        val authHelper =
+          AuthHelper.forJwtToken(
+            jwtService,
+            JWT_EXPIRATION_MILLISECONDS,
+            PlatformAuthJwt::class.java
+          )
 
         val gotRequestBuilder = PlatformIntegrationHelper.getRequestBuilder(authHelper)
         val gotRequest = gotRequestBuilder.url(TEST_HOME_DOMAIN).get().build()

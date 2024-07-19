@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.custody.fireblocks;
 
-import static org.stellar.anchor.auth.AuthHelper.jwtsBuilder;
+import static org.stellar.anchor.util.JwtUtil.jwtsBuilder;
 import static org.stellar.anchor.util.OkHttpUtil.TYPE_JSON;
 
 import io.jsonwebtoken.SignatureAlgorithm;

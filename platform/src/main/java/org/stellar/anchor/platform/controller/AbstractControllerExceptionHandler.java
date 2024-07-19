@@ -42,7 +42,7 @@ public abstract class AbstractControllerExceptionHandler {
   }
 
   @ResponseStatus(HttpStatus.FORBIDDEN)
-  @ExceptionHandler({SepNotAuthorizedException.class})
+  @ExceptionHandler({SepNotAuthorizedException.class, UnauthorizedException.class})
   public SepExceptionResponse handleAuthError(SepException ex) {
     infoF("SEP-10 authorization failure: {}", ex.getMessage());
     return new SepExceptionResponse(ex.getMessage());

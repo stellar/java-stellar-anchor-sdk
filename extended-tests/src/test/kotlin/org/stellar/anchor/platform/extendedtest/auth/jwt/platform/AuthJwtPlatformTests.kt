@@ -30,11 +30,11 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
       .build()
 
   private val jwtPlatformClient: PlatformApiClient =
-    PlatformApiClient(jwtAuthHelper, "http://localhost:8085")
+    PlatformApiClient(platformJwtAuthHelper, "http://localhost:8085")
   private val jwtWrongKeyPlatformClient: PlatformApiClient =
-    PlatformApiClient(jwtWrongKeyAuthHelper, "http://localhost:8085")
+    PlatformApiClient(platformJwtWrongKeyAuthHelper, "http://localhost:8085")
   private val jwtExpiredTokenPlatformClient: PlatformApiClient =
-    PlatformApiClient(jwtExpiredAuthHelper, "http://localhost:8085")
+    PlatformApiClient(platformJwtExpiredAuthHelper, "http://localhost:8085")
 
   @ParameterizedTest
   @CsvSource(
@@ -94,11 +94,11 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
       RestCustomerIntegration(
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
-        jwtAuthHelper,
+        platformJwtAuthHelper,
         gson
       )
     // Assert the request does not throw a 403.
-    assertThrows<NotFoundException> {
+    assertThrows<UnauthorizedException> {
       rci.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
   }
@@ -109,11 +109,11 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
       RestRateIntegration(
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
-        jwtAuthHelper,
+        platformJwtAuthHelper,
         gson
       )
     // Assert the request does not throw a 403.
-    assertThrows<BadRequestException> { rri.getRate(GetRateRequest.builder().build()) }
+    assertThrows<UnauthorizedException> { rri.getRate(GetRateRequest.builder().build()) }
   }
 
   @Test
@@ -122,11 +122,11 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
       RestFeeIntegration(
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
-        jwtAuthHelper,
+        platformJwtAuthHelper,
         gson
       )
     // Assert the request does not throw a 403.
-    assertThrows<BadRequestException> { rfi.getFee(GetFeeRequest.builder().build()) }
+    assertThrows<UnauthorizedException> { rfi.getFee(GetFeeRequest.builder().build()) }
   }
 
   @Test
@@ -135,10 +135,10 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
       RestCustomerIntegration(
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
-        jwtWrongKeyAuthHelper,
+        platformJwtWrongKeyAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> {
+    assertThrows<UnauthorizedException> {
       badTokenClient.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
 
@@ -146,10 +146,10 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
       RestCustomerIntegration(
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
-        jwtWrongKeyAuthHelper,
+        platformJwtWrongKeyAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> {
+    assertThrows<UnauthorizedException> {
       expiredTokenClient.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
   }
@@ -160,19 +160,19 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
       RestRateIntegration(
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
-        jwtWrongKeyAuthHelper,
+        platformJwtWrongKeyAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> { badTokenClient.getRate(GetRateRequest.builder().build()) }
+    assertThrows<UnauthorizedException> { badTokenClient.getRate(GetRateRequest.builder().build()) }
 
     val expiredTokenClient =
       RestRateIntegration(
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
-        jwtExpiredAuthHelper,
+        platformJwtExpiredAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> {
+    assertThrows<UnauthorizedException> {
       expiredTokenClient.getRate(GetRateRequest.builder().build())
     }
   }
@@ -183,19 +183,19 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
       RestFeeIntegration(
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
-        jwtWrongKeyAuthHelper,
+        platformJwtWrongKeyAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> { badTokenClient.getFee(GetFeeRequest.builder().build()) }
+    assertThrows<UnauthorizedException> { badTokenClient.getFee(GetFeeRequest.builder().build()) }
 
     val expiredTokenClient =
       RestFeeIntegration(
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
-        jwtExpiredAuthHelper,
+        platformJwtExpiredAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> {
+    assertThrows<UnauthorizedException> {
       expiredTokenClient.getFee(GetFeeRequest.builder().build())
     }
   }
