@@ -29,11 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.SneakyThrows;
-import org.stellar.anchor.api.callback.CustomerIntegration;
-import org.stellar.anchor.api.callback.FeeIntegration;
-import org.stellar.anchor.api.callback.GetCustomerRequest;
-import org.stellar.anchor.api.callback.GetCustomerResponse;
-import org.stellar.anchor.api.callback.GetFeeRequest;
+import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -81,7 +77,7 @@ public class Sep31Service {
   private final Sep38QuoteStore sep38QuoteStore;
   private final ClientService clientService;
   private final AssetService assetService;
-  private final FeeIntegration feeIntegration;
+  private final RateIntegration rateIntegration;
   private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
   private final CustodyService custodyService;
@@ -99,7 +95,7 @@ public class Sep31Service {
       Sep38QuoteStore sep38QuoteStore,
       ClientService clientService,
       AssetService assetService,
-      FeeIntegration feeIntegration,
+      RateIntegration rateIntegration,
       CustomerIntegration customerIntegration,
       EventService eventService,
       CustodyService custodyService,
@@ -114,7 +110,7 @@ public class Sep31Service {
     this.sep38QuoteStore = sep38QuoteStore;
     this.clientService = clientService;
     this.assetService = assetService;
-    this.feeIntegration = feeIntegration;
+    this.rateIntegration = rateIntegration;
     this.customerIntegration = customerIntegration;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
@@ -557,27 +553,29 @@ public class Sep31Service {
     }
 
     Sep31PostTransactionRequest request = Context.get().getRequest();
-    Sep10Jwt token = Context.get().getSep10Jwt();
     String assetName = Context.get().getAsset().getSep38AssetName();
     infoF("Requesting fee for request ({})", request);
-    Amount fee =
-        feeIntegration
-            .getFee(
-                GetFeeRequest.builder()
-                    .sendAmount(request.getAmount())
-                    .sendAsset(assetName)
-                    .receiveAsset(
+    var rate =
+        rateIntegration
+            .getRate(
+                GetRateRequest.builder()
+                    .sellAmount(request.getAmount())
+                    .sellAsset(assetName)
+                    .buyAsset(
                         (request.getDestinationAsset() == null)
                             ? assetName
                             : request.getDestinationAsset())
-                    .receiveAmount(null)
-                    .senderId(request.getSenderId())
-                    .receiverId(request.getReceiverId())
+                    .buyAmount(null)
                     .clientId(getClientName())
                     .build())
-            .getFee();
+            .getRate();
+    FeeDetails fee = rate.getFee();
+    if (fee == null) {
+      throw new SepValidationException("Fee is not present in /rate response");
+    }
     infoF("Fee for request ({}) is ({})", request, fee);
-    Context.get().setFee(fee);
+    Amount amountFee = Amount.create(fee.getTotal(), fee.getAsset());
+    Context.get().setFee(amountFee);
   }
 
   String getClientName() throws BadRequestException {

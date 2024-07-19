@@ -28,7 +28,6 @@ import org.stellar.anchor.TestConstants.Companion.TEST_OFFCHAIN_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
-import org.stellar.anchor.api.callback.FeeIntegration
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
@@ -108,8 +107,6 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var sep24Config: Sep24Config
 
   @MockK(relaxed = true) lateinit var eventService: EventService
-
-  @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
 
   @MockK(relaxed = true) lateinit var clientFinder: ClientFinder
 

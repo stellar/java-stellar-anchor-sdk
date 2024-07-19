@@ -306,7 +306,7 @@ class Sep31ServiceTest {
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
-  @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
+  @MockK(relaxed = true) lateinit var rateIntegration: RateIntegration
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) lateinit var custodyService: CustodyService
   @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
@@ -345,7 +345,7 @@ class Sep31ServiceTest {
         quoteStore,
         clientService,
         assetService,
-        feeIntegration,
+        rateIntegration,
         customerIntegration,
         eventService,
         custodyService,
@@ -398,7 +398,7 @@ class Sep31ServiceTest {
         quoteStore,
         clientService,
         assetServiceQuotesNotSupported,
-        feeIntegration,
+        rateIntegration,
         customerIntegration,
         eventService,
         custodyService,
@@ -927,7 +927,7 @@ class Sep31ServiceTest {
         quoteStore,
         clientService,
         assetServiceQuotesNotSupported,
-        feeIntegration,
+        rateIntegration,
         customerIntegration,
         eventService,
         custodyService,
@@ -952,13 +952,8 @@ class Sep31ServiceTest {
       )
 
     // Provide fee response.
-    every { feeIntegration.getFee(any()) } returns
-      GetFeeResponse(
-        Amount(
-          "2",
-          "stellar:USDC",
-        ),
-      )
+    every { rateIntegration.getRate(any()) } returns
+      GetRateResponse(GetRateResponse.Rate.builder().fee(FeeDetails("2", "stellar:USDC")).build())
 
     // Make sure we can get the sender and receiver customers
     val mockCustomer = GetCustomerResponse()
@@ -1052,20 +1047,30 @@ class Sep31ServiceTest {
     assertEquals(quote.fee.asset, fee.asset)
 
     // No quote
-    every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount("10", "USDC"))
+    every { rateIntegration.getRate(any()) } returns
+      GetRateResponse(
+        GetRateResponse.Rate.builder()
+          .fee(
+            FeeDetails(
+              "10",
+              "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+            )
+          )
+          .build()
+      )
     Context.get().quote = null
     Context.get().asset = asset
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
     fee = Context.get().fee
     assertEquals("10", fee.amount)
-    assertEquals("USDC", fee.asset)
+    assertEquals("stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN", fee.asset)
 
     request.destinationAsset = null
     sep31Service.updateFee()
     fee = Context.get().fee
     assertEquals("10", fee.amount)
-    assertEquals("USDC", fee.asset)
+    assertEquals("stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN", fee.asset)
   }
 
   @Test
