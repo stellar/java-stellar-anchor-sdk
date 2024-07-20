@@ -4895,7 +4895,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "amount_out": {},
               "fee_details": {
-                "total": "0.3",
+                "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "started_at": "2024-06-25T20:31:46.178476Z",
@@ -4949,7 +4949,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "amount_out": {},
               "fee_details": {
-                "total": "0.3",
+                "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "started_at": "2024-06-25T20:31:46.178476Z",
@@ -5105,7 +5105,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "amount_out": {},
               "fee_details": {
-                "total": "0.3",
+                "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "started_at": "2024-06-25T20:33:17.013738Z",
@@ -5159,7 +5159,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "amount_out": {},
               "fee_details": {
-                "total": "0.3",
+                "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "started_at": "2024-06-25T20:33:17.013738Z",
@@ -5213,7 +5213,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "amount_out": {},
               "fee_details": {
-                "total": "0.3",
+                "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "started_at": "2024-06-25T20:33:17.013738Z",
@@ -5267,7 +5267,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "amount_out": {},
               "fee_details": {
-                "total": "0.3",
+                "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "started_at": "2024-06-25T20:33:17.013738Z",
@@ -5321,7 +5321,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "amount_out": {},
               "fee_details": {
-                "total": "0.3",
+                "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "started_at": "2024-06-25T20:33:17.013738Z",
@@ -5375,7 +5375,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "amount_out": {},
               "fee_details": {
-                "total": "0.3",
+                "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "started_at": "2024-06-25T20:33:17.013738Z",
@@ -5430,7 +5430,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "amount_out": {},
               "fee_details": {
-                "total": "0.3",
+                "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
               "started_at": "2024-06-25T20:33:17.013738Z",
