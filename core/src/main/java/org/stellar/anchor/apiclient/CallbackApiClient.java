@@ -34,13 +34,7 @@ public class CallbackApiClient extends BaseApiClient {
     if (endpointUrl == null)
       throw new InvalidConfigException(
           String.format("Invalid endpoint: %s of the client.", endpoint));
-    this.url =
-        new HttpUrl.Builder()
-            .scheme(endpointUrl.scheme())
-            .host(endpointUrl.host())
-            .port(endpointUrl.port())
-            .addPathSegment("event")
-            .build();
+    this.url = endpointUrl.newBuilder().addPathSegment("event").build();
   }
 
   /**
