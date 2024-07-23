@@ -21,10 +21,6 @@ class AnchorEventProcessor(
           log.info { "Received transaction status changed event" }
           processor.onTransactionStatusChanged(event)
         }
-        AnchorEvent.Type.TRANSACTION_ERROR.type -> {
-          log.info { "Received transaction error event" }
-          processor.onTransactionError(event)
-        }
         AnchorEvent.Type.CUSTOMER_UPDATED.type -> {
           log.info { "Received customer updated event" }
           // Only SEP-6 listens to this event
