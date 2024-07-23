@@ -19,10 +19,6 @@ assets:
       methods:
         - bank_account
         - cash
-    send: # (Deprecated) All fields should be incorporated into `sep31`.
-      fee_fixed: 0
-      fee_percent: 0
-      max_amount: 1000000
     sep31:
       fee_fixed: 0
       fee_percent: 0
@@ -192,9 +188,6 @@ assets:
   - schema: iso4217
     code: USD
     significant_decimals: 7
-    send: # (Deprecated) All fields should be incorporated into `sep31`.
-      min_amount: 0
-      max_amount: 1000000
     sep31:
       min_amount: 0
       max_amount: 1000000

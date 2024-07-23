@@ -16,12 +16,11 @@ assets:
       fee_percent: 0
       min_amount: 0
       max_amount: 10000
-    send:
+    sep31:
       fee_fixed: 0
       fee_percent: 0
       min_amount: 0
       max_amount: 10000
-    sep31:
       quotes_supported: true
       quotes_required: true
       sep12:
@@ -73,7 +72,7 @@ assets:
       fee_percent: 0
       min_amount: 1
       max_amount: 1000000
-    send:
+    sep31:
       fee_fixed: 0
       fee_percent: 0
       min_amount: 1

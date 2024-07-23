@@ -34,7 +34,6 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.util.AssetHelper;
 import org.stellar.anchor.util.Log;
 
 public class Sep38Service {
@@ -208,8 +207,8 @@ public class Sep38Service {
       }
       String[] assetCode = sellAsset.getAsset().split(":");
       AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = AssetHelper.getSep31SendMinAmount(asset);
-      Long sendMaxLimit = AssetHelper.getSep31SendMaxAmount(asset);
+      Long sendMinLimit = asset.getSep31().getMinAmount();
+      Long sendMaxLimit = asset.getSep31().getMaxAmount();
 
       // When sell_amount is specified
       if (sellAmount != null) {
@@ -242,8 +241,8 @@ public class Sep38Service {
     if (context == SEP31 && isNotEmpty(buyAmount)) {
       String[] assetCode = sellAsset.getAsset().split(":");
       AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = AssetHelper.getSep31SendMinAmount(asset);
-      Long sendMaxLimit = AssetHelper.getSep31SendMaxAmount(asset);
+      Long sendMinLimit = asset.getSep31().getMinAmount();
+      Long sendMaxLimit = asset.getSep31().getMaxAmount();
 
       validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
     }
@@ -355,8 +354,8 @@ public class Sep38Service {
       }
       String[] assetCode = sellAsset.getAsset().split(":");
       AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = AssetHelper.getSep31SendMinAmount(asset);
-      Long sendMaxLimit = AssetHelper.getSep31SendMaxAmount(asset);
+      Long sendMinLimit = asset.getSep31().getMinAmount();
+      Long sendMaxLimit = asset.getSep31().getMaxAmount();
 
       // When sell_amount is specified
       if (request.getSellAmount() != null) {
@@ -415,8 +414,8 @@ public class Sep38Service {
     if (context == SEP31 && isNotEmpty(buyAmount)) {
       String[] assetCode = sellAsset.getAsset().split(":");
       AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = AssetHelper.getSep31SendMinAmount(asset);
-      Long sendMaxLimit = AssetHelper.getSep31SendMaxAmount(asset);
+      Long sendMinLimit = asset.getSep31().getMinAmount();
+      Long sendMaxLimit = asset.getSep31().getMaxAmount();
 
       validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
     }

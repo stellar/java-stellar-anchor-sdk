@@ -54,7 +54,6 @@ public class Sep12Service {
         assetService.listAllAssets().stream()
             .filter(x -> x.getSep31() != null && x.getSep31().getSep12() != null)
             .flatMap(x -> x.getSep31().getSep12().getReceiver().getTypes().keySet().stream());
-
     Stream<String> senderTypes =
         assetService.listAllAssets().stream()
             .filter(x -> x.getSep31() != null && x.getSep31().getSep12() != null)
