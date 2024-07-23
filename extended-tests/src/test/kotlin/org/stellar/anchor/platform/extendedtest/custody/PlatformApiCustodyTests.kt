@@ -821,7 +821,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       },
       "amount_out": {},
       "fee_details": {
-        "total": "0.3",
+        "total": "1",
         "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
       },
       "started_at": "2023-08-07T17:10:35.629708Z",
@@ -876,7 +876,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       },
       "amount_out": {},
       "fee_details": {
-        "total": "0.3",
+        "total": "1",
         "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
       },
       "started_at": "2023-08-07T17:10:35.629708Z",
@@ -931,7 +931,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       },
       "amount_out": {},
       "fee_details": {
-        "total": "0.3",
+        "total": "1",
         "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
       },
       "started_at": "2023-08-07T17:10:35.629708Z",

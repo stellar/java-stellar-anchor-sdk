@@ -15,7 +15,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.callback.CustomerIntegration
-import org.stellar.anchor.api.callback.FeeIntegration
+import org.stellar.anchor.api.callback.RateIntegration
 import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
@@ -57,7 +57,7 @@ class Sep31DepositInfoGeneratorTest {
   @MockK(relaxed = true) private lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) private lateinit var quoteStore: Sep38QuoteStore
   @MockK(relaxed = true) private lateinit var clientService: ClientService
-  @MockK(relaxed = true) private lateinit var feeIntegration: FeeIntegration
+  @MockK(relaxed = true) private lateinit var rateIntegration: RateIntegration
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var eventPublishService: EventService
   @MockK(relaxed = true) private lateinit var custodyService: CustodyService
@@ -83,7 +83,7 @@ class Sep31DepositInfoGeneratorTest {
         quoteStore,
         clientService,
         assetService,
-        feeIntegration,
+        rateIntegration,
         customerIntegration,
         eventPublishService,
         custodyService,
@@ -106,7 +106,7 @@ class Sep31DepositInfoGeneratorTest {
         quoteStore,
         clientService,
         assetService,
-        feeIntegration,
+        rateIntegration,
         customerIntegration,
         eventPublishService,
         custodyService,

@@ -12,12 +12,10 @@ import okhttp3.OkHttpClient.Builder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.callback.CustomerIntegration;
-import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.platform.callback.RestCustomerIntegration;
-import org.stellar.anchor.platform.callback.RestFeeIntegration;
 import org.stellar.anchor.platform.callback.RestRateIntegration;
 import org.stellar.anchor.platform.callback.RestUniqueAddressIntegration;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
@@ -81,13 +79,6 @@ public class ApiClientBeans {
   RateIntegration rateIntegration(
       CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
     return new RestRateIntegration(
-        callbackApiConfig.getBaseUrl(), httpClient, callbackApiConfig.buildAuthHelper(), gson);
-  }
-
-  @Bean
-  FeeIntegration feeIntegration(
-      CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
-    return new RestFeeIntegration(
         callbackApiConfig.getBaseUrl(), httpClient, callbackApiConfig.buildAuthHelper(), gson);
   }
 }
