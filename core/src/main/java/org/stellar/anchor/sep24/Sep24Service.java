@@ -216,10 +216,6 @@ public class Sep24Service {
             .clientDomain(token.getClientDomain())
             .clientName(clientFinder.getClientName(token));
 
-    if (!isEmpty(asset.getDistributionAccount())) {
-      builder.withdrawAnchorAccount(asset.getDistributionAccount());
-    }
-
     if (memo != null) {
       debug("transaction memo detected.", memo);
 

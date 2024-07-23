@@ -415,6 +415,7 @@ public class TransactionService {
             && Kind.WITHDRAWAL.getKind().equals(sep24Txn.getKind())
             && sep24Txn.getStatus().equals(PENDING_USR_TRANSFER_START.toString())) {
           SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(sep24Txn);
+          sep24Txn.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
           sep24Txn.setMemo(sep24DepositInfo.getMemo());
           sep24Txn.setMemoType(sep24DepositInfo.getMemoType());
         }
