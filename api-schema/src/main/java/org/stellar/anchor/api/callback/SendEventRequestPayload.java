@@ -31,8 +31,6 @@ public class SendEventRequestPayload {
         payload.setQuote(event.getQuote());
       case TRANSACTION_CREATED:
         payload.setTransaction(event.getTransaction());
-      case TRANSACTION_ERROR:
-        payload.setTransaction(event.getTransaction());
       case TRANSACTION_STATUS_CHANGED:
         payload.setTransaction(event.getTransaction());
     }

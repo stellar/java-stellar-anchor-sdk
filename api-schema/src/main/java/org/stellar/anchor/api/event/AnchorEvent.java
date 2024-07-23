@@ -30,8 +30,6 @@ public class AnchorEvent {
     TRANSACTION_CREATED("transaction_created"),
     @SerializedName("transaction_status_changed")
     TRANSACTION_STATUS_CHANGED("transaction_status_changed"),
-    @SerializedName("transaction_error")
-    TRANSACTION_ERROR("transaction_error"),
     @SerializedName("quote_created")
     QUOTE_CREATED("quote_created"),
     @SerializedName("customer_updated")
