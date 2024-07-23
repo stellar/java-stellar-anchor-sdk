@@ -19,11 +19,14 @@ assets:
       methods:
         - bank_account
         - cash
-    send:
+    send: # (Deprecated) All fields should be incorporated into `sep31`.
       fee_fixed: 0
       fee_percent: 0
       max_amount: 1000000
     sep31:
+      fee_fixed: 0
+      fee_percent: 0
+      max_amount: 1000000
       quotes_supported: true
       quotes_required: false
       sep12:
@@ -75,12 +78,11 @@ assets:
       enabled: true
       min_amount: 0
       max_amount: 10
-    send:
+    sep31:
       fee_fixed: 0
       fee_percent: 0
       min_amount: 0
       max_amount: 10
-    sep31:
       quotes_supported: true
       quotes_required: false
       sep12:
@@ -127,10 +129,9 @@ assets:
       enabled: false
     withdraw:
       enabled: false
-    send:
+    sep31:
       fee_fixed: 0
       fee_percent: 0
-    sep31:
       quotes_supported: true
       quotes_required: false
       sep12:
@@ -191,7 +192,10 @@ assets:
   - schema: iso4217
     code: USD
     significant_decimals: 7
-    send:
+    send: # (Deprecated) All fields should be incorporated into `sep31`.
+      min_amount: 0
+      max_amount: 1000000
+    sep31:
       min_amount: 0
       max_amount: 1000000
     sep38:
@@ -211,7 +215,7 @@ assets:
   - schema: iso4217
     code: CAD
     significant_decimals: 7
-    send:
+    sep31:
       min_amount: 0
       max_amount: 1000000
     sep38:

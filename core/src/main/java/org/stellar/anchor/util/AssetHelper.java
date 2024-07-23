@@ -3,6 +3,7 @@ package org.stellar.anchor.util;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.util.Currency;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.sdk.KeyPair;
 
 public class AssetHelper {
@@ -68,5 +69,33 @@ public class AssetHelper {
    */
   public static String getAssetIssuer(String asset) {
     return asset.split(":").length >= 3 ? asset.split(":")[2] : null;
+  }
+
+  /**
+   * The following functions are for merging SendOperation and Sep31Operation only. They will be
+   * removed once the migration is complete.
+   */
+  public static Integer getSep31SendFeeFixed(AssetInfo asset) {
+    return asset.getSep31() != null && asset.getSep31().getFeeFixed() != null
+        ? asset.getSep31().getFeeFixed()
+        : asset.getSend() != null ? asset.getSend().getFeeFixed() : null;
+  }
+
+  public static Integer getSep31SendFeePercent(AssetInfo asset) {
+    return asset.getSep31() != null && asset.getSep31().getFeePercent() != null
+        ? asset.getSep31().getFeePercent()
+        : asset.getSend() != null ? asset.getSend().getFeePercent() : null;
+  }
+
+  public static Long getSep31SendMinAmount(AssetInfo asset) {
+    return asset.getSep31() != null && asset.getSep31().getMinAmount() != null
+        ? asset.getSep31().getMinAmount()
+        : asset.getSend() != null ? asset.getSend().getMinAmount() : null;
+  }
+
+  public static Long getSep31SendMaxAmount(AssetInfo asset) {
+    return asset.getSep31() != null && asset.getSep31().getMaxAmount() != null
+        ? asset.getSep31().getMaxAmount()
+        : asset.getSend() != null ? asset.getSend().getMaxAmount() : null;
   }
 }

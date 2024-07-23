@@ -64,6 +64,7 @@ import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.util.AssetHelper;
 import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.TransactionHelper;
@@ -145,8 +146,8 @@ public class Sep31Service {
     validateAmountLimit(
         "sell_",
         request.getAmount(),
-        assetInfo.getSend().getMinAmount(),
-        assetInfo.getSend().getMaxAmount());
+        AssetHelper.getSep31SendMinAmount(assetInfo),
+        AssetHelper.getSep31SendMaxAmount(assetInfo));
     validateLanguage(appConfig, request.getLang());
 
     /*
@@ -719,10 +720,10 @@ public class Sep31Service {
         AssetResponse assetResponse = new AssetResponse();
         assetResponse.setQuotesSupported(isQuotesSupported);
         assetResponse.setQuotesRequired(isQuotesRequired);
-        assetResponse.setFeeFixed(assetInfo.getSend().getFeeFixed());
-        assetResponse.setFeePercent(assetInfo.getSend().getFeePercent());
-        assetResponse.setMinAmount(assetInfo.getSend().getMinAmount());
-        assetResponse.setMaxAmount(assetInfo.getSend().getMaxAmount());
+        assetResponse.setFeeFixed(AssetHelper.getSep31SendFeeFixed(assetInfo));
+        assetResponse.setFeePercent(AssetHelper.getSep31SendFeePercent(assetInfo));
+        assetResponse.setMinAmount(AssetHelper.getSep31SendMinAmount(assetInfo));
+        assetResponse.setMaxAmount(AssetHelper.getSep31SendMaxAmount(assetInfo));
         assetResponse.setFields(assetInfo.getSep31().getFields());
         assetResponse.setSep12(assetInfo.getSep31().getSep12());
         response.getReceive().put(assetInfo.getCode(), assetResponse);

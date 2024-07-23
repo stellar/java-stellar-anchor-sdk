@@ -7,6 +7,18 @@ import org.stellar.anchor.api.sep.AssetInfo;
 
 @Data
 public class Sep31Operation {
+  @SerializedName("fee_fixed")
+  Integer feeFixed;
+
+  @SerializedName("fee_percent")
+  Integer feePercent;
+
+  @SerializedName("min_amount")
+  Long minAmount;
+
+  @SerializedName("max_amount")
+  Long maxAmount;
+
   @SerializedName("quotes_supported")
   boolean quotesSupported;
 

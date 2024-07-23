@@ -50,7 +50,7 @@ public class AssetInfo {
 
   DepositOperation deposit;
   WithdrawOperation withdraw;
-  SendOperation send;
+  @Deprecated SendOperation send;
   Sep31Operation sep31;
   Sep38Operation sep38;
 
