@@ -212,6 +212,9 @@ class RateService(private val quoteRepository: QuoteRepository) {
       )
 
     private fun getPrice(sellAsset: String, buyAsset: String): String? {
+      if (sellAsset == buyAsset) {
+        return "1.00"
+      }
       return prices[Pair(sellAsset, buyAsset)]?.let {
         return it
       }

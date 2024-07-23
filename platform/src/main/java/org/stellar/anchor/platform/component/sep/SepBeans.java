@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.callback.CustomerIntegration;
-import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -256,7 +255,7 @@ public class SepBeans {
       Sep38QuoteStore sep38QuoteStore,
       ClientService clientService,
       AssetService assetService,
-      FeeIntegration feeIntegration,
+      RateIntegration rateIntegration,
       CustomerIntegration customerIntegration,
       EventService eventService,
       CustodyService custodyService,
@@ -270,7 +269,7 @@ public class SepBeans {
         sep38QuoteStore,
         clientService,
         assetService,
-        feeIntegration,
+        rateIntegration,
         customerIntegration,
         eventService,
         custodyService,

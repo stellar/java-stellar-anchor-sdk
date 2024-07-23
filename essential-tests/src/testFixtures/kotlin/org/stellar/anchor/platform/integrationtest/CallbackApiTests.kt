@@ -14,10 +14,8 @@ import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.GetCustomerRequest
-import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.NotFoundException
-import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
@@ -25,10 +23,7 @@ import org.stellar.anchor.client.Sep12Client
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
-import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
-import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer1Json
-import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
 import org.stellar.anchor.util.GsonUtils
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -77,8 +72,6 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
     RestCustomerIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
   private val rriClient =
     RestRateIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
-  private val rfiClient =
-    RestFeeIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
 
   @Test
   fun testCustomerIntegration() {
@@ -183,42 +176,5 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
     }"""
         .trimMargin()
     JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(gotQuote), true)
-  }
-
-  @Test
-  fun testGetFee() {
-    // Create sender customer
-    val senderCustomerRequest =
-      GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
-    val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
-
-    // Create receiver customer
-    val receiverCustomerRequest =
-      GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
-    val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
-
-    val result =
-      rfiClient.getFee(
-        GetFeeRequest.builder()
-          .sendAmount("10")
-          .sendAsset("USDC")
-          .receiveAsset("USDC")
-          .senderId(senderCustomer!!.id)
-          .receiverId(receiverCustomer!!.id)
-          .clientId("<client-id>")
-          .build()
-      )
-
-    Assertions.assertNotNull(result)
-    JSONAssert.assertEquals(
-      org.stellar.anchor.platform.gson.toJson(result),
-      """{
-          "fee": {
-            "asset": "USDC",
-            "amount": "0.30"
-          }
-        }""",
-      true
-    )
   }
 }

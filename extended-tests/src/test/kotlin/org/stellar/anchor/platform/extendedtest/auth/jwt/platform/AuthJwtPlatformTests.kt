@@ -5,19 +5,20 @@ import kotlin.test.assertEquals
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.callback.GetCustomerRequest
-import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
-import org.stellar.anchor.api.exception.*
+import org.stellar.anchor.api.exception.SepNotAuthorizedException
+import org.stellar.anchor.api.exception.SepNotFoundException
+import org.stellar.anchor.api.exception.UnauthorizedException
 import org.stellar.anchor.apiclient.PlatformApiClient
-import org.stellar.anchor.platform.*
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
-import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
-import org.stellar.anchor.platform.extendedtest.auth.*
+import org.stellar.anchor.platform.extendedtest.auth.AbstractAuthIntegrationTest
+import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.OkHttpUtil
 
 internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
@@ -117,19 +118,6 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
   }
 
   @Test
-  fun `test the callback fee endpoint with JWT auth`() {
-    val rfi =
-      RestFeeIntegration(
-        "http://localhost:${REFERENCE_SERVER_PORT}",
-        httpClient,
-        platformJwtAuthHelper,
-        gson
-      )
-    // Assert the request does not throw a 403.
-    assertThrows<UnauthorizedException> { rfi.getFee(GetFeeRequest.builder().build()) }
-  }
-
-  @Test
   fun `test JWT protection of callback customer endpoint`() {
     val badTokenClient =
       RestCustomerIntegration(
@@ -174,29 +162,6 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
       )
     assertThrows<UnauthorizedException> {
       expiredTokenClient.getRate(GetRateRequest.builder().build())
-    }
-  }
-
-  @Test
-  fun `test JWT protection of callback fee endpoint with bad token`() {
-    val badTokenClient =
-      RestFeeIntegration(
-        "http://localhost:${REFERENCE_SERVER_PORT}",
-        httpClient,
-        platformJwtWrongKeyAuthHelper,
-        gson
-      )
-    assertThrows<UnauthorizedException> { badTokenClient.getFee(GetFeeRequest.builder().build()) }
-
-    val expiredTokenClient =
-      RestFeeIntegration(
-        "http://localhost:${REFERENCE_SERVER_PORT}",
-        httpClient,
-        platformJwtExpiredAuthHelper,
-        gson
-      )
-    assertThrows<UnauthorizedException> {
-      expiredTokenClient.getFee(GetFeeRequest.builder().build())
     }
   }
 }

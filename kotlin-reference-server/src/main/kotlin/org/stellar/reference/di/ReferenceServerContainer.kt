@@ -14,7 +14,6 @@ import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.stellar.reference.callbacks.customer.customer
-import org.stellar.reference.callbacks.fee.fee
 import org.stellar.reference.callbacks.interactive.sep24Interactive
 import org.stellar.reference.callbacks.rate.rate
 import org.stellar.reference.callbacks.test.testCustomer
@@ -61,7 +60,6 @@ object ReferenceServerContainer {
     )
     event(ServiceContainer.eventService)
     customer(ServiceContainer.customerService)
-    fee(ServiceContainer.feeService)
     rate(ServiceContainer.rateService)
     uniqueAddress(ServiceContainer.uniqueAddressService)
     sep24Interactive()
