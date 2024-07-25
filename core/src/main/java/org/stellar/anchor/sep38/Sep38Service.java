@@ -207,8 +207,8 @@ public class Sep38Service {
       }
       String[] assetCode = sellAsset.getAsset().split(":");
       AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
+      Long sendMinLimit = asset.getSep31().getSend().getMinAmount();
+      Long sendMaxLimit = asset.getSep31().getSend().getMaxAmount();
 
       // When sell_amount is specified
       if (sellAmount != null) {
@@ -241,8 +241,8 @@ public class Sep38Service {
     if (context == SEP31 && isNotEmpty(buyAmount)) {
       String[] assetCode = sellAsset.getAsset().split(":");
       AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
+      Long sendMinLimit = asset.getSep31().getSend().getMinAmount();
+      Long sendMaxLimit = asset.getSep31().getSend().getMaxAmount();
 
       validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
     }
@@ -354,8 +354,8 @@ public class Sep38Service {
       }
       String[] assetCode = sellAsset.getAsset().split(":");
       AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
+      Long sendMinLimit = asset.getSep31().getSend().getMinAmount();
+      Long sendMaxLimit = asset.getSep31().getSend().getMaxAmount();
 
       // When sell_amount is specified
       if (request.getSellAmount() != null) {
@@ -414,8 +414,8 @@ public class Sep38Service {
     if (context == SEP31 && isNotEmpty(buyAmount)) {
       String[] assetCode = sellAsset.getAsset().split(":");
       AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
+      Long sendMinLimit = asset.getSep31().getSend().getMinAmount();
+      Long sendMaxLimit = asset.getSep31().getSend().getMaxAmount();
 
       validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
     }
