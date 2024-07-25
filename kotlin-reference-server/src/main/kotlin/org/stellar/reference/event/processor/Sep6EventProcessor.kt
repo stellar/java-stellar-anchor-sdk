@@ -66,10 +66,6 @@ class Sep6EventProcessor(
     }
   }
 
-  override suspend fun onTransactionError(event: SendEventRequest) {
-    log.warn { "Received transaction error event: $event" }
-  }
-
   override suspend fun onTransactionStatusChanged(event: SendEventRequest) {
     when (val kind = event.payload.transaction!!.kind) {
       Kind.DEPOSIT,

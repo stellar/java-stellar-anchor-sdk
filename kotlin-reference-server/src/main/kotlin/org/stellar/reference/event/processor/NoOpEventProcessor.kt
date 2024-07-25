@@ -7,8 +7,6 @@ class NoOpEventProcessor : SepAnchorEventProcessor {
 
   override suspend fun onTransactionCreated(event: SendEventRequest) {}
 
-  override suspend fun onTransactionError(event: SendEventRequest) {}
-
   override suspend fun onTransactionStatusChanged(event: SendEventRequest) {}
 
   override suspend fun onCustomerUpdated(event: SendEventRequest) {}
