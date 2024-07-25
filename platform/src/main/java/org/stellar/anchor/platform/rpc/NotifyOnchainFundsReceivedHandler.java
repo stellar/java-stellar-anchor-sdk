@@ -28,6 +28,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
@@ -158,6 +159,11 @@ public class NotifyOnchainFundsReceivedHandler
     try {
       List<OperationResponse> txnOperations = horizon.getStellarTxnOperations(stellarTxnId);
       addStellarTransaction(txn, stellarTxnId, txnOperations);
+
+      if (Sep.SEP_31.equals(Sep.from(txn.getProtocol()))) {
+        JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+        txn31.setFromAccount(txnOperations.get(0).getSourceAccount());
+      }
     } catch (IOException ex) {
       errorEx(String.format("Failed to retrieve stellar transaction by ID[%s]", stellarTxnId), ex);
       throw new InternalErrorException(

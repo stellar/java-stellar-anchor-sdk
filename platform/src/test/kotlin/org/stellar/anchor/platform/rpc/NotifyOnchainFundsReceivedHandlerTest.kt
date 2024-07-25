@@ -622,6 +622,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
 
     val expectedSep31Txn = JdbcSep31Transaction()
     expectedSep31Txn.status = PENDING_RECEIVER.toString()
+    expectedSep31Txn.fromAccount = operationRecords.get(0).sourceAccount
     expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedSep31Txn.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
     expectedSep31Txn.stellarTransactionId = STELLAR_TX_ID

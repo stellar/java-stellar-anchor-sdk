@@ -26,7 +26,6 @@ import org.stellar.sdk.xdr.MemoType;
 
 public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore sep31TransactionStore;
-
   final JdbcSep24TransactionStore sep24TransactionStore;
   final JdbcSep6TransactionStore sep6TransactionStore;
   private final PlatformApiClient platformApiClient;

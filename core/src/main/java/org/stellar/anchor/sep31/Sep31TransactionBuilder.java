@@ -62,7 +62,7 @@ public class Sep31TransactionBuilder {
   }
 
   public Sep31TransactionBuilder stellarAccountId(String stellarAccountId) {
-    txn.setStellarAccountId(stellarAccountId);
+    txn.setToAccount(stellarAccountId);
     return this;
   }
 

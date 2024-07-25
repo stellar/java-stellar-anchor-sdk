@@ -226,7 +226,7 @@ public class Sep31Service {
 
     // updateDepositInfo will update these ⬇️
     if (!isEmpty(assetInfo.getDistributionAccount())) {
-      txn.setStellarAccountId(assetInfo.getDistributionAccount());
+      txn.setToAccount(assetInfo.getDistributionAccount());
     }
 
     Context.get().setTransaction(txn);
@@ -253,7 +253,7 @@ public class Sep31Service {
     Sep31PostTransactionResponse response =
         Sep31PostTransactionResponse.builder()
             .id(txn.getId())
-            .stellarAccountId(txn.getStellarAccountId())
+            .stellarAccountId(txn.getToAccount())
             .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
             .stellarMemoType(
                 isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
@@ -366,7 +366,7 @@ public class Sep31Service {
               depositInfo.getMemoType(), custodyConfig.getType()));
     }
 
-    txn.setStellarAccountId(depositInfo.getStellarAddress());
+    txn.setToAccount(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());
     txn.setStellarMemoType(isEmpty(depositInfo.getMemoType()) ? "none" : depositInfo.getMemoType());
   }

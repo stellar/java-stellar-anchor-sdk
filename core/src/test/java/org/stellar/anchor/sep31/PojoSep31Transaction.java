@@ -21,7 +21,8 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String amountOutAsset;
   String amountFee;
   String amountFeeAsset;
-  String stellarAccountId;
+  String fromAccount;
+  String toAccount;
   String stellarMemo;
   String stellarMemoType;
   Instant startedAt;
