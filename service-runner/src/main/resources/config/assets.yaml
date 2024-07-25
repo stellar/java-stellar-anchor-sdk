@@ -20,9 +20,10 @@ assets:
         - bank_account
         - cash
     sep31:
-      fee_fixed: 0
-      fee_percent: 0
-      max_amount: 1000000
+      send:
+        fee_fixed: 0
+        fee_percent: 0
+        max_amount: 1000000
       quotes_supported: true
       quotes_required: false
       sep12:
@@ -75,10 +76,11 @@ assets:
       min_amount: 0
       max_amount: 10
     sep31:
-      fee_fixed: 0
-      fee_percent: 0
-      min_amount: 0
-      max_amount: 10
+      send:
+        fee_fixed: 0
+        fee_percent: 0
+        min_amount: 0
+        max_amount: 10
       quotes_supported: true
       quotes_required: false
       sep12:
@@ -126,8 +128,9 @@ assets:
     withdraw:
       enabled: false
     sep31:
-      fee_fixed: 0
-      fee_percent: 0
+      send:
+        fee_fixed: 0
+        fee_percent: 0
       quotes_supported: true
       quotes_required: false
       sep12:
@@ -189,8 +192,9 @@ assets:
     code: USD
     significant_decimals: 7
     sep31:
-      min_amount: 0
-      max_amount: 1000000
+      send:
+        min_amount: 0
+        max_amount: 1000000
     sep38:
       exchangeable_assets:
         - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
@@ -209,8 +213,9 @@ assets:
     code: CAD
     significant_decimals: 7
     sep31:
-      min_amount: 0
-      max_amount: 1000000
+      send:
+        min_amount: 0
+        max_amount: 1000000
     sep38:
       exchangeable_assets:
         - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP

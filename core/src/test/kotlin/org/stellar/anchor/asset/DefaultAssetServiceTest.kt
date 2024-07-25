@@ -125,10 +125,12 @@ internal class DefaultAssetServiceTest {
               ]
             },
             "sep31": {
-              "fee_fixed": 0,
-              "fee_percent": 0,
-              "min_amount": 1,
-              "max_amount": 1000000,
+              "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+              },
               "quotes_supported": true,
               "quotes_required": true,
               "sep12": {
@@ -207,10 +209,12 @@ internal class DefaultAssetServiceTest {
               "max_amount": 1000000
             },
             "sep31": {
-              "fee_fixed": 0,
-              "fee_percent": 0,
-              "min_amount": 1,
-              "max_amount": 1000000,
+              "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+              },
               "quotes_supported": true,
               "quotes_required": true,
               "sep12": {
@@ -276,10 +280,12 @@ internal class DefaultAssetServiceTest {
               "max_amount": 1000000
             },
             "sep31": {
-              "fee_fixed": 0,
-              "fee_percent": 0,
-              "min_amount": 1,
-              "max_amount": 1000000
+              "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+              }
             },
             "sep38": {
               "exchangeable_assets": [
@@ -323,10 +329,12 @@ internal class DefaultAssetServiceTest {
               "max_amount": 1000000
             },
             "sep31": {
-              "fee_fixed": 0,
-              "fee_percent": 0,
-              "min_amount": 1,
-              "max_amount": 1000000,
+              "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+              },
               "quotes_supported": true,
               "quotes_required": true,
               "sep12": {

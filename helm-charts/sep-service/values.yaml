@@ -200,9 +200,10 @@ assets_config: |
         - bank_account
         - cash
     sep31:
-      fee_fixed: 0
-      fee_percent: 0
-      max_amount: 1000000
+      send:
+        fee_fixed: 0
+        fee_percent: 0
+        max_amount: 1000000
       quotes_supported: true
       quotes_required: false
       sep12:
@@ -254,10 +255,11 @@ assets_config: |
       min_amount: 1
       max_amount: 1000000
     sep31:
-      fee_fixed: 0
-      fee_percent: 0
-      min_amount: 1
-      max_amount: 1000000
+      send:
+        fee_fixed: 0
+        fee_percent: 0
+        min_amount: 1
+        max_amount: 1000000
       quotes_supported: true
       quotes_required: false
       sep12:
@@ -303,10 +305,10 @@ assets_config: |
       enabled: true
     withdraw:
       enabled: true
-    send:
-      fee_fixed: 0
-      fee_percent: 0
     sep31:
+      send:
+        fee_fixed: 0
+        fee_percent: 0
       quotes_supported: true
       quotes_required: false
       sep12:
@@ -356,10 +358,11 @@ assets_config: |
       min_amount: 0
       max_amount: 10000
     sep31:
-      fee_fixed: 0
-      fee_percent: 0
-      min_amount: 0
-      max_amount: 10000
+      send:
+        fee_fixed: 0
+        fee_percent: 0
+        min_amount: 0
+        max_amount: 10000
     sep38:
       exchangeable_assets:
         - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
@@ -388,9 +391,10 @@ assets_config: |
       enabled: true
       max_amount: 1000000
     sep31:
-      fee_fixed: 0
-      fee_percent: 0
-      max_amount: 1000000
+      send:
+        fee_fixed: 0
+        fee_percent: 0
+        max_amount: 1000000
       quotes_supported: true
       quotes_required: true
       sep12:
