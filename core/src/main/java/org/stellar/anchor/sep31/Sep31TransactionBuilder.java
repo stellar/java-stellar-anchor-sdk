@@ -61,8 +61,13 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
-  public Sep31TransactionBuilder stellarAccountId(String stellarAccountId) {
-    txn.setStellarAccountId(stellarAccountId);
+  public Sep31TransactionBuilder fromAccount(String fromAccount) {
+    txn.setFromAccount(fromAccount);
+    return this;
+  }
+
+  public Sep31TransactionBuilder toAccount(String toAccount) {
+    txn.setToAccount(toAccount);
     return this;
   }
 

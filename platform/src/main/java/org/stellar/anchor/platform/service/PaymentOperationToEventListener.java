@@ -26,7 +26,6 @@ import org.stellar.sdk.xdr.MemoType;
 
 public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore sep31TransactionStore;
-
   final JdbcSep24TransactionStore sep24TransactionStore;
   final JdbcSep6TransactionStore sep6TransactionStore;
   private final PlatformApiClient platformApiClient;
@@ -78,7 +77,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     JdbcSep31Transaction sep31Txn = null;
     try {
       sep31Txn =
-          sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+          sep31TransactionStore.findByToAccountAndMemoAndStatus(
               payment.getTo(), memo, SepTransactionStatus.PENDING_SENDER.toString());
     } catch (Exception ex) {
       errorEx(ex);

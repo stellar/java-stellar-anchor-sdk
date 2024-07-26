@@ -32,9 +32,13 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   @Column(name = "status_eta")
   Long statusEta;
 
-  @SerializedName("stellar_account_id")
-  @Column(name = "stellar_account_id")
-  String stellarAccountId;
+  @SerializedName("from_account")
+  @Column(name = "from_account")
+  String fromAccount;
+
+  @SerializedName("to_account")
+  @Column(name = "to_account")
+  String toAccount;
 
   @SerializedName("stellar_memo")
   @Column(name = "stellar_memo")

@@ -38,9 +38,13 @@ public interface Sep31Transaction extends SepTransaction {
 
   void setFeeDetails(FeeDetails feeDetails);
 
-  String getStellarAccountId();
+  String getFromAccount();
 
-  void setStellarAccountId(String stellarAccountId);
+  void setFromAccount(String fromAccount);
+
+  String getToAccount();
+
+  void setToAccount(String toAccount);
 
   String getStellarMemo();
 
@@ -132,7 +136,7 @@ public interface Sep31Transaction extends SepTransaction {
                 .amountOut(getAmountOut())
                 .amountOutAsset(getAmountOutAsset())
                 .feeDetails(getFeeDetails())
-                .stellarAccountId(getStellarAccountId())
+                .stellarAccountId(getToAccount())
                 .stellarMemo(getStellarMemo())
                 .stellarMemoType(getStellarMemoType())
                 .startedAt(getStartedAt())

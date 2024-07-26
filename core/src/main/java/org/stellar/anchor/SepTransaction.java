@@ -17,6 +17,8 @@ public interface SepTransaction {
 
   List<StellarTransaction> getStellarTransactions();
 
+  void setStellarTransactions(List<StellarTransaction> stellarTransactions);
+
   /**
    * Processing status of the transaction
    *

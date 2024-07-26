@@ -21,13 +21,11 @@ public interface JdbcSep31TransactionRepo
   @Query(value = "SELECT t FROM JdbcSep31Transaction t WHERE t.id IN :ids")
   List<JdbcSep31Transaction> findByIds(@Param("ids") Collection<String> ids);
 
-  Optional<JdbcSep31Transaction> findByStellarAccountId(@NonNull String stellarAccountId);
-
   Optional<Sep31Transaction> findByStellarMemo(String stellarMemo);
 
   @Query(value = "SELECT COUNT(t) FROM JdbcSep31Transaction t WHERE t.status = :status")
   Integer findByStatusCount(@Param("status") String status);
 
-  Optional<JdbcSep31Transaction> findByStellarAccountIdAndStellarMemoAndStatus(
-      String stellarAccountId, String stellarMemo, String status);
+  Optional<JdbcSep31Transaction> findByToAccountAndStellarMemoAndStatus(
+      String toAccount, String stellarMemo, String status);
 }

@@ -36,7 +36,7 @@ class Sep31DepositInfoGeneratorTest {
         {
           "id": "a2392add-87c9-42f0-a5c1-5f1728030b68",
           "status": "pending_sender",
-          "stellar_account_id": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+          "to_account": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
           "client_domain": "demo-wallet-server.stellar.org",
           "fields": {
             "receiver_account_number": "1",
@@ -116,7 +116,7 @@ class Sep31DepositInfoGeneratorTest {
     Assertions.assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
     Assertions.assertEquals(
       "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-      txn.stellarAccountId
+      txn.toAccount
     )
     Assertions.assertNull(txn.stellarMemoType)
     Assertions.assertNull(txn.stellarMemo)
@@ -130,7 +130,7 @@ class Sep31DepositInfoGeneratorTest {
 
     Assertions.assertEquals(
       "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-      txn.stellarAccountId
+      txn.toAccount
     )
     Assertions.assertEquals("hash", txn.stellarMemoType)
     Assertions.assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", txn.stellarMemo)
@@ -154,7 +154,7 @@ class Sep31DepositInfoGeneratorTest {
     Assertions.assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
     Assertions.assertEquals(
       "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-      txn.stellarAccountId
+      txn.toAccount
     )
     Assertions.assertNull(txn.stellarMemoType)
     Assertions.assertNull(txn.stellarMemo)
@@ -168,7 +168,7 @@ class Sep31DepositInfoGeneratorTest {
 
     Assertions.assertEquals(
       "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-      txn.stellarAccountId
+      txn.toAccount
     )
     Assertions.assertEquals(nonEmptyMemo, txn.stellarMemo)
     Assertions.assertEquals(nonEmptyMemoType, txn.stellarMemoType)

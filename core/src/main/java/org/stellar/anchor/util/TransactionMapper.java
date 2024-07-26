@@ -19,7 +19,7 @@ import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep6.Sep6Transaction;
 
-public class TransactionHelper {
+public class TransactionMapper {
 
   public static CreateCustodyTransactionRequest toCustodyTransaction(Sep6Transaction txn) {
     PlatformTransactionData.Kind kind = PlatformTransactionData.Kind.from(txn.getKind());
@@ -77,7 +77,7 @@ public class TransactionHelper {
         .memo(txn.getStellarMemo())
         .memoType(txn.getStellarMemoType())
         .protocol("31")
-        .toAccount(txn.getStellarAccountId())
+        .toAccount(txn.getToAccount())
         .amount(txn.getAmountIn())
         .asset(txn.getAmountInAsset())
         .kind(RECEIVE.getKind())
@@ -108,9 +108,16 @@ public class TransactionHelper {
         .message(txn.getRequiredInfoMessage()) // Assuming these are meant to be the same.
         .refunds(refunds)
         .stellarTransactions(txn.getStellarTransactions())
+        .sourceAccount(txn.getFromAccount())
+        .destinationAccount(txn.getToAccount())
         .externalTransactionId(txn.getExternalTransactionId())
+        .memo(txn.getStellarMemo())
+        .memoType(txn.getStellarMemoType())
         .clientDomain(txn.getClientDomain())
         .clientName(txn.getClientName())
+        // TODO: SEP-31 supports refund memo but we don't use it
+        .refundMemo(txn.getStellarMemo())
+        .refundMemoType(txn.getStellarMemoType())
         .customers(txn.getCustomers())
         .creator(txn.getCreator())
         .build();
@@ -161,10 +168,12 @@ public class TransactionHelper {
         .clientName(txn.getClientName())
         .refundMemo(txn.getRefundMemo())
         .refundMemoType(txn.getRefundMemoType())
-        .requiredInfoMessage(txn.getRequiredInfoMessage())
-        .requiredInfoUpdates(txn.getRequiredInfoUpdates())
-        .instructions(txn.getInstructions())
         .customers(Customers.builder().sender(customer).receiver(customer).build())
+        .creator(
+            StellarId.builder()
+                .account(txn.getSep10Account())
+                .memo(txn.getSep10AccountMemo())
+                .build())
         .build();
   }
 
@@ -178,12 +187,15 @@ public class TransactionHelper {
     String amountInAsset = makeAsset(txn.getAmountInAsset(), assetService, txn);
     String amountOutAsset = makeAsset(txn.getAmountOutAsset(), assetService, txn);
     String amountExpectedAsset = makeAsset(null, assetService, txn);
+
+    StellarId customer =
+        StellarId.builder().account(txn.getSep10Account()).memo(txn.getSep10AccountMemo()).build();
     String sourceAccount = txn.getFromAccount();
 
     return GetTransactionResponse.builder()
         .id(txn.getId())
         .sep(PlatformTransactionData.Sep.SEP_24)
-        .kind(PlatformTransactionData.Kind.from(txn.getKind()))
+        .kind(from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
         .amountExpected(
             (amountExpectedAsset != null)
@@ -198,6 +210,7 @@ public class TransactionHelper {
                 ? Amount.create(txn.getAmountOut(), amountOutAsset)
                 : null)
         .feeDetails(txn.getFeeDetails())
+        .quoteId(txn.getQuoteId())
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
@@ -215,6 +228,12 @@ public class TransactionHelper {
         .clientName(txn.getClientName())
         .refundMemo(txn.getRefundMemo())
         .refundMemoType(txn.getRefundMemoType())
+        .customers(Customers.builder().sender(customer).receiver(customer).build())
+        .creator(
+            StellarId.builder()
+                .account(txn.getSep10Account())
+                .memo(txn.getSep10AccountMemo())
+                .build())
         .quoteId(txn.getQuoteId())
         .build();
   }

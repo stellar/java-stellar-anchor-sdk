@@ -460,6 +460,8 @@ class DoStellarRefundHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.refundMemo = MEMO
     expectedResponse.refundMemoType = MEMO_TYPE
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -917,6 +919,7 @@ class DoStellarRefundHandlerTest {
     expectedResponse.refundMemo = MEMO
     expectedResponse.refundMemoType = MEMO_TYPE
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

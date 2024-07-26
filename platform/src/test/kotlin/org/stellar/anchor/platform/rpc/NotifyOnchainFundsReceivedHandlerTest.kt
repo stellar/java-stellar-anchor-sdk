@@ -349,6 +349,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -441,6 +443,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -528,6 +532,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -622,6 +628,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
 
     val expectedSep31Txn = JdbcSep31Transaction()
     expectedSep31Txn.status = PENDING_RECEIVER.toString()
+    expectedSep31Txn.fromAccount = operationRecords.get(0).sourceAccount
     expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedSep31Txn.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
     expectedSep31Txn.stellarTransactionId = STELLAR_TX_ID
@@ -642,6 +649,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.amountIn = Amount()
     expectedResponse.amountOut = Amount()
     expectedResponse.amountExpected = Amount()
+    expectedResponse.sourceAccount = operationRecords.get(0).sourceAccount
     expectedResponse.stellarTransactions = stellarTransactions
     expectedResponse.customers = Customers(StellarId(), StellarId())
 
@@ -797,6 +805,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -892,6 +901,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -982,6 +992,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

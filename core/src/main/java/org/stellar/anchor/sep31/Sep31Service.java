@@ -66,7 +66,7 @@ import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.TransactionHelper;
+import org.stellar.anchor.util.TransactionMapper;
 
 public class Sep31Service {
   private final AppConfig appConfig;
@@ -219,14 +219,14 @@ public class Sep31Service {
             .amountInAsset(assetInfo.getSep38AssetName())
             .amountOut(null)
             .amountOutAsset(null)
-            .stellarAccountId(assetInfo.getDistributionAccount())
+            .toAccount(assetInfo.getDistributionAccount())
             .stellarMemo(null)
             .stellarMemoType(null)
             .build();
 
     // updateDepositInfo will update these ⬇️
     if (!isEmpty(assetInfo.getDistributionAccount())) {
-      txn.setStellarAccountId(assetInfo.getDistributionAccount());
+      txn.setToAccount(assetInfo.getDistributionAccount());
     }
 
     Context.get().setTransaction(txn);
@@ -247,13 +247,13 @@ public class Sep31Service {
             .id(UUID.randomUUID().toString())
             .sep("31")
             .type(TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn))
             .build());
 
     Sep31PostTransactionResponse response =
         Sep31PostTransactionResponse.builder()
             .id(txn.getId())
-            .stellarAccountId(txn.getStellarAccountId())
+            .stellarAccountId(txn.getToAccount())
             .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
             .stellarMemoType(
                 isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
@@ -366,7 +366,7 @@ public class Sep31Service {
               depositInfo.getMemoType(), custodyConfig.getType()));
     }
 
-    txn.setStellarAccountId(depositInfo.getStellarAddress());
+    txn.setToAccount(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());
     txn.setStellarMemoType(isEmpty(depositInfo.getMemoType()) ? "none" : depositInfo.getMemoType());
   }

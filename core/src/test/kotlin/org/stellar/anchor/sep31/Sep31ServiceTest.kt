@@ -189,7 +189,8 @@ class Sep31ServiceTest {
       "amountOutAsset": "USD",
       "amountFee": "2",
       "amountFeeAsset": "USDC",
-      "stellarAccountId": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      "toAccount": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      "fromAccount": "GDQPA2BWGDZJAOQRLEVLV2BQGD5NCU4PXIBCVHGZL5ILUSZKAAPNLYZL",
       "stellarMemo": "123456",
       "stellarMemoType": "text",
       "startedAt": "2022-04-18T14:00:00.000Z",
@@ -781,7 +782,7 @@ class Sep31ServiceTest {
         var memo = StringUtils.truncate(tx.id, 32)
         memo = StringUtils.leftPad(memo, 32, '0')
         memo = String(Base64.getEncoder().encode(memo.toByteArray()))
-        SepDepositInfo(tx.stellarAccountId, memo, "hash")
+        SepDepositInfo(tx.toAccount, memo, "hash")
       }
 
     // mock client config
@@ -840,7 +841,7 @@ class Sep31ServiceTest {
       "amountInAsset": "$stellarUSDC",
       "amountOut": "12500",
       "amountOutAsset": "$stellarJPYC",
-      "stellarAccountId": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
+      "toAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
       "stellarMemo": "$memo",
       "stellarMemoType": "hash",
       "receiverId":"137938d4-43a7-4252-a452-842adcee474c",

@@ -622,6 +622,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -739,6 +741,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO_2
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT_2
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -847,6 +851,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -951,6 +957,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
     expectedResponse.userActionRequiredBy = actionRequiredBy
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -1055,6 +1063,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -1288,6 +1298,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -1404,6 +1415,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO_2
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -1501,6 +1513,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -1603,6 +1616,7 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

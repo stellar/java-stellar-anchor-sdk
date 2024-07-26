@@ -27,7 +27,9 @@ import org.stellar.anchor.api.rpc.method.NotifyInteractiveFlowCompletedRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE
 import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.Customers
 import org.stellar.anchor.api.shared.FeeDetails
+import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.event.EventService
@@ -223,6 +225,8 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -312,6 +316,8 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.userActionRequiredBy = requiredBy
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
