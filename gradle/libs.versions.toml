@@ -52,7 +52,7 @@ spotbugs-annotations = "4.8.6"
 spring-context = "6.1.11"
 spring-kafka = "3.2.1"
 spring-retry = "2.0.6"
-stellar-wallet-sdk = "1.7.0"
+stellar-wallet-sdk = "1.7.1"
 
 # Plugin versions
 spotless = "6.25.0"
