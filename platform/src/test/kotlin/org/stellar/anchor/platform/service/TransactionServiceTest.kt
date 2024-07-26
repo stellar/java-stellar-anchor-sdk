@@ -1068,17 +1068,7 @@ class TransactionServiceTest {
         "updated_at": "2023-10-31T21:16:44.652018Z",
         "completed_at": "2023-10-31T21:16:44.652008Z",
         "message": "Funds sent to user",
-        "customers": { "sender": {}, "receiver": {} },
-        "instructions": {
-          "organization.bank_number": {
-            "value": "121122676",
-            "description": "US Bank routing number"
-          },
-          "organization.bank_account_number": {
-            "value": "13719713158835300",
-            "description": "US Bank account number"
-          }
-        }
+        "customers": { "sender": {}, "receiver": {} }
       }
     """
       .trimIndent()

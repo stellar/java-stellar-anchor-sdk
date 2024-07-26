@@ -108,12 +108,16 @@ public class TransactionMapper {
         .message(txn.getRequiredInfoMessage()) // Assuming these are meant to be the same.
         .refunds(refunds)
         .stellarTransactions(txn.getStellarTransactions())
+        .sourceAccount(txn.getFromAccount())
         .destinationAccount(txn.getToAccount())
         .externalTransactionId(txn.getExternalTransactionId())
         .memo(txn.getStellarMemo())
         .memoType(txn.getStellarMemoType())
         .clientDomain(txn.getClientDomain())
         .clientName(txn.getClientName())
+        // TODO: SEP-31 supports refund memo but we don't use it
+        .refundMemo(txn.getStellarMemo())
+        .refundMemoType(txn.getStellarMemoType())
         .customers(txn.getCustomers())
         .creator(txn.getCreator())
         .build();
@@ -164,9 +168,6 @@ public class TransactionMapper {
         .clientName(txn.getClientName())
         .refundMemo(txn.getRefundMemo())
         .refundMemoType(txn.getRefundMemoType())
-        .requiredInfoMessage(txn.getRequiredInfoMessage())
-        .requiredInfoUpdates(txn.getRequiredInfoUpdates())
-        .instructions(txn.getInstructions())
         .customers(Customers.builder().sender(customer).receiver(customer).build())
         .creator(
             StellarId.builder()

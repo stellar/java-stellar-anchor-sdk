@@ -122,7 +122,7 @@ public class DefaultAssetService implements AssetService {
   @Override
   public List<AssetInfo> listStellarAssets() {
     return listAllAssets().stream()
-        .filter(asset -> asset.getSchema().equals(AssetInfo.Schema.stellar))
+        .filter(asset -> asset.getSchema().equals(AssetInfo.Schema.STELLAR))
         .collect(Collectors.toList());
   }
 }

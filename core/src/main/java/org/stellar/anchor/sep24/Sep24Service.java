@@ -569,7 +569,7 @@ public class Sep24Service {
     Map<String, InfoResponse.OperationResponse> withdrawMap = new HashMap<>();
     for (AssetInfo asset : assets) {
       // iso4217 assets do not have deposit/withdraw configurations
-      if (asset.getSchema().equals(AssetInfo.Schema.stellar)) {
+      if (asset.getSchema().equals(AssetInfo.Schema.STELLAR)) {
         if (asset.getDeposit().getEnabled())
           depositMap.put(
               asset.getCode(),

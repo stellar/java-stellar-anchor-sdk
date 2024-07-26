@@ -649,6 +649,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.amountIn = Amount()
     expectedResponse.amountOut = Amount()
     expectedResponse.amountExpected = Amount()
+    expectedResponse.sourceAccount = operationRecords.get(0).sourceAccount
     expectedResponse.stellarTransactions = stellarTransactions
     expectedResponse.customers = Customers(StellarId(), StellarId())
 

@@ -237,6 +237,8 @@ public interface Sep24Transaction extends SepTransaction {
 
   String getMessage();
 
+  void setMessage(String message);
+
   String getQuoteId();
 
   void setQuoteId(String quoteId);

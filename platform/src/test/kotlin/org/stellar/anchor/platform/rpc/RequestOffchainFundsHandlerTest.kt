@@ -779,7 +779,6 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
     expectedResponse.creator = StellarId(null, null, null)
-    expectedResponse.instructions = mapOf("first_name" to InstructionField.builder().build())
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -879,7 +878,6 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
     expectedResponse.creator = StellarId(null, null, null)
-    expectedResponse.instructions = mapOf("first_name" to InstructionField.builder().build())
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -984,7 +982,6 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
     expectedResponse.creator = StellarId(null, null, null)
-    expectedResponse.instructions = mapOf("first_name" to InstructionField.builder().build())
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
