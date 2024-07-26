@@ -66,7 +66,7 @@ import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.TransactionHelper;
+import org.stellar.anchor.util.TransactionMapper;
 
 public class Sep31Service {
   private final AppConfig appConfig;
@@ -219,7 +219,7 @@ public class Sep31Service {
             .amountInAsset(assetInfo.getSep38AssetName())
             .amountOut(null)
             .amountOutAsset(null)
-            .stellarAccountId(assetInfo.getDistributionAccount())
+            .toAccount(assetInfo.getDistributionAccount())
             .stellarMemo(null)
             .stellarMemoType(null)
             .build();
@@ -247,7 +247,7 @@ public class Sep31Service {
             .id(UUID.randomUUID().toString())
             .sep("31")
             .type(TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn))
             .build());
 
     Sep31PostTransactionResponse response =

@@ -19,7 +19,7 @@ import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep6.Sep6Transaction;
 
-public class TransactionHelper {
+public class TransactionMapper {
 
   public static CreateCustodyTransactionRequest toCustodyTransaction(Sep6Transaction txn) {
     PlatformTransactionData.Kind kind = PlatformTransactionData.Kind.from(txn.getKind());
@@ -168,6 +168,11 @@ public class TransactionHelper {
         .requiredInfoUpdates(txn.getRequiredInfoUpdates())
         .instructions(txn.getInstructions())
         .customers(Customers.builder().sender(customer).receiver(customer).build())
+        .creator(
+            StellarId.builder()
+                .account(txn.getSep10Account())
+                .memo(txn.getSep10AccountMemo())
+                .build())
         .build();
   }
 
@@ -181,12 +186,15 @@ public class TransactionHelper {
     String amountInAsset = makeAsset(txn.getAmountInAsset(), assetService, txn);
     String amountOutAsset = makeAsset(txn.getAmountOutAsset(), assetService, txn);
     String amountExpectedAsset = makeAsset(null, assetService, txn);
+
+    StellarId customer =
+        StellarId.builder().account(txn.getSep10Account()).memo(txn.getSep10AccountMemo()).build();
     String sourceAccount = txn.getFromAccount();
 
     return GetTransactionResponse.builder()
         .id(txn.getId())
         .sep(PlatformTransactionData.Sep.SEP_24)
-        .kind(PlatformTransactionData.Kind.from(txn.getKind()))
+        .kind(from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
         .amountExpected(
             (amountExpectedAsset != null)
@@ -219,6 +227,12 @@ public class TransactionHelper {
         .clientName(txn.getClientName())
         .refundMemo(txn.getRefundMemo())
         .refundMemoType(txn.getRefundMemoType())
+        .customers(Customers.builder().sender(customer).receiver(customer).build())
+        .creator(
+            StellarId.builder()
+                .account(txn.getSep10Account())
+                .memo(txn.getSep10AccountMemo())
+                .build())
         .quoteId(txn.getQuoteId())
         .build();
   }

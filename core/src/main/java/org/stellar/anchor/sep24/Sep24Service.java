@@ -267,7 +267,7 @@ public class Sep24Service {
             .id(UUID.randomUUID().toString())
             .sep("24")
             .type(TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn, assetService))
             .build());
 
     infoF(
@@ -445,7 +445,7 @@ public class Sep24Service {
             .id(UUID.randomUUID().toString())
             .sep("24")
             .type(TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn, assetService))
             .build());
 
     infoF(

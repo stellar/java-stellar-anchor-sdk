@@ -25,7 +25,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts;
 import org.stellar.anchor.util.MetricConstants;
 import org.stellar.anchor.util.SepHelper;
-import org.stellar.anchor.util.TransactionHelper;
+import org.stellar.anchor.util.TransactionMapper;
 import org.stellar.sdk.Memo;
 
 public class Sep6Service {
@@ -155,7 +155,7 @@ public class Sep6Service {
             .id(UUID.randomUUID().toString())
             .sep("6")
             .type(AnchorEvent.Type.TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn, assetService))
             .build());
 
     sep6DepositCounter.increment();
@@ -254,7 +254,7 @@ public class Sep6Service {
             .id(UUID.randomUUID().toString())
             .sep("6")
             .type(AnchorEvent.Type.TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn, assetService))
             .build());
 
     sep6DepositExchangeCounter.increment();
@@ -327,7 +327,7 @@ public class Sep6Service {
             .id(UUID.randomUUID().toString())
             .sep("6")
             .type(AnchorEvent.Type.TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn, assetService))
             .build());
 
     sep6WithdrawalCounter.increment();
@@ -421,7 +421,7 @@ public class Sep6Service {
             .id(UUID.randomUUID().toString())
             .sep("6")
             .type(AnchorEvent.Type.TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn, assetService))
             .build());
 
     sep6WithdrawalExchangeCounter.increment();

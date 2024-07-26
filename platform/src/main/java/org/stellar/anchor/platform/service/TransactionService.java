@@ -303,7 +303,7 @@ public class TransactionService {
                 .sep("6")
                 .type(TRANSACTION_STATUS_CHANGED)
                 .transaction(
-                    TransactionHelper.toGetTransactionResponse(sep6Transaction, assetService))
+                    TransactionMapper.toGetTransactionResponse(sep6Transaction, assetService))
                 .build());
         patchSep6TransactionCounter.increment();
         break;
@@ -329,7 +329,7 @@ public class TransactionService {
                 .id(UUID.randomUUID().toString())
                 .sep("24")
                 .type(TRANSACTION_STATUS_CHANGED)
-                .transaction(TransactionHelper.toGetTransactionResponse(sep24Txn, assetService))
+                .transaction(TransactionMapper.toGetTransactionResponse(sep24Txn, assetService))
                 .build());
         patchSep24TransactionCounter.increment();
         break;
@@ -346,7 +346,7 @@ public class TransactionService {
                 .id(UUID.randomUUID().toString())
                 .sep("31")
                 .type(TRANSACTION_STATUS_CHANGED)
-                .transaction(TransactionHelper.toGetTransactionResponse(sep31Txn))
+                .transaction(TransactionMapper.toGetTransactionResponse(sep31Txn))
                 .build());
         patchSep31TransactionCounter.increment();
         break;
