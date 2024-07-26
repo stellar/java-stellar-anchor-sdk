@@ -50,7 +50,6 @@ public class AssetInfo {
 
   DepositOperation deposit;
   WithdrawOperation withdraw;
-  SendOperation send;
   Sep31Operation sep31;
   Sep38Operation sep38;
 
@@ -106,21 +105,6 @@ public class AssetInfo {
   @Data
   public static class WithdrawOperation extends AssetOperation {
     List<String> methods;
-  }
-
-  @Data
-  public static class SendOperation {
-    @SerializedName("fee_fixed")
-    Integer feeFixed;
-
-    @SerializedName("fee_percent")
-    Integer feePercent;
-
-    @SerializedName("min_amount")
-    Long minAmount;
-
-    @SerializedName("max_amount")
-    Long maxAmount;
   }
 
   @Data
