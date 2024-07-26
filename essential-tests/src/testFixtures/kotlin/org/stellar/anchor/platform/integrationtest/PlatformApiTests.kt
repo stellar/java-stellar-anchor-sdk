@@ -6334,7 +6334,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "updated_at": "2024-06-25T20:36:18.683321Z",
               "message": "test message",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-              "client_name": "referenceCustodial"
+              "client_name": "referenceCustodial",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              },
+              "creator": {
+                "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+              }
             },
             "id": 1
           }
@@ -6365,7 +6376,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "updated_at": "2024-06-25T20:37:51.908872Z",
               "message": "test message",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-              "client_name": "referenceCustodial"
+              "client_name": "referenceCustodial",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              },
+              "creator": {
+                "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+              }
             },
             "id": 1
           },
@@ -6391,7 +6413,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message",
               "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "1",
-              "client_name": "referenceCustodial"
+              "client_name": "referenceCustodial",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              },
+              "creator": {
+                "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+              }
             },
             "id": 2
           }

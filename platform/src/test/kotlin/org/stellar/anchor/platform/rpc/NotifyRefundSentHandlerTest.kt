@@ -6,7 +6,6 @@ import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import org.bouncycastle.jcajce.provider.asymmetric.EXTERNAL
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -433,6 +432,8 @@ class NotifyRefundSentHandlerTest {
     val refunded = Amount("1.1", txn24.amountInAsset)
     val refundedFee = Amount("0.1", txn24.amountInAsset)
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -562,6 +563,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.refunds =
       Refunds(refunded, refundedFee, arrayOf(refundPayment1, refundPayment2))
     expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -668,6 +671,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn24.amountInAsset)
     refundPayment.fee = Amount("0", txn24.amountInAsset)
@@ -777,6 +782,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn24.amountInAsset)
     refundPayment.fee = Amount("0.1", txn24.amountInAsset)
@@ -908,6 +915,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
     val refundPayment1 = RefundPayment()
     refundPayment1.amount = Amount("1.5", txn24.amountInAsset)
     refundPayment1.fee = Amount("0.2", txn24.amountInAsset)
@@ -1086,6 +1095,7 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn6.amountInAsset)
     refundPayment.fee = Amount("0.1", txn6.amountFeeAsset)
@@ -1219,6 +1229,7 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
     val refundPayment1 = RefundPayment()
     refundPayment1.amount = Amount("1", txn6.amountInAsset)
     refundPayment1.fee = Amount("0.1", txn6.amountFeeAsset)
@@ -1360,6 +1371,8 @@ class NotifyRefundSentHandlerTest {
     val refundedFee = Amount("0", txn6.amountFeeAsset)
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
     expectedResponse.completedAt = sep6TxnCapture.captured.completedAt
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -1469,6 +1482,7 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn6.amountInAsset)
     refundPayment.fee = Amount("0.1", txn6.amountFeeAsset)
@@ -1609,6 +1623,7 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
     val refundPayment1 = RefundPayment()
     refundPayment1.amount = Amount("1.5", txn6.amountInAsset)
     refundPayment1.fee = Amount("0.2", txn6.amountFeeAsset)
