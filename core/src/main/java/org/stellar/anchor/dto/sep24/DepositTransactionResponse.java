@@ -62,5 +62,6 @@ public class DepositTransactionResponse extends TransactionResponse {
           REFUNDED.toString(),
           PENDING_EXTERNAL.toString(),
           PENDING_ANCHOR.toString(),
-          PENDING_USER.toString());
+          PENDING_USER.toString(),
+          ERROR.toString());
 }
