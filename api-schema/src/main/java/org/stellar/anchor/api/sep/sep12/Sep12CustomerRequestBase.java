@@ -3,6 +3,8 @@ package org.stellar.anchor.api.sep.sep12;
 public interface Sep12CustomerRequestBase {
   String getId();
 
+  void setId(String id);
+
   String getAccount();
 
   void setAccount(String account);
@@ -18,4 +20,8 @@ public interface Sep12CustomerRequestBase {
   String getTransactionId();
 
   void setTransactionId(String transactionId);
+
+  String getType();
+
+  void setType(String type);
 }

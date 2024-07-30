@@ -29,8 +29,6 @@ class ConfigManagerTest {
     every { configManager.getConfigFileAsResource(any()) } returns testingConfigFile
 
     val config = configManager.processConfigurations(null)
-    System.out.println(config.toStringMap())
-    System.out.println(config.get("clients.noncustodial[0]"))
     assertEquals(config.get("languages").value, "tw, en, fr")
     assertEquals(config.get("clients.noncustodial[0].name").value, "vibrant")
     assertEquals(config.get("clients.noncustodial[0].domains[0]").value, "vibrant.co")

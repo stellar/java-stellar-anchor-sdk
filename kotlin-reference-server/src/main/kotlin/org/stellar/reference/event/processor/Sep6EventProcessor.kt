@@ -380,7 +380,7 @@ class Sep6EventProcessor(
         )
         sepHelper.rpcAction(
           RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE.toString(),
-          RequestCustomerInfoUpdateHandler(
+          RequestCustomerInfoUpdateRequest(
             transactionId = event.payload.transaction.id,
             message = "Please update your info",
           ),

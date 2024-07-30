@@ -30,12 +30,21 @@ class CustomerService(
         // set which means it only works for SEP-6 transactions.
         request.transactionId != null -> {
           val transaction = sepHelper.getTransaction(request.transactionId)
-          val sender = transaction.customers!!.sender
-          val memoType = if (sender!!.memo != null) "id" else null
+          val txnCustomer =
+            if ("sep31-receiver" == request.type) {
+              transaction.customers!!.receiver
+            } else {
+              transaction.customers!!.sender
+            }
+          val memoType = if (txnCustomer!!.memo != null) "id" else null
 
           val customer =
-            customerRepository.get(sender.account!!, sender.memo, memoType)
-              ?: Customer(stellarAccount = sender.account, memo = sender.memo, memoType = memoType)
+            getCustomerFromTransaction(request.transactionId, request.type)
+              ?: Customer(
+                stellarAccount = txnCustomer.account,
+                memo = txnCustomer.memo,
+                memoType = memoType
+              )
 
           // Determine if this transaction requires additional fields
           val transactionKYC = transactionKYCRepository.get(request.transactionId)
@@ -69,11 +78,7 @@ class CustomerService(
     val customer =
       when {
         request.transactionId != null -> {
-          val transaction = sepHelper.getTransaction(request.transactionId)
-          val sender = transaction.customers!!.sender
-          val memoType = if (sender!!.memo != null) "id" else null
-
-          customerRepository.get(sender.account!!, sender.memo, memoType)
+          getCustomerFromTransaction(request.transactionId, request.type)
         }
         request.id != null -> customerRepository.get(request.id)
         request.account != null ->
@@ -216,6 +221,24 @@ class CustomerService(
       customerRepository.update(customerRepository.get(id)!!.copy(clabeNumber = null))
     } catch (e: Exception) {
       throw NotFoundException("customer for 'id' '$id' not found", id)
+    }
+  }
+
+  private suspend fun getCustomerFromTransaction(transactionId: String, type: String): Customer? {
+    val transaction = sepHelper.getTransaction(transactionId)
+    val txnCustomer =
+      if (type == "sep31-receiver") {
+        transaction.customers!!.receiver
+      } else {
+        transaction.customers!!.sender
+      }
+    val memoType = if (txnCustomer!!.memo != null) "id" else null
+
+    return when {
+      txnCustomer.id != null -> customerRepository.get(txnCustomer.id)
+      txnCustomer.account != null ->
+        customerRepository.get(txnCustomer.account, txnCustomer.memo, memoType)
+      else -> throw BadRequestException("Either id or account must be provided")
     }
   }
 

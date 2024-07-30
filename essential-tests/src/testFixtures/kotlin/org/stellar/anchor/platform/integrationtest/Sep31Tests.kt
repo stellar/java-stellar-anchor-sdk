@@ -343,7 +343,11 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
 
     // PUT sep12/customer with the correct clabe_number
     sep12Client.putCustomer(
-      Sep12PutCustomerRequest.builder().id(receiverCustomer.id).clabeNumber("5678").build()
+      Sep12PutCustomerRequest.builder()
+        .transactionId(getTxResponse.id)
+        .type("sep31-receiver")
+        .clabeNumber("5678")
+        .build()
     )
     updatedReceiverCustomer = sep12Client.getCustomer(receiverCustomer.id, "sep31-receiver")
     assertEquals(Sep12Status.ACCEPTED, updatedReceiverCustomer?.status)
