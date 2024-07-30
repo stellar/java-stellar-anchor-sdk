@@ -22,7 +22,6 @@ import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.platform.CustomerUpdatedResponse;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep12.*;
-import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
@@ -181,13 +180,8 @@ public class Sep12Service {
         GetTransactionResponse txn =
             platformApiClient.getTransaction(requestBase.getTransactionId());
         String customerType = requestBase.getType();
-        StellarId customer =
-            ("sep31-receiver").equals(customerType)
-                ? txn.getCustomers().getReceiver()
-                : txn.getCustomers().getSender();
-        requestBase.setId(customer.getId());
-        requestBase.setAccount(customer.getAccount());
-        requestBase.setMemo(customer.getMemo());
+        requestBase.setAccount(txn.getCustomers().getSender().getAccount());
+        requestBase.setMemo(txn.getCustomers().getSender().getMemo());
       } catch (Exception e) {
         throw new SepNotAuthorizedException("The transaction specified does not exist");
       }

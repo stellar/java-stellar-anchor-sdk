@@ -224,7 +224,7 @@ class CustomerService(
     }
   }
 
-  private suspend fun getCustomerFromTransaction(transactionId: String, type: String): Customer? {
+  private suspend fun getCustomerFromTransaction(transactionId: String, type: String?): Customer? {
     val transaction = sepHelper.getTransaction(transactionId)
     val txnCustomer =
       if (type == "sep31-receiver") {
