@@ -24,14 +24,12 @@ class Sep31EventProcessor(
   }
 
   override suspend fun onTransactionCreated(event: SendEventRequest) {
-    log.warn { "Sep31EventProcessor onTransactionCreated" }
+    log.info { "Transaction ${event.payload.transaction!!.id} is created" }
+    // PENDING_SENDER -> PENDING_RECEIVER is handled by PaymentOperationToEventListener
   }
 
   override suspend fun onTransactionStatusChanged(event: SendEventRequest) {
-    log.warn { "Sep31EventProcessor onTransactionStatusChanged" }
     val transaction = event.payload.transaction!!
-    val abc = transaction.status
-    log.warn { "Sep31EventProcessor onTransactionStatusChanged $abc" }
     when (val status = transaction.status) {
       PENDING_RECEIVER -> {
         if (verifyKyc(transaction).isNotEmpty()) {
@@ -49,18 +47,15 @@ class Sep31EventProcessor(
           ),
         )
       COMPLETED -> {
-        log.info { "Sep31EventProcessor - Transaction ${transaction.id} is completed" }
+        log.info { "Transaction ${transaction.id} is completed" }
       }
       else -> {
-        log.warn {
-          "Sep31EventProcessor - Received transaction status changed event with unsupported status: $status"
-        }
+        log.warn { "Received transaction status changed event with unsupported status: $status" }
       }
     }
   }
 
   override suspend fun onCustomerUpdated(event: SendEventRequest) {
-    log.warn { "Sep31EventProcessor onCustomerUpdated" }
     platformClient
       .getTransactions(
         GetTransactionsRequest.builder()
@@ -96,14 +91,21 @@ class Sep31EventProcessor(
     return requiredKyc.filter { !providedFields.contains(it) }
   }
   private fun requestKyc(event: SendEventRequest) {
+    val missingFields = verifyKyc(event.payload.transaction!!)
     runBlocking {
-      sepHelper.rpcAction(
-        RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE.toString(),
-        RequestCustomerInfoUpdateRequest(
-          transactionId = event.payload.transaction!!.id,
-          message = "Please update your info",
-        ),
-      )
+      if (missingFields.isNotEmpty()) {
+        customerService.requestAdditionalFieldsForTransaction(
+          event.payload.transaction.id,
+          missingFields,
+        )
+        sepHelper.rpcAction(
+          RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE.toString(),
+          RequestCustomerInfoUpdateRequest(
+            transactionId = event.payload.transaction.id,
+            message = "Please update your info",
+          ),
+        )
+      }
     }
   }
 

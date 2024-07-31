@@ -149,8 +149,23 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
     }
     waitStatus(postTxResponse.id, SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE)
 
-    anchor.customer(token).add(customerKycInfo)
-    info("Submitting additional KYC info...")
+    // Supply missing KYC info to continue with the transaction
+    val additionalRequiredFields =
+      anchor
+        .customer(token)
+        .get(transactionId = postTxResponse.id, type = "sep31-receiver")
+        .fields
+        ?.filter { it.key != null && it.value?.optional == false }
+        ?.map { it.key!! }
+        .orEmpty()
+    anchor
+      .customer(token)
+      .add(
+        transactionId = postTxResponse.id,
+        type = "sep31-receiver",
+        sep9Info = additionalRequiredFields.associateWith { receiverKycInfo[it]!! }
+      )
+    info("Submitting additional KYC info $additionalRequiredFields")
 
     // Wait for the status to change to COMPLETED
     waitStatus(postTxResponse.id, SepTransactionStatus.COMPLETED)
@@ -236,7 +251,7 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
       )
   }
 
-  private val customerKycInfo =
+  private val receiverKycInfo =
     mapOf(
       "bank_account_number" to "13719713158835300",
       "bank_account_type" to "checking",
