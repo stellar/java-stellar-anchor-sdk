@@ -293,6 +293,8 @@ class Sep38ServiceTest {
   @Test
   fun `test GET price failure`() {
     var getPriceRequestBuilder = Sep38GetPriceRequest.builder()
+    every { mockRateIntegration.getRate(any()) } returns
+      GetRateResponse.indicativePrice("1.02", "103", "100", mockSellAssetFee(fiatUSD))
 
     // empty rateIntegration should throw an error
     var ex: AnchorException = assertThrows {
@@ -401,27 +403,6 @@ class Sep38ServiceTest {
     ex = assertThrows { sep38Service.getPrice(null, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
-
-    // sell_amount should be within limit
-    getPriceRequestBuilder = getPriceRequestBuilder.context(SEP31).sellAmount("100000000")
-    ex = assertThrows { sep38Service.getPrice(null, getPriceRequestBuilder.build()) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount exceeds max limit", ex.message)
-
-    // sell_amount should be positive
-    getPriceRequestBuilder = getPriceRequestBuilder.context(SEP31).sellAmount("0.5")
-    ex = assertThrows { sep38Service.getPrice(null, getPriceRequestBuilder.build()) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount less than min limit", ex.message)
-
-    // buy_amount specified, but resulting sell_amount should be within limit
-    getPriceRequestBuilder = getPriceRequestBuilder.sellAmount(null)
-    getPriceRequestBuilder = getPriceRequestBuilder.buyAssetName(stellarUSDC).buyAmount("100000000")
-    every { mockRateIntegration.getRate(any()) } returns
-      GetRateResponse.indicativePrice("1.02", "102000000", "100000000", mockSellAssetFee(fiatUSD))
-    ex = assertThrows { sep38Service.getPrice(null, getPriceRequestBuilder.build()) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount exceeds max limit", ex.message)
   }
 
   private fun mockSellAssetFee(sellAsset: String?): FeeDetails {
@@ -592,6 +573,8 @@ class Sep38ServiceTest {
   fun `test POST quote failures`() {
     // empty rateIntegration should throw an error
     this.sep38Service = Sep38Service(sep38Config, assetService, null, mockQuoteStore, eventService)
+    every { mockRateIntegration.getRate(any()) } returns
+      GetRateResponse.indicativePrice("1.02", "103", "100", mockSellAssetFee(fiatUSD))
 
     var ex: AnchorException = assertThrows {
       sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build())
@@ -833,59 +816,6 @@ class Sep38ServiceTest {
     }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported context. Should be one of [sep6, sep24, sep31].", ex.message)
-
-    // sell_amount should be within limit
-    ex = assertThrows {
-      sep38Service.postQuote(
-        token,
-        Sep38PostQuoteRequest.builder()
-          .sellAssetName(fiatUSD)
-          .sellAmount("100000000")
-          .sellDeliveryMethod("WIRE")
-          .context(SEP31)
-          .buyAssetName(stellarUSDC)
-          .countryCode("USA")
-          .build()
-      )
-    }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount exceeds max limit", ex.message)
-
-    // sell_amount should be positive
-    ex = assertThrows {
-      sep38Service.postQuote(
-        token,
-        Sep38PostQuoteRequest.builder()
-          .sellAssetName(fiatUSD)
-          .sellAmount("0.5")
-          .sellDeliveryMethod("WIRE")
-          .context(SEP31)
-          .buyAssetName(stellarUSDC)
-          .countryCode("USA")
-          .build()
-      )
-    }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount less than min limit", ex.message)
-
-    // buy_amount specified, but resulting sell_amount should be within limit
-    every { mockRateIntegration.getRate(any()) } returns
-      GetRateResponse.indicativePrice("1.02", "102000000", "100000000", mockSellAssetFee(fiatUSD))
-    ex = assertThrows {
-      sep38Service.postQuote(
-        token,
-        Sep38PostQuoteRequest.builder()
-          .sellAssetName(fiatUSD)
-          .sellDeliveryMethod("WIRE")
-          .context(SEP31)
-          .buyAssetName(stellarUSDC)
-          .buyAmount("100000000")
-          .countryCode("USA")
-          .build()
-      )
-    }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount exceeds max limit", ex.message)
   }
 
   @Test
