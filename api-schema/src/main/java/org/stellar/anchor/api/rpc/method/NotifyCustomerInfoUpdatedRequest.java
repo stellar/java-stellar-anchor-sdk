@@ -9,4 +9,6 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class NotifyCustomerInfoUpdatedRequest extends RpcMethodParamsRequest {}
+public class NotifyCustomerInfoUpdatedRequest extends RpcMethodParamsRequest {
+  String status;
+}

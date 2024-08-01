@@ -2,9 +2,9 @@ package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_CUSTOMER_INFO_UPDATED;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
 import java.util.Set;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -14,6 +14,7 @@ import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.method.NotifyCustomerInfoUpdatedRequest;
 import org.stellar.anchor.api.rpc.method.RpcMethod;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
+import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.metrics.MetricsService;
@@ -59,15 +60,29 @@ public class NotifyCustomerInfoUpdatedHandler
   @Override
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyCustomerInfoUpdatedRequest request) {
+    if (SEP_6 == Sep.from(txn.getProtocol())) {
+      switch (Sep12Status.valueOf(request.getStatus())) {
+        case ACCEPTED, PROCESSING:
+          return PENDING_ANCHOR;
+        case NEEDS_INFO:
+          return PENDING_CUSTOMER_INFO_UPDATE;
+        case REJECTED:
+          return ERROR;
+      }
+    }
     return PENDING_RECEIVER;
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    if (SEP_31 == Sep.from(txn.getProtocol())) {
-      return Set.of(PENDING_CUSTOMER_INFO_UPDATE);
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
+        return Set.of(PENDING_ANCHOR, PENDING_CUSTOMER_INFO_UPDATE);
+      case SEP_31:
+        return Set.of(PENDING_CUSTOMER_INFO_UPDATE);
+      default:
+        return emptySet();
     }
-    return emptySet();
   }
 
   @Override
