@@ -7,6 +7,7 @@ import org.stellar.reference.log
 
 class AnchorEventProcessor(
   private val sep6EventProcessor: Sep6EventProcessor,
+  private val sep31EventProcessor: Sep31EventProcessor,
   private val noOpEventProcessor: NoOpEventProcessor,
 ) {
   suspend fun handleEvent(event: SendEventRequest) {
@@ -25,6 +26,7 @@ class AnchorEventProcessor(
           log.info { "Received customer updated event" }
           // Only SEP-6 listens to this event
           sep6EventProcessor.onCustomerUpdated(event)
+          sep31EventProcessor.onCustomerUpdated(event)
         }
         AnchorEvent.Type.QUOTE_CREATED.type -> {
           log.info { "Received quote created event" }
@@ -44,6 +46,7 @@ class AnchorEventProcessor(
   private fun getProcessor(event: SendEventRequest): SepAnchorEventProcessor =
     when (event.payload.transaction?.sep) {
       PlatformTransactionData.Sep.SEP_6 -> sep6EventProcessor
+      PlatformTransactionData.Sep.SEP_31 -> sep31EventProcessor
       else -> noOpEventProcessor
     }
 }

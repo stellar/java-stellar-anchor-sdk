@@ -35,6 +35,7 @@ import org.stellar.anchor.util.MemoHelper
 import org.stellar.reference.client.AnchorReferenceServerClient
 import org.stellar.reference.wallet.WalletServerClient
 import org.stellar.walletsdk.anchor.MemoType
+import org.stellar.walletsdk.anchor.customer
 import org.stellar.walletsdk.asset.IssuedAssetId
 import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
@@ -117,8 +118,6 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
     txnRequest.quoteId = quote.id
     val postTxResponse = sep31Client.postTransaction(txnRequest)
 
-    anchorReferenceServerClient.processSep31Receive(postTxResponse.id)
-
     // Get transaction status and make sure it is PENDING_SENDER
     val transaction = platformApiClient.getTransaction(postTxResponse.id)
     assertEquals(SepTransactionStatus.PENDING_SENDER, transaction.status)
@@ -148,16 +147,35 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
       transfer.sign(keypair)
       wallet.stellar().submitTransaction(transfer)
     }
+    waitStatus(postTxResponse.id, SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE)
+
+    // Supply missing KYC info to continue with the transaction
+    val additionalRequiredFields =
+      anchor
+        .customer(token)
+        .get(transactionId = postTxResponse.id, type = "sep31-receiver")
+        .fields
+        ?.filter { it.key != null && it.value?.optional == false }
+        ?.map { it.key!! }
+        .orEmpty()
+    anchor
+      .customer(token)
+      .add(
+        transactionId = postTxResponse.id,
+        type = "sep31-receiver",
+        sep9Info = additionalRequiredFields.associateWith { receiverKycInfo[it]!! }
+      )
+    info("Submitting additional KYC info $additionalRequiredFields")
 
     // Wait for the status to change to COMPLETED
     waitStatus(postTxResponse.id, SepTransactionStatus.COMPLETED)
 
     // Check the events sent to the reference server are recorded correctly
-    val actualEvents = waitForBusinessServerEvents(postTxResponse.id, 3)
+    val actualEvents = waitForBusinessServerEvents(postTxResponse.id, 5)
     assertEvents(actualEvents, expectedStatuses)
 
     // Check the callbacks sent to the wallet reference server are recorded correctly
-    val actualCallbacks = waitForWalletServerCallbacks(postTxResponse.id, 3)
+    val actualCallbacks = waitForWalletServerCallbacks(postTxResponse.id, 5)
     assertCallbacks(actualCallbacks, expectedStatuses)
   }
 
@@ -227,9 +245,19 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
       listOf(
         TRANSACTION_CREATED to SepTransactionStatus.PENDING_SENDER,
         TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_RECEIVER,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_RECEIVER,
         TRANSACTION_STATUS_CHANGED to SepTransactionStatus.COMPLETED
       )
   }
+
+  private val receiverKycInfo =
+    mapOf(
+      "bank_account_number" to "13719713158835300",
+      "bank_account_type" to "checking",
+      "bank_number" to "123",
+      "bank_branch_number" to "121122676",
+    )
 
   private val postSep31TxnRequest =
     """{
