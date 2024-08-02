@@ -18,8 +18,6 @@ import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
-import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 
 import io.micrometer.core.instrument.Counter;
 import jakarta.transaction.Transactional;
@@ -47,21 +45,17 @@ import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest;
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.FeeDetails;
-import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.client.ClientConfig;
 import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep31Config;
-import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
-import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.TransactionMapper;
 
@@ -70,14 +64,12 @@ public class Sep31Service {
   private final Sep10Config sep10Config;
   private final Sep31Config sep31Config;
   private final Sep31TransactionStore sep31TransactionStore;
-  private final Sep31DepositInfoGenerator sep31DepositInfoGenerator;
   private final Sep38QuoteStore sep38QuoteStore;
   private final ClientService clientService;
   private final AssetService assetService;
   private final RateIntegration rateIntegration;
+  private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
-  private final CustodyService custodyService;
-  private final CustodyConfig custodyConfig;
   private final EventService.Session eventSession;
   private final Counter sep31TransactionCreatedCounter = counter(SEP31_TRANSACTION_CREATED);
   private final Counter sep31TransactionPatchedCounter = counter(SEP31_TRANSACTION_PATCHED);
@@ -87,29 +79,25 @@ public class Sep31Service {
       Sep10Config sep10Config,
       Sep31Config sep31Config,
       Sep31TransactionStore sep31TransactionStore,
-      Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
       ClientService clientService,
       AssetService assetService,
       RateIntegration rateIntegration,
-      EventService eventService,
-      CustodyService custodyService,
-      CustodyConfig custodyConfig) {
+      CustomerIntegration customerIntegration,
+      EventService eventService) {
     debug("appConfig:", appConfig);
     debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
     this.sep10Config = sep10Config;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;
-    this.sep31DepositInfoGenerator = sep31DepositInfoGenerator;
     this.sep38QuoteStore = sep38QuoteStore;
     this.clientService = clientService;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
+    this.customerIntegration = customerIntegration;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
-    this.custodyService = custodyService;
-    this.custodyConfig = custodyConfig;
     Log.info("Sep31Service initialized.");
   }
 
@@ -187,7 +175,7 @@ public class Sep31Service {
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
-            .status(SepTransactionStatus.PENDING_SENDER.getStatus())
+            .status(SepTransactionStatus.PENDING_RECEIVER.getStatus())
             .statusEta(null)
             .feeDetails(feeDetails)
             .startedAt(now)
@@ -212,15 +200,7 @@ public class Sep31Service {
             .amountInAsset(assetInfo.getSep38AssetName())
             .amountOut(null)
             .amountOutAsset(null)
-            .toAccount(assetInfo.getDistributionAccount())
-            .stellarMemo(null)
-            .stellarMemoType(null)
             .build();
-
-    // updateDepositInfo will update these ⬇️
-    if (!isEmpty(assetInfo.getDistributionAccount())) {
-      txn.setToAccount(assetInfo.getDistributionAccount());
-    }
 
     Context.get().setTransaction(txn);
     updateAmounts();
@@ -228,12 +208,6 @@ public class Sep31Service {
     // TODO: open the connection with DB and only commit/save after publishing the event:
     Context.get().setTransaction(sep31TransactionStore.save(txn));
     txn = Context.get().getTransaction();
-
-    updateDepositInfo();
-
-    if (custodyConfig.isCustodyIntegrationEnabled()) {
-      custodyService.createTransaction(txn);
-    }
 
     eventSession.publish(
         AnchorEvent.builder()
@@ -244,13 +218,7 @@ public class Sep31Service {
             .build());
 
     Sep31PostTransactionResponse response =
-        Sep31PostTransactionResponse.builder()
-            .id(txn.getId())
-            .stellarAccountId(txn.getToAccount())
-            .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
-            .stellarMemoType(
-                isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
-            .build();
+        Sep31PostTransactionResponse.builder().id(txn.getId()).build();
     // increment counter
     sep31TransactionCreatedCounter.increment();
     return response;
@@ -341,27 +309,6 @@ public class Sep31Service {
     String feeStr = formatAmount(fee, scale);
     txn.setFeeDetails(new FeeDetails(feeStr, feeResponse.getAsset()));
     Context.get().getFee().setAmount(feeStr);
-  }
-
-  /**
-   * updateDepositInfo will populate the transaction's deposit information (stellar_account_id, memo
-   * and memo_type), as provided by the sep31DepositInfoGenerator.
-   */
-  void updateDepositInfo() throws AnchorException {
-    Sep31Transaction txn = Context.get().getTransaction();
-    SepDepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
-    infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
-
-    if (!CustodyUtils.isMemoTypeSupported(custodyConfig.getType(), depositInfo.getMemoType())) {
-      throw new BadRequestException(
-          String.format(
-              "Memo type[%s] is not supported for custody type[%s]",
-              depositInfo.getMemoType(), custodyConfig.getType()));
-    }
-
-    txn.setToAccount(depositInfo.getStellarAddress());
-    txn.setStellarMemo(depositInfo.getMemo());
-    txn.setStellarMemoType(isEmpty(depositInfo.getMemoType()) ? "none" : depositInfo.getMemoType());
   }
 
   public Sep31GetTransactionResponse getTransaction(String id) throws AnchorException {

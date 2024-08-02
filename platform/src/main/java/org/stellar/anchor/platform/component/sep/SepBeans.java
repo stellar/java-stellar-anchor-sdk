@@ -15,7 +15,6 @@ import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.client.ClientFinder;
 import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.config.*;
-import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.Sep10JwtFilter;
 import org.stellar.anchor.horizon.Horizon;
@@ -29,7 +28,6 @@ import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Service;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
-import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
@@ -63,12 +61,6 @@ public class SepBeans {
   @ConfigurationProperties(prefix = "sep12")
   Sep12Config sep12Config(CallbackApiConfig callbackApiConfig) {
     return new PropertySep12Config(callbackApiConfig);
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "sep31")
-  Sep31Config sep31Config(CustodyConfig custodyConfig, AssetService assetService) {
-    return new PropertySep31Config(custodyConfig, assetService);
   }
 
   @Bean
@@ -218,27 +210,23 @@ public class SepBeans {
       Sep10Config sep10Config,
       Sep31Config sep31Config,
       Sep31TransactionStore sep31TransactionStore,
-      Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
       ClientService clientService,
       AssetService assetService,
       RateIntegration rateIntegration,
-      EventService eventService,
-      CustodyService custodyService,
-      CustodyConfig custodyConfig) {
+      CustomerIntegration customerIntegration,
+      EventService eventService) {
     return new Sep31Service(
         appConfig,
         sep10Config,
         sep31Config,
         sep31TransactionStore,
-        sep31DepositInfoGenerator,
         sep38QuoteStore,
         clientService,
         assetService,
         rateIntegration,
-        eventService,
-        custodyService,
-        custodyConfig);
+        customerIntegration,
+        eventService);
   }
 
   @Bean
