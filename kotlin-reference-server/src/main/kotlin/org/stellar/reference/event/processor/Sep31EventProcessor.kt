@@ -1,5 +1,6 @@
 package org.stellar.reference.event.processor
 
+import java.util.*
 import kotlinx.coroutines.runBlocking
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.platform.*
@@ -12,6 +13,7 @@ import org.stellar.reference.di.ServiceContainer.sepHelper
 import org.stellar.reference.log
 
 class Sep31EventProcessor(
+  private val config: Config,
   private val platformClient: PlatformClient,
 ) : SepAnchorEventProcessor {
   companion object {
@@ -25,7 +27,32 @@ class Sep31EventProcessor(
 
   override suspend fun onTransactionCreated(event: SendEventRequest) {
     log.info { "Transaction ${event.payload.transaction!!.id} is created" }
-    // PENDING_SENDER -> PENDING_RECEIVER is handled by PaymentOperationToEventListener
+
+    val (memo, memoType) =
+      if (
+        config.appSettings.distributionWalletMemo.isBlank() ||
+          config.appSettings.distributionWalletMemoType.isBlank()
+      ) {
+        val paddedMemo = event.payload.transaction!!.id.take(32).padStart(32, '0')
+        val encodedMemo = Base64.getEncoder().encodeToString(paddedMemo.toByteArray())
+        Pair(encodedMemo, "hash")
+      } else {
+        Pair(
+          config.appSettings.distributionWalletMemo,
+          config.appSettings.distributionWalletMemoType
+        )
+      }
+
+    sepHelper.rpcAction(
+      RpcMethod.REQUEST_ONCHAIN_FUNDS.toString(),
+      RequestOnchainFundsRequest(
+        transactionId = event.payload.transaction!!.id,
+        message = "Transaction created",
+        destinationAccount = config.appSettings.distributionWallet,
+        memoType = memoType,
+        memo = memo,
+      ),
+    )
   }
 
   override suspend fun onTransactionStatusChanged(event: SendEventRequest) {

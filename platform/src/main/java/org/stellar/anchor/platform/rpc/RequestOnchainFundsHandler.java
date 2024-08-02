@@ -150,7 +150,10 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
     boolean canGenerateSep24DepositInfo =
         SEP_24 == Sep.from(txn.getProtocol())
             && sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator;
-    if (canGenerateSep6DepositInfo || canGenerateSep24DepositInfo) {
+    boolean canGenerateSep31DepositInfo =
+        SEP_31 == Sep.from(txn.getProtocol())
+            && sep31DepositInfoGenerator instanceof Sep31DepositInfoNoneGenerator;
+    if (canGenerateSep6DepositInfo || canGenerateSep24DepositInfo || canGenerateSep31DepositInfo) {
       Memo memo;
       try {
         memo = makeMemo(request.getMemo(), request.getMemoType());
@@ -170,7 +173,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
         || request.getDestinationAccount() != null) {
       throw new InvalidParamsException(
           "Anchor is not configured to accept memo, memo_type and destination_account. "
-              + "Please set configuration sep24.deposit_info_generator_type to 'none' "
+              + "Please set configuration deposit_info_generator_type to 'none' "
               + "if you want to enable this feature");
     }
   }
@@ -182,8 +185,19 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, RequestOnchainFundsRequest request) {
-    return PENDING_USR_TRANSFER_START;
+      JdbcSepTransaction txn, RequestOnchainFundsRequest request) throws InvalidRequestException {
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
+      case SEP_24:
+        return PENDING_USR_TRANSFER_START;
+      case SEP_31:
+        return PENDING_SENDER;
+      default:
+        throw new InvalidRequestException(
+            String.format(
+                "RPC method[%s] is not supported for protocol[%s]",
+                getRpcMethod(), txn.getProtocol()));
+    }
   }
 
   @Override
@@ -211,7 +225,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       return supportedStatuses;
     }
     if (SEP_31 == Sep.from(txn.getProtocol())) {
-      supportedStatuses.add(PENDING_RECEIVER);
+      return ImmutableSet.of(PENDING_RECEIVER);
     }
     return Collections.emptySet();
   }
@@ -246,7 +260,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
         if (sep6DepositInfoGenerator instanceof Sep6DepositInfoNoneGenerator) {
           Memo memo = makeMemo(request.getMemo(), request.getMemoType());
           if (memo != null) {
-            txn6.setMemo(memo.toString());
+            txn6.setMemo(request.getMemo());
             txn6.setMemoType(memoTypeString(memoType(memo)));
           }
           txn6.setWithdrawAnchorAccount(request.getDestinationAccount());
@@ -280,7 +294,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
         if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
           Memo memo = makeMemo(request.getMemo(), request.getMemoType());
           if (memo != null) {
-            txn24.setMemo(memo.toString());
+            txn24.setMemo(request.getMemo());
             txn24.setMemoType(memoTypeString(memoType(memo)));
           }
           txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
@@ -316,7 +330,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
         if (sep31DepositInfoGenerator instanceof Sep31DepositInfoNoneGenerator) {
           Memo memo = makeMemo(request.getMemo(), request.getMemoType());
           if (memo != null) {
-            txn31.setStellarMemo(memo.toString());
+            txn31.setStellarMemo(request.getMemo());
             txn31.setStellarMemoType(memoTypeString(memoType(memo)));
           }
           txn31.setToAccount(request.getDestinationAccount());
@@ -329,6 +343,19 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
 
         paymentObservingAccountsManager.upsert(
             txn31.getToAccount(), PaymentObservingAccountsManager.AccountType.TRANSIENT);
+
+        if (!CustodyUtils.isMemoTypeSupported(
+            custodyConfig.getType(), txn31.getStellarMemoType())) {
+          throw new InvalidParamsException(
+              String.format(
+                  "Memo type[%s] is not supported for custody type[%s]",
+                  txn31.getStellarMemoType(), custodyConfig.getType()));
+        }
+
+        if (custodyConfig.isCustodyIntegrationEnabled()) {
+          custodyService.createTransaction(txn31);
+        }
+
         break;
       default:
         break;
