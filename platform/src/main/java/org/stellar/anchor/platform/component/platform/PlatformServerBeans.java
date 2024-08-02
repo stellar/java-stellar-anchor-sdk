@@ -10,6 +10,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
+import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
@@ -18,6 +19,7 @@ import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.filter.PlatformAuthJwtFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
+import org.stellar.anchor.platform.condition.ConditionalOnAnySepsEnabled;
 import org.stellar.anchor.platform.config.PlatformServerConfig;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
@@ -26,6 +28,7 @@ import org.stellar.anchor.platform.rpc.NotifyTrustSetHandler;
 import org.stellar.anchor.platform.service.*;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
+import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
@@ -66,6 +69,27 @@ public class PlatformServerBeans {
   }
 
   @Bean
+  @ConditionalOnAnySepsEnabled(seps = {"sep31"})
+  Sep31DepositInfoGenerator sep31DepositInfoGenerator(
+      Sep31Config sep31Config, Optional<CustodyApiClient> custodyApiClient)
+      throws InvalidConfigException {
+    switch (sep31Config.getDepositInfoGeneratorType()) {
+      case SELF:
+        return new Sep31DepositInfoSelfGenerator();
+      case CUSTODY:
+        return new Sep31DepositInfoCustodyGenerator(
+            custodyApiClient.orElseThrow(
+                () ->
+                    new InvalidConfigException("Integration with custody service is not enabled")));
+      case NONE:
+        return new Sep31DepositInfoNoneGenerator();
+      default:
+        throw new RuntimeException("Not supported");
+    }
+  }
+
+  @Bean
+  @ConditionalOnAnySepsEnabled(seps = {"sep24"})
   Sep24DepositInfoGenerator sep24DepositInfoGenerator(
       Sep24Config sep24Config, Optional<CustodyApiClient> custodyApiClient)
       throws InvalidConfigException {
@@ -85,6 +109,7 @@ public class PlatformServerBeans {
   }
 
   @Bean
+  @ConditionalOnAnySepsEnabled(seps = {"sep6"})
   Sep6DepositInfoGenerator sep6DepositInfoGenerator(
       Sep6Config sep6Config, AssetService assetService, Optional<CustodyApiClient> custodyApiClient)
       throws InvalidConfigException {
