@@ -17,7 +17,6 @@ import org.stellar.reference.callbacks.customer.customer
 import org.stellar.reference.callbacks.interactive.sep24Interactive
 import org.stellar.reference.callbacks.rate.rate
 import org.stellar.reference.callbacks.test.testCustomer
-import org.stellar.reference.callbacks.uniqueaddress.uniqueAddress
 import org.stellar.reference.data.AuthSettings
 import org.stellar.reference.event.event
 import org.stellar.reference.plugins.RequestExceptionHandlerPlugin
@@ -61,7 +60,6 @@ object ReferenceServerContainer {
     event(ServiceContainer.eventService)
     customer(ServiceContainer.customerService)
     rate(ServiceContainer.rateService)
-    uniqueAddress(ServiceContainer.uniqueAddressService)
     sep24Interactive()
 
     if (config.appSettings.enableTest) {

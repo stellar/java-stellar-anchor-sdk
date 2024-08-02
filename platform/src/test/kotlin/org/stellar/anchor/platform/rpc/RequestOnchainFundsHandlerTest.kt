@@ -40,11 +40,13 @@ import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.metrics.MetricsService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep6Transaction
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
 import org.stellar.anchor.platform.service.*
 import org.stellar.anchor.platform.utils.toRate
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
+import org.stellar.anchor.sep31.Sep31DepositInfoGenerator
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep6.Sep6Transaction
 import org.stellar.anchor.sep6.Sep6TransactionStore
@@ -91,6 +93,11 @@ class RequestOnchainFundsHandlerTest {
   @MockK(relaxed = true)
   private lateinit var sep24DepositInfoGenerator: Sep24DepositInfoNoneGenerator
 
+  @MockK(relaxed = true) private lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
+
+  @MockK(relaxed = true)
+  private lateinit var paymentObservingAccountsManager: PaymentObservingAccountsManager
+
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
   @MockK(relaxed = true) private lateinit var metricsService: MetricsService
@@ -117,6 +124,8 @@ class RequestOnchainFundsHandlerTest {
         custodyConfig,
         sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
+        sep31DepositInfoGenerator,
+        paymentObservingAccountsManager,
         eventService,
         metricsService
       )
@@ -663,6 +672,8 @@ class RequestOnchainFundsHandlerTest {
         custodyConfig,
         sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
+        sep31DepositInfoGenerator,
+        paymentObservingAccountsManager,
         eventService,
         metricsService
       )
@@ -1104,6 +1115,8 @@ class RequestOnchainFundsHandlerTest {
         custodyConfig,
         sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
+        sep31DepositInfoGenerator,
+        paymentObservingAccountsManager,
         eventService,
         metricsService
       )
@@ -1339,6 +1352,8 @@ class RequestOnchainFundsHandlerTest {
         custodyConfig,
         sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
+        sep31DepositInfoGenerator,
+        paymentObservingAccountsManager,
         eventService,
         metricsService
       )
@@ -1657,6 +1672,8 @@ class RequestOnchainFundsHandlerTest {
         custodyConfig,
         sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
+        sep31DepositInfoGenerator,
+        paymentObservingAccountsManager,
         eventService,
         metricsService
       )

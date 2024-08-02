@@ -5,7 +5,6 @@ import io.ktor.client.plugins.*
 import org.jetbrains.exposed.sql.Database
 import org.stellar.reference.callbacks.customer.CustomerService
 import org.stellar.reference.callbacks.rate.RateService
-import org.stellar.reference.callbacks.uniqueaddress.UniqueAddressService
 import org.stellar.reference.client.PlatformClient
 import org.stellar.reference.dao.JdbcCustomerRepository
 import org.stellar.reference.dao.JdbcQuoteRepository
@@ -37,7 +36,6 @@ object ServiceContainer {
   private val quotesRepo = JdbcQuoteRepository(database)
   val customerService = CustomerService(customerRepo, transactionKYCRepo, sepHelper)
   val rateService = RateService(quotesRepo)
-  val uniqueAddressService = UniqueAddressService(config.appSettings)
   val horizon = Server(config.appSettings.horizonEndpoint)
   val platform =
     PlatformClient(
