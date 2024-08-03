@@ -48,6 +48,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.CustodyUtils;
+import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Memo;
 
 public class RequestOnchainFundsHandler
@@ -350,7 +351,7 @@ public class RequestOnchainFundsHandler
         if (sep31DepositInfoGenerator instanceof Sep31DepositInfoNoneGenerator) {
           Memo memo = makeMemo(request.getMemo(), request.getMemoType());
           if (memo != null) {
-            txn31.setStellarMemo(memo.toString());
+            txn31.setStellarMemo(request.getMemo());
             txn31.setStellarMemoType(memoTypeString(memoType(memo)));
           }
           txn31.setToAccount(request.getDestinationAccount());
@@ -360,6 +361,8 @@ public class RequestOnchainFundsHandler
           txn31.setStellarMemo(sep31DepositInfo.getMemo());
           txn31.setStellarMemoType(sep31DepositInfo.getMemoType());
         }
+
+        Log.infoF("Memo set to {} {}", txn31.getStellarMemoType(), txn31.getStellarMemo());
 
         paymentObservingAccountsManager.upsert(
             txn31.getToAccount(), PaymentObservingAccountsManager.AccountType.TRANSIENT);
