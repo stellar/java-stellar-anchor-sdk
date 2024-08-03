@@ -117,6 +117,7 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
     txnRequest.receiverId = receiverCustomer!!.id
     txnRequest.quoteId = quote.id
     val postTxResponse = sep31Client.postTransaction(txnRequest)
+    info("POST /transaction initiated ${postTxResponse.id}")
 
     // Get transaction status and make sure it is PENDING_SENDER
     waitStatus(postTxResponse.id, SepTransactionStatus.PENDING_SENDER)
@@ -136,6 +137,7 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
       }
 
     // Submit transfer transaction
+    info("Transferring $amount $asset to ${transaction.stellarAccountId}")
     transactionWithRetry {
       val transfer =
         wallet
@@ -147,6 +149,7 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
       transfer.sign(keypair)
       wallet.stellar().submitTransaction(transfer)
     }
+    info("Transfer complete")
     waitStatus(postTxResponse.id, SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE)
 
     // Supply missing KYC info to continue with the transaction
