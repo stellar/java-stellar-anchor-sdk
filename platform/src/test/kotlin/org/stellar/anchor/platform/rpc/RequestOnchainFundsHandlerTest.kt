@@ -1768,8 +1768,8 @@ class RequestOnchainFundsHandlerTest {
         .amountOut(AmountAssetRequest("0.9", FIAT_USD))
         .feeDetails(Amount("0.1", STELLAR_USDC).toRate())
         .amountExpected(AmountRequest("1"))
-        .memo(TEXT_MEMO)
-        .memoType(TEXT_MEMO_TYPE)
+        .memo(HASH_MEMO)
+        .memoType(HASH_MEMO_TYPE)
         .destinationAccount(DESTINATION_ACCOUNT)
         .build()
     val txn31 = JdbcSep31Transaction()
@@ -1809,8 +1809,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep31Txn.amountFee = "0.1"
     expectedSep31Txn.amountFeeAsset = STELLAR_USDC
     expectedSep31Txn.amountExpected = "1"
-    expectedSep31Txn.stellarMemo = TEXT_MEMO
-    expectedSep31Txn.stellarMemoType = TEXT_MEMO_TYPE
+    expectedSep31Txn.stellarMemo = HASH_MEMO
+    expectedSep31Txn.stellarMemoType = HASH_MEMO_TYPE
     expectedSep31Txn.toAccount = DESTINATION_ACCOUNT
 
     JSONAssert.assertEquals(
@@ -1835,10 +1835,10 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
-    expectedResponse.memo = TEXT_MEMO
-    expectedResponse.memoType = TEXT_MEMO_TYPE
-    expectedResponse.refundMemo = TEXT_MEMO
-    expectedResponse.refundMemoType = TEXT_MEMO_TYPE
+    expectedResponse.memo = HASH_MEMO
+    expectedResponse.memoType = HASH_MEMO_TYPE
+    expectedResponse.refundMemo = HASH_MEMO
+    expectedResponse.refundMemoType = HASH_MEMO_TYPE
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
@@ -1897,7 +1897,7 @@ class RequestOnchainFundsHandlerTest {
     txn31.status = PENDING_RECEIVER.toString()
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
-    val depositInfo = SepDepositInfo(DESTINATION_ACCOUNT_2, TEXT_MEMO_2, TEXT_MEMO_TYPE)
+    val depositInfo = SepDepositInfo(DESTINATION_ACCOUNT_2, TEXT_MEMO, TEXT_MEMO_TYPE)
 
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(any()) } returns null
@@ -1931,7 +1931,7 @@ class RequestOnchainFundsHandlerTest {
     expectedSep31Txn.amountFee = "0.1"
     expectedSep31Txn.amountFeeAsset = STELLAR_USDC
     expectedSep31Txn.amountExpected = "1"
-    expectedSep31Txn.stellarMemo = TEXT_MEMO_2
+    expectedSep31Txn.stellarMemo = TEXT_MEMO
     expectedSep31Txn.stellarMemoType = TEXT_MEMO_TYPE
     expectedSep31Txn.toAccount = DESTINATION_ACCOUNT_2
 
@@ -1951,9 +1951,9 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT_2
-    expectedResponse.memo = TEXT_MEMO_2
+    expectedResponse.memo = TEXT_MEMO
     expectedResponse.memoType = TEXT_MEMO_TYPE
-    expectedResponse.refundMemo = TEXT_MEMO_2
+    expectedResponse.refundMemo = TEXT_MEMO
     expectedResponse.refundMemoType = TEXT_MEMO_TYPE
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
@@ -1989,8 +1989,8 @@ class RequestOnchainFundsHandlerTest {
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("0.9", FIAT_USD))
         .feeDetails(FeeDetails("0.1", STELLAR_USDC))
-        .memo(TEXT_MEMO)
-        .memoType(TEXT_MEMO_TYPE)
+        .memo(HASH_MEMO)
+        .memoType(HASH_MEMO_TYPE)
         .destinationAccount(DESTINATION_ACCOUNT)
         .build()
     val txn31 = JdbcSep31Transaction()
@@ -2024,8 +2024,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep31Txn.amountFee = "0.1"
     expectedSep31Txn.amountFeeAsset = STELLAR_USDC
     expectedSep31Txn.amountExpected = "1"
-    expectedSep31Txn.stellarMemo = TEXT_MEMO
-    expectedSep31Txn.stellarMemoType = TEXT_MEMO_TYPE
+    expectedSep31Txn.stellarMemo = HASH_MEMO
+    expectedSep31Txn.stellarMemoType = HASH_MEMO_TYPE
     expectedSep31Txn.toAccount = DESTINATION_ACCOUNT
 
     JSONAssert.assertEquals(
@@ -2044,10 +2044,10 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
-    expectedResponse.memo = TEXT_MEMO
-    expectedResponse.memoType = TEXT_MEMO_TYPE
-    expectedResponse.refundMemo = TEXT_MEMO
-    expectedResponse.refundMemoType = TEXT_MEMO_TYPE
+    expectedResponse.memo = HASH_MEMO
+    expectedResponse.memoType = HASH_MEMO_TYPE
+    expectedResponse.refundMemo = HASH_MEMO
+    expectedResponse.refundMemoType = HASH_MEMO_TYPE
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
@@ -2079,8 +2079,8 @@ class RequestOnchainFundsHandlerTest {
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .memo(TEXT_MEMO)
-        .memoType(TEXT_MEMO_TYPE)
+        .memo(HASH_MEMO)
+        .memoType(HASH_MEMO_TYPE)
         .destinationAccount(DESTINATION_ACCOUNT)
         .build()
     val txn31 = JdbcSep31Transaction()
@@ -2124,8 +2124,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep31Txn.amountFeeAsset = STELLAR_USDC
     expectedSep31Txn.amountExpected = "1"
     expectedSep31Txn.toAccount = DESTINATION_ACCOUNT
-    expectedSep31Txn.stellarMemo = TEXT_MEMO
-    expectedSep31Txn.stellarMemoType = TEXT_MEMO_TYPE
+    expectedSep31Txn.stellarMemo = HASH_MEMO
+    expectedSep31Txn.stellarMemoType = HASH_MEMO_TYPE
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep31Txn),
@@ -2143,10 +2143,10 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountExpected = Amount("1", STELLAR_USDC)
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.destinationAccount = DESTINATION_ACCOUNT
-    expectedResponse.memo = TEXT_MEMO
-    expectedResponse.memoType = TEXT_MEMO_TYPE
-    expectedResponse.refundMemo = TEXT_MEMO
-    expectedResponse.refundMemoType = TEXT_MEMO_TYPE
+    expectedResponse.memo = HASH_MEMO
+    expectedResponse.memoType = HASH_MEMO_TYPE
+    expectedResponse.refundMemo = HASH_MEMO
+    expectedResponse.refundMemoType = HASH_MEMO_TYPE
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
@@ -2196,8 +2196,8 @@ class RequestOnchainFundsHandlerTest {
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .memo(TEXT_MEMO)
-        .memoType(TEXT_MEMO_TYPE)
+        .memo(HASH_MEMO)
+        .memoType(HASH_MEMO_TYPE)
         .amountIn(AmountAssetRequest("1", STELLAR_USDC))
         .amountOut(AmountAssetRequest("1", FIAT_USD))
         .feeDetails(FeeDetails("1", STELLAR_USDC))
