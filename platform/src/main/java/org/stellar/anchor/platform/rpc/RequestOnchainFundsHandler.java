@@ -225,7 +225,9 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       return supportedStatuses;
     }
     if (SEP_31 == Sep.from(txn.getProtocol())) {
-      return ImmutableSet.of(PENDING_RECEIVER);
+      if (!areFundsReceived(txn)) {
+        return ImmutableSet.of(PENDING_RECEIVER);
+      }
     }
     return Collections.emptySet();
   }
@@ -260,7 +262,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
         if (sep6DepositInfoGenerator instanceof Sep6DepositInfoNoneGenerator) {
           Memo memo = makeMemo(request.getMemo(), request.getMemoType());
           if (memo != null) {
-            txn6.setMemo(request.getMemo());
+            txn6.setMemo(memo.toString());
             txn6.setMemoType(memoTypeString(memoType(memo)));
           }
           txn6.setWithdrawAnchorAccount(request.getDestinationAccount());
@@ -294,7 +296,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
         if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
           Memo memo = makeMemo(request.getMemo(), request.getMemoType());
           if (memo != null) {
-            txn24.setMemo(request.getMemo());
+            txn24.setMemo(memo.toString());
             txn24.setMemoType(memoTypeString(memoType(memo)));
           }
           txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
@@ -330,7 +332,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
         if (sep31DepositInfoGenerator instanceof Sep31DepositInfoNoneGenerator) {
           Memo memo = makeMemo(request.getMemo(), request.getMemoType());
           if (memo != null) {
-            txn31.setStellarMemo(request.getMemo());
+            txn31.setStellarMemo(memo.toString());
             txn31.setStellarMemoType(memoTypeString(memoType(memo)));
           }
           txn31.setToAccount(request.getDestinationAccount());
