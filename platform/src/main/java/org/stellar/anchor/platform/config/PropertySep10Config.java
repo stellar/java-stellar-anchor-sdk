@@ -222,6 +222,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
         .map(clientService::getClientConfigByName)
         .filter(Objects::nonNull)
         .filter(config -> config instanceof NonCustodialClientConfig)
+        .filter(config -> ((NonCustodialClientConfig) config).getDomains() != null)
         .flatMap(config -> ((NonCustodialClientConfig) config).getDomains().stream())
         .collect(Collectors.toList());
   }
