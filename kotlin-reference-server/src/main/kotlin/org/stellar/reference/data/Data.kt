@@ -84,6 +84,9 @@ data class RequestOnchainFundsRequest(
   @SerialName("amount_in") val amountIn: AmountAssetRequest? = null,
   @SerialName("amount_out") val amountOut: AmountAssetRequest? = null,
   @SerialName("fee_details") val feeDetails: FeeDetails? = null,
+  @SerialName("destination_account") val destinationAccount: String? = null,
+  @SerialName("memo_type") val memoType: String? = null,
+  @SerialName("memo") val memo: String? = null,
   @SerialName("amount_expected") val amountExpected: AmountRequest? = null,
 ) : RpcActionParamsRequest()
 

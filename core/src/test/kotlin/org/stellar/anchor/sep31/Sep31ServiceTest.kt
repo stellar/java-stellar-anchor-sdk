@@ -342,15 +342,12 @@ class Sep31ServiceTest {
         sep10Config,
         sep31Config,
         txnStore,
-        sep31DepositInfoGenerator,
         quoteStore,
         clientService,
         assetService,
         rateIntegration,
         customerIntegration,
         eventService,
-        custodyService,
-        custodyConfig
       )
 
     request = gson.fromJson(requestJson, Sep31PostTransactionRequest::class.java)
@@ -395,15 +392,12 @@ class Sep31ServiceTest {
         sep10Config,
         sep31Config,
         txnStore,
-        sep31DepositInfoGenerator,
         quoteStore,
         clientService,
         assetServiceQuotesNotSupported,
         rateIntegration,
         customerIntegration,
         eventService,
-        custodyService,
-        custodyConfig
       )
     }
     assertInstanceOf(SepValidationException::class.java, ex)
@@ -809,8 +803,6 @@ class Sep31ServiceTest {
     request = GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
-    verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
-    verify(exactly = 1) { custodyService.createTransaction(any() as Sep31Transaction) }
     verify(exactly = 1) { eventSession.publish(any()) }
 
     // validate the values of the saved sep31Transaction
@@ -823,7 +815,7 @@ class Sep31ServiceTest {
     val wantTx =
       """{
       "id": "$txId",
-      "status": "pending_sender",
+      "status": "pending_receiver",
       "amountFee": "10",
       "amountFeeAsset": "$stellarUSDC",
       "startedAt": "$txStartedAt",
@@ -841,9 +833,6 @@ class Sep31ServiceTest {
       "amountInAsset": "$stellarUSDC",
       "amountOut": "12500",
       "amountOutAsset": "$stellarJPYC",
-      "toAccount": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-      "stellarMemo": "$memo",
-      "stellarMemoType": "hash",
       "receiverId":"137938d4-43a7-4252-a452-842adcee474c",
       "senderId":"d2bd1412-e2f6-4047-ad70-a1a2f133b25c",
       "creator": {
@@ -855,13 +844,7 @@ class Sep31ServiceTest {
     JSONAssert.assertEquals(wantTx, gotTx, true)
 
     // validate the final response
-    val wantResponse =
-      Sep31PostTransactionResponse.builder()
-        .id(txId)
-        .stellarAccountId("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I")
-        .stellarMemo(memo)
-        .stellarMemoType("hash")
-        .build()
+    val wantResponse = Sep31PostTransactionResponse.builder().id(txId).build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -924,15 +907,12 @@ class Sep31ServiceTest {
         sep10Config,
         sep31Config,
         txnStore,
-        sep31DepositInfoGenerator,
         quoteStore,
         clientService,
         assetServiceQuotesNotSupported,
         rateIntegration,
         customerIntegration,
-        eventService,
-        custodyService,
-        custodyConfig
+        eventService
       )
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
@@ -966,13 +946,7 @@ class Sep31ServiceTest {
     var gotResponse: Sep31PostTransactionResponse? = null
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
-    val wantResponse =
-      Sep31PostTransactionResponse.builder()
-        .id(gotResponse!!.id)
-        .stellarAccountId("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I")
-        .stellarMemo("123456")
-        .stellarMemoType("id")
-        .build()
+    val wantResponse = Sep31PostTransactionResponse.builder().id(gotResponse!!.id).build()
     assertEquals(wantResponse, gotResponse)
   }
 

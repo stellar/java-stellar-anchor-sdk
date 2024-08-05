@@ -18,6 +18,7 @@ object EventConsumerContainer {
     )
   private val sep31EventProcessor =
     Sep31EventProcessor(
+      config,
       ServiceContainer.platform,
     )
   private val noOpEventProcessor = NoOpEventProcessor()

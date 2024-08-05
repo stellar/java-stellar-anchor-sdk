@@ -12,7 +12,6 @@ import org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse
 
 class Sep38Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getInfo(): InfoResponse {
-    println("GET $endpoint/info")
     val responseBody = httpGet("$endpoint/info", jwt)
     return gson.fromJson(responseBody, InfoResponse::class.java)
   }
@@ -59,9 +58,6 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     context: Sep38Context = SEP31,
     expireAfter: Instant? = null
   ): Sep38QuoteResponse {
-    // build URL
-    println("$endpoint/quote")
-
     // build request body
     val requestBody =
       hashMapOf(
@@ -81,7 +77,6 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
   fun getQuote(quoteId: String): Sep38QuoteResponse {
     // build URL
     val url = "$endpoint/quote/$quoteId"
-    println("GET $url")
 
     val responseBody = httpGet(url, jwt)
     return gson.fromJson(responseBody, Sep38QuoteResponse::class.java)
