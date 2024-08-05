@@ -50,10 +50,10 @@ jobs:
       - name: Pull Stellar Validation Tests Docker Image
         run: docker pull stellar/anchor-tests:latest &
 
-      - name: Run Kafka, Postgres, and Sep24 UI with docker-compose
+      - name: Run Kafka, Postgres, and Sep24 UI with docker compose
         env:
           TEST_PROFILE_NAME: default
-        run: docker-compose -f /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/docker-compose-test.yaml up -d --build
+        run: docker compose -f /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/docker-compose-test.yaml up -d --build
 
       - name: Run sep server, platform server, observer, and reference servers for integration tests
         env:
