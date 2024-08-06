@@ -6,6 +6,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_AMOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_OFFCHAIN_ASSET
+import org.stellar.anchor.TestConstants.Companion.TEST_QUOTE_ID
 
 fun createTestTransactionRequest(quoteID: String? = null): MutableMap<String, String> {
   val request =
@@ -67,6 +68,7 @@ fun createTestTransactions(kind: String): MutableList<Sep24Transaction> {
   txn.protocol = "sep24"
   txn.amountIn = "321.4"
   txn.amountOut = "321.4"
+  txn.quoteId = TEST_QUOTE_ID
   txns.add(txn)
 
   txn = PojoSep24Transaction()
@@ -85,6 +87,7 @@ fun createTestTransactions(kind: String): MutableList<Sep24Transaction> {
   txn.protocol = "sep24"
   txn.amountIn = "456.7"
   txn.amountOut = "456.7"
+  txn.quoteId = TEST_QUOTE_ID
   txns.add(txn)
 
   return txns

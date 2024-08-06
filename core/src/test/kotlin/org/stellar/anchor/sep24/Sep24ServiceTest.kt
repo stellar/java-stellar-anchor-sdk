@@ -25,15 +25,12 @@ import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_NAME
 import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_OFFCHAIN_ASSET
+import org.stellar.anchor.TestConstants.Companion.TEST_QUOTE_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.callback.FeeIntegration
-import org.stellar.anchor.api.exception.BadRequestException
-import org.stellar.anchor.api.exception.SepException
-import org.stellar.anchor.api.exception.SepNotAuthorizedException
-import org.stellar.anchor.api.exception.SepNotFoundException
-import org.stellar.anchor.api.exception.SepValidationException
+import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.sep24.GetTransactionRequest
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
 import org.stellar.anchor.asset.AssetService
@@ -563,12 +560,14 @@ internal class Sep24ServiceTest {
     assertEquals(response.transactions[0].kind, kind)
     assertEquals(response.transactions[0].startedAt, TEST_STARTED_AT)
     assertEquals(response.transactions[0].completedAt, TEST_COMPLETED_AT)
+    assertEquals(response.transactions[0].quoteId, TEST_QUOTE_ID)
 
     assertEquals(response.transactions[1].id, TEST_TRANSACTION_ID_1)
     assertEquals(response.transactions[1].status, "completed")
     assertEquals(response.transactions[1].kind, kind)
     assertEquals(response.transactions[1].startedAt, TEST_STARTED_AT)
     assertEquals(response.transactions[1].completedAt, TEST_COMPLETED_AT)
+    assertEquals(response.transactions[1].quoteId, TEST_QUOTE_ID)
   }
 
   @ParameterizedTest
