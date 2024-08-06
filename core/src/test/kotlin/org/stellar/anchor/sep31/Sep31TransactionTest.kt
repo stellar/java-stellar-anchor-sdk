@@ -158,6 +158,7 @@ class Sep31TransactionTest {
             .amountFee("2.0000")
             .amountFeeAsset(fiatUSD)
             .feeDetails(FeeDetails("2.0000", fiatUSD))
+            .quoteId("quote-id")
             .stellarAccountId(TEST_ACCOUNT)
             .stellarMemo(TEST_MEMO)
             .stellarMemoType("text")
