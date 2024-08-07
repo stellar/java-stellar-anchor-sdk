@@ -95,7 +95,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
             && request.getAmountOut() != null
             && (request.getAmountFee() != null || request.getFeeDetails() != null)))) {
       throw new InvalidParamsException(
-          "All or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set");
+          "All (amount_out is optional) or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set");
     }
 
     // In case 2nd predicate in previous IF statement was TRUE
@@ -139,9 +139,6 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
 
     if (request.getAmountIn() == null && txn.getAmountIn() == null) {
       throw new InvalidParamsException("amount_in is required");
-    }
-    if (request.getAmountOut() == null && txn.getAmountOut() == null) {
-      throw new InvalidParamsException("amount_out is required");
     }
     if (request.getAmountFee() == null
         && request.getFeeDetails() == null

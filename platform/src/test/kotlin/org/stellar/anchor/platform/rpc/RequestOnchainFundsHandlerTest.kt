@@ -27,10 +27,7 @@ import org.stellar.anchor.api.rpc.method.AmountAssetRequest
 import org.stellar.anchor.api.rpc.method.AmountRequest
 import org.stellar.anchor.api.rpc.method.RequestOnchainFundsRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
-import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.Customers
-import org.stellar.anchor.api.shared.SepDepositInfo
-import org.stellar.anchor.api.shared.StellarId
+import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
@@ -194,13 +191,14 @@ class RequestOnchainFundsHandlerTest {
   }
 
   @Test
-  fun test_handle_withoutAmounts_amount_out_absent() {
+  fun test_handle_withoutAmounts_fee_absent() {
     val request = RequestOnchainFundsRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = WITHDRAWAL.kind
     txn24.amountIn = "1"
     txn24.amountInAsset = STELLAR_USDC
+    txn24.feeDetails = FeeDetails()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn6Store.findByTransactionId(any()) } returns null
@@ -209,7 +207,7 @@ class RequestOnchainFundsHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("amount_out is required", ex.message)
+    assertEquals("fee_details or amount_fee is required", ex.message)
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
@@ -263,7 +261,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "All or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set",
+      "All (amount_out is optional) or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set",
       ex.message
     )
 
