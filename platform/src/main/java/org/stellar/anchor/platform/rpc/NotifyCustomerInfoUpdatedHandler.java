@@ -59,8 +59,12 @@ public class NotifyCustomerInfoUpdatedHandler
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, NotifyCustomerInfoUpdatedRequest request) {
+      JdbcSepTransaction txn, NotifyCustomerInfoUpdatedRequest request)
+      throws InvalidRequestException {
     if (SEP_6 == Sep.from(txn.getProtocol())) {
+      if (request.getStatus() == null) {
+        return PENDING_ANCHOR;
+      }
       switch (Sep12Status.valueOf(request.getStatus())) {
         case ACCEPTED, PROCESSING:
           return PENDING_ANCHOR;
@@ -70,7 +74,22 @@ public class NotifyCustomerInfoUpdatedHandler
           return ERROR;
       }
     }
-    return PENDING_RECEIVER;
+    if (SEP_31 == Sep.from(txn.getProtocol())) {
+      if (request.getStatus() == null) {
+        return PENDING_RECEIVER;
+      }
+      switch (Sep12Status.valueOf(request.getStatus())) {
+        case ACCEPTED, PROCESSING:
+          return PENDING_RECEIVER;
+        case NEEDS_INFO:
+          return PENDING_CUSTOMER_INFO_UPDATE;
+        case REJECTED:
+          return ERROR;
+      }
+    }
+    throw new InvalidRequestException(
+        String.format(
+            "RPC method[%s] is not supported for protocol[%s]", getRpcMethod(), txn.getProtocol()));
   }
 
   @Override
@@ -79,7 +98,7 @@ public class NotifyCustomerInfoUpdatedHandler
       case SEP_6:
         return Set.of(PENDING_ANCHOR, PENDING_CUSTOMER_INFO_UPDATE);
       case SEP_31:
-        return Set.of(PENDING_CUSTOMER_INFO_UPDATE);
+        return Set.of(PENDING_RECEIVER, PENDING_CUSTOMER_INFO_UPDATE);
       default:
         return emptySet();
     }
