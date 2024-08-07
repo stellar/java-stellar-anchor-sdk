@@ -77,7 +77,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
 
   @Override
   boolean handleEvent(AnchorEvent event) throws IOException {
-    if (event.getTransaction() != null) {
+    if (event.getTransaction() != null || event.getCustomer() != null) {
       KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
       Request request = buildHttpRequest(signer, event);
       Response response = httpClient.newCall(request).execute();
