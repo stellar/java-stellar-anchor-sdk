@@ -14,6 +14,7 @@ dependencies {
   implementation(libs.jakarta.annotation.api)
   implementation(libs.jakarta.validation.api)
   implementation(libs.google.gson)
+  implementation(libs.spring.data.commons)
 
   annotationProcessor(libs.lombok)
 }

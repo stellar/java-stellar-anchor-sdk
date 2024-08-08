@@ -14,12 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.platform.GetTransactionResponse;
-import org.stellar.anchor.api.platform.GetTransactionsResponse;
-import org.stellar.anchor.api.platform.PatchTransactionsRequest;
-import org.stellar.anchor.api.platform.PatchTransactionsResponse;
-import org.stellar.anchor.api.platform.TransactionsOrderBy;
-import org.stellar.anchor.api.platform.TransactionsSeps;
+import org.stellar.anchor.api.platform.*;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.service.TransactionService;
@@ -36,6 +31,7 @@ public class PlatformController {
     this.custodyService = custodyService;
   }
 
+  @Deprecated // ANCHOR-641 Use Rpc method GET_TRANSACTION instead
   @CrossOrigin(origins = "*")
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
@@ -47,6 +43,7 @@ public class PlatformController {
     return transactionService.findTransaction(txnId);
   }
 
+  @Deprecated // ANCHOR-641
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/transactions/{id}/payments",
@@ -59,6 +56,7 @@ public class PlatformController {
     return custodyService.createTransactionPayment(txnId, requestBody);
   }
 
+  @Deprecated // ANCHOR-641 Use corresponding Rpc method to update transaction/**/
   @CrossOrigin(origins = "*")
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
@@ -71,6 +69,7 @@ public class PlatformController {
     return transactionService.patchTransactions(request);
   }
 
+  @Deprecated // ANCHOR-641 Use Rpc method GET_TRANSACTIONS instead
   @CrossOrigin(origins = "*")
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
@@ -80,14 +79,14 @@ public class PlatformController {
   public GetTransactionsResponse getTransactions(
       @RequestParam(value = "sep") TransactionsSeps sep,
       @RequestParam(required = false, value = "order_by", defaultValue = "created_at")
-          TransactionsOrderBy order_by,
+          TransactionsOrderBy orderBy,
       @RequestParam(required = false, value = "order", defaultValue = "asc") Sort.Direction order,
       @RequestParam(required = false, value = "statuses") List<SepTransactionStatus> statuses,
       @RequestParam(required = false, value = "page_number", defaultValue = "0") Integer pageNumber,
       @RequestParam(required = false, value = "page_size", defaultValue = "20") Integer pageSize)
       throws AnchorException {
     TransactionsParams params =
-        new TransactionsParams(order_by, order, statuses, pageNumber, pageSize);
+        new TransactionsParams(orderBy, order, statuses, pageNumber, pageSize);
     return transactionService.findTransactions(sep, params);
   }
 }

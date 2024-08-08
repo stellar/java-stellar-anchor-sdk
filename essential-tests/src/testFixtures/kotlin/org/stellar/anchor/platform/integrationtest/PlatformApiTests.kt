@@ -3,15 +3,17 @@ package org.stellar.anchor.platform.integrationtest
 import com.google.gson.reflect.TypeToken
 import org.apache.hc.core5.http.HttpStatus.SC_OK
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.comparator.CustomComparator
+import org.springframework.data.domain.Sort
+import org.stellar.anchor.api.platform.TransactionsOrderBy
+import org.stellar.anchor.api.platform.TransactionsSeps
 import org.stellar.anchor.api.rpc.RpcRequest
-import org.stellar.anchor.api.rpc.method.NotifyOffchainFundsReceivedRequest
-import org.stellar.anchor.api.rpc.method.RequestOffchainFundsRequest
-import org.stellar.anchor.api.rpc.method.RpcMethod
+import org.stellar.anchor.api.rpc.method.*
 import org.stellar.anchor.api.rpc.method.RpcMethod.REQUEST_OFFCHAIN_FUNDS
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
@@ -328,6 +330,70 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS,
       SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES
     )
+  }
+
+  @Test
+  fun `test get transaction by api and rpc`() {
+    val depositRequest = gson.fromJson(SEP_24_DEPOSIT_REQUEST, HashMap::class.java)
+
+    @Suppress("UNCHECKED_CAST")
+    val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
+    val txId = depositResponse.id
+
+    val rpcTxn = platformApiClient.getTransactionByRpc(txId)
+    JSONAssert.assertEquals(
+      EXPECTED_GET_TRANSACTION_BY_RPC_RESPONSE.replace(TX_ID, txId).trimIndent(),
+      gson.toJson(rpcTxn),
+      CustomComparator(
+        JSONCompareMode.STRICT,
+        Customization("started_at") { _, _ -> true },
+        Customization("updated_at") { _, _ -> true }
+      )
+    )
+
+    val apiTxn = platformApiClient.getTransaction(txId)
+    assertEquals(
+      gson.toJson(apiTxn),
+      gson.toJson(rpcTxn),
+    )
+  }
+
+  @Test
+  fun `get transactions by rpc`() {
+    val depositRequest = gson.fromJson(SEP_24_DEPOSIT_REQUEST, HashMap::class.java)
+
+    @Suppress("UNCHECKED_CAST")
+    val depositResponse1 = sep24Client.deposit(depositRequest as HashMap<String, String>)
+    val txId1 = depositResponse1.id
+    val depositResponse2 = sep24Client.deposit(depositRequest as HashMap<String, String>)
+    val txId2 = depositResponse2.id
+
+    val rpcTxns1 =
+      platformApiClient.getTransactionsByRpc(
+        TransactionsSeps.SEP_24,
+        TransactionsOrderBy.CREATED_AT,
+        Sort.Direction.DESC,
+        null,
+        5,
+        0
+      )
+    // Validate descending order
+    assertEquals(txId2, rpcTxns1.records[0].id)
+    assertEquals(txId1, rpcTxns1.records[1].id)
+
+    val rpcTxns2 =
+      platformApiClient.getTransactionsByRpc(
+        TransactionsSeps.SEP_24,
+        TransactionsOrderBy.CREATED_AT,
+        Sort.Direction.DESC,
+        listOf(SepTransactionStatus.COMPLETED),
+        5,
+        0
+      )
+    // txn1 and txn2 are both incomplete
+    val rpcTxnIds = rpcTxns2.records.map { txn -> txn.id }
+    assertFalse(rpcTxnIds.contains(txId1))
+    assertFalse(rpcTxnIds.contains(txId2))
   }
 
   @Test
@@ -6430,6 +6496,35 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           }
         ]
       """
+
+    private const val EXPECTED_GET_TRANSACTION_BY_RPC_RESPONSE =
+      """
+          {
+            "id": "testTxId",
+            "sep": "24",
+            "kind": "deposit",
+            "status": "incomplete",
+            "amount_expected": {
+              "asset":
+"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            },
+            "started_at": "2024-08-07T20:36:18.344467Z",
+            "destination_account":
+"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+            "client_name": "referenceCustodial",
+            "customers": {
+              "sender": {
+                "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+              },
+              "receiver": {
+                "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+              }
+            },
+            "creator": {
+              "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+            }
+          }
+          """
 
     private const val CUSTOMER_1 =
       """

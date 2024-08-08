@@ -4,7 +4,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -172,24 +172,49 @@ public class SepHelper {
     }
   }
 
-  static final List<SepTransactionStatus> sep24Statuses =
-      List.of(
-          INCOMPLETE,
-          PENDING_USR_TRANSFER_START,
-          PENDING_USR_TRANSFER_COMPLETE,
+  public static final Set<SepTransactionStatus> sep6Statuses =
+      Set.of(
           PENDING_EXTERNAL,
           PENDING_ANCHOR,
+          ON_HOLD,
           PENDING_STELLAR,
           PENDING_TRUST,
           PENDING_USER,
+          PENDING_USR_TRANSFER_START,
+          PENDING_USR_TRANSFER_COMPLETE,
+          PENDING_CUSTOMER_INFO_UPDATE,
+          PENDING_TRANSACTION_INFO_UPDATE,
           COMPLETED,
+          INCOMPLETE,
+          EXPIRED,
           NO_MARKET,
           TOO_SMALL,
           TOO_LARGE,
-          ERROR);
+          ERROR,
+          REFUNDED);
 
-  static final List<SepTransactionStatus> sep31Statuses =
-      List.of(
+  public static final Set<SepTransactionStatus> sep24Statuses =
+      Set.of(
+          PENDING_EXTERNAL,
+          PENDING_ANCHOR,
+          ON_HOLD,
+          PENDING_STELLAR,
+          PENDING_TRUST,
+          PENDING_USER,
+          PENDING_USR_TRANSFER_START,
+          PENDING_USR_TRANSFER_COMPLETE,
+          PENDING_TRANSACTION_INFO_UPDATE,
+          COMPLETED,
+          INCOMPLETE,
+          EXPIRED,
+          NO_MARKET,
+          TOO_SMALL,
+          TOO_LARGE,
+          ERROR,
+          REFUNDED);
+
+  public static final Set<SepTransactionStatus> sep31Statuses =
+      Set.of(
           PENDING_SENDER,
           PENDING_STELLAR,
           PENDING_CUSTOMER_INFO_UPDATE,
@@ -198,5 +223,6 @@ public class SepHelper {
           PENDING_EXTERNAL,
           COMPLETED,
           EXPIRED,
-          ERROR);
+          ERROR,
+          REFUNDED);
 }

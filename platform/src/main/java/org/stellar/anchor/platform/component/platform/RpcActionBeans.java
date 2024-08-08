@@ -80,6 +80,44 @@ public class RpcActionBeans {
   }
 
   @Bean
+  GetTransactionHandler getTransactionHandler(
+      Sep6TransactionStore txn6Store,
+      Sep24TransactionStore txn24Store,
+      Sep31TransactionStore txn31Store,
+      RequestValidator requestValidator,
+      AssetService assetService,
+      EventService eventService,
+      MetricsService metricsService) {
+    return new GetTransactionHandler(
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
+  }
+
+  @Bean
+  GetTransactionsHandler getTransactionsHandler(
+      Sep6TransactionStore txn6Store,
+      Sep24TransactionStore txn24Store,
+      Sep31TransactionStore txn31Store,
+      RequestValidator requestValidator,
+      AssetService assetService,
+      EventService eventService,
+      MetricsService metricsService) {
+    return new GetTransactionsHandler(
+        txn6Store,
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        metricsService);
+  }
+
+  @Bean
   NotifyAmountsUpdatedHandler notifyAmountsUpdatedHandler(
       Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,

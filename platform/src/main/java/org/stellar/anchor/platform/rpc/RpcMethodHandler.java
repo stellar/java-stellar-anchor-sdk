@@ -45,7 +45,7 @@ import org.stellar.anchor.util.Log;
 
 public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
 
-  private static final Gson gson = GsonUtils.getInstance();
+  protected static final Gson gson = GsonUtils.getInstance();
 
   protected final Sep6TransactionStore txn6Store;
   protected final Sep24TransactionStore txn24Store;
@@ -75,7 +75,7 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
   }
 
-  public GetTransactionResponse handle(Object requestParams) throws AnchorException {
+  public Object handle(Object requestParams) throws AnchorException {
     T request = gson.fromJson(gson.toJson(requestParams), requestType);
     Log.infoF("Processing RPC request {}", request);
     JdbcSepTransaction txn = getTransaction(request.getTransactionId());
@@ -122,7 +122,7 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
             .transaction(txResponse)
             .build());
 
-    return toGetTransactionResponse(txn, assetService);
+    return txResponse;
   }
 
   public abstract RpcMethod getRpcMethod();
