@@ -84,7 +84,7 @@ public class NotifyOnchainFundsReceivedHandler
     }
 
     if (request.getAmountIn() != null) {
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "amount_in",
           AmountAssetRequest.builder()
               .amount(request.getAmountIn().getAmount())
@@ -93,7 +93,7 @@ public class NotifyOnchainFundsReceivedHandler
           assetService);
     }
     if (request.getAmountOut() != null) {
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "amount_out",
           AmountAssetRequest.builder()
               .amount(request.getAmountOut().getAmount())
@@ -102,7 +102,7 @@ public class NotifyOnchainFundsReceivedHandler
           assetService);
     }
     if (request.getAmountFee() != null) {
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "amount_fee",
           AmountAssetRequest.builder()
               .amount(request.getAmountFee().getAmount())
