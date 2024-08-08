@@ -7,6 +7,9 @@ import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_CUSTOMER_INFO_U
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
 import java.util.Set;
+import org.stellar.anchor.api.callback.CustomerIntegration;
+import org.stellar.anchor.api.callback.GetCustomerRequest;
+import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
@@ -26,12 +29,14 @@ import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyCustomerInfoUpdatedHandler
     extends RpcMethodHandler<NotifyCustomerInfoUpdatedRequest> {
+  private final CustomerIntegration customerIntegration;
 
   public NotifyCustomerInfoUpdatedHandler(
       Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
+      CustomerIntegration customerIntegration,
       AssetService assetService,
       EventService eventService,
       MetricsService metricsService) {
@@ -44,6 +49,7 @@ public class NotifyCustomerInfoUpdatedHandler
         eventService,
         metricsService,
         NotifyCustomerInfoUpdatedRequest.class);
+    this.customerIntegration = customerIntegration;
   }
 
   @Override
@@ -59,13 +65,25 @@ public class NotifyCustomerInfoUpdatedHandler
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, NotifyCustomerInfoUpdatedRequest request)
-      throws InvalidRequestException {
+      JdbcSepTransaction txn, NotifyCustomerInfoUpdatedRequest request) throws AnchorException {
+    String status = null;
+    if (request.getCustomerId() != null) {
+      status =
+          customerIntegration
+              .getCustomer(
+                  GetCustomerRequest.builder()
+                      .transactionId(txn.getId())
+                      .id(request.getCustomerId())
+                      .type(request.getType())
+                      .build())
+              .getStatus();
+    }
+
     if (SEP_6 == Sep.from(txn.getProtocol())) {
-      if (request.getStatus() == null) {
+      if (status == null) {
         return PENDING_ANCHOR;
       }
-      switch (Sep12Status.valueOf(request.getStatus())) {
+      switch (Sep12Status.valueOf(status)) {
         case ACCEPTED, PROCESSING:
           return PENDING_ANCHOR;
         case NEEDS_INFO:
@@ -75,10 +93,10 @@ public class NotifyCustomerInfoUpdatedHandler
       }
     }
     if (SEP_31 == Sep.from(txn.getProtocol())) {
-      if (request.getStatus() == null) {
+      if (status == null) {
         return PENDING_RECEIVER;
       }
-      switch (Sep12Status.valueOf(request.getStatus())) {
+      switch (Sep12Status.valueOf(status)) {
         case ACCEPTED, PROCESSING:
           return PENDING_RECEIVER;
         case NEEDS_INFO:

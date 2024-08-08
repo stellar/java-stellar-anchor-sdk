@@ -14,6 +14,9 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.callback.CustomerIntegration
+import org.stellar.anchor.api.callback.GetCustomerRequest
+import org.stellar.anchor.api.callback.GetCustomerResponse
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
@@ -45,6 +48,9 @@ class NotifyCustomerInfoUpdatedHandlerTest {
   companion object {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
+    private const val TEST_CUSTOMER_ID = "testCustomerId"
+    private const val TEST_CUSTOMER_TYPE = "type"
+    private const val TEST_MESSAGE = "customer updated"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
@@ -55,6 +61,8 @@ class NotifyCustomerInfoUpdatedHandlerTest {
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
   @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
+
+  @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -79,6 +87,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
         txn24Store,
         txn31Store,
         requestValidator,
+        customerIntegration,
         assetService,
         eventService,
         metricsService
@@ -103,6 +112,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
       ex.message
     )
 
+    verify(exactly = 0) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
@@ -125,6 +135,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
       ex.message
     )
 
+    verify(exactly = 0) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
@@ -146,6 +157,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
 
+    verify(exactly = 0) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
@@ -153,7 +165,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
   }
 
   @Test
-  fun test_handle_sep31_ok_without_status() {
+  fun test_handle_sep31_ok_without_id() {
     val request = NotifyCustomerInfoUpdatedRequest.builder().transactionId(TX_ID).build()
     val txn31 = JdbcSep31Transaction()
     txn31.status = PENDING_CUSTOMER_INFO_UPDATE.toString()
@@ -173,6 +185,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
@@ -233,23 +246,30 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     "REJECTED, pending_receiver, error",
     "REJECTED, pending_customer_info_update, error",
   )
-  fun test_handle_sep31_ok_with_status(
-    customerStatus: String,
-    oldStatus: String,
-    newStatus: String
-  ) {
+  fun test_handle_sep31_ok_with_id(customerStatus: String, oldStatus: String, newStatus: String) {
     val request =
       NotifyCustomerInfoUpdatedRequest.builder()
         .transactionId(TX_ID)
-        .status(customerStatus)
-        .message("customer updated")
+        .customerId(TEST_CUSTOMER_ID)
+        .type(TEST_CUSTOMER_TYPE)
+        .message(TEST_MESSAGE)
         .build()
     val txn31 = JdbcSep31Transaction()
+    txn31.id = TX_ID
     txn31.status = oldStatus
     txn31.userActionRequiredBy = Instant.now()
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    every {
+      customerIntegration.getCustomer(
+        GetCustomerRequest.builder()
+          .transactionId(TX_ID)
+          .id(TEST_CUSTOMER_ID)
+          .type(TEST_CUSTOMER_TYPE)
+          .build()
+      )
+    } returns GetCustomerResponse.builder().status(customerStatus).build()
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
@@ -267,9 +287,10 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep31Txn = JdbcSep31Transaction()
+    expectedSep31Txn.id = TX_ID
     expectedSep31Txn.status = newStatus
     expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
-    expectedSep31Txn.requiredInfoMessage = "customer updated"
+    expectedSep31Txn.requiredInfoMessage = TEST_MESSAGE
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep31Txn),
@@ -278,6 +299,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     )
 
     val expectedResponse = GetTransactionResponse()
+    expectedResponse.id = TX_ID
     expectedResponse.sep = SEP_31
     expectedResponse.kind = RECEIVE
     expectedResponse.status = SepTransactionStatus.from(newStatus)
@@ -286,7 +308,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     expectedResponse.amountFee = Amount()
     expectedResponse.amountExpected = Amount()
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
-    expectedResponse.message = "customer updated"
+    expectedResponse.message = TEST_MESSAGE
     expectedResponse.customers = Customers(StellarId(), StellarId())
 
     JSONAssert.assertEquals(
@@ -328,6 +350,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
 
+    verify(exactly = 0) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
@@ -336,7 +359,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
-  fun test_handle_sep6_ok_without_status(kind: String) {
+  fun test_handle_sep6_ok_without_id(kind: String) {
     val request = NotifyCustomerInfoUpdatedRequest.builder().transactionId(TX_ID).build()
     val txn6 = JdbcSep6Transaction()
     txn6.status = PENDING_CUSTOMER_INFO_UPDATE.toString()
@@ -357,6 +380,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val response = handler.handle(request)
     val endDate = Instant.now()
 
+    verify(exactly = 0) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
     verify(exactly = 1) { sepTransactionCounter.increment() }
@@ -423,7 +447,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     "withdrawal, REJECTED, pending_anchor, error",
     "withdrawal, REJECTED, pending_customer_info_update, error",
   )
-  fun test_handle_sep6_ok_without_status(
+  fun test_handle_sep6_ok_with_id(
     kind: String,
     customerStatus: String,
     oldStatus: String,
@@ -432,16 +456,27 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val request =
       NotifyCustomerInfoUpdatedRequest.builder()
         .transactionId(TX_ID)
-        .status(customerStatus)
-        .message("customer updated")
+        .customerId(TEST_CUSTOMER_ID)
+        .type(TEST_CUSTOMER_TYPE)
+        .message(TEST_MESSAGE)
         .build()
     val txn6 = JdbcSep6Transaction()
+    txn6.id = TX_ID
     txn6.status = oldStatus
     txn6.kind = kind
     txn6.userActionRequiredBy = Instant.now()
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = slot<AnchorEvent>()
 
+    every {
+      customerIntegration.getCustomer(
+        GetCustomerRequest.builder()
+          .id(TEST_CUSTOMER_ID)
+          .transactionId(TX_ID)
+          .type(TEST_CUSTOMER_TYPE)
+          .build()
+      )
+    } returns GetCustomerResponse.builder().status(customerStatus).build()
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(any()) } returns null
@@ -459,10 +494,11 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     verify(exactly = 1) { sepTransactionCounter.increment() }
 
     val expectedSep6Txn = JdbcSep6Transaction()
+    expectedSep6Txn.id = TX_ID
     expectedSep6Txn.status = newStatus
     expectedSep6Txn.kind = kind
     expectedSep6Txn.updatedAt = sep6TxnCapture.captured.updatedAt
-    expectedSep6Txn.message = "customer updated"
+    expectedSep6Txn.message = TEST_MESSAGE
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep6Txn),
@@ -471,12 +507,13 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     )
 
     val expectedResponse = GetTransactionResponse()
+    expectedResponse.id = TX_ID
     expectedResponse.sep = SEP_6
     expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = SepTransactionStatus.from(newStatus)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
-    expectedResponse.message = "customer updated"
+    expectedResponse.message = TEST_MESSAGE
     expectedResponse.customers = Customers(StellarId(), StellarId())
 
     JSONAssert.assertEquals(
