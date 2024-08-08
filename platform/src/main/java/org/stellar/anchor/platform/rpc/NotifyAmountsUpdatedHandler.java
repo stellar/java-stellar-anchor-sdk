@@ -60,7 +60,7 @@ public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsU
       throw new InvalidParamsException("Either amount_fee or fee_details must be set");
     }
 
-    AssetValidationUtils.validateAsset(
+    AssetValidationUtils.validateAssetAmount(
         "amount_out",
         AmountAssetRequest.builder()
             .amount(request.getAmountOut().getAmount())
@@ -69,7 +69,7 @@ public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsU
         true,
         assetService);
     if (request.getAmountFee() != null) {
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "amount_fee",
           AmountAssetRequest.builder()
               .amount(request.getAmountFee().getAmount())
