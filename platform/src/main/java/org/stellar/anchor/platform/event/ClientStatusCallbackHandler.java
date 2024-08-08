@@ -19,8 +19,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.callback.CustomerIntegration;
-import org.stellar.anchor.api.callback.GetCustomerRequest;
-import org.stellar.anchor.api.callback.GetCustomerResponse;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -141,11 +139,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
               String.format("Unsupported SEP: %s", event.getTransaction().getSep()));
       }
     } else if (event.getCustomer() != null) {
-      GetCustomerResponse res =
-          customerIntegration.getCustomer(
-              GetCustomerRequest.builder().id(event.getCustomer().getId()).build());
-
-      return json(GetCustomerResponse.to(res));
+      return json(event.getCustomer());
     } else {
       throw new InternalServerErrorException("Event must have either a transaction or a customer");
     }

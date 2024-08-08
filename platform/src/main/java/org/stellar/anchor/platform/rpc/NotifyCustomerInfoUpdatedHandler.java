@@ -1,14 +1,16 @@
 package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.*;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.NOTIFY_CUSTOMER_INFO_UPDATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
 import java.util.Set;
+import java.util.UUID;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.GetCustomerRequest;
+import org.stellar.anchor.api.callback.GetCustomerResponse;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
@@ -30,6 +32,7 @@ import org.stellar.anchor.sep6.Sep6TransactionStore;
 public class NotifyCustomerInfoUpdatedHandler
     extends RpcMethodHandler<NotifyCustomerInfoUpdatedRequest> {
   private final CustomerIntegration customerIntegration;
+  private final EventService.Session eventSession;
 
   public NotifyCustomerInfoUpdatedHandler(
       Sep6TransactionStore txn6Store,
@@ -50,6 +53,8 @@ public class NotifyCustomerInfoUpdatedHandler
         metricsService,
         NotifyCustomerInfoUpdatedRequest.class);
     this.customerIntegration = customerIntegration;
+    this.eventSession =
+        eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
   }
 
   @Override
@@ -68,15 +73,21 @@ public class NotifyCustomerInfoUpdatedHandler
       JdbcSepTransaction txn, NotifyCustomerInfoUpdatedRequest request) throws AnchorException {
     String status = null;
     if (request.getCustomerId() != null) {
-      status =
-          customerIntegration
-              .getCustomer(
-                  GetCustomerRequest.builder()
-                      .transactionId(txn.getId())
-                      .id(request.getCustomerId())
-                      .type(request.getType())
-                      .build())
-              .getStatus();
+      GetCustomerResponse customer =
+          customerIntegration.getCustomer(
+              GetCustomerRequest.builder()
+                  .transactionId(txn.getId())
+                  .id(request.getCustomerId())
+                  .type(request.getType())
+                  .build());
+      status = customer.getStatus();
+      eventSession.publish(
+          AnchorEvent.builder()
+              .id(UUID.randomUUID().toString())
+              .sep(SEP_12.getSep().toString())
+              .type(AnchorEvent.Type.CUSTOMER_UPDATED)
+              .customer(GetCustomerResponse.to(customer))
+              .build());
     }
 
     if (SEP_6 == Sep.from(txn.getProtocol())) {

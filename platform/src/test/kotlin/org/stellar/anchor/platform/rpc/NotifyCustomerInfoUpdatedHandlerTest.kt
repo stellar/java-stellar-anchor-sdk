@@ -259,8 +259,9 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     txn31.status = oldStatus
     txn31.userActionRequiredBy = Instant.now()
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
-    val anchorEventCapture = slot<AnchorEvent>()
+    val anchorEventCapture = mutableListOf<AnchorEvent>()
 
+    val customer = GetCustomerResponse.builder().status(customerStatus).build()
     every {
       customerIntegration.getCustomer(
         GetCustomerRequest.builder()
@@ -269,7 +270,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
           .type(TEST_CUSTOMER_TYPE)
           .build()
       )
-    } returns GetCustomerResponse.builder().status(customerStatus).build()
+    } returns customer
     every { txn6Store.findByTransactionId(any()) } returns null
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
@@ -317,9 +318,23 @@ class NotifyCustomerInfoUpdatedHandlerTest {
       JSONCompareMode.STRICT
     )
 
+    val expectedCustomerEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture[0].id)
+        .sep(SEP_12.sep.toString())
+        .type(AnchorEvent.Type.CUSTOMER_UPDATED)
+        .customer(GetCustomerResponse.to(customer))
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedCustomerEvent),
+      gson.toJson(anchorEventCapture[0]),
+      JSONCompareMode.STRICT
+    )
+
     val expectedEvent =
       AnchorEvent.builder()
-        .id(anchorEventCapture.captured.id)
+        .id(anchorEventCapture[1].id)
         .sep(SEP_31.sep.toString())
         .type(AnchorEvent.Type.TRANSACTION_STATUS_CHANGED)
         .transaction(expectedResponse)
@@ -327,7 +342,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
 
     JSONAssert.assertEquals(
       gson.toJson(expectedEvent),
-      gson.toJson(anchorEventCapture.captured),
+      gson.toJson(anchorEventCapture[1]),
       JSONCompareMode.STRICT
     )
 
@@ -466,8 +481,9 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     txn6.kind = kind
     txn6.userActionRequiredBy = Instant.now()
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
-    val anchorEventCapture = slot<AnchorEvent>()
+    val anchorEventCapture = mutableListOf<AnchorEvent>()
 
+    val customer = GetCustomerResponse.builder().status(customerStatus).build()
     every {
       customerIntegration.getCustomer(
         GetCustomerRequest.builder()
@@ -476,7 +492,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
           .type(TEST_CUSTOMER_TYPE)
           .build()
       )
-    } returns GetCustomerResponse.builder().status(customerStatus).build()
+    } returns customer
     every { txn6Store.findByTransactionId(TX_ID) } returns txn6
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(any()) } returns null
@@ -522,17 +538,31 @@ class NotifyCustomerInfoUpdatedHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    val expectedEvent =
+    val expectedCustomerEvent =
       AnchorEvent.builder()
-        .id(anchorEventCapture.captured.id)
+        .id(anchorEventCapture[0].id)
+        .sep(SEP_12.sep.toString())
+        .type(AnchorEvent.Type.CUSTOMER_UPDATED)
+        .customer(GetCustomerResponse.to(customer))
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedCustomerEvent),
+      gson.toJson(anchorEventCapture[0]),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedTxnEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture[1].id)
         .sep(SEP_6.sep.toString())
         .type(AnchorEvent.Type.TRANSACTION_STATUS_CHANGED)
         .transaction(expectedResponse)
         .build()
 
     JSONAssert.assertEquals(
-      gson.toJson(expectedEvent),
-      gson.toJson(anchorEventCapture.captured),
+      gson.toJson(expectedTxnEvent),
+      gson.toJson(anchorEventCapture[1]),
       JSONCompareMode.STRICT
     )
 
