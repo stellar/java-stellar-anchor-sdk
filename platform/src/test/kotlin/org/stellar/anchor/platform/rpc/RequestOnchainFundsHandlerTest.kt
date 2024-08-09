@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.event.AnchorEvent
@@ -539,6 +540,63 @@ class RequestOnchainFundsHandlerTest {
       "RPC method[request_onchain_funds] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @Test
+  fun test_handle_sep24_with_quote_amount_out_missing() {
+    val request =
+      RequestOnchainFundsRequest.builder()
+        .amountIn(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(Amount("0.1", STELLAR_USDC).toRate())
+        .transactionId(TX_ID)
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.quoteId = "testQuoteId"
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn6Store.findByTransactionId(any()) } returns null
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("amount_out is required for transactions with firm quotes", ex.message)
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @Test
+  fun test_handle_sep24_with_simple_quote() {
+    val request =
+      RequestOnchainFundsRequest.builder()
+        .amountIn(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(Amount("0.1", STELLAR_USDC).toRate())
+        .transactionId(TX_ID)
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.amountInAsset = STELLAR_USDC
+    txn24.amountOutAsset = STELLAR_USDC
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn6Store.findByTransactionId(any()) } returns null
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("amount_out is required for non-exchange transactions", ex.message)
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
@@ -1203,6 +1261,65 @@ class RequestOnchainFundsHandlerTest {
       "RPC method[request_onchain_funds] is not supported. Status[incomplete], kind[$kind], protocol[6], funds received[false]",
       ex.message
     )
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["withdrawal", "withdrawal-exchange"])
+  fun test_handle_sep6_with_quote_amount_out_missing(kind: String) {
+    val request =
+      RequestOnchainFundsRequest.builder()
+        .amountIn(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(Amount("0.1", STELLAR_USDC).toRate())
+        .transactionId(TX_ID)
+        .build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = INCOMPLETE.toString()
+    txn6.kind = kind
+    txn6.quoteId = "testQuoteId"
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+
+    every { txn6Store.findByTransactionId(any()) } returns txn6
+    every { txn24Store.findByTransactionId(TX_ID) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("amount_out is required for transactions with firm quotes", ex.message)
+
+    verify(exactly = 0) { txn6Store.save(any()) }
+    verify(exactly = 0) { txn24Store.save(any()) }
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { sepTransactionCounter.increment() }
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["withdrawal", "withdrawal-exchange"])
+  fun test_handle_sep6_with_simple_quote(kind: String) {
+    val request =
+      RequestOnchainFundsRequest.builder()
+        .amountIn(AmountAssetRequest("1", STELLAR_USDC))
+        .feeDetails(Amount("0.1", STELLAR_USDC).toRate())
+        .transactionId(TX_ID)
+        .build()
+    val txn6 = JdbcSep6Transaction()
+    txn6.status = INCOMPLETE.toString()
+    txn6.kind = kind
+    txn6.amountInAsset = STELLAR_USDC
+    txn6.amountOutAsset = STELLAR_USDC
+    val sep6TxnCapture = slot<JdbcSep6Transaction>()
+
+    every { txn6Store.findByTransactionId(any()) } returns txn6
+    every { txn24Store.findByTransactionId(TX_ID) } returns null
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn6Store.save(capture(sep6TxnCapture)) } returns null
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("amount_out is required for non-exchange transactions", ex.message)
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
