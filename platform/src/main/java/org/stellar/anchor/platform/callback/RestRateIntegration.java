@@ -1,9 +1,10 @@
 package org.stellar.anchor.platform.callback;
 
+import static java.math.RoundingMode.HALF_UP;
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.util.ErrorHelper.logErrorAndThrow;
 import static org.stellar.anchor.util.Log.*;
-import static org.stellar.anchor.util.NumberHelper.isValidPositiveNumber;
+import static org.stellar.anchor.util.NumberHelper.isPositiveNumber;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.Objects;
 import okhttp3.HttpUrl;
 import okhttp3.HttpUrl.Builder;
 import okhttp3.OkHttpClient;
@@ -23,6 +25,7 @@ import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.FeeDescription;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.asset.AssetService;
@@ -84,19 +87,20 @@ public class RestRateIntegration implements RateIntegration {
       throw new ServerErrorException("internal server error", e);
     }
 
-    validateResponse(request, getRateResponse);
+    validateRateResponse(request, getRateResponse);
     return getRateResponse;
   }
 
-  private void validateResponse(GetRateRequest request, GetRateResponse getRateResponse)
+  void validateRateResponse(GetRateRequest request, GetRateResponse getRateResponse)
       throws ServerErrorException {
+    AssetInfo buyAsset = assetService.getAsset(request.getBuyAsset());
     GetRateResponse.Rate rate = getRateResponse.getRate();
     if (rate == null || rate.getPrice() == null) {
       logErrorAndThrow("missing 'price' in the GET /rate response", ServerErrorException.class);
     }
 
     if (request.getType() != GetRateRequest.Type.INDICATIVE) {
-      if (rate.getFee() == null) {
+      if (Objects.requireNonNull(rate).getFee() == null) {
         logErrorAndThrow("'fee' is missing in the GET /rate response", ServerErrorException.class);
       }
     }
@@ -109,66 +113,102 @@ public class RestRateIntegration implements RateIntegration {
       }
     }
 
-    if (isValidPositiveNumber(rate.getSellAmount())) {
+    // sell_amount is present and positive number
+    if (!isPositiveNumber(Objects.requireNonNull(rate).getSellAmount())) {
       logErrorAndThrow(
           "'sell_amount' is missing or not a positive number in the GET /rate response",
           ServerErrorException.class);
     }
 
-    if (!isValidPositiveNumber(rate.getBuyAmount())) {
+    // buy_amount is present and positive number
+    if (!isPositiveNumber(rate.getBuyAmount())) {
       logErrorAndThrow(
           "'buy_amount' is missing or not a positive number in the GET /rate response",
           ServerErrorException.class);
     }
 
-    if (rate.getFee() != null) {
-      FeeDetails fee = rate.getFee();
-      // if fee is preset, fee.total is present and is a positive number
-      if (!isValidPositiveNumber(fee.getTotal())) {
+    FeeDetails fee = rate.getFee();
+    // if fee is preset, check the following
+    if (fee != null) {
+      // fee.total is present and is a positive number
+      if (!isPositiveNumber(fee.getTotal())) {
         logErrorAndThrow(
             "'fee.total' is missing or not a positive number in the GET /rate response",
             ServerErrorException.class);
       }
-
-      if (fee.getAsset() == null || assetService.getAsset(fee.getAsset()) == null) {
+      // fee.asset is a valid asset
+      AssetInfo feeAsset = assetService.getAsset(fee.getAsset());
+      if (fee.getAsset() == null || feeAsset == null) {
         logErrorAndThrow(
             "'fee.asset' is missing or not a valid asset in the GET /rate response",
             ServerErrorException.class);
       }
 
+      if (fee.getAsset().equals(request.getSellAsset())) {
+        // when fee is in sell_asset,
+        // check that sell_amount is equal to price * buy_amount + (fee ?: 0)
+        BigDecimal expected =
+            new BigDecimal(rate.getPrice())
+                .multiply(new BigDecimal(rate.getBuyAmount()))
+                .add(new BigDecimal(fee.getTotal()))
+                .setScale(buyAsset.getSignificantDecimals(), HALF_UP);
+
+        if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
+          logErrorAndThrow(
+              "'sell_amount' is not equal to price * buy_amount + (fee?:0) in the GET /rate response",
+              ServerErrorException.class);
+        }
+      } else {
+        // when fee is in buy_asset,
+        // check that sell_amount is equal to price * (buy_amount + (fee ?: 0))
+        BigDecimal expected =
+            new BigDecimal(rate.getPrice())
+                .multiply(
+                    new BigDecimal(request.getBuyAmount()).add(new BigDecimal(fee.getTotal())))
+                .setScale(buyAsset.getSignificantDecimals(), HALF_UP);
+        if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
+          logErrorAndThrow(
+              "'sell_amount' is not equal to price * (buy_amount + (fee ?: 0)) in the GET /rate response",
+              ServerErrorException.class);
+        }
+      }
+
       if (fee.getDetails() != null) {
-        BigDecimal totalFee = new BigDecimal(0);
+        BigDecimal totalFee =
+            new BigDecimal(0)
+                .setScale(Objects.requireNonNull(feeAsset).getSignificantDecimals(), HALF_UP);
         for (FeeDescription feeDescription : fee.getDetails()) {
           if (feeDescription.getName() == null) {
             logErrorAndThrow(
                 "'fee.details.description[?].name' is missing in the GET /rate response",
                 ServerErrorException.class);
           }
-          if (!isValidPositiveNumber(feeDescription.getAmount())) {
+          if (!isPositiveNumber(feeDescription.getAmount())) {
             logErrorAndThrow(
                 "'fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
                 ServerErrorException.class);
           }
           totalFee = totalFee.add(new BigDecimal(feeDescription.getAmount()));
         }
+
+        // check that sell_amount is equal to price * buy_amount + (fee ?: 0)
         if (!totalFee.equals(new BigDecimal(fee.getTotal()))) {
           logErrorAndThrow(
-              "'fee.total' is not equal to the sum of 'fee.details[?].description.amount' in the GET /rate response",
+              "'sell_amount' is not equal to price * buy_amount + (fee ?: 0) to  in the GET /rate response",
               ServerErrorException.class);
         }
       }
-    }
-
-    // check that sell_amount is equal to price * buy_amount + (fee ?: 0)
-    BigDecimal exptected =
-        new BigDecimal(rate.getPrice()).multiply(new BigDecimal(rate.getBuyAmount()));
-    if (rate.getFee() != null) {
-      exptected = exptected.add(new BigDecimal(rate.getFee().getTotal()));
-    }
-    if (!rate.getSellAmount().equals(exptected.toString())) {
-      logErrorAndThrow(
-          "'sell_amount' is not equal to price * buy_amount + (fee?:0) in the GET /rate response",
-          ServerErrorException.class);
+    } else {
+      // when fee is not present, check that sell_amount is equal to price * buy_amount
+      BigDecimal expected =
+          new BigDecimal(rate.getPrice())
+              .multiply(new BigDecimal(rate.getBuyAmount()))
+              .setScale(buyAsset.getSignificantDecimals(), HALF_UP);
+      if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
+        logErrorAndThrow(
+            "'sell_amount' is not equal to price * buy_amount in the GET /rate response",
+            ServerErrorException.class);
+      }
     }
   }
 }

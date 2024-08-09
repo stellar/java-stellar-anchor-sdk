@@ -1,13 +1,13 @@
 package org.stellar.anchor.util;
 
 public class NumberHelper {
-  public static boolean isValidPositiveNumber(String str) {
+  public static boolean isPositiveNumber(String str) {
     if (str == null) {
       return false;
     }
 
     try {
-      int number = Integer.parseInt(str);
+      double number = Double.parseDouble(str);
       return number > 0;
     } catch (NumberFormatException e) {
       return false;
