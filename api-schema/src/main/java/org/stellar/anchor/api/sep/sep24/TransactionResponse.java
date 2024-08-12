@@ -35,6 +35,9 @@ public class TransactionResponse {
   @SerializedName("fee_details")
   FeeDetails feeDetails;
 
+  @SerializedName("quote_id")
+  String quoteId;
+
   @SerializedName("started_at")
   Instant startedAt;
 

@@ -50,6 +50,7 @@ public class Sep6TransactionUtils {
             .amountOut(txn.getAmountOut())
             .amountOutAsset(txn.getAmountOutAsset())
             .feeDetails(txn.getFeeDetails())
+            .quoteId(txn.getQuoteId())
             .startedAt(txn.getStartedAt().toString())
             .updatedAt(txn.getUpdatedAt().toString())
             .completedAt(txn.getCompletedAt() != null ? txn.getCompletedAt().toString() : null)
