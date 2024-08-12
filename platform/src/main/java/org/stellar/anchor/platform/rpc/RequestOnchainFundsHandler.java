@@ -14,6 +14,7 @@ import com.google.common.collect.ImmutableSet;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.SepException;
@@ -87,15 +88,13 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
 
     // If none of the accepted combinations of input parameters satisfies -> throw an exception
     if (!((request.getAmountIn() == null
-            && request.getAmountOut() == null
             && request.getAmountFee() == null
             && request.getFeeDetails() == null
             && request.getAmountExpected() == null)
         || (request.getAmountIn() != null
-            && request.getAmountOut() != null
             && (request.getAmountFee() != null || request.getFeeDetails() != null)))) {
       throw new InvalidParamsException(
-          "All or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set");
+          "All (amount_out is optional) or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set");
     }
 
     // In case 2nd predicate in previous IF statement was TRUE
@@ -141,7 +140,26 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       throw new InvalidParamsException("amount_in is required");
     }
     if (request.getAmountOut() == null && txn.getAmountOut() == null) {
-      throw new InvalidParamsException("amount_out is required");
+      if (SEP_6 == Sep.from(txn.getProtocol())) {
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+        if (txn6.getQuoteId() != null) {
+          throw new InvalidParamsException(
+              "amount_out is required for transactions with firm quotes");
+        }
+        if (StringUtils.equals(txn6.getAmountInAsset(), txn6.getAmountOutAsset())) {
+          throw new InvalidParamsException("amount_out is required for non-exchange transactions");
+        }
+      }
+      if (SEP_24 == Sep.from(txn.getProtocol())) {
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        if (txn24.getQuoteId() != null) {
+          throw new InvalidParamsException(
+              "amount_out is required for transactions with firm quotes");
+        }
+        if (StringUtils.equals(txn24.getAmountInAsset(), txn24.getAmountOutAsset())) {
+          throw new InvalidParamsException("amount_out is required for non-exchange transactions");
+        }
+      }
     }
     if (request.getAmountFee() == null
         && request.getFeeDetails() == null
