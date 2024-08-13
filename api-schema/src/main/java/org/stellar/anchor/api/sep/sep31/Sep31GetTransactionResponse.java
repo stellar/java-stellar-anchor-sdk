@@ -48,6 +48,9 @@ public class Sep31GetTransactionResponse {
     @SerializedName("fee_details")
     FeeDetails feeDetails;
 
+    @SerializedName("quote_id")
+    String quoteId;
+
     @SerializedName("stellar_account_id")
     String stellarAccountId;
 
