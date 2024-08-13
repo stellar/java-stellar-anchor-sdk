@@ -12,6 +12,7 @@ import javax.annotation.PreDestroy;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.MoreInfoUrlConstructor;
+import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.asset.AssetService;
@@ -36,6 +37,7 @@ public class EventProcessorManager {
   private final PropertyClientsConfig clientsConfig;
   private final EventService eventService;
   private final AssetService assetService;
+  private final CustomerIntegration customerIntegration;
   private final Sep6TransactionStore sep6TransactionStore;
   private final Sep24TransactionStore sep24TransactionStore;
   private final Sep31TransactionStore sep31TransactionStore;
@@ -50,6 +52,7 @@ public class EventProcessorManager {
       PropertyClientsConfig clientsConfig,
       EventService eventService,
       AssetService assetService,
+      CustomerIntegration customerIntegration,
       Sep6TransactionStore sep6TransactionStore,
       Sep24TransactionStore sep24TransactionStore,
       Sep31TransactionStore sep31TransactionStore,
@@ -61,6 +64,7 @@ public class EventProcessorManager {
     this.clientsConfig = clientsConfig;
     this.eventService = eventService;
     this.assetService = assetService;
+    this.customerIntegration = customerIntegration;
     this.sep6TransactionStore = sep6TransactionStore;
     this.sep24TransactionStore = sep24TransactionStore;
     this.sep31TransactionStore = sep31TransactionStore;
@@ -115,6 +119,7 @@ public class EventProcessorManager {
                     secretConfig,
                     clientConfig,
                     sep6TransactionStore,
+                    customerIntegration,
                     assetService,
                     sep6MoreInfoUrlConstructor,
                     sep24MoreInfoUrlConstructor)));
