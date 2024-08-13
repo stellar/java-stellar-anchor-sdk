@@ -302,9 +302,10 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   }
 
   /**
-   * 1. pending_sender -> notify_onchain_funds_received
-   * 2. pending_receiver -> notify_refund_sent
-   * 3. refunded
+   * 1. pending_receiver -> request_onchain_funds
+   * 2. pending_sender -> notify_onchain_funds_received
+   * 3. pending_receiver -> notify_refund_sent
+   * 4. refunded
    */
   @Test
   fun `SEP-31 refunded short`() {
@@ -315,14 +316,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   }
 
   /**
-   * 1. pending_sender -> notify_onchain_funds_received
-   * 2. pending_receiver -> request_customer_info_update
-   * 3. pending_customer_info_update -> notify_customer_info_updated
-   * 4. pending_receiver -> notify_transaction_error
-   * 5. error -> notify_transaction_recovery
-   * 6. pending_receiver -> notify_offchain_funds_pending
-   * 7. pending_external -> notify_offchain_funds_sent
-   * 8. completed
+   * 1. pending_receiver -> request_onchain_funds
+   * 2. pending_sender -> notify_onchain_funds_received
+   * 3. pending_receiver -> request_customer_info_update
+   * 4. pending_customer_info_update -> notify_customer_info_updated
+   * 5. pending_receiver -> notify_transaction_error
+   * 6. error -> notify_transaction_recovery
+   * 7. pending_receiver -> notify_offchain_funds_pending
+   * 8. pending_external -> notify_offchain_funds_sent
+   * 9. completed
    */
   @Test
   fun `SEP-31 complete full with recovery`() {
@@ -4910,6 +4912,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
 [
   {
     "id": "1",
+    "method": "request_onchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "TX_ID",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+      "memo_type": "hash"
+    }
+  },
+  {
+    "id": "2",
     "method": "notify_onchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
@@ -4919,7 +4932,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     }
   },
   {
-    "id": "2",
+    "id": "3",
     "method": "notify_refund_sent",
     "jsonrpc": "2.0",
     "params": {
@@ -4938,12 +4951,48 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       }
     }
   }
-]   
-  """
+]
+      """
 
     private const val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
       """
         [
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "TX_ID",
+              "sep": "31",
+              "kind": "receive",
+              "status": "pending_sender",
+              "amount_expected": {
+                "amount": "10",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_in": {
+                "amount": "10",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_out": {},
+              "fee_details": {
+                "total": "1",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
+              "client_name": "referenceCustodial",
+              "customers": {
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
+              },
+              "creator": {
+                "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+              }
+            },
+            "id": "1"
+          },
           {
             "jsonrpc": "2.0",
             "result": {
@@ -4964,14 +5013,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:31:46.178476Z",
-              "updated_at": "2024-06-25T20:31:47.251666Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 1",
               "stellar_transactions": [
                 {
                   "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "memo": "ZWQ0NmIwMzAtM2E5NC00M2RkLThkMWYtYWUwMjNhMGI=",
+                  "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
                   "memo_type": "hash",
                   "payments": [
                     {
@@ -4987,6 +5034,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                   ]
                 }
               ],
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
               "client_name": "referenceCustodial",
               "customers": {
                 "sender": { "id": "SENDER_ID" },
@@ -4996,7 +5049,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "1"
+            "id": "2"
           },
           {
             "jsonrpc": "2.0",
@@ -5018,8 +5071,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:31:46.178476Z",
-              "updated_at": "2024-06-25T20:31:48.272531Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 2",
               "refunds": {
@@ -5049,7 +5100,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "stellar_transactions": [
                 {
                   "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "memo": "ZWQ0NmIwMzAtM2E5NC00M2RkLThkMWYtYWUwMjNhMGI=",
+                  "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
                   "memo_type": "hash",
                   "payments": [
                     {
@@ -5065,6 +5116,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                   ]
                 }
               ],
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
               "client_name": "referenceCustodial",
               "customers": {
                 "sender": { "id": "SENDER_ID" },
@@ -5074,86 +5131,133 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "2"
+            "id": "3"
           }
         ]
       """
 
     private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
       """ 
-[
-  {
-    "id": "1",
-    "method": "notify_onchain_funds_received",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "TX_ID",
-      "message": "test message 1",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
-    }
-  },
-  {
-    "id": "2",
-    "method": "request_customer_info_update",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "TX_ID",
-      "message": "test message 2"
-    }
-  },
-  {
-    "id": "3",
-    "method": "notify_customer_info_updated",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "TX_ID",
-      "message": "test message 3"
-    }
-  },
-  {
-    "id": "4",
-    "method": "notify_transaction_error",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "TX_ID",
-      "message": "test message 4"
-    }
-  },
-  {
-    "id": "5",
-    "method": "notify_transaction_recovery",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "TX_ID",
-      "message": "test message 5"
-    }
-  },
-  {
-    "id": "6",
-    "method": "notify_offchain_funds_pending",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "TX_ID",
-      "message": "test message 6",
-      "external_transaction_id": "ext123456789"
-    }
-  },
-  {
-    "id": "7",
-    "method": "notify_offchain_funds_sent",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "TX_ID",
-      "message": "test message 7",
-      "external_transaction_id": "ext123456789"
-    }
-  }
-]
-  """
+        [
+          {
+            "id": "1",
+            "method": "request_onchain_funds",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "TX_ID",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash"
+            }
+          },
+          {
+            "id": "2",
+            "method": "notify_onchain_funds_received",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "TX_ID",
+              "message": "test message 1",
+              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+            }
+          },
+          {
+            "id": "3",
+            "method": "request_customer_info_update",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "TX_ID",
+              "message": "test message 2"
+            }
+          },
+          {
+            "id": "4",
+            "method": "notify_customer_info_updated",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "TX_ID",
+              "message": "test message 3"
+            }
+          },
+          {
+            "id": "5",
+            "method": "notify_transaction_error",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "TX_ID",
+              "message": "test message 4"
+            }
+          },
+          {
+            "id": "6",
+            "method": "notify_transaction_recovery",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "TX_ID",
+              "message": "test message 5"
+            }
+          },
+          {
+            "id": "7",
+            "method": "notify_offchain_funds_pending",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "TX_ID",
+              "message": "test message 6",
+              "external_transaction_id": "ext123456789"
+            }
+          },
+          {
+            "id": "8",
+            "method": "notify_offchain_funds_sent",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "TX_ID",
+              "message": "test message 7",
+              "external_transaction_id": "ext123456789"
+            }
+          }
+        ]
+      """
 
     private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
       """ 
         [
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "TX_ID",
+              "sep": "31",
+              "kind": "receive",
+              "status": "pending_sender",
+              "amount_expected": {
+                "amount": "10",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_in": {
+                "amount": "10",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_out": {},
+              "fee_details": {
+                "total": "1",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
+              "client_name": "referenceCustodial",
+              "customers": {
+                "sender": { "id": "SENDER_ID" },
+                "receiver": { "id": "RECEIVER_ID" }
+              },
+              "creator": {
+                "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+              }
+            },
+            "id": "1"
+          },
           {
             "jsonrpc": "2.0",
             "result": {
@@ -5174,14 +5278,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:33:17.013738Z",
-              "updated_at": "2024-06-25T20:33:18.072040Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 1",
               "stellar_transactions": [
                 {
                   "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
+                  "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
                   "memo_type": "hash",
                   "payments": [
                     {
@@ -5197,6 +5299,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                   ]
                 }
               ],
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
               "client_name": "referenceCustodial",
               "customers": {
                 "sender": { "id": "SENDER_ID" },
@@ -5206,7 +5314,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "1"
+            "id": "2"
           },
           {
             "jsonrpc": "2.0",
@@ -5228,14 +5336,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:33:17.013738Z",
-              "updated_at": "2024-06-25T20:33:19.082373Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 2",
               "stellar_transactions": [
                 {
                   "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
+                  "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
                   "memo_type": "hash",
                   "payments": [
                     {
@@ -5251,6 +5357,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                   ]
                 }
               ],
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
               "client_name": "referenceCustodial",
               "customers": {
                 "sender": { "id": "SENDER_ID" },
@@ -5260,7 +5372,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "2"
+            "id": "3"
           },
           {
             "jsonrpc": "2.0",
@@ -5282,14 +5394,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:33:17.013738Z",
-              "updated_at": "2024-06-25T20:33:20.102730Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 3",
               "stellar_transactions": [
                 {
                   "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
+                  "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
                   "memo_type": "hash",
                   "payments": [
                     {
@@ -5305,6 +5415,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                   ]
                 }
               ],
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
               "client_name": "referenceCustodial",
               "customers": {
                 "sender": { "id": "SENDER_ID" },
@@ -5314,7 +5430,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "3"
+            "id": "4"
           },
           {
             "jsonrpc": "2.0",
@@ -5336,14 +5452,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:33:17.013738Z",
-              "updated_at": "2024-06-25T20:33:21.141947Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 4",
               "stellar_transactions": [
                 {
                   "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
+                  "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
                   "memo_type": "hash",
                   "payments": [
                     {
@@ -5359,6 +5473,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                   ]
                 }
               ],
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
               "client_name": "referenceCustodial",
               "customers": {
                 "sender": { "id": "SENDER_ID" },
@@ -5368,7 +5488,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "4"
+            "id": "5"
           },
           {
             "jsonrpc": "2.0",
@@ -5390,14 +5510,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:33:17.013738Z",
-              "updated_at": "2024-06-25T20:33:22.155595Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 5",
               "stellar_transactions": [
                 {
                   "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
+                  "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
                   "memo_type": "hash",
                   "payments": [
                     {
@@ -5413,6 +5531,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                   ]
                 }
               ],
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
               "client_name": "referenceCustodial",
               "customers": {
                 "sender": { "id": "SENDER_ID" },
@@ -5422,7 +5546,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "5"
+            "id": "6"
           },
           {
             "jsonrpc": "2.0",
@@ -5444,14 +5568,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:33:17.013738Z",
-              "updated_at": "2024-06-25T20:33:23.170709Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 6",
               "stellar_transactions": [
                 {
                   "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
+                  "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
                   "memo_type": "hash",
                   "payments": [
                     {
@@ -5467,7 +5589,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                   ]
                 }
               ],
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext123456789",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
               "client_name": "referenceCustodial",
               "customers": {
                 "sender": { "id": "SENDER_ID" },
@@ -5477,7 +5605,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "6"
+            "id": "7"
           },
           {
             "jsonrpc": "2.0",
@@ -5499,15 +5627,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:33:17.013738Z",
-              "updated_at": "2024-06-25T20:33:24.184182Z",
-              "completed_at": "2024-06-25T20:33:24.184180Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 7",
               "stellar_transactions": [
                 {
                   "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
+                  "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
                   "memo_type": "hash",
                   "payments": [
                     {
@@ -5523,7 +5648,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                   ]
                 }
               ],
+              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
               "external_transaction_id": "ext123456789",
+              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
               "client_name": "referenceCustodial",
               "customers": {
                 "sender": { "id": "SENDER_ID" },
@@ -5533,7 +5664,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "7"
+            "id": "8"
           }
         ]
       """
