@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.Gson
+import io.mockk.every
 import io.mockk.mockk
 import java.time.Instant
 import java.time.ZoneId
@@ -18,6 +19,7 @@ import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.NotFoundException
+import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.auth.AuthHelper
@@ -61,7 +63,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
       config.env["secret.sep24.more_info_url.jwt_secret"]!!,
       config.env["secret.callback_api.auth_secret"]!!,
       config.env["secret.platform_api.auth_secret"]!!,
-      null
+      null,
     )
 
   private val authHelper =
@@ -78,10 +80,32 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
       httpClient,
       authHelper,
       gson,
-      mockAssetService
+      mockAssetService,
     )
   private val rfiClient =
     RestFeeIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
+
+  @BeforeAll
+  fun setup() {
+    val usdc = AssetInfo()
+    usdc.schema = AssetInfo.Schema.stellar
+    usdc.code = "USDC"
+    usdc.issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    usdc.significantDecimals = 2
+
+    val usd = AssetInfo()
+    usd.schema = AssetInfo.Schema.iso4217
+    usd.code = "USD"
+    usd.significantDecimals = 2
+
+    every {
+      mockAssetService.getAssetByName(
+        "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      )
+    } returns usdc
+    every { mockAssetService.getAssetByName("iso4217:USD") } returns usd
+    every { mockAssetService.getAssetByName(null) } returns null
+  }
 
   @Test
   fun testCustomerIntegration() {
@@ -221,7 +245,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
             "amount": "0.30"
           }
         }""",
-      true
+      true,
     )
   }
 }

@@ -93,7 +93,7 @@ public class RestRateIntegration implements RateIntegration {
 
   void validateRateResponse(GetRateRequest request, GetRateResponse getRateResponse)
       throws ServerErrorException {
-    AssetInfo buyAsset = assetService.getAsset(request.getBuyAsset());
+    AssetInfo sellAsset = assetService.getAssetByName(request.getSellAsset());
     GetRateResponse.Rate rate = getRateResponse.getRate();
     if (rate == null || rate.getPrice() == null) {
       logErrorAndThrow("missing 'price' in the GET /rate response", ServerErrorException.class);
@@ -137,7 +137,7 @@ public class RestRateIntegration implements RateIntegration {
             ServerErrorException.class);
       }
       // fee.asset is a valid asset
-      AssetInfo feeAsset = assetService.getAsset(fee.getAsset());
+      AssetInfo feeAsset = assetService.getAssetByName(fee.getAsset());
       if (fee.getAsset() == null || feeAsset == null) {
         logErrorAndThrow(
             "'fee.asset' is missing or not a valid asset in the GET /rate response",
@@ -151,7 +151,7 @@ public class RestRateIntegration implements RateIntegration {
             new BigDecimal(rate.getPrice())
                 .multiply(new BigDecimal(rate.getBuyAmount()))
                 .add(new BigDecimal(fee.getTotal()))
-                .setScale(buyAsset.getSignificantDecimals(), HALF_UP);
+                .setScale(sellAsset.getSignificantDecimals(), HALF_UP);
 
         if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
           logErrorAndThrow(
@@ -163,9 +163,8 @@ public class RestRateIntegration implements RateIntegration {
         // check that sell_amount is equal to price * (buy_amount + (fee ?: 0))
         BigDecimal expected =
             new BigDecimal(rate.getPrice())
-                .multiply(
-                    new BigDecimal(request.getBuyAmount()).add(new BigDecimal(fee.getTotal())))
-                .setScale(buyAsset.getSignificantDecimals(), HALF_UP);
+                .multiply(new BigDecimal(rate.getBuyAmount()).add(new BigDecimal(fee.getTotal())))
+                .setScale(sellAsset.getSignificantDecimals(), HALF_UP);
         if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
           logErrorAndThrow(
               "'sell_amount' is not equal to price * (buy_amount + (fee ?: 0)) in the GET /rate response",
@@ -192,7 +191,7 @@ public class RestRateIntegration implements RateIntegration {
         }
 
         // check that sell_amount is equal to price * buy_amount + (fee ?: 0)
-        if (!totalFee.equals(new BigDecimal(fee.getTotal()))) {
+        if (totalFee.compareTo(new BigDecimal(fee.getTotal())) != 0) {
           logErrorAndThrow(
               "'sell_amount' is not equal to price * buy_amount + (fee ?: 0) to  in the GET /rate response",
               ServerErrorException.class);
@@ -203,7 +202,7 @@ public class RestRateIntegration implements RateIntegration {
       BigDecimal expected =
           new BigDecimal(rate.getPrice())
               .multiply(new BigDecimal(rate.getBuyAmount()))
-              .setScale(buyAsset.getSignificantDecimals(), HALF_UP);
+              .setScale(sellAsset.getSignificantDecimals(), HALF_UP);
       if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
         logErrorAndThrow(
             "'sell_amount' is not equal to price * buy_amount in the GET /rate response",
