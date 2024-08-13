@@ -46,7 +46,8 @@ import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.sdk.Memo;
 
-public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainFundsRequest> {
+public class RequestOnchainFundsHandler
+    extends RpcTransactionStatusHandler<RequestOnchainFundsRequest> {
 
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;

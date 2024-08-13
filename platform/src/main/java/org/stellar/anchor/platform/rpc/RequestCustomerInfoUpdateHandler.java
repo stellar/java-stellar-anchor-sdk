@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.rpc;
 
 import static java.util.Collections.emptySet;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
@@ -23,7 +22,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class RequestCustomerInfoUpdateHandler
-    extends RpcMethodHandler<RequestCustomerInfoUpdateRequest> {
+    extends RpcTransactionStatusHandler<RequestCustomerInfoUpdateRequest> {
 
   public RequestCustomerInfoUpdateHandler(
       Sep6TransactionStore txn6Store,

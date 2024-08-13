@@ -14,6 +14,7 @@ import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.rpc.*;
 import org.stellar.anchor.platform.service.RpcService;
+import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -80,41 +81,13 @@ public class RpcActionBeans {
   }
 
   @Bean
-  GetTransactionHandler getTransactionHandler(
-      Sep6TransactionStore txn6Store,
-      Sep24TransactionStore txn24Store,
-      Sep31TransactionStore txn31Store,
-      RequestValidator requestValidator,
-      AssetService assetService,
-      EventService eventService,
-      MetricsService metricsService) {
-    return new GetTransactionHandler(
-        txn6Store,
-        txn24Store,
-        txn31Store,
-        requestValidator,
-        assetService,
-        eventService,
-        metricsService);
+  GetTransactionHandler getTransactionHandler(TransactionService txnService) {
+    return new GetTransactionHandler(txnService);
   }
 
   @Bean
-  GetTransactionsHandler getTransactionsHandler(
-      Sep6TransactionStore txn6Store,
-      Sep24TransactionStore txn24Store,
-      Sep31TransactionStore txn31Store,
-      RequestValidator requestValidator,
-      AssetService assetService,
-      EventService eventService,
-      MetricsService metricsService) {
-    return new GetTransactionsHandler(
-        txn6Store,
-        txn24Store,
-        txn31Store,
-        requestValidator,
-        assetService,
-        eventService,
-        metricsService);
+  GetTransactionsHandler getTransactionsHandler(TransactionService txnService) {
+    return new GetTransactionsHandler(txnService);
   }
 
   @Bean

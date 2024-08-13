@@ -29,7 +29,8 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
-public class NotifyAmountsUpdatedHandler extends RpcMethodHandler<NotifyAmountsUpdatedRequest> {
+public class NotifyAmountsUpdatedHandler
+    extends RpcTransactionStatusHandler<NotifyAmountsUpdatedRequest> {
 
   public NotifyAmountsUpdatedHandler(
       Sep6TransactionStore txn6Store,

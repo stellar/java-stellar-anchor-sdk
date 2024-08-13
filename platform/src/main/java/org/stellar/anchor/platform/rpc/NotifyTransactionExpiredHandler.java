@@ -25,7 +25,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyTransactionExpiredHandler
-    extends RpcMethodHandler<NotifyTransactionExpiredRequest> {
+    extends RpcTransactionStatusHandler<NotifyTransactionExpiredRequest> {
 
   private final JdbcTransactionPendingTrustRepo transactionPendingTrustRepo;
 
