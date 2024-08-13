@@ -281,7 +281,7 @@ public class RequestOnchainFundsHandler
         if (sep6DepositInfoGenerator instanceof Sep6DepositInfoNoneGenerator) {
           Memo memo = makeMemo(request.getMemo(), request.getMemoType());
           if (memo != null) {
-            txn6.setMemo(memo.toString());
+            txn6.setMemo(request.getMemo());
             txn6.setMemoType(memoTypeString(memoType(memo)));
           }
           txn6.setWithdrawAnchorAccount(request.getDestinationAccount());
@@ -315,7 +315,7 @@ public class RequestOnchainFundsHandler
         if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
           Memo memo = makeMemo(request.getMemo(), request.getMemoType());
           if (memo != null) {
-            txn24.setMemo(memo.toString());
+            txn24.setMemo(request.getMemo());
             txn24.setMemoType(memoTypeString(memoType(memo)));
           }
           txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
