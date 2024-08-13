@@ -146,6 +146,7 @@ public interface Sep31Transaction extends SepTransaction {
                 .amountFee(getAmountFee())
                 .amountFeeAsset(getAmountFeeAsset())
                 .feeDetails(getFeeDetails())
+                .quoteId(getQuoteId())
                 .stellarAccountId(getStellarAccountId())
                 .stellarMemo(getStellarMemo())
                 .stellarMemoType(getStellarMemoType())

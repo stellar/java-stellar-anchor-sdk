@@ -49,6 +49,7 @@ class Sep6TransactionUtilsTest {
             "total": "1.00",
             "asset": "USD"
           },
+          "quote_id": "quote-id",
           "from": "1234",
           "to": "$TEST_ASSET_ISSUER_ACCOUNT_ID",
           "deposit_memo_type": "text",
