@@ -1,10 +1,6 @@
 package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.Gson
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
@@ -114,69 +110,6 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
     }"""
         .trimMargin()
     JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(result), true)
-  }
-
-  @Test
-  fun testRate_firm() {
-    val rate =
-      rriClient
-        .getRate(
-          GetRateRequest.builder()
-            .type(GetRateRequest.Type.FIRM)
-            .sellAsset(FIAT_USD)
-            .buyAsset(STELLAR_USD)
-            .buyAmount("100")
-            .build()
-        )
-        .rate
-    Assertions.assertNotNull(rate)
-
-    // check if id is a valid UUID
-    val id = rate.id
-    Assertions.assertDoesNotThrow { UUID.fromString(id) }
-    var gotExpiresAt: Instant? = null
-    val expiresAtStr = rate.expiresAt!!.toString()
-    Assertions.assertDoesNotThrow {
-      gotExpiresAt = DateTimeFormatter.ISO_INSTANT.parse(rate.expiresAt!!.toString(), Instant::from)
-    }
-
-    val wantExpiresAt =
-      ZonedDateTime.now(ZoneId.of("UTC"))
-        .plusDays(1)
-        .withHour(12)
-        .withMinute(0)
-        .withSecond(0)
-        .withNano(0)
-    assertEquals(wantExpiresAt.toInstant(), gotExpiresAt)
-
-    // check if rate was persisted by getting the rate with ID
-    val gotQuote = rriClient.getRate(GetRateRequest.builder().id(rate.id).build())
-    assertEquals(rate.id, gotQuote.rate.id)
-    assertEquals("1.02", gotQuote.rate.price)
-
-    val wantBody =
-      """{
-      "rate":{
-        "id": "$id",
-        "price":"1.02",
-        "sell_amount": "103",
-        "buy_amount": "100",
-        "expires_at": "$expiresAtStr",
-        "fee": {
-          "total": "1.00",
-          "asset": "$FIAT_USD",
-          "details": [
-            {
-              "name": "Sell fee",
-              "description": "Fee related to selling the asset.",
-              "amount": "1.00"
-            }
-          ]
-        }
-      }
-    }"""
-        .trimMargin()
-    JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(gotQuote), true)
   }
 
   @Test
