@@ -32,8 +32,8 @@ class RestRateIntegrationTest {
     usdAssetInfo.significantDecimals = 2
 
     // Set up asset service
-    every { assetService.getAsset("USD") } returns usdAssetInfo
-    every { assetService.getAsset("USDC") } returns usdAssetInfo
+    every { assetService.getAssetByName("iso4217:USD") } returns usdAssetInfo
+    every { assetService.getAssetByName("stellar:USDC:GABCD") } returns usdAssetInfo
   }
 
   @Test
@@ -43,7 +43,7 @@ class RestRateIntegrationTest {
         """
         {
           "type": "INDICATIVE",
-          "sell_asset": "USD",
+          "sell_asset": "iso4217:USD",
           "sell_amount": "106",
           "buy_asset": "USDC"
         }
@@ -62,7 +62,7 @@ class RestRateIntegrationTest {
             "buy_amount": "94.29",
             "fee": {
               "total": "1.00",
-              "asset": "USD",
+              "asset": "iso4217:USD",
               "details": [
                 {
                   "name": "Sell fee",
