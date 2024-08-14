@@ -27,10 +27,10 @@ import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep6.Sep6TransactionStore
 
-class RpcMethodHandlerTest {
+class RpcTransactionStatusHandlerTest {
 
   // test implementation
-  class RpcMethodHandlerTestImpl(
+  class RpcTransactionStatusHandlerTestImpl(
     txn6Store: Sep6TransactionStore,
     txn24Store: Sep24TransactionStore,
     txn31Store: Sep31TransactionStore,
@@ -39,7 +39,7 @@ class RpcMethodHandlerTest {
     eventService: EventService,
     metricsService: MetricsService
   ) :
-    RpcMethodHandler<NotifyInteractiveFlowCompletedRequest>(
+    RpcTransactionStatusHandler<NotifyInteractiveFlowCompletedRequest>(
       txn6Store,
       txn24Store,
       txn31Store,
@@ -88,13 +88,13 @@ class RpcMethodHandlerTest {
 
   @MockK(relaxed = true) private lateinit var metricsService: MetricsService
 
-  private lateinit var handler: RpcMethodHandler<NotifyInteractiveFlowCompletedRequest>
+  private lateinit var handler: RpcTransactionStatusHandler<NotifyInteractiveFlowCompletedRequest>
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.handler =
-      RpcMethodHandlerTestImpl(
+      RpcTransactionStatusHandlerTestImpl(
         txn6Store,
         txn24Store,
         txn31Store,

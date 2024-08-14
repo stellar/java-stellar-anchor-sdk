@@ -38,7 +38,7 @@ public class AllTransactionsRepositoryImpl<T> implements AllTransactionsReposito
             "SELECT * FROM %s t %s ORDER BY %s %s NULLS LAST, id ASC LIMIT %d OFFSET %d",
             table.name(),
             statuses == null ? "" : " WHERE t.status in (" + mergeStatusesList(statuses, "'") + ")",
-            params.getOrder_by().getTableName(),
+            params.getOrderBy().getTableName(),
             params.getOrder().name(),
             params.getPageSize(),
             params.getPageNumber() * params.getPageSize());

@@ -11,7 +11,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 @Data
 @AllArgsConstructor
 public class TransactionsParams {
-  TransactionsOrderBy order_by;
+  TransactionsOrderBy orderBy;
   Sort.Direction order;
   @Nullable List<SepTransactionStatus> statuses;
   Integer pageNumber;

@@ -34,7 +34,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyOffchainFundsReceivedHandler
-    extends RpcMethodHandler<NotifyOffchainFundsReceivedRequest> {
+    extends RpcTransactionStatusHandler<NotifyOffchainFundsReceivedRequest> {
 
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;

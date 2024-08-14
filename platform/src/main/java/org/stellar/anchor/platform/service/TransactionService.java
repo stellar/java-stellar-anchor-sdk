@@ -140,8 +140,7 @@ public class TransactionService {
   }
 
   /**
-   * Fetch the transaction and convert the transaction to an object of Sep24GetTransactionResponse
-   * class.
+   * Fetch the transaction and convert the transaction to an object of GetTransactionResponse class.
    *
    * @param txnId the transaction ID
    * @return the result
@@ -228,6 +227,7 @@ public class TransactionService {
    * @param request the request
    * @return the response
    */
+  @Deprecated
   public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
       throws AnchorException {
     List<PatchTransactionRequest> patchRequests = request.getRecords();
@@ -244,6 +244,7 @@ public class TransactionService {
     return new PatchTransactionsResponse(txnResponses);
   }
 
+  @Deprecated
   private GetTransactionResponse patchTransaction(PatchTransactionRequest patch)
       throws AnchorException {
     if (patch.getTransaction() == null) {
@@ -355,6 +356,7 @@ public class TransactionService {
     return PlatformTransactionHelper.toGetTransactionResponse(txn, assetService);
   }
 
+  @Deprecated
   void updateSepTransaction(PlatformTransactionData patch, JdbcSepTransaction txn)
       throws AnchorException {
     boolean txnUpdated = false;

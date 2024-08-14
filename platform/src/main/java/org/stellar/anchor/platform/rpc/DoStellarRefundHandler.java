@@ -43,7 +43,7 @@ import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
-public class DoStellarRefundHandler extends RpcMethodHandler<DoStellarRefundRequest> {
+public class DoStellarRefundHandler extends RpcTransactionStatusHandler<DoStellarRefundRequest> {
 
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;
