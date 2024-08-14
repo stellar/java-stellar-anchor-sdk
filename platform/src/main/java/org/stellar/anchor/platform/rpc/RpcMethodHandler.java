@@ -128,7 +128,7 @@ public abstract class RpcMethodHandler<T extends RpcMethodParamsRequest> {
   public abstract RpcMethod getRpcMethod();
 
   protected abstract SepTransactionStatus getNextStatus(JdbcSepTransaction txn, T request)
-      throws InvalidRequestException, InvalidParamsException;
+      throws AnchorException;
 
   protected abstract Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn);
 

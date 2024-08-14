@@ -18,8 +18,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.stellar.anchor.MoreInfoUrlConstructor;
+import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
@@ -48,6 +50,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
   private final SecretConfig secretConfig;
   private final ClientConfig clientConfig;
   private final Sep6TransactionStore sep6TransactionStore;
+  private final CustomerIntegration customerIntegration;
   private final AssetService assetService;
   private final MoreInfoUrlConstructor sep6MoreInfoUrlConstructor;
   private final MoreInfoUrlConstructor sep24MoreInfoUrlConstructor;
@@ -56,6 +59,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
       SecretConfig secretConfig,
       ClientConfig clientConfig,
       Sep6TransactionStore sep6TransactionStore,
+      CustomerIntegration customerIntegration,
       AssetService assetService,
       MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
       MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
@@ -64,13 +68,14 @@ public class ClientStatusCallbackHandler extends EventHandler {
     this.clientConfig = clientConfig;
     this.assetService = assetService;
     this.sep6TransactionStore = sep6TransactionStore;
+    this.customerIntegration = customerIntegration;
     this.sep6MoreInfoUrlConstructor = sep6MoreInfoUrlConstructor;
     this.sep24MoreInfoUrlConstructor = sep24MoreInfoUrlConstructor;
   }
 
   @Override
   boolean handleEvent(AnchorEvent event) throws IOException {
-    if (event.getTransaction() != null) {
+    if (event.getTransaction() != null || event.getCustomer() != null) {
       KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
       Request request = buildHttpRequest(signer, event);
       Response response = httpClient.newCall(request).execute();
@@ -110,27 +115,33 @@ public class ClientStatusCallbackHandler extends EventHandler {
   }
 
   private String getPayload(AnchorEvent event) throws AnchorException {
-    switch (event.getTransaction().getSep()) {
-      case SEP_6:
-        // TODO: remove dependence on the transaction store
-        Sep6Transaction sep6Txn =
-            sep6TransactionStore.findByTransactionId(event.getTransaction().getId());
-        org.stellar.anchor.api.sep.sep6.GetTransactionResponse sep6TxnRes =
-            new org.stellar.anchor.api.sep.sep6.GetTransactionResponse(
-                Sep6TransactionUtils.fromTxn(sep6Txn, sep6MoreInfoUrlConstructor, null));
-        return json(sep6TxnRes);
-      case SEP_24:
-        Sep24Transaction sep24Txn = fromSep24Txn(event.getTransaction());
-        Sep24GetTransactionResponse txn24Response =
-            Sep24GetTransactionResponse.of(
-                fromTxn(assetService, sep24MoreInfoUrlConstructor, sep24Txn, null));
-        return json(txn24Response);
-      case SEP_31:
-        Sep31Transaction sep31Txn = fromSep31Txn(event.getTransaction());
-        return json(sep31Txn.toSep31GetTransactionResponse());
-      default:
-        throw new SepException(
-            String.format("Unsupported SEP: %s", event.getTransaction().getSep()));
+    if (event.getTransaction() != null) {
+      switch (event.getTransaction().getSep()) {
+        case SEP_6:
+          // TODO: remove dependence on the transaction store
+          Sep6Transaction sep6Txn =
+              sep6TransactionStore.findByTransactionId(event.getTransaction().getId());
+          org.stellar.anchor.api.sep.sep6.GetTransactionResponse sep6TxnRes =
+              new org.stellar.anchor.api.sep.sep6.GetTransactionResponse(
+                  Sep6TransactionUtils.fromTxn(sep6Txn, sep6MoreInfoUrlConstructor, null));
+          return json(sep6TxnRes);
+        case SEP_24:
+          Sep24Transaction sep24Txn = fromSep24Txn(event.getTransaction());
+          Sep24GetTransactionResponse txn24Response =
+              Sep24GetTransactionResponse.of(
+                  fromTxn(assetService, sep24MoreInfoUrlConstructor, sep24Txn, null));
+          return json(txn24Response);
+        case SEP_31:
+          Sep31Transaction sep31Txn = fromSep31Txn(event.getTransaction());
+          return json(sep31Txn.toSep31GetTransactionResponse());
+        default:
+          throw new SepException(
+              String.format("Unsupported SEP: %s", event.getTransaction().getSep()));
+      }
+    } else if (event.getCustomer() != null) {
+      return json(event.getCustomer());
+    } else {
+      throw new InternalServerErrorException("Event must have either a transaction or a customer");
     }
   }
 
