@@ -7,15 +7,31 @@ import java.util.*
 import org.stellar.sdk.KeyPair
 
 class CallbackService {
-  private val receivedCallbacks: MutableList<JsonObject> = mutableListOf()
+  private val sep6Callbacks: MutableList<JsonObject> = mutableListOf()
+  private val sep24Callbacks: MutableList<JsonObject> = mutableListOf()
+  private val sep31Callbacks: MutableList<JsonObject> = mutableListOf()
+  private val sep12Callbacks: MutableList<JsonObject> = mutableListOf()
 
-  fun processCallback(receivedCallback: JsonObject) {
-    receivedCallbacks.add(receivedCallback)
+  fun processCallback(receivedCallback: JsonObject, type: String) {
+    when (type) {
+      "sep6" -> sep6Callbacks.add(receivedCallback)
+      "sep24" -> sep24Callbacks.add(receivedCallback)
+      "sep31" -> sep31Callbacks.add(receivedCallback)
+      "sep12" -> sep12Callbacks.add(receivedCallback)
+      else -> throw IllegalArgumentException("Invalid type: $type")
+    }
   }
 
   // Get all events. This is for testing purpose.
   // If txnId is not null, the events are filtered.
-  fun getCallbacks(txnId: String?): List<JsonObject> {
+  fun getTransactionCallbacks(type: String, txnId: String?): List<JsonObject> {
+    val receivedCallbacks =
+      when (type) {
+        "sep6" -> sep6Callbacks
+        "sep24" -> sep24Callbacks
+        "sep31" -> sep31Callbacks
+        else -> throw IllegalArgumentException("Invalid type: $type")
+      }
     if (txnId != null) {
       // filter events with txnId
       return receivedCallbacks.filter {
@@ -26,15 +42,11 @@ class CallbackService {
     return receivedCallbacks
   }
 
-  // Get the latest event received. This is for testing purpose
-  fun getLatestCallback(): JsonObject? {
-    return receivedCallbacks.lastOrNull()
-  }
-
-  // Clear all events. This is for testing purpose
-  fun clear() {
-    log.debug("Clearing events")
-    receivedCallbacks.clear()
+  fun getCustomerCallbacks(customerId: String?): List<JsonObject> {
+    if (customerId != null) {
+      return sep12Callbacks.filter { it.get("id").asString == customerId }
+    }
+    return sep12Callbacks
   }
 
   companion object {

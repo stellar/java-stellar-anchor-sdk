@@ -14,5 +14,6 @@ public class NotifyCustomerInfoUpdatedRequest extends RpcMethodParamsRequest {
   @SerializedName("customer_id")
   String customerId;
 
-  String type;
+  @SerializedName("customer_type")
+  String customerType;
 }

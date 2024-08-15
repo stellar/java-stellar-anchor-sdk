@@ -7,38 +7,25 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
-import org.stellar.anchor.api.callback.SendEventRequest
-import org.stellar.anchor.api.callback.SendEventResponse
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.util.GsonUtils
 
 class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
   val gson = GsonUtils.getInstance()
   val client = HttpClient()
 
-  suspend fun sendCallback(sendEventRequest: SendEventRequest): SendEventResponse {
-    val response =
-      client.post {
-        url {
-          this.protocol = endpoint.protocol
-          host = endpoint.host
-          port = endpoint.port
-          encodedPath = "/callback"
-        }
-        contentType(ContentType.Application.Json)
-        setBody(gson.toJson(sendEventRequest))
-      }
-
-    return gson.fromJson(response.body<String>(), SendEventResponse::class.java)
-  }
-
-  suspend fun <T> getCallbacks(txnId: String? = null, responseType: Class<T>): List<T> {
+  suspend fun <T> getTransactionCallbacks(
+    sep: String,
+    txnId: String? = null,
+    responseType: Class<T>
+  ): List<T> {
     val response =
       client.get {
         url {
           this.protocol = endpoint.protocol
           host = endpoint.host
           port = endpoint.port
-          encodedPath = "/callbacks"
+          encodedPath = "/callbacks/$sep"
           txnId?.let { parameter("txnId", it) }
         }
       }
@@ -49,11 +36,16 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
     )
   }
 
-  suspend fun <T> pollCallbacks(txnId: String?, expected: Int, responseType: Class<T>): List<T> {
+  suspend fun <T> pollTransactionCallbacks(
+    sep: String,
+    txnId: String?,
+    expected: Int,
+    responseType: Class<T>
+  ): List<T> {
     var retries = 5
     var callbacks: List<T> = listOf()
     while (retries > 0) {
-      callbacks = getCallbacks(txnId, responseType)
+      callbacks = getTransactionCallbacks(sep, txnId, responseType)
       if (callbacks.size >= expected) {
         return callbacks
       }
@@ -63,17 +55,36 @@ class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
     return callbacks
   }
 
-  suspend fun <T> getLatestCallback(): T? {
+  suspend fun getCustomerCallbacks(id: String?, expected: Int): List<Sep12GetCustomerResponse> {
     val response =
       client.get {
         url {
           this.protocol = endpoint.protocol
           host = endpoint.host
           port = endpoint.port
-          encodedPath = "/callbacks/latest"
+          encodedPath = "/callbacks/sep12"
+          id?.let { parameter("id", it) }
         }
       }
-    return gson.fromJson(response.body<String>(), object : TypeToken<T>() {}.type)
+
+    return gson.fromJson(
+      response.body<String>(),
+      TypeToken.getParameterized(List::class.java, Sep12GetCustomerResponse::class.java).type
+    )
+  }
+
+  suspend fun pollCustomerCallbacks(id: String?, expected: Int): List<Sep12GetCustomerResponse> {
+    var retries = 5
+    var callbacks: List<Sep12GetCustomerResponse> = listOf()
+    while (retries > 0) {
+      callbacks = getCustomerCallbacks(id, expected)
+      if (callbacks.size >= expected) {
+        return callbacks
+      }
+      delay(5.seconds)
+      retries--
+    }
+    return callbacks
   }
 
   suspend fun clearCallbacks() {

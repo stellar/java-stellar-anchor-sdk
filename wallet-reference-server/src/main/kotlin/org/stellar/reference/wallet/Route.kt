@@ -27,7 +27,7 @@ var signer: KeyPair? = null
 val gson: Gson = GsonUtils.getInstance()
 
 fun Route.callback(config: Config, callbackEventService: CallbackService) {
-  route("/callbacks") {
+  route("/callbacks/{sep}") {
     // The `POST /callback` endpoint of the CallbackAPI to receive an event.
     post {
       // Extract TS from request header and verify the ts difference is within 1-2 minutes
@@ -43,10 +43,23 @@ fun Route.callback(config: Config, callbackEventService: CallbackService) {
       }
 
       val event: JsonObject = gson.fromJson(body, JsonObject::class.java)
-      callbackEventService.processCallback(event)
+      callbackEventService.processCallback(event, call.parameters["sep"]!!)
       call.respond("POST /callback received")
     }
-    get { call.respond(gson.toJson(callbackEventService.getCallbacks(call.parameters["txnId"]))) }
+    get {
+      if (call.parameters["sep"] == "sep12") {
+        call.respond(gson.toJson(callbackEventService.getCustomerCallbacks(call.parameters["id"])))
+        return@get
+      }
+      call.respond(
+        gson.toJson(
+          callbackEventService.getTransactionCallbacks(
+            call.parameters["sep"]!!,
+            call.parameters["txnId"]
+          )
+        )
+      )
+    }
   }
 
   route("/callbacks/latest") { get { call.respond("GET /callbacks/latest") } }

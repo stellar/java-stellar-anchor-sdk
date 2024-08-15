@@ -18,7 +18,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.stellar.anchor.MoreInfoUrlConstructor;
-import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -51,7 +50,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
   private final SecretConfig secretConfig;
   private final ClientConfig clientConfig;
   private final Sep6TransactionStore sep6TransactionStore;
-  private final CustomerIntegration customerIntegration;
   private final AssetService assetService;
   private final MoreInfoUrlConstructor sep6MoreInfoUrlConstructor;
   private final MoreInfoUrlConstructor sep24MoreInfoUrlConstructor;
@@ -60,7 +58,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
       SecretConfig secretConfig,
       ClientConfig clientConfig,
       Sep6TransactionStore sep6TransactionStore,
-      CustomerIntegration customerIntegration,
       AssetService assetService,
       MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
       MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
@@ -69,7 +66,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
     this.clientConfig = clientConfig;
     this.assetService = assetService;
     this.sep6TransactionStore = sep6TransactionStore;
-    this.customerIntegration = customerIntegration;
     this.sep6MoreInfoUrlConstructor = sep6MoreInfoUrlConstructor;
     this.sep24MoreInfoUrlConstructor = sep24MoreInfoUrlConstructor;
   }
@@ -80,8 +76,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
       KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
       Request request = buildHttpRequest(signer, event);
       Response response = httpClient.newCall(request).execute();
-      debugF(
-          "Sending event: {} to client status api: {}", json(event), clientConfig.getCallbackUrl());
+      debugF("Sending event: {} to client status api: {}", json(event), request.url());
       if (response.code() < 200 || response.code() >= 400) {
         errorF("Failed to send event to client status API. Error code: {}", response.code());
         return false;
