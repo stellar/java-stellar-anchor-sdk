@@ -10,91 +10,66 @@ import kotlinx.coroutines.delay
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.util.GsonUtils
 
-class WalletServerClient(val endpoint: Url = Url("http://localhost:8092")) {
-  val gson = GsonUtils.getInstance()
-  val client = HttpClient()
+class WalletServerClient(private val endpoint: Url = Url("http://localhost:8092")) {
+  private val gson = GsonUtils.getInstance()
+  internal val client = HttpClient()
 
   suspend fun <T> getTransactionCallbacks(
     sep: String,
     txnId: String? = null,
     responseType: Class<T>
-  ): List<T> {
-    val response =
-      client.get {
+  ): List<T> =
+    client
+      .get {
         url {
-          this.protocol = endpoint.protocol
-          host = endpoint.host
-          port = endpoint.port
-          encodedPath = "/callbacks/$sep"
+          setupUrl("/callbacks/$sep")
           txnId?.let { parameter("txnId", it) }
         }
       }
-
-    return gson.fromJson(
-      response.body<String>(),
-      TypeToken.getParameterized(List::class.java, responseType).type
-    )
-  }
+      .body<String>()
+      .let { parseResponse(it, responseType) }
 
   suspend fun <T> pollTransactionCallbacks(
     sep: String,
     txnId: String?,
     expected: Int,
     responseType: Class<T>
-  ): List<T> {
-    var retries = 5
-    var callbacks: List<T> = listOf()
-    while (retries > 0) {
-      callbacks = getTransactionCallbacks(sep, txnId, responseType)
-      if (callbacks.size >= expected) {
-        return callbacks
-      }
-      delay(5.seconds)
-      retries--
-    }
-    return callbacks
-  }
+  ): List<T> = poll(expected) { getTransactionCallbacks(sep, txnId, responseType) }
 
-  suspend fun getCustomerCallbacks(id: String?, expected: Int): List<Sep12GetCustomerResponse> {
-    val response =
-      client.get {
+  suspend fun getCustomerCallbacks(id: String?): List<Sep12GetCustomerResponse> =
+    client
+      .get {
         url {
-          this.protocol = endpoint.protocol
-          host = endpoint.host
-          port = endpoint.port
-          encodedPath = "/callbacks/sep12"
+          setupUrl("/callbacks/sep12")
           id?.let { parameter("id", it) }
         }
       }
+      .body<String>()
+      .let { parseResponse(it, Sep12GetCustomerResponse::class.java) }
 
-    return gson.fromJson(
-      response.body<String>(),
-      TypeToken.getParameterized(List::class.java, Sep12GetCustomerResponse::class.java).type
-    )
-  }
-
-  suspend fun pollCustomerCallbacks(id: String?, expected: Int): List<Sep12GetCustomerResponse> {
-    var retries = 5
-    var callbacks: List<Sep12GetCustomerResponse> = listOf()
-    while (retries > 0) {
-      callbacks = getCustomerCallbacks(id, expected)
-      if (callbacks.size >= expected) {
-        return callbacks
-      }
-      delay(5.seconds)
-      retries--
-    }
-    return callbacks
-  }
+  suspend fun pollCustomerCallbacks(id: String?, expected: Int): List<Sep12GetCustomerResponse> =
+    poll(expected) { getCustomerCallbacks(id) }
 
   suspend fun clearCallbacks() {
-    client.delete {
-      url {
-        this.protocol = endpoint.protocol
-        host = endpoint.host
-        port = endpoint.port
-        encodedPath = "/events"
-      }
+    client.delete { url { setupUrl("/events") } }
+  }
+
+  private fun URLBuilder.setupUrl(path: String) {
+    protocol = endpoint.protocol
+    host = endpoint.host
+    port = endpoint.port
+    encodedPath = path
+  }
+
+  private fun <T> parseResponse(response: String, responseType: Class<T>): List<T> =
+    gson.fromJson(response, TypeToken.getParameterized(List::class.java, responseType).type)
+
+  private suspend fun <T> poll(expected: Int, fetcher: suspend () -> List<T>): List<T> {
+    repeat(5) {
+      val callbacks = fetcher()
+      if (callbacks.size >= expected) return callbacks
+      delay(5.seconds)
     }
+    return fetcher()
   }
 }
