@@ -34,15 +34,12 @@ import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.NotFoundException;
-import org.stellar.anchor.api.exception.Sep31CustomerInfoNeededException;
 import org.stellar.anchor.api.exception.Sep31MissingFieldException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.sep.operation.Sep12Operation;
 import org.stellar.anchor.api.sep.operation.Sep31Operation.Fields;
-import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest;
@@ -166,7 +163,6 @@ public class Sep31Service {
     validateRequiredFields();
 
     // Validation that execute HTTP requests
-    validateSenderAndReceiver();
     preValidateQuote();
 
     // Query the fee
@@ -591,63 +587,6 @@ public class Sep31Service {
     if (client != null && !sep10Config.getAllowedClientNames().contains(client.getName()))
       client = null;
     return client == null ? null : client.getName();
-  }
-
-  /**
-   * validateSenderAndReceiver will validate if the SEP-31 sender and receiver exist and their
-   * status is ACCEPTED.
-   *
-   * @throws BadRequestException if `sender_id` or `receiver_id` is empty.
-   * @throws Sep31CustomerInfoNeededException if the SEP-12 customer does not exist or if its status
-   *     is not ACCEPTED.
-   * @throws AnchorException is something else went wrong.
-   */
-  private void validateSenderAndReceiver()
-      throws AnchorException, BadRequestException, Sep31CustomerInfoNeededException {
-    String receiverId = Context.get().getRequest().getReceiverId();
-    if (receiverId == null) {
-      infoF("'receiver_id' cannot be empty for request ({})", Context.get().getRequest());
-      throw new BadRequestException("receiver_id cannot be empty.");
-    }
-
-    // TODO: Populate customer type with the first receiver type; this is a temporary fix for cases
-    // where customerType is required
-    Sep12Operation sep12Operation = Context.get().getAsset().getSep31().getSep12();
-    String receiverType = null;
-    if (sep12Operation != null) {
-      Optional<String> receiverTypeOptional =
-          sep12Operation.getReceiver().getTypes().keySet().stream().findFirst();
-      receiverType = receiverTypeOptional.orElse(null);
-    }
-    GetCustomerRequest request =
-        GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
-    GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
-    if (receiver == null || !Objects.equals(receiver.getStatus(), Sep12Status.ACCEPTED.name())) {
-      infoF("Customer (receiver) info needed for request ({})", Context.get().getRequest());
-      throw new Sep31CustomerInfoNeededException("sep31-receiver");
-    }
-
-    String senderId = Context.get().getRequest().getSenderId();
-    if (senderId == null) {
-      infoF("'sender_id' cannot be empty for request ({})", Context.get().getRequest());
-      throw new BadRequestException("sender_id cannot be empty.");
-    }
-
-    // TODO: Populate customer type with the first sender type; this is a temporary fix for cases
-    // where customerType is required
-    String senderType = null;
-    if (sep12Operation != null) {
-      Optional<String> senderTypeOptional =
-          Context.get().getAsset().getSep31().getSep12().getSender().getTypes().keySet().stream()
-              .findFirst();
-      senderType = senderTypeOptional.orElse(null);
-    }
-    request = GetCustomerRequest.builder().id(senderId).type(senderType).build();
-    GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
-    if (sender == null || !Objects.equals(sender.getStatus(), Sep12Status.ACCEPTED.name())) {
-      infoF("Customer (sender) info needed for request ({})", Context.get().getRequest());
-      throw new Sep31CustomerInfoNeededException("sep31-sender");
-    }
   }
 
   /**
