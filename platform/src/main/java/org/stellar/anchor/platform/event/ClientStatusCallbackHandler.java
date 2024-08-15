@@ -22,6 +22,7 @@ import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
@@ -92,7 +93,32 @@ public class ClientStatusCallbackHandler extends EventHandler {
   @SneakyThrows
   Request buildHttpRequest(KeyPair signer, AnchorEvent event) {
     String payload = getPayload(event);
-    return buildHttpRequest(signer, payload, clientConfig.getCallbackUrl());
+    String callbackUrl = getCallbackUrl(event);
+    return buildHttpRequest(signer, payload, callbackUrl);
+  }
+
+  String getCallbackUrl(AnchorEvent event) throws InvalidConfigException {
+    // TODO: handle edge cases
+    String callbackUrl = clientConfig.getCallbackUrl();
+    if (event.getTransaction() != null) {
+      switch (event.getTransaction().getSep()) {
+        case SEP_6:
+          callbackUrl = clientConfig.getCallbackUrlSep6();
+          break;
+        case SEP_24:
+          callbackUrl = clientConfig.getCallbackUrlSep24();
+          break;
+        case SEP_31:
+          callbackUrl = clientConfig.getCallbackUrlSep31();
+          break;
+        default:
+          throw new InvalidConfigException(
+              String.format("Unsupported SEP: %s", event.getTransaction().getSep()));
+      }
+    } else if (event.getCustomer() != null) {
+      callbackUrl = clientConfig.getCallbackUrlSep12();
+    }
+    return callbackUrl;
   }
 
   @SneakyThrows

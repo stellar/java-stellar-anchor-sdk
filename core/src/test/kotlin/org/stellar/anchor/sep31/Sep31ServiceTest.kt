@@ -36,6 +36,7 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.*
+import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.CustodyConfig.CustodyType.NONE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
@@ -272,17 +273,13 @@ class Sep31ServiceTest {
       }
   """
     private val lobstrClientConfig =
-      ClientsConfig.ClientConfig(
-        "lobstr",
-        ClientsConfig.ClientType.NONCUSTODIAL,
-        null,
-        setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
-        null,
-        setOf("lobstr.co"),
-        "https://callback.lobstr.co/api/v2/anchor/callback",
-        false,
-        null
-      )
+      ClientConfig.builder()
+        .name("lobstr")
+        .type(ClientsConfig.ClientType.NONCUSTODIAL)
+        .signingKeys(setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"))
+        .domains(setOf("lobstr.co"))
+        .callbackUrl("https://callback.lobstr.co/api/v2/anchor/callback")
+        .build()
 
     @JvmStatic
     fun generateGetClientNameTestConfig(): Stream<Arguments> {

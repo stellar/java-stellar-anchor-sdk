@@ -4,12 +4,14 @@ import static io.jsonwebtoken.lang.Collections.setOf;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -139,13 +141,27 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
           "The client.domain and the client.domains cannot coexist, please choose one to use");
     }
 
-    if (!isEmpty(clientConfig.getCallbackUrl())) {
-      try {
-        new URL(clientConfig.getCallbackUrl());
-      } catch (MalformedURLException e) {
-        errors.reject("client-invalid-callback_url", "The client.callbackUrl is invalid");
-      }
-    }
+    ImmutableMap.of(
+            "callback_url",
+            Optional.ofNullable(clientConfig.getCallbackUrl()).orElse(""),
+            "callback_url_sep6",
+            Optional.ofNullable(clientConfig.getCallbackUrlSep6()).orElse(""),
+            "callback_url_sep24",
+            Optional.ofNullable(clientConfig.getCallbackUrlSep24()).orElse(""),
+            "callback_url_sep31",
+            Optional.ofNullable(clientConfig.getCallbackUrlSep31()).orElse(""),
+            "callback_url_sep12",
+            Optional.ofNullable(clientConfig.getCallbackUrlSep12()).orElse(""))
+        .forEach(
+            (key, value) -> {
+              if (!isEmpty(value)) {
+                try {
+                  new URL(value);
+                } catch (MalformedURLException e) {
+                  errors.reject("client-invalid-" + key, "The client." + key + " is invalid");
+                }
+              }
+            });
 
     if (clientConfig.getDestinationAccounts() != null) {
       errors.reject(
