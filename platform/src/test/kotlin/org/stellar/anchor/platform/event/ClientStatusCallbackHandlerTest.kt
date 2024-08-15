@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.stellar.anchor.LockAndMockStatic
 import org.stellar.anchor.LockAndMockTest
-import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
@@ -46,7 +45,6 @@ class ClientStatusCallbackHandlerTest {
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
-  @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) lateinit var sep6MoreInfoUrlConstructor: Sep6MoreInfoUrlConstructor
   @MockK(relaxed = true) lateinit var sep24MoreInfoUrlConstructor: Sep24MoreInfoUrlConstructor
 
@@ -65,7 +63,6 @@ class ClientStatusCallbackHandlerTest {
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
 
     assetService = mockk<AssetService>()
-    customerIntegration = mockk<CustomerIntegration>()
     sep6MoreInfoUrlConstructor = mockk<Sep6MoreInfoUrlConstructor>()
     sep24MoreInfoUrlConstructor = mockk<Sep24MoreInfoUrlConstructor>()
 
@@ -83,7 +80,6 @@ class ClientStatusCallbackHandlerTest {
         secretConfig,
         clientConfig,
         sep6TransactionStore,
-        customerIntegration,
         assetService,
         sep6MoreInfoUrlConstructor,
         sep24MoreInfoUrlConstructor
