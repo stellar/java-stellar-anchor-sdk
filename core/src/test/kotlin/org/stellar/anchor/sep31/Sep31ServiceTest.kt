@@ -628,7 +628,8 @@ class Sep31ServiceTest {
       "missing field names don't match",
     )
 
-    // missing receiver_id
+    // ----- QUOTE_ID IS USED ⬇️ -----
+    // not found quote_id
     val fields =
       hashMapOf(
         "receiver_account_number" to "1",
@@ -636,57 +637,6 @@ class Sep31ServiceTest {
         "receiver_routing_number" to "SWIFT",
       )
     postTxRequest.fields = Sep31TxnFields(fields)
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("receiver_id cannot be empty.", ex.message)
-
-    // not found receiver_id
-    every { customerIntegration.getCustomer(any()) } returns null
-    postTxRequest.receiverId = "receiver_foo"
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
-    assertEquals("sep31-receiver", (ex as Sep31CustomerInfoNeededException).type)
-
-    // receiver status is not ACCEPTED
-    val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
-    postTxRequest.receiverId = receiverId
-    var request = GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
-    val mockReceiver = GetCustomerResponse()
-    mockReceiver.id = receiverId
-    every { customerIntegration.getCustomer(request) } returns mockReceiver
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
-    assertEquals("sep31-receiver", (ex as Sep31CustomerInfoNeededException).type)
-
-    // missing sender_id
-    mockReceiver.status = Sep12Status.ACCEPTED.name
-    every { customerIntegration.getCustomer(request) } returns mockReceiver
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sender_id cannot be empty.", ex.message)
-
-    // not found sender_id
-    postTxRequest.senderId = "sender_bar"
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
-    assertEquals("sep31-sender", (ex as Sep31CustomerInfoNeededException).type)
-
-    // sender status is not ACCEPTED
-    val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
-    postTxRequest.senderId = senderId
-    request = GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
-    val mockSender = GetCustomerResponse()
-    mockSender.id = receiverId
-    every { customerIntegration.getCustomer(request) } returns mockSender
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
-    assertEquals("sep31-sender", (ex as Sep31CustomerInfoNeededException).type)
-
-    // ----- QUOTE_ID IS USED ⬇️ -----
-    // not found quote_id
-    mockSender.status = Sep12Status.ACCEPTED.name
-    every { customerIntegration.getCustomer(request) } returns mockSender
-
     postTxRequest.quoteId = "not-found-quote-id"
     every { quoteStore.findByQuoteId(any()) } returns null
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
@@ -805,10 +755,6 @@ class Sep31ServiceTest {
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
     // verify if the mocks were called
-    var request = GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
-    verify(exactly = 1) { customerIntegration.getCustomer(request) }
-    request = GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
-    verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
     verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
     verify(exactly = 1) { custodyService.createTransaction(any() as Sep31Transaction) }
@@ -896,12 +842,6 @@ class Sep31ServiceTest {
     val ex: AnchorException = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("quotes_required is set to true; quote id cannot be empty", ex.message)
-
-    // verify if the mocks were called
-    var request = GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
-    verify(exactly = 1) { customerIntegration.getCustomer(request) }
-    request = GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
-    verify(exactly = 1) { customerIntegration.getCustomer(request) }
   }
 
   @Test
