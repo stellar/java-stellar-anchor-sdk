@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.e2etest
 
 import io.ktor.http.*
 import kotlin.test.DefaultAsserter.fail
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
@@ -368,7 +367,7 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         GetTransactionResponse::class.java
       )
     val statuses = callbacks.map { it.transaction.status }
-    assertContentEquals(expected.map { it.status }, statuses)
+    assertEquals(expected.map { it.status }, statuses)
   }
 
   private suspend fun assertWalletReceivedCustomerStatuses(
@@ -377,7 +376,7 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
   ) {
     val callbacks = walletServerClient.pollCustomerCallbacks(id, expected.size)
     val statuses: List<Sep12Status> = callbacks.map { it.status }
-    assertContentEquals(expected, statuses)
+    assertEquals(expected, statuses)
   }
 
   private suspend fun waitStatus(

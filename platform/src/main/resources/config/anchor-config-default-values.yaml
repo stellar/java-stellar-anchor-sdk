@@ -185,7 +185,7 @@ event_processor:
 #                  poll instead, or may use polling first before implementing callbacks at a later stage. If one of
 #                  SEP-specific URLs is also provided, then this URL will be used as a fallback. For example, if
 #                  `callback_url_sep6` is not provided, but `callback_url_sep24` is, SEP-6 transactions will use the
-#                  `callback_url` as the callback URL.
+#                  `callback_url` as the callback URL. This field will be deprecated in 3.0.
 #   - callback_url_sep6: (optional) the URL of the client's SEP-6 callback API endpoint. If set, it will be used as
 #                  the callback URL for SEP-6 transactions.
 #   - callback_url_sep24: (optional) the URL of the client's SEP-24 callback API endpoint. If set, it will be used as

@@ -19,7 +19,7 @@ public interface ClientsConfig {
     Set<String> signingKeys;
     @Deprecated String domain; // ANCHOR-696
     Set<String> domains;
-    String callbackUrl;
+    @Deprecated String callbackUrl; // ANCHOR-755
     String callbackUrlSep6;
     String callbackUrlSep24;
     String callbackUrlSep31;
