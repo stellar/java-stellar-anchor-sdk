@@ -228,4 +228,46 @@ class RestRateIntegrationTest {
       ex.message,
     )
   }
+
+  @Test
+  fun `test bad decimals from the response`() {
+    // Bad sell amount
+    rateResponse.rate.sellAmount = "100.00001234"
+    rateResponse.rate.buyAmount = "94.29"
+    rateResponse.rate.fee.details[0].amount = "0.7"
+    var ex =
+      assertThrows<ServerErrorException> {
+        rateIntegration.validateRateResponse(request, rateResponse)
+      }
+    assertEquals(
+      "'sell_amount' has incorrect number of significant decimals in the GET /rate response",
+      ex.message,
+    )
+
+    // Bad buy amount
+    rateResponse.rate.sellAmount = "100"
+    rateResponse.rate.buyAmount = "94.000029"
+    rateResponse.rate.fee.details[0].amount = "0.7"
+    ex =
+      assertThrows<ServerErrorException> {
+        rateIntegration.validateRateResponse(request, rateResponse)
+      }
+    assertEquals(
+      "'buy_amount' has incorrect number of significant decimals in the GET /rate response",
+      ex.message,
+    )
+
+    // Bad fee amount
+    rateResponse.rate.sellAmount = "100"
+    rateResponse.rate.buyAmount = "94.29"
+    rateResponse.rate.fee.details[0].amount = "0.00007"
+    ex =
+      assertThrows<ServerErrorException> {
+        rateIntegration.validateRateResponse(request, rateResponse)
+      }
+    assertEquals(
+      "'fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
+      ex.message,
+    )
+  }
 }

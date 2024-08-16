@@ -30,6 +30,7 @@ import org.stellar.anchor.api.shared.FeeDescription;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.util.NumberHelper;
 
 public class RestRateIntegration implements RateIntegration {
   private final String anchorEndpoint;
@@ -94,6 +95,8 @@ public class RestRateIntegration implements RateIntegration {
   void validateRateResponse(GetRateRequest request, GetRateResponse getRateResponse)
       throws ServerErrorException {
     AssetInfo sellAsset = assetService.getAssetByName(request.getSellAsset());
+    AssetInfo buyAsset = assetService.getAssetByName(request.getBuyAsset());
+
     GetRateResponse.Rate rate = getRateResponse.getRate();
     if (rate == null || rate.getPrice() == null) {
       logErrorAndThrow("missing 'price' in the GET /rate response", ServerErrorException.class);
@@ -120,10 +123,26 @@ public class RestRateIntegration implements RateIntegration {
           ServerErrorException.class);
     }
 
+    // sell_amount has a proper number of significant decimals
+    if (!NumberHelper.hasProperSignificantDecimals(
+        Objects.requireNonNull(rate).getSellAmount(), 0, sellAsset.getSignificantDecimals())) {
+      logErrorAndThrow(
+          "'sell_amount' has incorrect number of significant decimals in the GET /rate response",
+          ServerErrorException.class);
+    }
+
     // buy_amount is present and positive number
     if (!isPositiveNumber(rate.getBuyAmount())) {
       logErrorAndThrow(
           "'buy_amount' is missing or not a positive number in the GET /rate response",
+          ServerErrorException.class);
+    }
+
+    // buy_amount has a proper number of significant decimals
+    if (!NumberHelper.hasProperSignificantDecimals(
+        rate.getBuyAmount(), 0, buyAsset.getSignificantDecimals())) {
+      logErrorAndThrow(
+          "'buy_amount' has incorrect number of significant decimals in the GET /rate response",
           ServerErrorException.class);
     }
 
@@ -173,10 +192,14 @@ public class RestRateIntegration implements RateIntegration {
       }
 
       if (fee.getDetails() != null) {
-        BigDecimal totalFee =
-            new BigDecimal(0)
-                .setScale(Objects.requireNonNull(feeAsset).getSignificantDecimals(), HALF_UP);
+        BigDecimal totalFee = new BigDecimal(0);
         for (FeeDescription feeDescription : fee.getDetails()) {
+          if (!NumberHelper.hasProperSignificantDecimals(
+              feeDescription.getAmount(), 0, feeAsset.getSignificantDecimals())) {
+            logErrorAndThrow(
+                "'fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
+                ServerErrorException.class);
+          }
           if (feeDescription.getName() == null) {
             logErrorAndThrow(
                 "'fee.details.description[?].name' is missing in the GET /rate response",
