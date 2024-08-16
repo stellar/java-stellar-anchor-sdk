@@ -1,5 +1,7 @@
 package org.stellar.anchor.util;
 
+import java.math.BigDecimal;
+
 public class NumberHelper {
   public static boolean isPositiveNumber(String str) {
     if (str == null) {
@@ -7,8 +9,7 @@ public class NumberHelper {
     }
 
     try {
-      double number = Double.parseDouble(str);
-      return number > 0;
+      return new BigDecimal(str).compareTo(BigDecimal.ZERO) > 0;
     } catch (NumberFormatException e) {
       return false;
     }
