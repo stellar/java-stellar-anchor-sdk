@@ -270,7 +270,12 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     var retries = 30
     var callbacks: List<Sep24GetTransactionResponse>? = null
     while (retries > 0) {
-      callbacks = walletServerClient.getCallbacks(txnId, Sep24GetTransactionResponse::class.java)
+      callbacks =
+        walletServerClient.getTransactionCallbacks(
+          "sep24",
+          txnId,
+          Sep24GetTransactionResponse::class.java
+        )
       if (callbacks.size == count) {
         return callbacks
       }

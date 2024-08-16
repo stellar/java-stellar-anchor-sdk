@@ -182,7 +182,18 @@ event_processor:
 #   If the type is `custodial`,
 #   - signing_keys: (required) the custodial SEP-10 signing keys of the client.
 #   - callback_url: (optional) the URL of the client's callback API endpoint. Optional due to some wallets may opt to
-#                  poll instead, or may use polling first before implementing callbacks at a later stage.
+#                  poll instead, or may use polling first before implementing callbacks at a later stage. If one of
+#                  SEP-specific URLs is also provided, then this URL will be used as a fallback. For example, if
+#                  `callback_url_sep6` is not provided, but `callback_url_sep24` is, SEP-6 transactions will use the
+#                  `callback_url` as the callback URL. This field is deprecated and will be removed in 3.0.
+#   - callback_url_sep6: (optional) the URL of the client's SEP-6 callback API endpoint. If set, it will be used as
+#                  the callback URL for SEP-6 transactions.
+#   - callback_url_sep24: (optional) the URL of the client's SEP-24 callback API endpoint. If set, it will be used as
+#                  the callback URL for SEP-24 transactions.
+#   - callback_url_sep31: (optional) the URL of the client's SEP-31 callback API endpoint. If set, it will be used as
+#                  the callback URL for SEP-31 transactions.
+#   - callback_url_sep12: (optional) the URL of the client's SEP-12 callback API endpoint. If set, it will be used as
+#                  the callback URL for SEP-12 transactions.
 #   - allow_any_destination: (optional) default to false. If set to true, allows any destination for deposits.
 #   - destination_accounts: (optional) list of accounts allowed to be used for the deposit. By default, only SEP-10
 #                  authenticated account can be used to deposit funds into. If allows_any_destinations set to true,

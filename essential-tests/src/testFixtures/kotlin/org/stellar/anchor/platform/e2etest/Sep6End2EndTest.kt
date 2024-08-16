@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.e2etest
 
 import io.ktor.http.*
 import kotlin.test.DefaultAsserter.fail
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
@@ -11,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
+import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep6.GetTransactionResponse
 import org.stellar.anchor.api.shared.InstructionField
 import org.stellar.anchor.client.Sep6Client
@@ -60,7 +60,8 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
+    val customer =
+      anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
 
     val deposit =
       sep6Client.deposit(
@@ -120,6 +121,14 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         COMPLETED,
       )
     assertWalletReceivedStatuses(deposit.id, expectedStatuses)
+
+    val expectedCustomerStatuses =
+      listOf(
+        Sep12Status.ACCEPTED, // initial customer status before SEP-6 transaction
+        Sep12Status.NEEDS_INFO, // SEP-6 transaction requires additional info
+        Sep12Status.ACCEPTED // additional info provided
+      )
+    assertWalletReceivedCustomerStatuses(customer.id, expectedCustomerStatuses)
   }
 
   @Test
@@ -129,7 +138,8 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
+    val customer =
+      anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
 
     val deposit =
       sep6Client.deposit(
@@ -191,6 +201,14 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         COMPLETED,
       )
     assertWalletReceivedStatuses(deposit.id, expectedStatuses)
+
+    val expectedCustomerStatuses =
+      listOf(
+        Sep12Status.ACCEPTED, // initial customer status before SEP-6 transaction
+        Sep12Status.NEEDS_INFO, // SEP-6 transaction requires additional info
+        Sep12Status.ACCEPTED // additional info provided
+      )
+    assertWalletReceivedCustomerStatuses(customer.id, expectedCustomerStatuses)
   }
 
   @Test
@@ -201,7 +219,8 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
+    val customer =
+      anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
 
     val withdraw =
       sep6Client.withdraw(
@@ -251,6 +270,14 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         COMPLETED,
       )
     assertWalletReceivedStatuses(withdraw.id, expectedStatuses)
+
+    val expectedCustomerStatuses =
+      listOf(
+        Sep12Status.ACCEPTED, // initial customer status before SEP-6 transaction
+        Sep12Status.NEEDS_INFO, // SEP-6 transaction requires additional info
+        Sep12Status.ACCEPTED // additional info provided
+      )
+    assertWalletReceivedCustomerStatuses(customer.id, expectedCustomerStatuses)
   }
 
   @Test
@@ -261,7 +288,8 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
     val sep6Client = Sep6Client("${config.env["anchor.domain"]}/sep6", token.token)
 
     // Create a customer before starting the transaction
-    anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
+    val customer =
+      anchor.customer(token).add(basicInfoFields.associateWith { customerInfo[it]!! }, memo)
 
     val withdraw =
       sep6Client.withdraw(
@@ -317,6 +345,14 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
         COMPLETED,
       )
     assertWalletReceivedStatuses(withdraw.id, expectedStatuses)
+
+    val expectedCustomerStatuses =
+      listOf(
+        Sep12Status.ACCEPTED, // initial customer status before SEP-6 transaction
+        Sep12Status.NEEDS_INFO, // SEP-6 transaction requires additional info
+        Sep12Status.ACCEPTED // additional info provided
+      )
+    assertWalletReceivedCustomerStatuses(customer.id, expectedCustomerStatuses)
   }
 
   private suspend fun assertWalletReceivedStatuses(
@@ -324,9 +360,23 @@ open class Sep6End2EndTest : AbstractIntegrationTests(TestConfig()) {
     expected: List<SepTransactionStatus>,
   ) {
     val callbacks =
-      walletServerClient.pollCallbacks(txnId, expected.size, GetTransactionResponse::class.java)
+      walletServerClient.pollTransactionCallbacks(
+        "sep6",
+        txnId,
+        expected.size,
+        GetTransactionResponse::class.java
+      )
     val statuses = callbacks.map { it.transaction.status }
-    assertContentEquals(expected.map { it.status }, statuses)
+    assertEquals(expected.map { it.status }, statuses)
+  }
+
+  private suspend fun assertWalletReceivedCustomerStatuses(
+    id: String,
+    expected: List<Sep12Status>
+  ) {
+    val callbacks = walletServerClient.pollCustomerCallbacks(id, expected.size)
+    val statuses: List<Sep12Status> = callbacks.map { it.status }
+    assertEquals(expected, statuses)
   }
 
   private suspend fun waitStatus(
