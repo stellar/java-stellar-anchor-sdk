@@ -26,10 +26,12 @@ class RequestValidatorTest {
 
   @Test
   fun `test getDepositAsset`() {
-    val asset = mockk<AssetInfo>()
-    val deposit = mockk<AssetInfo.DepositOperation>()
-    every { asset.sep6Enabled } returns true
-    every { asset.deposit } returns deposit
+    val asset = AssetInfo()
+    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
+    val deposit = mockk<AssetInfo.DepositWithdrawOperation>()
+    asset.sep6 = sep6Info
+    every { sep6Info.enabled } returns true
+    every { sep6Info.deposit } returns deposit
     every { deposit.enabled } returns true
     every { assetService.getAsset(TEST_ASSET) } returns asset
     requestValidator.getDepositAsset(TEST_ASSET)
@@ -43,10 +45,12 @@ class RequestValidatorTest {
 
   @Test
   fun `test getDepositAsset with deposit disabled asset`() {
-    val asset = mockk<AssetInfo>()
-    val deposit = mockk<AssetInfo.DepositOperation>()
-    every { asset.sep6Enabled } returns true
-    every { asset.deposit } returns deposit
+    val asset = AssetInfo()
+    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
+    val deposit = mockk<AssetInfo.DepositWithdrawOperation>()
+    asset.sep6 = sep6Info
+    every { sep6Info.enabled } returns true
+    every { sep6Info.deposit } returns deposit
     every { deposit.enabled } returns false
     every { assetService.getAsset(TEST_ASSET) } returns asset
     assertThrows<SepValidationException> { requestValidator.getDepositAsset(TEST_ASSET) }
@@ -54,18 +58,22 @@ class RequestValidatorTest {
 
   @Test
   fun `test getDepositAsset with sep6 disabled asset`() {
-    val asset = mockk<AssetInfo>()
-    every { asset.sep6Enabled } returns false
+    val asset = AssetInfo()
+    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
+    asset.sep6 = sep6Info
+    every { sep6Info.enabled } returns false
     every { assetService.getAsset(TEST_ASSET) } returns asset
     assertThrows<SepValidationException> { requestValidator.getDepositAsset(TEST_ASSET) }
   }
 
   @Test
   fun `test getWithdrawAsset`() {
-    val asset = mockk<AssetInfo>()
-    val withdraw = mockk<AssetInfo.WithdrawOperation>()
-    every { asset.sep6Enabled } returns true
-    every { asset.withdraw } returns withdraw
+    val asset = AssetInfo()
+    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
+    val withdraw = mockk<AssetInfo.DepositWithdrawOperation>()
+    asset.sep6 = sep6Info
+    every { sep6Info.enabled } returns true
+    every { sep6Info.withdraw } returns withdraw
     every { withdraw.enabled } returns true
     every { assetService.getAsset(TEST_ASSET) } returns asset
     requestValidator.getWithdrawAsset(TEST_ASSET)
@@ -79,10 +87,12 @@ class RequestValidatorTest {
 
   @Test
   fun `test getWithdrawAsset with withdraw disabled asset`() {
-    val asset = mockk<AssetInfo>()
-    val withdraw = mockk<AssetInfo.WithdrawOperation>()
-    every { asset.sep6Enabled } returns true
-    every { asset.withdraw } returns withdraw
+    val asset = AssetInfo()
+    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
+    val withdraw = mockk<AssetInfo.DepositWithdrawOperation>()
+    asset.sep6 = sep6Info
+    every { sep6Info.enabled } returns true
+    every { sep6Info.withdraw } returns withdraw
     every { withdraw.enabled } returns false
     every { assetService.getAsset(TEST_ASSET) } returns asset
     assertThrows<SepValidationException> { requestValidator.getWithdrawAsset(TEST_ASSET) }
@@ -90,8 +100,10 @@ class RequestValidatorTest {
 
   @Test
   fun `test getWithdrawAsset with sep6 disabled asset`() {
-    val asset = mockk<AssetInfo>()
-    every { asset.sep6Enabled } returns false
+    val asset = AssetInfo()
+    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
+    asset.sep6 = sep6Info
+    every { sep6Info.enabled } returns false
     every { assetService.getAsset(TEST_ASSET) } returns asset
     assertThrows<SepValidationException> { requestValidator.getWithdrawAsset(TEST_ASSET) }
   }

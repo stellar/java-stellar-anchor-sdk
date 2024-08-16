@@ -118,15 +118,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("bank_account", asset.code, asset.deposit.methods)
+      requestValidator.validateTypes("bank_account", asset.code, asset.sep6.deposit.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         "100",
         asset.code,
         asset.significantDecimals,
-        asset.deposit.minAmount,
-        asset.deposit.maxAmount,
+        asset.sep6.deposit.minAmount,
+        asset.sep6.deposit.maxAmount,
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
@@ -257,7 +257,7 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes(unsupportedType, TEST_ASSET, asset.deposit.methods)
+      requestValidator.validateTypes(unsupportedType, TEST_ASSET, asset.sep6.deposit.methods)
     }
 
     // Verify effects
@@ -283,15 +283,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("bank_account", TEST_ASSET, asset.deposit.methods)
+      requestValidator.validateTypes("bank_account", TEST_ASSET, asset.sep6.deposit.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         badAmount,
         TEST_ASSET,
         asset.significantDecimals,
-        asset.deposit.minAmount,
-        asset.deposit.maxAmount,
+        asset.sep6.deposit.minAmount,
+        asset.sep6.deposit.maxAmount,
       )
     }
 
@@ -320,15 +320,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("bank_account", asset.code, asset.deposit.methods)
+      requestValidator.validateTypes("bank_account", asset.code, asset.sep6.deposit.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         "100",
         asset.code,
         asset.significantDecimals,
-        asset.deposit.minAmount,
-        asset.deposit.maxAmount,
+        asset.sep6.deposit.minAmount,
+        asset.sep6.deposit.maxAmount,
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
@@ -375,15 +375,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("SWIFT", asset.code, asset.deposit.methods)
+      requestValidator.validateTypes("SWIFT", asset.code, asset.sep6.deposit.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         "100",
         asset.code,
         asset.significantDecimals,
-        asset.deposit.minAmount,
-        asset.deposit.maxAmount,
+        asset.sep6.deposit.minAmount,
+        asset.sep6.deposit.maxAmount,
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
@@ -456,15 +456,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("SWIFT", asset.code, asset.deposit.methods)
+      requestValidator.validateTypes("SWIFT", asset.code, asset.sep6.deposit.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         "100",
         asset.code,
         asset.significantDecimals,
-        asset.deposit.minAmount,
-        asset.deposit.maxAmount,
+        asset.sep6.deposit.minAmount,
+        asset.sep6.deposit.maxAmount,
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
@@ -563,7 +563,7 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes(unsupportedType, TEST_ASSET, asset.deposit.methods)
+      requestValidator.validateTypes(unsupportedType, TEST_ASSET, asset.sep6.deposit.methods)
     }
 
     // Verify effects
@@ -594,15 +594,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("SWIFT", TEST_ASSET, asset.deposit.methods)
+      requestValidator.validateTypes("SWIFT", TEST_ASSET, asset.sep6.deposit.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         badAmount,
         TEST_ASSET,
         asset.significantDecimals,
-        asset.deposit.minAmount,
-        asset.deposit.maxAmount,
+        asset.sep6.deposit.minAmount,
+        asset.sep6.deposit.maxAmount,
       )
     }
 
@@ -632,15 +632,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("SWIFT", asset.code, asset.deposit.methods)
+      requestValidator.validateTypes("SWIFT", asset.code, asset.sep6.deposit.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         "100",
         asset.code,
         asset.significantDecimals,
-        asset.deposit.minAmount,
-        asset.deposit.maxAmount,
+        asset.sep6.deposit.minAmount,
+        asset.sep6.deposit.maxAmount,
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
@@ -674,15 +674,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("bank_account", asset.code, asset.withdraw.methods)
+      requestValidator.validateTypes("bank_account", asset.code, asset.sep6.withdraw.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         "100",
         asset.code,
         asset.significantDecimals,
-        asset.withdraw.minAmount,
-        asset.withdraw.maxAmount,
+        asset.sep6.withdraw.minAmount,
+        asset.sep6.withdraw.maxAmount,
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
@@ -846,7 +846,7 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes(unsupportedType, asset.code, asset.withdraw.methods)
+      requestValidator.validateTypes(unsupportedType, asset.code, asset.sep6.withdraw.methods)
     }
 
     // Verify effects
@@ -871,15 +871,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("bank_account", asset.code, asset.withdraw.methods)
+      requestValidator.validateTypes("bank_account", asset.code, asset.sep6.withdraw.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         badAmount,
         asset.code,
         asset.significantDecimals,
-        asset.withdraw.minAmount,
-        asset.withdraw.maxAmount,
+        asset.sep6.withdraw.minAmount,
+        asset.sep6.withdraw.maxAmount,
       )
     }
 
@@ -907,15 +907,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("bank_account", asset.code, asset.withdraw.methods)
+      requestValidator.validateTypes("bank_account", asset.code, asset.sep6.withdraw.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         "100",
         asset.code,
         asset.significantDecimals,
-        asset.withdraw.minAmount,
-        asset.withdraw.maxAmount,
+        asset.sep6.withdraw.minAmount,
+        asset.sep6.withdraw.maxAmount,
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
@@ -960,15 +960,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("bank_account", asset.code, asset.withdraw.methods)
+      requestValidator.validateTypes("bank_account", asset.code, asset.sep6.withdraw.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         "100",
         asset.code,
         asset.significantDecimals,
-        asset.withdraw.minAmount,
-        asset.withdraw.maxAmount,
+        asset.sep6.withdraw.minAmount,
+        asset.sep6.withdraw.maxAmount,
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
@@ -1034,15 +1034,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("bank_account", asset.code, asset.withdraw.methods)
+      requestValidator.validateTypes("bank_account", asset.code, asset.sep6.withdraw.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         "100",
         asset.code,
         asset.significantDecimals,
-        asset.withdraw.minAmount,
-        asset.withdraw.maxAmount,
+        asset.sep6.withdraw.minAmount,
+        asset.sep6.withdraw.maxAmount,
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
@@ -1179,7 +1179,7 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes(unsupportedType, asset.code, asset.withdraw.methods)
+      requestValidator.validateTypes(unsupportedType, asset.code, asset.sep6.withdraw.methods)
     }
 
     // Verify effects
@@ -1208,15 +1208,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("bank_account", asset.code, asset.withdraw.methods)
+      requestValidator.validateTypes("bank_account", asset.code, asset.sep6.withdraw.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         badAmount,
         asset.code,
         asset.significantDecimals,
-        asset.withdraw.minAmount,
-        asset.withdraw.maxAmount,
+        asset.sep6.withdraw.minAmount,
+        asset.sep6.withdraw.maxAmount,
       )
     }
 
@@ -1248,15 +1248,15 @@ class Sep6ServiceTest {
     // Verify validations
     verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
     verify(exactly = 1) {
-      requestValidator.validateTypes("bank_account", asset.code, asset.withdraw.methods)
+      requestValidator.validateTypes("bank_account", asset.code, asset.sep6.withdraw.methods)
     }
     verify(exactly = 1) {
       requestValidator.validateAmount(
         "100",
         asset.code,
         asset.significantDecimals,
-        asset.withdraw.minAmount,
-        asset.withdraw.maxAmount,
+        asset.sep6.withdraw.minAmount,
+        asset.sep6.withdraw.maxAmount,
       )
     }
     verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }

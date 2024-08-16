@@ -6,7 +6,9 @@ import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
 
 @Data
-public class Sep31Operation {
+public class Sep31Info {
+  Boolean enabled = false;
+
   SendOperation send;
 
   @SerializedName("quotes_supported")
@@ -16,6 +18,7 @@ public class Sep31Operation {
   boolean quotesRequired;
 
   Sep12Operation sep12;
+
   Fields fields;
 
   @Data

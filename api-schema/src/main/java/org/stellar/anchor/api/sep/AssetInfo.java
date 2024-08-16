@@ -3,16 +3,33 @@ package org.stellar.anchor.api.sep;
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
 import lombok.*;
-import org.stellar.anchor.api.sep.operation.Sep31Operation;
-import org.stellar.anchor.api.sep.operation.Sep38Operation;
+import org.stellar.anchor.api.sep.operation.Sep31Info;
+import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 @SuppressWarnings("unused")
 @Data
 public class AssetInfo {
   public static String NATIVE_ASSET_CODE = "native";
 
+  Schema schema;
+
   String code;
+
   String issuer;
+
+  @SerializedName("distribution_account")
+  String distributionAccount;
+
+  @SerializedName("significant_decimals")
+  Integer significantDecimals;
+
+  DepositWithdrawInfo sep6;
+
+  DepositWithdrawInfo sep24;
+
+  Sep31Info sep31;
+
+  Sep38Info sep38;
 
   /**
    * Returns the SEP-38 asset name, which is the SEP-11 asset name prefixed with the schema.
@@ -40,31 +57,6 @@ public class AssetInfo {
     }
   }
 
-  @SerializedName("distribution_account")
-  String distributionAccount;
-
-  Schema schema;
-
-  @SerializedName("significant_decimals")
-  Integer significantDecimals;
-
-  DepositOperation deposit;
-  WithdrawOperation withdraw;
-  Sep31Operation sep31;
-  Sep38Operation sep38;
-
-  @SerializedName("sep6_enabled")
-  Boolean sep6Enabled = false;
-
-  @SerializedName("sep24_enabled")
-  Boolean sep24Enabled = false;
-
-  @SerializedName("sep31_enabled")
-  Boolean sep31Enabled = false;
-
-  @SerializedName("sep38_enabled")
-  Boolean sep38Enabled = false;
-
   public enum Schema {
     @SerializedName("stellar")
     STELLAR("stellar"),
@@ -85,25 +77,22 @@ public class AssetInfo {
   }
 
   @Data
-  public static class AssetOperation {
-    Boolean enabled;
+  public static class DepositWithdrawInfo {
+    Boolean enabled = false;
+    DepositWithdrawOperation deposit;
+    DepositWithdrawOperation withdraw;
+  }
+
+  @Data
+  public static class DepositWithdrawOperation {
+    Boolean enabled = false;
 
     @SerializedName("min_amount")
     Long minAmount;
 
     @SerializedName("max_amount")
     Long maxAmount;
-  }
 
-  @EqualsAndHashCode(callSuper = true)
-  @Data
-  public static class DepositOperation extends AssetOperation {
-    List<String> methods;
-  }
-
-  @EqualsAndHashCode(callSuper = true)
-  @Data
-  public static class WithdrawOperation extends AssetOperation {
     List<String> methods;
   }
 
@@ -115,5 +104,30 @@ public class AssetInfo {
     String description;
     List<String> choices;
     boolean optional;
+  }
+
+  /**
+   * Determines if deposit or withdraw service is enabled in SEP-6 or SEP-24.
+   *
+   * @param info The DepositWithdrawInfo containing the service details.
+   * @param service The operation to check, either "deposit" or "withdraw" (case-insensitive).
+   * @return true if the specified operation is enabled; false otherwise.
+   */
+  public boolean getIsServiceEnabled(DepositWithdrawInfo info, String service) {
+    if (info == null || !info.getEnabled()) {
+      return false;
+    }
+    DepositWithdrawOperation operation;
+    switch (service.toLowerCase()) {
+      case "deposit":
+        operation = info.getDeposit();
+        break;
+      case "withdraw":
+        operation = info.getWithdraw();
+        break;
+      default:
+        return false;
+    }
+    return operation != null && operation.getEnabled();
   }
 }
