@@ -10,7 +10,6 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -84,11 +83,7 @@ public class EventProcessorManager {
     // clientsConfig
     if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
       for (PropertyClientsConfig.ClientConfig clientConfig : clientsConfig.getClients()) {
-        if (StringUtils.isEmpty(clientConfig.getCallbackUrl())
-            && StringUtils.isEmpty(clientConfig.getCallbackUrlSep6())
-            && StringUtils.isEmpty(clientConfig.getCallbackUrlSep24())
-            && StringUtils.isEmpty(clientConfig.getCallbackUrlSep31())
-            && StringUtils.isEmpty(clientConfig.getCallbackUrlSep12())) {
+        if (!clientConfig.isCallbackEnabled()) {
           Log.info(String.format("Client status callback skipped: %s", json(clientConfig)));
           continue;
         }
