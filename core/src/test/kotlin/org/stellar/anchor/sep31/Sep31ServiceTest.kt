@@ -322,7 +322,6 @@ class Sep31ServiceTest {
         clientService,
         assetService,
         rateIntegration,
-        customerIntegration,
         eventService,
         custodyService,
         custodyConfig
@@ -375,7 +374,6 @@ class Sep31ServiceTest {
         clientService,
         assetServiceQuotesNotSupported,
         rateIntegration,
-        customerIntegration,
         eventService,
         custodyService,
         custodyConfig
@@ -845,7 +843,6 @@ class Sep31ServiceTest {
         clientService,
         assetServiceQuotesNotSupported,
         rateIntegration,
-        customerIntegration,
         eventService,
         custodyService,
         custodyConfig
