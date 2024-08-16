@@ -171,10 +171,9 @@ public class SepBeans {
   @ConditionalOnAllSepsEnabled(seps = {"sep12"})
   Sep12Service sep12Service(
       CustomerIntegration customerIntegration,
-      AssetService assetService,
       PlatformApiClient platformApiClient,
       EventService eventService) {
-    return new Sep12Service(customerIntegration, assetService, platformApiClient, eventService);
+    return new Sep12Service(customerIntegration, platformApiClient, eventService);
   }
 
   @Bean
@@ -256,7 +255,6 @@ public class SepBeans {
       ClientService clientService,
       AssetService assetService,
       RateIntegration rateIntegration,
-      CustomerIntegration customerIntegration,
       EventService eventService,
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
@@ -270,7 +268,6 @@ public class SepBeans {
         clientService,
         assetService,
         rateIntegration,
-        customerIntegration,
         eventService,
         custodyService,
         custodyConfig);

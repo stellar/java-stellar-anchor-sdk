@@ -120,31 +120,6 @@ class Sep31ServiceTest {
                 },
                 "quotes_supported": true,
                 "quotes_required": true,
-                "sep12": {
-                  "sender": {
-                    "types": {
-                      "sep31-sender": {
-                        "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-                      },
-                      "sep31-large-sender": {
-                        "description": "U.S. citizens that do not have sending limits"
-                      },
-                      "sep31-foreign-sender": {
-                        "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-                      }
-                    }
-                  },
-                  "receiver": {
-                    "types": {
-                      "sep31-receiver": {
-                        "description": "U.S. citizens receiving USD"
-                      },
-                      "sep31-foreign-receiver": {
-                        "description": "non-U.S. citizens receiving USD"
-                      }
-                    }
-                  }
-                },
                 "fields": {
                   "transaction": {
                     "receiver_routing_number": {
@@ -919,13 +894,13 @@ class Sep31ServiceTest {
 
   private val jpycJson =
     """
-    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"sep12":{"sender":{"types":{"sep31-sender":{"description":"Japanese citizens"}}},"receiver":{"types":{"sep31-receiver":{"description":"Japanese citizens receiving USD"}}}},"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
+    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
   """
       .trimIndent()
 
   private val usdcJson =
     """
-    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"sep12":{"sender":{"types":{"sep31-sender":{"description":"U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"},"sep31-large-sender":{"description":"U.S. citizens that do not have sending limits"},"sep31-foreign-sender":{"description":"non-U.S. citizens sending payments of less than ${'$'}10,000 in value"}}},"receiver":{"types":{"sep31-receiver":{"description":"U.S. citizens receiving USD"},"sep31-foreign-receiver":{"description":"non-U.S. citizens receiving USD"}}}},"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false}, "receiver_phone_number": {"description": "phone number of the receiver", "optional": true},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
+    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false}, "receiver_phone_number": {"description": "phone number of the receiver", "optional": true},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
   """
       .trimIndent()
 

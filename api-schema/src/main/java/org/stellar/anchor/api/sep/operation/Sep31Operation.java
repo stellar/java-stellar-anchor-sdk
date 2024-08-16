@@ -15,7 +15,6 @@ public class Sep31Operation {
   @SerializedName("quotes_required")
   boolean quotesRequired;
 
-  Sep12Operation sep12;
   Fields fields;
 
   @Data
