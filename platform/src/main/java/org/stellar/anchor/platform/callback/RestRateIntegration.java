@@ -194,6 +194,12 @@ public class RestRateIntegration implements RateIntegration {
       if (fee.getDetails() != null) {
         BigDecimal totalFee = new BigDecimal(0);
         for (FeeDescription feeDescription : fee.getDetails()) {
+          if (!isPositiveNumber(feeDescription.getAmount())) {
+            logErrorAndThrow(
+                "'fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
+                ServerErrorException.class);
+          }
+
           if (!NumberHelper.hasProperSignificantDecimals(
               feeDescription.getAmount(), 0, feeAsset.getSignificantDecimals())) {
             logErrorAndThrow(

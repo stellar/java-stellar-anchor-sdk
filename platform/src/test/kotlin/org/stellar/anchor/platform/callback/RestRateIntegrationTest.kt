@@ -41,7 +41,7 @@ class RestRateIntegrationTest {
     usdcAssetInfo.schema = stellar
     usdcAssetInfo.code = "USDC"
     usdcAssetInfo.issuer = "GABCD"
-    usdcAssetInfo.significantDecimals = 2
+    usdcAssetInfo.significantDecimals = 7
 
     // Set up asset service
     every { assetService.getAssetByName("iso4217:USD") } returns usdAssetInfo
@@ -246,7 +246,7 @@ class RestRateIntegrationTest {
 
     // Bad buy amount
     rateResponse.rate.sellAmount = "100"
-    rateResponse.rate.buyAmount = "94.000029"
+    rateResponse.rate.buyAmount = "94.000000029"
     rateResponse.rate.fee.details[0].amount = "0.7"
     ex =
       assertThrows<ServerErrorException> {
