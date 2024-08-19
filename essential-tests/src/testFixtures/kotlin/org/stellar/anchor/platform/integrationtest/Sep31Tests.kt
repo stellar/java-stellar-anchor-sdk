@@ -54,7 +54,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
   fun `test info endpoint`() {
     printRequest("Calling GET /info")
     val info = sep31Client.getInfo()
-    JSONAssert.assertEquals(gson.toJson(info), expectedSep31Info, JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(expectedSep31Info, gson.toJson(info), JSONCompareMode.STRICT)
   }
 
   @Test
