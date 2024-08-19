@@ -520,7 +520,6 @@ class Sep12ServiceTest {
     }
     assertInstanceOf(SepNotFoundException::class.java, ex)
     assertEquals("User not found.", ex.message)
-    // Verify getting customer for every existing type
     verify(exactly = 1) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
 
