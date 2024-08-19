@@ -5,26 +5,51 @@
       "code": "USDC",
       "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
       "significant_decimals": 2,
-      "deposit": {
+      "sep6": {
         "enabled": true,
-        "min_amount": 1,
-        "max_amount": 10000,
-        "methods": [
-          "SEPA",
-          "SWIFT"
-        ]
+        "deposit": {
+          "enabled": true,
+          "min_amount": 1,
+          "max_amount": 10000,
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
+        },
+        "withdraw": {
+          "enabled": true,
+          "min_amount": 1,
+          "max_amount": 10000,
+          "methods": [
+            "bank_account",
+            "cash"
+          ]
+        }
       },
-      "withdraw": {
+      "sep24": {
         "enabled": true,
-        "min_amount": 1,
-        "max_amount": 10000,
-        "methods": [
-          "bank_account",
-          "cash"
-        ]
+        "deposit": {
+          "enabled": true,
+          "min_amount": 1,
+          "max_amount": 10000,
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
+        },
+        "withdraw": {
+          "enabled": true,
+          "min_amount": 1,
+          "max_amount": 10000,
+          "methods": [
+            "bank_account",
+            "cash"
+          ]
+        }
       },
       "sep31": {
-        "send": {
+        "enabled": true,
+        "receive": {
           "fee_fixed": 0,
           "fee_percent": 0,
           "min_amount": 1,
@@ -57,15 +82,12 @@
         }
       },
       "sep38": {
+        "enabled": true,
         "exchangeable_assets": [
           "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
           "iso4217:USD"
         ]
-      },
-      "sep6_enabled": true,
-      "sep24_enabled": true,
-      "sep31_enabled": true,
-      "sep38_enabled": true
+      }
     }
   ]
 }

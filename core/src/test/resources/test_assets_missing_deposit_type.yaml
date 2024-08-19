@@ -4,18 +4,33 @@ assets:
     issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I
     significant_decimals: 2
-    deposit:
+    sep6:
       enabled: true
-      min_amount: 1
-      max_amount: 10000
-    withdraw:
+      deposit:
+        enabled: true
+        min_amount: 1
+        max_amount: 10000
+      withdraw:
+        enabled: true
+        min_amount: 1
+        max_amount: 10000
+        methods:
+          - cash
+          - bank_account
+    sep24:
       enabled: true
-      min_amount: 1
-      max_amount: 10000
-      methods:
-        - cash
-        - bank_account
-    sep6_enabled: true
-    sep24_enabled: true
-    sep31_enabled: false
-    sep38_enabled: false
+      deposit:
+        enabled: true
+        min_amount: 1
+        max_amount: 10000
+      withdraw:
+        enabled: true
+        min_amount: 1
+        max_amount: 10000
+        methods:
+          - cash
+          - bank_account
+    sep31:
+      enabled: false
+    sep38:
+      enabled: false

@@ -1,6 +1,6 @@
 package org.stellar.anchor.api.sep.sep24;
 
-import static org.stellar.anchor.api.sep.AssetInfo.AssetOperation;
+import static org.stellar.anchor.api.sep.AssetInfo.DepositWithdrawOperation;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
@@ -27,7 +27,7 @@ public class InfoResponse {
     @SerializedName("max_amount")
     Long maxAmount;
 
-    public static OperationResponse fromAssetOperation(AssetOperation operation) {
+    public static OperationResponse fromAssetOperation(DepositWithdrawOperation operation) {
       return OperationResponse.builder()
           .enabled(operation.getEnabled())
           .minAmount(operation.getMinAmount())

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.AssetInfo.Field
 import org.stellar.anchor.api.sep.SepTransactionStatus
-import org.stellar.anchor.api.sep.operation.Sep31Operation
+import org.stellar.anchor.api.sep.operation.Sep31Info
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.Sep31RefundPayment
 import org.stellar.anchor.api.shared.*
@@ -64,7 +64,7 @@ class Sep31TransactionTest {
         .build()
 
     // mock missing SEP-31 "transaction.fields"
-    val mockMissingFields = Sep31Operation.Fields()
+    val mockMissingFields = Sep31Info.Fields()
     mockMissingFields.transaction =
       mapOf(
         "receiver_account_number" to Field("bank account number of the destination", null, false),
@@ -138,7 +138,7 @@ class Sep31TransactionTest {
         )
         .build()
 
-    val requiredInfoUpdates = Sep31Operation.Fields()
+    val requiredInfoUpdates = Sep31Info.Fields()
     requiredInfoUpdates.transaction =
       mapOf(
         "receiver_account_number" to Field("bank account number of the destination", null, false)

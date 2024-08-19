@@ -5,22 +5,41 @@ assets:
     issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 2
-    deposit:
+    sep6:
       enabled: true
-      min_amount: 0
-      max_amount: 10
-      methods:
-        - SEPA
-        - SWIFT
-    withdraw:
+      deposit:
+        enabled: true
+        min_amount: 0
+        max_amount: 10
+        methods:
+          - SEPA
+          - SWIFT
+      withdraw:
+        enabled: true
+        min_amount: 0
+        max_amount: 10
+        methods:
+          - bank_account
+          - cash
+    sep24:
       enabled: true
-      min_amount: 0
-      max_amount: 10
-      methods:
-        - bank_account
-        - cash
+      deposit:
+        enabled: true
+        min_amount: 0
+        max_amount: 10
+        methods:
+          - SEPA
+          - SWIFT
+      withdraw:
+        enabled: true
+        min_amount: 0
+        max_amount: 10
+        methods:
+          - bank_account
+          - cash
     sep31:
-      send:
+      enabled: true
+      receive:
         fee_fixed: 0
         fee_percent: 0
         max_amount: 1000000
@@ -38,28 +57,28 @@ assets:
               - SEPA
               - SWIFT
     sep38:
+      enabled: true
       exchangeable_assets:
         - iso4217:USD
         - iso4217:CAD
-    sep6_enabled: true
-    sep24_enabled: true
-    sep31_enabled: true
-    sep38_enabled: true
   - schema: stellar
     code: USDC
     issuer: GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 2
-    deposit:
+    sep24:
       enabled: true
-      min_amount: 0
-      max_amount: 10
-    withdraw:
-      enabled: true
-      min_amount: 0
-      max_amount: 10
+      deposit:
+        enabled: true
+        min_amount: 0
+        max_amount: 10
+      withdraw:
+        enabled: true
+        min_amount: 0
+        max_amount: 10
     sep31:
-      send:
+      enabled: true
+      receive:
         fee_fixed: 0
         fee_percent: 0
         min_amount: 0
@@ -78,23 +97,30 @@ assets:
               - SEPA
               - SWIFT
     sep38:
+      enabled: true
       exchangeable_assets:
         - iso4217:USD
         - iso4217:CAD
-    sep24_enabled: true
-    sep31_enabled: true
-    sep38_enabled: true
   - schema: stellar
     code: JPYC
     issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 4
-    deposit:
+    sep6:
       enabled: false
-    withdraw:
+      deposit:
+        enabled: false
+      withdraw:
+        enabled: false
+    sep24:
       enabled: false
+      deposit:
+        enabled: false
+      withdraw:
+        enabled: false
     sep31:
-      send:
+      enabled: true
+      receive:
         fee_fixed: 0
         fee_percent: 0
       quotes_supported: true
@@ -111,40 +137,43 @@ assets:
               - SEPA
               - SWIFT
     sep38:
+      enabled: true
       exchangeable_assets:
         - iso4217:USD
-    sep6_enabled: false
-    sep24_enabled: false
-    sep31_enabled: true
-    sep38_enabled: true
 
   # Native asset
   - schema: stellar
     code: native
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 7
-    deposit:
+    sep6:
+      enabled: false
+    sep24:
       enabled: true
-      min_amount: 0
-      max_amount: 10
-    withdraw:
-      enabled: true
-      min_amount: 0
-      max_amount: 10
-    sep6_enabled: false
-    sep31_enabled: false
-    sep38_enabled: false
-    sep24_enabled: true
+      deposit:
+        enabled: true
+        min_amount: 0
+        max_amount: 10
+      withdraw:
+        enabled: true
+        min_amount: 0
+        max_amount: 10
+    sep31:
+      enabled: false
+    sep38:
+      enabled: false
 
   # Fiat
   - schema: iso4217
     code: USD
     significant_decimals: 7
     sep31:
-      send:
+      enabled: false
+      receive:
         min_amount: 0
         max_amount: 1000000
     sep38:
+      enabled: true
       exchangeable_assets:
         - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
         - stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
@@ -157,15 +186,15 @@ assets:
       buy_delivery_methods:
         - name: WIRE
           description: Have USD sent directly to your bank account.
-    sep38_enabled: true
   - schema: iso4217
     code: CAD
     significant_decimals: 7
     sep31:
-      send:
+      receive:
         min_amount: 0
         max_amount: 1000000
     sep38:
+      enabled: true
       exchangeable_assets:
         - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
         - stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
@@ -178,4 +207,3 @@ assets:
       buy_delivery_methods:
         - name: WIRE
           description: Have CAD sent directly to your bank account.
-    sep38_enabled: true

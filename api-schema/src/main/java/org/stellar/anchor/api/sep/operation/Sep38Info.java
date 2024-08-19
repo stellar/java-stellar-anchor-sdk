@@ -5,20 +5,22 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class Sep38Operation {
+public class Sep38Info {
+  Boolean enabled = false;
+
   @SerializedName("exchangeable_assets")
   List<String> exchangeableAssets;
 
   @SerializedName("country_codes")
   List<String> countryCodes;
 
+  Integer decimals;
+
   @SerializedName("sell_delivery_methods")
   List<DeliveryMethod> sellDeliveryMethods;
 
   @SerializedName("buy_delivery_methods")
   List<DeliveryMethod> buyDeliveryMethods;
-
-  Integer decimals;
 
   @Data
   public static class DeliveryMethod {

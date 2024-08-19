@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.operation.Sep38Operation;
+import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 /**
  * The response body of the GET /info endpoint of SEP-38.
@@ -21,7 +21,7 @@ public class InfoResponse {
 
   public InfoResponse(List<AssetInfo> assetInfoList) {
     for (AssetInfo assetInfo : assetInfoList) {
-      if (!assetInfo.getSep38Enabled()) continue;
+      if (!assetInfo.getSep38().getEnabled()) continue;
       Asset newAsset = new Asset();
       String assetName = assetInfo.getSchema().toString() + ":" + assetInfo.getCode();
       if (!Objects.toString(assetInfo.getIssuer(), "").isEmpty()) {
@@ -29,7 +29,7 @@ public class InfoResponse {
       }
       newAsset.setAsset(assetName);
 
-      Sep38Operation sep38Info = assetInfo.getSep38();
+      Sep38Info sep38Info = assetInfo.getSep38();
       newAsset.setCountryCodes(sep38Info.getCountryCodes());
       newAsset.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
       newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
@@ -53,10 +53,10 @@ public class InfoResponse {
     private List<String> countryCodes;
 
     @SerializedName("sell_delivery_methods")
-    private List<Sep38Operation.DeliveryMethod> sellDeliveryMethods;
+    private List<Sep38Info.DeliveryMethod> sellDeliveryMethods;
 
     @SerializedName("buy_delivery_methods")
-    private List<Sep38Operation.DeliveryMethod> buyDeliveryMethods;
+    private List<Sep38Info.DeliveryMethod> buyDeliveryMethods;
 
     private transient List<String> exchangeableAssetNames;
 
@@ -73,7 +73,7 @@ public class InfoResponse {
     }
 
     private boolean supportsDeliveryMethod(
-        List<Sep38Operation.DeliveryMethod> deliveryMethods, String method) {
+        List<Sep38Info.DeliveryMethod> deliveryMethods, String method) {
       boolean noneIsAvailable = deliveryMethods == null || deliveryMethods.size() == 0;
       boolean noneIsProvided = method == null || method.equals("");
       if (noneIsAvailable && noneIsProvided) {
@@ -88,7 +88,7 @@ public class InfoResponse {
         return true;
       }
 
-      Sep38Operation.DeliveryMethod foundMethod =
+      Sep38Info.DeliveryMethod foundMethod =
           deliveryMethods.stream()
               .filter(dMethod -> dMethod.getName().equals(method))
               .findFirst()

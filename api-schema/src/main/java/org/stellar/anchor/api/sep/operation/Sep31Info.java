@@ -6,8 +6,10 @@ import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
 
 @Data
-public class Sep31Operation {
-  SendOperation send;
+public class Sep31Info {
+  Boolean enabled = false;
+
+  ReceiveOperation receive;
 
   @SerializedName("quotes_supported")
   boolean quotesSupported;
@@ -18,7 +20,7 @@ public class Sep31Operation {
   Fields fields;
 
   @Data
-  public static class SendOperation {
+  public static class ReceiveOperation {
     @SerializedName("fee_fixed")
     Integer feeFixed;
 

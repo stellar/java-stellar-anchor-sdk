@@ -156,13 +156,14 @@ public class Sep24Service {
     // Verify that the asset code exists in our database, with withdraw enabled.
     AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
     debugF("Asset: {}", asset);
-    if (asset == null || !asset.getWithdraw().getEnabled() || !asset.getSep24Enabled()) {
+    if (asset == null || !asset.getIsServiceEnabled(asset.getSep24(), "withdraw")) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
 
     // Validate min amount
-    Long minAmount = asset.getWithdraw().getMinAmount();
+    AssetInfo.DepositWithdrawOperation sep24WithdrawInfo = asset.getSep24().getWithdraw();
+    Long minAmount = sep24WithdrawInfo.getMinAmount();
     if (strAmount != null && minAmount != null) {
       if (decimal(strAmount).compareTo(decimal(minAmount)) < 0) {
         infoF("invalid amount {}", strAmount);
@@ -172,7 +173,7 @@ public class Sep24Service {
     }
 
     // Validate max amount
-    Long maxAmount = asset.getWithdraw().getMaxAmount();
+    Long maxAmount = sep24WithdrawInfo.getMaxAmount();
     if (strAmount != null && maxAmount != null) {
       if (decimal(strAmount).compareTo(decimal(maxAmount)) > 0) {
         infoF("invalid amount {}", strAmount);
@@ -351,13 +352,14 @@ public class Sep24Service {
 
     // Verify that the asset code exists in our database, with deposit enabled.
     AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
-    if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep24Enabled()) {
+    if (asset == null || !asset.getIsServiceEnabled(asset.getSep24(), "deposit")) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
 
     // Validate min amount
-    Long minAmount = asset.getDeposit().getMinAmount();
+    AssetInfo.DepositWithdrawOperation sep24DepositInfo = asset.getSep24().getDeposit();
+    Long minAmount = sep24DepositInfo.getMinAmount();
     if (strAmount != null && minAmount != null) {
       if (decimal(strAmount).compareTo(decimal(minAmount)) < 0) {
         infoF("invalid amount {}", strAmount);
@@ -367,7 +369,7 @@ public class Sep24Service {
     }
 
     // Validate max amount
-    Long maxAmount = asset.getDeposit().getMaxAmount();
+    Long maxAmount = sep24DepositInfo.getMaxAmount();
     if (strAmount != null && maxAmount != null) {
       if (decimal(strAmount).compareTo(decimal(maxAmount)) > 0) {
         infoF("invalid amount {}", strAmount);
@@ -570,14 +572,14 @@ public class Sep24Service {
     for (AssetInfo asset : assets) {
       // iso4217 assets do not have deposit/withdraw configurations
       if (asset.getSchema().equals(AssetInfo.Schema.STELLAR)) {
-        if (asset.getDeposit().getEnabled())
+        if (asset.getIsServiceEnabled(asset.getSep24(), "deposit"))
           depositMap.put(
               asset.getCode(),
-              InfoResponse.OperationResponse.fromAssetOperation(asset.getDeposit()));
-        if (asset.getWithdraw().getEnabled())
+              InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getDeposit()));
+        if (asset.getIsServiceEnabled(asset.getSep24(), "withdraw"))
           withdrawMap.put(
               asset.getCode(),
-              InfoResponse.OperationResponse.fromAssetOperation(asset.getWithdraw()));
+              InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getWithdraw()));
       }
     }
 

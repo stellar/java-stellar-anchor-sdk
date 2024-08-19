@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.api.sep.operation.Sep12Operation;
-import org.stellar.anchor.api.sep.operation.Sep31Operation;
+import org.stellar.anchor.api.sep.operation.Sep31Info;
 
 /**
  * The response body of the /info endpoint of the SEP-31.
@@ -40,6 +40,6 @@ public class Sep31InfoResponse {
     Long maxAmount;
 
     Sep12Operation sep12;
-    Sep31Operation.Fields fields;
+    Sep31Info.Fields fields;
   }
 }

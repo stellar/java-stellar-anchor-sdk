@@ -39,7 +39,7 @@ import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.sep.operation.Sep31Operation.Fields;
+import org.stellar.anchor.api.sep.operation.Sep31Info.Fields;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest;
@@ -139,8 +139,8 @@ public class Sep31Service {
     validateAmountLimit(
         "sell_",
         request.getAmount(),
-        assetInfo.getSep31().getSend().getMinAmount(),
-        assetInfo.getSep31().getSend().getMaxAmount());
+        assetInfo.getSep31().getReceive().getMinAmount(),
+        assetInfo.getSep31().getReceive().getMaxAmount());
     validateLanguage(appConfig, request.getLang());
 
     /*
@@ -644,7 +644,7 @@ public class Sep31Service {
     Sep31InfoResponse response = new Sep31InfoResponse();
     response.setReceive(new HashMap<>());
     for (AssetInfo assetInfo : assetInfos) {
-      if (assetInfo.getSep31Enabled()) {
+      if (assetInfo.getSep31() != null && assetInfo.getSep31().getEnabled()) {
         boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
         boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
         if (isQuotesRequired && !isQuotesSupported) {
@@ -654,10 +654,10 @@ public class Sep31Service {
         AssetResponse assetResponse = new AssetResponse();
         assetResponse.setQuotesSupported(isQuotesSupported);
         assetResponse.setQuotesRequired(isQuotesRequired);
-        assetResponse.setFeeFixed(assetInfo.getSep31().getSend().getFeeFixed());
-        assetResponse.setFeePercent(assetInfo.getSep31().getSend().getFeePercent());
-        assetResponse.setMinAmount(assetInfo.getSep31().getSend().getMinAmount());
-        assetResponse.setMaxAmount(assetInfo.getSep31().getSend().getMaxAmount());
+        assetResponse.setFeeFixed(assetInfo.getSep31().getReceive().getFeeFixed());
+        assetResponse.setFeePercent(assetInfo.getSep31().getReceive().getFeePercent());
+        assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
+        assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
         assetResponse.setFields(assetInfo.getSep31().getFields());
         response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
