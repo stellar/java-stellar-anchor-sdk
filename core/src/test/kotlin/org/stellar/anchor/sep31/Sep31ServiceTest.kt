@@ -112,7 +112,7 @@ class Sep31ServiceTest {
                 "max_amount": 1000000
               },
               "sep31": {
-                "send": {
+                "receive": {
                   "fee_fixed": 0,
                   "fee_percent": 0,
                   "min_amount": 1,

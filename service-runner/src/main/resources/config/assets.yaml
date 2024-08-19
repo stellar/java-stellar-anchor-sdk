@@ -39,7 +39,7 @@ assets:
           - cash
     sep31:
       enabled: true
-      send:
+      receive:
         fee_fixed: 0
         fee_percent: 0
         max_amount: 1000000
@@ -95,7 +95,7 @@ assets:
         max_amount: 10
     sep31:
       enabled: true
-      send:
+      receive:
         fee_fixed: 0
         fee_percent: 0
         min_amount: 0
@@ -154,7 +154,7 @@ assets:
         enabled: false
     sep31:
       enabled: true
-      send:
+      receive:
         fee_fixed: 0
         fee_percent: 0
       quotes_supported: true
@@ -220,7 +220,7 @@ assets:
     significant_decimals: 7
     sep31:
       enabled: false
-      send:
+      receive:
         min_amount: 0
         max_amount: 1000000
     sep38:
@@ -241,7 +241,7 @@ assets:
     code: CAD
     significant_decimals: 7
     sep31:
-      send:
+      receive:
         min_amount: 0
         max_amount: 1000000
     sep38:

@@ -50,7 +50,7 @@
       },
       "sep31": {
         "enabled": true,
-        "send": {
+        "receive": {
           "fee_fixed": 0,
           "fee_percent": 0,
           "min_amount": 1,
@@ -139,7 +139,7 @@
 
       "sep31": {
         "enabled": true,
-        "send": {
+        "receive": {
           "fee_fixed": 0,
           "fee_percent": 0,
           "min_amount": 1,
@@ -198,7 +198,7 @@
       "significant_decimals": 2,
       "sep31": {
         "enabled": false,
-        "send": {
+        "receive": {
           "fee_fixed": 0,
           "fee_percent": 0,
           "min_amount": 1,
@@ -251,7 +251,7 @@
       },
       "sep31": {
         "enabled": true,
-        "send": {
+        "receive": {
           "fee_fixed": 0,
           "fee_percent": 0,
           "min_amount": 1,

@@ -8,7 +8,7 @@
       "significant_decimals": 2,
       "sep24": {
         "enabled": true,
-        "send": {
+        "receive": {
           "enabled": true,
           "fee_fixed": 0,
           "fee_percent": 0,
@@ -25,7 +25,7 @@
       },
       "sep31" : {
         "enabled": true,
-        "send" : {
+        "receive": {
           "fee_fixed": 0,
           "fee_percent": 0,
           "min_amount": 0,
@@ -90,7 +90,7 @@
       "significant_decimals": 2,
       "sep31": {
         "enabled": false,
-        "send": {
+        "receive": {
           "fee_fixed": 0,
           "fee_percent": 0,
           "min_amount": 0,

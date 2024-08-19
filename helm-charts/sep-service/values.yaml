@@ -200,7 +200,7 @@ assets_config: |
         - bank_account
         - cash
     sep31:
-      send:
+      receive:
         fee_fixed: 0
         fee_percent: 0
         max_amount: 1000000
@@ -255,7 +255,7 @@ assets_config: |
       min_amount: 1
       max_amount: 1000000
     sep31:
-      send:
+      receive:
         fee_fixed: 0
         fee_percent: 0
         min_amount: 1
@@ -306,7 +306,7 @@ assets_config: |
     withdraw:
       enabled: true
     sep31:
-      send:
+      receive:
         fee_fixed: 0
         fee_percent: 0
       quotes_supported: true
@@ -358,7 +358,7 @@ assets_config: |
       min_amount: 0
       max_amount: 10000
     sep31:
-      send:
+      receive:
         fee_fixed: 0
         fee_percent: 0
         min_amount: 0
@@ -391,7 +391,7 @@ assets_config: |
       enabled: true
       max_amount: 1000000
     sep31:
-      send:
+      receive:
         fee_fixed: 0
         fee_percent: 0
         max_amount: 1000000

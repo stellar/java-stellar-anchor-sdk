@@ -150,7 +150,7 @@ internal class DefaultAssetServiceTest {
                 },
                 "sep31": {
                   "enabled": true,
-                  "send": {
+                  "receive": {
                     "fee_fixed": 0,
                     "fee_percent": 0,
                     "min_amount": 1,
@@ -239,7 +239,7 @@ internal class DefaultAssetServiceTest {
           
                 "sep31": {
                   "enabled": true,
-                  "send": {
+                  "receive": {
                     "fee_fixed": 0,
                     "fee_percent": 0,
                     "min_amount": 1,
@@ -298,7 +298,7 @@ internal class DefaultAssetServiceTest {
                 "significant_decimals": 2,
                 "sep31": {
                   "enabled": false,
-                  "send": {
+                  "receive": {
                     "fee_fixed": 0,
                     "fee_percent": 0,
                     "min_amount": 1,
@@ -351,7 +351,7 @@ internal class DefaultAssetServiceTest {
                 },
                 "sep31": {
                   "enabled": true,
-                  "send": {
+                  "receive": {
                     "fee_fixed": 0,
                     "fee_percent": 0,
                     "min_amount": 1,

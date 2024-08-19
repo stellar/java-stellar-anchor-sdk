@@ -20,7 +20,7 @@ assets:
         max_amount: 10000
     sep31:
       enabled: true
-      send:
+      receive:
         fee_fixed: 0
         fee_percent: 0
         min_amount: 0
@@ -64,7 +64,7 @@ assets:
     code: USD
     sep31:
       enabled: false
-      send:
+      receive:
         fee_fixed: 0
         fee_percent: 0
         min_amount: 1
