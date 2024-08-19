@@ -24,43 +24,34 @@ class NumberHelperTest {
   @CsvSource(
     value =
       [
-        "1, 0, 2",
-        "-1, 0, 2",
-        "1.00, 0, 2",
-        "100.00, 0, 2",
-        "101.00, 0, 2",
-        "100.000000, 0, 2",
-        "101.000000, 0, 2",
-        "-1.00, 0, 2",
-        "01.00, 0, 2",
-        "1.000, 0, 2",
-        "1.01, 2, 4",
-        "1.010000, 2, 4",
-        "1.0001, 2, 4",
+        "1, 2",
+        "-1, 2",
+        "1.00, 2",
+        "100.00, 2",
+        "101.00, 2",
+        "100.000000, 2",
+        "101.000000, 2",
+        "-1.00, 2",
+        "01.00, 2",
+        "1.000, 2"
       ]
   )
-  fun `test proper significant decimals`(value: String, minDecimals: Int, maxDecimals: Int) {
-    assert(NumberHelper.hasProperSignificantDecimals(value, minDecimals, maxDecimals))
+  fun `test proper significant decimals`(value: String, maxDecimals: Int) {
+    assert(NumberHelper.hasProperSignificantDecimals(value, maxDecimals))
   }
 
   @ParameterizedTest
   @CsvSource(
     value =
       [
-        "1.001, 0, 2",
-        "-1.001, 0, 2",
-        "1.0, 2, 4",
-        "-1.0, 2, 4",
-        "1.000, 2, 4",
-        "-1.000, 2, 4",
-        "1.0000, 2, 4",
-        "-1.0000, 2, 4",
-        "1.00000, 2, 4",
-        "1.00001, 2, 4",
+        "1.001, 2",
+        "-1.001, 2",
+        "1.0000001, 4",
+        "-1.0000001, 4",
         "a, 1, 2",
       ]
   )
-  fun `test violating significant decimals`(value: String, minDecimals: Int, maxDecimals: Int) {
-    assert(!NumberHelper.hasProperSignificantDecimals(value, minDecimals, maxDecimals))
+  fun `test violating significant decimals`(value: String, maxDecimals: Int) {
+    assert(!NumberHelper.hasProperSignificantDecimals(value, maxDecimals))
   }
 }
