@@ -84,7 +84,6 @@ class Sep31DepositInfoGeneratorTest {
         clientService,
         assetService,
         rateIntegration,
-        customerIntegration,
         eventPublishService,
         custodyService,
         custodyConfig
@@ -107,7 +106,6 @@ class Sep31DepositInfoGeneratorTest {
         clientService,
         assetService,
         rateIntegration,
-        customerIntegration,
         eventPublishService,
         custodyService,
         custodyConfig

@@ -75,7 +75,6 @@ public class Sep31Service {
   private final ClientService clientService;
   private final AssetService assetService;
   private final RateIntegration rateIntegration;
-  private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;
@@ -93,7 +92,6 @@ public class Sep31Service {
       ClientService clientService,
       AssetService assetService,
       RateIntegration rateIntegration,
-      CustomerIntegration customerIntegration,
       EventService eventService,
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
@@ -108,7 +106,6 @@ public class Sep31Service {
     this.clientService = clientService;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
-    this.customerIntegration = customerIntegration;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
     this.custodyService = custodyService;
@@ -633,7 +630,7 @@ public class Sep31Service {
     Fields sep31MissingTxnFields = new Fields();
     sep31MissingTxnFields.setTransaction(missingFields);
 
-    if (missingFields.size() > 0) {
+    if (!missingFields.isEmpty()) {
       infoF(
           "Missing SEP-31 fields ({}) for request ({})",
           sep31MissingTxnFields,
@@ -662,7 +659,6 @@ public class Sep31Service {
         assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
         assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
         assetResponse.setFields(assetInfo.getSep31().getFields());
-        assetResponse.setSep12(assetInfo.getSep31().getSep12());
         response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
     }

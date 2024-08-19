@@ -15,10 +15,7 @@ import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.platform.CustomerUpdatedResponse
 import org.stellar.anchor.api.platform.GetTransactionResponse
-import org.stellar.anchor.api.sep.sep12.Sep12CustomerRequestBase
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
-import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
-import org.stellar.anchor.api.sep.sep12.Sep12Status
+import org.stellar.anchor.api.sep.sep12.*
 import org.stellar.anchor.api.shared.CustomerField
 import org.stellar.anchor.api.shared.Customers
 import org.stellar.anchor.api.shared.ProvidedCustomerField
@@ -102,7 +99,7 @@ class Sep12ServiceTest {
     every { assetService.listAllAssets() } returns assets
     every { eventService.createSession(any(), any()) } returns eventSession
 
-    sep12Service = Sep12Service(customerIntegration, assetService, platformApiClient, eventService)
+    sep12Service = Sep12Service(customerIntegration, platformApiClient, eventService)
   }
 
   @Test
@@ -523,8 +520,7 @@ class Sep12ServiceTest {
     }
     assertInstanceOf(SepNotFoundException::class.java, ex)
     assertEquals("User not found.", ex.message)
-    // Verify getting customer for every existing type
-    verify(exactly = 5) { customerIntegration.getCustomer(any()) }
+    verify(exactly = 1) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
 
     // customer deletion succeeds
@@ -532,9 +528,9 @@ class Sep12ServiceTest {
     mockValidCustomerFound.id = "customer-id"
     every { customerIntegration.getCustomer(any()) } returns mockValidCustomerFound
     assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
-    verify(exactly = 10) { customerIntegration.getCustomer(any()) }
+    verify(exactly = 2) { customerIntegration.getCustomer(any()) }
     // callback API is called twice
-    verify(exactly = 5) { customerIntegration.deleteCustomer(any()) }
+    verify(exactly = 1) { customerIntegration.deleteCustomer(any()) }
     val wantDeleteCustomerId = "customer-id"
     assertEquals(wantDeleteCustomerId, deleteCustomerIdSlot.captured)
   }

@@ -10,9 +10,7 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +22,6 @@ import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep12.*;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.apiclient.PlatformApiClient;
-import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.util.Log;
@@ -39,27 +36,14 @@ public class Sep12Service {
       Metrics.counter(SEP12_CUSTOMER, TYPE, TV_SEP12_PUT_CUSTOMER);
   private final Counter sep12DeleteCustomerCounter =
       Metrics.counter(SEP12_CUSTOMER, TYPE, TV_SEP12_DELETE_CUSTOMER);
-
-  private final Set<String> knownTypes;
-
   private final PlatformApiClient platformApiClient;
   private final EventService.Session eventSession;
 
   public Sep12Service(
       CustomerIntegration customerIntegration,
-      AssetService assetService,
       PlatformApiClient platformApiClient,
       EventService eventService) {
     this.customerIntegration = customerIntegration;
-    Stream<String> receiverTypes =
-        assetService.listAllAssets().stream()
-            .filter(x -> x.getSep31() != null && x.getSep31().getSep12() != null)
-            .flatMap(x -> x.getSep31().getSep12().getReceiver().getTypes().keySet().stream());
-    Stream<String> senderTypes =
-        assetService.listAllAssets().stream()
-            .filter(x -> x.getSep31() != null && x.getSep31().getSep12() != null)
-            .flatMap(x -> x.getSep31().getSep12().getSender().getTypes().keySet().stream());
-    this.knownTypes = Stream.concat(receiverTypes, senderTypes).collect(Collectors.toSet());
     this.platformApiClient = platformApiClient;
     this.eventSession =
         eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
@@ -148,20 +132,14 @@ public class Sep12Service {
     }
 
     boolean existingCustomerMatch = false;
-    for (String customerType : knownTypes) {
-      GetCustomerResponse existingCustomer =
-          customerIntegration.getCustomer(
-              GetCustomerRequest.builder()
-                  .account(account)
-                  .memo(memo)
-                  .memoType(memoType)
-                  .type(customerType)
-                  .build());
-      if (existingCustomer.getId() != null) {
-        existingCustomerMatch = true;
-        customerIntegration.deleteCustomer(existingCustomer.getId());
-      }
+    GetCustomerResponse existingCustomer =
+        customerIntegration.getCustomer(
+            GetCustomerRequest.builder().account(account).memo(memo).memoType(memoType).build());
+    if (existingCustomer.getId() != null) {
+      existingCustomerMatch = true;
+      customerIntegration.deleteCustomer(existingCustomer.getId());
     }
+
     if (!existingCustomerMatch) {
       infoF(
           "No existing customer found for account={} memo={} memoType={}", account, memo, memoType);

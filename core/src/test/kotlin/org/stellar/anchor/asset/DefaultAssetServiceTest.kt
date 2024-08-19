@@ -158,31 +158,6 @@ internal class DefaultAssetServiceTest {
                   },
                   "quotes_supported": true,
                   "quotes_required": true,
-                  "sep12": {
-                    "sender": {
-                      "types": {
-                        "sep31-sender": {
-                          "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-                        },
-                        "sep31-large-sender": {
-                          "description": "U.S. citizens that do not have sending limits"
-                        },
-                        "sep31-foreign-sender": {
-                          "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-                        }
-                      }
-                    },
-                    "receiver": {
-                      "types": {
-                        "sep31-receiver": {
-                          "description": "U.S. citizens receiving USD"
-                        },
-                        "sep31-foreign-receiver": {
-                          "description": "non-U.S. citizens receiving USD"
-                        }
-                      }
-                    }
-                  },
                   "fields": {
                     "transaction": {
                       "receiver_routing_number": {
@@ -247,22 +222,6 @@ internal class DefaultAssetServiceTest {
                   },
                   "quotes_supported": true,
                   "quotes_required": true,
-                  "sep12": {
-                    "sender": {
-                      "types": {
-                        "sep31-sender": {
-                          "description": "Japanese citizens"
-                        }
-                      }
-                    },
-                    "receiver": {
-                      "types": {
-                        "sep31-receiver": {
-                          "description": "Japanese citizens receiving USD"
-                        }
-                      }
-                    }
-                  },
                   "fields": {
                     "transaction": {
                       "receiver_routing_number": {
@@ -359,31 +318,6 @@ internal class DefaultAssetServiceTest {
                   },
                   "quotes_supported": true,
                   "quotes_required": true,
-                  "sep12": {
-                    "sender": {
-                      "types": {
-                        "sep31-sender": {
-                          "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-                        },
-                        "sep31-large-sender": {
-                          "description": "U.S. citizens that do not have sending limits"
-                        },
-                        "sep31-foreign-sender": {
-                          "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-                        }
-                      }
-                    },
-                    "receiver": {
-                      "types": {
-                        "sep31-receiver": {
-                          "description": "U.S. citizens receiving USD"
-                        },
-                        "sep31-foreign-receiver": {
-                          "description": "non-U.S. citizens receiving USD"
-                        }
-                      }
-                    }
-                  },
                   "fields": {
                     "transaction": {
                       "receiver_routing_number": {
