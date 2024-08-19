@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.from
@@ -115,9 +115,17 @@ class RestRateIntegrationTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["-1.0", "-2000"])
-  @NullSource
-  fun `test bad sell and buy amounts`(badAmount: String?) {
+  @CsvSource(
+    value =
+      [
+        "-1.0,is missing or not a positive number in the GET /rate response",
+        "-1.00000001,is missing or not a positive number in the GET /rate response",
+        "-2000,is missing or not a positive number in the GET /rate response",
+        "null,is missing or not a positive number in the GET /rate response",
+        "1.00000001,has incorrect number of significant decimals in the GET /rate response",
+      ]
+  )
+  fun `test bad sell and buy amounts`(badAmount: String?, errorMessage: String) {
     // Bad sell amount
     rateResponse.rate.sellAmount = badAmount
     rateResponse.rate.buyAmount = "94.29"
@@ -125,10 +133,7 @@ class RestRateIntegrationTest {
       assertThrows<ServerErrorException> {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
-    assertEquals(
-      "'sell_amount' is missing or not a positive number in the GET /rate response",
-      ex.message,
-    )
+    assertEquals("'sell_amount' ${errorMessage.trim()}", ex.message)
 
     // Bad buy amount
     rateResponse.rate.sellAmount = "100"
@@ -137,16 +142,14 @@ class RestRateIntegrationTest {
       assertThrows<ServerErrorException> {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
-    assertEquals(
-      "'buy_amount' is missing or not a positive number in the GET /rate response",
-      ex.message,
-    )
+    assertEquals("'buy_amount' ${errorMessage.trim()}", ex.message)
   }
 
   @Test
   fun `test mis-matched sell_amount and buy_amount`() {
     // Bad sell amount
-    rateResponse.rate.sellAmount = "100.01"
+    rateResponse.rate.sellAmount = "100.01" // expect 100.00
+    rateResponse.rate.buyAmount = "94.29"
     var ex =
       assertThrows<ServerErrorException> {
         rateIntegration.validateRateResponse(request, rateResponse)
@@ -218,7 +221,7 @@ class RestRateIntegrationTest {
     )
 
     rateResponse.rate.fee.details[feeIndex].name = "Sell fee"
-    rateResponse.rate.fee.details[feeIndex].amount = "0.71"
+    rateResponse.rate.fee.details[feeIndex].amount = "0.71" // Expect 0.70
     ex =
       assertThrows<ServerErrorException> {
         rateIntegration.validateRateResponse(request, rateResponse)

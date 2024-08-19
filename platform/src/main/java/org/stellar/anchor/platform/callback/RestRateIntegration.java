@@ -1,9 +1,9 @@
 package org.stellar.anchor.platform.callback;
 
-import static java.math.RoundingMode.HALF_UP;
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.util.ErrorHelper.logErrorAndThrow;
 import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.NumberHelper.DEFAULT_ROUNDING_MODE;
 import static org.stellar.anchor.util.NumberHelper.isPositiveNumber;
 
 import com.google.common.reflect.TypeToken;
@@ -102,13 +102,10 @@ public class RestRateIntegration implements RateIntegration {
       logErrorAndThrow("missing 'price' in the GET /rate response", ServerErrorException.class);
     }
 
-    if (request.getType() != GetRateRequest.Type.INDICATIVE) {
+    if (request.getType() == GetRateRequest.Type.FIRM) {
       if (Objects.requireNonNull(rate).getFee() == null) {
         logErrorAndThrow("'fee' is missing in the GET /rate response", ServerErrorException.class);
       }
-    }
-
-    if (request.getType() == GetRateRequest.Type.FIRM) {
       if (rate.getId() == null || rate.getExpiresAt() == null) {
         logErrorAndThrow(
             "'id' and/or 'expires_at' are missing in the GET /rate response",
@@ -123,14 +120,6 @@ public class RestRateIntegration implements RateIntegration {
           ServerErrorException.class);
     }
 
-    // sell_amount has a proper number of significant decimals
-    if (!NumberHelper.hasProperSignificantDecimals(
-        Objects.requireNonNull(rate).getSellAmount(), 0, sellAsset.getSignificantDecimals())) {
-      logErrorAndThrow(
-          "'sell_amount' has incorrect number of significant decimals in the GET /rate response",
-          ServerErrorException.class);
-    }
-
     // buy_amount is present and positive number
     if (!isPositiveNumber(rate.getBuyAmount())) {
       logErrorAndThrow(
@@ -138,16 +127,24 @@ public class RestRateIntegration implements RateIntegration {
           ServerErrorException.class);
     }
 
+    // sell_amount has a proper number of significant decimals
+    if (!NumberHelper.hasProperSignificantDecimals(
+        Objects.requireNonNull(rate).getSellAmount(), sellAsset.getSignificantDecimals())) {
+      logErrorAndThrow(
+          "'sell_amount' has incorrect number of significant decimals in the GET /rate response",
+          ServerErrorException.class);
+    }
+
     // buy_amount has a proper number of significant decimals
     if (!NumberHelper.hasProperSignificantDecimals(
-        rate.getBuyAmount(), 0, buyAsset.getSignificantDecimals())) {
+        Objects.requireNonNull(rate).getBuyAmount(), buyAsset.getSignificantDecimals())) {
       logErrorAndThrow(
           "'buy_amount' has incorrect number of significant decimals in the GET /rate response",
           ServerErrorException.class);
     }
 
     FeeDetails fee = rate.getFee();
-    // if fee is preset, check the following
+    // if fee is set, check the following
     if (fee != null) {
       // fee.total is present and is a positive number
       if (!isPositiveNumber(fee.getTotal())) {
@@ -170,7 +167,7 @@ public class RestRateIntegration implements RateIntegration {
             new BigDecimal(rate.getPrice())
                 .multiply(new BigDecimal(rate.getBuyAmount()))
                 .add(new BigDecimal(fee.getTotal()))
-                .setScale(sellAsset.getSignificantDecimals(), HALF_UP);
+                .setScale(sellAsset.getSignificantDecimals(), DEFAULT_ROUNDING_MODE);
 
         if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
           logErrorAndThrow(
@@ -183,7 +180,7 @@ public class RestRateIntegration implements RateIntegration {
         BigDecimal expected =
             new BigDecimal(rate.getPrice())
                 .multiply(new BigDecimal(rate.getBuyAmount()).add(new BigDecimal(fee.getTotal())))
-                .setScale(sellAsset.getSignificantDecimals(), HALF_UP);
+                .setScale(sellAsset.getSignificantDecimals(), DEFAULT_ROUNDING_MODE);
         if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
           logErrorAndThrow(
               "'sell_amount' is not equal to price * (buy_amount + (fee ?: 0)) in the GET /rate response",
@@ -201,7 +198,7 @@ public class RestRateIntegration implements RateIntegration {
           }
 
           if (!NumberHelper.hasProperSignificantDecimals(
-              feeDescription.getAmount(), 0, feeAsset.getSignificantDecimals())) {
+              feeDescription.getAmount(), feeAsset.getSignificantDecimals())) {
             logErrorAndThrow(
                 "'fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
                 ServerErrorException.class);
@@ -231,7 +228,7 @@ public class RestRateIntegration implements RateIntegration {
       BigDecimal expected =
           new BigDecimal(rate.getPrice())
               .multiply(new BigDecimal(rate.getBuyAmount()))
-              .setScale(sellAsset.getSignificantDecimals(), HALF_UP);
+              .setScale(sellAsset.getSignificantDecimals(), DEFAULT_ROUNDING_MODE);
       if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
         logErrorAndThrow(
             "'sell_amount' is not equal to price * buy_amount in the GET /rate response",

@@ -62,7 +62,7 @@ public class AssetValidationUtils {
    * validateAsset will validate if the provided amount has valid values and if its asset is
    * supported.
    *
-   * @param amount is the object containing the asset full name and the amount.
+   * @see #validateAssetAmount(String, AmountAssetRequest, boolean, AssetService)
    */
   public static void validateAssetAmount(
       String fieldName, AmountAssetRequest amount, AssetService assetService)
@@ -70,6 +70,16 @@ public class AssetValidationUtils {
     validateAssetAmount(fieldName, amount, false, assetService);
   }
 
+  /**
+   * validateAssetAmount will validate if the provided amount has valid values and if its asset is
+   * supported.
+   *
+   * @param fieldName is the name of the field that is being validated.
+   * @param amount is the object containing the asset full name and the amount.
+   * @param allowZero is a flag that indicates if the amount can be zero.
+   * @param assetService is the service that will be used to check if the asset is supported.
+   * @throws BadRequestException if the amount is invalid or the asset is not supported.
+   */
   public static void validateAssetAmount(
       String fieldName, AmountAssetRequest amount, boolean allowZero, AssetService assetService)
       throws BadRequestException {

@@ -4,7 +4,7 @@ assets:
     code: USDC
     issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
-    significant_decimals: 4
+    significant_decimals: 7
     deposit:
       enabled: true
       min_amount: 0
