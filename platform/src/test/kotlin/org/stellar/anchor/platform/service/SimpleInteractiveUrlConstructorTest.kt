@@ -62,17 +62,13 @@ class SimpleInteractiveUrlConstructorTest {
     secretConfig.setupMock()
 
     val clientConfig =
-      ClientConfig(
-        "lobstr",
-        NONCUSTODIAL,
-        null,
-        setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
-        null,
-        setOf("lobstr.co"),
-        "https://callback.lobstr.co/api/v2/anchor/callback",
-        false,
-        null
-      )
+      ClientConfig.builder()
+        .name("lobstr")
+        .type(NONCUSTODIAL)
+        .signingKeys(setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"))
+        .domains(setOf("lobstr.co"))
+        .callbackUrl("https://callback.lobstr.co/api/v2/anchor/callback")
+        .build()
     every { clientsConfig.getClientConfigByDomain(any()) } returns null
     every { clientsConfig.getClientConfigByDomain(clientConfig.domains.first()) } returns
       clientConfig
@@ -83,17 +79,11 @@ class SimpleInteractiveUrlConstructorTest {
         "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       )
     } returns
-      ClientConfig(
-        "some-wallet",
-        CUSTODIAL,
-        null,
-        setOf("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
-        null,
-        emptySet(),
-        null,
-        false,
-        null
-      )
+      ClientConfig.builder()
+        .name("some-wallet")
+        .type(CUSTODIAL)
+        .signingKeys(setOf("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"))
+        .build()
     every { testAsset.sep38AssetName } returns
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     every { sep10Jwt.homeDomain } returns TEST_HOME_DOMAIN

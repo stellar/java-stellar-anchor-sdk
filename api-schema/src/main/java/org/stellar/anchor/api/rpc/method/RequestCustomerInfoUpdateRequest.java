@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 import org.stellar.anchor.api.rpc.method.features.SupportsUserActionRequiredBy;
 
+@Deprecated(since = "3.0") // ANCHOR-777
 @Data
 @SuperBuilder
 @AllArgsConstructor

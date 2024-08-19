@@ -29,45 +29,31 @@ class Sep10ConfigTest {
     appConfig = mockk()
 
     clientsConfig.clients.add(
-      ClientConfig(
-        "unknown",
-        CUSTODIAL,
-        null,
-        setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"),
-        null,
-        null,
-        null,
-        false,
-        null
-      )
+      ClientConfig.builder()
+        .name("unknown")
+        .type(CUSTODIAL)
+        .signingKeys(setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"))
+        .build()
     )
 
     clientsConfig.clients.add(
-      ClientConfig(
-        "lobstr",
-        NONCUSTODIAL,
-        null,
-        setOf("GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"),
-        null,
-        setOf("lobstr.co"),
-        "https://callback.lobstr.co/api/v2/anchor/callback",
-        false,
-        null
-      )
+      ClientConfig.builder()
+        .name("lobstr")
+        .type(NONCUSTODIAL)
+        .signingKeys(setOf("GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"))
+        .domains(setOf("lobstr.co"))
+        .callbackUrl("https://callback.lobstr.co/api/v2/anchor/callback")
+        .build()
     )
 
     clientsConfig.clients.add(
-      ClientConfig(
-        "circle",
-        NONCUSTODIAL,
-        null,
-        setOf("GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"),
-        null,
-        setOf("circle.com"),
-        "https://callback.circle.com/api/v2/anchor/callback",
-        false,
-        null
-      )
+      ClientConfig.builder()
+        .name("circle")
+        .type(NONCUSTODIAL)
+        .signingKeys(setOf("GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE"))
+        .domains(setOf("circle.com"))
+        .callbackUrl("https://callback.circle.com/api/v2/anchor/callback")
+        .build()
     )
 
     config = PropertySep10Config(appConfig, clientsConfig, secretConfig)

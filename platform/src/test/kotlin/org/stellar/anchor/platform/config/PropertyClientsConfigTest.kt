@@ -112,6 +112,40 @@ class PropertyClientsConfigTest {
   }
 
   @Test
+  fun `test valid non-custodial client with all callback URLs set`() {
+    val config = ClientConfig()
+    config.name = "circle"
+    config.type = NONCUSTODIAL
+    config.domains = setOf("circle.com")
+    config.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
+    config.callbackUrlSep6 = "https://callback.circle.com/api/v1/anchor/callback/sep6"
+    config.callbackUrlSep24 = "https://callback.circle.com/api/v1/anchor/callback/sep24"
+    config.callbackUrlSep31 = "https://callback.circle.com/api/v1/anchor/callback/sep31"
+    config.callbackUrlSep12 = "https://callback.circle.com/api/v1/anchor/callback/sep12"
+    configs.clients.add(config)
+
+    configs.validate(configs, errors)
+    Assertions.assertFalse(errors.hasErrors())
+  }
+
+  @Test
+  fun `test invalid non-custodial client with invalid callback URLs`() {
+    val config = ClientConfig()
+    config.name = "circle"
+    config.type = NONCUSTODIAL
+    config.domains = setOf("circle.com")
+    config.callbackUrl = "bad-url"
+    config.callbackUrlSep6 = "bad-url"
+    config.callbackUrlSep24 = "bad-url"
+    config.callbackUrlSep31 = "bad-url"
+    config.callbackUrlSep12 = "bad-url"
+    configs.clients.add(config)
+
+    configs.validate(configs, errors)
+    Assertions.assertEquals(5, errors.errorCount)
+  }
+
+  @Test
   fun `test invalid non-custodial client with empty domain and callback url`() {
     val config = ClientConfig()
     config.domain = ""

@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.stellar.anchor.MoreInfoUrlConstructor;
-import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
@@ -29,7 +28,6 @@ public class EventProcessorBeans {
       PropertyClientsConfig clientsConfig,
       EventService eventService,
       AssetService assetService,
-      CustomerIntegration customerIntegration,
       Sep6TransactionStore sep6TransactionStore,
       Sep24TransactionStore sep24TransactionStore,
       Sep31TransactionStore sep31TransactionStore,
@@ -42,7 +40,6 @@ public class EventProcessorBeans {
         clientsConfig,
         eventService,
         assetService,
-        customerIntegration,
         sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,

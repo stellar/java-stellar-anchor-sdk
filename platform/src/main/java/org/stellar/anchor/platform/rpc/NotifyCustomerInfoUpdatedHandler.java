@@ -78,7 +78,7 @@ public class NotifyCustomerInfoUpdatedHandler
               GetCustomerRequest.builder()
                   .transactionId(txn.getId())
                   .id(request.getCustomerId())
-                  .type(request.getType())
+                  .type(request.getCustomerType())
                   .build());
       status = customer.getStatus();
       eventSession.publish(
@@ -125,7 +125,7 @@ public class NotifyCustomerInfoUpdatedHandler
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     switch (Sep.from(txn.getProtocol())) {
       case SEP_6:
-        return Set.of(PENDING_ANCHOR, PENDING_CUSTOMER_INFO_UPDATE);
+        return Set.of(INCOMPLETE, PENDING_ANCHOR, PENDING_CUSTOMER_INFO_UPDATE);
       case SEP_31:
         return Set.of(PENDING_RECEIVER, PENDING_CUSTOMER_INFO_UPDATE);
       default:

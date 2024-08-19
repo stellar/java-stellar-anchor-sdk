@@ -17,11 +17,12 @@ import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.MoreInfoUrlConstructor;
-import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
@@ -37,6 +38,7 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep6.Sep6Transaction;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionUtils;
+import org.stellar.anchor.util.Log;
 import org.stellar.sdk.KeyPair;
 
 public class ClientStatusCallbackHandler extends EventHandler {
@@ -50,7 +52,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
   private final SecretConfig secretConfig;
   private final ClientConfig clientConfig;
   private final Sep6TransactionStore sep6TransactionStore;
-  private final CustomerIntegration customerIntegration;
   private final AssetService assetService;
   private final MoreInfoUrlConstructor sep6MoreInfoUrlConstructor;
   private final MoreInfoUrlConstructor sep24MoreInfoUrlConstructor;
@@ -59,7 +60,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
       SecretConfig secretConfig,
       ClientConfig clientConfig,
       Sep6TransactionStore sep6TransactionStore,
-      CustomerIntegration customerIntegration,
       AssetService assetService,
       MoreInfoUrlConstructor sep6MoreInfoUrlConstructor,
       MoreInfoUrlConstructor sep24MoreInfoUrlConstructor) {
@@ -68,7 +68,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
     this.clientConfig = clientConfig;
     this.assetService = assetService;
     this.sep6TransactionStore = sep6TransactionStore;
-    this.customerIntegration = customerIntegration;
     this.sep6MoreInfoUrlConstructor = sep6MoreInfoUrlConstructor;
     this.sep24MoreInfoUrlConstructor = sep24MoreInfoUrlConstructor;
   }
@@ -78,12 +77,14 @@ public class ClientStatusCallbackHandler extends EventHandler {
     if (event.getTransaction() != null || event.getCustomer() != null) {
       KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
       Request request = buildHttpRequest(signer, event);
-      Response response = httpClient.newCall(request).execute();
-      debugF(
-          "Sending event: {} to client status api: {}", json(event), clientConfig.getCallbackUrl());
-      if (response.code() < 200 || response.code() >= 400) {
-        errorF("Failed to send event to client status API. Error code: {}", response.code());
-        return false;
+
+      if (request != null) {
+        Response response = httpClient.newCall(request).execute();
+        debugF("Sending event: {} to client status api: {}", json(event), request.url());
+        if (response.code() < 200 || response.code() >= 400) {
+          errorF("Failed to send event to client status API. Error code: {}", response.code());
+          return false;
+        }
       }
     }
     return true;
@@ -91,8 +92,45 @@ public class ClientStatusCallbackHandler extends EventHandler {
 
   @SneakyThrows
   Request buildHttpRequest(KeyPair signer, AnchorEvent event) {
+    String callbackUrl = getCallbackUrl(event);
+    if (callbackUrl == null) {
+      Log.debugF("No callback URL found for event: {}", json(event));
+      return null;
+    }
+
     String payload = getPayload(event);
-    return buildHttpRequest(signer, payload, clientConfig.getCallbackUrl());
+    return buildHttpRequest(signer, payload, callbackUrl);
+  }
+
+  String getCallbackUrl(AnchorEvent event) throws InvalidConfigException {
+    String callbackUrl = clientConfig.getCallbackUrl();
+    if (event.getTransaction() != null) {
+      switch (event.getTransaction().getSep()) {
+        case SEP_6:
+          if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep6())) {
+            callbackUrl = clientConfig.getCallbackUrlSep6();
+          }
+          break;
+        case SEP_24:
+          if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep24())) {
+            callbackUrl = clientConfig.getCallbackUrlSep24();
+          }
+          break;
+        case SEP_31:
+          if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep31())) {
+            callbackUrl = clientConfig.getCallbackUrlSep31();
+          }
+          break;
+        default:
+          throw new InvalidConfigException(
+              String.format("Unsupported SEP: %s", event.getTransaction().getSep()));
+      }
+    } else if (event.getCustomer() != null) {
+      if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep12())) {
+        callbackUrl = clientConfig.getCallbackUrlSep12();
+      }
+    }
+    return callbackUrl;
   }
 
   @SneakyThrows
