@@ -9,7 +9,7 @@ import org.stellar.anchor.api.sep.AssetInfo;
 public class Sep31Info {
   Boolean enabled = false;
 
-  SendOperation send;
+  ReceiveOperation receive;
 
   @SerializedName("quotes_supported")
   boolean quotesSupported;
@@ -22,7 +22,7 @@ public class Sep31Info {
   Fields fields;
 
   @Data
-  public static class SendOperation {
+  public static class ReceiveOperation {
     @SerializedName("fee_fixed")
     Integer feeFixed;
 

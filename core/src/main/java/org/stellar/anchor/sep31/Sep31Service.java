@@ -142,8 +142,8 @@ public class Sep31Service {
     validateAmountLimit(
         "sell_",
         request.getAmount(),
-        assetInfo.getSep31().getSend().getMinAmount(),
-        assetInfo.getSep31().getSend().getMaxAmount());
+        assetInfo.getSep31().getReceive().getMinAmount(),
+        assetInfo.getSep31().getReceive().getMaxAmount());
     validateLanguage(appConfig, request.getLang());
 
     /*
@@ -657,10 +657,10 @@ public class Sep31Service {
         AssetResponse assetResponse = new AssetResponse();
         assetResponse.setQuotesSupported(isQuotesSupported);
         assetResponse.setQuotesRequired(isQuotesRequired);
-        assetResponse.setFeeFixed(assetInfo.getSep31().getSend().getFeeFixed());
-        assetResponse.setFeePercent(assetInfo.getSep31().getSend().getFeePercent());
-        assetResponse.setMinAmount(assetInfo.getSep31().getSend().getMinAmount());
-        assetResponse.setMaxAmount(assetInfo.getSep31().getSend().getMaxAmount());
+        assetResponse.setFeeFixed(assetInfo.getSep31().getReceive().getFeeFixed());
+        assetResponse.setFeePercent(assetInfo.getSep31().getReceive().getFeePercent());
+        assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
+        assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
         assetResponse.setFields(assetInfo.getSep31().getFields());
         assetResponse.setSep12(assetInfo.getSep31().getSep12());
         response.getReceive().put(assetInfo.getCode(), assetResponse);
