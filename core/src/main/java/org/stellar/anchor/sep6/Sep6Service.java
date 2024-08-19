@@ -106,15 +106,15 @@ public class Sep6Service {
     AssetInfo asset = requestValidator.getDepositAsset(request.getAssetCode());
     if (request.getType() != null) {
       requestValidator.validateTypes(
-          request.getType(), asset.getCode(), asset.getDeposit().getMethods());
+          request.getType(), asset.getCode(), asset.getSep6().getDeposit().getMethods());
     }
     if (request.getAmount() != null) {
       requestValidator.validateAmount(
           request.getAmount(),
           asset.getCode(),
           asset.getSignificantDecimals(),
-          asset.getDeposit().getMinAmount(),
-          asset.getDeposit().getMaxAmount());
+          asset.getSep6().getDeposit().getMinAmount(),
+          asset.getSep6().getDeposit().getMaxAmount());
     }
     requestValidator.validateAccount(request.getAccount());
 
@@ -184,13 +184,13 @@ public class Sep6Service {
 
     AssetInfo buyAsset = requestValidator.getDepositAsset(request.getDestinationAsset());
     requestValidator.validateTypes(
-        request.getType(), buyAsset.getCode(), buyAsset.getDeposit().getMethods());
+        request.getType(), buyAsset.getCode(), buyAsset.getSep6().getDeposit().getMethods());
     requestValidator.validateAmount(
         request.getAmount(),
         buyAsset.getCode(),
         buyAsset.getSignificantDecimals(),
-        buyAsset.getDeposit().getMinAmount(),
-        buyAsset.getDeposit().getMaxAmount());
+        buyAsset.getSep6().getDeposit().getMinAmount(),
+        buyAsset.getSep6().getDeposit().getMaxAmount());
     requestValidator.validateAccount(request.getAccount());
 
     Amounts amounts;
@@ -279,15 +279,15 @@ public class Sep6Service {
     AssetInfo asset = requestValidator.getWithdrawAsset(request.getAssetCode());
     if (request.getType() != null) {
       requestValidator.validateTypes(
-          request.getType(), asset.getCode(), asset.getWithdraw().getMethods());
+          request.getType(), asset.getCode(), asset.getSep6().getWithdraw().getMethods());
     }
     if (request.getAmount() != null) {
       requestValidator.validateAmount(
           request.getAmount(),
           asset.getCode(),
           asset.getSignificantDecimals(),
-          asset.getWithdraw().getMinAmount(),
-          asset.getWithdraw().getMaxAmount());
+          asset.getSep6().getWithdraw().getMinAmount(),
+          asset.getSep6().getWithdraw().getMaxAmount());
     }
     String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
     requestValidator.validateAccount(sourceAccount);
@@ -354,13 +354,13 @@ public class Sep6Service {
 
     AssetInfo sellAsset = requestValidator.getWithdrawAsset(request.getSourceAsset());
     requestValidator.validateTypes(
-        request.getType(), sellAsset.getCode(), sellAsset.getWithdraw().getMethods());
+        request.getType(), sellAsset.getCode(), sellAsset.getSep6().getWithdraw().getMethods());
     requestValidator.validateAmount(
         request.getAmount(),
         sellAsset.getCode(),
         sellAsset.getSignificantDecimals(),
-        sellAsset.getWithdraw().getMinAmount(),
-        sellAsset.getWithdraw().getMaxAmount());
+        sellAsset.getSep6().getWithdraw().getMinAmount(),
+        sellAsset.getSep6().getWithdraw().getMaxAmount());
     String sourceAccount = request.getAccount() != null ? request.getAccount() : token.getAccount();
     requestValidator.validateAccount(sourceAccount);
 
@@ -523,48 +523,46 @@ public class Sep6Service {
             .build();
 
     for (AssetInfo asset : assetService.listAllAssets()) {
-      if (asset.getSep6Enabled() && asset.getSchema().equals(AssetInfo.Schema.STELLAR)) {
+      if (asset.getIsServiceEnabled(asset.getSep6(), "deposit")
+          && asset.getSchema().equals(AssetInfo.Schema.STELLAR)) {
+        List<String> methods = asset.getSep6().getDeposit().getMethods();
+        AssetInfo.Field type =
+            AssetInfo.Field.builder()
+                .description("type of deposit to make")
+                .choices(methods)
+                .build();
 
-        if (asset.getDeposit().getEnabled()) {
-          List<String> methods = asset.getDeposit().getMethods();
-          AssetInfo.Field type =
-              AssetInfo.Field.builder()
-                  .description("type of deposit to make")
-                  .choices(methods)
-                  .build();
+        DepositAssetResponse deposit =
+            DepositAssetResponse.builder()
+                .enabled(true)
+                .authenticationRequired(true)
+                .minAmount(asset.getSep6().getDeposit().getMinAmount())
+                .maxAmount(asset.getSep6().getDeposit().getMaxAmount())
+                .fields(ImmutableMap.of("type", type))
+                .build();
 
-          DepositAssetResponse deposit =
-              DepositAssetResponse.builder()
-                  .enabled(true)
-                  .authenticationRequired(true)
-                  .minAmount(asset.getDeposit().getMinAmount())
-                  .maxAmount(asset.getDeposit().getMaxAmount())
-                  .fields(ImmutableMap.of("type", type))
-                  .build();
+        response.getDeposit().put(asset.getCode(), deposit);
+        response.getDepositExchange().put(asset.getCode(), deposit);
+      }
 
-          response.getDeposit().put(asset.getCode(), deposit);
-          response.getDepositExchange().put(asset.getCode(), deposit);
+      if (asset.getIsServiceEnabled(asset.getSep6(), "withdraw")) {
+        List<String> methods = asset.getSep6().getWithdraw().getMethods();
+        Map<String, WithdrawType> types = new HashMap<>();
+        for (String method : methods) {
+          types.put(method, WithdrawType.builder().fields(new HashMap<>()).build());
         }
 
-        if (asset.getWithdraw().getEnabled()) {
-          List<String> methods = asset.getWithdraw().getMethods();
-          Map<String, WithdrawType> types = new HashMap<>();
-          for (String method : methods) {
-            types.put(method, WithdrawType.builder().fields(new HashMap<>()).build());
-          }
+        WithdrawAssetResponse withdraw =
+            WithdrawAssetResponse.builder()
+                .enabled(true)
+                .authenticationRequired(true)
+                .minAmount(asset.getSep6().getWithdraw().getMinAmount())
+                .maxAmount(asset.getSep6().getWithdraw().getMaxAmount())
+                .types(types)
+                .build();
 
-          WithdrawAssetResponse withdraw =
-              WithdrawAssetResponse.builder()
-                  .enabled(true)
-                  .authenticationRequired(true)
-                  .minAmount(asset.getWithdraw().getMinAmount())
-                  .maxAmount(asset.getWithdraw().getMaxAmount())
-                  .types(types)
-                  .build();
-
-          response.getWithdraw().put(asset.getCode(), withdraw);
-          response.getWithdrawExchange().put(asset.getCode(), withdraw);
-        }
+        response.getWithdraw().put(asset.getCode(), withdraw);
+        response.getWithdrawExchange().put(asset.getCode(), withdraw);
       }
     }
     return response;

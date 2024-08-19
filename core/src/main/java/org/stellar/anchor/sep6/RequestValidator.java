@@ -23,7 +23,7 @@ public class RequestValidator {
    */
   public AssetInfo getDepositAsset(String assetCode) throws SepValidationException {
     AssetInfo asset = assetService.getAsset(assetCode);
-    if (asset == null || !asset.getSep6Enabled() || !asset.getDeposit().getEnabled()) {
+    if (asset == null || !asset.getIsServiceEnabled(asset.getSep6(), "deposit")) {
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
     return asset;
@@ -38,7 +38,7 @@ public class RequestValidator {
    */
   public AssetInfo getWithdrawAsset(String assetCode) throws SepValidationException {
     AssetInfo asset = assetService.getAsset(assetCode);
-    if (asset == null || !asset.getSep6Enabled() || !asset.getWithdraw().getEnabled()) {
+    if (asset == null || !asset.getIsServiceEnabled(asset.getSep6(), "withdraw")) {
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
     return asset;

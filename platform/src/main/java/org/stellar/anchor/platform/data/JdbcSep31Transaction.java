@@ -11,7 +11,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.SepTransaction;
-import org.stellar.anchor.api.sep.operation.Sep31Operation;
+import org.stellar.anchor.api.sep.operation.Sep31Info;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -96,7 +96,7 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   // Ignored by JPA and Gson
   @SerializedName("required_info_updates")
   @Transient
-  Sep31Operation.Fields requiredInfoUpdates;
+  Sep31Info.Fields requiredInfoUpdates;
 
   @Access(AccessType.PROPERTY)
   @Column(name = "requiredInfoUpdates")
@@ -106,8 +106,7 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
 
   public void setRequiredInfoUpdatesJson(String requiredInfoUpdatesJson) {
     if (requiredInfoUpdatesJson != null) {
-      this.requiredInfoUpdates =
-          gson.fromJson(requiredInfoUpdatesJson, Sep31Operation.Fields.class);
+      this.requiredInfoUpdates = gson.fromJson(requiredInfoUpdatesJson, Sep31Info.Fields.class);
     }
   }
 
