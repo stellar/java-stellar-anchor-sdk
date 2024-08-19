@@ -219,7 +219,7 @@ assets:
     code: USD
     significant_decimals: 7
     sep31:
-      enabled: false
+      enabled: true
       receive:
         min_amount: 0
         max_amount: 1000000

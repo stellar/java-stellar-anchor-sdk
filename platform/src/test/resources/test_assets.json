@@ -8,14 +8,14 @@
       "significant_decimals": 2,
       "sep24": {
         "enabled": true,
-        "receive": {
+        "deposit": {
           "enabled": true,
           "fee_fixed": 0,
           "fee_percent": 0,
           "min_amount": 1,
           "max_amount": 1000000
         },
-        "receive": {
+        "withdraw": {
           "enabled": true,
           "fee_fixed": 0,
           "fee_percent": 0,
