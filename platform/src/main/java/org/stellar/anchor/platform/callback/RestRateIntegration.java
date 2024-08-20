@@ -252,6 +252,9 @@ public class RestRateIntegration implements RateIntegration {
    * <p>Different rounding modes are applied to test the equality. If the amounts do not equal in
    * all allowed rounding modes, it returns false.
    *
+   * <p>TODO: Returns true in release 2.9.0 to disable the total amount comparison. Will readd in
+   * 3.0.0
+   *
    * @param amount The amount to be compared
    * @param expected The expected amount
    * @param scale The scale to be used for comparison
@@ -259,11 +262,12 @@ public class RestRateIntegration implements RateIntegration {
    *     otherwise
    */
   private boolean equalsInScale(BigDecimal amount, BigDecimal expected, int scale) {
-    for (RoundingMode mode : ALLOWED_ROUNDING_MODES_FOR_QUOTE_VALIDATION) {
-      if (amount.setScale(scale, mode).compareTo(expected.setScale(scale, mode)) == 0) {
-        return true;
-      }
-    }
-    return false;
+    return true;
+    //    for (RoundingMode mode : ALLOWED_ROUNDING_MODES_FOR_QUOTE_VALIDATION) {
+    //      if (amount.setScale(scale, mode).compareTo(expected.setScale(scale, mode)) == 0) {
+    //        return true;
+    //      }
+    //    }
+    //    return false;
   }
 }

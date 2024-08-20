@@ -6,6 +6,7 @@ import io.mockk.mockk
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -146,6 +147,8 @@ class RestRateIntegrationTest {
   }
 
   @Test
+  // TODO: re-add in release 3.0.0
+  @Disabled
   fun `test mis-matched sell_amount and buy_amount`() {
     // Bad sell amount
     rateResponse.rate.sellAmount = "100.02" // expect 100.00
