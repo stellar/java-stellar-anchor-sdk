@@ -3,7 +3,6 @@ package org.stellar.anchor.api.sep.sep38;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.operation.Sep38Info;
@@ -23,11 +22,7 @@ public class InfoResponse {
     for (AssetInfo assetInfo : assetInfoList) {
       if (!assetInfo.getSep38().getEnabled()) continue;
       Asset newAsset = new Asset();
-      String assetName = assetInfo.getSchema().toString() + ":" + assetInfo.getCode();
-      if (!Objects.toString(assetInfo.getIssuer(), "").isEmpty()) {
-        assetName += ":" + assetInfo.getIssuer();
-      }
-      newAsset.setAsset(assetName);
+      newAsset.setAsset(assetInfo.getSep38AssetName());
 
       Sep38Info sep38Info = assetInfo.getSep38();
       newAsset.setCountryCodes(sep38Info.getCountryCodes());
@@ -36,7 +31,8 @@ public class InfoResponse {
       newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
 
       int decimals = 7;
-      if (!assetName.startsWith("stellar") && sep38Info.getDecimals() != null) {
+      if (!assetInfo.getSchema().equals(AssetInfo.Schema.STELLAR)
+          && sep38Info.getDecimals() != null) {
         decimals = sep38Info.getDecimals();
       }
       newAsset.setDecimals(decimals);
