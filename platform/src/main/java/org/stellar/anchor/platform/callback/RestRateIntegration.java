@@ -3,13 +3,13 @@ package org.stellar.anchor.platform.callback;
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.util.ErrorHelper.logErrorAndThrow;
 import static org.stellar.anchor.util.Log.*;
-import static org.stellar.anchor.util.NumberHelper.DEFAULT_ROUNDING_MODE;
 import static org.stellar.anchor.util.NumberHelper.isPositiveNumber;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -33,6 +33,10 @@ import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.NumberHelper;
 
 public class RestRateIntegration implements RateIntegration {
+  private static final RoundingMode[] ALLOWED_ROUNDING_MODES_FOR_QUOTE_VALIDATION =
+      new RoundingMode[] {
+        RoundingMode.FLOOR, RoundingMode.CEILING, RoundingMode.HALF_UP, RoundingMode.HALF_DOWN
+      };
   private final String anchorEndpoint;
   private final OkHttpClient httpClient;
   private final Gson gson;
@@ -166,10 +170,12 @@ public class RestRateIntegration implements RateIntegration {
         BigDecimal expected =
             new BigDecimal(rate.getPrice())
                 .multiply(new BigDecimal(rate.getBuyAmount()))
-                .add(new BigDecimal(fee.getTotal()))
-                .setScale(sellAsset.getSignificantDecimals(), DEFAULT_ROUNDING_MODE);
+                .add(new BigDecimal(fee.getTotal()));
 
-        if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
+        // Since we don't know how the anchor rounds the amounts, we need to check the equality in
+        // all allowed rounding modes
+        if (!equalsInScale(
+            new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
               "'sell_amount' is not equal to price * buy_amount + (fee?:0) in the GET /rate response",
               ServerErrorException.class);
@@ -179,9 +185,11 @@ public class RestRateIntegration implements RateIntegration {
         // check that sell_amount is equal to price * (buy_amount + (fee ?: 0))
         BigDecimal expected =
             new BigDecimal(rate.getPrice())
-                .multiply(new BigDecimal(rate.getBuyAmount()).add(new BigDecimal(fee.getTotal())))
-                .setScale(sellAsset.getSignificantDecimals(), DEFAULT_ROUNDING_MODE);
-        if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
+                .multiply(new BigDecimal(rate.getBuyAmount()).add(new BigDecimal(fee.getTotal())));
+        // Since we don't know how the anchor rounds the amounts, we need to check the equality in
+        // all allowed rounding modes
+        if (!equalsInScale(
+            new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
               "'sell_amount' is not equal to price * (buy_amount + (fee ?: 0)) in the GET /rate response",
               ServerErrorException.class);
@@ -226,14 +234,36 @@ public class RestRateIntegration implements RateIntegration {
     } else {
       // when fee is not present, check that sell_amount is equal to price * buy_amount
       BigDecimal expected =
-          new BigDecimal(rate.getPrice())
-              .multiply(new BigDecimal(rate.getBuyAmount()))
-              .setScale(sellAsset.getSignificantDecimals(), DEFAULT_ROUNDING_MODE);
-      if (new BigDecimal(rate.getSellAmount()).compareTo(expected) != 0) {
+          new BigDecimal(rate.getPrice()).multiply(new BigDecimal(rate.getBuyAmount()));
+      // Since we don't know how the anchor rounds the amounts, we need to check the equality in
+      // all allowed rounding modes
+      if (equalsInScale(
+          new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
         logErrorAndThrow(
             "'sell_amount' is not equal to price * buy_amount in the GET /rate response",
             ServerErrorException.class);
       }
     }
+  }
+
+  /**
+   * Check if two BigDecimals are equal in scale.
+   *
+   * <p>Different rounding modes are applied to test the equality. If the amounts do not equal in
+   * all allowed rounding modes, it returns false.
+   *
+   * @param amount The amount to be compared
+   * @param expected The expected amount
+   * @param scale The scale to be used for comparison
+   * @return true if the amounts are equal in scale with any of the allowed rounding modes, false
+   *     otherwise
+   */
+  private boolean equalsInScale(BigDecimal amount, BigDecimal expected, int scale) {
+    for (RoundingMode mode : ALLOWED_ROUNDING_MODES_FOR_QUOTE_VALIDATION) {
+      if (amount.setScale(scale, mode).compareTo(expected.setScale(scale, mode)) == 0) {
+        return true;
+      }
+    }
+    return false;
   }
 }

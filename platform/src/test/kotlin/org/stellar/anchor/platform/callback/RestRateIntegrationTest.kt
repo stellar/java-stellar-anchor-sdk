@@ -148,7 +148,7 @@ class RestRateIntegrationTest {
   @Test
   fun `test mis-matched sell_amount and buy_amount`() {
     // Bad sell amount
-    rateResponse.rate.sellAmount = "100.01" // expect 100.00
+    rateResponse.rate.sellAmount = "100.02" // expect 100.00
     rateResponse.rate.buyAmount = "94.29"
     var ex =
       assertThrows<ServerErrorException> {

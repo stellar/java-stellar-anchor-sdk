@@ -1,8 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Docker - Run Dev Stack - Kafka, Postgres, SEP24 Reference UI" type="JetRunConfigurationType">
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunDockerDevStack" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
-    <shortenClasspath name="ARGS_FILE" />
+    <shortenClasspath name="NONE" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

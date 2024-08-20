@@ -85,7 +85,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
     usdc.schema = AssetInfo.Schema.stellar
     usdc.code = "USDC"
     usdc.issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-    usdc.significantDecimals = 2
+    usdc.significantDecimals = 4
 
     val usd = AssetInfo()
     usd.schema = AssetInfo.Schema.iso4217
