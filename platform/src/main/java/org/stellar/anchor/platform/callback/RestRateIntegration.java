@@ -217,18 +217,13 @@ public class RestRateIntegration implements RateIntegration {
                 "'fee.details.description[?].name' is missing in the GET /rate response",
                 ServerErrorException.class);
           }
-          if (!isPositiveNumber(feeDescription.getAmount())) {
-            logErrorAndThrow(
-                "'fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
-                ServerErrorException.class);
-          }
           totalFee = totalFee.add(new BigDecimal(feeDescription.getAmount()));
         }
 
         // check that sell_amount is equal to price * buy_amount + (fee ?: 0)
         if (totalFee.compareTo(new BigDecimal(fee.getTotal())) != 0) {
           logErrorAndThrow(
-              "'sell_amount' is not equal to price * buy_amount + (fee ?: 0) to  in the GET /rate response",
+              "'fee.total' is not equal to the sum of fees in the GET /rate response",
               ServerErrorException.class);
         }
       }
