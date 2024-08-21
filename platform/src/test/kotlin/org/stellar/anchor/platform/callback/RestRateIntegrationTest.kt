@@ -3,10 +3,10 @@ package org.stellar.anchor.platform.callback
 import com.google.gson.Gson
 import io.mockk.every
 import io.mockk.mockk
+import java.math.BigDecimal
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -20,6 +20,7 @@ import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.AssetInfo.Schema.iso4217
 import org.stellar.anchor.api.sep.AssetInfo.Schema.stellar
 import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.platform.callback.RestRateIntegration.withinRoundingError
 import org.stellar.anchor.util.GsonUtils
 
 class RestRateIntegrationTest {
@@ -147,8 +148,6 @@ class RestRateIntegrationTest {
   }
 
   @Test
-  // TODO: re-add in release 3.0.0
-  @Disabled
   fun `test mis-matched sell_amount and buy_amount`() {
     // Bad sell amount
     rateResponse.rate.sellAmount = "100.02" // expect 100.00
@@ -158,7 +157,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'sell_amount' is not equal to price * buy_amount + (fee?:0) in the GET /rate response",
+      "'sell_amount' is not within rounding error of price * buy_amount + (fee?:0) in the GET /rate response",
       ex.message,
     )
 
@@ -170,7 +169,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'sell_amount' is not equal to price * buy_amount + (fee?:0) in the GET /rate response",
+      "'sell_amount' is not within rounding error of price * buy_amount + (fee?:0) in the GET /rate response",
       ex.message,
     )
   }
@@ -274,6 +273,53 @@ class RestRateIntegrationTest {
     assertEquals(
       "'fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
       ex.message,
+    )
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    value =
+      [
+        // Round down
+        "1.014,1.01,2,true",
+        "1.014, 1.01,3,false",
+        "1.0104, 1.01,3,true",
+        // Round up
+        "1.014,1.02,2,true",
+        // Ceil
+        "1.001, 1.01,2,true",
+        "1.001,1.01, 3, false",
+        // Floor
+        "1.019, 1.01, 2, true",
+        "1.019, 1.01, 3, false",
+
+        // sell has 2, buy has 5. calculated sell amount is 4.99999. returned sell amount is 5.00
+        "4.99999,5.00,2,true",
+        "4.99999,5.00,5,false",
+
+        // sell has 2, buy has 5. calculated sell amount is 4.99999. returned sell amount is 5.00
+        "4.99999,5.00,2,true",
+        "4.99999,5.00,5,false",
+
+        // Test cases
+        "4.99999999984375,5,2,true",
+        "4.99999999984375,5,3,true",
+        "4.99999999984375,5,4,true",
+        "4.99999999984375,5,5,true",
+        "4.99999999984375,5,8,true",
+        "4.99999999984375,5,9,true",
+        "4.99999999984375,5,10,false",
+      ]
+  )
+  fun `test equals in scale withing rounding errors`(
+    amount: String,
+    expected: String,
+    scale: String,
+    shouldAllow: String,
+  ) {
+    assertEquals(
+      shouldAllow.toBoolean(),
+      withinRoundingError(BigDecimal(amount), BigDecimal(expected), scale.toInt()),
     )
   }
 }

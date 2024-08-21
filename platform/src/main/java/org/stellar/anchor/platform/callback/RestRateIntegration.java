@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.callback;
 
+import static java.lang.Math.abs;
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.util.ErrorHelper.logErrorAndThrow;
 import static org.stellar.anchor.util.Log.*;
@@ -166,7 +167,7 @@ public class RestRateIntegration implements RateIntegration {
 
       if (fee.getAsset().equals(request.getSellAsset())) {
         // when fee is in sell_asset,
-        // check that sell_amount is equal to price * buy_amount + (fee ?: 0)
+        // check that sell_amount ~= price * buy_amount + (fee ?: 0)
         BigDecimal expected =
             new BigDecimal(rate.getPrice())
                 .multiply(new BigDecimal(rate.getBuyAmount()))
@@ -174,24 +175,24 @@ public class RestRateIntegration implements RateIntegration {
 
         // Since we don't know how the anchor rounds the amounts, we need to check the equality in
         // all allowed rounding modes
-        if (!equalsInScale(
+        if (!withinRoundingError(
             new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
-              "'sell_amount' is not equal to price * buy_amount + (fee?:0) in the GET /rate response",
+              "'sell_amount' is not within rounding error of price * buy_amount + (fee?:0) in the GET /rate response",
               ServerErrorException.class);
         }
       } else {
         // when fee is in buy_asset,
-        // check that sell_amount is equal to price * (buy_amount + (fee ?: 0))
+        // check that sell_amount ~= price * (buy_amount + (fee ?: 0))
         BigDecimal expected =
             new BigDecimal(rate.getPrice())
                 .multiply(new BigDecimal(rate.getBuyAmount()).add(new BigDecimal(fee.getTotal())));
         // Since we don't know how the anchor rounds the amounts, we need to check the equality in
         // all allowed rounding modes
-        if (!equalsInScale(
+        if (!withinRoundingError(
             new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
-              "'sell_amount' is not equal to price * (buy_amount + (fee ?: 0)) in the GET /rate response",
+              "'sell_amount' is not within rounding error of price * (buy_amount + (fee ?: 0)) in the GET /rate response",
               ServerErrorException.class);
         }
       }
@@ -237,7 +238,7 @@ public class RestRateIntegration implements RateIntegration {
           new BigDecimal(rate.getPrice()).multiply(new BigDecimal(rate.getBuyAmount()));
       // Since we don't know how the anchor rounds the amounts, we need to check the equality in
       // all allowed rounding modes
-      if (equalsInScale(
+      if (withinRoundingError(
           new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
         logErrorAndThrow(
             "'sell_amount' is not equal to price * buy_amount in the GET /rate response",
@@ -247,27 +248,14 @@ public class RestRateIntegration implements RateIntegration {
   }
 
   /**
-   * Check if two BigDecimals are equal in scale.
-   *
-   * <p>Different rounding modes are applied to test the equality. If the amounts do not equal in
-   * all allowed rounding modes, it returns false.
-   *
-   * <p>TODO: Returns true in release 2.9.0 to disable the total amount comparison. Will readd in
-   * 3.0.0
+   * Check the amount is within rounding error of the expected amount.
    *
    * @param amount The amount to be compared
    * @param expected The expected amount
    * @param scale The scale to be used for comparison
-   * @return true if the amounts are equal in scale with any of the allowed rounding modes, false
-   *     otherwise
+   * @return true if the amount is within rounding error of the expected amount
    */
-  private boolean equalsInScale(BigDecimal amount, BigDecimal expected, int scale) {
-    return true;
-    //    for (RoundingMode mode : ALLOWED_ROUNDING_MODES_FOR_QUOTE_VALIDATION) {
-    //      if (amount.setScale(scale, mode).compareTo(expected.setScale(scale, mode)) == 0) {
-    //        return true;
-    //      }
-    //    }
-    //    return false;
+  static boolean withinRoundingError(BigDecimal amount, BigDecimal expected, int scale) {
+    return abs(amount.subtract(expected).doubleValue()) < Math.pow(10, -scale);
   }
 }
