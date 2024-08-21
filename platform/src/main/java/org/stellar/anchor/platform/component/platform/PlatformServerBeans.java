@@ -84,7 +84,10 @@ public class PlatformServerBeans {
       case NONE:
         return new Sep31DepositInfoNoneGenerator();
       default:
-        throw new RuntimeException("Not supported");
+        throw new RuntimeException(
+            String.format(
+                "sep31.deposit_info_generator_type: %s is not supported",
+                sep31Config.getDepositInfoGeneratorType()));
     }
   }
 
@@ -104,7 +107,10 @@ public class PlatformServerBeans {
       case NONE:
         return new Sep24DepositInfoNoneGenerator();
       default:
-        throw new RuntimeException("Not supported");
+        throw new RuntimeException(
+            String.format(
+                "sep24.deposit_info_generator_type: %s is not supported",
+                sep24Config.getDepositInfoGeneratorType()));
     }
   }
 
@@ -124,7 +130,10 @@ public class PlatformServerBeans {
       case NONE:
         return new Sep6DepositInfoNoneGenerator();
       default:
-        throw new RuntimeException("Not supported");
+        throw new RuntimeException(
+            String.format(
+                "sep6.deposit_info_generator_type: %s is not supported",
+                sep6Config.getDepositInfoGeneratorType()));
     }
   }
 

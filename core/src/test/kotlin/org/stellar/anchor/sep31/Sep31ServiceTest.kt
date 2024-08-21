@@ -728,9 +728,6 @@ class Sep31ServiceTest {
     // validate the values of the saved sep31Transaction
     val gotTx = gson.toJson(slotTxn.captured)
     val txId = slotTxn.captured.id
-    var memo = StringUtils.truncate(txId, 32)
-    memo = StringUtils.leftPad(memo, 32, '0')
-    memo = String(Base64.getEncoder().encode(memo.toByteArray()))
     val txStartedAt = slotTxn.captured.startedAt
     val wantTx =
       """{
