@@ -229,7 +229,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'sell_amount' is not equal to price * buy_amount + (fee ?: 0) to  in the GET /rate response",
+      "'fee.total' is not equal to the sum of fees in the GET /rate response",
       ex.message,
     )
   }
