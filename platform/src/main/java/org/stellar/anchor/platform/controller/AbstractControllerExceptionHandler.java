@@ -98,7 +98,7 @@ public abstract class AbstractControllerExceptionHandler {
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler({Exception.class})
+  @ExceptionHandler({Exception.class, ServerErrorException.class})
   public SepExceptionResponse handleInternalError(Exception ex) {
     errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());

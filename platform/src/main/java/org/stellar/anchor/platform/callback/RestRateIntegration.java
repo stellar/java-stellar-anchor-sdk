@@ -231,8 +231,6 @@ public class RestRateIntegration implements RateIntegration {
       // when fee is not present, check that sell_amount is equal to price * buy_amount
       BigDecimal expected =
           new BigDecimal(rate.getPrice()).multiply(new BigDecimal(rate.getBuyAmount()));
-      // Since we don't know how the anchor rounds the amounts, we need to check the equality in
-      // all allowed rounding modes
       if (withinRoundingError(
           new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
         logErrorAndThrow(
@@ -247,10 +245,10 @@ public class RestRateIntegration implements RateIntegration {
    *
    * @param amount The amount to be compared
    * @param expected The expected amount
-   * @param scale The scale to be used for comparison
+   * @param precision The scale to be used for comparison
    * @return true if the amount is within rounding error of the expected amount
    */
-  static boolean withinRoundingError(BigDecimal amount, BigDecimal expected, int scale) {
-    return abs(amount.subtract(expected).doubleValue()) < Math.pow(10, -scale);
+  static boolean withinRoundingError(BigDecimal amount, BigDecimal expected, int precision) {
+    return abs(amount.subtract(expected).doubleValue()) < Math.pow(10, -precision);
   }
 }
