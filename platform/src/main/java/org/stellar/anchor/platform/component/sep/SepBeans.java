@@ -214,7 +214,6 @@ public class SepBeans {
       ClientService clientService,
       AssetService assetService,
       RateIntegration rateIntegration,
-      CustomerIntegration customerIntegration,
       EventService eventService) {
     return new Sep31Service(
         appConfig,
@@ -225,7 +224,6 @@ public class SepBeans {
         clientService,
         assetService,
         rateIntegration,
-        customerIntegration,
         eventService);
   }
 

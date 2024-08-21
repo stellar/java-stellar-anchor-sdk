@@ -321,7 +321,6 @@ class Sep31ServiceTest {
         clientService,
         assetService,
         rateIntegration,
-        customerIntegration,
         eventService,
       )
 
@@ -371,7 +370,6 @@ class Sep31ServiceTest {
         clientService,
         assetServiceQuotesNotSupported,
         rateIntegration,
-        customerIntegration,
         eventService,
       )
     }
@@ -827,7 +825,6 @@ class Sep31ServiceTest {
         clientService,
         assetServiceQuotesNotSupported,
         rateIntegration,
-        customerIntegration,
         eventService
       )
 

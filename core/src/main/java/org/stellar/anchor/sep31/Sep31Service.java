@@ -68,7 +68,6 @@ public class Sep31Service {
   private final ClientService clientService;
   private final AssetService assetService;
   private final RateIntegration rateIntegration;
-  private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
   private final EventService.Session eventSession;
   private final Counter sep31TransactionCreatedCounter = counter(SEP31_TRANSACTION_CREATED);
@@ -83,7 +82,6 @@ public class Sep31Service {
       ClientService clientService,
       AssetService assetService,
       RateIntegration rateIntegration,
-      CustomerIntegration customerIntegration,
       EventService eventService) {
     debug("appConfig:", appConfig);
     debug("sep31Config:", sep31Config);
@@ -95,7 +93,6 @@ public class Sep31Service {
     this.clientService = clientService;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
-    this.customerIntegration = customerIntegration;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
     Log.info("Sep31Service initialized.");
