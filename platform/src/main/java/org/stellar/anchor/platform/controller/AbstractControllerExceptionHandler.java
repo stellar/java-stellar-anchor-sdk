@@ -97,8 +97,17 @@ public abstract class AbstractControllerExceptionHandler {
     return new CustodyExceptionResponse(ex.getMessage());
   }
 
+  // HTTP code: 502
+  // Received an invalid response from the upstream server.
+  @ResponseStatus(HttpStatus.BAD_GATEWAY)
+  @ExceptionHandler({ServerErrorException.class})
+  public SepExceptionResponse handleServerErrorException(Exception ex) {
+    infoF("An upstream server returns a invalid response: {}", ex);
+    return new SepExceptionResponse(ex.getMessage());
+  }
+
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-  @ExceptionHandler({Exception.class, ServerErrorException.class})
+  @ExceptionHandler({Exception.class})
   public SepExceptionResponse handleInternalError(Exception ex) {
     errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());
