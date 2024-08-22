@@ -201,6 +201,10 @@ event_processor:
 #   If the type is `noncustodial`,
 #   - domains: (required) the domain of the client.
 #   - callback_url: (optional) the URL of the client's callback API endpoint
+#   - callback_url_sep6: (optional) the URL of the client's SEP-6 callback API endpoint.
+#   - callback_url_sep24: (optional) the URL of the client's SEP-24 callback API endpoint.
+#   - callback_url_sep31: (optional) the URL of the client's SEP-31 callback API endpoint.
+#   - callback_url_sep12: (optional) the URL of the client's SEP-12 callback API endpoint.
 #
 # Examples:
 #     - name: circle
