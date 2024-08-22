@@ -1,16 +1,16 @@
 package org.stellar.anchor.api.asset;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo.DepositWithdrawInfo;
-import org.stellar.anchor.api.sep.AssetInfo.Schema;
 import org.stellar.anchor.api.sep.operation.Sep31Info;
 import org.stellar.anchor.api.sep.operation.Sep38Info;
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
 import org.stellar.anchor.api.sep.sep38.InfoResponse;
 
+@Data
 public class StellarAssetInfo implements AssetInfo {
-  String code;
-  String issuer;
+  String id;
 
   @SerializedName("distribution_account")
   String distributionAccount;
@@ -22,16 +22,6 @@ public class StellarAssetInfo implements AssetInfo {
   DepositWithdrawInfo sep24;
   Sep31Info sep31;
   Sep38Info sep38;
-
-  @Override
-  public Schema getSchema() {
-    return Schema.STELLAR;
-  }
-
-  @Override
-  public String getAssetIdentificationName() {
-    return getSchema() + ":" + code + ":" + issuer;
-  }
 
   @Override
   public InfoResponse.Asset toSEP38InfoResponseAsset() {

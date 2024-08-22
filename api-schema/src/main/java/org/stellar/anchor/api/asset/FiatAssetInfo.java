@@ -4,30 +4,20 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.stellar.anchor.api.sep.AssetInfo.Schema;
 import org.stellar.anchor.api.sep.operation.Sep31Info;
 import org.stellar.anchor.api.sep.operation.Sep38Info;
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
 import org.stellar.anchor.api.sep.sep38.InfoResponse;
 
+@Data
 public class FiatAssetInfo implements AssetInfo {
-  String code;
+  String id;
 
   @SerializedName("significant_decimals")
   Integer significantDecimals;
 
   Sep31Info sep31;
   FiatSep38Info sep38;
-
-  @Override
-  public Schema getSchema() {
-    return Schema.ISO_4217;
-  }
-
-  @Override
-  public String getAssetIdentificationName() {
-    return getSchema() + ":" + code;
-  }
 
   @Override
   public InfoResponse.Asset toSEP38InfoResponseAsset() {
