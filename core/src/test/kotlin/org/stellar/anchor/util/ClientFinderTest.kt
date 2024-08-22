@@ -23,19 +23,18 @@ class ClientFinderTest {
   companion object {
     val token = TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO)
     private val custodialClient =
-      CustodialClientConfig(
-        "referenceCustodial",
-        setOf("signing-key"),
-        null,
-        false,
-        null,
-      )
+      CustodialClientConfig.builder()
+        .name("referenceCustodial")
+        .signingKeys(setOf("signing-key"))
+        .allowAnyDestination(false)
+        .build()
+
     private val nonCustodialClient =
-      NonCustodialClientConfig(
-        "reference",
-        setOf("wallet-server:8092"),
-        "http://wallet-server:8092/callbacks"
-      )
+      NonCustodialClientConfig.builder()
+        .name("reference")
+        .domains(setOf("wallet-server:8092"))
+        .callbackUrl("http://wallet-server:8092/callbacks")
+        .build()
   }
 
   @MockK(relaxed = true) lateinit var sep10Config: Sep10Config
