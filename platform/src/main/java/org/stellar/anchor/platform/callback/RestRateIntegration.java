@@ -1,9 +1,11 @@
 package org.stellar.anchor.platform.callback;
 
 import static java.lang.Math.abs;
+import static java.lang.String.format;
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.util.ErrorHelper.logErrorAndThrow;
 import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.NumberHelper.hasProperSignificantDecimals;
 import static org.stellar.anchor.util.NumberHelper.isPositiveNumber;
 
 import com.google.common.reflect.TypeToken;
@@ -31,7 +33,6 @@ import org.stellar.anchor.api.shared.FeeDescription;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.AuthHelper;
-import org.stellar.anchor.util.NumberHelper;
 
 public class RestRateIntegration implements RateIntegration {
   private static final RoundingMode[] ALLOWED_ROUNDING_MODES_FOR_QUOTE_VALIDATION =
@@ -104,16 +105,18 @@ public class RestRateIntegration implements RateIntegration {
 
     GetRateResponse.Rate rate = getRateResponse.getRate();
     if (rate == null || rate.getPrice() == null) {
-      logErrorAndThrow("missing 'price' in the GET /rate response", ServerErrorException.class);
+      logErrorAndThrow(
+          "missing 'rate.price' in the GET /rate response", ServerErrorException.class);
     }
 
     if (request.getType() == GetRateRequest.Type.FIRM) {
       if (Objects.requireNonNull(rate).getFee() == null) {
-        logErrorAndThrow("'fee' is missing in the GET /rate response", ServerErrorException.class);
+        logErrorAndThrow(
+            "'rate.fee' is missing in the GET /rate response", ServerErrorException.class);
       }
       if (rate.getId() == null || rate.getExpiresAt() == null) {
         logErrorAndThrow(
-            "'id' and/or 'expires_at' are missing in the GET /rate response",
+            "'rate.id' or 'rate.expires_at' are missing in the GET /rate response. When the rate is firm, these fields are required",
             ServerErrorException.class);
       }
     }
@@ -121,30 +124,34 @@ public class RestRateIntegration implements RateIntegration {
     // sell_amount is present and positive number
     if (!isPositiveNumber(Objects.requireNonNull(rate).getSellAmount())) {
       logErrorAndThrow(
-          "'sell_amount' is missing or not a positive number in the GET /rate response",
+          "'rate.sell_amount' is missing or not a positive number in the GET /rate response",
           ServerErrorException.class);
     }
 
     // buy_amount is present and positive number
     if (!isPositiveNumber(rate.getBuyAmount())) {
       logErrorAndThrow(
-          "'buy_amount' is missing or not a positive number in the GET /rate response",
+          "'rate.buy_amount' is missing or not a positive number in the GET /rate response",
           ServerErrorException.class);
     }
 
     // sell_amount has a proper number of significant decimals
-    if (!NumberHelper.hasProperSignificantDecimals(
+    if (!hasProperSignificantDecimals(
         Objects.requireNonNull(rate).getSellAmount(), sellAsset.getSignificantDecimals())) {
       logErrorAndThrow(
-          "'sell_amount' has incorrect number of significant decimals in the GET /rate response",
+          format(
+              "'rate.sell_amount' (%s) has incorrect number of significant decimals (expected: %d) in the GET /rate response",
+              Objects.requireNonNull(rate).getSellAmount(), sellAsset.getSignificantDecimals()),
           ServerErrorException.class);
     }
 
     // buy_amount has a proper number of significant decimals
-    if (!NumberHelper.hasProperSignificantDecimals(
+    if (!hasProperSignificantDecimals(
         Objects.requireNonNull(rate).getBuyAmount(), buyAsset.getSignificantDecimals())) {
       logErrorAndThrow(
-          "'buy_amount' has incorrect number of significant decimals in the GET /rate response",
+          format(
+              "'rate.buy_amount' (%s) has incorrect number of significant decimals (expected: %d) in the GET /rate response",
+              rate.getBuyAmount(), buyAsset.getSignificantDecimals()),
           ServerErrorException.class);
     }
 
@@ -154,22 +161,31 @@ public class RestRateIntegration implements RateIntegration {
       // fee.total is present and is a positive number
       if (!isPositiveNumber(fee.getTotal())) {
         logErrorAndThrow(
-            "'fee.total' is missing or not a positive number in the GET /rate response",
+            "'rate.fee.total' is missing or not a positive number in the GET /rate response",
             ServerErrorException.class);
       }
       // fee.asset is a valid asset
       AssetInfo feeAsset = assetService.getAssetByName(fee.getAsset());
       if (fee.getAsset() == null || feeAsset == null) {
         logErrorAndThrow(
-            "'fee.asset' is missing or not a valid asset in the GET /rate response",
+            "'rate.fee.asset' is missing or not a valid asset in the GET /rate response",
+            ServerErrorException.class);
+      }
+
+      if (!isPositiveNumber(Objects.requireNonNull(feeAsset.getSignificantDecimals()).toString())) {
+        logErrorAndThrow(
+            format(
+                "The rate fee.asset (%s) does not have proper significant decimals defined in the assets configuration.",
+                feeAsset.getSignificantDecimals()),
             ServerErrorException.class);
       }
 
       // fee.total has a proper number of significant decimals
-      if (!NumberHelper.hasProperSignificantDecimals(
-          fee.getTotal(), feeAsset.getSignificantDecimals())) {
+      if (!hasProperSignificantDecimals(fee.getTotal(), feeAsset.getSignificantDecimals())) {
         logErrorAndThrow(
-            "'fee.total' has incorrect number of significant decimals in the GET /rate response",
+            format(
+                "'rate.fee.total' (%s) has incorrect number of significant decimals (expected: %d) in the GET /rate response",
+                fee.getTotal(), feeAsset.getSignificantDecimals()),
             ServerErrorException.class);
       }
 
@@ -186,7 +202,9 @@ public class RestRateIntegration implements RateIntegration {
         if (!withinRoundingError(
             new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
-              "'sell_amount' is not within rounding error of price * buy_amount + (fee?:0) in the GET /rate response",
+              format(
+                  "'rate.sell_amount' (%s) is not within rounding error of the expected (%s) ('price * buy_amount + (fee?:0)') in the GET /rate response",
+                  rate.getSellAmount(), expected),
               ServerErrorException.class);
         }
       } else {
@@ -200,7 +218,9 @@ public class RestRateIntegration implements RateIntegration {
         if (!withinRoundingError(
             new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
-              "'sell_amount' is not within rounding error of price * (buy_amount + (fee ?: 0)) in the GET /rate response",
+              format(
+                  "'rate.sell_amount' (%s) is not within rounding error of the expected (%s) ('price * (buy_amount + (fee?:0))') in the GET /rate response",
+                  rate.getSellAmount(), expected),
               ServerErrorException.class);
         }
       }
@@ -210,18 +230,18 @@ public class RestRateIntegration implements RateIntegration {
         for (FeeDescription feeDescription : fee.getDetails()) {
           if (!isPositiveNumber(feeDescription.getAmount())) {
             logErrorAndThrow(
-                "'fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
+                "'rate.fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
                 ServerErrorException.class);
           }
-          if (!NumberHelper.hasProperSignificantDecimals(
+          if (!hasProperSignificantDecimals(
               feeDescription.getAmount(), feeAsset.getSignificantDecimals())) {
             logErrorAndThrow(
-                "'fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
+                "'rate.fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
                 ServerErrorException.class);
           }
           if (feeDescription.getName() == null) {
             logErrorAndThrow(
-                "'fee.details.description[?].name' is missing in the GET /rate response",
+                "'rate.fee.details.description[?].name' is missing in the GET /rate response",
                 ServerErrorException.class);
           }
           totalFee = totalFee.add(new BigDecimal(feeDescription.getAmount()));
@@ -230,7 +250,9 @@ public class RestRateIntegration implements RateIntegration {
         // check that sell_amount is equal to price * buy_amount + (fee ?: 0)
         if (totalFee.compareTo(new BigDecimal(fee.getTotal())) != 0) {
           logErrorAndThrow(
-              "'fee.total' is not equal to the sum of fees in the GET /rate response",
+              format(
+                  "'rate.fee.total' (%s) is not equal to the sum of fees (%s) in the GET /rate response",
+                  fee.getTotal(), totalFee),
               ServerErrorException.class);
         }
       }
@@ -241,7 +263,9 @@ public class RestRateIntegration implements RateIntegration {
       if (withinRoundingError(
           new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
         logErrorAndThrow(
-            "'sell_amount' is not equal to price * buy_amount in the GET /rate response",
+            format(
+                "'rate.sell_amount' (%s) is not within the expected (%s) ('price * buy_amount') in the GET /rate response",
+                rate.getSellAmount(), expected),
             ServerErrorException.class);
       }
     }

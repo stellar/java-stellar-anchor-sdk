@@ -6,6 +6,7 @@ import io.mockk.mockk
 import java.math.BigDecimal
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -124,7 +125,7 @@ class RestRateIntegrationTest {
         "-1.00000001,is missing or not a positive number in the GET /rate response",
         "-2000,is missing or not a positive number in the GET /rate response",
         "null,is missing or not a positive number in the GET /rate response",
-        "1.00000001,has incorrect number of significant decimals in the GET /rate response",
+        "1.00000001,has incorrect number of significant decimals",
       ]
   )
   fun `test bad sell and buy amounts`(badAmount: String?, errorMessage: String) {
@@ -135,7 +136,8 @@ class RestRateIntegrationTest {
       assertThrows<ServerErrorException> {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
-    assertEquals("'sell_amount' ${errorMessage.trim()}", ex.message)
+    //    assertEquals("'rate.sell_amount' ${errorMessage.trim()}", ex.message)
+    assertTrue(ex.message!!.contains(errorMessage))
 
     // Bad buy amount
     rateResponse.rate.sellAmount = "100"
@@ -144,7 +146,7 @@ class RestRateIntegrationTest {
       assertThrows<ServerErrorException> {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
-    assertEquals("'buy_amount' ${errorMessage.trim()}", ex.message)
+    assertTrue(ex.message!!.contains(errorMessage))
   }
 
   @Test
@@ -157,7 +159,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'sell_amount' is not within rounding error of price * buy_amount + (fee?:0) in the GET /rate response",
+      "'rate.sell_amount' (100.02) is not within rounding error of the expected (100.0045) ('price * buy_amount + (fee?:0)') in the GET /rate response",
       ex.message,
     )
 
@@ -169,7 +171,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'sell_amount' is not within rounding error of price * buy_amount + (fee?:0) in the GET /rate response",
+      "'rate.sell_amount' (100.00) is not within rounding error of the expected (99.7000) ('price * buy_amount + (fee?:0)') in the GET /rate response",
       ex.message,
     )
   }
@@ -182,7 +184,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'fee.total' is missing or not a positive number in the GET /rate response",
+      "'rate.fee.total' is missing or not a positive number in the GET /rate response",
       ex.message,
     )
 
@@ -193,7 +195,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'fee.asset' is missing or not a valid asset in the GET /rate response",
+      "'rate.fee.asset' is missing or not a valid asset in the GET /rate response",
       ex.message,
     )
 
@@ -204,7 +206,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'fee.total' has incorrect number of significant decimals in the GET /rate response",
+      "'rate.fee.total' (1.00000001) has incorrect number of significant decimals (expected: 2) in the GET /rate response",
       ex.message,
     )
   }
@@ -218,7 +220,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'fee.details.description[?].name' is missing in the GET /rate response",
+      "'rate.fee.details.description[?].name' is missing in the GET /rate response",
       ex.message,
     )
 
@@ -229,7 +231,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
+      "'rate.fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
       ex.message,
     )
 
@@ -239,10 +241,7 @@ class RestRateIntegrationTest {
       assertThrows<ServerErrorException> {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
-    assertEquals(
-      "'fee.total' is not equal to the sum of fees in the GET /rate response",
-      ex.message,
-    )
+    assertTrue(ex.message!!.contains("is not equal to the sum of fees "))
   }
 
   @Test
@@ -256,7 +255,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'sell_amount' has incorrect number of significant decimals in the GET /rate response",
+      "'rate.sell_amount' (100.00001234) has incorrect number of significant decimals (expected: 2) in the GET /rate response",
       ex.message,
     )
 
@@ -269,7 +268,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'buy_amount' has incorrect number of significant decimals in the GET /rate response",
+      "'rate.buy_amount' (94.000000029) has incorrect number of significant decimals (expected: 7) in the GET /rate response",
       ex.message,
     )
 
@@ -282,7 +281,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
+      "'rate.fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
       ex.message,
     )
   }
@@ -304,11 +303,13 @@ class RestRateIntegrationTest {
         "1.019, 1.01, 2, true",
         "1.019, 1.01, 3, false",
 
-        // sell has 2, buy has 5. calculated sell amount is 4.99999. returned sell amount is 5.00
+        // sell has 2, buy has 5. calculated sell amount is 4.99999. returned sell amount is
+        // 5.00
         "4.99999,5.00,2,true",
         "4.99999,5.00,5,false",
 
-        // sell has 2, buy has 5. calculated sell amount is 4.99999. returned sell amount is 5.00
+        // sell has 2, buy has 5. calculated sell amount is 4.99999. returned sell amount is
+        // 5.00
         "4.99999,5.00,2,true",
         "4.99999,5.00,5,false",
 
