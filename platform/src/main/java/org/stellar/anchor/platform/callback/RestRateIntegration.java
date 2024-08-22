@@ -165,6 +165,14 @@ public class RestRateIntegration implements RateIntegration {
             ServerErrorException.class);
       }
 
+      // fee.total has a proper number of significant decimals
+      if (!NumberHelper.hasProperSignificantDecimals(
+          fee.getTotal(), feeAsset.getSignificantDecimals())) {
+        logErrorAndThrow(
+            "'fee.total' has incorrect number of significant decimals in the GET /rate response",
+            ServerErrorException.class);
+      }
+
       if (fee.getAsset().equals(request.getSellAsset())) {
         // when fee is in sell_asset,
         // check that sell_amount ~= price * buy_amount + (fee ?: 0)
@@ -205,7 +213,6 @@ public class RestRateIntegration implements RateIntegration {
                 "'fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
                 ServerErrorException.class);
           }
-
           if (!NumberHelper.hasProperSignificantDecimals(
               feeDescription.getAmount(), feeAsset.getSignificantDecimals())) {
             logErrorAndThrow(
