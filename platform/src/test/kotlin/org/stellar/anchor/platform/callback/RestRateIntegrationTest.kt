@@ -196,6 +196,17 @@ class RestRateIntegrationTest {
       "'fee.asset' is missing or not a valid asset in the GET /rate response",
       ex.message,
     )
+
+    rateResponse.rate.fee.total = "1.00000001"
+    rateResponse.rate.fee.asset = "iso4217:USD"
+    ex =
+      assertThrows<ServerErrorException> {
+        rateIntegration.validateRateResponse(request, rateResponse)
+      }
+    assertEquals(
+      "'fee.total' has incorrect number of significant decimals in the GET /rate response",
+      ex.message,
+    )
   }
 
   @ParameterizedTest
