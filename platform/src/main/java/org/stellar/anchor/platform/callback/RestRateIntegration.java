@@ -175,7 +175,7 @@ public class RestRateIntegration implements RateIntegration {
       if (!isPositiveNumber(Objects.requireNonNull(feeAsset.getSignificantDecimals()).toString())) {
         logErrorAndThrow(
             format(
-                "The rate fee.asset (%s) does not have proper significant decimals defined in the assets configuration.",
+                "The fee.asset (%s) does not have the significant_decimals defined in the assets configuration.",
                 feeAsset.getSignificantDecimals()),
             ServerErrorException.class);
       }
@@ -196,14 +196,11 @@ public class RestRateIntegration implements RateIntegration {
             new BigDecimal(rate.getPrice())
                 .multiply(new BigDecimal(rate.getBuyAmount()))
                 .add(new BigDecimal(fee.getTotal()));
-
-        // Since we don't know how the anchor rounds the amounts, we need to check the equality in
-        // all allowed rounding modes
         if (!withinRoundingError(
             new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
               format(
-                  "'rate.sell_amount' (%s) is not within rounding error of the expected (%s) ('price * buy_amount + (fee?:0)') in the GET /rate response",
+                  "'rate.sell_amount' (%s) is not within rounding error of the expected (%s) ('price * buy_amount + fee') in the GET /rate response",
                   rate.getSellAmount(), expected),
               ServerErrorException.class);
         }
@@ -213,13 +210,11 @@ public class RestRateIntegration implements RateIntegration {
         BigDecimal expected =
             new BigDecimal(rate.getPrice())
                 .multiply(new BigDecimal(rate.getBuyAmount()).add(new BigDecimal(fee.getTotal())));
-        // Since we don't know how the anchor rounds the amounts, we need to check the equality in
-        // all allowed rounding modes
         if (!withinRoundingError(
             new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
               format(
-                  "'rate.sell_amount' (%s) is not within rounding error of the expected (%s) ('price * (buy_amount + (fee?:0))') in the GET /rate response",
+                  "'rate.sell_amount' (%s) is not within rounding error of the expected (%s) ('price * (buy_amount + fee)') in the GET /rate response",
                   rate.getSellAmount(), expected),
               ServerErrorException.class);
         }
@@ -257,7 +252,7 @@ public class RestRateIntegration implements RateIntegration {
         }
       }
     } else {
-      // when fee is not present, check that sell_amount is equal to price * buy_amount
+      // when fee is not present, check that sell_amount ~= price * buy_amount
       BigDecimal expected =
           new BigDecimal(rate.getPrice()).multiply(new BigDecimal(rate.getBuyAmount()));
       if (withinRoundingError(
