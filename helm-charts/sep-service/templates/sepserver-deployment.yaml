@@ -27,7 +27,7 @@ spec:
         - name: sep-server
           image: {{ .Values.container.image }}
           args: [ "--sep-server" ]
-          imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+          imagePullPolicy: {{ .Values.container.imagePullPolicy | default "IfNotPresent" }}
           ports:
             - name: http
               containerPort: {{ .Values.services.sep.containerPort | default 8080 }}
