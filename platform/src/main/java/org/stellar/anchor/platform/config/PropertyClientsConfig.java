@@ -118,13 +118,8 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
           "client-signing-keys-conflict",
           "The client.signingKey and The client.signingKeys cannot coexist, please choose one to use");
     }
-    if (!isEmpty(clientConfig.getCallbackUrl())) {
-      try {
-        new URL(clientConfig.getCallbackUrl());
-      } catch (MalformedURLException e) {
-        errors.reject("client-invalid-callback_url", "The client.callbackUrl is invalid");
-      }
-    }
+
+    validateCallbackUrls(clientConfig, errors);
   }
 
   public void validateNonCustodialClient(ClientConfig clientConfig, Errors errors) {
@@ -141,17 +136,27 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
           "The client.domain and the client.domains cannot coexist, please choose one to use");
     }
 
+    validateCallbackUrls(clientConfig, errors);
+
+    if (clientConfig.getDestinationAccounts() != null) {
+      errors.reject(
+          "destination-accounts-noncustodial",
+          "Destination accounts list is not a valid configuration option for a non-custodial client");
+    }
+  }
+
+  void validateCallbackUrls(ClientConfig client, Errors errors) {
     ImmutableMap.of(
             "callback_url",
-            Optional.ofNullable(clientConfig.getCallbackUrl()).orElse(""),
+            Optional.ofNullable(client.getCallbackUrl()).orElse(""),
             "callback_url_sep6",
-            Optional.ofNullable(clientConfig.getCallbackUrlSep6()).orElse(""),
+            Optional.ofNullable(client.getCallbackUrlSep6()).orElse(""),
             "callback_url_sep24",
-            Optional.ofNullable(clientConfig.getCallbackUrlSep24()).orElse(""),
+            Optional.ofNullable(client.getCallbackUrlSep24()).orElse(""),
             "callback_url_sep31",
-            Optional.ofNullable(clientConfig.getCallbackUrlSep31()).orElse(""),
+            Optional.ofNullable(client.getCallbackUrlSep31()).orElse(""),
             "callback_url_sep12",
-            Optional.ofNullable(clientConfig.getCallbackUrlSep12()).orElse(""))
+            Optional.ofNullable(client.getCallbackUrlSep12()).orElse(""))
         .forEach(
             (key, value) -> {
               if (!isEmpty(value)) {
@@ -162,11 +167,5 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
                 }
               }
             });
-
-    if (clientConfig.getDestinationAccounts() != null) {
-      errors.reject(
-          "destination-accounts-noncustodial",
-          "Destination accounts list is not a valid configuration option for a non-custodial client");
-    }
   }
 }
