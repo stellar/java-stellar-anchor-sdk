@@ -159,7 +159,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'rate.sell_amount' (100.02) is not within rounding error of the expected (100.0045) ('price * buy_amount + (fee?:0)') in the GET /rate response",
+      "'rate.sell_amount' (100.02) is not within rounding error of the expected (100.0045) ('price * buy_amount + fee') in the GET /rate response",
       ex.message,
     )
 
@@ -171,7 +171,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponse)
       }
     assertEquals(
-      "'rate.sell_amount' (100.00) is not within rounding error of the expected (99.7000) ('price * buy_amount + (fee?:0)') in the GET /rate response",
+      "'rate.sell_amount' (100.00) is not within rounding error of the expected (99.7000) ('price * buy_amount + fee') in the GET /rate response",
       ex.message,
     )
   }
