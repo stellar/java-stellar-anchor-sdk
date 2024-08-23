@@ -27,7 +27,7 @@ spec:
         - name: stellar-observer
           image: {{ .Values.container.image }}
           args: [ "--stellar-observer" ]
-          imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+          imagePullPolicy: {{ .Values.container.imagePullPolicy | default "IfNotPresent" }}
           ports:
             - name: http
               containerPort: {{ .Values.services.observer.containerPort | default 8083 }}

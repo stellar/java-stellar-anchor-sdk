@@ -27,7 +27,7 @@ spec:
         - name: event-processor
           image: {{ .Values.container.image }}
           args: [ "--event-processor" ]
-          imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+          imagePullPolicy: {{ .Values.container.imagePullPolicy | default "IfNotPresent" }}
           ports:
             - name: http
               containerPort: {{ .Values.services.sep.containerPort | default 8088 }}
