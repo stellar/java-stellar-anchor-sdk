@@ -106,19 +106,22 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       if (!AssetValidationUtils.isStellarAsset(request.getAmountIn().getAsset())) {
         throw new InvalidParamsException("amount_in.asset should be stellar asset");
       }
-      AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), true, assetService);
+      AssetValidationUtils.validateAssetAmount(
+          "amount_in", request.getAmountIn(), true, assetService);
     }
     if (request.getAmountOut() != null) {
       if (AssetValidationUtils.isStellarAsset(request.getAmountOut().getAsset())) {
         throw new InvalidParamsException("amount_out.asset should be non-stellar asset");
       }
-      AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), true, assetService);
+      AssetValidationUtils.validateAssetAmount(
+          "amount_out", request.getAmountOut(), true, assetService);
     }
     if (request.getAmountFee() != null) {
       if (!AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
         throw new InvalidParamsException("amount_fee.asset should be stellar asset");
       }
-      AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
+      AssetValidationUtils.validateAssetAmount(
+          "amount_fee", request.getAmountFee(), true, assetService);
     }
     if (request.getFeeDetails() != null) {
       if (!AssetValidationUtils.isStellarAsset(request.getFeeDetails().getAsset())) {
@@ -127,7 +130,7 @@ public class RequestOnchainFundsHandler extends RpcMethodHandler<RequestOnchainF
       AssetValidationUtils.validateFeeDetails(request.getFeeDetails(), txn, assetService);
     }
     if (request.getAmountExpected() != null) {
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "amount_expected",
           AmountAssetRequest.builder()
               .amount(request.getAmountExpected().getAmount())
