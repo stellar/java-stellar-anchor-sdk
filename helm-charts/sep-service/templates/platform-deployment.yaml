@@ -26,7 +26,7 @@ spec:
         - name: platform
           image: {{ .Values.container.image }}
           args: [ "--platform-server" ]
-          imagePullPolicy: {{ .Values.container.imagePullPolicy}}
+          imagePullPolicy: {{ .Values.container.imagePullPolicy | default "IfNotPresent" }}
           ports:
             - name: http
               containerPort: {{ .Values.services.platform.containerPort | default 8085 }}
