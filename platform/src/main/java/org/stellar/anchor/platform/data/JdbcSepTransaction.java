@@ -90,9 +90,11 @@ public abstract class JdbcSepTransaction {
   public abstract String getProtocol();
 
   public void setFeeDetails(FeeDetails feeDetails) {
-    setAmountFee(feeDetails.getTotal());
-    setAmountFeeAsset(feeDetails.getAsset());
-    setFeeDetailsList(feeDetails.getDetails());
+    if (feeDetails != null) {
+      setAmountFee(feeDetails.getTotal());
+      setAmountFeeAsset(feeDetails.getAsset());
+      setFeeDetailsList(feeDetails.getDetails());
+    }
   }
 
   public FeeDetails getFeeDetails() {

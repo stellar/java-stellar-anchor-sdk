@@ -333,10 +333,7 @@ class Sep6ServiceTestData {
           "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amountIn": "100",
           "amountInAsset": "iso4217:USD",
-          "amountOut": "0",
           "amountOutAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amountFee": "0",
-          "amountFeeAsset": "iso4217:USD",
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "sep10AccountMemo": "123",
@@ -363,10 +360,8 @@ class Sep6ServiceTestData {
             },
             "amount_in": { "amount": "100", "asset": "iso4217:USD" },
             "amount_out": {
-              "amount": "0",
               "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
             },
-            "amount_fee": { "amount": "0", "asset": "iso4217:USD" },
             "destination_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
             "client_domain": "vibrant.stellar.org",
             "client_name": "vibrant",
@@ -579,10 +574,7 @@ class Sep6ServiceTestData {
           "requestAssetIssuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amountIn": "100",
           "amountInAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amountOut": "0",
           "amountOutAsset": "iso4217:USD",
-          "amountFee": "0",
-          "amountFeeAsset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amountExpected": "100",
           "sep10Account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
           "sep10AccountMemo": "123",
@@ -613,11 +605,7 @@ class Sep6ServiceTestData {
               "amount": "100",
               "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
             },
-            "amount_out": { "amount": "0", "asset": "iso4217:USD" },
-            "amount_fee": {
-              "amount": "0",
-              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-            },
+            "amount_out": { "asset": "iso4217:USD" },
             "source_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
             "refund_memo": "some text",
             "refund_memo_type": "text",

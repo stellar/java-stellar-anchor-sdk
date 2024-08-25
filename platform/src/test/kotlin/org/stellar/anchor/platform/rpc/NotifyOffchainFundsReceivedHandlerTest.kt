@@ -447,8 +447,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount("1", FIAT_USD)
+    expectedResponse.amountOut = Amount(null, FIAT_USD)
+    expectedResponse.amountFee = Amount(null, FIAT_USD)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -535,6 +537,9 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount(null, FIAT_USD)
+    expectedResponse.amountOut = Amount(null, FIAT_USD)
+    expectedResponse.amountFee = Amount(null, FIAT_USD)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -607,6 +612,9 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount(null, FIAT_USD)
+    expectedResponse.amountOut = Amount(null, FIAT_USD)
+    expectedResponse.amountFee = Amount(null, FIAT_USD)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -835,6 +843,8 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
     expectedResponse.amountIn = Amount("1", FIAT_USD)
+    expectedResponse.amountOut = Amount(null, FIAT_USD)
+    expectedResponse.amountFee = Amount(null, FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
@@ -927,6 +937,9 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount(null, FIAT_USD)
+    expectedResponse.amountOut = Amount(null, FIAT_USD)
+    expectedResponse.amountFee = Amount(null, FIAT_USD)
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
@@ -1002,6 +1015,9 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount(null, FIAT_USD)
+    expectedResponse.amountOut = Amount(null, FIAT_USD)
+    expectedResponse.amountFee = Amount(null, FIAT_USD)
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
     JSONAssert.assertEquals(
