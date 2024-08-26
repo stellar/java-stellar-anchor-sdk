@@ -2,8 +2,7 @@ package org.stellar.anchor.platform.rpc;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL_EXCHANGE;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.*;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.REQUEST_ONCHAIN_FUNDS;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
@@ -33,18 +32,23 @@ import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
+import org.stellar.anchor.platform.service.Sep31DepositInfoNoneGenerator;
 import org.stellar.anchor.platform.service.Sep6DepositInfoNoneGenerator;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
+import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.CustodyUtils;
+import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Memo;
 
 public class RequestOnchainFundsHandler
@@ -54,6 +58,8 @@ public class RequestOnchainFundsHandler
   private final CustodyConfig custodyConfig;
   private final Sep6DepositInfoGenerator sep6DepositInfoGenerator;
   private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
+  private final Sep31DepositInfoGenerator sep31DepositInfoGenerator;
+  private final PaymentObservingAccountsManager paymentObservingAccountsManager;
 
   public RequestOnchainFundsHandler(
       Sep6TransactionStore txn6Store,
@@ -65,6 +71,8 @@ public class RequestOnchainFundsHandler
       CustodyConfig custodyConfig,
       Sep6DepositInfoGenerator sep6DepositInfoGenerator,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
+      Sep31DepositInfoGenerator sep31DepositInfoGenerator,
+      PaymentObservingAccountsManager paymentObservingAccountsManager,
       EventService eventService,
       MetricsService metricsService) {
     super(
@@ -80,6 +88,8 @@ public class RequestOnchainFundsHandler
     this.custodyConfig = custodyConfig;
     this.sep6DepositInfoGenerator = sep6DepositInfoGenerator;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
+    this.sep31DepositInfoGenerator = sep31DepositInfoGenerator;
+    this.paymentObservingAccountsManager = paymentObservingAccountsManager;
   }
 
   @Override
@@ -159,7 +169,10 @@ public class RequestOnchainFundsHandler
     boolean canGenerateSep24DepositInfo =
         SEP_24 == Sep.from(txn.getProtocol())
             && sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator;
-    if (canGenerateSep6DepositInfo || canGenerateSep24DepositInfo) {
+    boolean canGenerateSep31DepositInfo =
+        SEP_31 == Sep.from(txn.getProtocol())
+            && sep31DepositInfoGenerator instanceof Sep31DepositInfoNoneGenerator;
+    if (canGenerateSep6DepositInfo || canGenerateSep24DepositInfo || canGenerateSep31DepositInfo) {
       Memo memo;
       try {
         memo = makeMemo(request.getMemo(), request.getMemoType());
@@ -179,7 +192,7 @@ public class RequestOnchainFundsHandler
         || request.getDestinationAccount() != null) {
       throw new InvalidParamsException(
           "Anchor is not configured to accept memo, memo_type and destination_account. "
-              + "Please set configuration sep24.deposit_info_generator_type to 'none' "
+              + "Please set configuration deposit_info_generator_type to 'none' "
               + "if you want to enable this feature");
     }
   }
@@ -191,8 +204,19 @@ public class RequestOnchainFundsHandler
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, RequestOnchainFundsRequest request) {
-    return PENDING_USR_TRANSFER_START;
+      JdbcSepTransaction txn, RequestOnchainFundsRequest request) throws InvalidRequestException {
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_6:
+      case SEP_24:
+        return PENDING_USR_TRANSFER_START;
+      case SEP_31:
+        return PENDING_SENDER;
+      default:
+        throw new InvalidRequestException(
+            String.format(
+                "RPC method[%s] is not supported for protocol[%s]",
+                getRpcMethod(), txn.getProtocol()));
+    }
   }
 
   @Override
@@ -218,6 +242,11 @@ public class RequestOnchainFundsHandler
         }
       }
       return supportedStatuses;
+    }
+    if (SEP_31 == Sep.from(txn.getProtocol())) {
+      if (!areFundsReceived(txn)) {
+        return ImmutableSet.of(PENDING_RECEIVER);
+      }
     }
     return Collections.emptySet();
   }
@@ -309,6 +338,47 @@ public class RequestOnchainFundsHandler
         if (custodyConfig.isCustodyIntegrationEnabled()) {
           custodyService.createTransaction(txn24);
         }
+        break;
+      case SEP_31:
+        JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+
+        if (request.getAmountExpected() != null) {
+          txn31.setAmountExpected(request.getAmountExpected().getAmount());
+        } else if (request.getAmountIn() != null) {
+          txn31.setAmountExpected(request.getAmountIn().getAmount());
+        }
+
+        if (sep31DepositInfoGenerator instanceof Sep31DepositInfoNoneGenerator) {
+          Memo memo = makeMemo(request.getMemo(), request.getMemoType());
+          if (memo != null) {
+            txn31.setStellarMemo(request.getMemo());
+            txn31.setStellarMemoType(memoTypeString(memoType(memo)));
+          }
+          txn31.setToAccount(request.getDestinationAccount());
+        } else {
+          SepDepositInfo sep31DepositInfo = sep31DepositInfoGenerator.generate(txn31);
+          txn31.setToAccount(sep31DepositInfo.getStellarAddress());
+          txn31.setStellarMemo(sep31DepositInfo.getMemo());
+          txn31.setStellarMemoType(sep31DepositInfo.getMemoType());
+        }
+
+        Log.infoF("Memo set to {} {}", txn31.getStellarMemoType(), txn31.getStellarMemo());
+
+        paymentObservingAccountsManager.upsert(
+            txn31.getToAccount(), PaymentObservingAccountsManager.AccountType.TRANSIENT);
+
+        if (!CustodyUtils.isMemoTypeSupported(
+            custodyConfig.getType(), txn31.getStellarMemoType())) {
+          throw new InvalidParamsException(
+              String.format(
+                  "Memo type[%s] is not supported for custody type[%s]",
+                  txn31.getStellarMemoType(), custodyConfig.getType()));
+        }
+
+        if (custodyConfig.isCustodyIntegrationEnabled()) {
+          custodyService.createTransaction(txn31);
+        }
+
         break;
       default:
         break;

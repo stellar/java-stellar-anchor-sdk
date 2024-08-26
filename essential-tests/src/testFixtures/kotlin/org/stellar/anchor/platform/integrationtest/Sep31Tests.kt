@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.integrationtest
 
 import java.time.Instant
-import kotlin.streams.toList
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.parallel.Execution
@@ -10,7 +9,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.springframework.data.domain.Sort.Direction
-import org.springframework.data.domain.Sort.Direction.*
+import org.springframework.data.domain.Sort.Direction.DESC
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.*
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31
@@ -25,7 +24,10 @@ import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
-import org.stellar.anchor.client.*
+import org.stellar.anchor.client.Sep12Client
+import org.stellar.anchor.client.Sep31Client
+import org.stellar.anchor.client.Sep38Client
+import org.stellar.anchor.client.TYPE_MULTIPART_FORM_DATA
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
@@ -33,7 +35,7 @@ import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCust
 import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
 import org.stellar.anchor.platform.printRequest
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.anchor.util.Log.*
+import org.stellar.anchor.util.Log.debug
 import org.stellar.anchor.util.StringHelper.json
 
 lateinit var savedTxn: Sep31GetTransactionResponse
@@ -68,8 +70,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     savedTxn = sep31Client.getTransaction(postTxResponse.id)
     JSONAssert.assertEquals(expectedTxn, json(savedTxn), LENIENT)
     assertEquals(postTxResponse.id, savedTxn.transaction.id)
-    assertEquals(postTxResponse.stellarMemo, savedTxn.transaction.stellarMemo)
-    assertEquals(PENDING_SENDER.status, savedTxn.transaction.status)
+    assertEquals(PENDING_RECEIVER.status, savedTxn.transaction.status)
   }
 
   private fun mkCustomers(): Pair<Sep12PutCustomerResponse, Sep12PutCustomerResponse> {
@@ -104,10 +105,6 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     txnRequest.receiverId = receiverCustomer.id
     txnRequest.quoteId = quote.id
     val postTxResponse = sep31Client.postTransaction(txnRequest)
-    assertEquals(
-      "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-      postTxResponse.stellarAccountId
-    )
     return postTxResponse
   }
 
@@ -291,7 +288,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     // GET platformAPI transaction
     val getTxResponse = platformApiClient.getTransaction(postTxResponse.id)
     assertEquals(postTxResponse.id, getTxResponse.id)
-    assertEquals(PENDING_SENDER, getTxResponse.status)
+    assertEquals(PENDING_RECEIVER, getTxResponse.status)
     assertEquals(txnRequest.amount, getTxResponse.amountIn.amount)
     assertTrue(getTxResponse.amountIn.asset.contains(txnRequest.assetCode))
     assertEquals(SEP_31, getTxResponse.sep)
@@ -371,7 +368,6 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     assertEquals(getTxResponse.id, patchedTx.id)
     assertEquals(COMPLETED, patchedTx.status)
     assertEquals(SEP_31, patchedTx.sep)
-    assertNull(patchedTx.message)
     assertTrue(patchedTx.startedAt < patchedTx.updatedAt)
     assertNotNull(patchedTx.completedAt)
 
@@ -379,7 +375,6 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)
     assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
     assertEquals(COMPLETED.status, gotSep31TxResponse.transaction.status)
-    assertNull(gotSep31TxResponse.transaction.requiredInfoMessage)
     assertNotNull(patchedTx.completedAt)
   }
 }
@@ -404,7 +399,7 @@ private const val expectedTxn =
   """
   {
   "transaction": {
-    "status": "pending_sender",
+    "status": "pending_receiver",
     "amount_in": "10",
     "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "amount_out": "1071.4286",
@@ -412,9 +407,7 @@ private const val expectedTxn =
     "fee_details": {
       "total": "1.00",
       "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-    },
-    "stellar_account_id": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-    "stellar_memo_type": "hash"
+    }
   }
 }
 """
