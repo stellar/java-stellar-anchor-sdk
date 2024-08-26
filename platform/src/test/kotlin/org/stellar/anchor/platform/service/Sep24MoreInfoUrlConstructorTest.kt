@@ -4,7 +4,7 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
-import java.util.Calendar
+import java.util.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -18,7 +18,8 @@ import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.MoreInfoUrlJwt.Sep24MoreInfoUrlJwt
 import org.stellar.anchor.config.ClientsConfig.ClientConfig
-import org.stellar.anchor.config.ClientsConfig.ClientType.*
+import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
+import org.stellar.anchor.config.ClientsConfig.ClientType.NONCUSTODIAL
 import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig
@@ -46,17 +47,13 @@ class Sep24MoreInfoUrlConstructorTest {
     secretConfig.setupMock()
 
     val clientConfig =
-      ClientConfig(
-        "lobstr",
-        NONCUSTODIAL,
-        null,
-        setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"),
-        null,
-        setOf("lobstr.co"),
-        "https://callback.lobstr.co/api/v2/anchor/callback",
-        false,
-        null
-      )
+      ClientConfig.builder()
+        .name("lobstr")
+        .type(NONCUSTODIAL)
+        .signingKeys(setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"))
+        .domains(setOf("lobstr.co"))
+        .callbackUrl("https://callback.lobstr.co/api/v2/anchor/callback")
+        .build()
     every { clientsConfig.getClientConfigByDomain(any()) } returns null
     every { clientsConfig.getClientConfigByDomain(clientConfig.domains.first()) } returns
       clientConfig
@@ -67,17 +64,11 @@ class Sep24MoreInfoUrlConstructorTest {
         "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       )
     } returns
-      ClientConfig(
-        "some-wallet",
-        CUSTODIAL,
-        null,
-        setOf("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
-        null,
-        null,
-        null,
-        false,
-        null
-      )
+      ClientConfig.builder()
+        .name("some-wallet")
+        .type(CUSTODIAL)
+        .signingKeys(setOf("GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"))
+        .build()
 
     jwtService = JwtService(secretConfig, custodySecretConfig)
   }

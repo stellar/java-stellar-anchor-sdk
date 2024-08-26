@@ -1,5 +1,6 @@
 package org.stellar.anchor.sep12;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_12;
 import static org.stellar.anchor.util.Log.infoF;
 import static org.stellar.anchor.util.MetricConstants.*;
 import static org.stellar.anchor.util.MetricConstants.SEP12_CUSTOMER;
@@ -19,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.platform.CustomerUpdatedResponse;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep12.*;
 import org.stellar.anchor.apiclient.PlatformApiClient;
@@ -108,14 +108,16 @@ public class Sep12Service {
 
     PutCustomerResponse response =
         customerIntegration.putCustomer(PutCustomerRequest.from(request));
+    GetCustomerResponse updatedCustomer =
+        customerIntegration.getCustomer(GetCustomerRequest.builder().id(response.getId()).build());
 
     // Only publish event if the customer was updated.
     eventSession.publish(
         AnchorEvent.builder()
             .id(UUID.randomUUID().toString())
-            .sep("12")
+            .sep(SEP_12.getSep().toString())
             .type(AnchorEvent.Type.CUSTOMER_UPDATED)
-            .customer(CustomerUpdatedResponse.builder().id(response.getId()).build())
+            .customer(GetCustomerResponse.to(updatedCustomer))
             .build());
 
     // increment counter

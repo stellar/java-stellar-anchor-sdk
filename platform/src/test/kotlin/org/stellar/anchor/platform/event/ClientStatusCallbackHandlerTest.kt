@@ -14,6 +14,8 @@ import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
+import org.stellar.anchor.api.sep.SepTransactionStatus
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.api.sep.sep24.TransactionResponse
 import org.stellar.anchor.api.sep.sep6.Sep6TransactionResponse
 import org.stellar.anchor.asset.AssetService
@@ -63,8 +65,13 @@ class ClientStatusCallbackHandlerTest {
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
 
     assetService = mockk<AssetService>()
+    every { assetService.getAsset(null, null) } returns null
+
+    assetService = mockk<AssetService>()
     sep6MoreInfoUrlConstructor = mockk<Sep6MoreInfoUrlConstructor>()
     sep24MoreInfoUrlConstructor = mockk<Sep24MoreInfoUrlConstructor>()
+    every { sep6MoreInfoUrlConstructor.construct(any(), any()) } returns "https://example.com"
+    every { sep24MoreInfoUrlConstructor.construct(any(), any()) } returns "https://example.com"
 
     secretConfig = mockk()
     secretConfig.setupMock()
@@ -74,6 +81,8 @@ class ClientStatusCallbackHandlerTest {
     event = AnchorEvent()
     event.transaction = GetTransactionResponse()
     event.transaction.sep = PlatformTransactionData.Sep.SEP_24
+    event.transaction.kind = PlatformTransactionData.Kind.DEPOSIT
+    event.transaction.status = SepTransactionStatus.COMPLETED
 
     handler =
       ClientStatusCallbackHandler(
@@ -109,5 +118,62 @@ class ClientStatusCallbackHandlerTest {
     val signatureToVerify = signer.sign(payloadToVerify.toByteArray())
 
     Assertions.assertArrayEquals(decodedSignature, signatureToVerify)
+  }
+
+  @Test
+  fun `test getCallbackUrl fallback`() {
+    clientConfig.callbackUrlSep24 = null
+    val url = handler.getCallbackUrl(event)
+
+    Assertions.assertEquals(clientConfig.callbackUrl, url)
+  }
+
+  @Test
+  fun `test getCallbackUrl with SEP-6 event`() {
+    event.transaction.sep = PlatformTransactionData.Sep.SEP_6
+    clientConfig.callbackUrlSep6 = "https://callback.circle.com/api/v1/anchor/callback/sep6"
+    val url = handler.getCallbackUrl(event)
+
+    Assertions.assertEquals(clientConfig.callbackUrlSep6, url)
+  }
+
+  @Test
+  fun `test getCallbackUrl with SEP-24 event`() {
+    event.transaction.sep = PlatformTransactionData.Sep.SEP_24
+    clientConfig.callbackUrlSep24 = "https://callback.circle.com/api/v1/anchor/callback/sep24"
+    val url = handler.getCallbackUrl(event)
+
+    Assertions.assertEquals(clientConfig.callbackUrlSep24, url)
+  }
+
+  @Test
+  fun `test getCallbackUrl with SEP-31 event`() {
+    event.transaction.sep = PlatformTransactionData.Sep.SEP_31
+    clientConfig.callbackUrlSep31 = "https://callback.circle.com/api/v1/anchor/callback/sep31"
+    val url = handler.getCallbackUrl(event)
+
+    Assertions.assertEquals(clientConfig.callbackUrlSep31, url)
+  }
+
+  @Test
+  fun `test getCallbackUrl with SEP-12 event`() {
+    event.transaction = null
+    event.customer = Sep12GetCustomerResponse.builder().build()
+    clientConfig.callbackUrlSep12 = "https://callback.circle.com/api/v1/anchor/callback/sep12"
+    val url = handler.getCallbackUrl(event)
+
+    Assertions.assertEquals(clientConfig.callbackUrlSep12, url)
+  }
+
+  @Test
+  fun `test buildHttpRequest with no callback URLs defined`() {
+    clientConfig.callbackUrl = null
+    clientConfig.callbackUrlSep6 = null
+    clientConfig.callbackUrlSep24 = null
+    clientConfig.callbackUrlSep31 = null
+    clientConfig.callbackUrlSep12 = null
+
+    val request = handler.buildHttpRequest(signer, event)
+    Assertions.assertNull(request)
   }
 }
