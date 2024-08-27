@@ -28,6 +28,10 @@ public class Sep6DepositInfoSelfGenerator implements Sep6DepositInfoGenerator {
     memo = StringUtils.leftPad(memo, 32, '0');
     memo = new String(Base64.getEncoder().encode(memo.getBytes()));
     return new SepDepositInfo(
-        ((StellarAssetInfo) assetInfo).getDistributionAccount(), memo, memoTypeAsString(MEMO_HASH));
+        assetInfo instanceof StellarAssetInfo
+            ? ((StellarAssetInfo) assetInfo).getDistributionAccount()
+            : null,
+        memo,
+        memoTypeAsString(MEMO_HASH));
   }
 }

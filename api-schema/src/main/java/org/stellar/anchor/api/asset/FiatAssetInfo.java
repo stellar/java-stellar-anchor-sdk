@@ -1,6 +1,7 @@
 package org.stellar.anchor.api.asset;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.stellar.anchor.api.sep.operation.Sep31Info;
@@ -67,10 +68,10 @@ public class FiatAssetInfo implements AssetInfo {
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class FiatSep38Info extends Sep38Info {
-    //    @SerializedName("sell_delivery_methods")
-    //    List<DeliveryMethod> sellDeliveryMethods;
-    //
-    //    @SerializedName("buy_delivery_methods")
-    //    List<DeliveryMethod> buyDeliveryMethods;
+    @SerializedName("sell_delivery_methods")
+    List<DeliveryMethod> sellDeliveryMethods;
+
+    @SerializedName("buy_delivery_methods")
+    List<DeliveryMethod> buyDeliveryMethods;
   }
 }

@@ -16,12 +16,6 @@ public class Sep38Info {
 
   Integer decimals;
 
-  @SerializedName("sell_delivery_methods")
-  List<DeliveryMethod> sellDeliveryMethods;
-
-  @SerializedName("buy_delivery_methods")
-  List<DeliveryMethod> buyDeliveryMethods;
-
   @Data
   public static class DeliveryMethod {
     String name;
