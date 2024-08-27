@@ -666,7 +666,6 @@ assets:
   #     `json`: value field contains the content of the assets in JSON format
   #     `yaml`: value field contains the content of the assets in YAML format
   #     `file`: value field contains the path to the assets file. The file name can be *.json or *.yaml.
-  #     `url`: value contains the url to the assets file. The file name can be *.json or *.yaml.
   type: json
   # The value of the assets definition depending on the `type` field.
   value:

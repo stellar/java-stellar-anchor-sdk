@@ -17,12 +17,12 @@ import org.stellar.anchor.config.AssetsConfig;
 import org.stellar.anchor.util.AssetHelper;
 import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.Log;
 import org.yaml.snakeyaml.Yaml;
 
 @NoArgsConstructor
 public class DefaultAssetService implements AssetService {
   static final Gson gson = GsonUtils.getInstance();
-  Assets assets;
   List<StellarAssetInfo> stellarAssets = new ArrayList<>();
   List<FiatAssetInfo> fiatAssets = new ArrayList<>();
 
@@ -51,10 +51,8 @@ public class DefaultAssetService implements AssetService {
           throw new InvalidConfigException(
               List.of(String.format("Cannot read from asset file: %s", filename)), ex);
         }
-      case URL:
-        // TODO: to be implemented.
       default:
-        //            infoF("assets type {} is not supported", assetsConfig.getType());
+        Log.infoF("assets type {} is not supported", assetsConfig.getType());
         throw new InvalidConfigException(
             String.format("assets type %s is not supported", assetsConfig.getType()));
     }
@@ -77,28 +75,23 @@ public class DefaultAssetService implements AssetService {
       throws InvalidConfigException {
     DefaultAssetService das = new DefaultAssetService();
     map.get("assets").removeIf(Objects::isNull);
-    List<JsonObject> aList =
+    List<JsonObject> assetList =
         gson.fromJson(
             gson.toJson(map.get("assets")), new TypeToken<List<JsonObject>>() {}.getType());
-    aList.forEach(
-        asset -> {
-          if (asset.has("id")) {
-            String id = asset.get("id").getAsString();
-            if (AssetHelper.getAssetSchema(id).equals(AssetInfo.Schema.STELLAR.toString())) {
-              StellarAssetInfo stellarAssetInfo =
-                  gson.fromJson(gson.toJson(asset), StellarAssetInfo.class);
-              das.stellarAssets.add(stellarAssetInfo);
-            } else if (AssetHelper.getAssetSchema(id)
-                .equals(AssetInfo.Schema.ISO_4217.toString())) {
-              FiatAssetInfo fiatAssetInfo = gson.fromJson(asset, FiatAssetInfo.class);
-              das.fiatAssets.add(fiatAssetInfo);
-            } else {
-              System.out.println("Invalid asset schema");
-            }
-          } else {
-            System.out.println("Invalid asset id");
-          }
-        });
+    for (JsonObject asset : assetList) {
+      String id = asset.get("id").getAsString();
+      String schema = AssetHelper.getAssetSchema(id);
+      if (schema.equals(AssetInfo.Schema.STELLAR.toString())) {
+        StellarAssetInfo stellarAssetInfo =
+            gson.fromJson(gson.toJson(asset), StellarAssetInfo.class);
+        das.stellarAssets.add(stellarAssetInfo);
+      } else if (schema.equals(AssetInfo.Schema.ISO_4217.toString())) {
+        FiatAssetInfo fiatAssetInfo = gson.fromJson(asset, FiatAssetInfo.class);
+        das.fiatAssets.add(fiatAssetInfo);
+      } else {
+        throw new InvalidConfigException(String.format("Invalid asset: " + id));
+      }
+    }
     AssetServiceValidator.validate(das);
     return das;
   }

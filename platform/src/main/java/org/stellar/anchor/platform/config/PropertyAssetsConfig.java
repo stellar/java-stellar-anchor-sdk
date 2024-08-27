@@ -59,7 +59,6 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
                 "assets-file-not-valid", "Cannot read from asset file: " + this.getValue());
           }
           break;
-        case URL:
         default:
           errors.reject(
               "invalid-type-defined",
