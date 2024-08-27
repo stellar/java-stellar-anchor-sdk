@@ -65,6 +65,12 @@ public class UtilityBeans {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "sep31")
+  Sep31Config sep31Config(CustodyConfig custodyConfig, AssetService assetService) {
+    return new PropertySep31Config(custodyConfig, assetService);
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "sep24")
   PropertySep24Config sep24Config(
       SecretConfig secretConfig, CustodyConfig custodyConfig, AssetService assetService) {

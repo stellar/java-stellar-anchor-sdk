@@ -117,13 +117,14 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
     txnRequest.receiverId = receiverCustomer!!.id
     txnRequest.quoteId = quote.id
     val postTxResponse = sep31Client.postTransaction(txnRequest)
+    info("POST /transaction initiated ${postTxResponse.id}")
 
     // Get transaction status and make sure it is PENDING_SENDER
-    val transaction = platformApiClient.getTransaction(postTxResponse.id)
-    assertEquals(SepTransactionStatus.PENDING_SENDER, transaction.status)
+    waitStatus(postTxResponse.id, SepTransactionStatus.PENDING_SENDER)
+    val transaction = sep31Client.getTransaction(postTxResponse.id).transaction
 
     val memoType: MemoType =
-      when (postTxResponse.stellarMemoType) {
+      when (transaction.stellarMemoType) {
         MemoHelper.memoTypeAsString(org.stellar.sdk.xdr.MemoType.MEMO_ID) -> {
           MemoType.ID
         }
@@ -136,17 +137,19 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
       }
 
     // Submit transfer transaction
+    info("Transferring $amount $asset to ${transaction.stellarAccountId}")
     transactionWithRetry {
       val transfer =
         wallet
           .stellar()
           .transaction(keypair)
-          .transfer(postTxResponse.stellarAccountId, asset, amount)
-          .setMemo(Pair(memoType, postTxResponse.stellarMemo))
+          .transfer(transaction.stellarAccountId, asset, amount)
+          .setMemo(Pair(memoType, transaction.stellarMemo))
           .build()
       transfer.sign(keypair)
       wallet.stellar().submitTransaction(transfer)
     }
+    info("Transfer complete")
     waitStatus(postTxResponse.id, SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE)
 
     // Supply missing KYC info to continue with the transaction
@@ -224,7 +227,7 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
       info("Expected: $expectedStatus. Current: $current")
       if (status != transaction.status) {
         status = transaction.status
-        info("Deposit transaction status changed to $status. Message: ${transaction.message}")
+        "Transaction(${transaction.id}) status changed to ${status}. Message: ${transaction.message}"
       }
 
       delay(1.seconds)
@@ -243,7 +246,8 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
     private const val FIAT_USD = "iso4217:USD"
     private val expectedStatuses =
       listOf(
-        TRANSACTION_CREATED to SepTransactionStatus.PENDING_SENDER,
+        TRANSACTION_CREATED to SepTransactionStatus.PENDING_RECEIVER,
+        TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_SENDER,
         TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_RECEIVER,
         TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE,
         TRANSACTION_STATUS_CHANGED to SepTransactionStatus.PENDING_RECEIVER,
