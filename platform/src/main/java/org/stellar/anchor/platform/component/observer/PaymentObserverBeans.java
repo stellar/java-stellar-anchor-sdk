@@ -4,8 +4,8 @@ import java.util.List;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.exception.ServerErrorException;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
@@ -32,10 +32,10 @@ public class PaymentObserverBeans {
       AppConfig appConfig,
       PaymentObserverConfig paymentObserverConfig) {
     // validate assetService
-    if (assetService == null || assetService.listAllAssets() == null) {
+    if (assetService == null || assetService.getAllAssets() == null) {
       throw new ServerErrorException("Asset service cannot be empty.");
     }
-    List<AssetInfo> stellarAssets = assetService.listStellarAssets();
+    List<StellarAssetInfo> stellarAssets = assetService.getStellarAssets();
     if (stellarAssets.size() == 0) {
       throw new ServerErrorException("Asset service should contain at least one Stellar asset.");
     }
@@ -69,10 +69,10 @@ public class PaymentObserverBeans {
             stellarPaymentStreamerCursorStore);
 
     // Add distribution wallet to the observing list as type RESIDENTIAL
-    for (AssetInfo assetInfo : stellarAssets) {
-      if (!paymentObservingAccountsManager.lookupAndUpdate(assetInfo.getDistributionAccount())) {
+    for (StellarAssetInfo asset : stellarAssets) {
+      if (!paymentObservingAccountsManager.lookupAndUpdate(asset.getDistributionAccount())) {
         paymentObservingAccountsManager.upsert(
-            assetInfo.getDistributionAccount(),
+            asset.getDistributionAccount(),
             PaymentObservingAccountsManager.AccountType.RESIDENTIAL);
       }
     }

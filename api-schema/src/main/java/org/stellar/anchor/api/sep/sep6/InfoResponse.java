@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.AssetInfo;
 
 /**
  * The response to the GET /info endpoint of SEP-6.

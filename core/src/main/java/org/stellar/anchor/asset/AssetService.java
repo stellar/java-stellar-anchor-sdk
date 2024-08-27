@@ -1,7 +1,9 @@
 package org.stellar.anchor.asset;
 
 import java.util.List;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.FiatAssetInfo;
+import org.stellar.anchor.api.asset.StellarAssetInfo;
 
 public interface AssetService {
 
@@ -10,7 +12,7 @@ public interface AssetService {
    *
    * @return a list of assets.
    */
-  List<AssetInfo> listAllAssets();
+  List<AssetInfo> getAllAssets();
 
   /**
    * Get the asset identified by `code`.
@@ -35,12 +37,19 @@ public interface AssetService {
    * @param asset the SEP-38 asset identifier
    * @return an asset with the given SEP-38 asset identifier.
    */
-  AssetInfo getAssetByName(String asset);
+  AssetInfo getAssetById(String asset);
 
   /**
    * Returns all stellar assets supported by the anchor.
    *
    * @return a list of assets with stellar schema.
    */
-  List<AssetInfo> listStellarAssets();
+  List<StellarAssetInfo> getStellarAssets();
+
+  /**
+   * Returns all stellar assets supported by the anchor.
+   *
+   * @return a list of assets with stellar schema.
+   */
+  List<FiatAssetInfo> getFiatAssets();
 }

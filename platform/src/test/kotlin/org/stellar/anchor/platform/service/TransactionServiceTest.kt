@@ -209,7 +209,7 @@ class TransactionServiceTest {
     assertEquals("amount_in.asset cannot be empty", ex.message)
 
     // fails if listAllAssets is empty
-    every { assetService.listAllAssets() } returns listOf()
+    every { assetService.getAllAssets() } returns listOf()
     val mockAsset = Amount("10", fiatUSD)
     ex = assertThrows { transactionService.validateAsset("amount_in", mockAsset) }
     assertInstanceOf(BadRequestException::class.java, ex)

@@ -46,7 +46,7 @@ class PaymentObservingAccountsBeansTest {
 
     // assetService.listAllAssets() is null
     val mockEmptyAssetService = mockk<AssetService>()
-    every { mockEmptyAssetService.listAllAssets() } returns null
+    every { mockEmptyAssetService.getAllAssets() } returns null
     ex = assertThrows {
       paymentObserverBeans.stellarPaymentObserver(
         mockEmptyAssetService,
@@ -62,8 +62,8 @@ class PaymentObservingAccountsBeansTest {
 
     // assetService.listAllAssets() doesn't contain stellar assets
     val mockStellarLessAssetService = mockk<AssetService>()
-    every { mockStellarLessAssetService.listAllAssets() } returns listOf()
-    every { mockStellarLessAssetService.listStellarAssets() } returns listOf()
+    every { mockStellarLessAssetService.getAllAssets() } returns listOf()
+    every { mockStellarLessAssetService.getStellarAssets() } returns listOf()
     ex = assertThrows {
       paymentObserverBeans.stellarPaymentObserver(
         mockStellarLessAssetService,

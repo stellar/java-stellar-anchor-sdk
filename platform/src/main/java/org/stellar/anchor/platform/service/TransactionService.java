@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -37,7 +38,6 @@ import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.platform.TransactionsSeps;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.FeeDetails;
@@ -130,7 +130,7 @@ public class TransactionService {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
-    this.assets = assetService.listAllAssets();
+    this.assets = assetService.getAllAssets();
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.assetService = assetService;
     this.sep6DepositInfoGenerator = sep6DepositInfoGenerator;
@@ -513,15 +513,14 @@ public class TransactionService {
     }
 
     // asset name needs to be supported
-    if (assets.stream()
-        .noneMatch(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))) {
+    if (assets.stream().noneMatch(assetInfo -> assetInfo.getId().equals(amount.getAsset()))) {
       throw new BadRequestException(
           String.format("'%s' is not a supported asset.", amount.getAsset()));
     }
 
     List<AssetInfo> allAssets =
         assets.stream()
-            .filter(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))
+            .filter(assetInfo -> assetInfo.getId().equals(amount.getAsset()))
             .collect(Collectors.toList());
 
     if (allAssets.size() == 1) {

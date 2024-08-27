@@ -1,9 +1,17 @@
 package org.stellar.anchor.api.asset;
 
+import com.google.gson.annotations.SerializedName;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.stellar.anchor.api.sep.operation.Sep31Info;
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
 import org.stellar.anchor.api.sep.sep38.InfoResponse;
 
 public interface AssetInfo {
+  String NATIVE_ASSET_CODE = "native";
 
   /**
    * Returns the asset identification name following the structure of <scheme:identifier>
@@ -18,7 +26,64 @@ public interface AssetInfo {
    */
   String getId();
 
-  InfoResponse.Asset toSEP38InfoResponseAsset();
+  String getCode();
+
+  String getIssuer();
+
+  Integer getSignificantDecimals();
+
+  Sep31Info getSep31();
 
   Sep31InfoResponse.AssetResponse toSEP31InfoResponseAsset();
+
+  InfoResponse.Asset toSEP38InfoResponseAsset();
+
+  @Data
+  class DepositWithdrawInfo {
+    Boolean enabled = false;
+    DepositWithdrawOperation deposit;
+    DepositWithdrawOperation withdraw;
+  }
+
+  @Data
+  class DepositWithdrawOperation {
+    Boolean enabled = false;
+
+    @SerializedName("min_amount")
+    Long minAmount;
+
+    @SerializedName("max_amount")
+    Long maxAmount;
+
+    List<String> methods;
+  }
+
+  @Data
+  @Builder
+  @AllArgsConstructor
+  @NoArgsConstructor
+  class Field {
+    String description;
+    List<String> choices;
+    boolean optional;
+  }
+
+  enum Schema {
+    @SerializedName("stellar")
+    STELLAR("stellar"),
+
+    @SerializedName("iso4217")
+    ISO_4217("iso4217");
+
+    private final String name;
+
+    Schema(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
 }

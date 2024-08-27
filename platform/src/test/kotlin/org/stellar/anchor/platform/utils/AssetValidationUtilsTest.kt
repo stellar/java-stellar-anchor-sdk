@@ -68,7 +68,7 @@ class AssetValidationUtilsTest {
     Assertions.assertEquals("amount_in.asset cannot be empty", ex.message)
 
     // fails if listAllAssets is empty
-    every { assetService.listAllAssets() } returns listOf()
+    every { assetService.getAllAssets() } returns listOf()
     val mockAsset = AmountAssetRequest("10", fiatUSD)
     ex = assertThrows { AssetValidationUtils.validateAsset("amount_in", mockAsset, assetService) }
     Assertions.assertInstanceOf(BadRequestException::class.java, ex)

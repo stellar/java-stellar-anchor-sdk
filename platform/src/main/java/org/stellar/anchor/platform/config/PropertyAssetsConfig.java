@@ -32,7 +32,7 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
       switch (this.getType()) {
         case JSON:
           try {
-            DefaultAssetService.fromJson(this.getValue());
+            DefaultAssetService.fromJsonContent(this.getValue());
           } catch (Exception ex) {
             error("Error loading asset JSON", ex);
             errors.reject(
@@ -42,7 +42,7 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
           break;
         case YAML:
           try {
-            DefaultAssetService.fromYaml(this.getValue());
+            DefaultAssetService.fromYamlContent(this.getValue());
           } catch (Exception ex) {
             error("Error loading asset YAML", ex);
             errors.reject(

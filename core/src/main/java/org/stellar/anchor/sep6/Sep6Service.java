@@ -9,9 +9,10 @@ import io.micrometer.core.instrument.Counter;
 import java.time.Instant;
 import java.util.*;
 import org.stellar.anchor.MoreInfoUrlConstructor;
+import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep6.*;
 import org.stellar.anchor.api.sep.sep6.InfoResponse.*;
@@ -103,7 +104,7 @@ public class Sep6Service {
       throw new SepValidationException("missing request");
     }
 
-    AssetInfo asset = requestValidator.getDepositAsset(request.getAssetCode());
+    StellarAssetInfo asset = requestValidator.getDepositAsset(request.getAssetCode());
     if (request.getType() != null) {
       requestValidator.validateTypes(
           request.getType(), asset.getCode(), asset.getSep6().getDeposit().getMethods());
@@ -176,13 +177,13 @@ public class Sep6Service {
       throw new SepValidationException("missing request");
     }
 
-    AssetInfo sellAsset = assetService.getAssetByName(request.getSourceAsset());
+    AssetInfo sellAsset = assetService.getAssetById(request.getSourceAsset());
     if (sellAsset == null) {
       throw new SepValidationException(
           String.format("invalid operation for asset %s", request.getSourceAsset()));
     }
 
-    AssetInfo buyAsset = requestValidator.getDepositAsset(request.getDestinationAsset());
+    StellarAssetInfo buyAsset = requestValidator.getDepositAsset(request.getDestinationAsset());
     requestValidator.validateTypes(
         request.getType(), buyAsset.getCode(), buyAsset.getSep6().getDeposit().getMethods());
     requestValidator.validateAmount(
@@ -204,10 +205,10 @@ public class Sep6Service {
       amounts =
           Amounts.builder()
               .amountIn(request.getAmount())
-              .amountInAsset(sellAsset.getSep38AssetName())
+              .amountInAsset(sellAsset.getId())
               .amountOut("0")
-              .amountOutAsset(buyAsset.getSep38AssetName())
-              .feeDetails(new FeeDetails("0", sellAsset.getSep38AssetName(), null))
+              .amountOutAsset(buyAsset.getId())
+              .feeDetails(new FeeDetails("0", sellAsset.getId(), null))
               .build();
     }
 
@@ -276,7 +277,7 @@ public class Sep6Service {
       throw new SepValidationException("missing request");
     }
 
-    AssetInfo asset = requestValidator.getWithdrawAsset(request.getAssetCode());
+    StellarAssetInfo asset = requestValidator.getWithdrawAsset(request.getAssetCode());
     if (request.getType() != null) {
       requestValidator.validateTypes(
           request.getType(), asset.getCode(), asset.getSep6().getWithdraw().getMethods());
@@ -304,7 +305,7 @@ public class Sep6Service {
             .assetCode(request.getAssetCode())
             .assetIssuer(asset.getIssuer())
             .amountIn(request.getAmount())
-            .amountInAsset(asset.getSep38AssetName())
+            .amountInAsset(asset.getId())
             .amountExpected(request.getAmount())
             .startedAt(Instant.now())
             .userActionRequiredBy(
@@ -346,13 +347,13 @@ public class Sep6Service {
       throw new SepValidationException("missing request");
     }
 
-    AssetInfo buyAsset = assetService.getAssetByName(request.getDestinationAsset());
+    AssetInfo buyAsset = assetService.getAssetById(request.getDestinationAsset());
     if (buyAsset == null) {
       throw new SepValidationException(
           String.format("invalid operation for asset %s", request.getDestinationAsset()));
     }
 
-    AssetInfo sellAsset = requestValidator.getWithdrawAsset(request.getSourceAsset());
+    StellarAssetInfo sellAsset = requestValidator.getWithdrawAsset(request.getSourceAsset());
     requestValidator.validateTypes(
         request.getType(), sellAsset.getCode(), sellAsset.getSep6().getWithdraw().getMethods());
     requestValidator.validateAmount(
@@ -377,10 +378,10 @@ public class Sep6Service {
       amounts =
           Amounts.builder()
               .amountIn(request.getAmount())
-              .amountInAsset(sellAsset.getSep38AssetName())
+              .amountInAsset(sellAsset.getId())
               .amountOut("0")
-              .amountOutAsset(buyAsset.getSep38AssetName())
-              .feeDetails(new FeeDetails("0", sellAsset.getSep38AssetName(), null))
+              .amountOutAsset(buyAsset.getId())
+              .feeDetails(new FeeDetails("0", sellAsset.getId(), null))
               .build();
     }
 
@@ -522,9 +523,8 @@ public class Sep6Service {
                     .build())
             .build();
 
-    for (AssetInfo asset : assetService.listAllAssets()) {
-      if (asset.getIsServiceEnabled(asset.getSep6(), "deposit")
-          && asset.getSchema().equals(AssetInfo.Schema.STELLAR)) {
+    for (StellarAssetInfo asset : assetService.getStellarAssets()) {
+      if (asset.getIsServiceEnabled(asset.getSep6(), "deposit")) {
         List<String> methods = asset.getSep6().getDeposit().getMethods();
         AssetInfo.Field type =
             AssetInfo.Field.builder()

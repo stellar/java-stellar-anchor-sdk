@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 /**
@@ -18,26 +18,12 @@ import org.stellar.anchor.api.sep.operation.Sep38Info;
 public class InfoResponse {
   private List<Asset> assets = new ArrayList<>();
 
-  public InfoResponse(List<AssetInfo> assetInfoList) {
-    for (AssetInfo assetInfo : assetInfoList) {
-      if (!assetInfo.getSep38().getEnabled()) continue;
-      Asset newAsset = new Asset();
-      newAsset.setAsset(assetInfo.getSep38AssetName());
-
-      Sep38Info sep38Info = assetInfo.getSep38();
-      newAsset.setCountryCodes(sep38Info.getCountryCodes());
-      newAsset.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
-      newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
-      newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
-
-      int decimals = 7;
-      if (!assetInfo.getSchema().equals(AssetInfo.Schema.STELLAR)
-          && sep38Info.getDecimals() != null) {
-        decimals = sep38Info.getDecimals();
+  public InfoResponse(List<AssetInfo> assetList) {
+    for (AssetInfo assetInfo : assetList) {
+      Asset assetResponse = assetInfo.toSEP38InfoResponseAsset();
+      if (assetResponse != null) {
+        assets.add(assetResponse);
       }
-      newAsset.setDecimals(decimals);
-
-      assets.add(newAsset);
     }
   }
 

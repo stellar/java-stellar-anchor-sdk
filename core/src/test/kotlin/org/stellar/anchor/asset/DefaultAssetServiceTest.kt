@@ -30,12 +30,9 @@ internal class DefaultAssetServiceTest {
       "yaml" -> das = DefaultAssetService.fromYamlResource(filename)
     }
 
-    JSONAssert.assertEquals(expectedAssetsJson, gson.toJson(das.assets), LENIENT)
-
-    // check listing function.
-    val assets = das.listAllAssets()
-
+    val assets = das.getAllAssets()
     assertEquals(4, assets.size)
+    JSONAssert.assertEquals(expectedAssetsJson, gson.toJson(assets), LENIENT)
   }
 
   @Test
@@ -91,19 +88,16 @@ internal class DefaultAssetServiceTest {
 
   @Test
   fun `test trailing comma in JSON does not result in null element`() {
-    val assetsService = DefaultAssetService.fromJson(trailingCommaInAssets)
-    assert(assetsService.assets.assets.all { it != null })
+    val assetsService = DefaultAssetService.fromJsonContent(trailingCommaInAssets)
+    assert(assetsService.stellarAssets.all { it != null })
   }
 
   // This is supposed to match the result from loading test_assets.json file.
   private val expectedAssetsJson =
     """
-      {
-  "assets": [
+       [
               {
-                "schema": "stellar",
-                "code": "USDC",
-                "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+                "id": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
                 "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
                 "significant_decimals": 2,
                 "sep6": {
@@ -191,9 +185,7 @@ internal class DefaultAssetServiceTest {
                 }
               },
               {
-                "schema": "stellar",
-                "code": "JPYC",
-                "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+                "id": "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
                 "significant_decimals": 2,
                 "sep6" : {
                   "enabled": false
@@ -252,8 +244,7 @@ internal class DefaultAssetServiceTest {
                 }
               },
               {
-                "schema": "iso4217",
-                "code": "USD",
+                "id": "iso4217:USD",
                 "significant_decimals": 2,
                 "sep31": {
                   "enabled": false,
@@ -289,8 +280,7 @@ internal class DefaultAssetServiceTest {
                 }
               },
               {
-                "schema": "stellar",
-                "code": "native",
+                "id": "stellar:native",
                 "significant_decimals": 7,
                 "sep6": {
                   "enabled": false
@@ -345,7 +335,7 @@ internal class DefaultAssetServiceTest {
                 }
               }
             ]
-          }
+          
     """
       .trimIndent()
 }
@@ -355,8 +345,7 @@ val trailingCommaInAssets =
   {
     "assets": [
       {
-        "schema": "stellar",
-        "code": "native",
+        "id": "stellar:native",
         "significant_decimals": 7
       },
     ]

@@ -8,8 +8,9 @@ import java.util.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import org.stellar.anchor.api.asset.AssetInfo
+import org.stellar.anchor.api.asset.StellarAssetInfo
 import org.stellar.anchor.api.platform.PlatformTransactionData
-import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.operation.Sep31Info
 import org.stellar.anchor.api.shared.*
@@ -51,11 +52,7 @@ class TransactionMapperTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { assertService.getAsset("USDC", "issuer") } returns
-      AssetInfo().apply {
-        code = "USDC"
-        issuer = "issuer"
-        schema = AssetInfo.Schema.STELLAR
-      }
+      StellarAssetInfo().apply { id = "stellar:USDC:issuer" }
   }
 
   @Test

@@ -29,6 +29,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.SneakyThrows;
+import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -37,7 +39,6 @@ import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.exception.Sep31MissingFieldException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.exception.ServerErrorException;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.operation.Sep31Info.Fields;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
@@ -107,7 +108,7 @@ public class Sep31Service {
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
-    this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
+    this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.getAllAssets());
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
     Log.info("Sep31Service initialized.");
@@ -124,7 +125,8 @@ public class Sep31Service {
     Context.get().setRequest(request);
     Context.get().setSep10Jwt(sep10Jwt);
 
-    AssetInfo assetInfo = assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
+    StellarAssetInfo assetInfo =
+        (StellarAssetInfo) assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
     if (assetInfo == null) {
       // the asset is not supported.
       infoF("Asset: [{}:{}]", request.getAssetCode(), request.getAssetIssuer());
@@ -209,7 +211,7 @@ public class Sep31Service {
             // updateAmounts will update these ⬇️
             .amountExpected(request.getAmount())
             .amountIn(request.getAmount())
-            .amountInAsset(assetInfo.getSep38AssetName())
+            .amountInAsset(assetInfo.getId())
             .amountOut(null)
             .amountOutAsset(null)
             .toAccount(assetInfo.getDistributionAccount())
@@ -323,7 +325,7 @@ public class Sep31Service {
     }
     debugF("Updating transaction ({}) with fee ({}) - reqAsset ({})", txn.getId(), fee, reqAsset);
 
-    String amountInAsset = reqAsset.getSep38AssetName();
+    String amountInAsset = reqAsset.getId();
     String amountOutAsset = request.getDestinationAsset();
 
     boolean isSimpleQuote = Objects.equals(amountInAsset, amountOutAsset);
@@ -509,7 +511,7 @@ public class Sep31Service {
     }
 
     // Check quote asset: `post_transaction.asset == quote.sell_asset`
-    String assetName = Context.get().getAsset().getSep38AssetName();
+    String assetName = Context.get().getAsset().getId();
     if (!assetName.equals(quote.getSellAsset())) {
       infoF(
           "Quote ({}) - sellAsset ({}) is different from the SEP-31 transaction asset ({})",
@@ -546,7 +548,7 @@ public class Sep31Service {
     }
 
     Sep31PostTransactionRequest request = Context.get().getRequest();
-    String assetName = Context.get().getAsset().getSep38AssetName();
+    String assetName = Context.get().getAsset().getId();
     infoF("Requesting fee for request ({})", request);
     var rate =
         rateIntegration
@@ -644,25 +646,11 @@ public class Sep31Service {
     Sep31InfoResponse response = new Sep31InfoResponse();
     response.setReceive(new HashMap<>());
     for (AssetInfo assetInfo : assetInfos) {
-      if (assetInfo.getSep31() != null && assetInfo.getSep31().getEnabled()) {
-        boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
-        boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
-        if (isQuotesRequired && !isQuotesSupported) {
-          throw new SepValidationException(
-              "if quotes_required is true, quotes_supported must also be true");
-        }
-        AssetResponse assetResponse = new AssetResponse();
-        assetResponse.setQuotesSupported(isQuotesSupported);
-        assetResponse.setQuotesRequired(isQuotesRequired);
-        assetResponse.setFeeFixed(assetInfo.getSep31().getReceive().getFeeFixed());
-        assetResponse.setFeePercent(assetInfo.getSep31().getReceive().getFeePercent());
-        assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
-        assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
-        assetResponse.setFields(assetInfo.getSep31().getFields());
+      AssetResponse assetResponse = assetInfo.toSEP31InfoResponseAsset();
+      if (assetResponse != null) {
         response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
     }
-
     return response;
   }
 
