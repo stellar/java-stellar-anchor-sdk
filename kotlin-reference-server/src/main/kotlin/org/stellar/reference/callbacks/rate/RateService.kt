@@ -185,21 +185,22 @@ class RateService(private val quoteRepository: QuoteRepository) {
     val prices =
       mapOf(
         Pair(fiatUSD, stellarCircleUSDCtest) to "1.02",
-        Pair(stellarUSDCtest, fiatUSD) to "1.05",
         Pair(fiatUSD, stellarCircleUSDCtest) to "1.02",
-        Pair(stellarCircleUSDCtest, fiatUSD) to "1.05",
         Pair(fiatUSD, stellarUSDCtest) to "1.02",
-        Pair(stellarUSDCtest, fiatUSD) to "1.05",
         Pair(fiatUSD, stellarJPYC) to "0.0083333",
-        Pair(stellarJPYC, fiatUSD) to "122",
+        Pair(fiatCAD, stellarUSDCtest) to "0.74",
+        Pair(fiatCAD, stellarUSDCprod) to "0.74",
+        Pair(stellarUSDCtest, fiatUSD) to "1.05",
+        Pair(stellarUSDCtest, fiatUSD) to "1.05",
         Pair(stellarUSDCtest, stellarJPYC) to "0.0084",
-        Pair(stellarJPYC, stellarUSDCtest) to "120",
-        Pair(stellarCircleUSDCtest, stellarJPYC) to "0.0084",
-        Pair(stellarJPYC, stellarCircleUSDCtest) to "120",
-        Pair(stellarUSDCprod, stellarJPYC) to "0.0084",
-        Pair(stellarJPYC, stellarUSDCprod) to "120",
-        Pair(fiatCAD, stellarUSDCtest) to "0.73",
         Pair(stellarUSDCtest, fiatCAD) to "1.37",
+        Pair(stellarUSDCprod, stellarJPYC) to "0.0084",
+        Pair(stellarCircleUSDCtest, fiatUSD) to "1.05",
+        Pair(stellarCircleUSDCtest, stellarJPYC) to "0.0084",
+        Pair(stellarJPYC, fiatUSD) to "122",
+        Pair(stellarJPYC, stellarUSDCtest) to "120",
+        Pair(stellarJPYC, stellarCircleUSDCtest) to "120",
+        Pair(stellarJPYC, stellarUSDCprod) to "120",
       )
 
     private fun getPrice(sellAsset: String, buyAsset: String): String? {
