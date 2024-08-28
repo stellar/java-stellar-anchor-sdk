@@ -383,12 +383,14 @@ class Sep6EventProcessor(
           event.payload.transaction.id,
           missingFields,
         )
+        // We only use memoType "id" for reference server
+        val memoType = if (customer.memo != null) "id" else null
         val existingCustomer =
           customerService.getCustomer(
             GetCustomerRequest.builder()
               .account(customer.account)
               .memo(customer.memo)
-              .memoType("id")
+              .memoType(memoType)
               .build()
           )
         sepHelper.rpcAction(
