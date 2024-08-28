@@ -50,13 +50,18 @@ class ClientStatusCallbackHandlerTest {
   @BeforeEach
   fun setUp() {
     clientConfig =
-      CustodialClientConfig(
-        "circle",
-        setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"),
-        "https://callback.circle.com/api/v1/anchor/callback",
-        false,
-        emptySet()
-      )
+      CustodialClientConfig.builder()
+        .name("circle")
+        .signingKeys(
+          setOf(
+            "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
+            "GACYKME36AI6UYAV7A5ZUA6MG4C4K2VAPNYMW5YLOM6E7GS6FSHDPV4F",
+          )
+        )
+        .callbackUrl("https://callback.circle.com/api/v1/anchor/callback")
+        .allowAnyDestination(false)
+        .destinationAccounts(emptySet())
+        .build()
     sep6TransactionStore = mockk<Sep6TransactionStore>()
     every { sep6TransactionStore.findByTransactionId(any()) } returns null
 

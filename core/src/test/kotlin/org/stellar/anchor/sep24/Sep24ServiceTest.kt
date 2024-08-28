@@ -30,11 +30,6 @@ import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.exception.*
-import org.stellar.anchor.api.exception.BadRequestException
-import org.stellar.anchor.api.exception.SepException
-import org.stellar.anchor.api.exception.SepNotAuthorizedException
-import org.stellar.anchor.api.exception.SepNotFoundException
-import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep24.GetTransactionRequest
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
 import org.stellar.anchor.asset.AssetService
@@ -43,7 +38,10 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
-import org.stellar.anchor.client.*
+import org.stellar.anchor.client.ClientFinder
+import org.stellar.anchor.client.ClientService
+import org.stellar.anchor.client.CustodialClientConfig
+import org.stellar.anchor.client.NonCustodialClientConfig
 import org.stellar.anchor.config.*
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.sep38.PojoSep38Quote
@@ -150,19 +148,17 @@ internal class Sep24ServiceTest {
     every { moreInfoUrlConstructor.construct(any(), any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
     every { clientService.getClientConfigByDomain(any()) } returns
-      NonCustodialClientConfig(
-        "reference",
-        setOf("wallet-server:8092"),
-        "http://wallet-server:8092/callbacks"
-      )
+      NonCustodialClientConfig.builder()
+        .name("reference")
+        .domains(setOf("wallet-server:8092"))
+        .callbackUrl("http://wallet-server:8092/callbacks")
+        .build()
     every { clientService.getClientConfigBySigningKey(any()) } returns
-      CustodialClientConfig(
-        "referenceCustodial",
-        setOf("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"),
-        null,
-        false,
-        null,
-      )
+      CustodialClientConfig.builder()
+        .name("referenceCustodial")
+        .signingKeys(setOf("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"))
+        .allowAnyDestination(false)
+        .build()
     every { clientFinder.getClientName(any()) } returns TEST_CLIENT_NAME
     calculator = ExchangeAmountsCalculator(sep38QuoteStore)
 
@@ -491,13 +487,12 @@ internal class Sep24ServiceTest {
 
     val whitelistedAccount = "GC6TP2RCW665CBOTMR5Q2JXNRK77FWV2FCTHNQXS3FNDMWZCGJBJ4QCY"
     every { clientService.getClientConfigBySigningKey(any()) } returns
-      CustodialClientConfig(
-        "referenceCustodial",
-        setOf("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"),
-        null,
-        false,
-        setOf(whitelistedAccount),
-      )
+      CustodialClientConfig.builder()
+        .name("referenceCustodial")
+        .signingKeys(setOf("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"))
+        .allowAnyDestination(false)
+        .destinationAccounts(setOf(whitelistedAccount))
+        .build()
     val request = createTestTransactionRequest()
     request["account"] = whitelistedAccount
 

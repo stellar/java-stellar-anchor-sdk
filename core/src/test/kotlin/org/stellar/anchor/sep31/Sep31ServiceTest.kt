@@ -21,7 +21,10 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestHelper
-import org.stellar.anchor.api.callback.*
+import org.stellar.anchor.api.callback.CustomerIntegration
+import org.stellar.anchor.api.callback.GetCustomerResponse
+import org.stellar.anchor.api.callback.GetRateResponse
+import org.stellar.anchor.api.callback.RateIntegration
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.AssetInfo.Field
@@ -251,13 +254,13 @@ class Sep31ServiceTest {
   """
 
     private val custodialClientConfig =
-      CustodialClientConfig(
-        "custodialClient",
-        setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"),
-        "https://exmaple.com/callback",
-        false,
-        emptySet(),
-      )
+      CustodialClientConfig.builder()
+        .name("custodialClient")
+        .signingKeys(setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEG"))
+        .callbackUrl("https://example.com/callback")
+        .allowAnyDestination(false)
+        .destinationAccounts(emptySet())
+        .build()
 
     @JvmStatic
     fun generateGetClientNameTestConfig(): Stream<Arguments> {

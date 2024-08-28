@@ -695,7 +695,11 @@ clients:
   #     signingKeys:
   #       - singingKey1
   #       - singingKey2
-  #     callbackUrl: http://client1/callbacks
+  #     callbackUrls:
+  #       sep6: http://client1/sep6/callbacks
+  #       sep24: http://client1/sep24/callbacks
+  #       sep31: http://client1/sep31/callbacks
+  #       sep12: http://client1/sep12/callbacks
   #     allowAnyDestination: false
   #     destinationAccounts:
   #       - GDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
@@ -704,7 +708,8 @@ clients:
   #   - name: client2
   #     domains:
   #       - client2.com
-  #     callbackUrl: null
+  #     callbackUrls:
+  #       sep6: http://client2/sep6/callbacks
   type:
   value:
   custodial:
