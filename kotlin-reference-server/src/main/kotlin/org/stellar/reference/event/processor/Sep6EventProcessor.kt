@@ -4,6 +4,7 @@ import java.time.Instant
 import java.util.*
 import kotlinx.coroutines.runBlocking
 import org.stellar.anchor.api.callback.GetCustomerRequest
+import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.api.platform.*
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind
@@ -383,20 +384,35 @@ class Sep6EventProcessor(
           event.payload.transaction.id,
           missingFields,
         )
-        val existingCustomer =
-          customerService.getCustomer(
-            GetCustomerRequest.builder()
-              .account(customer.account)
-              .memo(customer.memo)
-              .memoType("id")
-              .build()
-          )
+        val memoType = if (customer.memo != null) "id" else null
+        var existingCustomerId =
+          customerService
+            .getCustomer(
+              GetCustomerRequest.builder()
+                .account(customer.account)
+                .memo(customer.memo)
+                .memoType(memoType)
+                .build()
+            )
+            .id
+        if (existingCustomerId == null) {
+          existingCustomerId =
+            customerService
+              .upsertCustomer(
+                PutCustomerRequest.builder()
+                  .account(customer.account)
+                  .memo(customer.memo)
+                  .memoType(memoType)
+                  .build()
+              )
+              .id
+        }
         sepHelper.rpcAction(
           RpcMethod.NOTIFY_CUSTOMER_INFO_UPDATED.toString(),
           NotifyCustomerInfoUpdatedRequest(
             transactionId = event.payload.transaction.id,
             message = "Please update your info",
-            customerId = existingCustomer.id,
+            customerId = existingCustomerId,
             customerType = "sep6"
           ),
         )
