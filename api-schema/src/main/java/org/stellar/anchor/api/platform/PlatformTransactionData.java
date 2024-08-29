@@ -112,6 +112,8 @@ public class PlatformTransactionData {
   public enum Sep {
     @SerializedName("6")
     SEP_6(6),
+    @SerializedName("12")
+    SEP_12(12),
     @SuppressWarnings("unused")
     @SerializedName("24")
     SEP_24(24),

@@ -4,7 +4,7 @@ assets:
     code: USDC
     issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
-    significant_decimals: 2
+    significant_decimals: 7
     sep6:
       enabled: true
       deposit:
@@ -65,7 +65,7 @@ assets:
     code: USDC
     issuer: GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
-    significant_decimals: 2
+    significant_decimals: 4
     sep24:
       enabled: true
       deposit:
@@ -166,7 +166,7 @@ assets:
   # Fiat
   - schema: iso4217
     code: USD
-    significant_decimals: 7
+    significant_decimals: 4
     sep31:
       enabled: false
       receive:
@@ -188,7 +188,7 @@ assets:
           description: Have USD sent directly to your bank account.
   - schema: iso4217
     code: CAD
-    significant_decimals: 7
+    significant_decimals: 4
     sep31:
       receive:
         min_amount: 0

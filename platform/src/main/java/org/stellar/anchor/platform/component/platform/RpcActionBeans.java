@@ -3,12 +3,15 @@ package org.stellar.anchor.platform.component.platform;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.metrics.MetricsService;
+import org.stellar.anchor.platform.component.sep.ApiClientBeans;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
@@ -25,6 +28,7 @@ import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 @Configuration
+@Import(ApiClientBeans.class)
 public class RpcActionBeans {
 
   @Bean
@@ -418,6 +422,7 @@ public class RpcActionBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
+      CustomerIntegration customerIntegration,
       AssetService assetService,
       EventService eventService,
       MetricsService metricsService) {
@@ -426,6 +431,7 @@ public class RpcActionBeans {
         txn24Store,
         txn31Store,
         requestValidator,
+        customerIntegration,
         assetService,
         eventService,
         metricsService);

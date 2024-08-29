@@ -8,7 +8,6 @@ import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -85,7 +84,7 @@ public class EventProcessorManager {
     // clientsConfig
     if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
       for (ClientConfig clientConfig : clientService.getAllClients()) {
-        if (StringUtils.isEmpty(clientConfig.getCallbackUrl())) {
+        if (!clientConfig.isCallbackEnabled()) {
           Log.info(String.format("Client status callback skipped: %s", json(clientConfig)));
           continue;
         }

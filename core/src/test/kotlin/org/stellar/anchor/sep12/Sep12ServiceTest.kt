@@ -6,14 +6,16 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import kotlin.test.assertNotNull
-import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.*
-import org.stellar.anchor.api.platform.CustomerUpdatedResponse
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.sep.sep12.*
 import org.stellar.anchor.api.shared.CustomerField
@@ -254,11 +256,15 @@ class Sep12ServiceTest {
   fun `Test put customer request ok`() {
     // mock `PUT {callbackApi}/customer` response
     val callbackApiPutRequestSlot = slot<PutCustomerRequest>()
+    val callbackApiGetRequestSlot = slot<GetCustomerRequest>()
     val kycUpdateEventSlot = slot<AnchorEvent>()
     val mockCallbackApiPutCustomerResponse = PutCustomerResponse()
+    val mockCallbackApiGetCustomerResponse = GetCustomerResponse()
     mockCallbackApiPutCustomerResponse.id = "customer-id"
     every { customerIntegration.putCustomer(capture(callbackApiPutRequestSlot)) } returns
       mockCallbackApiPutCustomerResponse
+    every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } returns
+      mockCallbackApiGetCustomerResponse
     every { eventSession.publish(capture(kycUpdateEventSlot)) } returns Unit
 
     // Execute the request
@@ -300,12 +306,15 @@ class Sep12ServiceTest {
         .build()
     assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
 
+    val wantCallbackApiGetCustomerResponse = GetCustomerRequest.builder().id("customer-id").build()
+    assertEquals(wantCallbackApiGetCustomerResponse, callbackApiGetRequestSlot.captured)
+
     // validate the published event
     assertNotNull(kycUpdateEventSlot.captured.id)
     assertEquals("12", kycUpdateEventSlot.captured.sep)
     assertEquals(AnchorEvent.Type.CUSTOMER_UPDATED, kycUpdateEventSlot.captured.type)
     assertEquals(
-      CustomerUpdatedResponse(mockCallbackApiPutCustomerResponse.id),
+      GetCustomerResponse.to(mockCallbackApiGetCustomerResponse),
       kycUpdateEventSlot.captured.customer,
     )
 
