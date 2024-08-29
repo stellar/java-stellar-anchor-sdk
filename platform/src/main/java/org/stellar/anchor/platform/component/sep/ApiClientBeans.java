@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.callback.RestCustomerIntegration;
 import org.stellar.anchor.platform.callback.RestRateIntegration;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
@@ -66,8 +67,15 @@ public class ApiClientBeans {
 
   @Bean
   RateIntegration rateIntegration(
-      CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
+      CallbackApiConfig callbackApiConfig,
+      OkHttpClient httpClient,
+      Gson gson,
+      AssetService assetService) {
     return new RestRateIntegration(
-        callbackApiConfig.getBaseUrl(), httpClient, callbackApiConfig.buildAuthHelper(), gson);
+        callbackApiConfig.getBaseUrl(),
+        httpClient,
+        callbackApiConfig.buildAuthHelper(),
+        gson,
+        assetService);
   }
 }

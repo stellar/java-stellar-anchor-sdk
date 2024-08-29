@@ -55,7 +55,7 @@ public class NotifyAmountsUpdatedHandler
   protected void validate(JdbcSepTransaction txn, NotifyAmountsUpdatedRequest request)
       throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
-    AssetValidationUtils.validateAsset(
+    AssetValidationUtils.validateAssetAmount(
         "amount_out",
         AmountAssetRequest.builder()
             .amount(request.getAmountOut().getAmount())

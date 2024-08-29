@@ -51,6 +51,7 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.utils.PlatformTransactionHelper;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24Refunds;
@@ -524,19 +525,7 @@ public class TransactionService {
             .filter(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))
             .collect(Collectors.toList());
 
-    if (allAssets.size() == 1) {
-      AssetInfo targetAsset = allAssets.get(0);
-
-      if (targetAsset.getSignificantDecimals() != null) {
-        // Check that significant decimal is correct
-        if (decimal(amount.getAmount(), targetAsset).compareTo(decimal(amount.getAmount())) != 0) {
-          throw new BadRequestException(
-              String.format(
-                  "'%s' has invalid significant decimals. Expected: '%s'",
-                  amount.getAmount(), targetAsset.getSignificantDecimals()));
-        }
-      }
-    }
+    AssetValidationUtils.valiateAssetDecimals(allAssets, amount.getAmount());
   }
 
   void validateQuoteAndAmounts(Sep31Transaction txn) throws AnchorException {

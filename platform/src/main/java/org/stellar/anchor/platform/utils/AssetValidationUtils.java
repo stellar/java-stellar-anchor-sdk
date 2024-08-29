@@ -27,24 +27,12 @@ public class AssetValidationUtils {
     return asset.startsWith(STELLAR_ASSET_PREFIX);
   }
 
-  /**
-   * validateAsset will validate if the provided amount has valid values and if its asset is
-   * supported.
-   *
-   * @param amount is the object containing the asset full name and the amount.
-   */
-  public static void validateAsset(
-      String fieldName, AmountAssetRequest amount, AssetService assetService)
-      throws BadRequestException {
-    validateAsset(fieldName, amount, false, assetService);
-  }
-
   public static void validateFeeDetails(
       @NotNull FeeDetails fee,
       @Nullable JdbcSepTransaction jdbcTransaction,
       AssetService assetService)
       throws BadRequestException {
-    validateAsset(
+    validateAssetAmount(
         "fee_details", new AmountAssetRequest(fee.getTotal(), fee.getAsset()), true, assetService);
 
     if (jdbcTransaction != null
@@ -70,7 +58,29 @@ public class AssetValidationUtils {
     }
   }
 
-  public static void validateAsset(
+  /**
+   * validateAsset will validate if the provided amount has valid values and if its asset is
+   * supported.
+   *
+   * @see #validateAssetAmount(String, AmountAssetRequest, boolean, AssetService)
+   */
+  public static void validateAssetAmount(
+      String fieldName, AmountAssetRequest amount, AssetService assetService)
+      throws BadRequestException {
+    validateAssetAmount(fieldName, amount, false, assetService);
+  }
+
+  /**
+   * validateAssetAmount will validate if the provided amount has valid values and if its asset is
+   * supported.
+   *
+   * @param fieldName is the name of the field that is being validated.
+   * @param amount is the object containing the asset full name and the amount.
+   * @param allowZero is a flag that indicates if the amount can be zero.
+   * @param assetService is the service that will be used to check if the asset is supported.
+   * @throws BadRequestException if the amount is invalid or the asset is not supported.
+   */
+  public static void validateAssetAmount(
       String fieldName, AmountAssetRequest amount, boolean allowZero, AssetService assetService)
       throws BadRequestException {
     if (amount == null) {
@@ -96,16 +106,21 @@ public class AssetValidationUtils {
           String.format("'%s' is not a supported asset.", amount.getAsset()));
     }
 
+    valiateAssetDecimals(allAssets, amount.getAmount());
+  }
+
+  public static void valiateAssetDecimals(List<AssetInfo> allAssets, String amount)
+      throws BadRequestException {
     if (allAssets.size() == 1) {
       AssetInfo targetAsset = allAssets.get(0);
 
       if (targetAsset.getSignificantDecimals() != null) {
         // Check that significant decimal is correct
-        if (decimal(amount.getAmount(), targetAsset).compareTo(decimal(amount.getAmount())) != 0) {
+        if (decimal(amount, targetAsset).compareTo(decimal(amount)) != 0) {
           throw new BadRequestException(
               String.format(
                   "'%s' has invalid significant decimals. Expected: '%s'",
-                  amount.getAmount(), targetAsset.getSignificantDecimals()));
+                  amount, targetAsset.getSignificantDecimals()));
         }
       }
     }

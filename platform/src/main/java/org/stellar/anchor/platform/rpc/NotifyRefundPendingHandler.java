@@ -90,14 +90,14 @@ public class NotifyRefundPendingHandler
         throw new InvalidParamsException("refund must not be null");
       }
 
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "refund.amount",
           AmountAssetRequest.builder()
               .amount(request.getRefund().getAmount().getAmount())
               .asset(txn.getAmountInAsset())
               .build(),
           assetService);
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "refund.amountFee",
           AmountAssetRequest.builder()
               .amount(request.getRefund().getAmountFee().getAmount())

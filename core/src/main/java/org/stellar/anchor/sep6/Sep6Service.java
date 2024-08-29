@@ -199,6 +199,7 @@ public class Sep6Service {
           exchangeAmountsCalculator.calculateFromQuote(
               request.getQuoteId(), sellAsset, request.getAmount());
     } else {
+      // TODO(philip): remove this
       // If a quote is not provided, set the fee and out amounts to 0.
       // The business server should use the request_offchain_funds RPC to update the amounts.
       amounts =
@@ -372,6 +373,7 @@ public class Sep6Service {
           exchangeAmountsCalculator.calculateFromQuote(
               request.getQuoteId(), sellAsset, request.getAmount());
     } else {
+      // TODO(philip): remove this
       // If a quote is not provided, set the fee and out amounts to 0.
       // The business server should use the request_onchain_funds RPC to update the amounts.
       amounts =

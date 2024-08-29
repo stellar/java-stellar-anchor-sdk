@@ -8,7 +8,6 @@ import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;

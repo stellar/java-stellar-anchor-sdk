@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.Gson
+import io.mockk.mockk
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -16,6 +17,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.NotFoundException
+import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
@@ -55,7 +57,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
       config.env["secret.sep24.more_info_url.jwt_secret"]!!,
       config.env["secret.callback_api.auth_secret"]!!,
       config.env["secret.platform_api.auth_secret"]!!,
-      null
+      null,
     )
 
   private val authHelper =
@@ -67,11 +69,18 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
     )
 
   private val gson: Gson = GsonUtils.getInstance()
+  private val mockAssetService = mockk<AssetService>()
 
   private val rci =
     RestCustomerIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
   private val rriClient =
-    RestRateIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
+    RestRateIntegration(
+      config.env["reference.server.url"]!!,
+      httpClient,
+      authHelper,
+      gson,
+      mockAssetService
+    )
 
   @Test
   fun testCustomerIntegration() {
