@@ -130,7 +130,7 @@ public class TransactionService {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
-    this.assets = assetService.getAllAssets();
+    this.assets = assetService.getAssets();
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.assetService = assetService;
     this.sep6DepositInfoGenerator = sep6DepositInfoGenerator;

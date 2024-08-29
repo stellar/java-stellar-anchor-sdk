@@ -30,7 +30,7 @@ internal class DefaultAssetServiceTest {
       "yaml" -> das = DefaultAssetService.fromYamlResource(filename)
     }
 
-    val assets = das.getAllAssets()
+    val assets = das.getAssets()
     assertEquals(4, assets.size)
     JSONAssert.assertEquals(expectedAssetsJson, gson.toJson(assets), LENIENT)
   }

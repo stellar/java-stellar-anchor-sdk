@@ -6,9 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.stellar.anchor.api.sep.operation.Sep31Info;
-import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
-import org.stellar.anchor.api.sep.sep38.InfoResponse;
+import org.stellar.anchor.api.sep.operation.ReceiveInfo;
+import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 public interface AssetInfo {
   String NATIVE_ASSET_CODE = "native";
@@ -32,11 +31,9 @@ public interface AssetInfo {
 
   Integer getSignificantDecimals();
 
-  Sep31Info getSep31();
+  ReceiveInfo getSep31();
 
-  Sep31InfoResponse.AssetResponse toSEP31InfoResponseAsset();
-
-  InfoResponse.Asset toSEP38InfoResponseAsset();
+  Sep38Info getSep38();
 
   @Data
   class DepositWithdrawInfo {

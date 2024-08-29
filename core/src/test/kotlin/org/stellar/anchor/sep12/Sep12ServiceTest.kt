@@ -94,9 +94,9 @@ class Sep12ServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
     val rjas = DefaultAssetService.fromJsonResource("test_assets.json")
-    val assets = rjas.getAllAssets()
+    val assets = rjas.getAssets()
 
-    every { assetService.getAllAssets() } returns assets
+    every { assetService.getAssets() } returns assets
     every { eventService.createSession(any(), any()) } returns eventSession
 
     sep12Service = Sep12Service(customerIntegration, platformApiClient, eventService)

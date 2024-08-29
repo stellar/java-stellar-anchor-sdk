@@ -117,7 +117,7 @@ public class DefaultAssetService implements AssetService {
   }
 
   @Override
-  public List<AssetInfo> getAllAssets() {
+  public List<AssetInfo> getAssets() {
     List<AssetInfo> allAssets = new ArrayList<>();
     allAssets.addAll(stellarAssets);
     allAssets.addAll(fiatAssets);

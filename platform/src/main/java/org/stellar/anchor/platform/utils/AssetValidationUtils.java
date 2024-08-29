@@ -86,7 +86,7 @@ public class AssetValidationUtils {
     }
 
     List<AssetInfo> allAssets =
-        assetService.getAllAssets().stream()
+        assetService.getAssets().stream()
             .filter(assetInfo -> assetInfo.getId().equals(amount.getAsset()))
             .collect(toList());
 

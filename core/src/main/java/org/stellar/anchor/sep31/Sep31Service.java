@@ -38,7 +38,7 @@ import org.stellar.anchor.api.exception.Sep31MissingFieldException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.sep.operation.Sep31Info.Fields;
+import org.stellar.anchor.api.sep.operation.ReceiveInfo.Fields;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest;
@@ -95,7 +95,7 @@ public class Sep31Service {
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
-    this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.getAllAssets());
+    this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.getAssets());
     Log.info("Sep31Service initialized.");
   }
 
@@ -590,8 +590,21 @@ public class Sep31Service {
     Sep31InfoResponse response = new Sep31InfoResponse();
     response.setReceive(new HashMap<>());
     for (AssetInfo assetInfo : assetInfos) {
-      AssetResponse assetResponse = assetInfo.toSEP31InfoResponseAsset();
-      if (assetResponse != null) {
+      if (assetInfo.getSep31() != null && assetInfo.getSep31().getEnabled()) {
+        boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
+        boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
+        if (isQuotesRequired && !isQuotesSupported) {
+          throw new SepValidationException(
+              "if quotes_required is true, quotes_supported must also be true");
+        }
+        AssetResponse assetResponse = new AssetResponse();
+        assetResponse.setQuotesSupported(isQuotesSupported);
+        assetResponse.setQuotesRequired(isQuotesRequired);
+        assetResponse.setFeeFixed(assetInfo.getSep31().getReceive().getFeeFixed());
+        assetResponse.setFeePercent(assetInfo.getSep31().getReceive().getFeePercent());
+        assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
+        assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
+        assetResponse.setFields(assetInfo.getSep31().getFields());
         response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
     }

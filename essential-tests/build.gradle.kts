@@ -37,6 +37,6 @@ tasks { bootJar { enabled = false } }
 
 tasks.test {
   exclude("**/org/stellar/anchor/platform/*Test.class")
-  exclude("**/org/stellar/anchor/platform/integrationtest/**")
+//  exclude("**/org/stellar/anchor/platform/integrationtest/**")
   exclude("**/org/stellar/anchor/platform/e2etest/**")
 }

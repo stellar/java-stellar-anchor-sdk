@@ -55,7 +55,7 @@ public class Sep38Service {
     this.rateIntegration = rateIntegration;
     this.sep38QuoteStore = sep38QuoteStore;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
-    this.infoResponse = new InfoResponse(this.assetService.getAllAssets());
+    this.infoResponse = new InfoResponse(this.assetService.getAssets());
     assetMap = new HashMap<>();
     this.infoResponse.getAssets().forEach(asset -> assetMap.put(asset.getAsset(), asset));
     Log.info("Sep38Service initialized.");

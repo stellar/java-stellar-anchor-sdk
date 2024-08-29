@@ -32,7 +32,7 @@ public class PaymentObserverBeans {
       AppConfig appConfig,
       PaymentObserverConfig paymentObserverConfig) {
     // validate assetService
-    if (assetService == null || assetService.getAllAssets() == null) {
+    if (assetService == null || assetService.getAssets() == null) {
       throw new ServerErrorException("Asset service cannot be empty.");
     }
     List<StellarAssetInfo> stellarAssets = assetService.getStellarAssets();

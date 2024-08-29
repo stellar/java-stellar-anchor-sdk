@@ -524,7 +524,7 @@ public class Sep6Service {
             .build();
 
     for (StellarAssetInfo asset : assetService.getStellarAssets()) {
-      if (asset.getIsServiceEnabled(asset.getSep6(), "deposit")) {
+      if (asset.isDepositEnabled(asset.getSep6())) {
         List<String> methods = asset.getSep6().getDeposit().getMethods();
         AssetInfo.Field type =
             AssetInfo.Field.builder()
@@ -545,7 +545,7 @@ public class Sep6Service {
         response.getDepositExchange().put(asset.getCode(), deposit);
       }
 
-      if (asset.getIsServiceEnabled(asset.getSep6(), "withdraw")) {
+      if (asset.isWithdrawEnabled(asset.getSep6())) {
         List<String> methods = asset.getSep6().getWithdraw().getMethods();
         Map<String, WithdrawType> types = new HashMap<>();
         for (String method : methods) {

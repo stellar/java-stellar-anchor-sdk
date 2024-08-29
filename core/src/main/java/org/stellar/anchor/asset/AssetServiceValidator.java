@@ -15,13 +15,13 @@ public class AssetServiceValidator {
 
   public static void validate(AssetService assetService) throws InvalidConfigException {
     // Check for non-zero assets
-    if (assetService == null || isEmpty(assetService.getAllAssets())) {
+    if (assetService == null || isEmpty(assetService.getAssets())) {
       throw new InvalidConfigException("0 assets defined in configuration");
     }
 
     // Check for duplicate assets
     Set<String> existingAssetNames = new HashSet<>();
-    for (AssetInfo asset : assetService.getAllAssets()) {
+    for (AssetInfo asset : assetService.getAssets()) {
       if (asset != null && !existingAssetNames.add(asset.getId())) {
         throw new InvalidConfigException(
             "Duplicate assets defined in configuration. Asset = " + asset.getId());
@@ -59,7 +59,7 @@ public class AssetServiceValidator {
   private static void validateWithdraw(StellarAssetInfo assetInfo) throws InvalidConfigException {
     // Validate withdraw fields
     AssetInfo.DepositWithdrawInfo sep6Info = assetInfo.getSep6();
-    if (assetInfo.getIsServiceEnabled(sep6Info, "withdraw")) {
+    if (assetInfo.isWithdrawEnabled(sep6Info)) {
       // Check for missing SEP-6 withdrawal types
       if (isEmpty(sep6Info.getWithdraw().getMethods())) {
         throw new InvalidConfigException(
@@ -83,7 +83,7 @@ public class AssetServiceValidator {
   private static void validateDeposit(StellarAssetInfo assetInfo) throws InvalidConfigException {
     // Validate deposit fields
     AssetInfo.DepositWithdrawInfo sep6Info = assetInfo.getSep6();
-    if (assetInfo.getIsServiceEnabled(sep6Info, "deposit")) {
+    if (assetInfo.isDepositEnabled(sep6Info)) {
       // Check for missing SEP-6 deposit types
       if (isEmpty(sep6Info.getDeposit().getMethods())) {
         throw new InvalidConfigException(

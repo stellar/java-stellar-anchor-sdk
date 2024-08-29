@@ -157,7 +157,7 @@ public class Sep24Service {
     // Verify that the asset code exists in our database, with withdraw enabled.
     StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode, assetIssuer);
     debugF("Asset: {}", asset);
-    if (asset == null || !asset.getIsServiceEnabled(asset.getSep24(), "withdraw")) {
+    if (asset == null || !asset.isWithdrawEnabled(asset.getSep24())) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
@@ -353,7 +353,7 @@ public class Sep24Service {
 
     // Verify that the asset code exists in our database, with deposit enabled.
     StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode, assetIssuer);
-    if (asset == null || !asset.getIsServiceEnabled(asset.getSep24(), "deposit")) {
+    if (asset == null || !asset.isDepositEnabled(asset.getSep24())) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
@@ -572,11 +572,11 @@ public class Sep24Service {
     Map<String, InfoResponse.OperationResponse> withdrawMap = new HashMap<>();
     for (StellarAssetInfo asset : assets) {
       // iso4217 assets do not have deposit/withdraw configurations
-      if (asset.getIsServiceEnabled(asset.getSep24(), "deposit"))
+      if (asset.isDepositEnabled(asset.getSep24()))
         depositMap.put(
             asset.getCode(),
             InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getDeposit()));
-      if (asset.getIsServiceEnabled(asset.getSep24(), "withdraw"))
+      if (asset.isWithdrawEnabled(asset.getSep24()))
         withdrawMap.put(
             asset.getCode(),
             InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getWithdraw()));

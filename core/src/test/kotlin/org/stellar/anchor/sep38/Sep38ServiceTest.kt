@@ -75,7 +75,7 @@ class Sep38ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
-    val assets = assetService.getAllAssets()
+    val assets = assetService.getAssets()
     this.sep38Service =
       Sep38Service(sep38Config, assetService, mockRateIntegration, mockQuoteStore, eventService)
     assertEquals(4, assets.size)

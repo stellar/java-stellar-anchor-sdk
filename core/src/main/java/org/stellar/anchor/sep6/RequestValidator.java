@@ -23,7 +23,7 @@ public class RequestValidator {
    */
   public StellarAssetInfo getDepositAsset(String assetCode) throws SepValidationException {
     StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode);
-    if (asset == null || !asset.getIsServiceEnabled(asset.getSep6(), "deposit")) {
+    if (asset == null || !asset.isDepositEnabled(asset.getSep6())) {
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
     return asset;
@@ -38,7 +38,7 @@ public class RequestValidator {
    */
   public StellarAssetInfo getWithdrawAsset(String assetCode) throws SepValidationException {
     StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode);
-    if (asset == null || !asset.getIsServiceEnabled(asset.getSep6(), "withdraw")) {
+    if (asset == null || !asset.isWithdrawEnabled(asset.getSep6())) {
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
     return asset;
