@@ -2,17 +2,23 @@ package org.stellar.anchor.platform.config;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.stellar.anchor.client.DefaultClientService.*;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.error;
 
+import com.google.common.collect.ImmutableMap;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.client.ClientConfig;
 import org.stellar.anchor.client.CustodialClientConfig;
 import org.stellar.anchor.client.NonCustodialClientConfig;
 import org.stellar.anchor.config.ClientsConfig;
@@ -60,6 +66,7 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
             String.format(
                 "Custodial client %s must have at least one signing key", client.getName()));
       }
+      validateCallbackUrls(List.of(client), errors);
     }
   }
 
@@ -72,6 +79,42 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
             String.format(
                 "NonCustodial client %s must have at least one domain", client.getName()));
       }
+      validateCallbackUrls(List.of(client), errors);
+    }
+  }
+
+  void validateCallbackUrls(List<ClientConfig> clients, Errors errors) {
+    for (ClientConfig client : clients) {
+      debugF("Validating client {}", client);
+      ImmutableMap.of(
+              "callback_url",
+              Optional.ofNullable(client.getCallbackUrl()).orElse(""),
+              "callback_url_sep6",
+              Optional.ofNullable(client.getCallbackUrls())
+                  .map(ClientConfig.CallbackUrls::getSep6)
+                  .orElse(""),
+              "callback_url_sep24",
+              Optional.ofNullable(client.getCallbackUrls())
+                  .map(ClientConfig.CallbackUrls::getSep24)
+                  .orElse(""),
+              "callback_url_sep31",
+              Optional.ofNullable(client.getCallbackUrls())
+                  .map(ClientConfig.CallbackUrls::getSep31)
+                  .orElse(""),
+              "callback_url_sep12",
+              Optional.ofNullable(client.getCallbackUrls())
+                  .map(ClientConfig.CallbackUrls::getSep12)
+                  .orElse(""))
+          .forEach(
+              (key, value) -> {
+                if (!isEmpty(value)) {
+                  try {
+                    new URL(value);
+                  } catch (MalformedURLException e) {
+                    errors.reject("client-invalid-" + key, "The client." + key + " is invalid");
+                  }
+                }
+              });
     }
   }
 }

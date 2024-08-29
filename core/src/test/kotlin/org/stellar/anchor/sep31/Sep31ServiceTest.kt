@@ -235,13 +235,13 @@ class Sep31ServiceTest {
   """
 
     private val custodialClientConfig =
-      CustodialClientConfig(
-        "custodialClient",
-        setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"),
-        "https://exmaple.com/callback",
-        false,
-        emptySet(),
-      )
+      CustodialClientConfig.builder()
+        .name("custodialClient")
+        .signingKeys(setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEG"))
+        .callbackUrl("https://example.com/callback")
+        .allowAnyDestination(false)
+        .destinationAccounts(emptySet())
+        .build()
 
     @JvmStatic
     fun generateGetClientNameTestConfig(): Stream<Arguments> {
