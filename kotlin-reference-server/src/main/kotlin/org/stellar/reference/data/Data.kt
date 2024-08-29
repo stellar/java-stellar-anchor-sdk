@@ -99,12 +99,6 @@ data class RequestCustomerInfoUpdateRequest(
 @Serializable
 data class NotifyCustomerInfoUpdatedRequest(
   @SerialName("transaction_id") override val transactionId: String,
-  override val message: String?
-) : RpcActionParamsRequest()
-
-@Serializable
-data class NotifyCustomerInfoUpdatedRequest(
-  @SerialName("transaction_id") override val transactionId: String,
   override val message: String? = null,
   @SerialName("customer_id") val customerId: String? = null,
   @SerialName("customer_type") val customerType: String? = null

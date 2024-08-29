@@ -305,7 +305,6 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     expectedResponse.status = SepTransactionStatus.from(newStatus)
     expectedResponse.amountIn = Amount()
     expectedResponse.amountOut = Amount()
-    expectedResponse.amountFee = Amount()
     expectedResponse.amountExpected = Amount()
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.message = TEST_MESSAGE
@@ -417,6 +416,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers = Customers(StellarId(), StellarId())
+    expectedResponse.creator = StellarId()
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -530,6 +530,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.message = TEST_MESSAGE
     expectedResponse.customers = Customers(StellarId(), StellarId())
+    expectedResponse.creator = StellarId()
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

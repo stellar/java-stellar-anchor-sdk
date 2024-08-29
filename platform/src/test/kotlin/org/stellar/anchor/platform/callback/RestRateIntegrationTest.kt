@@ -18,8 +18,8 @@ import org.stellar.anchor.api.callback.GetRateRequest.Type.from
 import org.stellar.anchor.api.callback.GetRateResponse
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.AssetInfo
-import org.stellar.anchor.api.sep.AssetInfo.Schema.iso4217
-import org.stellar.anchor.api.sep.AssetInfo.Schema.stellar
+import org.stellar.anchor.api.sep.AssetInfo.Schema.ISO_4217
+import org.stellar.anchor.api.sep.AssetInfo.Schema.STELLAR
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.platform.callback.RestRateIntegration.withinRoundingError
 import org.stellar.anchor.util.GsonUtils
@@ -37,11 +37,11 @@ class RestRateIntegrationTest {
   fun setUp() {
     // Set up USDC asset info
     usdAssetInfo.code = "USD"
-    usdAssetInfo.schema = iso4217
+    usdAssetInfo.schema = ISO_4217
     usdAssetInfo.significantDecimals = 2
 
     // Set up USD asset info
-    usdcAssetInfo.schema = stellar
+    usdcAssetInfo.schema = STELLAR
     usdcAssetInfo.code = "USDC"
     usdcAssetInfo.issuer = "GABCD"
     usdcAssetInfo.significantDecimals = 7

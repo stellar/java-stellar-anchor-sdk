@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
@@ -94,7 +95,10 @@ public class ClientStatusCallbackHandler extends EventHandler {
   Request buildHttpRequest(KeyPair signer, AnchorEvent event) {
     String callbackUrl = getCallbackUrl(event);
     if (callbackUrl == null) {
-      Log.debugF("No callback URL found for event: {}", json(event));
+      Log.debugF(
+          "No callback URL found for event: {} for client: {}",
+          json(event),
+          clientConfig.getName());
       return null;
     }
 
@@ -107,18 +111,27 @@ public class ClientStatusCallbackHandler extends EventHandler {
     if (event.getTransaction() != null) {
       switch (event.getTransaction().getSep()) {
         case SEP_6:
-          if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep6())) {
-            callbackUrl = clientConfig.getCallbackUrlSep6();
+          if (!StringUtils.isEmpty(
+              Optional.ofNullable(clientConfig.getCallbackUrls())
+                  .map(ClientConfig.CallbackUrls::getSep6)
+                  .orElse(""))) {
+            callbackUrl = clientConfig.getCallbackUrls().getSep6();
           }
           break;
         case SEP_24:
-          if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep24())) {
-            callbackUrl = clientConfig.getCallbackUrlSep24();
+          if (!StringUtils.isEmpty(
+              Optional.ofNullable(clientConfig.getCallbackUrls())
+                  .map(ClientConfig.CallbackUrls::getSep24)
+                  .orElse(""))) {
+            callbackUrl = clientConfig.getCallbackUrls().getSep24();
           }
           break;
         case SEP_31:
-          if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep31())) {
-            callbackUrl = clientConfig.getCallbackUrlSep31();
+          if (!StringUtils.isEmpty(
+              Optional.ofNullable(clientConfig.getCallbackUrls())
+                  .map(ClientConfig.CallbackUrls::getSep31)
+                  .orElse(""))) {
+            callbackUrl = clientConfig.getCallbackUrls().getSep31();
           }
           break;
         default:
@@ -126,8 +139,11 @@ public class ClientStatusCallbackHandler extends EventHandler {
               String.format("Unsupported SEP: %s", event.getTransaction().getSep()));
       }
     } else if (event.getCustomer() != null) {
-      if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep12())) {
-        callbackUrl = clientConfig.getCallbackUrlSep12();
+      if (!StringUtils.isEmpty(
+          Optional.ofNullable(clientConfig.getCallbackUrls())
+              .map(ClientConfig.CallbackUrls::getSep12)
+              .orElse(""))) {
+        callbackUrl = clientConfig.getCallbackUrls().getSep12();
       }
     }
     return callbackUrl;
