@@ -13,7 +13,9 @@ import org.springframework.data.domain.Sort
 import org.stellar.anchor.api.platform.TransactionsOrderBy
 import org.stellar.anchor.api.platform.TransactionsSeps
 import org.stellar.anchor.api.rpc.RpcRequest
-import org.stellar.anchor.api.rpc.method.*
+import org.stellar.anchor.api.rpc.method.NotifyOffchainFundsReceivedRequest
+import org.stellar.anchor.api.rpc.method.RequestOffchainFundsRequest
+import org.stellar.anchor.api.rpc.method.RpcMethod
 import org.stellar.anchor.api.rpc.method.RpcMethod.REQUEST_OFFCHAIN_FUNDS
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
@@ -25,6 +27,7 @@ import org.stellar.anchor.client.Sep24Client
 import org.stellar.anchor.client.Sep31Client
 import org.stellar.anchor.client.Sep6Client
 import org.stellar.anchor.platform.AbstractIntegrationTests
+import org.stellar.anchor.platform.CLIENT_WALLET_ACCOUNT
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 
@@ -68,7 +71,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   }
 
   /**
-   * 1. incomplete -> request_customer_info_update
+   * 1. incomplete -> notify_customer_info_updated
    * 2. pending_customer_info_update -> request_offchain_funds
    * 3. pending_user_transfer_start -> notify_offchain_funds_received
    * 4. pending_anchor -> request_trust
@@ -318,13 +321,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   /**
    * 1. pending_receiver -> request_onchain_funds
    * 2. pending_sender -> notify_onchain_funds_received
-   * 3. pending_receiver -> request_customer_info_update
-   * 4. pending_customer_info_update -> notify_customer_info_updated
-   * 5. pending_receiver -> notify_transaction_error
-   * 6. error -> notify_transaction_recovery
-   * 7. pending_receiver -> notify_offchain_funds_pending
-   * 8. pending_external -> notify_offchain_funds_sent
-   * 9. completed
+   * 3. pending_receiver -> notify_customer_info_updated
+   * 4. pending_receiver -> notify_transaction_error
+   * 5. error -> notify_transaction_recovery
+   * 6. pending_receiver -> notify_offchain_funds_pending
+   * 7. pending_external -> notify_offchain_funds_sent
+   * 8. completed
    */
   @Test
   fun `SEP-31 complete full with recovery`() {
@@ -513,35 +515,59 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   private fun `test sep6 withdraw flow`(actionRequests: String, actionResponse: String) {
     val withdrawRequest = gson.fromJson(SEP_6_WITHDRAW_FLOW_REQUEST, HashMap::class.java)
 
+    val customer =
+      sep12Client.putCustomer(
+        Sep12PutCustomerRequest.builder().account(CLIENT_WALLET_ACCOUNT).build()
+      )
+    val updatedActionRequests = actionRequests.replace(CUSTOMER_ID_KEY, customer!!.id)
+
     @Suppress("UNCHECKED_CAST")
     val withdrawResponse = sep6Client.withdraw(withdrawRequest as HashMap<String, String>)
-    `test flow`(withdrawResponse.id, actionRequests, actionResponse)
+    `test flow`(withdrawResponse.id, updatedActionRequests, actionResponse)
   }
 
   private fun `test sep6 withdraw-exchange flow`(actionRequests: String, actionResponse: String) {
     val withdrawRequest = gson.fromJson(SEP_6_WITHDRAW_EXCHANGE_FLOW_REQUEST, HashMap::class.java)
 
+    val customer =
+      sep12Client.putCustomer(
+        Sep12PutCustomerRequest.builder().account(CLIENT_WALLET_ACCOUNT).build()
+      )
+    val updatedActionRequests = actionRequests.replace(CUSTOMER_ID_KEY, customer!!.id)
+
     @Suppress("UNCHECKED_CAST")
     val withdrawResponse =
       sep6Client.withdraw(withdrawRequest as HashMap<String, String>, exchange = true)
-    `test flow`(withdrawResponse.id, actionRequests, actionResponse)
+    `test flow`(withdrawResponse.id, updatedActionRequests, actionResponse)
   }
 
   private fun `test sep6 deposit flow`(actionRequests: String, actionResponse: String) {
     val depositRequest = gson.fromJson(SEP_6_DEPOSIT_FLOW_REQUEST, HashMap::class.java)
 
+    val customer =
+      sep12Client.putCustomer(
+        Sep12PutCustomerRequest.builder().account(CLIENT_WALLET_ACCOUNT).build()
+      )
+    val updatedActionRequests = actionRequests.replace(CUSTOMER_ID_KEY, customer!!.id)
+
     @Suppress("UNCHECKED_CAST")
     val depositResponse = sep6Client.deposit(depositRequest as HashMap<String, String>)
-    `test flow`(depositResponse.id, actionRequests, actionResponse)
+    `test flow`(depositResponse.id, updatedActionRequests, actionResponse)
   }
 
   private fun `test sep6 deposit-exchange flow`(actionRequests: String, actionResponse: String) {
     val depositRequest = gson.fromJson(SEP_6_DEPOSIT_EXCHANGE_FLOW_REQUEST, HashMap::class.java)
 
+    val customer =
+      sep12Client.putCustomer(
+        Sep12PutCustomerRequest.builder().account(CLIENT_WALLET_ACCOUNT).build()
+      )
+    val updatedActionRequests = actionRequests.replace(CUSTOMER_ID_KEY, customer!!.id)
+
     @Suppress("UNCHECKED_CAST")
     val depositResponse =
       sep6Client.deposit(depositRequest as HashMap<String, String>, exchange = true)
-    `test flow`(depositResponse.id, actionRequests, actionResponse)
+    `test flow`(depositResponse.id, updatedActionRequests, actionResponse)
   }
 
   private fun `test sep24 withdraw flow`(actionRequests: String, actionResponse: String) {
@@ -590,6 +616,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     private const val TX_ID_KEY = "TX_ID"
     private const val RECEIVER_ID_KEY = "RECEIVER_ID"
     private const val SENDER_ID_KEY = "SENDER_ID"
+    private const val CUSTOMER_ID_KEY = "CUSTOMER_ID"
 
     private const val SEP_6_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
       """
@@ -910,11 +937,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         [
           {
             "id": "1",
-            "method": "request_customer_info_update",
+            "method": "notify_customer_info_updated",
             "jsonrpc": "2.0",
             "params": {
               "transaction_id": "TX_ID",
-              "message": "test message 1"
+              "message": "test message 1",
+              "customer_id": "CUSTOMER_ID",
+              "customer_type": "sep6"
             }
           },
           {
@@ -5162,24 +5191,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           },
           {
             "id": "3",
-            "method": "request_customer_info_update",
-            "jsonrpc": "2.0",
-            "params": {
-              "transaction_id": "TX_ID",
-              "message": "test message 2"
-            }
-          },
-          {
-            "id": "4",
             "method": "notify_customer_info_updated",
             "jsonrpc": "2.0",
             "params": {
               "transaction_id": "TX_ID",
-              "message": "test message 3"
+              "message": "test message 2",
+              "customer_id": "SENDER_ID",
+              "customer_type": "sep31-sender"
             }
           },
           {
-            "id": "5",
+            "id": "4",
             "method": "notify_transaction_error",
             "jsonrpc": "2.0",
             "params": {
@@ -5188,7 +5210,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             }
           },
           {
-            "id": "6",
+            "id": "5",
             "method": "notify_transaction_recovery",
             "jsonrpc": "2.0",
             "params": {
@@ -5197,7 +5219,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             }
           },
           {
-            "id": "7",
+            "id": "6",
             "method": "notify_offchain_funds_pending",
             "jsonrpc": "2.0",
             "params": {
@@ -5207,7 +5229,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             }
           },
           {
-            "id": "8",
+            "id": "7",
             "method": "notify_offchain_funds_sent",
             "jsonrpc": "2.0",
             "params": {
@@ -5322,7 +5344,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "id": "TX_ID",
               "sep": "31",
               "kind": "receive",
-              "status": "pending_customer_info_update",
+              "status": "pending_receiver",
               "amount_expected": {
                 "amount": "10",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
@@ -5380,64 +5402,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "id": "TX_ID",
               "sep": "31",
               "kind": "receive",
-              "status": "pending_receiver",
-              "amount_expected": {
-                "amount": "10",
-                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-              },
-              "amount_in": {
-                "amount": "10",
-                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-              },
-              "amount_out": {},
-              "fee_details": {
-                "total": "1",
-                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-              },
-              "transfer_received_at": "2024-06-13T20:02:49Z",
-              "message": "test message 3",
-              "stellar_transactions": [
-                {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
-                  "memo_type": "hash",
-                  "payments": [
-                    {
-                      "id": "138860587651073",
-                      "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-                      },
-                      "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
-                    }
-                  ]
-                }
-              ],
-              "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-              "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
-              "memo_type": "hash",
-              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
-              "refund_memo_type": "hash",
-              "client_name": "referenceCustodial",
-              "customers": {
-                "sender": { "id": "SENDER_ID" },
-                "receiver": { "id": "RECEIVER_ID" }
-              },
-              "creator": {
-                "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-              }
-            },
-            "id": "4"
-          },
-          {
-            "jsonrpc": "2.0",
-            "result": {
-              "id": "TX_ID",
-              "sep": "31",
-              "kind": "receive",
               "status": "error",
               "amount_expected": {
                 "amount": "10",
@@ -5488,7 +5452,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "5"
+            "id": "4"
           },
           {
             "jsonrpc": "2.0",
@@ -5546,7 +5510,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "6"
+            "id": "5"
           },
           {
             "jsonrpc": "2.0",
@@ -5605,7 +5569,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "7"
+            "id": "6"
           },
           {
             "jsonrpc": "2.0",
@@ -5627,6 +5591,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
+              "completed_at": "2024-08-30T21:27:55.418137Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 7",
               "stellar_transactions": [
@@ -5664,7 +5629,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "8"
+            "id": "7"
           }
         ]
       """
