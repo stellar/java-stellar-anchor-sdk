@@ -19,7 +19,6 @@ assets:
     # The `distribution_account` field is the Stellar account that the anchor will use to distribute the asset.
     distribution_account:
     # The `significant_decimals` field is the number of decimals that the asset supports. It must not be defined if the asset is XLM (stellar:native).
-    # default: 7
     significant_decimals: 7
 
     # The configuration for the SEP-6 transactions.
@@ -112,11 +111,6 @@ assets:
       #  - iso4217:USD
       #  - iso4217:CAD
       exchangeable_assets:
-
-  # The native (XLM) asset configuration.
-  # All fields are the same as the stellar asset configuration except for the `significant_decimals` field.
-  # Note: `significant_decimals` must not be defined for the native asset.
-  - id: "stellar:native"
 
   #
   # Fiat (ISO4217) assets
