@@ -29,9 +29,6 @@ public enum RpcMethod {
   @SerializedName("notify_trust_set")
   NOTIFY_TRUST_SET("notify_trust_set"),
 
-  @SerializedName("request_customer_info_update")
-  REQUEST_CUSTOMER_INFO_UPDATE("request_customer_info_update"),
-
   @SerializedName("notify_customer_info_updated")
   NOTIFY_CUSTOMER_INFO_UPDATED("notify_customer_info_updated"),
 
