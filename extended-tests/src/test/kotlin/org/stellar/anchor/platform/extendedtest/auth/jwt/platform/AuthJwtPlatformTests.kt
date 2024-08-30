@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.extendedtest.auth.jwt.platform
 
+import io.mockk.mockk
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import okhttp3.OkHttpClient
@@ -15,6 +16,7 @@ import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.api.exception.UnauthorizedException
 import org.stellar.anchor.apiclient.PlatformApiClient
+import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.platform.extendedtest.auth.AbstractAuthIntegrationTest
@@ -37,18 +39,8 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
   private val jwtExpiredTokenPlatformClient: PlatformApiClient =
     PlatformApiClient(platformJwtExpiredAuthHelper, "http://localhost:8085")
 
-  @ParameterizedTest
-  @CsvSource(
-    value =
-      [
-        GET_TRANSACTIONS_ENDPOINT,
-        PATCH_TRANSACTIONS_ENDPOINT,
-        GET_TRANSACTIONS_MY_ID_ENDPOINT,
-        GET_EXCHANGE_QUOTES_ENDPOINT,
-        GET_EXCHANGE_QUOTES_ID_ENDPOINT
-      ]
-  )
-  fun `test the platform endpoints with JWT auth`(method: String, endpoint: String) {
+  @Test
+  fun `test the platform endpoints with JWT auth`() {
     // Assert the request does not throw a 403.
     // As for the correctness of the request/response, it should be tested in the platform server
     // integration tests.
@@ -63,10 +55,10 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         PATCH_TRANSACTIONS_ENDPOINT,
         GET_TRANSACTIONS_MY_ID_ENDPOINT,
         GET_EXCHANGE_QUOTES_ENDPOINT,
-        GET_EXCHANGE_QUOTES_ID_ENDPOINT
+        GET_EXCHANGE_QUOTES_ID_ENDPOINT,
       ]
   )
-  fun `test JWT protection of the platform server`(method: String, endpoint: String) {
+  fun `test JWT protection of the platform server`(method: String) {
     // Check if the request without JWT will cause a 403.
     val httpRequest =
       Request.Builder()
@@ -111,7 +103,8 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         platformJwtAuthHelper,
-        gson
+        gson,
+        mockk<AssetService>(),
       )
     // Assert the request does not throw a 403.
     assertThrows<UnauthorizedException> { rri.getRate(GetRateRequest.builder().build()) }
@@ -149,7 +142,8 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         platformJwtWrongKeyAuthHelper,
-        gson
+        gson,
+        mockk<AssetService>()
       )
     assertThrows<UnauthorizedException> { badTokenClient.getRate(GetRateRequest.builder().build()) }
 
@@ -158,7 +152,8 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         "http://localhost:${REFERENCE_SERVER_PORT}",
         httpClient,
         platformJwtExpiredAuthHelper,
-        gson
+        gson,
+        mockk<AssetService>()
       )
     assertThrows<UnauthorizedException> {
       expiredTokenClient.getRate(GetRateRequest.builder().build())

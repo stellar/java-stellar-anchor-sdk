@@ -2,12 +2,15 @@ package org.stellar.anchor.platform.rpc;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT_EXCHANGE;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_6;
 import static org.stellar.anchor.api.rpc.method.RpcMethod.REQUEST_OFFCHAIN_FUNDS;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.Set;
+import org.apache.commons.codec.binary.StringUtils;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
@@ -60,29 +63,28 @@ public class RequestOffchainFundsHandler
     if (!
     // None of the amounts are provided
     ((request.getAmountIn() == null
-            && request.getAmountOut() == null
             && request.getFeeDetails() == null
             && request.getAmountExpected() == null)
         ||
         // All the amounts are provided
-        (request.getAmountIn() != null
-            && request.getAmountOut() != null
-            && request.getFeeDetails() != null))) {
+        (request.getAmountIn() != null && request.getFeeDetails() != null))) {
       throw new InvalidParamsException(
-          "All or none of the amount_in, amount_out, and fee_details should be set");
+          "All (amount_out is optional) or none of the amount_in, amount_out, and fee_details should be set");
     }
 
     if (request.getAmountIn() != null) {
       if (AssetValidationUtils.isStellarAsset(request.getAmountIn().getAsset())) {
         throw new InvalidParamsException("amount_in.asset should be non-stellar asset");
       }
-      AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), true, assetService);
+      AssetValidationUtils.validateAssetAmount(
+          "amount_in", request.getAmountIn(), true, assetService);
     }
     if (request.getAmountOut() != null) {
       if (!AssetValidationUtils.isStellarAsset(request.getAmountOut().getAsset())) {
         throw new InvalidParamsException("amount_out.asset should be stellar asset");
       }
-      AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), true, assetService);
+      AssetValidationUtils.validateAssetAmount(
+          "amount_out", request.getAmountOut(), true, assetService);
     }
     if (request.getFeeDetails() != null) {
       if (AssetValidationUtils.isStellarAsset(request.getFeeDetails().getAsset())) {
@@ -91,7 +93,7 @@ public class RequestOffchainFundsHandler
       AssetValidationUtils.validateFeeDetails(request.getFeeDetails(), txn, assetService);
     }
     if (request.getAmountExpected() != null) {
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "amount_expected",
           AmountAssetRequest.builder()
               .amount(request.getAmountExpected().getAmount())
@@ -104,7 +106,26 @@ public class RequestOffchainFundsHandler
       throw new InvalidParamsException("amount_in is required");
     }
     if (request.getAmountOut() == null && txn.getAmountOut() == null) {
-      throw new InvalidParamsException("amount_out is required");
+      if (SEP_6 == Sep.from(txn.getProtocol())) {
+        JdbcSep6Transaction txn6 = (JdbcSep6Transaction) txn;
+        if (txn6.getQuoteId() != null) {
+          throw new InvalidParamsException(
+              "amount_out is required for transactions with firm quotes");
+        }
+        if (StringUtils.equals(txn6.getAmountInAsset(), txn6.getAmountOutAsset())) {
+          throw new InvalidParamsException("amount_out is required for non-exchange transactions");
+        }
+      }
+      if (SEP_24 == Sep.from(txn.getProtocol())) {
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        if (txn24.getQuoteId() != null) {
+          throw new InvalidParamsException(
+              "amount_out is required for transactions with firm quotes");
+        }
+        if (StringUtils.equals(txn24.getAmountInAsset(), txn24.getAmountOutAsset())) {
+          throw new InvalidParamsException("amount_out is required for non-exchange transactions");
+        }
+      }
     }
     if (request.getFeeDetails() == null && txn.getAmountFee() == null) {
       throw new InvalidParamsException("fee_details is required");

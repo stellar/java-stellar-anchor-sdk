@@ -2,7 +2,7 @@ assets:
   # Stellar assets
   - id: stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
-    significant_decimals: 2
+    significant_decimals: 7
     sep6:
       enabled: true
       deposit:
@@ -61,7 +61,7 @@ assets:
         - iso4217:CAD
   - id: stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
-    significant_decimals: 2
+    significant_decimals: 4
     sep24:
       enabled: true
       deposit:
@@ -158,7 +158,7 @@ assets:
 
   # Fiat
   - id: iso4217:USD
-    significant_decimals: 7
+    significant_decimals: 4
     sep31:
       enabled: false
       receive:
@@ -179,7 +179,7 @@ assets:
         - name: WIRE
           description: Have USD sent directly to your bank account.
   - id: iso4217:CAD
-    significant_decimals: 7
+    significant_decimals: 4
     sep31:
       receive:
         min_amount: 0

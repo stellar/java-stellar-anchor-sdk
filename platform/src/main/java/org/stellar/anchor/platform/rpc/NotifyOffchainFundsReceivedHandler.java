@@ -88,7 +88,7 @@ public class NotifyOffchainFundsReceivedHandler
     }
 
     if (request.getAmountIn() != null) {
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "amount_in",
           AmountAssetRequest.builder()
               .amount(request.getAmountIn().getAmount())
@@ -97,7 +97,7 @@ public class NotifyOffchainFundsReceivedHandler
           assetService);
     }
     if (request.getAmountOut() != null) {
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "amount_out",
           AmountAssetRequest.builder()
               .amount(request.getAmountOut().getAmount())

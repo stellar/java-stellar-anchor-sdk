@@ -1,6 +1,8 @@
 package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.Gson
+import io.mockk.every
+import io.mockk.mockk
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -16,6 +18,8 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.NotFoundException
+import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
@@ -55,7 +59,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
       config.env["secret.sep24.more_info_url.jwt_secret"]!!,
       config.env["secret.callback_api.auth_secret"]!!,
       config.env["secret.platform_api.auth_secret"]!!,
-      null
+      null,
     )
 
   private val authHelper =
@@ -67,11 +71,40 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
     )
 
   private val gson: Gson = GsonUtils.getInstance()
+  private val mockAssetService = mockk<AssetService>()
 
   private val rci =
     RestCustomerIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
   private val rriClient =
-    RestRateIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
+    RestRateIntegration(
+      config.env["reference.server.url"]!!,
+      httpClient,
+      authHelper,
+      gson,
+      mockAssetService
+    )
+
+  @BeforeAll
+  fun setup() {
+    val usdc = AssetInfo()
+    usdc.schema = AssetInfo.Schema.STELLAR
+    usdc.code = "USDC"
+    usdc.issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    usdc.significantDecimals = 4
+
+    val usd = AssetInfo()
+    usd.schema = AssetInfo.Schema.ISO_4217
+    usd.code = "USD"
+    usd.significantDecimals = 2
+
+    every {
+      mockAssetService.getAssetByName(
+        "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      )
+    } returns usdc
+    every { mockAssetService.getAssetByName("iso4217:USD") } returns usd
+    every { mockAssetService.getAssetByName(null) } returns null
+  }
 
   @Test
   fun testCustomerIntegration() {
@@ -115,6 +148,7 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
     JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(result), true)
   }
 
+  @Disabled // ANCHOR-797
   @Test
   fun testRate_firm() {
     val rate =

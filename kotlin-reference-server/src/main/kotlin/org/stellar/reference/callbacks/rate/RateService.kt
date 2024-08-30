@@ -19,97 +19,88 @@ import org.stellar.reference.model.Quote
 class RateService(private val quoteRepository: QuoteRepository) {
   private val scale = 4
   fun getRate(request: GetRateRequest): GetRateResponse {
-    val rate =
-      when {
-        request.id != null -> getRate(request.id)
-        else -> {
-          validateRequest(request)
-          val price =
-            getPrice(request.sellAsset!!, request.buyAsset!!)?.let { getDecimal(it, scale) }
-              ?: throw RuntimeException(
-                "Price not found for ${request.sellAsset} and ${request.buyAsset}"
-              )
-          val buyAmount = request.buyAmount?.let { getDecimal(it, scale) }
-          val sellAmount = request.sellAmount?.let { getDecimal(it, scale) }
-          val fee = getFee(request.sellAsset!!, request.buyAsset!!)
-          val feeAmount = fee.total.toBigDecimal()
+    validateRequest(request)
+    val price =
+      getPrice(request.sellAsset!!, request.buyAsset!!)?.let { getDecimal(it, scale) }
+        ?: throw RuntimeException(
+          "Price not found for ${request.sellAsset} and ${request.buyAsset}"
+        )
+    val buyAmount = request.buyAmount?.let { getDecimal(it, scale) }
+    val sellAmount = request.sellAmount?.let { getDecimal(it, scale) }
+    val fee = getFee(request.sellAsset!!, request.buyAsset!!)
+    val feeAmount = fee.total.toBigDecimal()
 
-          val finalBuyAmount =
-            sellAmount?.subtract(feeAmount)?.divide(price, RoundingMode.HALF_DOWN)?.also {
-              if (it <= BigDecimal.ZERO) {
-                throw RuntimeException("Buy amount must be greater than zero")
-              }
-            }
-              ?: buyAmount
-          val finalSellAmount =
-            buyAmount?.setScale(10, RoundingMode.HALF_DOWN)?.multiply(price)?.add(feeAmount)
-              ?: sellAmount
-          val finalPrice =
-            finalSellAmount
-              ?.setScale(10, RoundingMode.HALF_DOWN)
-              ?.subtract(feeAmount)
-              ?.divide(finalBuyAmount, RoundingMode.HALF_DOWN)
-              ?: price
-          val finalTotalPrice = finalSellAmount?.divide(finalBuyAmount, 10, RoundingMode.HALF_DOWN)
-
-          if (request.type == GetRateRequest.Type.INDICATIVE) {
-            return GetRateResponse.indicativePrice(
-              getString(finalPrice, 10),
-              getString(finalSellAmount!!, scale),
-              getString(finalBuyAmount!!, scale),
-              fee
-            )
-          }
-
-          val expiresAfter =
-            request.expireAfter?.let { ZonedDateTime.parse(it).toInstant() } ?: Instant.now()
-          val expiresAt =
-            ZonedDateTime.ofInstant(expiresAfter, ZoneId.of("UTC"))
-              .plusDays(1)
-              .withHour(12)
-              .withMinute(0)
-              .withSecond(0)
-              .withNano(0)
-              .toInstant()
-          val quote =
-            Quote(
-              id = UUID.randomUUID().toString(),
-              sellAsset = request.sellAsset,
-              sellAmount = getString(finalSellAmount!!, scale),
-              sellDeliveryMethod = request.sellDeliveryMethod,
-              buyAsset = request.buyAsset,
-              buyAmount = getString(finalBuyAmount!!, scale),
-              buyDeliveryMethod = request.buyDeliveryMethod,
-              countryCode = request.countryCode,
-              createdAt = Instant.now(),
-              expiresAt = expiresAt,
-              clientId = request.clientId,
-              price = getString(finalPrice, 10),
-              totalPrice = getString(finalTotalPrice!!, 10),
-              fee =
-                org.stellar.reference.model.FeeDetails(
-                  fee.total,
-                  fee.asset,
-                  fee.details.map {
-                    org.stellar.reference.model.FeeDescription(it.name, it.description, it.amount)
-                  }
-                )
-            )
-          quoteRepository.create(quote)
-
-          val rate =
-            GetRateResponse.Rate.builder()
-              .id(quote.id)
-              .price(quote.price)
-              .sellAmount(quote.sellAmount)
-              .buyAmount(quote.buyAmount)
-              .expiresAt(quote.expiresAt)
-              .fee(fee)
-              .build()
-          return GetRateResponse(rate)
+    val finalBuyAmount =
+      sellAmount?.subtract(feeAmount)?.divide(price, RoundingMode.HALF_DOWN)?.also {
+        if (it <= BigDecimal.ZERO) {
+          throw RuntimeException("Buy amount must be greater than zero")
         }
       }
+        ?: buyAmount
+    val finalSellAmount =
+      buyAmount?.setScale(10, RoundingMode.HALF_DOWN)?.multiply(price)?.add(feeAmount) ?: sellAmount
+    val finalPrice =
+      finalSellAmount
+        ?.setScale(10, RoundingMode.HALF_DOWN)
+        ?.subtract(feeAmount)
+        ?.divide(finalBuyAmount, RoundingMode.HALF_DOWN)
+        ?: price
+    val finalTotalPrice = finalSellAmount?.divide(finalBuyAmount, 10, RoundingMode.HALF_DOWN)
 
+    if (request.type == GetRateRequest.Type.INDICATIVE) {
+      return GetRateResponse.indicativePrice(
+        getString(finalPrice, 10),
+        getString(finalSellAmount!!, scale),
+        getString(finalBuyAmount!!, scale),
+        fee
+      )
+    }
+
+    val expiresAfter =
+      request.expireAfter?.let { ZonedDateTime.parse(it).toInstant() } ?: Instant.now()
+    val expiresAt =
+      ZonedDateTime.ofInstant(expiresAfter, ZoneId.of("UTC"))
+        .plusDays(1)
+        .withHour(12)
+        .withMinute(0)
+        .withSecond(0)
+        .withNano(0)
+        .toInstant()
+    val quote =
+      Quote(
+        id = UUID.randomUUID().toString(),
+        sellAsset = request.sellAsset,
+        sellAmount = getString(finalSellAmount!!, scale),
+        sellDeliveryMethod = request.sellDeliveryMethod,
+        buyAsset = request.buyAsset,
+        buyAmount = getString(finalBuyAmount!!, scale),
+        buyDeliveryMethod = request.buyDeliveryMethod,
+        countryCode = request.countryCode,
+        createdAt = Instant.now(),
+        expiresAt = expiresAt,
+        clientId = request.clientId,
+        price = getString(finalPrice, 10),
+        totalPrice = getString(finalTotalPrice!!, 10),
+        fee =
+          org.stellar.reference.model.FeeDetails(
+            fee.total,
+            fee.asset,
+            fee.details.map {
+              org.stellar.reference.model.FeeDescription(it.name, it.description, it.amount)
+            }
+          )
+      )
+    quoteRepository.create(quote)
+
+    val rate =
+      GetRateResponse.Rate.builder()
+        .id(quote.id)
+        .price(quote.price)
+        .sellAmount(quote.sellAmount)
+        .buyAmount(quote.buyAmount)
+        .expiresAt(quote.expiresAt)
+        .fee(fee)
+        .build()
     return GetRateResponse(rate)
   }
 
@@ -194,21 +185,22 @@ class RateService(private val quoteRepository: QuoteRepository) {
     val prices =
       mapOf(
         Pair(fiatUSD, stellarCircleUSDCtest) to "1.02",
-        Pair(stellarUSDCtest, fiatUSD) to "1.05",
         Pair(fiatUSD, stellarCircleUSDCtest) to "1.02",
-        Pair(stellarCircleUSDCtest, fiatUSD) to "1.05",
         Pair(fiatUSD, stellarUSDCtest) to "1.02",
-        Pair(stellarUSDCtest, fiatUSD) to "1.05",
         Pair(fiatUSD, stellarJPYC) to "0.0083333",
-        Pair(stellarJPYC, fiatUSD) to "122",
+        Pair(fiatCAD, stellarUSDCtest) to "0.74",
+        Pair(fiatCAD, stellarUSDCprod) to "0.74",
+        Pair(stellarUSDCtest, fiatUSD) to "1.05",
+        Pair(stellarUSDCtest, fiatUSD) to "1.05",
         Pair(stellarUSDCtest, stellarJPYC) to "0.0084",
-        Pair(stellarJPYC, stellarUSDCtest) to "120",
-        Pair(stellarCircleUSDCtest, stellarJPYC) to "0.0084",
-        Pair(stellarJPYC, stellarCircleUSDCtest) to "120",
-        Pair(stellarUSDCprod, stellarJPYC) to "0.0084",
-        Pair(stellarJPYC, stellarUSDCprod) to "120",
-        Pair(fiatCAD, stellarUSDCtest) to "0.73",
         Pair(stellarUSDCtest, fiatCAD) to "1.37",
+        Pair(stellarUSDCprod, stellarJPYC) to "0.0084",
+        Pair(stellarCircleUSDCtest, fiatUSD) to "1.05",
+        Pair(stellarCircleUSDCtest, stellarJPYC) to "0.0084",
+        Pair(stellarJPYC, fiatUSD) to "122",
+        Pair(stellarJPYC, stellarUSDCtest) to "120",
+        Pair(stellarJPYC, stellarCircleUSDCtest) to "120",
+        Pair(stellarJPYC, stellarUSDCprod) to "120",
       )
 
     private fun getPrice(sellAsset: String, buyAsset: String): String? {

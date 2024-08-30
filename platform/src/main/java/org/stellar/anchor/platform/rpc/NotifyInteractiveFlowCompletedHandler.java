@@ -56,7 +56,7 @@ public class NotifyInteractiveFlowCompletedHandler
 
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
-    AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), assetService);
+    AssetValidationUtils.validateAssetAmount("amount_in", request.getAmountIn(), assetService);
     switch (Kind.from(txn24.getKind())) {
       case DEPOSIT:
         if (AssetValidationUtils.isStellarAsset(request.getAmountIn().getAsset())) {
@@ -70,7 +70,7 @@ public class NotifyInteractiveFlowCompletedHandler
         break;
     }
 
-    AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), assetService);
+    AssetValidationUtils.validateAssetAmount("amount_out", request.getAmountOut(), assetService);
     switch (Kind.from(txn24.getKind())) {
       case DEPOSIT:
         if (!AssetValidationUtils.isStellarAsset(request.getAmountOut().getAsset())) {
@@ -103,7 +103,7 @@ public class NotifyInteractiveFlowCompletedHandler
     }
 
     if (request.getAmountExpected() != null) {
-      AssetValidationUtils.validateAsset(
+      AssetValidationUtils.validateAssetAmount(
           "amount_expected",
           AmountAssetRequest.builder()
               .amount(request.getAmountExpected().getAmount())
