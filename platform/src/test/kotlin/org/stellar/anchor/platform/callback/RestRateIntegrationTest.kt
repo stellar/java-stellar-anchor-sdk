@@ -37,11 +37,11 @@ class RestRateIntegrationTest {
   @BeforeEach
   fun setUp() {
     // Set up USDC asset info
-    usdAssetInfo.id = listOf(ISO_4217, "USD").joinToString { ":" }
+    usdAssetInfo.id = "$ISO_4217:USD"
     usdAssetInfo.significantDecimals = 2
 
     // Set up USD asset info
-    usdcAssetInfo.id = listOf(STELLAR, "USDC", "GABCD").joinToString { ":" }
+    usdcAssetInfo.id = "$STELLAR:USDC:GABCD"
     usdcAssetInfo.significantDecimals = 7
 
     // Set up asset service
