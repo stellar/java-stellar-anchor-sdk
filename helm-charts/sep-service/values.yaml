@@ -182,9 +182,7 @@ sep1_toml: |
 
 assets_config: |
   assets:
-  - schema: stellar
-    code: USDC
-    issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+  - id: stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 2
     sep6:
@@ -238,9 +236,7 @@ assets_config: |
       enabled: true
       exchangeable_assets:
         - iso4217:USD
-  - schema: stellar
-    code: USDC
-    issuer: GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+  - id: stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 2
     sep24:
@@ -277,9 +273,7 @@ assets_config: |
       enabled: true
       exchangeable_assets:
         - iso4217:USD
-  - schema: stellar
-    code: JPYC
-    issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+  - id: stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 4
     sep6:
@@ -312,8 +306,7 @@ assets_config: |
       enabled: true
       exchangeable_assets:
         - iso4217:USD
-  - schema: iso4217
-    code: USD
+  - id: iso4217:USD
     significant_decimals: 7
     sep31:
       enabled: false
@@ -336,8 +329,7 @@ assets_config: |
       buy_delivery_methods:
         - name: WIRE
           description: Have USD sent directly to your bank account.
-  - schema: stellar
-    code: native
+  - id: stellar:native
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 7
     sep6:

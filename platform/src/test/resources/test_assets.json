@@ -1,9 +1,7 @@
 {
   "assets": [
     {
-      "schema": "stellar",
-      "code": "USDC",
-      "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      "id": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
       "distribution_account": "GBJDTHT4562X2H37JMOE6IUTZZSDU6RYGYUNFYCHVFG3J4MYJIMU33HK",
       "significant_decimals": 2,
       "sep24": {
@@ -60,8 +58,7 @@
       }
     },
     {
-      "schema": "iso4217",
-      "code": "USD",
+      "id": "iso4217:USD",
       "significant_decimals": 2,
       "sep31": {
         "enabled": false,

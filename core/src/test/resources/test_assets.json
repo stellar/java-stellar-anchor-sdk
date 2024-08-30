@@ -1,9 +1,7 @@
 {
   "assets": [
     {
-      "schema": "stellar",
-      "code": "USDC",
-      "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "id": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
       "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
       "significant_decimals": 2,
       "sep6": {
@@ -91,9 +89,7 @@
       }
     },
     {
-      "schema": "stellar",
-      "code": "JPYC",
-      "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      "id": "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
       "significant_decimals": 2,
       "sep6" : {
         "enabled": false
@@ -152,8 +148,7 @@
       }
     },
     {
-      "schema": "iso4217",
-      "code": "USD",
+      "id": "iso4217:USD",
       "significant_decimals": 2,
       "sep31": {
         "enabled": false,
@@ -189,8 +184,7 @@
       }
     },
     {
-      "schema": "stellar",
-      "code": "native",
+      "id": "stellar:native",
       "significant_decimals": 7,
       "sep6": {
         "enabled": false

@@ -13,10 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.PutCustomerRequest;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
@@ -141,7 +141,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
       }
     }
 
-    fields.put("asset", asset.getSep38AssetName());
+    fields.put("asset", asset.getId());
 
     if (homeDomain != null) {
       fields.put(HOME_DOMAIN, homeDomain);

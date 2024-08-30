@@ -1,6 +1,6 @@
 package org.stellar.anchor.horizon;
 
-import static org.stellar.anchor.api.sep.AssetInfo.NATIVE_ASSET_CODE;
+import static org.stellar.anchor.api.asset.AssetInfo.NATIVE_ASSET_CODE;
 
 import java.io.IOException;
 import java.util.Arrays;

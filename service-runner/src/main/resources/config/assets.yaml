@@ -1,8 +1,6 @@
 assets:
   # Stellar assets
-  - schema: stellar
-    code: USDC
-    issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+  - id: stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 7
     sep6:
@@ -61,9 +59,7 @@ assets:
       exchangeable_assets:
         - iso4217:USD
         - iso4217:CAD
-  - schema: stellar
-    code: USDC
-    issuer: GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+  - id: stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 4
     sep24:
@@ -101,9 +97,7 @@ assets:
       exchangeable_assets:
         - iso4217:USD
         - iso4217:CAD
-  - schema: stellar
-    code: JPYC
-    issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+  - id: stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 4
     sep6:
@@ -142,8 +136,7 @@ assets:
         - iso4217:USD
 
   # Native asset
-  - schema: stellar
-    code: native
+  - id: stellar:native
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 7
     sep6:
@@ -164,8 +157,7 @@ assets:
       enabled: false
 
   # Fiat
-  - schema: iso4217
-    code: USD
+  - id: iso4217:USD
     significant_decimals: 4
     sep31:
       enabled: false
@@ -186,8 +178,7 @@ assets:
       buy_delivery_methods:
         - name: WIRE
           description: Have USD sent directly to your bank account.
-  - schema: iso4217
-    code: CAD
+  - id: iso4217:CAD
     significant_decimals: 4
     sep31:
       receive:

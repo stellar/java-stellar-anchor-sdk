@@ -21,14 +21,12 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestHelper
-import org.stellar.anchor.api.callback.CustomerIntegration
-import org.stellar.anchor.api.callback.GetCustomerResponse
-import org.stellar.anchor.api.callback.GetRateResponse
-import org.stellar.anchor.api.callback.RateIntegration
+import org.stellar.anchor.api.asset.AssetInfo
+import org.stellar.anchor.api.asset.AssetInfo.Field
+import org.stellar.anchor.api.asset.StellarAssetInfo
+import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
-import org.stellar.anchor.api.sep.AssetInfo
-import org.stellar.anchor.api.sep.AssetInfo.Field
-import org.stellar.anchor.api.sep.operation.Sep31Info
+import org.stellar.anchor.api.sep.operation.ReceiveInfo
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
@@ -94,27 +92,11 @@ class Sep31ServiceTest {
     private const val assetJson =
       """
             {
-              "code": "USDC",
-              "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+              "id": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
               "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-              "schema": "stellar",
               "significant_decimals": 2,
-              "deposit": {
-                "enabled": true,
-                "fee_fixed": 0,
-                "fee_percent": 0,
-                "min_amount": 1,
-                "max_amount": 1000000,
-                "fee_minimum": 0
-              },
-              "withdraw": {
-                "enabled": false,
-                "fee_fixed": 0,
-                "fee_percent": 0,
-                "min_amount": 1,
-                "max_amount": 1000000
-              },
               "sep31": {
+                "enabled": true,
                 "receive": {
                   "fee_fixed": 0,
                   "fee_percent": 0,
@@ -145,12 +127,11 @@ class Sep31ServiceTest {
                 }
               },
               "sep38": {
+                "enabled": true,
                 "exchangeable_assets": [
                   "iso4217:USD"
                 ]
-              },
-              "sep31_enabled": true,
-              "sep38_enabled": true
+              }
             }
 
         """
@@ -330,7 +311,7 @@ class Sep31ServiceTest {
     request = gson.fromJson(requestJson, Sep31PostTransactionRequest::class.java)
     txn = gson.fromJson(txnJson, PojoSep31Transaction::class.java)
     fee = gson.fromJson(feeJson, Amount::class.java)
-    asset = gson.fromJson(assetJson, AssetInfo::class.java)
+    asset = gson.fromJson(assetJson, StellarAssetInfo::class.java)
     quote = gson.fromJson(quoteJson, PojoSep38Quote::class.java)
     patchRequest = gson.fromJson(patchTxnRequestJson, Sep31PatchTransactionRequest::class.java)
   }
@@ -359,26 +340,14 @@ class Sep31ServiceTest {
 
   @Test
   fun `test quotes supported and required validation`() {
-    val assetServiceQuotesNotSupported: AssetService =
+    val ex: AnchorException = assertThrows {
       DefaultAssetService.fromJsonResource(
         "test_assets.json.quotes_required_but_not_supported",
       )
-    val ex: AnchorException = assertThrows {
-      Sep31Service(
-        appConfig,
-        sep10Config,
-        sep31Config,
-        txnStore,
-        quoteStore,
-        clientService,
-        assetServiceQuotesNotSupported,
-        rateIntegration,
-        eventService,
-      )
     }
-    assertInstanceOf(SepValidationException::class.java, ex)
+    assertInstanceOf(InvalidConfigException::class.java, ex)
     assertEquals(
-      "if quotes_required is true, quotes_supported must also be true",
+      "if quotes_required is true, quotes_supported must also be true for asset: " + asset.id,
       ex.message,
     )
   }
@@ -448,7 +417,7 @@ class Sep31ServiceTest {
         )
         .build()
 
-    val wantRequiredInfoUpdates = Sep31Info.Fields()
+    val wantRequiredInfoUpdates = ReceiveInfo.Fields()
     wantRequiredInfoUpdates.transaction =
       mapOf("type" to Field("type of deposit to make", listOf("SEPA", "SWIFT"), false))
 
@@ -894,19 +863,20 @@ class Sep31ServiceTest {
     val ex1 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("Missing asset information.", ex1.message)
 
-    val assetInfo = assetService.getAsset("USDC")
+    val assetInfo = assetService.getAsset("USDC") as StellarAssetInfo
+    val originalId = assetInfo.id
     Context.get().asset = assetInfo
-    assetInfo.code = "BAD"
+    assetInfo.id = "stellar:BAD:issuer"
     val ex2 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("Asset [BAD] has no fields definition", ex2.message)
 
-    assetInfo.code = "USDC"
+    assetInfo.id = originalId
     val ex3 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("'fields' field must have one 'transaction' field", ex3.message)
 
     Context.get().transactionFields = mapOf()
     val ex4 = assertThrows<Sep31MissingFieldException> { sep31Service.validateRequiredFields() }
-    val wantMissingFields = Sep31Info.Fields()
+    val wantMissingFields = ReceiveInfo.Fields()
     wantMissingFields.transaction =
       mapOf(
         "receiver_account_number" to Field("bank account number of the destination", null, false),

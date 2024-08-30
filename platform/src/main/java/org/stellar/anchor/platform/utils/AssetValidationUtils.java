@@ -8,9 +8,9 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.rpc.method.AmountAssetRequest;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.FeeDescription;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.asset.AssetService;
@@ -96,8 +96,8 @@ public class AssetValidationUtils {
     }
 
     List<AssetInfo> allAssets =
-        assetService.listAllAssets().stream()
-            .filter(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))
+        assetService.getAssets().stream()
+            .filter(assetInfo -> assetInfo.getId().equals(amount.getAsset()))
             .collect(toList());
 
     // asset name needs to be supported

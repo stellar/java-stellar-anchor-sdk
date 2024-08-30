@@ -3,7 +3,7 @@ package org.stellar.anchor.dto.sep38
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.asset.AssetInfo
 import org.stellar.anchor.api.sep.operation.Sep38Info
 import org.stellar.anchor.api.sep.sep38.InfoResponse
 import org.stellar.anchor.asset.DefaultAssetService
@@ -14,7 +14,7 @@ class InfoResponseTest {
   @BeforeEach
   fun setUp() {
     val rjas = DefaultAssetService.fromJsonResource("test_assets.json")
-    assets = rjas.listAllAssets()
+    assets = rjas.getAssets()
     assertEquals(4, assets.size)
   }
 
