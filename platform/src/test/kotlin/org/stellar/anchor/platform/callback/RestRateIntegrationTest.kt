@@ -13,13 +13,14 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.stellar.anchor.api.asset.AssetInfo.Schema.ISO_4217
+import org.stellar.anchor.api.asset.AssetInfo.Schema.STELLAR
+import org.stellar.anchor.api.asset.FiatAssetInfo
+import org.stellar.anchor.api.asset.StellarAssetInfo
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.from
 import org.stellar.anchor.api.callback.GetRateResponse
 import org.stellar.anchor.api.exception.ServerErrorException
-import org.stellar.anchor.api.sep.AssetInfo
-import org.stellar.anchor.api.sep.AssetInfo.Schema.ISO_4217
-import org.stellar.anchor.api.sep.AssetInfo.Schema.STELLAR
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.platform.callback.RestRateIntegration.withinRoundingError
 import org.stellar.anchor.util.GsonUtils
@@ -27,8 +28,8 @@ import org.stellar.anchor.util.GsonUtils
 class RestRateIntegrationTest {
   private val assetService = mockk<AssetService>()
   private val gson: Gson = GsonUtils.getInstance()
-  private var usdAssetInfo = AssetInfo()
-  private var usdcAssetInfo = AssetInfo()
+  private var usdAssetInfo = FiatAssetInfo()
+  private var usdcAssetInfo = StellarAssetInfo()
   private val rateIntegration = RestRateIntegration("/", null, null, gson, assetService)
   private var request: GetRateRequest = GetRateRequest()
   private var rateResponse: GetRateResponse = GetRateResponse()
@@ -36,20 +37,17 @@ class RestRateIntegrationTest {
   @BeforeEach
   fun setUp() {
     // Set up USDC asset info
-    usdAssetInfo.code = "USD"
-    usdAssetInfo.schema = ISO_4217
+    usdAssetInfo.id = "$ISO_4217:USD"
     usdAssetInfo.significantDecimals = 2
 
     // Set up USD asset info
-    usdcAssetInfo.schema = STELLAR
-    usdcAssetInfo.code = "USDC"
-    usdcAssetInfo.issuer = "GABCD"
+    usdcAssetInfo.id = "$STELLAR:USDC:GABCD"
     usdcAssetInfo.significantDecimals = 7
 
     // Set up asset service
-    every { assetService.getAssetByName("iso4217:USD") } returns usdAssetInfo
-    every { assetService.getAssetByName("stellar:USDC:GABCD") } returns usdcAssetInfo
-    every { assetService.getAssetByName("unknown") } returns null
+    every { assetService.getAssetById("iso4217:USD") } returns usdAssetInfo
+    every { assetService.getAssetById("stellar:USDC:GABCD") } returns usdcAssetInfo
+    every { assetService.getAssetById("unknown") } returns null
 
     // Set up request and response
     request =
@@ -105,13 +103,13 @@ class RestRateIntegrationTest {
     rateResponse.rate.expiresAt = Instant.now()
 
     // The fee is in sell_asset
-    rateResponse.rate.fee.asset = usdAssetInfo.sep38AssetName
+    rateResponse.rate.fee.asset = usdAssetInfo.id
     rateResponse.rate.sellAmount = "100.00"
     rateResponse.rate.buyAmount = "94.29"
     rateIntegration.validateRateResponse(request, rateResponse)
 
     // The fee is in buy_asset
-    rateResponse.rate.fee.asset = usdcAssetInfo.sep38AssetName
+    rateResponse.rate.fee.asset = usdcAssetInfo.id
     rateResponse.rate.sellAmount = "100.00"
     rateResponse.rate.buyAmount = "94.24"
     rateIntegration.validateRateResponse(request, rateResponse)

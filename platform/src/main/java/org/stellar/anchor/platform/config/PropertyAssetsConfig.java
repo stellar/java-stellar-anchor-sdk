@@ -32,7 +32,7 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
       switch (this.getType()) {
         case JSON:
           try {
-            DefaultAssetService.fromJson(this.getValue());
+            DefaultAssetService.fromJsonContent(this.getValue());
           } catch (Exception ex) {
             error("Error loading asset JSON", ex);
             errors.reject(
@@ -42,7 +42,7 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
           break;
         case YAML:
           try {
-            DefaultAssetService.fromYaml(this.getValue());
+            DefaultAssetService.fromYamlContent(this.getValue());
           } catch (Exception ex) {
             error("Error loading asset YAML", ex);
             errors.reject(
@@ -59,7 +59,6 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
                 "assets-file-not-valid", "Cannot read from asset file: " + this.getValue());
           }
           break;
-        case URL:
         default:
           errors.reject(
               "invalid-type-defined",

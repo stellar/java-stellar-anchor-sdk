@@ -1,6 +1,6 @@
 package org.stellar.anchor.api.sep.sep24;
 
-import static org.stellar.anchor.api.sep.AssetInfo.DepositWithdrawOperation;
+import static org.stellar.anchor.api.asset.AssetInfo.DepositWithdrawOperation;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;

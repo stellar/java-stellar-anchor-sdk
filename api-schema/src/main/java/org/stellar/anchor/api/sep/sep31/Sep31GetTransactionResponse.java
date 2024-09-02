@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.stellar.anchor.api.sep.operation.Sep31Info;
+import org.stellar.anchor.api.sep.operation.ReceiveInfo;
 import org.stellar.anchor.api.shared.FeeDetails;
 
 /**
@@ -82,7 +82,7 @@ public class Sep31GetTransactionResponse {
     String requiredInfoMessage;
 
     @SerializedName("required_info_updates")
-    Sep31Info.Fields requiredInfoUpdates;
+    ReceiveInfo.Fields requiredInfoUpdates;
   }
 
   @Data

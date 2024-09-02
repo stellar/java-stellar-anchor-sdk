@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep24;
 
 import java.util.Map;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.auth.Sep10Jwt;
 
 public abstract class InteractiveUrlConstructor {

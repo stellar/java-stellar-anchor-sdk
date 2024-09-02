@@ -11,10 +11,10 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.web.util.UriComponentsBuilder
+import org.stellar.anchor.api.asset.AssetInfo
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.api.callback.PutCustomerResponse
-import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.*
@@ -59,7 +59,7 @@ class SimpleInteractiveUrlConstructorTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     secretConfig.setupMock()
     clientService = DefaultClientService.fromYamlResourceFile("test_clients.yaml")
-    every { testAsset.sep38AssetName } returns
+    every { testAsset.id } returns
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     every { sep10Jwt.homeDomain } returns TEST_HOME_DOMAIN
 

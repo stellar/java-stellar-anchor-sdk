@@ -29,9 +29,10 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 import org.stellar.anchor.MoreInfoUrlConstructor;
+import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.GetTransactionRequest;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsResponse;
@@ -154,9 +155,9 @@ public class Sep24Service {
     }
 
     // Verify that the asset code exists in our database, with withdraw enabled.
-    AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
+    StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode, assetIssuer);
     debugF("Asset: {}", asset);
-    if (asset == null || !asset.getIsServiceEnabled(asset.getSep24(), "withdraw")) {
+    if (asset == null || !asset.isWithdrawEnabled(asset.getSep24())) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
@@ -248,7 +249,7 @@ public class Sep24Service {
     }
 
     String quoteId = withdrawRequest.get("quote_id");
-    AssetInfo buyAsset = assetService.getAssetByName(withdrawRequest.get("destination_asset"));
+    AssetInfo buyAsset = assetService.getAssetById(withdrawRequest.get("destination_asset"));
     if (quoteId != null) {
       validateAndPopulateQuote(
           quoteId, asset, buyAsset, strAmount, builder, WITHDRAWAL.toString(), txnId);
@@ -256,7 +257,7 @@ public class Sep24Service {
       builder.amountExpected(strAmount);
       if (buyAsset != null) {
         builder.amountOut("0");
-        builder.amountOutAsset(buyAsset.getSep38AssetName());
+        builder.amountOutAsset(buyAsset.getId());
       }
     }
 
@@ -351,8 +352,8 @@ public class Sep24Service {
     }
 
     // Verify that the asset code exists in our database, with deposit enabled.
-    AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
-    if (asset == null || !asset.getIsServiceEnabled(asset.getSep24(), "deposit")) {
+    StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode, assetIssuer);
+    if (asset == null || !asset.isDepositEnabled(asset.getSep24())) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
@@ -427,7 +428,7 @@ public class Sep24Service {
     }
 
     String quoteId = depositRequest.get("quote_id");
-    AssetInfo sellAsset = assetService.getAssetByName(depositRequest.get("source_asset"));
+    AssetInfo sellAsset = assetService.getAssetById(depositRequest.get("source_asset"));
     if (quoteId != null) {
       validateAndPopulateQuote(
           quoteId, sellAsset, asset, strAmount, builder, DEPOSIT.toString(), txnId);
@@ -435,7 +436,7 @@ public class Sep24Service {
       builder.amountExpected(strAmount);
       if (sellAsset != null) {
         builder.amountIn("0");
-        builder.amountInAsset(sellAsset.getSep38AssetName());
+        builder.amountInAsset(sellAsset.getId());
       }
     }
 
@@ -564,23 +565,21 @@ public class Sep24Service {
 
   public InfoResponse getInfo() {
     info("Getting Sep24 info");
-    List<AssetInfo> assets = assetService.listAllAssets();
+    List<StellarAssetInfo> assets = assetService.getStellarAssets();
     debugF("{} assets found", assets.size());
 
     Map<String, InfoResponse.OperationResponse> depositMap = new HashMap<>();
     Map<String, InfoResponse.OperationResponse> withdrawMap = new HashMap<>();
-    for (AssetInfo asset : assets) {
+    for (StellarAssetInfo asset : assets) {
       // iso4217 assets do not have deposit/withdraw configurations
-      if (asset.getSchema().equals(AssetInfo.Schema.STELLAR)) {
-        if (asset.getIsServiceEnabled(asset.getSep24(), "deposit"))
-          depositMap.put(
-              asset.getCode(),
-              InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getDeposit()));
-        if (asset.getIsServiceEnabled(asset.getSep24(), "withdraw"))
-          withdrawMap.put(
-              asset.getCode(),
-              InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getWithdraw()));
-      }
+      if (asset.isDepositEnabled(asset.getSep24()))
+        depositMap.put(
+            asset.getCode(),
+            InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getDeposit()));
+      if (asset.isWithdrawEnabled(asset.getSep24()))
+        withdrawMap.put(
+            asset.getCode(),
+            InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getWithdraw()));
     }
 
     return InfoResponse.builder()

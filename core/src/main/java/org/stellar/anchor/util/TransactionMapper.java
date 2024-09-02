@@ -5,10 +5,10 @@ import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
 import com.google.common.collect.ImmutableSet;
 import jakarta.annotation.Nullable;
 import java.util.Optional;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.*;
 import org.stellar.anchor.asset.AssetService;
@@ -248,7 +248,7 @@ public class TransactionMapper {
     AssetInfo info = service.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
 
     // Already validated in the interactive flow
-    return (info != null) ? info.getSep38AssetName() : null;
+    return (info != null) ? info.getId() : null;
   }
 
   private static String makeAsset(
@@ -259,7 +259,7 @@ public class TransactionMapper {
 
     AssetInfo info = service.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
 
-    return info.getSep38AssetName();
+    return info.getId();
   }
 
   static RefundPayment toRefundPayment(Sep24RefundPayment refundPayment, String assetName) {

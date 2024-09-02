@@ -119,26 +119,28 @@ assets:
     {
       "assets": [
         {
-          "schema": "stellar",
-          "code": "USDC",
-          "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "id": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "distribution_account": "GABCKCYPAGDDQMSCTMSBO7C2L34NU3XXCW7LR4VVSWCCXMAJY3B4YCZP",
           "significant_decimals": 2,
-          "deposit": {
+          "sep24": {
             "enabled": true,
-            "fee_minimum": 0,
-            "fee_percent": 0,
-            "min_amount": 1,
-            "max_amount": 1000000
-          },
-          "withdraw": {
-            "enabled": true,
-            "fee_fixed": 0,
-            "fee_percent": 0,
-            "min_amount": 1,
-            "max_amount": 1000000
+            "deposit": {
+              "enabled": true,
+              "fee_minimum": 0,
+              "fee_percent": 0,
+              "min_amount": 1,
+              "max_amount": 1000000
+            },
+            "withdraw": {
+              "enabled": true,
+              "fee_fixed": 0,
+              "fee_percent": 0,
+              "min_amount": 1,
+              "max_amount": 1000000
+            },
           },
           "sep31": {
+            "enabled": true
             "receive": {
               "fee_fixed": 0,
               "fee_percent": 0,
@@ -166,35 +168,35 @@ assets:
             }
           },
           "sep38": {
+            "enabled": true,
             "exchangeable_assets": [
               "iso4217:USD"
             ]
-          },
-          "sep24_enabled": true,
-          "sep31_enabled": true,
-          "sep38_enabled": true
+          }
         },
         {
-          "schema": "stellar",
-          "code": "JPYC",
-          "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "id": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
           "significant_decimals": 4,
-          "deposit": {
+          "sep24": {
             "enabled": true,
-            "fee_minimum": 0,
-            "fee_percent": 0,
-            "min_amount": 1,
-            "max_amount": 1000000
-          },
-          "withdraw": {
-            "enabled": true,
-            "fee_fixed": 0,
-            "fee_percent": 0,
-            "min_amount": 1,
-            "max_amount": 1000000
+            "deposit": {
+              "enabled": true,
+              "fee_minimum": 0,
+              "fee_percent": 0,
+              "min_amount": 1,
+              "max_amount": 1000000
+            },
+            "withdraw": {
+              "enabled": true,
+              "fee_fixed": 0,
+              "fee_percent": 0,
+              "min_amount": 1,
+              "max_amount": 1000000
+            },
           },
           "sep31": {
+            "enabled": true
             "receive": {
               "fee_fixed": 0,
               "fee_percent": 0,
@@ -222,32 +224,16 @@ assets:
             }
           },
           "sep38": {
+            "enabled": true,
             "exchangeable_assets": [
               "iso4217:USD"
             ]
-          },
-          "sep24_enabled": true,
-          "sep31_enabled": true,
-          "sep38_enabled": true
+          }
         },
         {
-          "schema": "iso4217",
-          "code": "USD",
-          "deposit": {
-            "enabled": true,
-            "fee_minimum": 0,
-            "fee_percent": 0,
-            "min_amount": 0,
-            "max_amount": 10000
-          },
-          "withdraw": {
-            "enabled": true,
-            "fee_fixed": 0,
-            "fee_percent": 0,
-            "min_amount": 0,
-            "max_amount": 10000
-          },
+          "id": "iso4217:USD",
           "sep31": {
+            "enabled": false,
             "receive": {
               "fee_fixed": 0,
               "fee_percent": 0,
@@ -256,6 +242,7 @@ assets:
             },
           },
           "sep38": {
+            "enabled": true,  
             "exchangeable_assets": [
               "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
               "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
@@ -276,10 +263,7 @@ assets:
                 "description": "Have USD sent directly to your bank account."
               }
             ]
-          },
-          "sep24_enabled": false,
-          "sep31_enabled": false,
-          "sep38_enabled": true
+          }
         }
       ]
     }

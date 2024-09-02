@@ -3,9 +3,9 @@ package org.stellar.anchor.api.sep.sep38;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import lombok.Data;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.FiatAssetInfo;
 import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 /**
@@ -21,26 +21,24 @@ public class InfoResponse {
 
   public InfoResponse(List<AssetInfo> assetInfoList) {
     for (AssetInfo assetInfo : assetInfoList) {
-      if (!assetInfo.getSep38().getEnabled()) continue;
+      if (assetInfo.getSep38() == null
+          || assetInfo.getSep38().getEnabled() == null
+          || !assetInfo.getSep38().getEnabled()) continue;
       Asset newAsset = new Asset();
-      String assetName = assetInfo.getSchema().toString() + ":" + assetInfo.getCode();
-      if (!Objects.toString(assetInfo.getIssuer(), "").isEmpty()) {
-        assetName += ":" + assetInfo.getIssuer();
-      }
-      newAsset.setAsset(assetName);
-
       Sep38Info sep38Info = assetInfo.getSep38();
+
+      newAsset.setAsset(assetInfo.getId());
       newAsset.setCountryCodes(sep38Info.getCountryCodes());
-      newAsset.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
-      newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
       newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
 
       int decimals = 7;
-      if (!assetName.startsWith("stellar") && sep38Info.getDecimals() != null) {
-        decimals = sep38Info.getDecimals();
+      if (assetInfo instanceof FiatAssetInfo fiatAssetInfo) {
+        newAsset.setSellDeliveryMethods(fiatAssetInfo.getSep38().getSellDeliveryMethods());
+        newAsset.setBuyDeliveryMethods(fiatAssetInfo.getSep38().getBuyDeliveryMethods());
+        decimals = sep38Info.getDecimals() != null ? sep38Info.getDecimals() : 7;
       }
-      newAsset.setDecimals(decimals);
 
+      newAsset.setDecimals(decimals);
       assets.add(newAsset);
     }
   }

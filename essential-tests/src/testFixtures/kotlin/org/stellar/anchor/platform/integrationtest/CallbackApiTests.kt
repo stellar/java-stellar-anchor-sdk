@@ -15,10 +15,12 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import org.skyscreamer.jsonassert.JSONAssert
+import org.stellar.anchor.api.asset.AssetInfo
+import org.stellar.anchor.api.asset.FiatAssetInfo
+import org.stellar.anchor.api.asset.StellarAssetInfo
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.NotFoundException
-import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt
 import org.stellar.anchor.auth.AuthHelper
@@ -86,24 +88,27 @@ class CallbackApiTests : AbstractIntegrationTests(TestConfig()) {
 
   @BeforeAll
   fun setup() {
-    val usdc = AssetInfo()
-    usdc.schema = AssetInfo.Schema.STELLAR
-    usdc.code = "USDC"
-    usdc.issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    val usdc = StellarAssetInfo()
+    usdc.id =
+      listOf(
+          AssetInfo.Schema.STELLAR,
+          "USDC",
+          "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        )
+        .joinToString { ":" }
     usdc.significantDecimals = 4
 
-    val usd = AssetInfo()
-    usd.schema = AssetInfo.Schema.ISO_4217
-    usd.code = "USD"
+    val usd = FiatAssetInfo()
+    usd.id = listOf(AssetInfo.Schema.ISO_4217, "USD").joinToString { ":" }
     usd.significantDecimals = 2
 
     every {
-      mockAssetService.getAssetByName(
+      mockAssetService.getAssetById(
         "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       )
     } returns usdc
-    every { mockAssetService.getAssetByName("iso4217:USD") } returns usd
-    every { mockAssetService.getAssetByName(null) } returns null
+    every { mockAssetService.getAssetById("iso4217:USD") } returns usd
+    every { mockAssetService.getAssetById(null) } returns null
   }
 
   @Test

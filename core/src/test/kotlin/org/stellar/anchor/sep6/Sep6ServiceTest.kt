@@ -21,6 +21,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_QUOTE_ID
 import org.stellar.anchor.TestHelper
+import org.stellar.anchor.api.asset.StellarAssetInfo
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
@@ -85,7 +86,7 @@ class Sep6ServiceTest {
       )
   }
 
-  private val asset = assetService.getAsset(TEST_ASSET)
+  private val asset = assetService.getAsset(TEST_ASSET) as StellarAssetInfo
 
   @Test
   fun `test info response`() {
@@ -837,7 +838,7 @@ class Sep6ServiceTest {
         .amount("100")
         .build()
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
+      assetService.getAsset(TEST_ASSET) as StellarAssetInfo
     every { requestValidator.validateTypes(unsupportedType, TEST_ASSET, any()) } throws
       SepValidationException("unsupported type")
 
@@ -1199,7 +1200,7 @@ class Sep6ServiceTest {
         .amount(badAmount)
         .build()
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
+      assetService.getAsset(TEST_ASSET) as StellarAssetInfo
     every { requestValidator.validateAmount(badAmount, TEST_ASSET, any(), any(), any()) } throws
       SepValidationException("bad amount")
 
@@ -1241,7 +1242,7 @@ class Sep6ServiceTest {
         .amount("100")
         .build()
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
-      assetService.getAsset(TEST_ASSET)
+      assetService.getAsset(TEST_ASSET) as StellarAssetInfo
 
     assertThrows<java.lang.RuntimeException> { sep6Service.withdrawExchange(token, request) }
 

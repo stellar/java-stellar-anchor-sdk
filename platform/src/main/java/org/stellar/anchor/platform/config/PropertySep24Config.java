@@ -16,7 +16,7 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.SecretConfig;
@@ -218,7 +218,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
     }
 
     if (SELF == depositInfoGeneratorType) {
-      for (AssetInfo asset : assetService.listStellarAssets()) {
+      for (StellarAssetInfo asset : assetService.getStellarAssets()) {
         if (!asset.getCode().equals("native") && isEmpty(asset.getDistributionAccount())) {
           errors.rejectValue(
               "depositInfoGeneratorType",

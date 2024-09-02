@@ -3,10 +3,10 @@ package org.stellar.anchor.api.sep.operation;
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 import lombok.Data;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.AssetInfo;
 
 @Data
-public class Sep31Info {
+public class ReceiveInfo {
   Boolean enabled = false;
 
   ReceiveOperation receive;
