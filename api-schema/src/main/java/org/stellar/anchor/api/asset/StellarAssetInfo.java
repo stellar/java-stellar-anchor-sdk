@@ -13,8 +13,8 @@ public class StellarAssetInfo implements AssetInfo {
   @SerializedName("significant_decimals")
   Integer significantDecimals;
 
-  DepositWithdrawInfo sep6;
-  DepositWithdrawInfo sep24;
+  Sep6Info sep6;
+  Sep24Info sep24;
   Sep31Info sep31;
   Sep38Info sep38;
 

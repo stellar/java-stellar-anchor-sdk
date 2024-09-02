@@ -17,6 +17,7 @@ items:
   # The Stellar asset that is not native (XLM).
   - id: "stellar:"
     # The `distribution_account` field is the Stellar account that the anchor will use to distribute the asset.
+    #
     distribution_account:
     # The `significant_decimals` field is the number of decimals that the asset supports. It must not be defined if the asset is XLM (stellar:native).
     significant_decimals: 7

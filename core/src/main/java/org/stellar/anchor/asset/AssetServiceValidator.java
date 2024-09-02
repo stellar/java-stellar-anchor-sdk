@@ -57,11 +57,6 @@ public class AssetServiceValidator {
 
   private static void validateStellarAsset(StellarAssetInfo assetInfo)
       throws InvalidConfigException {
-    // Check for missing distribution account field
-    if (assetInfo.getDistributionAccount() == null) {
-      throw new InvalidConfigException(
-          "distribution_account not defined for asset " + assetInfo.getId());
-    }
     // Check for missing significant decimals field
     if (assetInfo.getSignificantDecimals() == null) {
       throw new InvalidConfigException(
