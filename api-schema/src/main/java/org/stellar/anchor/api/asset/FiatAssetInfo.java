@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.stellar.anchor.api.sep.operation.ReceiveInfo;
+import org.stellar.anchor.api.sep.operation.Sep31Info;
 import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 @Data
@@ -14,7 +14,7 @@ public class FiatAssetInfo implements AssetInfo {
   @SerializedName("significant_decimals")
   Integer significantDecimals;
 
-  ReceiveInfo sep31;
+  Sep31Info sep31;
   FiatSep38Info sep38;
 
   @Override

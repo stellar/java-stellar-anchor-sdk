@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.Sep31CustomerInfoNeededException;
 import org.stellar.anchor.api.exception.Sep31MissingFieldException;
-import org.stellar.anchor.api.sep.operation.ReceiveInfo.Fields;
+import org.stellar.anchor.api.sep.operation.Sep31Info.Fields;
 import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;

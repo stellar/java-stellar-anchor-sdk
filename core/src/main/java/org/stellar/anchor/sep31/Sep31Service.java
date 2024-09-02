@@ -38,7 +38,7 @@ import org.stellar.anchor.api.exception.Sep31MissingFieldException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.sep.operation.ReceiveInfo.Fields;
+import org.stellar.anchor.api.sep.operation.Sep31Info.Fields;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest;

@@ -2,7 +2,7 @@ package org.stellar.anchor.api.asset;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
-import org.stellar.anchor.api.sep.operation.ReceiveInfo;
+import org.stellar.anchor.api.sep.operation.Sep31Info;
 import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 @Data
@@ -17,7 +17,7 @@ public class StellarAssetInfo implements AssetInfo {
 
   DepositWithdrawInfo sep6;
   DepositWithdrawInfo sep24;
-  ReceiveInfo sep31;
+  Sep31Info sep31;
   Sep38Info sep38;
 
   @Override

@@ -6,7 +6,7 @@ import lombok.Data;
 import org.stellar.anchor.api.asset.AssetInfo;
 
 @Data
-public class ReceiveInfo {
+public class Sep31Info {
   Boolean enabled = false;
 
   ReceiveOperation receive;

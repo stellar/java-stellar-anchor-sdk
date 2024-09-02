@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.stellar.anchor.api.sep.operation.ReceiveInfo;
+import org.stellar.anchor.api.sep.operation.Sep31Info;
 import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 public interface AssetInfo {
@@ -31,7 +31,7 @@ public interface AssetInfo {
 
   Integer getSignificantDecimals();
 
-  ReceiveInfo getSep31();
+  Sep31Info getSep31();
 
   Sep38Info getSep38();
 

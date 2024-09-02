@@ -26,7 +26,7 @@ import org.stellar.anchor.api.asset.AssetInfo.Field
 import org.stellar.anchor.api.asset.StellarAssetInfo
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
-import org.stellar.anchor.api.sep.operation.ReceiveInfo
+import org.stellar.anchor.api.sep.operation.Sep31Info
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
@@ -417,7 +417,7 @@ class Sep31ServiceTest {
         )
         .build()
 
-    val wantRequiredInfoUpdates = ReceiveInfo.Fields()
+    val wantRequiredInfoUpdates = Sep31Info.Fields()
     wantRequiredInfoUpdates.transaction =
       mapOf("type" to Field("type of deposit to make", listOf("SEPA", "SWIFT"), false))
 
@@ -876,7 +876,7 @@ class Sep31ServiceTest {
 
     Context.get().transactionFields = mapOf()
     val ex4 = assertThrows<Sep31MissingFieldException> { sep31Service.validateRequiredFields() }
-    val wantMissingFields = ReceiveInfo.Fields()
+    val wantMissingFields = Sep31Info.Fields()
     wantMissingFields.transaction =
       mapOf(
         "receiver_account_number" to Field("bank account number of the destination", null, false),
