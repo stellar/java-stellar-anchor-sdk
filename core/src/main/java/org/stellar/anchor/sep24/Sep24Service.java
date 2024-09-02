@@ -30,6 +30,7 @@ import java.time.Instant;
 import java.util.*;
 import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.DepositWithdrawOperation;
 import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
@@ -163,7 +164,7 @@ public class Sep24Service {
     }
 
     // Validate min amount
-    AssetInfo.DepositWithdrawOperation sep24WithdrawInfo = asset.getSep24().getWithdraw();
+    DepositWithdrawOperation sep24WithdrawInfo = asset.getSep24().getWithdraw();
     Long minAmount = sep24WithdrawInfo.getMinAmount();
     if (strAmount != null && minAmount != null) {
       if (decimal(strAmount).compareTo(decimal(minAmount)) < 0) {
@@ -359,7 +360,7 @@ public class Sep24Service {
     }
 
     // Validate min amount
-    AssetInfo.DepositWithdrawOperation sep24DepositInfo = asset.getSep24().getDeposit();
+    DepositWithdrawOperation sep24DepositInfo = asset.getSep24().getDeposit();
     Long minAmount = sep24DepositInfo.getMinAmount();
     if (strAmount != null && minAmount != null) {
       if (decimal(strAmount).compareTo(decimal(minAmount)) < 0) {

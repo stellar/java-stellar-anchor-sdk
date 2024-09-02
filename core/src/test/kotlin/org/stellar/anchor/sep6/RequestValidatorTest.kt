@@ -9,7 +9,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
-import org.stellar.anchor.api.asset.AssetInfo
+import org.stellar.anchor.api.asset.DepositWithdrawInfo
+import org.stellar.anchor.api.asset.DepositWithdrawOperation
 import org.stellar.anchor.api.asset.StellarAssetInfo
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.asset.AssetService
@@ -28,8 +29,8 @@ class RequestValidatorTest {
   @Test
   fun `test getDepositAsset`() {
     val asset = StellarAssetInfo()
-    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
-    val deposit = mockk<AssetInfo.DepositWithdrawOperation>()
+    val sep6Info = mockk<DepositWithdrawInfo>()
+    val deposit = mockk<DepositWithdrawOperation>()
     asset.sep6 = sep6Info
     every { sep6Info.enabled } returns true
     every { sep6Info.deposit } returns deposit
@@ -47,8 +48,8 @@ class RequestValidatorTest {
   @Test
   fun `test getDepositAsset with deposit disabled asset`() {
     val asset = StellarAssetInfo()
-    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
-    val deposit = mockk<AssetInfo.DepositWithdrawOperation>()
+    val sep6Info = mockk<DepositWithdrawInfo>()
+    val deposit = mockk<DepositWithdrawOperation>()
     asset.sep6 = sep6Info
     every { sep6Info.enabled } returns true
     every { sep6Info.deposit } returns deposit
@@ -60,7 +61,7 @@ class RequestValidatorTest {
   @Test
   fun `test getDepositAsset with sep6 disabled asset`() {
     val asset = StellarAssetInfo()
-    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
+    val sep6Info = mockk<DepositWithdrawInfo>()
     asset.sep6 = sep6Info
     every { sep6Info.enabled } returns false
     every { assetService.getAsset(TEST_ASSET) } returns asset
@@ -70,8 +71,8 @@ class RequestValidatorTest {
   @Test
   fun `test getWithdrawAsset`() {
     val asset = StellarAssetInfo()
-    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
-    val withdraw = mockk<AssetInfo.DepositWithdrawOperation>()
+    val sep6Info = mockk<DepositWithdrawInfo>()
+    val withdraw = mockk<DepositWithdrawOperation>()
     asset.sep6 = sep6Info
     every { sep6Info.enabled } returns true
     every { sep6Info.withdraw } returns withdraw
@@ -89,8 +90,8 @@ class RequestValidatorTest {
   @Test
   fun `test getWithdrawAsset with withdraw disabled asset`() {
     val asset = StellarAssetInfo()
-    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
-    val withdraw = mockk<AssetInfo.DepositWithdrawOperation>()
+    val sep6Info = mockk<DepositWithdrawInfo>()
+    val withdraw = mockk<DepositWithdrawOperation>()
     asset.sep6 = sep6Info
     every { sep6Info.enabled } returns true
     every { sep6Info.withdraw } returns withdraw
@@ -102,7 +103,7 @@ class RequestValidatorTest {
   @Test
   fun `test getWithdrawAsset with sep6 disabled asset`() {
     val asset = StellarAssetInfo()
-    val sep6Info = mockk<AssetInfo.DepositWithdrawInfo>()
+    val sep6Info = mockk<DepositWithdrawInfo>()
     asset.sep6 = sep6Info
     every { sep6Info.enabled } returns false
     every { assetService.getAsset(TEST_ASSET) } returns asset
