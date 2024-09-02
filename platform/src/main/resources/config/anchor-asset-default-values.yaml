@@ -13,7 +13,7 @@
 #   - `stellar:native`: The native asset (XLM).
 #   - `iso4217`: The fiat asset.
 #
-assets:
+items:
   # The Stellar asset that is not native (XLM).
   - id: "stellar:"
     # The `distribution_account` field is the Stellar account that the anchor will use to distribute the asset.
