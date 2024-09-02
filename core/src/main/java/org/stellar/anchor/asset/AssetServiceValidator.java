@@ -26,17 +26,18 @@ public class AssetServiceValidator {
       }
     }
 
-    // Validate stellar asset
+    // Validate stellar assets
     for (StellarAssetInfo stellarAsset : assetService.getStellarAssets()) {
       validateStellarAsset(stellarAsset);
     }
 
-    // Validate fiat asset
+    // Validate fiat assets
     for (FiatAssetInfo fiatAsset : assetService.getFiatAssets()) {
       validateFiatAsset(fiatAsset);
     }
   }
 
+  // Check if deposit is enabled for the asset
   public static boolean isDepositEnabled(DepositWithdrawInfo info) {
     if (info == null || !info.getEnabled()) {
       return false;
@@ -45,6 +46,7 @@ public class AssetServiceValidator {
     return operation != null && operation.getEnabled();
   }
 
+  // Check if withdrawal is enabled for the asset
   public static boolean isWithdrawEnabled(DepositWithdrawInfo info) {
     if (info == null || !info.getEnabled()) {
       return false;
