@@ -6,8 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.stellar.anchor.api.sep.operation.Sep31Info;
-import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 public interface AssetInfo {
   String NATIVE_ASSET_CODE = "native";

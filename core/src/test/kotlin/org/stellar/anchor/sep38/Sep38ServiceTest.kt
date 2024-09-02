@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.TestHelper.Companion.createSep10Jwt
+import org.stellar.anchor.api.asset.Sep38Info
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.FIRM
 import org.stellar.anchor.api.callback.GetRateRequest.Type.INDICATIVE
@@ -22,7 +23,6 @@ import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.platform.GetQuoteResponse
-import org.stellar.anchor.api.sep.operation.Sep38Info
 import org.stellar.anchor.api.sep.sep38.*
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6

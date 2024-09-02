@@ -11,7 +11,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.SepTransaction;
-import org.stellar.anchor.api.sep.operation.Sep31Info;
+import org.stellar.anchor.api.asset.Sep31Info;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;

@@ -1,6 +1,6 @@
 package org.stellar.anchor.api.exception;
 
-import org.stellar.anchor.api.sep.operation.Sep31Info;
+import org.stellar.anchor.api.asset.Sep31Info;
 
 /** Thrown when a SEP-31 transaction is missing required fields. */
 public class Sep31MissingFieldException extends AnchorException {

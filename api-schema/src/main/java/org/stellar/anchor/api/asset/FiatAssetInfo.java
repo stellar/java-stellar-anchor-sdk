@@ -4,8 +4,6 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.stellar.anchor.api.sep.operation.Sep31Info;
-import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 @Data
 public class FiatAssetInfo implements AssetInfo {

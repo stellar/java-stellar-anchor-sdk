@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.stellar.anchor.api.sep.operation.Sep31Info;
+import org.stellar.anchor.api.asset.Sep31Info;
 import org.stellar.anchor.api.shared.FeeDetails;
 
 /**

@@ -6,7 +6,7 @@ import java.util.List;
 import lombok.Data;
 import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.asset.FiatAssetInfo;
-import org.stellar.anchor.api.sep.operation.Sep38Info;
+import org.stellar.anchor.api.asset.Sep38Info;
 
 /**
  * The response body of the GET /info endpoint of SEP-38.

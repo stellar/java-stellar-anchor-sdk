@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.asset.AssetInfo
-import org.stellar.anchor.api.sep.operation.Sep38Info
+import org.stellar.anchor.api.asset.Sep38Info
 import org.stellar.anchor.api.sep.sep38.InfoResponse
 import org.stellar.anchor.asset.DefaultAssetService
 

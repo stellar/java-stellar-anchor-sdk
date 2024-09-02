@@ -2,8 +2,6 @@ package org.stellar.anchor.api.asset;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
-import org.stellar.anchor.api.sep.operation.Sep31Info;
-import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 @Data
 public class StellarAssetInfo implements AssetInfo {

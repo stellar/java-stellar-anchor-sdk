@@ -23,10 +23,10 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.asset.AssetInfo
 import org.stellar.anchor.api.asset.AssetInfo.Field
+import org.stellar.anchor.api.asset.Sep31Info
 import org.stellar.anchor.api.asset.StellarAssetInfo
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
-import org.stellar.anchor.api.sep.operation.Sep31Info
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
