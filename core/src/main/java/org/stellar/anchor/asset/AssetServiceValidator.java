@@ -5,10 +5,7 @@ import static org.stellar.anchor.util.ListHelper.isEmpty;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.stellar.anchor.api.asset.AssetInfo;
-import org.stellar.anchor.api.asset.DepositWithdrawInfo;
-import org.stellar.anchor.api.asset.FiatAssetInfo;
-import org.stellar.anchor.api.asset.StellarAssetInfo;
+import org.stellar.anchor.api.asset.*;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 
 @RequiredArgsConstructor
@@ -30,21 +27,57 @@ public class AssetServiceValidator {
     }
 
     // Validate stellar asset
-    for (StellarAssetInfo assetInfo : assetService.getStellarAssets()) {
-      validateWithdraw(assetInfo);
-      validateDeposit(assetInfo);
-      validateQuoteSupportedIfRequired(assetInfo);
-      // TODO: ANCHOR-374 add more validation
+    for (StellarAssetInfo stellarAsset : assetService.getStellarAssets()) {
+      validateStellarAsset(stellarAsset);
     }
 
-    for (FiatAssetInfo assetInfo : assetService.getFiatAssets()) {
-      validateQuoteSupportedIfRequired(assetInfo);
-      // TODO: ANCHOR-374 add more validation
+    // Validate fiat asset
+    for (FiatAssetInfo fiatAsset : assetService.getFiatAssets()) {
+      validateFiatAsset(fiatAsset);
     }
   }
 
-  private static void validateQuoteSupportedIfRequired(AssetInfo assetInfo)
+  public static boolean isDepositEnabled(DepositWithdrawInfo info) {
+    if (info == null || !info.getEnabled()) {
+      return false;
+    }
+    DepositWithdrawOperation operation = info.getDeposit();
+    return operation != null && operation.getEnabled();
+  }
+
+  public static boolean isWithdrawEnabled(DepositWithdrawInfo info) {
+    if (info == null || !info.getEnabled()) {
+      return false;
+    }
+    DepositWithdrawOperation operation = info.getWithdraw();
+    return operation != null && operation.getEnabled();
+  }
+
+  private static void validateStellarAsset(StellarAssetInfo assetInfo)
       throws InvalidConfigException {
+    // Check for missing distribution account field
+    if (assetInfo.getDistributionAccount() == null) {
+      throw new InvalidConfigException(
+          "distribution_account not defined for asset " + assetInfo.getId());
+    }
+    // Check for missing significant decimals field
+    if (assetInfo.getSignificantDecimals() == null) {
+      throw new InvalidConfigException(
+          "significant_decimals not defined for asset " + assetInfo.getId());
+    }
+
+    validateSep6(assetInfo);
+    validateSep31(assetInfo);
+    // TODO: ANCHOR-374 add more validation
+
+  }
+
+  private static void validateFiatAsset(FiatAssetInfo fiatAsset) throws InvalidConfigException {
+    // TODO: ANCHOR-374 add more validation
+
+  }
+
+  private static void validateSep31(StellarAssetInfo assetInfo) throws InvalidConfigException {
     // Validate SEP-31 fields
     if (assetInfo.getSep31() != null && assetInfo.getSep31().getEnabled()) {
       boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
@@ -57,19 +90,19 @@ public class AssetServiceValidator {
     }
   }
 
-  private static void validateWithdraw(StellarAssetInfo assetInfo) throws InvalidConfigException {
+  private static void validateSep6(StellarAssetInfo assetInfo) throws InvalidConfigException {
     // Validate withdraw fields
-    DepositWithdrawInfo sep6Info = assetInfo.getSep6();
-    if (assetInfo.isWithdrawEnabled(sep6Info)) {
+    DepositWithdrawInfo dwInfo = assetInfo.getSep6();
+    if (isWithdrawEnabled(dwInfo)) {
       // Check for missing SEP-6 withdrawal types
-      if (isEmpty(sep6Info.getWithdraw().getMethods())) {
+      if (isEmpty(dwInfo.getWithdraw().getMethods())) {
         throw new InvalidConfigException(
             "Withdraw types not defined for asset " + assetInfo.getId());
       }
 
       // Check for duplicate SEP-6 withdrawal types
       Set<String> existingWithdrawTypes = new HashSet<>();
-      for (String type : sep6Info.getWithdraw().getMethods()) {
+      for (String type : dwInfo.getWithdraw().getMethods()) {
         if (!existingWithdrawTypes.add(type)) {
           throw new InvalidConfigException(
               "Duplicate withdraw types defined for asset "
@@ -79,21 +112,18 @@ public class AssetServiceValidator {
         }
       }
     }
-  }
 
-  private static void validateDeposit(StellarAssetInfo assetInfo) throws InvalidConfigException {
     // Validate deposit fields
-    DepositWithdrawInfo sep6Info = assetInfo.getSep6();
-    if (assetInfo.isDepositEnabled(sep6Info)) {
+    if (isDepositEnabled(dwInfo)) {
       // Check for missing SEP-6 deposit types
-      if (isEmpty(sep6Info.getDeposit().getMethods())) {
+      if (isEmpty(dwInfo.getDeposit().getMethods())) {
         throw new InvalidConfigException(
             "Deposit types not defined for asset " + assetInfo.getId());
       }
 
       // Check for duplicate SEP-6 deposit types
       Set<String> existingDepositTypes = new HashSet<>();
-      for (String type : sep6Info.getDeposit().getMethods()) {
+      for (String type : dwInfo.getDeposit().getMethods()) {
         if (!existingDepositTypes.add(type)) {
           throw new InvalidConfigException(
               "Duplicate deposit types defined for asset "

@@ -1,6 +1,8 @@
 package org.stellar.anchor.sep6;
 
 import static io.micrometer.core.instrument.Metrics.counter;
+import static org.stellar.anchor.asset.AssetServiceValidator.isDepositEnabled;
+import static org.stellar.anchor.asset.AssetServiceValidator.isWithdrawEnabled;
 import static org.stellar.anchor.util.MemoHelper.*;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
@@ -526,7 +528,7 @@ public class Sep6Service {
             .build();
 
     for (StellarAssetInfo asset : assetService.getStellarAssets()) {
-      if (asset.isDepositEnabled(asset.getSep6())) {
+      if (isDepositEnabled(asset.getSep6())) {
         List<String> methods = asset.getSep6().getDeposit().getMethods();
         AssetInfo.Field type =
             AssetInfo.Field.builder()
@@ -547,7 +549,7 @@ public class Sep6Service {
         response.getDepositExchange().put(asset.getCode(), deposit);
       }
 
-      if (asset.isWithdrawEnabled(asset.getSep6())) {
+      if (isWithdrawEnabled(asset.getSep6())) {
         List<String> methods = asset.getSep6().getWithdraw().getMethods();
         Map<String, WithdrawType> types = new HashMap<>();
         for (String method : methods) {
