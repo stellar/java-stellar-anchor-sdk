@@ -1,9 +1,9 @@
 package org.stellar.anchor.api.asset;
 
+import static org.stellar.anchor.api.asset.AssetInfo.Schema.*;
+
 import com.google.gson.annotations.SerializedName;
-import java.util.List;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
 public class FiatAssetInfo implements AssetInfo {
@@ -13,7 +13,12 @@ public class FiatAssetInfo implements AssetInfo {
   Integer significantDecimals;
 
   Sep31Info sep31;
-  FiatSep38Info sep38;
+  Sep38Info sep38;
+
+  @Override
+  public Schema getSchema() {
+    return ISO_4217;
+  }
 
   @Override
   public String getCode() {
@@ -23,15 +28,5 @@ public class FiatAssetInfo implements AssetInfo {
   @Override
   public String getIssuer() {
     return null;
-  }
-
-  @EqualsAndHashCode(callSuper = true)
-  @Data
-  public static class FiatSep38Info extends Sep38Info {
-    @SerializedName("sell_delivery_methods")
-    List<DeliveryMethod> sellDeliveryMethods;
-
-    @SerializedName("buy_delivery_methods")
-    List<DeliveryMethod> buyDeliveryMethods;
   }
 }

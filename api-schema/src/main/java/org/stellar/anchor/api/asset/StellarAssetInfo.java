@@ -1,5 +1,7 @@
 package org.stellar.anchor.api.asset;
 
+import static org.stellar.anchor.api.asset.AssetInfo.Schema.*;
+
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
@@ -17,6 +19,11 @@ public class StellarAssetInfo implements AssetInfo {
   Sep24Info sep24;
   Sep31Info sep31;
   Sep38Info sep38;
+
+  @Override
+  public Schema getSchema() {
+    return STELLAR;
+  }
 
   @Override
   public String getCode() {
