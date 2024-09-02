@@ -89,15 +89,15 @@ items:
     sep31:
       # `true` if the asset supports the SEP-31.
       enabled: true
-      receive:
-        # the maximum amount that the user can receive.
-        min_amount: 0
-        max_amount: 1000
       # `true` if the asset supports quotesinforesponse.java.
       quotes_supported: true
       # `true` if the asset requires quotes.
       # If `quotes_supported` is `false`, this value must not be true
       quotes_required: false
+      receive:
+        # the maximum amount that the user can receive.
+        min_amount: 0
+        max_amount: 1000
 
     # The configuration for the SEP-38 transactions.
     sep38:
@@ -131,6 +131,7 @@ items:
       # `true` if the asset requires quotes.
       # If `quotes_supported` is `false`, this value must not be true
       quotes_required: false
+
     sep38:
       enabled: true
       # The list of the assets that the anchor can exchange with the asset.
