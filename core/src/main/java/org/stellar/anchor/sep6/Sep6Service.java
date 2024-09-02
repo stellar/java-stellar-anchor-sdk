@@ -1,8 +1,8 @@
 package org.stellar.anchor.sep6;
 
 import static io.micrometer.core.instrument.Metrics.counter;
-import static org.stellar.anchor.asset.AssetServiceValidator.isDepositEnabled;
-import static org.stellar.anchor.asset.AssetServiceValidator.isWithdrawEnabled;
+import static org.stellar.anchor.util.AssetValidator.isDepositEnabled;
+import static org.stellar.anchor.util.AssetValidator.isWithdrawEnabled;
 import static org.stellar.anchor.util.MemoHelper.*;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 

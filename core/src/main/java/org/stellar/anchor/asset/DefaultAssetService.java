@@ -1,6 +1,5 @@
 package org.stellar.anchor.asset;
 
-import static org.stellar.anchor.api.asset.AssetInfo.*;
 import static org.stellar.anchor.api.asset.AssetInfo.Schema.*;
 import static org.stellar.anchor.util.AssetHelper.*;
 
@@ -18,6 +17,7 @@ import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.config.AssetsConfig;
+import org.stellar.anchor.util.AssetValidator;
 import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
@@ -95,7 +95,7 @@ public class DefaultAssetService implements AssetService {
         throw new InvalidConfigException(String.format("Invalid asset: " + id));
       }
     }
-    AssetServiceValidator.validate(das);
+    AssetValidator.validate(das);
     return das;
   }
 

@@ -1,4 +1,4 @@
-package org.stellar.anchor.asset;
+package org.stellar.anchor.util;
 
 import static org.stellar.anchor.util.ListHelper.isEmpty;
 
@@ -7,9 +7,10 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.stellar.anchor.api.asset.*;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.asset.AssetService;
 
 @RequiredArgsConstructor
-public class AssetServiceValidator {
+public class AssetValidator {
 
   public static void validate(AssetService assetService) throws InvalidConfigException {
     // Check for non-zero assets
