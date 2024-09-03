@@ -398,25 +398,6 @@ public class RpcActionBeans {
   }
 
   @Bean
-  RequestCustomerInfoUpdateHandler requestCustomerInfoUpdateHandler(
-      Sep6TransactionStore txn6Store,
-      Sep24TransactionStore txn24Store,
-      Sep31TransactionStore txn31Store,
-      RequestValidator requestValidator,
-      AssetService assetService,
-      EventService eventService,
-      MetricsService metricsService) {
-    return new RequestCustomerInfoUpdateHandler(
-        txn6Store,
-        txn24Store,
-        txn31Store,
-        requestValidator,
-        assetService,
-        eventService,
-        metricsService);
-  }
-
-  @Bean
   NotifyCustomerInfoUpdatedHandler notifyCustomerInfoUpdatedHandler(
       Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,

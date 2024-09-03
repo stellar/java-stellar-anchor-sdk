@@ -20,15 +20,6 @@ public class CustodialClientConfig implements ClientConfig {
   Set<String> signingKeys;
 
   /**
-   * The endpoint URL to which the service can send callbacks, enabling real-time updates or
-   * actions. Optional due to some wallets may opt to poll instead, or may use polling first before
-   * implementing callbacks at a later stage.
-   */
-  @Deprecated
-  @SerializedName("callback_url")
-  String callbackUrl;
-
-  /**
    * The URLs to which the service can send callbacks for different SEP types. Optional due to some
    * wallets may opt to poll instead, or may use polling first before implementing callbacks at a
    * later stage.

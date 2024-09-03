@@ -74,7 +74,6 @@ class ClientsConfigTest {
             .sep12("https://example.com/api/v1/anchor/callback/sep12")
             .build()
         )
-        .callbackUrl("https://example.com/api/v1/anchor/callback")
         .build()
 
     config.setNoncustodial(listOf(nonCustodial))
@@ -101,7 +100,6 @@ class ClientsConfigTest {
             .sep12("https://example.com/api/v1/anchor/callback/sep12")
             .build()
         )
-        .callbackUrl("https://example.com/api/v1/anchor/callback")
         .build()
 
     config.setCustodial(listOf(custodial))
@@ -123,12 +121,11 @@ class ClientsConfigTest {
             .sep12("bad-url")
             .build()
         )
-        .callbackUrl("bad-url")
         .build()
 
     config.setNoncustodial(listOf(nonCustodial))
     config.validate(config, errors)
-    assertEquals(5, errors.errorCount)
+    assertEquals(4, errors.errorCount)
   }
 
   @Test
@@ -150,11 +147,10 @@ class ClientsConfigTest {
             .sep12("bad-url")
             .build()
         )
-        .callbackUrl("bad-url")
         .build()
 
     config.setCustodial(listOf(custodial))
     config.validate(config, errors)
-    assertEquals(5, errors.errorCount)
+    assertEquals(4, errors.errorCount)
   }
 }

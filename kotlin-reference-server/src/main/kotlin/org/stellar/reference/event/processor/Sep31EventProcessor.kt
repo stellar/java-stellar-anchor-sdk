@@ -117,8 +117,10 @@ class Sep31EventProcessor(
     val providedFields = receiver.providedFields.keys
     return requiredKyc.filter { !providedFields.contains(it) }
   }
+
   private fun requestKyc(event: SendEventRequest) {
-    val missingFields = verifyKyc(event.payload.transaction!!)
+    val customer = event.payload.transaction!!.customers.receiver
+    val missingFields = verifyKyc(event.payload.transaction)
     runBlocking {
       if (missingFields.isNotEmpty()) {
         customerService.requestAdditionalFieldsForTransaction(
@@ -126,10 +128,12 @@ class Sep31EventProcessor(
           missingFields,
         )
         sepHelper.rpcAction(
-          RpcMethod.REQUEST_CUSTOMER_INFO_UPDATE.toString(),
-          RequestCustomerInfoUpdateRequest(
+          RpcMethod.NOTIFY_CUSTOMER_INFO_UPDATED.toString(),
+          NotifyCustomerInfoUpdatedRequest(
             transactionId = event.payload.transaction.id,
             message = "Please update your info",
+            customerId = customer.id,
+            customerType = "sep31-receiver",
           ),
         )
       }

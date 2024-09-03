@@ -12,6 +12,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
+import org.stellar.anchor.client.ClientConfig.CallbackUrls
 import org.stellar.anchor.client.ClientFinder
 import org.stellar.anchor.client.ClientService
 import org.stellar.anchor.client.CustodialClientConfig
@@ -33,7 +34,14 @@ class ClientFinderTest {
       NonCustodialClientConfig.builder()
         .name("reference")
         .domains(setOf("wallet-server:8092"))
-        .callbackUrl("http://wallet-server:8092/callbacks")
+        .callbackUrls(
+          CallbackUrls.builder()
+            .sep6("https://wallet-server:8092/callbacks/sep6")
+            .sep24("https://wallet-server:8092/callbacks/sep24")
+            .sep31("https://wallet-server:8092/callbacks/sep31")
+            .sep12("https://wallet-server:8092/callbacks/sep12")
+            .build()
+        )
         .build()
   }
 

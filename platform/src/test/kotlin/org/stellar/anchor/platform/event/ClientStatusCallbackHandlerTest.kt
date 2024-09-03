@@ -61,8 +61,14 @@ class ClientStatusCallbackHandlerTest {
             "GACYKME36AI6UYAV7A5ZUA6MG4C4K2VAPNYMW5YLOM6E7GS6FSHDPV4F",
           )
         )
-        .callbackUrl("https://callback.circle.com/api/v1/anchor/callback")
-        .callbackUrls(CallbackUrls.builder().build())
+        .callbackUrls(
+          CallbackUrls.builder()
+            .sep6("https://callback.circle.com/api/v1/anchor/callback/sep6")
+            .sep24("https://callback.circle.com/api/v1/anchor/callback/sep24")
+            .sep31("https://callback.circle.com/api/v1/anchor/callback/sep31")
+            .sep12("https://callback.circle.com/api/v1/anchor/callback/sep12")
+            .build()
+        )
         .allowAnyDestination(false)
         .destinationAccounts(emptySet())
         .build()
@@ -116,7 +122,7 @@ class ClientStatusCallbackHandlerTest {
 
     val payload = json(event)
     val request =
-      ClientStatusCallbackHandler.buildHttpRequest(signer, payload, clientConfig.callbackUrl)
+      ClientStatusCallbackHandler.buildHttpRequest(signer, payload, clientConfig.callbackUrls.sep6)
     val requestHeader = request.headers["Signature"]
     val parsedSignature = requestHeader?.split(", ")?.get(1)?.substring(2)
     val decodedSignature = Base64.getDecoder().decode(parsedSignature)
@@ -127,14 +133,6 @@ class ClientStatusCallbackHandlerTest {
     val signatureToVerify = signer.sign(payloadToVerify.toByteArray())
 
     Assertions.assertArrayEquals(decodedSignature, signatureToVerify)
-  }
-
-  @Test
-  fun `test getCallbackUrl fallback`() {
-    clientConfig.callbackUrls.sep6 = null
-    val url = handler.getCallbackUrl(event)
-
-    Assertions.assertEquals(clientConfig.callbackUrl, url)
   }
 
   @Test
@@ -176,7 +174,6 @@ class ClientStatusCallbackHandlerTest {
 
   @Test
   fun `test buildHttpRequest with no callback URLs defined`() {
-    clientConfig.callbackUrl = null
     clientConfig.callbackUrls.sep6 = null
     clientConfig.callbackUrls.sep24 = null
     clientConfig.callbackUrls.sep31 = null
