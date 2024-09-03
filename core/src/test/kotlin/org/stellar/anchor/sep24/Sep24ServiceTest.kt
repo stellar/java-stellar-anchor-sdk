@@ -38,10 +38,7 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
-import org.stellar.anchor.client.ClientFinder
-import org.stellar.anchor.client.ClientService
-import org.stellar.anchor.client.CustodialClientConfig
-import org.stellar.anchor.client.NonCustodialClientConfig
+import org.stellar.anchor.client.*
 import org.stellar.anchor.config.*
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.sep38.PojoSep38Quote
@@ -151,7 +148,11 @@ internal class Sep24ServiceTest {
       NonCustodialClientConfig.builder()
         .name("reference")
         .domains(setOf("wallet-server:8092"))
-        .callbackUrl("http://wallet-server:8092/callbacks")
+        .callbackUrls(
+          ClientConfig.CallbackUrls.builder()
+            .sep24("http://wallet-server:8092/callbacks/sep24")
+            .build()
+        )
         .build()
     every { clientService.getClientConfigBySigningKey(any()) } returns
       CustodialClientConfig.builder()

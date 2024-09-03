@@ -36,6 +36,7 @@ import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.client.ClientConfig.CallbackUrls
 import org.stellar.anchor.client.ClientService
 import org.stellar.anchor.client.CustodialClientConfig
 import org.stellar.anchor.config.*
@@ -238,7 +239,9 @@ class Sep31ServiceTest {
       CustodialClientConfig.builder()
         .name("custodialClient")
         .signingKeys(setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEG"))
-        .callbackUrl("https://example.com/callback")
+        .callbackUrls(
+          CallbackUrls.builder().sep31("http://wallet-server:8092/callbacks/sep31").build()
+        )
         .allowAnyDestination(false)
         .destinationAccounts(emptySet())
         .build()

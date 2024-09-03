@@ -7,8 +7,17 @@ noncustodial:
     - name: lobstr
       domains:
         - lobstr.co
-      callback_url: https://callback.lobstr.co/api/v2/anchor/callback
+      callback_urls:
+        sep6: https://callback.lobstr.co/api/v2/anchor/callback/sep6
+        sep24: https://callback.lobstr.co/api/v2/anchor/callback/sep24
+        sep31: https://callback.lobstr.co/api/v2/anchor/callback/sep31
+        sep12: https://callback.lobstr.co/api/v2/anchor/callback/sep12
     - name: circle
       domains:
         - circle.com
-      callback_url: https://callback.circle.com/api/v2/anchor/callback
+      callback_urls:
+        sep6: https://callback.circle.com/api/v2/anchor/callback/sep6
+        sep24: https://callback.circle.com/api/v2/anchor/callback/sep24
+        sep31: https://callback.circle.com/api/v2/anchor/callback/sep31
+        sep12: https://callback.circle.com/api/v2/anchor/callback/sep12
+

@@ -33,15 +33,15 @@ class ConfigManagerTest {
     assertEquals(config.get("clients.noncustodial[0].name").value, "vibrant")
     assertEquals(config.get("clients.noncustodial[0].domains[0]").value, "vibrant.co")
     assertEquals(
-      config.get("clients.noncustodial[0].callback_url").value,
-      "https://callback.vibrant.com/api/v2/anchor/callback"
+      config.get("clients.noncustodial[0].callback_urls.sep24").value,
+      "https://callback.vibrant.com/api/v2/anchor/callback/sep24"
     )
 
     assertEquals(config.get("clients.noncustodial[1].name").value, "lobstr")
     assertEquals(config.get("clients.noncustodial[1].domains[0]").value, "lobstr.co")
     assertEquals(
-      config.get("clients.noncustodial[1].callback_url").value,
-      "https://callback.lobstr.co/api/v2/anchor/callback"
+      config.get("clients.noncustodial[1].callback_urls.sep6").value,
+      "https://callback.lobstr.co/api/v2/anchor/callback/sep6"
     )
   }
 
