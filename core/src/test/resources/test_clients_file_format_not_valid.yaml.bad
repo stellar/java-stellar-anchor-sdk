@@ -9,4 +9,3 @@ noncustodial:
   - name: reference
     domains:
       - wallet-server:8092
-    callback_url: http://wallet-server:8092/callbacks

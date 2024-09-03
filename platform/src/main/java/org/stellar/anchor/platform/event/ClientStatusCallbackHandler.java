@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -106,8 +107,9 @@ public class ClientStatusCallbackHandler extends EventHandler {
     return buildHttpRequest(signer, payload, callbackUrl);
   }
 
+  @Nullable
   String getCallbackUrl(AnchorEvent event) throws InvalidConfigException {
-    String callbackUrl = clientConfig.getCallbackUrl();
+    String callbackUrl = null;
     if (event.getTransaction() != null) {
       switch (event.getTransaction().getSep()) {
         case SEP_6:

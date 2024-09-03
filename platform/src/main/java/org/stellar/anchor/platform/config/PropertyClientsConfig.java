@@ -87,21 +87,19 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     for (ClientConfig client : clients) {
       debugF("Validating client {}", client);
       ImmutableMap.of(
-              "callback_url",
-              Optional.ofNullable(client.getCallbackUrl()).orElse(""),
-              "callback_url_sep6",
+              "callback_urls_sep6",
               Optional.ofNullable(client.getCallbackUrls())
                   .map(ClientConfig.CallbackUrls::getSep6)
                   .orElse(""),
-              "callback_url_sep24",
+              "callback_urls_sep24",
               Optional.ofNullable(client.getCallbackUrls())
                   .map(ClientConfig.CallbackUrls::getSep24)
                   .orElse(""),
-              "callback_url_sep31",
+              "callback_urls_sep31",
               Optional.ofNullable(client.getCallbackUrls())
                   .map(ClientConfig.CallbackUrls::getSep31)
                   .orElse(""),
-              "callback_url_sep12",
+              "callback_urls_sep12",
               Optional.ofNullable(client.getCallbackUrls())
                   .map(ClientConfig.CallbackUrls::getSep12)
                   .orElse(""))

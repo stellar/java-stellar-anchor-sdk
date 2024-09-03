@@ -52,7 +52,12 @@ class DefaultClientServiceTest {
         {
           "name": "reference",
           "domains": ["wallet-server:8092"],
-          "callback_url": "http://wallet-server:8092/callbacks"
+          "callback_urls": {
+            "sep6": "http://wallet-server:8092/sep6",
+            "sep24": "http://wallet-server:8092/sep24",
+            "sep31": "http://wallet-server:8092/sep31",
+            "sep12": "http://wallet-server:8092/sep12"
+          }
         }
       ]
     """
