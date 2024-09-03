@@ -168,7 +168,6 @@ public class AssetValidator {
         throw new InvalidConfigException(
             format("No withdraw methods defined for asset %s", assetId));
       }
-      // Check for duplicate SEP-6 withdrawal types
       Set<String> existingWithdrawTypes = new HashSet<>();
       for (String type : dwInfo.getWithdraw().getMethods()) {
         if (!existingWithdrawTypes.add(type)) {
