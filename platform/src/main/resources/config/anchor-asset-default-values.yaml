@@ -37,7 +37,7 @@ items:
         # Example:
         #   - SEPA
         #   - SWIFT
-        methods:
+        methods: []
 
       # The Configuration for the withdrawal operation of the SEP-6.
       withdraw:
@@ -51,7 +51,7 @@ items:
         # Example:
         #   - bank_account
         #   - cash
-        methods:
+        methods: []
 
     # The configuration for the SEP-24 transactions.
     sep24:
@@ -69,7 +69,7 @@ items:
         # Example:
         #   - SEPA
         #   - SWIFT
-        methods:
+        methods: []
 
       # The configuration for the withdrawal operation of the SEP-24.
       withdraw:
@@ -83,7 +83,7 @@ items:
         # Example:
         #   - bank_account
         #   - cash
-        methods:
+        methods: []
 
     # The configuration for the SEP-31 transactions.
     sep31:
@@ -153,12 +153,12 @@ items:
       #    description: Send USD directly to the Anchor's bank account.
       #  - name: ACH
       #    description: Send USD directly to the Anchor's bank account.
-      sell_delivery_methods:
+      sell_delivery_methods: []
 
       # An array of objects describing the methods a client can use to buy/retrieve funds from the anchor.
       # Refer to: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#get-info
       # Example:
       #  - name: WIRE
       #    description: Have USD sent directly to your bank account.
-      buy_delivery_methods:
+      buy_delivery_methods: []
 
