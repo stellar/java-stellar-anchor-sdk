@@ -40,6 +40,7 @@ assets:
       receive:
         fee_fixed: 0
         fee_percent: 0
+        min_amount: 0
         max_amount: 1000000
       quotes_supported: true
       quotes_required: false
@@ -68,10 +69,16 @@ assets:
         enabled: true
         min_amount: 0
         max_amount: 10
+        methods:
+          - SEPA
+          - SWIFT
       withdraw:
         enabled: true
         min_amount: 0
         max_amount: 10
+        methods:
+          - bank_account
+          - cash
     sep31:
       enabled: true
       receive:
@@ -104,19 +111,41 @@ assets:
       enabled: false
       deposit:
         enabled: false
+        min_amount: 0
+        max_amount: 10
+        methods:
+          - SEPA
+          - SWIFT
       withdraw:
         enabled: false
+        min_amount: 0
+        max_amount: 10
+        methods:
+          - bank_account
+          - cash
     sep24:
       enabled: false
       deposit:
         enabled: false
+        min_amount: 0
+        max_amount: 10
+        methods:
+          - SEPA
+          - SWIFT
       withdraw:
         enabled: false
+        min_amount: 0
+        max_amount: 10
+        methods:
+          - bank_account
+          - cash
     sep31:
       enabled: true
       receive:
         fee_fixed: 0
         fee_percent: 0
+        min_amount: 0
+        max_amount: 1000000
       quotes_supported: true
       quotes_required: false
       fields:
@@ -147,10 +176,16 @@ assets:
         enabled: true
         min_amount: 0
         max_amount: 10
+        methods:
+          - SEPA
+          - SWIFT
       withdraw:
         enabled: true
         min_amount: 0
         max_amount: 10
+        methods:
+          - bank_account
+          - cash
     sep31:
       enabled: false
     sep38:
@@ -181,6 +216,7 @@ assets:
   - id: iso4217:CAD
     significant_decimals: 4
     sep31:
+      enabled: false
       receive:
         min_amount: 0
         max_amount: 1000000
