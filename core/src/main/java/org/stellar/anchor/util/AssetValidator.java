@@ -1,5 +1,6 @@
 package org.stellar.anchor.util;
 
+import static java.lang.String.*;
 import static org.stellar.anchor.api.asset.Sep31Info.*;
 import static org.stellar.anchor.api.asset.Sep38Info.*;
 import static org.stellar.anchor.util.ListHelper.isEmpty;
@@ -25,7 +26,7 @@ public class AssetValidator {
     for (AssetInfo asset : assetService.getAssets()) {
       if (asset != null && !existingAssetNames.add(asset.getId())) {
         throw new InvalidConfigException(
-            "Duplicate assets defined in configuration. Asset = " + asset.getId());
+            format("Duplicate assets defined in configuration. Asset = %s", asset.getId()));
       }
     }
 
@@ -63,7 +64,7 @@ public class AssetValidator {
     // Check for missing significant decimals field
     if (stallarAssetInfo.getSignificantDecimals() == null) {
       throw new InvalidConfigException(
-          "significant_decimals not defined for asset " + stallarAssetInfo.getId());
+          format("significant_decimals not defined for asset %s", stallarAssetInfo.getId()));
     }
 
     validateSep6(stallarAssetInfo.getSep6(), stallarAssetInfo.getId());
@@ -99,23 +100,24 @@ public class AssetValidator {
       boolean isQuotesRequired = sep31Info.isQuotesRequired();
       if (isQuotesRequired && !isQuotesSupported)
         throw new InvalidConfigException(
-            "if quotes_required is true, quotes_supported must also be true for asset: " + assetId);
+            format(
+                "if quotes_required is true, quotes_supported must also be true for asset: %s",
+                assetId));
 
       // Validate SEP-31 `receive.min_amount` and `receive.max_amount` fields
       ReceiveOperation receiveInfo = sep31Info.getReceive();
       if (receiveInfo != null) {
         if (receiveInfo.getMinAmount() < 0)
           throw new InvalidConfigException(
-              "Invalid min_amount defined for asset "
-                  + assetId
-                  + ". sep31.receive.min_amount = "
-                  + receiveInfo.getMinAmount());
+              format(
+                  "Invalid min_amount defined for asset %s. sep31.receive.min_amount = %s",
+                  assetId, receiveInfo.getMinAmount()));
+
         if (receiveInfo.getMaxAmount() <= 0)
           throw new InvalidConfigException(
-              "Invalid max_amount defined for asset "
-                  + assetId
-                  + ". sep31.receive.max_amount = "
-                  + receiveInfo.getMaxAmount());
+              format(
+                  "Invalid max_amount defined for asset %s. sep31.receive.max_amount = %s",
+                  assetId, receiveInfo.getMaxAmount()));
       }
     }
   }
@@ -129,7 +131,7 @@ public class AssetValidator {
       for (String exchangeableAsset : sep38Info.getExchangeableAssets()) {
         if (assetService.getAssetById(exchangeableAsset) == null)
           throw new InvalidConfigException(
-              String.format(
+              format(
                   "Invalid exchangeable asset %s defined for asset %s.",
                   exchangeableAsset, assetId));
       }
@@ -151,11 +153,10 @@ public class AssetValidator {
       for (DeliveryMethod method : sep38Info.getBuyDeliveryMethods()) {
         if (StringHelper.isEmpty(method.getName()))
           throw new InvalidConfigException(
-              String.format("Empty buy delivery method name defined for asset %s.", assetId));
+              format("Empty buy delivery method name defined for asset %s.", assetId));
         if (StringHelper.isEmpty(method.getDescription()))
           throw new InvalidConfigException(
-              String.format(
-                  "Empty buy delivery method description defined for asset %s.", assetId));
+              format("Empty buy delivery method description defined for asset %s.", assetId));
       }
     }
 
@@ -164,11 +165,10 @@ public class AssetValidator {
       for (DeliveryMethod method : sep38Info.getSellDeliveryMethods()) {
         if (StringHelper.isEmpty(method.getName()))
           throw new InvalidConfigException(
-              String.format("Empty sell delivery method name defined for asset %s.", assetId));
+              format("Empty sell delivery method name defined for asset %s.", assetId));
         if (StringHelper.isEmpty(method.getDescription()))
           throw new InvalidConfigException(
-              String.format(
-                  "Empty sell delivery method description defined for asset %s.", assetId));
+              format("Empty sell delivery method description defined for asset %s.", assetId));
       }
     }
   }
@@ -188,23 +188,21 @@ public class AssetValidator {
         for (String type : dwInfo.getWithdraw().getMethods()) {
           if (!existingWithdrawTypes.add(type)) {
             throw new InvalidConfigException(
-                "Duplicate withdraw types defined for asset " + assetId + ". Type = " + type);
+                format("Duplicate withdraw types defined for asset %s. Type = %s", assetId, type));
           }
         }
       }
       if (dwInfo.getWithdraw().getMinAmount() < 0) {
         throw new InvalidConfigException(
-            "Invalid min_amount defined for asset "
-                + assetId
-                + ". withdraw.min_amount = "
-                + dwInfo.getWithdraw().getMinAmount());
+            format(
+                "Invalid min_amount defined for asset %s. withdraw.min_amount = %s",
+                assetId, dwInfo.getWithdraw().getMinAmount()));
       }
       if (dwInfo.getWithdraw().getMaxAmount() <= 0) {
         throw new InvalidConfigException(
-            "Invalid max_amount defined for asset "
-                + assetId
-                + ". deposit.max_amount = "
-                + dwInfo.getWithdraw().getMaxAmount());
+            format(
+                "Invalid max_amount defined for asset %s. withdraw.max_amount = %s",
+                assetId, dwInfo.getWithdraw().getMaxAmount()));
       }
     }
 
@@ -216,23 +214,22 @@ public class AssetValidator {
         for (String method : dwInfo.getDeposit().getMethods()) {
           if (!existingDepositTypes.add(method)) {
             throw new InvalidConfigException(
-                "Duplicate deposit method defined for asset " + assetId + ". Type = " + method);
+                format(
+                    "Duplicate deposit method defined for asset %s. Type = %s", assetId, method));
           }
         }
       }
       if (dwInfo.getDeposit().getMinAmount() < 0) {
         throw new InvalidConfigException(
-            "Invalid min_amount defined for asset "
-                + assetId
-                + ". deposit.min_amount = "
-                + dwInfo.getDeposit().getMinAmount());
+            format(
+                "Invalid min_amount defined for asset %s. deposit.min_amount=%s",
+                assetId, dwInfo.getDeposit().getMinAmount()));
       }
       if (dwInfo.getDeposit().getMaxAmount() <= 0) {
         throw new InvalidConfigException(
-            "Invalid max_amount defined for asset "
-                + assetId
-                + ". deposit.max_amount = "
-                + dwInfo.getDeposit().getMaxAmount());
+            format(
+                "Invalid max_amount defined for asset %s. deposit.max_amount = %s",
+                assetId, dwInfo.getDeposit().getMaxAmount()));
       }
     }
   }
