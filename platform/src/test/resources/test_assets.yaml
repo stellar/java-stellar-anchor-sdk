@@ -6,16 +6,20 @@ assets:
       enabled: true
       deposit:
         enabled: true
-        fee_minimum: 0
-        fee_percent: 0
         min_amount: 0
         max_amount: 10000
+        methods:
+          - SEPA
+          - SWIFT
       withdraw:
         enabled: true
         fee_fixed: 0
         fee_percent: 0
         min_amount: 0
         max_amount: 10000
+        methods:
+          - bank_account
+          - cash
     sep31:
       enabled: true
       receive:

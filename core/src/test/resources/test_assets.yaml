@@ -74,10 +74,16 @@ assets:
         enabled: true
         min_amount: 1
         max_amount: 1000000
+        methods:
+          - SEPA
+          - SWIFT
       withdraw:
         enabled: false
         min_amount: 1
         max_amount: 1000000
+        methods:
+          - SEPA
+          - SWIFT
     sep31:
       enabled: true
       receive:
@@ -139,10 +145,16 @@ assets:
         enabled: true
         min_amount: 1
         max_amount: 1000000
+        methods:
+          - SEPA
+          - SWIFT
       withdraw:
         enabled: true
         min_amount: 1
         max_amount: 1000000
+        methods:
+          - SEPA
+          - SWIFT
     sep31:
       enabled: true
       receive:

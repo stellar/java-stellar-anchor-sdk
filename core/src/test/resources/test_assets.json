@@ -203,6 +203,8 @@
           "min_amount": 1,
           "max_amount": 1000000,
           "methods": [
+            "SEPA",
+            "SWIFT"
           ]
         },
         "withdraw": {
@@ -210,6 +212,8 @@
           "min_amount": 1,
           "max_amount": 1000000,
           "methods": [
+            "SEPA",
+            "SWIFT"
           ]
         }
       },

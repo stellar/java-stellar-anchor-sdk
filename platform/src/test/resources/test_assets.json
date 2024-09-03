@@ -8,24 +8,26 @@
         "enabled": true,
         "deposit": {
           "enabled": true,
-          "fee_fixed": 0,
-          "fee_percent": 0,
           "min_amount": 1,
-          "max_amount": 1000000
+          "max_amount": 1000000,
+            "methods": [
+                "SEPA",
+                "SWIFT"
+            ]
         },
         "withdraw": {
           "enabled": true,
-          "fee_fixed": 0,
-          "fee_percent": 0,
           "min_amount": 1,
-          "max_amount": 1000000
+          "max_amount": 1000000,
+            "methods": [
+                "SEPA",
+                "SWIFT"
+            ]
         }
       },
       "sep31" : {
         "enabled": true,
         "receive": {
-          "fee_fixed": 0,
-          "fee_percent": 0,
           "min_amount": 0,
           "max_amount": 10000
         },

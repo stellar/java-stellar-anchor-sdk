@@ -182,14 +182,16 @@ public class AssetValidator {
 
     // Validate withdraw fields
     if (isWithdrawEnabled(dwInfo)) {
-      if (!isEmpty(dwInfo.getWithdraw().getMethods())) {
-        // Check for duplicate SEP-6 withdrawal types
-        Set<String> existingWithdrawTypes = new HashSet<>();
-        for (String type : dwInfo.getWithdraw().getMethods()) {
-          if (!existingWithdrawTypes.add(type)) {
-            throw new InvalidConfigException(
-                format("Duplicate withdraw types defined for asset %s. Type = %s", assetId, type));
-          }
+      if (isEmpty(dwInfo.getWithdraw().getMethods())) {
+        throw new InvalidConfigException(
+            format("No withdraw methods defined for asset %s", assetId));
+      }
+      // Check for duplicate SEP-6 withdrawal types
+      Set<String> existingWithdrawTypes = new HashSet<>();
+      for (String type : dwInfo.getWithdraw().getMethods()) {
+        if (!existingWithdrawTypes.add(type)) {
+          throw new InvalidConfigException(
+              format("Duplicate withdraw types defined for asset %s. Type = %s", assetId, type));
         }
       }
       if (dwInfo.getWithdraw().getMinAmount() < 0) {
@@ -208,15 +210,16 @@ public class AssetValidator {
 
     // Validate deposit fields
     if (isDepositEnabled(dwInfo)) {
-      // Check for duplicate SEP-6 deposit methods
-      if (!isEmpty(dwInfo.getDeposit().getMethods())) {
-        Set<String> existingDepositTypes = new HashSet<>();
-        for (String method : dwInfo.getDeposit().getMethods()) {
-          if (!existingDepositTypes.add(method)) {
-            throw new InvalidConfigException(
-                format(
-                    "Duplicate deposit method defined for asset %s. Type = %s", assetId, method));
-          }
+      if (isEmpty(dwInfo.getDeposit().getMethods())) {
+        throw new InvalidConfigException(
+            format("No deposit methods defined for asset %s", assetId));
+      }
+      // Check for duplicate deposit methods
+      Set<String> existingDepositTypes = new HashSet<>();
+      for (String method : dwInfo.getDeposit().getMethods()) {
+        if (!existingDepositTypes.add(method)) {
+          throw new InvalidConfigException(
+              format("Duplicate deposit method defined for asset %s. Type = %s", assetId, method));
         }
       }
       if (dwInfo.getDeposit().getMinAmount() < 0) {
