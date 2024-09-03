@@ -103,9 +103,6 @@ items:
     sep38:
       # `true` if the asset supports the SEP-38.
       enabled: false
-      #
-      # country_codes:
-
       # The list of the assets that the anchor can exchange with the asset.
       # The assets must be defined in the format of the `id` field.
       # Example:

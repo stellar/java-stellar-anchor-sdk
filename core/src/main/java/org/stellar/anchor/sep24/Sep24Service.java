@@ -8,7 +8,6 @@ import static org.stellar.anchor.api.sep.sep24.InfoResponse.FeeResponse;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.sep24.Sep24Helper.fromTxn;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.*;
-import static org.stellar.anchor.util.AssetValidator.*;
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.info;
@@ -159,7 +158,7 @@ public class Sep24Service {
     // Verify that the asset code exists in our database, with withdraw enabled.
     StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode, assetIssuer);
     debugF("Asset: {}", asset);
-    if (asset == null || !isWithdrawEnabled(asset.getSep24())) {
+    if (asset == null || !AssetHelper.isWithdrawEnabled(asset.getSep24())) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
@@ -355,7 +354,7 @@ public class Sep24Service {
 
     // Verify that the asset code exists in our database, with deposit enabled.
     StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode, assetIssuer);
-    if (asset == null || !isDepositEnabled(asset.getSep24())) {
+    if (asset == null || !AssetHelper.isDepositEnabled(asset.getSep24())) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
@@ -574,11 +573,11 @@ public class Sep24Service {
     Map<String, InfoResponse.OperationResponse> withdrawMap = new HashMap<>();
     for (StellarAssetInfo asset : assets) {
       // iso4217 assets do not have deposit/withdraw configurations
-      if (isDepositEnabled(asset.getSep24()))
+      if (AssetHelper.isDepositEnabled(asset.getSep24()))
         depositMap.put(
             asset.getCode(),
             InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getDeposit()));
-      if (isWithdrawEnabled(asset.getSep24()))
+      if (AssetHelper.isWithdrawEnabled(asset.getSep24()))
         withdrawMap.put(
             asset.getCode(),
             InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getWithdraw()));

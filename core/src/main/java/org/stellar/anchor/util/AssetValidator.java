@@ -41,24 +41,6 @@ public class AssetValidator {
     }
   }
 
-  // Check if deposit is enabled for the asset
-  public static boolean isDepositEnabled(DepositWithdrawInfo info) {
-    if (info == null || !info.getEnabled()) {
-      return false;
-    }
-    DepositWithdrawOperation operation = info.getDeposit();
-    return operation != null && operation.getEnabled();
-  }
-
-  // Check if withdrawal is enabled for the asset
-  public static boolean isWithdrawEnabled(DepositWithdrawInfo info) {
-    if (info == null || !info.getEnabled()) {
-      return false;
-    }
-    DepositWithdrawOperation operation = info.getWithdraw();
-    return operation != null && operation.getEnabled();
-  }
-
   static void validateStellarAsset(AssetService assetService, StellarAssetInfo stallarAssetInfo)
       throws InvalidConfigException {
     // Check for missing significant decimals field
@@ -181,7 +163,7 @@ public class AssetValidator {
       throws InvalidConfigException {
 
     // Validate withdraw fields
-    if (isWithdrawEnabled(dwInfo)) {
+    if (AssetHelper.isWithdrawEnabled(dwInfo)) {
       if (isEmpty(dwInfo.getWithdraw().getMethods())) {
         throw new InvalidConfigException(
             format("No withdraw methods defined for asset %s", assetId));
@@ -209,7 +191,7 @@ public class AssetValidator {
     }
 
     // Validate deposit fields
-    if (isDepositEnabled(dwInfo)) {
+    if (AssetHelper.isDepositEnabled(dwInfo)) {
       if (isEmpty(dwInfo.getDeposit().getMethods())) {
         throw new InvalidConfigException(
             format("No deposit methods defined for asset %s", assetId));

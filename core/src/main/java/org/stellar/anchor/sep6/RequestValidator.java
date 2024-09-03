@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep6;
 
-import static org.stellar.anchor.util.AssetValidator.isDepositEnabled;
-import static org.stellar.anchor.util.AssetValidator.isWithdrawEnabled;
+import static org.stellar.anchor.util.AssetHelper.isDepositEnabled;
+import static org.stellar.anchor.util.AssetHelper.isWithdrawEnabled;
 
 import java.math.BigDecimal;
 import java.util.List;
