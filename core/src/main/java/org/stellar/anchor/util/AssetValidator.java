@@ -91,6 +91,8 @@ public class AssetValidator {
   }
 
   static void validateSep31(Sep31Info sep31Info, String assetId) throws InvalidConfigException {
+    if (sep31Info == null || !sep31Info.getEnabled()) return;
+
     if (sep31Info != null && sep31Info.getEnabled()) {
       // Validate `quotes_required` and `quotes_supported` fields
       boolean isQuotesSupported = sep31Info.isQuotesSupported();
@@ -120,7 +122,7 @@ public class AssetValidator {
 
   static void validateSep38(AssetService assetService, Sep38Info sep38Info, String assetId)
       throws InvalidConfigException {
-    if (sep38Info == null || sep38Info.getEnabled()) return;
+    if (sep38Info == null || !sep38Info.getEnabled()) return;
 
     // Validate exchangeable_assets
     if (!isEmpty(sep38Info.getExchangeableAssets())) {
