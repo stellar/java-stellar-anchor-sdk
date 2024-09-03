@@ -8,9 +8,11 @@ clients:
     - name: vibrant
       domains:
         - vibrant.co
-      callback_url: https://callback.vibrant.com/api/v2/anchor/callback
+      callback_urls:
+        sep24: https://callback.vibrant.com/api/v2/anchor/callback/sep24
     - name: lobstr
       domains:
         - lobstr.co
-      callback_url: https://callback.lobstr.co/api/v2/anchor/callback
+      callback_urls:
+        sep6: https://callback.lobstr.co/api/v2/anchor/callback/sep6
 
