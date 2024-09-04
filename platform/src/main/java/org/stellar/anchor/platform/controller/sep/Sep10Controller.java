@@ -36,8 +36,8 @@ public class Sep10Controller {
       produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public ChallengeResponse createChallenge(
-      @RequestParam String account,
-      @RequestParam(required = false) String memo,
+      @RequestParam(name = "account") String account,
+      @RequestParam(required = false, name = "memo") String memo,
       @RequestParam(required = false, name = "home_domain") String homeDomain,
       @RequestParam(required = false, name = "client_domain") String clientDomain,
       @RequestHeader(required = false, name = "Authorization") String authorization)
@@ -64,7 +64,8 @@ public class Sep10Controller {
       consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
-  public ValidationResponse validateChallenge(@RequestParam String transaction)
+  public ValidationResponse validateChallenge(
+      @RequestParam(name = "transaction") String transaction)
       throws InvalidSep10ChallengeException, IOException, SepValidationException {
     debugF("POST /auth transaction={}", transaction);
     return validateChallenge(ValidationRequest.of(transaction));
