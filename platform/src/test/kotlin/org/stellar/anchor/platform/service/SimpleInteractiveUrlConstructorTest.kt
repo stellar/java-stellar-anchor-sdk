@@ -13,8 +13,8 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.asset.AssetInfo
 import org.stellar.anchor.api.callback.CustomerIntegration
+import org.stellar.anchor.api.callback.CustomerResponse
 import org.stellar.anchor.api.callback.PutCustomerRequest
-import org.stellar.anchor.api.callback.PutCustomerResponse
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.*
@@ -125,7 +125,7 @@ class SimpleInteractiveUrlConstructorTest {
     val customerIntegration: CustomerIntegration = mockk()
     val capturedPutCustomerRequest = slot<PutCustomerRequest>()
     every { customerIntegration.putCustomer(capture(capturedPutCustomerRequest)) } returns
-      PutCustomerResponse()
+      CustomerResponse()
     val constructor =
       SimpleInteractiveUrlConstructor(
         assetService,

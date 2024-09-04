@@ -13,10 +13,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
+import org.stellar.anchor.api.callback.CustomerResponse
 import org.stellar.anchor.api.callback.GetCustomerRequest
-import org.stellar.anchor.api.callback.GetCustomerResponse
 import org.stellar.anchor.api.callback.PutCustomerRequest
-import org.stellar.anchor.api.callback.PutCustomerResponse
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.ServerErrorException
@@ -94,7 +93,7 @@ class RestCustomerIntegrationTest {
         )
     )
 
-    val wantResponse = GetCustomerResponse()
+    val wantResponse = CustomerResponse()
     wantResponse.id = "customer-id"
     wantResponse.status = Sep12Status.NEEDS_INFO.name
     wantResponse.message = "foo bar"
@@ -173,7 +172,7 @@ class RestCustomerIntegrationTest {
 
     mockAnchor.enqueue(MockResponse().setResponseCode(200).setBody("""{"id": "customer-id"}"""))
 
-    val wantResponse = PutCustomerResponse()
+    val wantResponse = CustomerResponse()
     wantResponse.id = "customer-id"
 
     val gotResponse = customerIntegration.putCustomer(putCustomerRequest)
@@ -211,7 +210,7 @@ class RestCustomerIntegrationTest {
 
     mockAnchor.enqueue(MockResponse().setResponseCode(200).setBody("""{"id": "customer-id"}"""))
 
-    val wantResponse = PutCustomerResponse()
+    val wantResponse = CustomerResponse()
     wantResponse.id = "customer-id"
 
     val gotResponse = customerIntegration.putCustomer(putCustomerRequest)

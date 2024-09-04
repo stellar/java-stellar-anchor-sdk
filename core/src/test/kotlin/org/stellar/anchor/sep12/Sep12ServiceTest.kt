@@ -13,11 +13,17 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
-import org.stellar.anchor.api.callback.*
+import org.stellar.anchor.api.callback.CustomerIntegration
+import org.stellar.anchor.api.callback.CustomerResponse
+import org.stellar.anchor.api.callback.GetCustomerRequest
+import org.stellar.anchor.api.callback.PutCustomerRequest
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.platform.GetTransactionResponse
-import org.stellar.anchor.api.sep.sep12.*
+import org.stellar.anchor.api.sep.sep12.Sep12CustomerRequestBase
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.shared.CustomerField
 import org.stellar.anchor.api.shared.Customers
 import org.stellar.anchor.api.shared.ProvidedCustomerField
@@ -256,15 +262,16 @@ class Sep12ServiceTest {
   fun `Test put customer request ok`() {
     // mock `PUT {callbackApi}/customer` response
     val callbackApiPutRequestSlot = slot<PutCustomerRequest>()
-    val callbackApiGetRequestSlot = slot<GetCustomerRequest>()
     val kycUpdateEventSlot = slot<AnchorEvent>()
-    val mockCallbackApiPutCustomerResponse = PutCustomerResponse()
-    val mockCallbackApiGetCustomerResponse = GetCustomerResponse()
-    mockCallbackApiPutCustomerResponse.id = "customer-id"
+    val mockCallbackApiPutCustomerResponse =
+      CustomerResponse.builder()
+        .id("customer-id")
+        .status(Sep12Status.ACCEPTED.toString())
+        .fields(mockFields)
+        .providedFields(mockProvidedFields)
+        .build()
     every { customerIntegration.putCustomer(capture(callbackApiPutRequestSlot)) } returns
       mockCallbackApiPutCustomerResponse
-    every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } returns
-      mockCallbackApiGetCustomerResponse
     every { eventSession.publish(capture(kycUpdateEventSlot)) } returns Unit
 
     // Execute the request
@@ -306,15 +313,12 @@ class Sep12ServiceTest {
         .build()
     assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
 
-    val wantCallbackApiGetCustomerResponse = GetCustomerRequest.builder().id("customer-id").build()
-    assertEquals(wantCallbackApiGetCustomerResponse, callbackApiGetRequestSlot.captured)
-
     // validate the published event
     assertNotNull(kycUpdateEventSlot.captured.id)
     assertEquals("12", kycUpdateEventSlot.captured.sep)
     assertEquals(AnchorEvent.Type.CUSTOMER_UPDATED, kycUpdateEventSlot.captured.type)
     assertEquals(
-      GetCustomerResponse.to(mockCallbackApiGetCustomerResponse),
+      CustomerResponse.to(mockCallbackApiPutCustomerResponse),
       kycUpdateEventSlot.captured.customer,
     )
 
@@ -414,14 +418,14 @@ class Sep12ServiceTest {
   fun `Test get customer request ok`() {
     // mock `GET {callbackApi}/customer` response
     val callbackApiGetRequestSlot = slot<GetCustomerRequest>()
-    val mockCallbackApiGetCustomerResponse = GetCustomerResponse()
-    mockCallbackApiGetCustomerResponse.id = "customer-id"
-    mockCallbackApiGetCustomerResponse.status = Sep12Status.ACCEPTED.name
-    mockCallbackApiGetCustomerResponse.fields = mockFields
-    mockCallbackApiGetCustomerResponse.providedFields = mockProvidedFields
-    mockCallbackApiGetCustomerResponse.message = "foo bar"
+    val mockCallbackApiCustomerResponse = CustomerResponse()
+    mockCallbackApiCustomerResponse.id = "customer-id"
+    mockCallbackApiCustomerResponse.status = Sep12Status.ACCEPTED.name
+    mockCallbackApiCustomerResponse.fields = mockFields
+    mockCallbackApiCustomerResponse.providedFields = mockProvidedFields
+    mockCallbackApiCustomerResponse.message = "foo bar"
     every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } returns
-      mockCallbackApiGetCustomerResponse
+      mockCallbackApiCustomerResponse
 
     // Execute the request
     val mockGetRequest =
@@ -520,7 +524,7 @@ class Sep12ServiceTest {
     every { customerIntegration.deleteCustomer(capture(deleteCustomerIdSlot)) } just Runs
 
     // attempting to delete a non-existent customer returns 404
-    val mockNoCustomerFound = GetCustomerResponse()
+    val mockNoCustomerFound = CustomerResponse()
     every { customerIntegration.getCustomer(any()) } returns mockNoCustomerFound
 
     val jwtToken = createJwtToken(TEST_ACCOUNT)
@@ -533,7 +537,7 @@ class Sep12ServiceTest {
     verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
 
     // customer deletion succeeds
-    val mockValidCustomerFound = GetCustomerResponse()
+    val mockValidCustomerFound = CustomerResponse()
     mockValidCustomerFound.id = "customer-id"
     every { customerIntegration.getCustomer(any()) } returns mockValidCustomerFound
     assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }

@@ -1,10 +1,9 @@
 package org.stellar.reference.callbacks.customer
 
 import java.util.*
+import org.stellar.anchor.api.callback.CustomerResponse
 import org.stellar.anchor.api.callback.GetCustomerRequest
-import org.stellar.anchor.api.callback.GetCustomerResponse
 import org.stellar.anchor.api.callback.PutCustomerRequest
-import org.stellar.anchor.api.callback.PutCustomerResponse
 import org.stellar.anchor.api.sep.sep12.ProvidedFieldStatus
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.shared.CustomerField
@@ -23,7 +22,7 @@ class CustomerService(
   private val transactionKYCRepository: TransactionKYCRepository,
   private val sepHelper: SepHelper,
 ) {
-  suspend fun getCustomer(request: GetCustomerRequest): GetCustomerResponse {
+  suspend fun getCustomer(request: GetCustomerRequest): CustomerResponse {
     val customer =
       when {
         // FIXME: This implementation relies on transaction.customer.sender account and memo to be
@@ -73,7 +72,7 @@ class CustomerService(
     return convertCustomerToResponse(customer, request.type, emptyList())
   }
 
-  suspend fun upsertCustomer(request: PutCustomerRequest): PutCustomerResponse {
+  suspend fun upsertCustomer(request: PutCustomerRequest): CustomerResponse {
     log.info { "Upserting customer: $request" }
     val customer =
       when {
@@ -90,7 +89,7 @@ class CustomerService(
 
     // Update the customer if it exists, otherwise create a new one.
     if (customer != null) {
-      customerRepository.update(
+      val updatedCustomer =
         customer.copy(
           firstName = request.firstName ?: customer.firstName,
           lastName = request.lastName ?: customer.lastName,
@@ -141,8 +140,8 @@ class CustomerService(
           proofOfLiveness = request.proofOfLiveness ?: customer.proofOfLiveness,
           referralId = request.referralId ?: customer.referralId,
         )
-      )
-      return PutCustomerResponse(customer.id)
+      customerRepository.update(updatedCustomer)
+      return getCustomer(GetCustomerRequest.builder().id(customer.id!!).build())
     } else {
       val id = UUID.randomUUID().toString()
       customerRepository.create(
@@ -200,7 +199,7 @@ class CustomerService(
           referralId = request.referralId,
         )
       )
-      return PutCustomerResponse(id)
+      return getCustomer(GetCustomerRequest.builder().id(id).build())
     }
   }
 
@@ -246,7 +245,7 @@ class CustomerService(
     customer: Customer,
     type: String?,
     requiredFields: List<String>,
-  ): GetCustomerResponse {
+  ): CustomerResponse {
     val providedFields = mutableMapOf<String, ProvidedCustomerField>()
     val missingFields = mutableMapOf<String, CustomerField>()
 
@@ -584,7 +583,7 @@ class CustomerService(
         else -> Sep12Status.ACCEPTED
       }.toString()
 
-    return GetCustomerResponse.builder()
+    return CustomerResponse.builder()
       .id(customer.id)
       .status(status)
       .providedFields(providedFields)

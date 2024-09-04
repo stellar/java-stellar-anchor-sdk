@@ -17,7 +17,7 @@ public interface CustomerIntegration {
    * @return The GET customer response.
    * @throws AnchorException if error happens
    */
-  GetCustomerResponse getCustomer(GetCustomerRequest request) throws AnchorException;
+  CustomerResponse getCustomer(GetCustomerRequest request) throws AnchorException;
 
   /**
    * Puts a customer
@@ -26,7 +26,7 @@ public interface CustomerIntegration {
    * @return The PUT customer response.
    * @throws AnchorException if error happens
    */
-  PutCustomerResponse putCustomer(PutCustomerRequest request) throws AnchorException;
+  CustomerResponse putCustomer(PutCustomerRequest request) throws AnchorException;
 
   /**
    * Deletes a customer.

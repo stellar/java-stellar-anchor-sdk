@@ -58,9 +58,8 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    GetCustomerResponse response =
-        customerIntegration.getCustomer(GetCustomerRequest.from(request));
-    Sep12GetCustomerResponse res = GetCustomerResponse.to(response);
+    CustomerResponse response = customerIntegration.getCustomer(GetCustomerRequest.from(request));
+    Sep12GetCustomerResponse res = CustomerResponse.to(response);
 
     // increment counter
     sep12GetCustomerCounter.increment();
@@ -91,10 +90,8 @@ public class Sep12Service {
       }
     }
 
-    PutCustomerResponse response =
+    CustomerResponse updatedCustomer =
         customerIntegration.putCustomer(PutCustomerRequest.from(request));
-    GetCustomerResponse updatedCustomer =
-        customerIntegration.getCustomer(GetCustomerRequest.builder().id(response.getId()).build());
 
     // Only publish event if the customer was updated.
     eventSession.publish(
@@ -102,12 +99,12 @@ public class Sep12Service {
             .id(UUID.randomUUID().toString())
             .sep(SEP_12.getSep().toString())
             .type(AnchorEvent.Type.CUSTOMER_UPDATED)
-            .customer(GetCustomerResponse.to(updatedCustomer))
+            .customer(CustomerResponse.to(updatedCustomer))
             .build());
 
     // increment counter
     sep12PutCustomerCounter.increment();
-    return PutCustomerResponse.to(response);
+    return Sep12PutCustomerResponse.builder().id(updatedCustomer.getId()).build();
   }
 
   public void deleteCustomer(Sep10Jwt sep10Jwt, String account, String memo, String memoType)
@@ -134,7 +131,7 @@ public class Sep12Service {
     }
 
     boolean existingCustomerMatch = false;
-    GetCustomerResponse existingCustomer =
+    CustomerResponse existingCustomer =
         customerIntegration.getCustomer(
             GetCustomerRequest.builder().account(account).memo(memo).memoType(memoType).build());
     if (existingCustomer.getId() != null) {

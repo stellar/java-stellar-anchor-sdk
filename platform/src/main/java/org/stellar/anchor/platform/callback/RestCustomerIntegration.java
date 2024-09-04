@@ -43,8 +43,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
   }
 
   @Override
-  public GetCustomerResponse getCustomer(GetCustomerRequest customerRequest)
-      throws AnchorException {
+  public CustomerResponse getCustomer(GetCustomerRequest customerRequest) throws AnchorException {
     // prepare request
     Builder urlBuilder = getCustomerUrlBuilder();
     Type type = new TypeToken<Map<String, ?>>() {}.getType();
@@ -68,23 +67,23 @@ public class RestCustomerIntegration implements CustomerIntegration {
       throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
     }
 
-    GetCustomerResponse getCustomerResponse;
+    CustomerResponse customerResponse;
     try {
-      getCustomerResponse = gson.fromJson(responseContent, GetCustomerResponse.class);
+      customerResponse = gson.fromJson(responseContent, CustomerResponse.class);
     } catch (Exception e) { // cannot read body from response
       throw new ServerErrorException("internal server error", e);
     }
 
-    if (getCustomerResponse.getStatus() == null) {
+    if (customerResponse.getStatus() == null) {
       Log.error("GET {callbackAPI}/customer response is missing the status field");
       throw new ServerErrorException(
           "internal server error: result from Anchor backend is invalid");
     }
-    return getCustomerResponse;
+    return customerResponse;
   }
 
   @Override
-  public PutCustomerResponse putCustomer(PutCustomerRequest putCustomerRequest)
+  public CustomerResponse putCustomer(PutCustomerRequest putCustomerRequest)
       throws AnchorException {
     Request callbackRequest = createCallbackRequest(putCustomerRequest);
 
@@ -98,7 +97,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
     }
 
     try {
-      return gson.fromJson(responseContent, PutCustomerResponse.class);
+      return gson.fromJson(responseContent, CustomerResponse.class);
     } catch (Exception e) {
       throw new ServerErrorException("internal server error", e);
     }
