@@ -63,7 +63,7 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     }
   }
 
-  void validateCustodialClient(CustodialClientConfig client, Errors errors) {
+  void validateCustodialClient(CustodialClient client, Errors errors) {
     debugF("Validating custodial client {}", client);
     if (client.getSigningKeys() == null || client.getSigningKeys().isEmpty()) {
       errors.reject(
@@ -74,7 +74,7 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     validateCallbackUrls(client, errors);
   }
 
-  void validateNonCustodialClient(NonCustodialClientConfig client, Errors errors) {
+  void validateNonCustodialClient(NonCustodialClient client, Errors errors) {
     debugF("Validating noncustodial client {}", client);
     if (client.getDomains() == null || client.getDomains().isEmpty()) {
       errors.reject(

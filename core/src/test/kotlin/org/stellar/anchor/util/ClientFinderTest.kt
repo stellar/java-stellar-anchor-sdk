@@ -15,8 +15,8 @@ import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.client.ClientConfig.CallbackUrls
 import org.stellar.anchor.client.ClientFinder
 import org.stellar.anchor.client.ClientService
-import org.stellar.anchor.client.CustodialClientConfig
-import org.stellar.anchor.client.NonCustodialClientConfig
+import org.stellar.anchor.client.CustodialClient
+import org.stellar.anchor.client.NonCustodialClient
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.sep6.ExchangeAmountsCalculatorTest
 
@@ -24,14 +24,14 @@ class ClientFinderTest {
   companion object {
     val token = TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO)
     private val custodialClient =
-      CustodialClientConfig.builder()
+      CustodialClient.builder()
         .name("referenceCustodial")
         .signingKeys(setOf("signing-key"))
         .allowAnyDestination(false)
         .build()
 
     private val nonCustodialClient =
-      NonCustodialClientConfig.builder()
+      NonCustodialClient.builder()
         .name("reference")
         .domains(setOf("wallet-server:8092"))
         .callbackUrls(

@@ -14,7 +14,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.client.ClientConfig;
 import org.stellar.anchor.client.ClientService;
-import org.stellar.anchor.client.NonCustodialClientConfig;
+import org.stellar.anchor.client.NonCustodialClient;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
@@ -221,9 +221,9 @@ public class PropertySep10Config implements Sep10Config, Validator {
     return clientAllowList.stream()
         .map(clientService::getClientConfigByName)
         .filter(Objects::nonNull)
-        .filter(config -> config instanceof NonCustodialClientConfig)
-        .filter(config -> ((NonCustodialClientConfig) config).getDomains() != null)
-        .flatMap(config -> ((NonCustodialClientConfig) config).getDomains().stream())
+        .filter(config -> config instanceof NonCustodialClient)
+        .filter(config -> ((NonCustodialClient) config).getDomains() != null)
+        .flatMap(config -> ((NonCustodialClient) config).getDomains().stream())
         .collect(Collectors.toList());
   }
 

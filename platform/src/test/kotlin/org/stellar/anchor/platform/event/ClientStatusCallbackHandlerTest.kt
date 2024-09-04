@@ -20,7 +20,7 @@ import org.stellar.anchor.api.sep.sep24.TransactionResponse
 import org.stellar.anchor.api.sep.sep6.Sep6TransactionResponse
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.client.ClientConfig.CallbackUrls
-import org.stellar.anchor.client.CustodialClientConfig
+import org.stellar.anchor.client.CustodialClient
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.platform.service.Sep24MoreInfoUrlConstructor
 import org.stellar.anchor.platform.service.Sep6MoreInfoUrlConstructor
@@ -38,7 +38,7 @@ import org.stellar.sdk.KeyPair
 class ClientStatusCallbackHandlerTest {
   private lateinit var handler: ClientStatusCallbackHandler
   private lateinit var secretConfig: PropertySecretConfig
-  private lateinit var clientConfig: CustodialClientConfig
+  private lateinit var clientConfig: CustodialClient
   private lateinit var signer: KeyPair
   private lateinit var ts: String
   private lateinit var event: AnchorEvent
@@ -53,7 +53,7 @@ class ClientStatusCallbackHandlerTest {
   @BeforeEach
   fun setUp() {
     clientConfig =
-      CustodialClientConfig.builder()
+      CustodialClient.builder()
         .name("circle")
         .signingKeys(
           setOf(

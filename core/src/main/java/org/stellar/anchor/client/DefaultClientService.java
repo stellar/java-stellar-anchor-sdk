@@ -19,8 +19,8 @@ import org.yaml.snakeyaml.Yaml;
 @NoArgsConstructor
 public class DefaultClientService implements ClientService {
   static final Gson gson = GsonUtils.getInstance();
-  List<CustodialClientConfig> custodialClients = new ArrayList<>();
-  List<NonCustodialClientConfig> nonCustodialClients = new ArrayList<>();
+  List<CustodialClient> custodialClients = new ArrayList<>();
+  List<NonCustodialClient> nonCustodialClients = new ArrayList<>();
 
   /**
    * Creates a DefaultClientService instance based on the provided ClientsConfig.
@@ -90,12 +90,12 @@ public class DefaultClientService implements ClientService {
   }
 
   public ClientConfig getClientConfigByName(String name) {
-    for (CustodialClientConfig client : custodialClients) {
+    for (CustodialClient client : custodialClients) {
       if (client.getName().equals(name)) {
         return client;
       }
     }
-    for (NonCustodialClientConfig client : nonCustodialClients) {
+    for (NonCustodialClient client : nonCustodialClients) {
       if (client.getName().equals(name)) {
         return client;
       }
@@ -117,8 +117,8 @@ public class DefaultClientService implements ClientService {
   }
 
   @Override
-  public CustodialClientConfig getClientConfigBySigningKey(String signingKey) {
-    for (CustodialClientConfig client : custodialClients) {
+  public CustodialClient getClientConfigBySigningKey(String signingKey) {
+    for (CustodialClient client : custodialClients) {
       if (client.getSigningKeys() != null && client.getSigningKeys().contains(signingKey)) {
         return client;
       }
@@ -127,8 +127,8 @@ public class DefaultClientService implements ClientService {
   }
 
   @Override
-  public NonCustodialClientConfig getClientConfigByDomain(String domain) {
-    for (NonCustodialClientConfig client : nonCustodialClients) {
+  public NonCustodialClient getClientConfigByDomain(String domain) {
+    for (NonCustodialClient client : nonCustodialClients) {
       if (client.getDomains() != null && client.getDomains().contains(domain)) {
         return client;
       }

@@ -38,7 +38,7 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.client.ClientConfig.CallbackUrls
 import org.stellar.anchor.client.ClientService
-import org.stellar.anchor.client.CustodialClientConfig
+import org.stellar.anchor.client.CustodialClient
 import org.stellar.anchor.config.*
 import org.stellar.anchor.config.CustodyConfig.CustodyType.NONE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
@@ -235,8 +235,8 @@ class Sep31ServiceTest {
       }
   """
 
-    private val custodialClientConfig =
-      CustodialClientConfig.builder()
+    private val custodialClient =
+      CustodialClient.builder()
         .name("custodialClient")
         .signingKeys(setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEG"))
         .callbackUrls(
@@ -251,8 +251,8 @@ class Sep31ServiceTest {
       return Stream.of(
         Arguments.of(listOf<String>(), false, null, false),
         Arguments.of(listOf<String>(), true, null, true),
-        Arguments.of(listOf(custodialClientConfig.name), false, custodialClientConfig.name, false),
-        Arguments.of(listOf(custodialClientConfig.name), true, custodialClientConfig.name, true),
+        Arguments.of(listOf(custodialClient.name), false, custodialClient.name, false),
+        Arguments.of(listOf(custodialClient.name), true, custodialClient.name, true),
       )
     }
   }
@@ -681,7 +681,7 @@ class Sep31ServiceTest {
     // mock client config
     every { sep10Config.allowedClientNames } returns listOf("vibrant")
     every { clientService.getClientConfigBySigningKey(any()) } returns
-      CustodialClientConfig().apply { name = "vibrant" }
+      CustodialClient().apply { name = "vibrant" }
 
     // mock transaction save
     val slotTxn = slot<Sep31Transaction>()
@@ -957,12 +957,11 @@ class Sep31ServiceTest {
   ) {
     every { sep10Config.allowedClientNames } returns allowedClientNames
     every { sep10Config.isClientAttributionRequired } returns isClientAttributionRequired
-    every {
-      clientService.getClientConfigBySigningKey(custodialClientConfig.signingKeys.first())
-    } returns custodialClientConfig
+    every { clientService.getClientConfigBySigningKey(custodialClient.signingKeys.first()) } returns
+      custodialClient
 
     // client name should be returned for valid input
-    val clientName = sep31Service.getClientName(custodialClientConfig.signingKeys.first())
+    val clientName = sep31Service.getClientName(custodialClient.signingKeys.first())
     assertEquals(expectedClientName, clientName)
 
     // exception maybe thrown for invalid input
