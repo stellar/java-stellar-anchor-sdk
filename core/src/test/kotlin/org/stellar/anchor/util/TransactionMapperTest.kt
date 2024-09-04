@@ -9,10 +9,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.asset.AssetInfo
+import org.stellar.anchor.api.asset.Sep31Info
 import org.stellar.anchor.api.asset.StellarAssetInfo
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.SepTransactionStatus
-import org.stellar.anchor.api.sep.operation.ReceiveInfo
 import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.sep24.PojoSep24RefundPayment
@@ -79,7 +79,7 @@ class TransactionMapperTest {
         externalTransactionId = "externalTransactionId"
         requiredInfoMessage = "requiredInfoMessage"
         requiredInfoUpdates =
-          ReceiveInfo.Fields().apply {
+          Sep31Info.Fields().apply {
             transaction = mapOf("field" to AssetInfo.Field("description", null, false))
           }
         quoteId = "quoteId"

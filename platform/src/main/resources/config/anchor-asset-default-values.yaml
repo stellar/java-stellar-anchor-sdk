@@ -1,0 +1,161 @@
+#
+# This file contains the configuration for the assets. The values used here are for testing purposes only.
+#
+
+# The list of the assets that the anchor supports.
+#
+# Note: The `id` of each asset is the unique identifier for the asset which is formated as `schema:code:issuer`.
+#    - `schema`: is the schema of the asset. It can be either `stellar` or `iso4217`.
+#    - `code`: is the code of the asset.
+#    - `issuer`: is the issuer of the asset. It is only used for Stellar assets that are not native.
+# Currently, the anchor supports the following asset schemas:
+#   - `stellar`: The Stellar asset.
+#   - `stellar:native`: The native asset (XLM).
+#   - `iso4217`: The fiat asset.
+#
+items:
+  # The Stellar asset that is not native (XLM).
+  - id: "stellar:"
+    # The `distribution_account` field is the Stellar account that the anchor will use to distribute the asset.
+    #
+    distribution_account:
+    # The `significant_decimals` field is the number of decimals that the asset supports. It must not be defined if the asset is XLM (stellar:native).
+    significant_decimals: 7
+
+    # The configuration for the SEP-6 transactions.
+    sep6:
+      enabled: false
+      # The `deposit` field contains the configuration for the deposit operation of the SEP-6.
+      deposit:
+        # `true`, if the asset is available for the deposit operations.
+        enabled: false
+        # The minimum amount that the user can deposit.
+        min_amount: 0
+        # The maximum amount that the user can deposit.
+        max_amount: 1000
+        # The list of the methods that the user can use to deposit the asset.
+        # Example:
+        #   - SEPA
+        #   - SWIFT
+        methods: []
+
+      # The Configuration for the withdrawal operation of the SEP-6.
+      withdraw:
+        # `true`, if the asset is available for the withdrawal operations.
+        enabled: true
+        # The minimum amount that the user can withdraw.
+        min_amount: 0
+        # The maximum amount that the user can withdraw.
+        max_amount: 1000
+        # The list of the methods that the anchor supports for the withdrawal of the asset.
+        # Example:
+        #   - bank_account
+        #   - cash
+        methods: []
+
+    # The configuration for the SEP-24 transactions.
+    sep24:
+      # `true` if the asset supports the SEP-24.
+      enabled: true
+      # The configuration for the deposit operation of the SEP-24.
+      deposit:
+        # The asset will be available for the deposit operations.
+        enabled: true
+        # The minimum amount that the user can deposit.
+        min_amount: 0
+        # The maximum amount that the user can deposit.
+        max_amount: 1000
+        # The list of the methods that the user can use to deposit the asset.
+        # Example:
+        #   - SEPA
+        #   - SWIFT
+        methods: []
+
+      # The configuration for the withdrawal operation of the SEP-24.
+      withdraw:
+        # `true`, if the asset is available for the withdrawal operations.
+        enabled: true
+        # the minimum amount that the user can withdraw.
+        min_amount: 0
+        # the maximum amount that the user can withdraw.
+        max_amount: 1000
+        # the list of the methods that the anchor supports for the withdrawal of the asset.
+        # Example:
+        #   - bank_account
+        #   - cash
+        methods: []
+
+    # The configuration for the SEP-31 transactions.
+    sep31:
+      # `true` if the asset supports the SEP-31.
+      enabled: true
+      # `true` if the asset supports quotesinforesponse.java.
+      quotes_supported: true
+      # `true` if the asset requires quotes.
+      # If `quotes_supported` is `false`, this value must not be true
+      quotes_required: false
+      receive:
+        # the maximum amount that the user can receive.
+        min_amount: 0
+        max_amount: 1000
+
+    # The configuration for the SEP-38 transactions.
+    sep38:
+      # `true` if the asset supports the SEP-38.
+      enabled: false
+      # The list of the assets that the anchor can exchange with the asset.
+      # The assets must be defined in the format of the `id` field.
+      # Example:
+      #  - iso4217:USD
+      #  - iso4217:CAD
+      exchangeable_assets:
+
+  #
+  # Fiat (ISO4217) assets
+  #
+  - id: iso4217:USD
+    significant_decimals: 2
+    # The configuration for the SEP-31 transactions.
+    sep31:
+      # `true` if the asset supports the SEP-31.
+      enabled: true
+      receive:
+        # the maximum amount that the user can receive.
+        min_amount: 0
+        max_amount: 1000
+      # `true` if the asset supports quotesinforesponse.java.
+      quotes_supported: true
+      # `true` if the asset requires quotes.
+      # If `quotes_supported` is `false`, this value must not be true
+      quotes_required: false
+
+    sep38:
+      enabled: true
+      # The list of the assets that the anchor can exchange with the asset.
+      # Example:
+      # - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+      # - stellar:USDC:GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
+      exchangeable_assets:
+
+      # The list of the country codes that the asset is available in.
+      # Example:
+      #   - USA
+      #   - CAN
+      country_codes:
+
+      # An array of objects describing the methods a client can use to sell/deliver funds to the anchor.
+      # Refer to: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#get-info
+      # Example:
+      #  - name: WIRE
+      #    description: Send USD directly to the Anchor's bank account.
+      #  - name: ACH
+      #    description: Send USD directly to the Anchor's bank account.
+      sell_delivery_methods: []
+
+      # An array of objects describing the methods a client can use to buy/retrieve funds from the anchor.
+      # Refer to: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#get-info
+      # Example:
+      #  - name: WIRE
+      #    description: Have USD sent directly to your bank account.
+      buy_delivery_methods: []
+

@@ -4,6 +4,8 @@ import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.util.Currency;
 import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.DepositWithdrawInfo;
+import org.stellar.anchor.api.asset.DepositWithdrawOperation;
 import org.stellar.sdk.KeyPair;
 
 public class AssetHelper {
@@ -96,5 +98,23 @@ public class AssetHelper {
     } else {
       return assetCode;
     }
+  }
+
+  // Check if deposit is enabled for the asset
+  public static boolean isDepositEnabled(DepositWithdrawInfo info) {
+    if (info == null || !info.getEnabled()) {
+      return false;
+    }
+    DepositWithdrawOperation operation = info.getDeposit();
+    return operation != null && operation.getEnabled();
+  }
+
+  // Check if withdrawal is enabled for the asset
+  public static boolean isWithdrawEnabled(DepositWithdrawInfo info) {
+    if (info == null || !info.getEnabled()) {
+      return false;
+    }
+    DepositWithdrawOperation operation = info.getWithdraw();
+    return operation != null && operation.getEnabled();
   }
 }

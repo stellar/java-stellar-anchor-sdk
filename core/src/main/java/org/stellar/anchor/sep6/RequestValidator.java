@@ -1,5 +1,8 @@
 package org.stellar.anchor.sep6;
 
+import static org.stellar.anchor.util.AssetHelper.isDepositEnabled;
+import static org.stellar.anchor.util.AssetHelper.isWithdrawEnabled;
+
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.NonNull;
@@ -23,7 +26,7 @@ public class RequestValidator {
    */
   public StellarAssetInfo getDepositAsset(String assetCode) throws SepValidationException {
     StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode);
-    if (asset == null || !asset.isDepositEnabled(asset.getSep6())) {
+    if (asset == null || !isDepositEnabled(asset.getSep6())) {
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
     return asset;
@@ -38,7 +41,7 @@ public class RequestValidator {
    */
   public StellarAssetInfo getWithdrawAsset(String assetCode) throws SepValidationException {
     StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode);
-    if (asset == null || !asset.isWithdrawEnabled(asset.getSep6())) {
+    if (asset == null || !isWithdrawEnabled(asset.getSep6())) {
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
     return asset;

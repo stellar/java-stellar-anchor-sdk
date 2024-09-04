@@ -1,5 +1,8 @@
 package org.stellar.anchor.asset;
 
+import static org.stellar.anchor.api.asset.AssetInfo.Schema.*;
+import static org.stellar.anchor.util.AssetHelper.*;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -14,7 +17,7 @@ import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.config.AssetsConfig;
-import org.stellar.anchor.util.AssetHelper;
+import org.stellar.anchor.util.AssetValidator;
 import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
@@ -80,19 +83,19 @@ public class DefaultAssetService implements AssetService {
             gson.toJson(map.get("assets")), new TypeToken<List<JsonObject>>() {}.getType());
     for (JsonObject asset : assetList) {
       String id = asset.get("id").getAsString();
-      String schema = AssetHelper.getAssetSchema(id);
-      if (schema.equals(AssetInfo.Schema.STELLAR.toString())) {
+      String schema = getAssetSchema(id);
+      if (schema.equals(STELLAR.toString())) {
         StellarAssetInfo stellarAssetInfo =
             gson.fromJson(gson.toJson(asset), StellarAssetInfo.class);
         das.stellarAssets.add(stellarAssetInfo);
-      } else if (schema.equals(AssetInfo.Schema.ISO_4217.toString())) {
+      } else if (schema.equals(ISO_4217.toString())) {
         FiatAssetInfo fiatAssetInfo = gson.fromJson(asset, FiatAssetInfo.class);
         das.fiatAssets.add(fiatAssetInfo);
       } else {
         throw new InvalidConfigException(String.format("Invalid asset: " + id));
       }
     }
-    AssetServiceValidator.validate(das);
+    AssetValidator.validate(das);
     return das;
   }
 

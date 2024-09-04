@@ -59,13 +59,6 @@ internal class DefaultAssetServiceTest {
   }
 
   @Test
-  fun `test invalid config with missing withdraw type when sep-6 enabled`() {
-    assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromYamlResource("test_assets_missing_withdraw_type.yaml")
-    }
-  }
-
-  @Test
   fun `test invalid config with duplicate withdraw type when sep-6 enabled`() {
     assertThrows<InvalidConfigException> {
       DefaultAssetService.fromYamlResource("test_assets_duplicate_withdraw_type.yaml")
@@ -73,9 +66,9 @@ internal class DefaultAssetServiceTest {
   }
 
   @Test
-  fun `test invalid config with missing deposit type when sep-6 enabled`() {
+  fun `test invalid config with missing withdraw type when sep-6 enabled`() {
     assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromYamlResource("test_assets_missing_deposit_type.yaml")
+      DefaultAssetService.fromYamlResource("test_assets_missing_withdraw_type.yaml")
     }
   }
 
@@ -83,6 +76,13 @@ internal class DefaultAssetServiceTest {
   fun `test invalid config with duplicate deposit type when sep-6 enabled`() {
     assertThrows<InvalidConfigException> {
       DefaultAssetService.fromYamlResource("test_assets_duplicate_deposit_type.yaml")
+    }
+  }
+
+  @Test
+  fun `test invalid config with missing deposit type when sep-6 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_missing_deposit_type.yaml")
     }
   }
 
