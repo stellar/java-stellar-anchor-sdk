@@ -11,8 +11,7 @@ callback_api.base_url:
 callback_api.check_certificate:
 clients.type:
 clients.value:
-clients.custodial:
-clients.noncustodial:
+clients.items:
 data.database:
 data.ddl_auto:
 data.flyway_baseline_on_migrate:

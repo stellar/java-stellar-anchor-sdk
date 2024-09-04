@@ -1,5 +1,6 @@
 package org.stellar.anchor.client;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -29,5 +30,23 @@ public interface ClientConfig {
             || !StringUtils.isEmpty(getCallbackUrls().getSep24())
             || !StringUtils.isEmpty(getCallbackUrls().getSep31())
             || !StringUtils.isEmpty(getCallbackUrls().getSep12()));
+  }
+
+  enum ClientType {
+    @SerializedName("custodial")
+    CUSTODIAL("custodial"),
+    @SerializedName("noncustodial")
+    NONCUSTODIAL("noncustodial");
+
+    private final String name;
+
+    ClientType(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
   }
 }
