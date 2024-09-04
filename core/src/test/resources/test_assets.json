@@ -91,7 +91,7 @@
     {
       "id": "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
       "significant_decimals": 2,
-      "sep6" : {
+      "sep6": {
         "enabled": false
       },
       "sep24": {
@@ -99,15 +99,22 @@
         "deposit": {
           "enabled": true,
           "min_amount": 1,
-          "max_amount": 1000000
+          "max_amount": 1000000,
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
         },
         "withdraw": {
           "enabled": false,
           "min_amount": 1,
-          "max_amount": 1000000
+          "max_amount": 1000000,
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
         }
       },
-
       "sep31": {
         "enabled": true,
         "receive": {
@@ -194,12 +201,20 @@
         "deposit": {
           "enabled": true,
           "min_amount": 1,
-          "max_amount": 1000000
+          "max_amount": 1000000,
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
         },
         "withdraw": {
           "enabled": true,
           "min_amount": 1,
-          "max_amount": 1000000
+          "max_amount": 1000000,
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
         }
       },
       "sep31": {

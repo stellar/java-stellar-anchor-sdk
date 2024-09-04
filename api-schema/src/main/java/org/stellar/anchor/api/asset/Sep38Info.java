@@ -1,4 +1,4 @@
-package org.stellar.anchor.api.sep.operation;
+package org.stellar.anchor.api.asset;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
@@ -15,6 +15,12 @@ public class Sep38Info {
   List<String> countryCodes;
 
   Integer decimals;
+
+  @SerializedName("sell_delivery_methods")
+  List<DeliveryMethod> sellDeliveryMethods;
+
+  @SerializedName("buy_delivery_methods")
+  List<DeliveryMethod> buyDeliveryMethods;
 
   @Data
   public static class DeliveryMethod {

@@ -1,9 +1,9 @@
 package org.stellar.anchor.api.asset;
 
+import static org.stellar.anchor.api.asset.AssetInfo.Schema.*;
+
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
-import org.stellar.anchor.api.sep.operation.ReceiveInfo;
-import org.stellar.anchor.api.sep.operation.Sep38Info;
 
 @Data
 public class StellarAssetInfo implements AssetInfo {
@@ -15,10 +15,15 @@ public class StellarAssetInfo implements AssetInfo {
   @SerializedName("significant_decimals")
   Integer significantDecimals;
 
-  DepositWithdrawInfo sep6;
-  DepositWithdrawInfo sep24;
-  ReceiveInfo sep31;
+  Sep6Info sep6;
+  Sep24Info sep24;
+  Sep31Info sep31;
   Sep38Info sep38;
+
+  @Override
+  public Schema getSchema() {
+    return STELLAR;
+  }
 
   @Override
   public String getCode() {
@@ -28,21 +33,5 @@ public class StellarAssetInfo implements AssetInfo {
   @Override
   public String getIssuer() {
     return getCode().equals(NATIVE_ASSET_CODE) ? null : getId().split(":")[2];
-  }
-
-  public boolean isDepositEnabled(DepositWithdrawInfo info) {
-    if (info == null || !info.getEnabled()) {
-      return false;
-    }
-    DepositWithdrawOperation operation = info.getDeposit();
-    return operation != null && operation.getEnabled();
-  }
-
-  public boolean isWithdrawEnabled(DepositWithdrawInfo info) {
-    if (info == null || !info.getEnabled()) {
-      return false;
-    }
-    DepositWithdrawOperation operation = info.getWithdraw();
-    return operation != null && operation.getEnabled();
   }
 }

@@ -8,24 +8,26 @@
         "enabled": true,
         "deposit": {
           "enabled": true,
-          "fee_fixed": 0,
-          "fee_percent": 0,
           "min_amount": 1,
-          "max_amount": 1000000
+          "max_amount": 1000000,
+            "methods": [
+                "SEPA",
+                "SWIFT"
+            ]
         },
         "withdraw": {
           "enabled": true,
-          "fee_fixed": 0,
-          "fee_percent": 0,
           "min_amount": 1,
-          "max_amount": 1000000
+          "max_amount": 1000000,
+            "methods": [
+                "SEPA",
+                "SWIFT"
+            ]
         }
       },
       "sep31" : {
         "enabled": true,
         "receive": {
-          "fee_fixed": 0,
-          "fee_percent": 0,
           "min_amount": 0,
           "max_amount": 10000
         },
@@ -52,7 +54,7 @@
       "sep38": {
         "enabled": true,
         "exchangeable_assets": [
-          "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+          "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
           "iso4217:USD"
         ]
       }
@@ -72,8 +74,7 @@
       "sep38": {
         "enabled": true,
         "exchangeable_assets": [
-          "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-          "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+          "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
         ],
         "country_codes": ["USA"],
         "decimals": 4,
