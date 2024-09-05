@@ -420,8 +420,6 @@ private const val expectedSep31Info =
         "enabled": true,
         "quotes_supported": true,
         "quotes_required": false,
-        "fee_fixed": 0,
-        "fee_percent": 0,
         "min_amount": 0,
         "max_amount": 1000000,
         "fields": {
@@ -446,8 +444,6 @@ private const val expectedSep31Info =
         "enabled": true,
         "quotes_supported": true,
         "quotes_required": false,
-        "fee_fixed": 0,
-        "fee_percent": 0,
         "min_amount": 0,
         "max_amount": 10,
         "fields": {

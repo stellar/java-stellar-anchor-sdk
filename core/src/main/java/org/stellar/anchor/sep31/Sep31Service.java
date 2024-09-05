@@ -600,8 +600,6 @@ public class Sep31Service {
         AssetResponse assetResponse = new AssetResponse();
         assetResponse.setQuotesSupported(isQuotesSupported);
         assetResponse.setQuotesRequired(isQuotesRequired);
-        assetResponse.setFeeFixed(assetInfo.getSep31().getReceive().getFeeFixed());
-        assetResponse.setFeePercent(assetInfo.getSep31().getReceive().getFeePercent());
         assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
         assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
         assetResponse.setFields(assetInfo.getSep31().getFields());

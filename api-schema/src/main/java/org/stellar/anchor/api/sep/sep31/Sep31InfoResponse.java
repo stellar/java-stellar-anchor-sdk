@@ -26,12 +26,6 @@ public class Sep31InfoResponse {
     @SerializedName("quotes_required")
     Boolean quotesRequired;
 
-    @SerializedName("fee_fixed")
-    Integer feeFixed;
-
-    @SerializedName("fee_percent")
-    Integer feePercent;
-
     @SerializedName("min_amount")
     Long minAmount;
 

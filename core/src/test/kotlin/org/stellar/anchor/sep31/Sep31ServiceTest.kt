@@ -99,8 +99,6 @@ class Sep31ServiceTest {
               "sep31": {
                 "enabled": true,
                 "receive": {
-                  "fee_fixed": 0,
-                  "fee_percent": 0,
                   "min_amount": 1,
                   "max_amount": 1000000
                 },
@@ -837,13 +835,13 @@ class Sep31ServiceTest {
 
   private val jpycJson =
     """
-    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
+    {"enabled":true,"quotes_supported":true,"quotes_required":true,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
   """
       .trimIndent()
 
   private val usdcJson =
     """
-    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false}, "receiver_phone_number": {"description": "phone number of the receiver", "optional": true},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
+    {"enabled":true,"quotes_supported":true,"quotes_required":true,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false}, "receiver_phone_number": {"description": "phone number of the receiver", "optional": true},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
   """
       .trimIndent()
 
