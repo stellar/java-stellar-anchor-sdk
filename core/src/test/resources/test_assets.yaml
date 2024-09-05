@@ -157,17 +157,6 @@ assets:
       quotes_supported: true
       quotes_required: true
       # todo assume this is right for now
-      fields:
-        transaction:
-          receiver_routing_number:
-            description: routing number of the destination bank account
-          receiver_account_number:
-            description: bank account number of the destination
-          type:
-            description: type of deposit to make
-            choices:
-              - SEPA
-              - SWIFT
     sep38:
       enabled: true
       exchangeable_assets:

@@ -24,11 +24,9 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.asset.AssetInfo;
-import org.stellar.anchor.api.asset.Sep31Info.Fields;
 import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.event.AnchorEvent;
@@ -562,27 +560,6 @@ public class Sep31Service {
           Context.get().getRequest());
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
-
-    Map<String, AssetInfo.Field> missingFields =
-        fieldSpecs.getFields().getTransaction().entrySet().stream()
-            .filter(
-                entry -> {
-                  AssetInfo.Field field = entry.getValue();
-                  if (field.isOptional()) return false;
-                  return requestFields.get(entry.getKey()) == null;
-                })
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    Fields sep31MissingTxnFields = new Fields();
-    sep31MissingTxnFields.setTransaction(missingFields);
-
-    if (!missingFields.isEmpty()) {
-      infoF(
-          "Missing SEP-31 fields ({}) for request ({})",
-          sep31MissingTxnFields,
-          Context.get().getRequest());
-      throw new Sep31MissingFieldException(sep31MissingTxnFields);
-    }
   }
 
   @SneakyThrows
@@ -602,7 +579,6 @@ public class Sep31Service {
         assetResponse.setQuotesRequired(isQuotesRequired);
         assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
         assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
-        assetResponse.setFields(assetInfo.getSep31().getFields());
         response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
     }
