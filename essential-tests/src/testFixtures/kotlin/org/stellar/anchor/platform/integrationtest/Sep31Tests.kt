@@ -421,47 +421,14 @@ private const val expectedSep31Info =
         "quotes_supported": true,
         "quotes_required": false,
         "min_amount": 0,
-        "max_amount": 1000000,
-        "fields": {
-          "transaction": {
-            "receiver_routing_number": {
-              "description": "routing number of the destination bank account",
-              "optional": false
-            },
-            "receiver_account_number": {
-              "description": "bank account number of the destination",
-              "optional": false
-            },
-            "type": {
-              "description": "type of deposit to make",
-              "choices": ["SEPA", "SWIFT"],
-              "optional": false
-            }
-          }
-        }
+        "max_amount": 1000000
       },
       "USDC": {
         "enabled": true,
         "quotes_supported": true,
         "quotes_required": false,
         "min_amount": 0,
-        "max_amount": 10,
-        "fields": {
-          "transaction": {
-            "receiver_routing_number": {
-              "description": "routing number of the destination bank account",
-              "optional": false
-            },
-            "receiver_account_number": {
-              "description": "bank account number of the destination",
-              "optional": false
-            },
-            "type": {
-              "description": "type of deposit to make",
-              "choices": ["SEPA", "SWIFT"],
-              "optional": false
-            }
-          }
+        "max_amount": 10
         }
       }
     }
