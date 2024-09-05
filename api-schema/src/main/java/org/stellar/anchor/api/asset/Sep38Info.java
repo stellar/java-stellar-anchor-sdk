@@ -14,8 +14,6 @@ public class Sep38Info {
   @SerializedName("country_codes")
   List<String> countryCodes;
 
-  Integer decimals;
-
   @SerializedName("sell_delivery_methods")
   List<DeliveryMethod> sellDeliveryMethods;
 

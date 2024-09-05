@@ -222,8 +222,8 @@ class Sep38ServiceTest {
     var gotResponse: GetPricesResponse? = null
     assertDoesNotThrow { gotResponse = sep38Service.getPrices(fiatUSD, "100", null, null, null) }
     val wantResponse = GetPricesResponse()
-    wantResponse.addAsset(stellarJPYC, 7, "1")
-    wantResponse.addAsset(stellarUSDC, 7, "2")
+    wantResponse.addAsset(stellarJPYC, 2, "1")
+    wantResponse.addAsset(stellarUSDC, 2, "2")
     assertEquals(wantResponse, gotResponse)
   }
 
