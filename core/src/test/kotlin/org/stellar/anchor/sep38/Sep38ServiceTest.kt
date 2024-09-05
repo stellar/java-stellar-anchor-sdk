@@ -260,8 +260,8 @@ class Sep38ServiceTest {
     var gotResponse: GetPricesResponse? = null
     assertDoesNotThrow { gotResponse = sep38Service.getPrices(fiatUSD, "100", "WIRE", null, "USA") }
     val wantResponse = GetPricesResponse()
-    wantResponse.addAsset(stellarJPYC, 7, "1.1")
-    wantResponse.addAsset(stellarUSDC, 7, "2.1")
+    wantResponse.addAsset(stellarJPYC, 2, "1.1")
+    wantResponse.addAsset(stellarUSDC, 2, "2.1")
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -286,7 +286,7 @@ class Sep38ServiceTest {
       gotResponse = sep38Service.getPrices(stellarUSDC, "100", null, "WIRE", null)
     }
     val wantResponse = GetPricesResponse()
-    wantResponse.addAsset(fiatUSD, 4, "1")
+    wantResponse.addAsset(fiatUSD, 2, "1")
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -1082,7 +1082,7 @@ class Sep38ServiceTest {
         .sellAsset(fiatUSD)
         .sellAmount("100")
         .buyAsset(stellarUSDC)
-        .buyAmount("97.0873786")
+        .buyAmount("97.09")
         .fee(mockFee)
         .build()
     assertEquals(wantResponse, gotResponse)
@@ -1098,7 +1098,7 @@ class Sep38ServiceTest {
     assertEquals("100", savedQuote.sellAmount)
     assertEquals("WIRE", savedQuote.sellDeliveryMethod)
     assertEquals(stellarUSDC, savedQuote.buyAsset)
-    assertEquals("97.0873786", savedQuote.buyAmount)
+    assertEquals("97.09", savedQuote.buyAmount)
     assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
     assertNotNull(savedQuote.createdAt)
     assertEquals(mockFee, savedQuote.fee)
@@ -1114,7 +1114,7 @@ class Sep38ServiceTest {
     wantEvent.quote.sellAsset = fiatUSD
     wantEvent.quote.sellAmount = "100"
     wantEvent.quote.buyAsset = stellarUSDC
-    wantEvent.quote.buyAmount = "97.0873786"
+    wantEvent.quote.buyAmount = "97.09"
     wantEvent.quote.expiresAt = tomorrow
     wantEvent.quote.price = "1.02"
     wantEvent.quote.totalPrice = "1.0300000004"

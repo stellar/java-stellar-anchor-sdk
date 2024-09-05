@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.FiatAssetInfo;
 import org.stellar.anchor.api.asset.Sep38Info;
 
 /**
@@ -26,6 +27,11 @@ public class InfoResponse {
       Sep38Info sep38Info = assetInfo.getSep38();
 
       Asset assetResponse = new Asset();
+
+      if (assetInfo instanceof FiatAssetInfo fiatAssetInfo) {
+        assetResponse.setSellDeliveryMethods(fiatAssetInfo.getSep38().getSellDeliveryMethods());
+        assetResponse.setBuyDeliveryMethods(fiatAssetInfo.getSep38().getBuyDeliveryMethods());
+      }
 
       assetResponse.setAsset(assetInfo.getId());
       assetResponse.setCountryCodes(sep38Info.getCountryCodes());
