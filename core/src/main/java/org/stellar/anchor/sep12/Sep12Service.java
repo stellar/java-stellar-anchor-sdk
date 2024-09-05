@@ -58,8 +58,9 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    CustomerResponse response = customerIntegration.getCustomer(GetCustomerRequest.from(request));
-    Sep12GetCustomerResponse res = CustomerResponse.to(response);
+    GetCustomerResponse response =
+        customerIntegration.getCustomer(GetCustomerRequest.from(request));
+    Sep12GetCustomerResponse res = GetCustomerResponse.to(response);
 
     // increment counter
     sep12GetCustomerCounter.increment();
@@ -90,7 +91,7 @@ public class Sep12Service {
       }
     }
 
-    CustomerResponse updatedCustomer =
+    PutCustomerResponse updatedCustomer =
         customerIntegration.putCustomer(PutCustomerRequest.from(request));
 
     // Only publish event if the customer was updated.
@@ -99,7 +100,7 @@ public class Sep12Service {
             .id(UUID.randomUUID().toString())
             .sep(SEP_12.getSep().toString())
             .type(AnchorEvent.Type.CUSTOMER_UPDATED)
-            .customer(CustomerResponse.to(updatedCustomer))
+            .customer(GetCustomerResponse.to(updatedCustomer))
             .build());
 
     // increment counter
@@ -131,7 +132,7 @@ public class Sep12Service {
     }
 
     boolean existingCustomerMatch = false;
-    CustomerResponse existingCustomer =
+    GetCustomerResponse existingCustomer =
         customerIntegration.getCustomer(
             GetCustomerRequest.builder().account(account).memo(memo).memoType(memoType).build());
     if (existingCustomer.getId() != null) {

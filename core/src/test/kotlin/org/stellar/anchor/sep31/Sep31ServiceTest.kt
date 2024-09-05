@@ -662,7 +662,7 @@ class Sep31ServiceTest {
       )
 
     // Make sure we can get the sender and receiver customers
-    val mockCustomer = CustomerResponse()
+    val mockCustomer = GetCustomerResponse()
     mockCustomer.status = Sep12Status.ACCEPTED.name
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
@@ -761,7 +761,7 @@ class Sep31ServiceTest {
       )
 
     // Make sure we can get the sender and receiver customers
-    val mockCustomer = CustomerResponse()
+    val mockCustomer = GetCustomerResponse()
     mockCustomer.status = Sep12Status.ACCEPTED.name
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
 
@@ -822,7 +822,7 @@ class Sep31ServiceTest {
       GetRateResponse(GetRateResponse.Rate.builder().fee(FeeDetails("2", "stellar:USDC")).build())
 
     // Make sure we can get the sender and receiver customers
-    val mockCustomer = CustomerResponse()
+    val mockCustomer = GetCustomerResponse()
     mockCustomer.status = Sep12Status.ACCEPTED.name
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
 

@@ -15,8 +15,8 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.callback.CustomerIntegration
-import org.stellar.anchor.api.callback.CustomerResponse
 import org.stellar.anchor.api.callback.GetCustomerRequest
+import org.stellar.anchor.api.callback.GetCustomerResponse
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
@@ -260,7 +260,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
     val anchorEventCapture = mutableListOf<AnchorEvent>()
 
-    val customer = CustomerResponse.builder().status(customerStatus).build()
+    val customer = GetCustomerResponse.builder().status(customerStatus).build()
     every {
       customerIntegration.getCustomer(
         GetCustomerRequest.builder()
@@ -321,7 +321,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
         .id(anchorEventCapture[0].id)
         .sep(SEP_12.sep.toString())
         .type(AnchorEvent.Type.CUSTOMER_UPDATED)
-        .customer(CustomerResponse.to(customer))
+        .customer(GetCustomerResponse.to(customer))
         .build()
 
     JSONAssert.assertEquals(
@@ -482,7 +482,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
     val sep6TxnCapture = slot<JdbcSep6Transaction>()
     val anchorEventCapture = mutableListOf<AnchorEvent>()
 
-    val customer = CustomerResponse.builder().status(customerStatus).build()
+    val customer = GetCustomerResponse.builder().status(customerStatus).build()
     every {
       customerIntegration.getCustomer(
         GetCustomerRequest.builder()
@@ -543,7 +543,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
         .id(anchorEventCapture[0].id)
         .sep(SEP_12.sep.toString())
         .type(AnchorEvent.Type.CUSTOMER_UPDATED)
-        .customer(CustomerResponse.to(customer))
+        .customer(GetCustomerResponse.to(customer))
         .build()
 
     JSONAssert.assertEquals(

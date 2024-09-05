@@ -8,8 +8,8 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import java.util.Set;
 import java.util.UUID;
 import org.stellar.anchor.api.callback.CustomerIntegration;
-import org.stellar.anchor.api.callback.CustomerResponse;
 import org.stellar.anchor.api.callback.GetCustomerRequest;
+import org.stellar.anchor.api.callback.GetCustomerResponse;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -73,7 +73,7 @@ public class NotifyCustomerInfoUpdatedHandler
       JdbcSepTransaction txn, NotifyCustomerInfoUpdatedRequest request) throws AnchorException {
     String status = null;
     if (request.getCustomerId() != null) {
-      CustomerResponse customer =
+      GetCustomerResponse customer =
           customerIntegration.getCustomer(
               GetCustomerRequest.builder()
                   .transactionId(txn.getId())
@@ -86,7 +86,7 @@ public class NotifyCustomerInfoUpdatedHandler
               .id(UUID.randomUUID().toString())
               .sep(SEP_12.getSep().toString())
               .type(AnchorEvent.Type.CUSTOMER_UPDATED)
-              .customer(CustomerResponse.to(customer))
+              .customer(GetCustomerResponse.to(customer))
               .build());
     }
 
