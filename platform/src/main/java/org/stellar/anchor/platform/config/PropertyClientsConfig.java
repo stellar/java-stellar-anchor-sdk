@@ -1,27 +1,32 @@
 package org.stellar.anchor.platform.config;
 
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
-import static org.stellar.anchor.client.DefaultClientService.*;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.error;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.*;
 import lombok.Data;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.client.*;
+import org.stellar.anchor.client.ClientConfig.ClientType;
 import org.stellar.anchor.config.ClientsConfig;
+import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.GsonUtils;
+import org.yaml.snakeyaml.Yaml;
 
 @Data
 public class PropertyClientsConfig implements ClientsConfig, Validator {
-  ClientsConfig.ClientsConfigType type;
+  ClientsConfigType type;
   String value;
   List<TempClient> items = new ArrayList<>();
   Gson gson = GsonUtils.getInstance();
@@ -40,21 +45,19 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     }
 
     // Parse the file and validate the contents
-    if (type.equals(ClientsConfigType.FILE)) {
-      try {
-        items = parseFileToList(this.getValue());
-      } catch (InvalidConfigException e) {
-        error("Error loading clients file", e);
-        errors.reject(
-            "clients-file-not-valid", "Cannot read from clients file: " + this.getValue());
-      }
+    try {
+      parseConfigIntoItemList();
+    } catch (InvalidConfigException e) {
+      error("Error loading clients config value", e);
+      errors.reject(
+          "clients-value-not-valid", "Cannot read from clients config value: " + this.getValue());
     }
 
     // validate custodial client and noncustodial client
     for (TempClient item : items) {
-      if (item.getType().equals(ClientConfig.ClientType.CUSTODIAL)) {
+      if (ClientType.CUSTODIAL.equals(item.getType())) {
         validateCustodialClient(item.toCustodialClient(), errors);
-      } else if (item.getType().equals(ClientConfig.ClientType.NONCUSTODIAL)) {
+      } else if (ClientType.NONCUSTODIAL.equals(item.getType())) {
         validateNonCustodialClient(item.toNonCustodialClient(), errors);
       } else {
         errors.reject(
@@ -87,19 +90,19 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
   void validateCallbackUrls(ClientConfig client, Errors errors) {
     debugF("Validating client {}", client);
     ImmutableMap.of(
-            "callback_url_sep6",
+            "callback_urls_sep6",
             Optional.ofNullable(client.getCallbackUrls())
                 .map(ClientConfig.CallbackUrls::getSep6)
                 .orElse(""),
-            "callback_url_sep24",
+            "callback_urls_sep24",
             Optional.ofNullable(client.getCallbackUrls())
                 .map(ClientConfig.CallbackUrls::getSep24)
                 .orElse(""),
-            "callback_url_sep31",
+            "callback_urls_sep31",
             Optional.ofNullable(client.getCallbackUrls())
                 .map(ClientConfig.CallbackUrls::getSep31)
                 .orElse(""),
-            "callback_url_sep12",
+            "callback_urls_sep12",
             Optional.ofNullable(client.getCallbackUrls())
                 .map(ClientConfig.CallbackUrls::getSep12)
                 .orElse(""))
@@ -113,5 +116,59 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
                 }
               }
             });
+  }
+
+  private void parseConfigIntoItemList() throws InvalidConfigException {
+    if (this.getType().equals(ClientsConfigType.INLINE)) {
+      return;
+    }
+    // 1. Parse the content into a map with "items" as the key and a List<Object> as the value.
+    Map<String, List<Object>> contentMap = new HashMap<>();
+    switch (this.getType()) {
+      case FILE:
+        contentMap = parseFileToMap(this.getValue());
+        break;
+      case JSON:
+        contentMap = parseJsonStringToMap(this.getValue());
+        break;
+      case YAML:
+        contentMap = parseYamlStringToMap(this.getValue());
+        break;
+      default:
+        throw new InvalidConfigException(
+            String.format("client file type %s is not supported", type));
+    }
+
+    // 2. Process the map into a list of TempClient objects.
+    contentMap.get("items").removeIf(Objects::isNull);
+    items =
+        gson.fromJson(
+            gson.toJson(contentMap.get("items")), new TypeToken<List<TempClient>>() {}.getType());
+  }
+
+  private Map<String, List<Object>> parseFileToMap(String filePath) throws InvalidConfigException {
+    try {
+      String fileContent = FileUtil.read(Path.of(filePath));
+      String fileExtension = FilenameUtils.getExtension(filePath).toLowerCase();
+      if ("yaml".equals(fileExtension) || "yml".equals(fileExtension)) {
+        return parseYamlStringToMap(fileContent);
+      } else if ("json".equals(fileExtension)) {
+        return parseJsonStringToMap(fileContent);
+      } else {
+        throw new InvalidConfigException(
+            String.format("%s is not a supported file format", filePath));
+      }
+    } catch (Exception ex) {
+      throw new InvalidConfigException(
+          List.of(String.format("Cannot read from clients file: %s", filePath)), ex);
+    }
+  }
+
+  private Map<String, List<Object>> parseYamlStringToMap(String yamlString) {
+    return new Yaml().load(yamlString);
+  }
+
+  private Map<String, List<Object>> parseJsonStringToMap(String jsonString) {
+    return gson.fromJson(jsonString, new TypeToken<Map<String, List<Object>>>() {}.getType());
   }
 }

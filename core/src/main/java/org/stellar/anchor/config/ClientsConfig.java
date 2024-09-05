@@ -17,5 +17,9 @@ public interface ClientsConfig {
     FILE,
     @SerializedName("inline")
     INLINE,
+    @SerializedName("json")
+    JSON,
+    @SerializedName("yaml")
+    YAML,
   }
 }

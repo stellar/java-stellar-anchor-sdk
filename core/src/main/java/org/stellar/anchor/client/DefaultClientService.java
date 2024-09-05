@@ -3,11 +3,9 @@ package org.stellar.anchor.client;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.apache.commons.io.FilenameUtils;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.config.ClientsConfig;
@@ -30,28 +28,6 @@ public class DefaultClientService implements ClientService {
    */
   public static DefaultClientService fromClientsConfig(ClientsConfig clientsConfig) {
     return createDCSFromItemsList(clientsConfig.getItems());
-  }
-
-  public static List<TempClient> parseFileToList(String filePath) throws InvalidConfigException {
-    try {
-      String fileContent = FileUtil.read(Path.of(filePath));
-      String fileExtension = FilenameUtils.getExtension(filePath).toLowerCase();
-      Map<String, List<Object>> map;
-      if ("yaml".equals(fileExtension) || "yml".equals(fileExtension)) {
-        map = new Yaml().load(fileContent);
-      } else if ("json".equals(fileExtension)) {
-        map = gson.fromJson(fileContent, new TypeToken<Map<String, List<Object>>>() {}.getType());
-      } else {
-        throw new InvalidConfigException(
-            String.format("%s is not a supported file format", filePath));
-      }
-      map.get("items").removeIf(Objects::isNull);
-      return gson.fromJson(
-          gson.toJson(map.get("items")), new TypeToken<List<TempClient>>() {}.getType());
-    } catch (Exception ex) {
-      throw new InvalidConfigException(
-          List.of(String.format("Cannot read from clients file: %s", filePath)), ex);
-    }
   }
 
   public static DefaultClientService createDCSFromItemsList(List<TempClient> items) {
