@@ -273,7 +273,7 @@ internal class DefaultAssetServiceTest {
 val trailingCommaInAssets =
   """
   {
-    "assets": [
+    "items": [
       {
         "id": "stellar:native",
         "significant_decimals": 7
