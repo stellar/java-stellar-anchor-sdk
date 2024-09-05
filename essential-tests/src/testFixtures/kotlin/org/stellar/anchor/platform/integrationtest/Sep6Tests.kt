@@ -323,7 +323,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "status": "incomplete",
           "amount_in": "10",
           "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amount_out": "8.57",
+          "amount_out": "8.5714",
           "amount_out_asset": "iso4217:USD",
           "fee_details": {
             "total": "1.00",
