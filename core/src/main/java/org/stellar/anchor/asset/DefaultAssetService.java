@@ -22,9 +22,7 @@ import org.yaml.snakeyaml.Yaml;
 
 @NoArgsConstructor
 public class DefaultAssetService implements AssetService {
-  static Gson gson = GsonUtils.getInstance();
-  static StellarAssetInfo stellarAssetPrototype;
-  static FiatAssetInfo fiatAssetPrototype;
+  static Gson gson = GsonUtils.builder().create();
   List<StellarAssetInfo> stellarAssets = new ArrayList<>();
   List<FiatAssetInfo> fiatAssets = new ArrayList<>();
 
@@ -34,22 +32,27 @@ public class DefaultAssetService implements AssetService {
 
   @SneakyThrows
   static void loadAssetPrototypes() {
-    Gson protoGson = new Gson();
+    // Load the default asset values as prototypes from the yaml file
+    Gson prototypeGson = new Gson();
     DefaultAssetService prototypeDAS =
         fromYamlResource("config/anchor-asset-default-values.yaml", false);
-    stellarAssetPrototype = (StellarAssetInfo) prototypeDAS.getAssetById("stellar:");
-    fiatAssetPrototype = (FiatAssetInfo) prototypeDAS.getAssetById("iso4217:");
+    String stellarAssetPrototypeStr = prototypeGson.toJson(prototypeDAS.getAssetById("stellar:"));
+    String fiatAssetPrototypeStr = prototypeGson.toJson(prototypeDAS.getAssetById("iso4217:"));
+
+    // When gson creates a new instance of StellarAssetInfo or FiatAssetInfo, the newly created
+    // instance will be populated with the values from the prototype.
     GsonBuilder gsonBuilder =
         GsonUtils.builder()
             .registerTypeAdapter(
                 StellarAssetInfo.class,
                 (InstanceCreator<StellarAssetInfo>)
-                    type -> protoGson.fromJson(protoGson.toJson(stellarAssetPrototype), type))
+                    type -> prototypeGson.fromJson(stellarAssetPrototypeStr, type))
             .registerTypeAdapter(
                 FiatAssetInfo.class,
                 (InstanceCreator<FiatAssetInfo>)
-                    type -> protoGson.fromJson(protoGson.toJson(fiatAssetPrototype), type));
+                    type -> prototypeGson.fromJson(fiatAssetPrototypeStr, type));
 
+    // Update the gson instance with the new instance creators
     gson = gsonBuilder.create();
   }
 
