@@ -9,8 +9,8 @@ import org.springframework.validation.Errors
 import org.stellar.anchor.client.ClientConfig.CallbackUrls
 import org.stellar.anchor.client.ClientConfig.ClientType.CUSTODIAL
 import org.stellar.anchor.client.ClientConfig.ClientType.NONCUSTODIAL
-import org.stellar.anchor.client.TempClient
 import org.stellar.anchor.config.ClientsConfig
+import org.stellar.anchor.config.ClientsConfig.RawClient
 
 class ClientsConfigTest {
   private lateinit var config: PropertyClientsConfig
@@ -25,7 +25,7 @@ class ClientsConfigTest {
   @Test
   fun `test valid custodial client with multiple signing keys`() {
     val custodial =
-      TempClient.builder()
+      RawClient.builder()
         .name("custodial")
         .type(CUSTODIAL)
         .signingKeys(
@@ -44,7 +44,7 @@ class ClientsConfigTest {
   @Test
   fun `test invalid custodial client with empty signing key`() {
     val custodial =
-      TempClient.builder().name("custodial").type(CUSTODIAL).signingKeys(setOf()).build()
+      RawClient.builder().name("custodial").type(CUSTODIAL).signingKeys(setOf()).build()
 
     config.setItems(listOf(custodial))
     config.validate(config, errors)
@@ -54,7 +54,7 @@ class ClientsConfigTest {
   @Test
   fun `test valid non-custodial client with multiple domains`() {
     val nonCustodial =
-      TempClient.builder()
+      RawClient.builder()
         .name("non-custodial")
         .type(NONCUSTODIAL)
         .domains(setOf("example.com", "example.org"))
@@ -68,7 +68,7 @@ class ClientsConfigTest {
   @Test
   fun `test valid non-custodial client with all callback URLs set`() {
     val nonCustodial =
-      TempClient.builder()
+      RawClient.builder()
         .name("non-custodial")
         .type(NONCUSTODIAL)
         .domains(setOf("example.com"))
@@ -90,7 +90,7 @@ class ClientsConfigTest {
   @Test
   fun `test valid custodial client with all callback URLs set`() {
     val custodial =
-      TempClient.builder()
+      RawClient.builder()
         .name("custodial")
         .type(CUSTODIAL)
         .signingKeys(
@@ -117,7 +117,7 @@ class ClientsConfigTest {
   @Test
   fun `test invalid non-custodial client with invalid callback URLs`() {
     val nonCustodial =
-      TempClient.builder()
+      RawClient.builder()
         .name("non-custodial")
         .type(NONCUSTODIAL)
         .domains(setOf("example.com"))
@@ -139,7 +139,7 @@ class ClientsConfigTest {
   @Test
   fun `test invalid custodial client with invalid callback URLs`() {
     val custodial =
-      TempClient.builder()
+      RawClient.builder()
         .name("custodial")
         .type(CUSTODIAL)
         .signingKeys(
