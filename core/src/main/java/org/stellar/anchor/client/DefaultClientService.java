@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.config.ClientsConfig;
+import org.stellar.anchor.config.ClientsConfig.RawClient;
 import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.GsonUtils;
 import org.yaml.snakeyaml.Yaml;
@@ -30,9 +31,9 @@ public class DefaultClientService implements ClientService {
     return createDCSFromItemsList(clientsConfig.getItems());
   }
 
-  public static DefaultClientService createDCSFromItemsList(List<TempClient> items) {
+  public static DefaultClientService createDCSFromItemsList(List<RawClient> items) {
     DefaultClientService dcs = new DefaultClientService();
-    for (TempClient client : items) {
+    for (RawClient client : items) {
       ClientConfig.ClientType type = client.getType();
       if (type.equals(ClientConfig.ClientType.CUSTODIAL)) {
         dcs.custodialClients.add(client.toCustodialClient());
@@ -45,9 +46,8 @@ public class DefaultClientService implements ClientService {
 
   public static DefaultClientService createDCSFromMap(Map<String, List<Object>> map) {
     map.get("items").removeIf(Objects::isNull);
-    List<TempClient> clientList =
-        gson.fromJson(
-            gson.toJson(map.get("items")), new TypeToken<List<TempClient>>() {}.getType());
+    List<RawClient> clientList =
+        gson.fromJson(gson.toJson(map.get("items")), new TypeToken<List<RawClient>>() {}.getType());
     return createDCSFromItemsList(clientList);
   }
 

@@ -28,7 +28,7 @@ import org.yaml.snakeyaml.Yaml;
 public class PropertyClientsConfig implements ClientsConfig, Validator {
   ClientsConfigType type;
   String value;
-  List<TempClient> items = new ArrayList<>();
+  List<RawClient> items = new ArrayList<>();
   Gson gson = GsonUtils.getInstance();
 
   @Override
@@ -54,7 +54,7 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     }
 
     // validate custodial client and noncustodial client
-    for (TempClient item : items) {
+    for (RawClient item : items) {
       if (ClientType.CUSTODIAL.equals(item.getType())) {
         validateCustodialClient(item.toCustodialClient(), errors);
       } else if (ClientType.NONCUSTODIAL.equals(item.getType())) {
@@ -139,11 +139,11 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
             String.format("client file type %s is not supported", type));
     }
 
-    // 2. Process the map into a list of TempClient objects.
+    // 2. Process the map into a list of RawClient objects.
     contentMap.get("items").removeIf(Objects::isNull);
     items =
         gson.fromJson(
-            gson.toJson(contentMap.get("items")), new TypeToken<List<TempClient>>() {}.getType());
+            gson.toJson(contentMap.get("items")), new TypeToken<List<RawClient>>() {}.getType());
   }
 
   private Map<String, List<Object>> parseFileToMap(String filePath) throws InvalidConfigException {
