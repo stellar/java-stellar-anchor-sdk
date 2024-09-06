@@ -264,7 +264,6 @@ internal class DefaultAssetServiceTest {
                   "country_codes": [
                     "USA"
                   ],
-                  "decimals": 4,
                   "sell_delivery_methods": [
                     {
                       "name": "WIRE",
@@ -330,8 +329,7 @@ internal class DefaultAssetServiceTest {
                   "enabled": true,
                   "exchangeable_assets": [
                     "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-                  ],
-                  "decimals": 7
+                  ]
                 }
               }
             ]
