@@ -686,11 +686,13 @@ clients:
   # type: file
   # value: path/to/file.yaml
 
-  # Option 2: Define custodial and noncustodial clients inline.
-  # Comment out the type and value fields above and define your clients directly here.
+  # Option 2: Define clients inline.
+  # Specify the type as 'inline', and define your clients directly under items.
   #
-  # custodial:
+  # type: inline
+  # items:
   #   - name: client1
+  #     type: custodial
   #     signingKeys:
   #       - singingKey1
   #       - singingKey2
@@ -702,17 +704,15 @@ clients:
   #     allowAnyDestination: false
   #     destinationAccounts:
   #       - GDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-  #
-  # noncustodial:
   #   - name: client2
+  #     type: noncustodial
   #     domains:
   #       - client2.com
   #     callbackUrls:
   #       sep6: http://client2/sep6/callbacks
-  type:
+  type: inline
   value:
-  custodial:
-  noncustodial:
+  items:
 
 ################################
 # Data Configuration

@@ -4,13 +4,16 @@ version: 1
 languages: tw, en, fr
 
 clients:
-  noncustodial:
+  type: inline
+  items:
     - name: vibrant
+      type: noncustodial
       domains:
         - vibrant.co
       callback_urls:
         sep24: https://callback.vibrant.com/api/v2/anchor/callback/sep24
     - name: lobstr
+      type: noncustodial
       domains:
         - lobstr.co
       callback_urls:
