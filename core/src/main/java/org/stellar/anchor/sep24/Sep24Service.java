@@ -46,7 +46,7 @@ import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.client.ClientFinder;
 import org.stellar.anchor.client.ClientService;
-import org.stellar.anchor.client.CustodialClientConfig;
+import org.stellar.anchor.client.CustodialClient;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
@@ -331,8 +331,7 @@ public class Sep24Service {
     }
 
     if (!destinationAccount.equals(token.getAccount())) {
-      CustodialClientConfig clientConfig =
-          clientService.getClientConfigBySigningKey(token.getAccount());
+      CustodialClient clientConfig = clientService.getClientConfigBySigningKey(token.getAccount());
       if (clientConfig != null && clientConfig.getDestinationAccounts() != null) {
         if (!clientConfig.getDestinationAccounts().contains(destinationAccount)) {
           infoF(

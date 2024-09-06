@@ -7,8 +7,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.client.ClientConfig.CallbackUrls
-import org.stellar.anchor.client.CustodialClientConfig
-import org.stellar.anchor.client.NonCustodialClientConfig
+import org.stellar.anchor.client.ClientConfig.ClientType.CUSTODIAL
+import org.stellar.anchor.client.ClientConfig.ClientType.NONCUSTODIAL
+import org.stellar.anchor.config.ClientsConfig
+import org.stellar.anchor.config.ClientsConfig.RawClient
 
 class ClientsConfigTest {
   private lateinit var config: PropertyClientsConfig
@@ -16,15 +18,16 @@ class ClientsConfigTest {
 
   @BeforeEach
   fun setup() {
-    config = PropertyClientsConfig().apply { type = "inline" }
+    config = PropertyClientsConfig().apply { type = ClientsConfig.ClientsConfigType.INLINE }
     errors = BindException(config, "config")
   }
 
   @Test
   fun `test valid custodial client with multiple signing keys`() {
     val custodial =
-      CustodialClientConfig.builder()
+      RawClient.builder()
         .name("custodial")
+        .type(CUSTODIAL)
         .signingKeys(
           setOf(
             "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
@@ -33,16 +36,17 @@ class ClientsConfigTest {
         )
         .build()
 
-    config.setCustodial(listOf(custodial))
+    config.setItems(listOf(custodial))
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }
 
   @Test
   fun `test invalid custodial client with empty signing key`() {
-    val custodial = CustodialClientConfig.builder().name("custodial").signingKeys(setOf()).build()
+    val custodial =
+      RawClient.builder().name("custodial").type(CUSTODIAL).signingKeys(setOf()).build()
 
-    config.setCustodial(listOf(custodial))
+    config.setItems(listOf(custodial))
     config.validate(config, errors)
     assertErrorCode(errors, "invalid-custodial-client-config")
   }
@@ -50,12 +54,13 @@ class ClientsConfigTest {
   @Test
   fun `test valid non-custodial client with multiple domains`() {
     val nonCustodial =
-      NonCustodialClientConfig.builder()
+      RawClient.builder()
         .name("non-custodial")
+        .type(NONCUSTODIAL)
         .domains(setOf("example.com", "example.org"))
         .build()
 
-    config.setNoncustodial(listOf(nonCustodial))
+    config.setItems(listOf(nonCustodial))
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }
@@ -63,8 +68,9 @@ class ClientsConfigTest {
   @Test
   fun `test valid non-custodial client with all callback URLs set`() {
     val nonCustodial =
-      NonCustodialClientConfig.builder()
+      RawClient.builder()
         .name("non-custodial")
+        .type(NONCUSTODIAL)
         .domains(setOf("example.com"))
         .callbackUrls(
           CallbackUrls.builder()
@@ -76,7 +82,7 @@ class ClientsConfigTest {
         )
         .build()
 
-    config.setNoncustodial(listOf(nonCustodial))
+    config.setItems(listOf(nonCustodial))
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }
@@ -84,8 +90,9 @@ class ClientsConfigTest {
   @Test
   fun `test valid custodial client with all callback URLs set`() {
     val custodial =
-      CustodialClientConfig.builder()
+      RawClient.builder()
         .name("custodial")
+        .type(CUSTODIAL)
         .signingKeys(
           setOf(
             "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
@@ -102,7 +109,7 @@ class ClientsConfigTest {
         )
         .build()
 
-    config.setCustodial(listOf(custodial))
+    config.setItems(listOf(custodial))
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }
@@ -110,8 +117,9 @@ class ClientsConfigTest {
   @Test
   fun `test invalid non-custodial client with invalid callback URLs`() {
     val nonCustodial =
-      NonCustodialClientConfig.builder()
+      RawClient.builder()
         .name("non-custodial")
+        .type(NONCUSTODIAL)
         .domains(setOf("example.com"))
         .callbackUrls(
           CallbackUrls.builder()
@@ -123,7 +131,7 @@ class ClientsConfigTest {
         )
         .build()
 
-    config.setNoncustodial(listOf(nonCustodial))
+    config.setItems(listOf(nonCustodial))
     config.validate(config, errors)
     assertEquals(4, errors.errorCount)
   }
@@ -131,8 +139,9 @@ class ClientsConfigTest {
   @Test
   fun `test invalid custodial client with invalid callback URLs`() {
     val custodial =
-      CustodialClientConfig.builder()
-        .name("non-custodial")
+      RawClient.builder()
+        .name("custodial")
+        .type(CUSTODIAL)
         .signingKeys(
           setOf(
             "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
@@ -149,7 +158,7 @@ class ClientsConfigTest {
         )
         .build()
 
-    config.setCustodial(listOf(custodial))
+    config.setItems(listOf(custodial))
     config.validate(config, errors)
     assertEquals(4, errors.errorCount)
   }

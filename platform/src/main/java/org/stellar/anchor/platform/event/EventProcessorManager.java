@@ -14,8 +14,8 @@ import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.client.ClientConfig;
 import org.stellar.anchor.client.ClientService;
-import org.stellar.anchor.client.CustodialClientConfig;
-import org.stellar.anchor.client.NonCustodialClientConfig;
+import org.stellar.anchor.client.CustodialClient;
+import org.stellar.anchor.client.NonCustodialClient;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
@@ -90,14 +90,14 @@ public class EventProcessorManager {
         }
 
         String processorName;
-        if (clientConfig instanceof CustodialClientConfig) {
+        if (clientConfig instanceof CustodialClient) {
           processorName =
               CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
-                  + String.join(",", ((CustodialClientConfig) clientConfig).getSigningKeys());
-        } else if (clientConfig instanceof NonCustodialClientConfig) {
+                  + String.join(",", ((CustodialClient) clientConfig).getSigningKeys());
+        } else if (clientConfig instanceof NonCustodialClient) {
           processorName =
               CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
-                  + String.join(",", ((NonCustodialClientConfig) clientConfig).getDomains());
+                  + String.join(",", ((NonCustodialClient) clientConfig).getDomains());
         } else {
           errorF("Unknown client type: {}", clientConfig.getClass().getName());
           throw new InternalServerErrorException(
