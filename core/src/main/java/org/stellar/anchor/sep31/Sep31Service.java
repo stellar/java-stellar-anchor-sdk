@@ -420,9 +420,14 @@ public class Sep31Service {
   void preValidateQuote() throws BadRequestException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
     AssetInfo assetInfo = Context.get().getAsset();
+    boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
     boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
 
     // Check if a quote is provided.
+    if (isQuotesRequired && request.getQuoteId() == null) {
+      throw new BadRequestException("quotes_required is set to true; quote id cannot be empty");
+    }
+
     if (!isQuotesSupported || request.getQuoteId() == null) {
       return;
     }
