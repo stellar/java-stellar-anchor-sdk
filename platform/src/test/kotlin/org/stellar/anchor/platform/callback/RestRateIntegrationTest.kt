@@ -120,7 +120,7 @@ class RestRateIntegrationTest {
     rateResponseWithFee.rate.expiresAt = Instant.now()
 
     // The fee is in sell_asset
-    rateResponseWithFee.rate.fee.asset = usdcAssetInfo.sep38AssetName
+    rateResponseWithFee.rate.fee.asset = usdAssetInfo.sep38AssetName
     rateResponseWithFee.rate.sellAmount = "100.00"
     rateResponseWithFee.rate.buyAmount = "94.29"
     rateIntegration.validateRateResponse(request, rateResponseWithFee)

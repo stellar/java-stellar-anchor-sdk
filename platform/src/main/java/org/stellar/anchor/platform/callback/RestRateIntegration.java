@@ -110,10 +110,6 @@ public class RestRateIntegration implements RateIntegration {
     }
 
     if (request.getType() == GetRateRequest.Type.FIRM) {
-      if (Objects.requireNonNull(rate).getFee() == null) {
-        logErrorAndThrow(
-            "'rate.fee' is missing in the GET /rate response", ServerErrorException.class);
-      }
       if (rate.getId() == null || rate.getExpiresAt() == null) {
         logErrorAndThrow(
             "'rate.id' or 'rate.expires_at' are missing in the GET /rate response. When the rate is firm, these fields are required",
