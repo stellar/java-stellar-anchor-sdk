@@ -662,7 +662,7 @@ events:
 # Assets Configuration
 #########################
 # Assets are empty by default.
-# Accepts file reference (eg. 'file:assets.yaml') or in-line definition.
+# Accepts file reference (e.g. 'file:assets.yaml') or in-line definition.
 assets:
   # Option 1: Use a file to provide the configuration.
   # Specify the type as 'file' and provide the file path in the value field.
@@ -692,7 +692,7 @@ assets:
 ##############################
 # The list of clients for the Anchor server to safely communicate with the outside wallet servers or clients.
 # The list is empty if not defined.
-# You can either use a file to provide the configuration or define it inline.
+# You can either use a file to provide the configuration or define it inline. See anchor-client-default-values.yaml for examples.
 # Use only one of the following combinations:
 clients:
   # Option 1: Use a file to provide the configuration.
