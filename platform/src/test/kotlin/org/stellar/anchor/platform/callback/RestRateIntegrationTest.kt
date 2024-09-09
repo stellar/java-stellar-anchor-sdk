@@ -319,6 +319,7 @@ class RestRateIntegrationTest {
         "4.99999999984375,5,8,true",
         "4.99999999984375,5,9,true",
         "4.99999999984375,5,10,false",
+        "8000,8000.00,2,true",
       ]
   )
   fun `test equals in scale withing rounding errors`(

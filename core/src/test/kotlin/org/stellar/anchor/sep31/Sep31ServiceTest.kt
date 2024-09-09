@@ -99,8 +99,6 @@ class Sep31ServiceTest {
               "sep31": {
                 "enabled": true,
                 "receive": {
-                  "fee_fixed": 0,
-                  "fee_percent": 0,
                   "min_amount": 1,
                   "max_amount": 1000000
                 },
@@ -541,36 +539,10 @@ class Sep31ServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("amount should be positive", ex.message)
 
-    // missing required fields
+    // ----- QUOTE_ID IS USED ⬇️ -----
     postTxRequest.lang = "en"
     postTxRequest.amount = "1"
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("'fields' field cannot be empty", ex.message)
 
-    // missing required fields.transaction
-    postTxRequest.fields = Sep31TxnFields(null)
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("'fields' field must have one 'transaction' field", ex.message)
-
-    // missing fields [receiver_routing_number, receiver_account_number, type]
-    postTxRequest.fields = Sep31TxnFields(hashMapOf())
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(Sep31MissingFieldException::class.java, ex)
-    val wantMissingFieldsNames =
-      listOf("receiver_account_number", "type", "receiver_routing_number")
-    val gotMissingFieldsNames = (ex as Sep31MissingFieldException).missingFields.transaction.keys
-    assertTrue(
-      wantMissingFieldsNames.containsAll(gotMissingFieldsNames),
-      "missing field names don't match",
-    )
-    assertTrue(
-      gotMissingFieldsNames.containsAll(wantMissingFieldsNames),
-      "missing field names don't match",
-    )
-
-    // ----- QUOTE_ID IS USED ⬇️ -----
     // not found quote_id
     val fields =
       hashMapOf(
@@ -837,13 +809,13 @@ class Sep31ServiceTest {
 
   private val jpycJson =
     """
-    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
+    {"enabled":true,"quotes_supported":true,"quotes_required":true,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
   """
       .trimIndent()
 
   private val usdcJson =
     """
-    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false}, "receiver_phone_number": {"description": "phone number of the receiver", "optional": true},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
+    {"enabled":true,"quotes_supported":true,"quotes_required":true,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false}, "receiver_phone_number": {"description": "phone number of the receiver", "optional": true},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
   """
       .trimIndent()
 
@@ -876,21 +848,6 @@ class Sep31ServiceTest {
     assetInfo.id = originalId
     val ex3 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("'fields' field must have one 'transaction' field", ex3.message)
-
-    Context.get().transactionFields = mapOf()
-    val ex4 = assertThrows<Sep31MissingFieldException> { sep31Service.validateRequiredFields() }
-    val wantMissingFields = Sep31Info.Fields()
-    wantMissingFields.transaction =
-      mapOf(
-        "receiver_account_number" to Field("bank account number of the destination", null, false),
-        "type" to Field("type of deposit to make", listOf("SEPA", "SWIFT"), false),
-        "receiver_routing_number" to
-          Field("routing number of the destination bank account", null, false)
-      )
-    assertEquals(wantMissingFields, ex4.missingFields)
-
-    Context.get().transactionFields = txn.fields
-    assertDoesNotThrow { sep31Service.validateRequiredFields() }
   }
 
   @Test

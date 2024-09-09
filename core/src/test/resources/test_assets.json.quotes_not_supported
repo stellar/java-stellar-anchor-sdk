@@ -8,15 +8,11 @@
         "enabled": false,
         "deposit" : {
           "enabled": true,
-          "fee_minimum": 0,
-          "fee_percent": 0,
           "min_amount": 1,
           "max_amount": 10000
         },
         "withdraw": {
           "enabled": true,
-          "fee_fixed": 0,
-          "fee_percent": 0,
           "min_amount": 1,
           "max_amount": 10000
         }
@@ -25,15 +21,11 @@
         "enabled": false,
         "deposit" : {
           "enabled": true,
-          "fee_minimum": 0,
-          "fee_percent": 0,
           "min_amount": 1,
           "max_amount": 10000
         },
         "withdraw": {
           "enabled": true,
-          "fee_fixed": 0,
-          "fee_percent": 0,
           "min_amount": 1,
           "max_amount": 10000
         }
@@ -41,8 +33,6 @@
       "sep31" : {
         "enabled": true,
         "receive": {
-          "fee_fixed": 0,
-          "fee_percent": 0,
           "min_amount": 1,
           "max_amount": 1000000
         },

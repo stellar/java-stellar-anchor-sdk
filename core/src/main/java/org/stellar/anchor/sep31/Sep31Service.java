@@ -24,11 +24,9 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.asset.AssetInfo;
-import org.stellar.anchor.api.asset.Sep31Info.Fields;
 import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.event.AnchorEvent;
@@ -425,11 +423,11 @@ public class Sep31Service {
     boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
     boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
 
+    // Check if a quote is provided.
     if (isQuotesRequired && request.getQuoteId() == null) {
       throw new BadRequestException("quotes_required is set to true; quote id cannot be empty");
     }
 
-    // Check if quote is provided.
     if (!isQuotesSupported || request.getQuoteId() == null) {
       return;
     }
@@ -562,27 +560,6 @@ public class Sep31Service {
           Context.get().getRequest());
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
-
-    Map<String, AssetInfo.Field> missingFields =
-        fieldSpecs.getFields().getTransaction().entrySet().stream()
-            .filter(
-                entry -> {
-                  AssetInfo.Field field = entry.getValue();
-                  if (field.isOptional()) return false;
-                  return requestFields.get(entry.getKey()) == null;
-                })
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    Fields sep31MissingTxnFields = new Fields();
-    sep31MissingTxnFields.setTransaction(missingFields);
-
-    if (!missingFields.isEmpty()) {
-      infoF(
-          "Missing SEP-31 fields ({}) for request ({})",
-          sep31MissingTxnFields,
-          Context.get().getRequest());
-      throw new Sep31MissingFieldException(sep31MissingTxnFields);
-    }
   }
 
   @SneakyThrows
@@ -593,18 +570,11 @@ public class Sep31Service {
       if (assetInfo.getSep31() != null && assetInfo.getSep31().getEnabled()) {
         boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
         boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
-        if (isQuotesRequired && !isQuotesSupported) {
-          throw new SepValidationException(
-              "if quotes_required is true, quotes_supported must also be true");
-        }
         AssetResponse assetResponse = new AssetResponse();
         assetResponse.setQuotesSupported(isQuotesSupported);
         assetResponse.setQuotesRequired(isQuotesRequired);
-        assetResponse.setFeeFixed(assetInfo.getSep31().getReceive().getFeeFixed());
-        assetResponse.setFeePercent(assetInfo.getSep31().getReceive().getFeePercent());
         assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
         assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
-        assetResponse.setFields(assetInfo.getSep31().getFields());
         response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
     }

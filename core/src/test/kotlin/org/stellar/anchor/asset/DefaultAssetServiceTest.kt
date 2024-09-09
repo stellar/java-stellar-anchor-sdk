@@ -145,36 +145,11 @@ internal class DefaultAssetServiceTest {
                 "sep31": {
                   "enabled": true,
                   "receive": {
-                    "fee_fixed": 0,
-                    "fee_percent": 0,
                     "min_amount": 1,
                     "max_amount": 1000000
                   },
                   "quotes_supported": true,
-                  "quotes_required": true,
-                  "fields": {
-                    "transaction": {
-                      "receiver_routing_number": {
-                        "description": "routing number of the destination bank account",
-                        "optional": false
-                      },
-                      "receiver_account_number": {
-                        "description": "bank account number of the destination",
-                        "optional": false
-                      },
-                      "receiver_phone_number": {
-                        "description": "phone number of the receiver",
-                        "optional": true
-                      },
-                      "type": {
-                        "description": "type of deposit to make",
-                        "choices": [
-                          "SEPA",
-                          "SWIFT"
-                        ]
-                      }
-                    }
-                  }
+                  "quotes_required": true
                 },
                 "sep38": {
                   "enabled": true,
@@ -207,33 +182,11 @@ internal class DefaultAssetServiceTest {
                 "sep31": {
                   "enabled": true,
                   "receive": {
-                    "fee_fixed": 0,
-                    "fee_percent": 0,
                     "min_amount": 1,
                     "max_amount": 1000000
                   },
                   "quotes_supported": true,
-                  "quotes_required": true,
-                  "fields": {
-                    "transaction": {
-                      "receiver_routing_number": {
-                        "description": "routing number of the destination bank account",
-                        "optional": false
-                      },
-                      "receiver_account_number": {
-                        "description": "bank account number of the destination",
-                        "optional": false
-                      },
-                      "type": {
-                        "description": "type of deposit to make",
-                        "choices": [
-                          "ACH",
-                          "SWIFT",
-                          "WIRE"
-                        ]
-                      }
-                    }
-                  }
+                  "quotes_required": true
                 },
                 "sep38": {
                   "enabled": true,
@@ -249,8 +202,6 @@ internal class DefaultAssetServiceTest {
                 "sep31": {
                   "enabled": false,
                   "receive": {
-                    "fee_fixed": 0,
-                    "fee_percent": 0,
                     "min_amount": 1,
                     "max_amount": 1000000
                   }
@@ -300,30 +251,11 @@ internal class DefaultAssetServiceTest {
                 "sep31": {
                   "enabled": true,
                   "receive": {
-                    "fee_fixed": 0,
-                    "fee_percent": 0,
                     "min_amount": 1,
                     "max_amount": 1000000
                   },
                   "quotes_supported": true,
-                  "quotes_required": true,
-                  "fields": {
-                    "transaction": {
-                      "receiver_routing_number": {
-                        "description": "routing number of the destination bank account"
-                      },
-                      "receiver_account_number": {
-                        "description": "bank account number of the destination"
-                      },
-                      "type": {
-                        "description": "type of deposit to make",
-                        "choices": [
-                          "SEPA",
-                          "SWIFT"
-                        ]
-                      }
-                    }
-                  }
+                  "quotes_required": true
                 },
                 "sep38": {
                   "enabled": true,

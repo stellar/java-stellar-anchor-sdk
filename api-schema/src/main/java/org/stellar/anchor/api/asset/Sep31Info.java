@@ -16,16 +16,8 @@ public class Sep31Info {
   @SerializedName("quotes_required")
   boolean quotesRequired;
 
-  Fields fields;
-
   @Data
   public static class ReceiveOperation {
-    @SerializedName("fee_fixed")
-    Integer feeFixed;
-
-    @SerializedName("fee_percent")
-    Integer feePercent;
-
     @SerializedName("min_amount")
     Long minAmount;
 
