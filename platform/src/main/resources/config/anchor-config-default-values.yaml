@@ -43,7 +43,10 @@ stellar_network:
 ##############################
 callback_api:
   # The base URL of the Anchor Backend server that implements the callback API endpoints described in the
-  # `Callbacks API.yml` file.
+  # `Callbacks API.yml` file. The base URL must be accessible by the Anchor Platform server.
+  # For example, if the Anchor Platform server is running in a docker container while the business server is running
+  # at port 8081 of the host, the base_url should be http://host.docker.internal:8081
+  #
   base_url: http://localhost:8081
   # If the flag is set to false, all certificates from the business servers will be trusted.
   check_certificate: false
