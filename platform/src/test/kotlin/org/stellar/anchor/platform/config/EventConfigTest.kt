@@ -11,7 +11,6 @@ import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.springframework.validation.ValidationUtils
 import org.stellar.anchor.config.event.QueueConfig.QueueType.*
-import org.stellar.anchor.platform.config.*
 
 class EventConfigTest {
   lateinit var config: PropertyEventConfig
@@ -89,6 +88,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -103,6 +104,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -117,6 +120,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -131,6 +136,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -144,6 +151,8 @@ class EventConfigTest {
             500,
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            null,
             null
           ),
         ),
@@ -159,12 +168,14 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
         Arguments.of(
           1,
           "kafka-security-protocol-empty",
-          KafkaConfig("localhost:29092", "client_id", 1, 10, 500, 10, null, null),
+          KafkaConfig("localhost:29092", "client_id", 1, 10, 500, 10, null, null, null, null),
         ),
         Arguments.of(
           1,
@@ -178,6 +189,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.SASL_PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
       )
@@ -209,6 +222,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -224,6 +239,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -239,6 +256,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -254,6 +273,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -269,6 +290,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -284,6 +307,8 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            null,
+            null
           ),
         ),
       )

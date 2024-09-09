@@ -683,13 +683,27 @@ events:
       # `security_protocol` can be one of the following:
       #     `PLAINTEXT`: no encryption
       #     `SASL_PLAINTEXT`: SASL authentication with no encryption
+      #     `SASL_SSL`: SASL authentication with SSL encryption
       # If SASL_PLAINTEXT is used, the SECRET_EVENTS_QUEUE_KAFKA_USERNAME and SECRET_EVENTS_QUEUE_KAFKA_PASSWORD
       # environment variables must be set.
       security_protocol: PLAINTEXT
-      # The SASL mechanism used for authentication when `security_protocol` is set to `SASL_PLAINTEXT`.
-      # `sasl_mechanism` can be one of the following:
-      #     `PLAIN`: PLAIN SASL mechanism
+      # The SASL mechanism used for authentication and must match what is used on the broker.
+      # `sasl_mechanism` can be one of the following supported mechanisms:
+      #   `PLAIN`: PLAIN SASL mechanism
       sasl_mechanism:
+
+      # Client JAAS config (used in conjunction with SASL_SSL or SASL_PLAINTEXT) blob if needed.
+      # Example:
+      # sasl.jaas.config: "
+      #   org.apache.kafka.common.security.plain.PlainLoginModule required
+      #   username=\"your_username\"
+      #   password=\"your_password\";
+      # "
+      sasl_jaas_config:
+
+      # the SSL configuration for the Kafka connection
+      ssl_truststore_location: # /path/to/your/truststore.jks
+
     # If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
     sqs:
       # Use IAM authentication for AWS MSK or AWS SQS.
