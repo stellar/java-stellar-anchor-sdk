@@ -8,7 +8,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CustodialClientConfig implements ClientConfig {
+public class CustodialClient implements ClientConfig {
   /**
    * The unique name identifying the client. This should be a recognizable name that represents the
    * client entity.

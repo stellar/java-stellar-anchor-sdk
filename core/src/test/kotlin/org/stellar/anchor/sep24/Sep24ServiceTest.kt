@@ -145,7 +145,7 @@ internal class Sep24ServiceTest {
     every { moreInfoUrlConstructor.construct(any(), any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
     every { clientService.getClientConfigByDomain(any()) } returns
-      NonCustodialClientConfig.builder()
+      NonCustodialClient.builder()
         .name("reference")
         .domains(setOf("wallet-server:8092"))
         .callbackUrls(
@@ -155,7 +155,7 @@ internal class Sep24ServiceTest {
         )
         .build()
     every { clientService.getClientConfigBySigningKey(any()) } returns
-      CustodialClientConfig.builder()
+      CustodialClient.builder()
         .name("referenceCustodial")
         .signingKeys(setOf("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"))
         .allowAnyDestination(false)
@@ -488,7 +488,7 @@ internal class Sep24ServiceTest {
 
     val whitelistedAccount = "GC6TP2RCW665CBOTMR5Q2JXNRK77FWV2FCTHNQXS3FNDMWZCGJBJ4QCY"
     every { clientService.getClientConfigBySigningKey(any()) } returns
-      CustodialClientConfig.builder()
+      CustodialClient.builder()
         .name("referenceCustodial")
         .signingKeys(setOf("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"))
         .allowAnyDestination(false)

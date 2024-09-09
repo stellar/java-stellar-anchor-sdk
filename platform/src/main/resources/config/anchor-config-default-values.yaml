@@ -43,7 +43,10 @@ stellar_network:
 ##############################
 callback_api:
   # The base URL of the Anchor Backend server that implements the callback API endpoints described in the
-  # `Callbacks API.yml` file.
+  # `Callbacks API.yml` file. The base URL must be accessible by the Anchor Platform server.
+  # For example, if the Anchor Platform server is running in a docker container while the business server is running
+  # at port 8081 of the host, the base_url should be http://host.docker.internal:8081
+  #
   base_url: http://localhost:8081
   # If the flag is set to false, all certificates from the business servers will be trusted.
   check_certificate: false
@@ -686,11 +689,13 @@ clients:
   # type: file
   # value: path/to/file.yaml
 
-  # Option 2: Define custodial and noncustodial clients inline.
-  # Comment out the type and value fields above and define your clients directly here.
+  # Option 2: Define clients inline.
+  # Specify the type as 'inline', and define your clients directly under items.
   #
-  # custodial:
+  # type: inline
+  # items:
   #   - name: client1
+  #     type: custodial
   #     signingKeys:
   #       - singingKey1
   #       - singingKey2
@@ -702,17 +707,15 @@ clients:
   #     allowAnyDestination: false
   #     destinationAccounts:
   #       - GDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-  #
-  # noncustodial:
   #   - name: client2
+  #     type: noncustodial
   #     domains:
   #       - client2.com
   #     callbackUrls:
   #       sep6: http://client2/sep6/callbacks
-  type:
+  type: inline
   value:
-  custodial:
-  noncustodial:
+  items:
 
 ################################
 # Data Configuration

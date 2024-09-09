@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class NonCustodialClientConfig implements ClientConfig {
+public class NonCustodialClient implements ClientConfig {
   /**
    * The unique name identifying the client. This should be a recognizable name that represents the
    * client entity.
