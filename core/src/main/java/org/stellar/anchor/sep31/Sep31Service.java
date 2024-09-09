@@ -423,11 +423,11 @@ public class Sep31Service {
     boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
     boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
 
+    // Check if a quote is provided.
     if (isQuotesRequired && request.getQuoteId() == null) {
       throw new BadRequestException("quotes_required is set to true; quote id cannot be empty");
     }
 
-    // Check if quote is provided.
     if (!isQuotesSupported || request.getQuoteId() == null) {
       return;
     }
@@ -570,10 +570,6 @@ public class Sep31Service {
       if (assetInfo.getSep31() != null && assetInfo.getSep31().getEnabled()) {
         boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
         boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
-        if (isQuotesRequired && !isQuotesSupported) {
-          throw new SepValidationException(
-              "if quotes_required is true, quotes_supported must also be true");
-        }
         AssetResponse assetResponse = new AssetResponse();
         assetResponse.setQuotesSupported(isQuotesSupported);
         assetResponse.setQuotesRequired(isQuotesRequired);
