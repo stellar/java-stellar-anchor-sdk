@@ -26,7 +26,7 @@ spec:
         - name: reference
           image: {{ .Values.container.image }}
           args: [ "--kotlin-reference-server" ]
-          imagePullPolicy: {{ .Values.container.imagePullPolicy }}
+          imagePullPolicy: {{ .Values.container.imagePullPolicy | default "Always" }}
           ports:
             - name: http
               containerPort: {{ .Values.services.ref.containerPort | default 8091 }}
