@@ -255,7 +255,7 @@ public class RestRateIntegration implements RateIntegration {
       // when fee is not present, check that sell_amount ~= price * buy_amount
       BigDecimal expected =
           new BigDecimal(rate.getPrice()).multiply(new BigDecimal(rate.getBuyAmount()));
-      if (withinRoundingError(
+      if (!withinRoundingError(
           new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
         logErrorAndThrow(
             format(

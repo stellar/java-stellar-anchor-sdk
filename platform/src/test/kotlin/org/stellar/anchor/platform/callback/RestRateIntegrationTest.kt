@@ -31,7 +31,8 @@ class RestRateIntegrationTest {
   private var usdcAssetInfo = AssetInfo()
   private val rateIntegration = RestRateIntegration("/", null, null, gson, assetService)
   private var request: GetRateRequest = GetRateRequest()
-  private var rateResponse: GetRateResponse = GetRateResponse()
+  private var rateResponseWithFee: GetRateResponse = GetRateResponse()
+  private var rateResponseWithoutFee: GetRateResponse = GetRateResponse()
 
   @BeforeEach
   fun setUp() {
@@ -65,7 +66,7 @@ class RestRateIntegrationTest {
         GetRateRequest::class.java,
       )
 
-    rateResponse =
+    rateResponseWithFee =
       gson.fromJson(
         """
         {
@@ -95,26 +96,49 @@ class RestRateIntegrationTest {
         """,
         GetRateResponse::class.java,
       )
+
+    rateResponseWithoutFee =
+      gson.fromJson(
+        """
+      {
+        "rate": {
+            "price": "4000",
+            "sell_amount": "8000",
+            "buy_amount": "2.00"
+        }
+      }
+      """,
+        GetRateResponse::class.java,
+      )
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["indicative", "firm"])
-  fun `test INDICATIVE and FIRM validateRateResponse`(type: String) {
+  fun `test INDICATIVE and FIRM validateRateResponse with fee`(type: String) {
     request.type = from(type)
-    rateResponse.rate.id = "1234"
-    rateResponse.rate.expiresAt = Instant.now()
+    rateResponseWithFee.rate.id = "1234"
+    rateResponseWithFee.rate.expiresAt = Instant.now()
 
     // The fee is in sell_asset
-    rateResponse.rate.fee.asset = usdAssetInfo.sep38AssetName
-    rateResponse.rate.sellAmount = "100.00"
-    rateResponse.rate.buyAmount = "94.29"
-    rateIntegration.validateRateResponse(request, rateResponse)
+    rateResponseWithFee.rate.fee.asset = usdcAssetInfo.sep38AssetName
+    rateResponseWithFee.rate.sellAmount = "100.00"
+    rateResponseWithFee.rate.buyAmount = "94.29"
+    rateIntegration.validateRateResponse(request, rateResponseWithFee)
 
     // The fee is in buy_asset
-    rateResponse.rate.fee.asset = usdcAssetInfo.sep38AssetName
-    rateResponse.rate.sellAmount = "100.00"
-    rateResponse.rate.buyAmount = "94.24"
-    rateIntegration.validateRateResponse(request, rateResponse)
+    rateResponseWithFee.rate.fee.asset = usdcAssetInfo.sep38AssetName
+    rateResponseWithFee.rate.sellAmount = "100.00"
+    rateResponseWithFee.rate.buyAmount = "94.24"
+    rateIntegration.validateRateResponse(request, rateResponseWithFee)
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["indicative", "firm"])
+  fun `test INDICATIVE and FIRM validateRateResponse without fee`(type: String) {
+    request.type = from(type)
+    rateResponseWithoutFee.rate.id = "1234"
+    rateResponseWithoutFee.rate.expiresAt = Instant.now()
+    rateIntegration.validateRateResponse(request, rateResponseWithoutFee)
   }
 
   @ParameterizedTest
@@ -130,21 +154,21 @@ class RestRateIntegrationTest {
   )
   fun `test bad sell and buy amounts`(badAmount: String?, errorMessage: String) {
     // Bad sell amount
-    rateResponse.rate.sellAmount = badAmount
-    rateResponse.rate.buyAmount = "94.29"
+    rateResponseWithFee.rate.sellAmount = badAmount
+    rateResponseWithFee.rate.buyAmount = "94.29"
     var ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     //    assertEquals("'rate.sell_amount' ${errorMessage.trim()}", ex.message)
     assertTrue(ex.message!!.contains(errorMessage))
 
     // Bad buy amount
-    rateResponse.rate.sellAmount = "100"
-    rateResponse.rate.buyAmount = badAmount
+    rateResponseWithFee.rate.sellAmount = "100"
+    rateResponseWithFee.rate.buyAmount = badAmount
     ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertTrue(ex.message!!.contains(errorMessage))
   }
@@ -152,23 +176,23 @@ class RestRateIntegrationTest {
   @Test
   fun `test mis-matched sell_amount and buy_amount`() {
     // Bad sell amount
-    rateResponse.rate.sellAmount = "100.02" // expect 100.00
-    rateResponse.rate.buyAmount = "94.29"
+    rateResponseWithFee.rate.sellAmount = "100.02" // expect 100.00
+    rateResponseWithFee.rate.buyAmount = "94.29"
     var ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
       "'rate.sell_amount' (100.02) is not within rounding error of the expected (100.0045) ('price * buy_amount + fee') in the GET /rate response",
       ex.message,
     )
 
-    rateResponse.rate.sellAmount = "100.00"
-    rateResponse.rate.buyAmount = "94.00"
+    rateResponseWithFee.rate.sellAmount = "100.00"
+    rateResponseWithFee.rate.buyAmount = "94.00"
 
     ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
       "'rate.sell_amount' (100.00) is not within rounding error of the expected (99.7000) ('price * buy_amount + fee') in the GET /rate response",
@@ -178,32 +202,32 @@ class RestRateIntegrationTest {
 
   @Test
   fun `test bad fee total and asset`() {
-    rateResponse.rate.fee.total = null
+    rateResponseWithFee.rate.fee.total = null
     var ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
       "'rate.fee.total' is missing or not a positive number in the GET /rate response",
       ex.message,
     )
 
-    rateResponse.rate.fee.total = "1.00"
-    rateResponse.rate.fee.asset = "unknown"
+    rateResponseWithFee.rate.fee.total = "1.00"
+    rateResponseWithFee.rate.fee.asset = "unknown"
     ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
       "'rate.fee.asset' is missing or not a valid asset in the GET /rate response",
       ex.message,
     )
 
-    rateResponse.rate.fee.total = "1.00000001"
-    rateResponse.rate.fee.asset = "iso4217:USD"
+    rateResponseWithFee.rate.fee.total = "1.00000001"
+    rateResponseWithFee.rate.fee.asset = "iso4217:USD"
     ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
       "'rate.fee.total' (1.00000001) has incorrect number of significant decimals (expected: 2) in the GET /rate response",
@@ -214,32 +238,32 @@ class RestRateIntegrationTest {
   @ParameterizedTest
   @ValueSource(ints = [0, 1])
   fun `test bad fee details without name or amount`(feeIndex: Int) {
-    rateResponse.rate.fee.details[feeIndex].name = null
+    rateResponseWithFee.rate.fee.details[feeIndex].name = null
     var ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
       "'rate.fee.details.description[?].name' is missing in the GET /rate response",
       ex.message,
     )
 
-    rateResponse.rate.fee.details[feeIndex].name = "Sell fee"
-    rateResponse.rate.fee.details[feeIndex].amount = null
+    rateResponseWithFee.rate.fee.details[feeIndex].name = "Sell fee"
+    rateResponseWithFee.rate.fee.details[feeIndex].amount = null
     ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
       "'rate.fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
       ex.message,
     )
 
-    rateResponse.rate.fee.details[feeIndex].name = "Sell fee"
-    rateResponse.rate.fee.details[feeIndex].amount = "0.71" // Expect 0.70
+    rateResponseWithFee.rate.fee.details[feeIndex].name = "Sell fee"
+    rateResponseWithFee.rate.fee.details[feeIndex].amount = "0.71" // Expect 0.70
     ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertTrue(ex.message!!.contains("is not equal to the sum of fees "))
   }
@@ -247,12 +271,12 @@ class RestRateIntegrationTest {
   @Test
   fun `test bad decimals from the response`() {
     // Bad sell amount
-    rateResponse.rate.sellAmount = "100.00001234"
-    rateResponse.rate.buyAmount = "94.29"
-    rateResponse.rate.fee.details[0].amount = "0.7"
+    rateResponseWithFee.rate.sellAmount = "100.00001234"
+    rateResponseWithFee.rate.buyAmount = "94.29"
+    rateResponseWithFee.rate.fee.details[0].amount = "0.7"
     var ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
       "'rate.sell_amount' (100.00001234) has incorrect number of significant decimals (expected: 2) in the GET /rate response",
@@ -260,12 +284,12 @@ class RestRateIntegrationTest {
     )
 
     // Bad buy amount
-    rateResponse.rate.sellAmount = "100"
-    rateResponse.rate.buyAmount = "94.000000029"
-    rateResponse.rate.fee.details[0].amount = "0.7"
+    rateResponseWithFee.rate.sellAmount = "100"
+    rateResponseWithFee.rate.buyAmount = "94.000000029"
+    rateResponseWithFee.rate.fee.details[0].amount = "0.7"
     ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
       "'rate.buy_amount' (94.000000029) has incorrect number of significant decimals (expected: 7) in the GET /rate response",
@@ -273,12 +297,12 @@ class RestRateIntegrationTest {
     )
 
     // Bad fee amount
-    rateResponse.rate.sellAmount = "100"
-    rateResponse.rate.buyAmount = "94.29"
-    rateResponse.rate.fee.details[0].amount = "0.00007"
+    rateResponseWithFee.rate.sellAmount = "100"
+    rateResponseWithFee.rate.buyAmount = "94.29"
+    rateResponseWithFee.rate.fee.details[0].amount = "0.00007"
     ex =
       assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponse)
+        rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
       "'rate.fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
