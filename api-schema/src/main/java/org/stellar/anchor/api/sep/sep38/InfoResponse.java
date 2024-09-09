@@ -24,22 +24,21 @@ public class InfoResponse {
       if (assetInfo.getSep38() == null
           || assetInfo.getSep38().getEnabled() == null
           || !assetInfo.getSep38().getEnabled()) continue;
-      Asset newAsset = new Asset();
       Sep38Info sep38Info = assetInfo.getSep38();
 
-      newAsset.setAsset(assetInfo.getId());
-      newAsset.setCountryCodes(sep38Info.getCountryCodes());
-      newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
+      Asset assetResponse = new Asset();
 
-      int decimals = 7;
       if (assetInfo instanceof FiatAssetInfo fiatAssetInfo) {
-        newAsset.setSellDeliveryMethods(fiatAssetInfo.getSep38().getSellDeliveryMethods());
-        newAsset.setBuyDeliveryMethods(fiatAssetInfo.getSep38().getBuyDeliveryMethods());
-        decimals = sep38Info.getDecimals() != null ? sep38Info.getDecimals() : 7;
+        assetResponse.setSellDeliveryMethods(fiatAssetInfo.getSep38().getSellDeliveryMethods());
+        assetResponse.setBuyDeliveryMethods(fiatAssetInfo.getSep38().getBuyDeliveryMethods());
       }
 
-      newAsset.setDecimals(decimals);
-      assets.add(newAsset);
+      assetResponse.setAsset(assetInfo.getId());
+      assetResponse.setCountryCodes(sep38Info.getCountryCodes());
+      assetResponse.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
+      assetResponse.setDecimals(assetInfo.getSignificantDecimals());
+
+      assets.add(assetResponse);
     }
   }
 

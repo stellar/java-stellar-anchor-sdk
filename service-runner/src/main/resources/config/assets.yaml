@@ -206,7 +206,6 @@ assets:
         - stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
       country_codes:
         - USA
-      decimals: 2
       sell_delivery_methods:
         - name: WIRE
           description: Send USD directly to the Anchor's bank account.
@@ -227,7 +226,6 @@ assets:
         - stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
       country_codes:
         - CAN
-      decimals: 2
       sell_delivery_methods:
         - name: WIRE
           description: Send CAD directly to the Anchor's bank account.
