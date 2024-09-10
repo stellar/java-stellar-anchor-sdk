@@ -662,13 +662,27 @@ events:
 # Assets Configuration
 #########################
 # Assets are empty by default.
-# Accepts file reference (eg. 'file:assets.yaml') or in-line definition.
+# Accepts file reference (e.g. 'file:assets.yaml') or in-line definition.
 assets:
-  # The type of the assets definition.
-  # `type` can be one of the following:
-  #     `json`: value field contains the content of the assets in JSON format
-  #     `yaml`: value field contains the content of the assets in YAML format
-  #     `file`: value field contains the path to the assets file. The file name can be *.json or *.yaml.
+  # Option 1: Use a file to provide the configuration.
+  # Specify the type as 'file' and provide the file path in the value field.
+  # The file can only be in .yaml or .json format.
+  # The file content should follow the format used in Option 2.
+  #
+  # type: file
+  # value: path/to/file.yaml
+  #
+  # Option 2: Define assets inline using a YAML string.
+  # Specify the type as 'yaml', and define your clients value in YAML string format.
+  #
+  # type: yaml
+  # value: "items:\n  - id: stellar:USDC:<Issuer>\n  - id: iso4217:USD"
+  #
+  # Option 3: Define assets inline using a JSON string.
+  # Specify the type as 'json', and define your clients value in JSON string format.
+  #
+  # type: json
+  # value: "{\n  \"items\": [\n    {\n      \"id\": \"stellar:<Issuer>\"\n    },\n    {\n      \"id\": \"iso4217:USD5\"\n    }\n]\n}"
   type: json
   # The value of the assets definition depending on the `type` field.
   value:
@@ -678,7 +692,7 @@ assets:
 ##############################
 # The list of clients for the Anchor server to safely communicate with the outside wallet servers or clients.
 # The list is empty if not defined.
-# You can either use a file to provide the configuration or define it inline.
+# You can either use a file to provide the configuration or define it inline. See anchor-client-default-values.yaml for examples.
 # Use only one of the following combinations:
 clients:
   # Option 1: Use a file to provide the configuration.
@@ -688,34 +702,20 @@ clients:
   #
   # type: file
   # value: path/to/file.yaml
-
-  # Option 2: Define clients inline.
-  # Specify the type as 'inline', and define your clients directly under items.
   #
-  # type: inline
-  # items:
-  #   - name: client1
-  #     type: custodial
-  #     signingKeys:
-  #       - singingKey1
-  #       - singingKey2
-  #     callbackUrls:
-  #       sep6: http://client1/sep6/callbacks
-  #       sep24: http://client1/sep24/callbacks
-  #       sep31: http://client1/sep31/callbacks
-  #       sep12: http://client1/sep12/callbacks
-  #     allowAnyDestination: false
-  #     destinationAccounts:
-  #       - GDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-  #   - name: client2
-  #     type: noncustodial
-  #     domains:
-  #       - client2.com
-  #     callbackUrls:
-  #       sep6: http://client2/sep6/callbacks
-  type: inline
+  # Option 2: Define clients inline using a YAML string.
+  # Specify the type as 'yaml', and define your clients value in YAML string format.
+  #
+  # type: yaml
+  # value: "items:\n  - name: client1\n    type: custodial\n  - name: client2"
+  #
+  # Option 3: Define clients inline using a JSON string.
+  # Specify the type as 'json', and define your clients value in JSON string format.
+  #
+  # type: json
+  # value: "{\n  \"items\": [\n    {\n      \"name\": \"referenceCustodial\",\n      \"type\": \"custodial\"\n    }\n]\n}"
+  type: json
   value:
-  items:
 
 ################################
 # Data Configuration
