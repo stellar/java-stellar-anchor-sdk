@@ -13,8 +13,6 @@ assets:
           - SWIFT
       withdraw:
         enabled: true
-        fee_fixed: 0
-        fee_percent: 0
         min_amount: 0
         max_amount: 10000
         methods:
@@ -23,23 +21,10 @@ assets:
     sep31:
       enabled: true
       receive:
-        fee_fixed: 0
-        fee_percent: 0
         min_amount: 0
         max_amount: 10000
       quotes_supported: true
       quotes_required: true
-      fields:
-        transaction:
-          receiver_routing_number:
-            description: routing number of the destination bank account
-          receiver_account_number:
-            description: bank account number of the destination
-          type:
-            description: type of deposit to make
-            choices:
-              - SEPA
-              - SWIFT
     sep38:
       enabled: true
       exchangeable_assets:
@@ -49,8 +34,6 @@ assets:
     sep31:
       enabled: false
       receive:
-        fee_fixed: 0
-        fee_percent: 0
         min_amount: 1
         max_amount: 1000000
     sep38:

@@ -195,6 +195,7 @@ assets_config: |
           - SWIFT
       withdraw:
         enabled: true
+        min_amount: 1
         max_amount: 1000000
         methods:
           - bank_account
@@ -209,6 +210,7 @@ assets_config: |
           - SWIFT
       withdraw:
         enabled: true
+        min_amount: 1
         max_amount: 1000000
         methods:
           - bank_account
@@ -216,22 +218,10 @@ assets_config: |
     sep31:
       enabled: true
       receive:
-        fee_fixed: 0
-        fee_percent: 0
+        min_amount: 1
         max_amount: 1000000
       quotes_supported: true
       quotes_required: false
-      fields:
-        transaction:
-          receiver_routing_number:
-            description: routing number of the destination bank account
-          receiver_account_number:
-            description: bank account number of the destination
-          type:
-            description: type of deposit to make
-            choices:
-              - SEPA
-              - SWIFT
     sep38:
       enabled: true
       exchangeable_assets:
@@ -252,23 +242,10 @@ assets_config: |
     sep31:
       enabled: true
       receive:
-        fee_fixed: 0
-        fee_percent: 0
         min_amount: 1
         max_amount: 1000000
       quotes_supported: true
       quotes_required: false
-      fields:
-        transaction:
-          receiver_routing_number:
-            description: routing number of the destination bank account
-          receiver_account_number:
-            description: bank account number of the destination
-          type:
-            description: type of deposit to make
-            choices:
-              - SEPA
-              - SWIFT
     sep38:
       enabled: true
       exchangeable_assets:
@@ -287,21 +264,8 @@ assets_config: |
     sep31:
       enabled: true
       receive:
-        fee_fixed: 0
-        fee_percent: 0
       quotes_supported: true
       quotes_required: false
-      fields:
-        transaction:
-          receiver_routing_number:
-            description: routing number of the destination bank account
-          receiver_account_number:
-            description: bank account number of the destination
-          type:
-            description: type of deposit to make
-            choices:
-              - SEPA
-              - SWIFT
     sep38:
       enabled: true
       exchangeable_assets:
@@ -311,8 +275,6 @@ assets_config: |
     sep31:
       enabled: false
       receive:
-        fee_fixed: 0
-        fee_percent: 0
         min_amount: 0
         max_amount: 10000
     sep38:
@@ -344,22 +306,9 @@ assets_config: |
     sep31:
       enabled: true
       receive:
-        fee_fixed: 0
-        fee_percent: 0
         max_amount: 1000000
       quotes_supported: true
       quotes_required: true
-      fields:
-        transaction:
-          receiver_routing_number:
-            description: routing number of the destination bank account
-          receiver_account_number:
-            description: bank account number of the destination
-          type:
-            description: type of deposit to make
-            choices:
-              - SEPA
-              - SWIFT
     sep38:
       enabled: true
       exchangeable_assets:

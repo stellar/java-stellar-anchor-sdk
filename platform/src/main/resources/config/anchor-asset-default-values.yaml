@@ -38,7 +38,6 @@ items:
         #   - SEPA
         #   - SWIFT
         methods: []
-
       # The Configuration for the withdrawal operation of the SEP-6.
       withdraw:
         # `true`, if the asset is available for the withdrawal operations.
