@@ -32,7 +32,7 @@ items:
         # The minimum amount that the user can deposit.
         min_amount: 0
         # The maximum amount that the user can deposit.
-        max_amount: 1000
+        max_amount:
         # The list of the methods that the user can use to deposit the asset.
         # Example:
         #   - SEPA
@@ -63,7 +63,7 @@ items:
         # The minimum amount that the user can deposit.
         min_amount: 0
         # The maximum amount that the user can deposit.
-        max_amount: 1000
+        max_amount:
         # The list of the methods that the user can use to deposit the asset.
         # Example:
         #   - SEPA
@@ -77,7 +77,7 @@ items:
         # the minimum amount that the user can withdraw.
         min_amount: 0
         # the maximum amount that the user can withdraw.
-        max_amount: 1000
+        max_amount:
         # the list of the methods that the anchor supports for the withdrawal of the asset.
         # Example:
         #   - bank_account
@@ -121,7 +121,7 @@ items:
       receive:
         # the maximum amount that the user can receive.
         min_amount: 0
-        max_amount: 1000
+        max_amount:
       # `true` if the asset supports quotesinforesponse.java.
       quotes_supported: true
       # `true` if the asset requires quotes.
