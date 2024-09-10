@@ -110,10 +110,6 @@ public class RestRateIntegration implements RateIntegration {
     }
 
     if (request.getType() == GetRateRequest.Type.FIRM) {
-      if (Objects.requireNonNull(rate).getFee() == null) {
-        logErrorAndThrow(
-            "'rate.fee' is missing in the GET /rate response", ServerErrorException.class);
-      }
       if (rate.getId() == null || rate.getExpiresAt() == null) {
         logErrorAndThrow(
             "'rate.id' or 'rate.expires_at' are missing in the GET /rate response. When the rate is firm, these fields are required",
@@ -255,7 +251,7 @@ public class RestRateIntegration implements RateIntegration {
       // when fee is not present, check that sell_amount ~= price * buy_amount
       BigDecimal expected =
           new BigDecimal(rate.getPrice()).multiply(new BigDecimal(rate.getBuyAmount()));
-      if (withinRoundingError(
+      if (!withinRoundingError(
           new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
         logErrorAndThrow(
             format(
