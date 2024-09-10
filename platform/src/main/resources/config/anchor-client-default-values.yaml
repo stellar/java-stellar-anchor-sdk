@@ -9,8 +9,8 @@ items:
     type: custodial
     # The public keys used for SEP-10 authentication.
     signing_keys:
-      - GDADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-      - GDBDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+      - GDADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+      - GDBDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
     # The URLs to which the service can send callbacks for different SEP types. Optional due to some wallets may opt
     # to poll instead, or may use polling first before implementing callbacks at a later stage.
     callbackUrls:
