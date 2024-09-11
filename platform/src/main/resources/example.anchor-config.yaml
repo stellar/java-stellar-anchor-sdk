@@ -117,7 +117,7 @@ assets:
   type: json
   value: |
     {
-      "assets": [
+      "items": [
         {
           "id": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "distribution_account": "GABCKCYPAGDDQMSCTMSBO7C2L34NU3XXCW7LR4VVSWCCXMAJY3B4YCZP",

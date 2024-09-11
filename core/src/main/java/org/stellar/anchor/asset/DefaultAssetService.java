@@ -3,13 +3,13 @@ package org.stellar.anchor.asset;
 import static org.stellar.anchor.api.asset.AssetInfo.Schema.*;
 import static org.stellar.anchor.util.AssetHelper.*;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.asset.FiatAssetInfo;
@@ -17,17 +17,44 @@ import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.config.AssetsConfig;
-import org.stellar.anchor.util.AssetValidator;
-import org.stellar.anchor.util.FileUtil;
-import org.stellar.anchor.util.GsonUtils;
-import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.*;
 import org.yaml.snakeyaml.Yaml;
 
 @NoArgsConstructor
 public class DefaultAssetService implements AssetService {
-  static final Gson gson = GsonUtils.getInstance();
+  static Gson gson = GsonUtils.builder().create();
   List<StellarAssetInfo> stellarAssets = new ArrayList<>();
   List<FiatAssetInfo> fiatAssets = new ArrayList<>();
+
+  static {
+    loadAssetPrototypes();
+  }
+
+  @SneakyThrows
+  static void loadAssetPrototypes() {
+    // Load the default asset values as prototypes from the yaml file
+    Gson prototypeGson = new Gson();
+    DefaultAssetService prototypeDAS =
+        fromYamlResource("config/anchor-asset-default-values.yaml", false);
+    String stellarAssetPrototypeStr = prototypeGson.toJson(prototypeDAS.getAssetById("stellar:"));
+    String fiatAssetPrototypeStr = prototypeGson.toJson(prototypeDAS.getAssetById("iso4217:"));
+
+    // When gson creates a new instance of StellarAssetInfo or FiatAssetInfo, the newly created
+    // instance will be populated with the values from the prototype.
+    GsonBuilder gsonBuilder =
+        GsonUtils.builder()
+            .registerTypeAdapter(
+                StellarAssetInfo.class,
+                (InstanceCreator<StellarAssetInfo>)
+                    type -> prototypeGson.fromJson(stellarAssetPrototypeStr, type))
+            .registerTypeAdapter(
+                FiatAssetInfo.class,
+                (InstanceCreator<FiatAssetInfo>)
+                    type -> prototypeGson.fromJson(fiatAssetPrototypeStr, type));
+
+    // Update the gson instance with the new instance creators
+    gson = gsonBuilder.create();
+  }
 
   public static DefaultAssetService fromAssetConfig(AssetsConfig assetsConfig)
       throws InvalidConfigException {
@@ -65,22 +92,32 @@ public class DefaultAssetService implements AssetService {
       throws InvalidConfigException {
     Map<String, List<Object>> map =
         gson.fromJson(assetsJson, new TypeToken<Map<String, List<Object>>>() {}.getType());
-    return createDASFromMap(map);
+    return createDASFromMap(map, true);
   }
 
   public static DefaultAssetService fromYamlContent(String assetsYaml)
       throws InvalidConfigException {
-    Map<String, List<Object>> map = new Yaml().load(assetsYaml);
-    return createDASFromMap(map);
+    return fromYamlContent(assetsYaml, true);
   }
 
-  private static DefaultAssetService createDASFromMap(Map<String, List<Object>> map)
+  public static DefaultAssetService fromYamlContent(String assetsYaml, boolean validate)
       throws InvalidConfigException {
+    Map<String, List<Object>> map = new Yaml().load(assetsYaml);
+    return createDASFromMap(map, validate);
+  }
+
+  private static final String ASSETS_ROOT = "items";
+
+  private static DefaultAssetService createDASFromMap(
+      Map<String, List<Object>> map, boolean validate) throws InvalidConfigException {
     DefaultAssetService das = new DefaultAssetService();
-    map.get("assets").removeIf(Objects::isNull);
+    if (!map.containsKey(ASSETS_ROOT)) {
+      throw new InvalidConfigException(String.format("Missing `%s` key in config", ASSETS_ROOT));
+    }
+    map.get(ASSETS_ROOT).removeIf(Objects::isNull);
     List<JsonObject> assetList =
         gson.fromJson(
-            gson.toJson(map.get("assets")), new TypeToken<List<JsonObject>>() {}.getType());
+            gson.toJson(map.get(ASSETS_ROOT)), new TypeToken<List<JsonObject>>() {}.getType());
     for (JsonObject asset : assetList) {
       String id = asset.get("id").getAsString();
       String schema = getAssetSchema(id);
@@ -95,7 +132,9 @@ public class DefaultAssetService implements AssetService {
         throw new InvalidConfigException(String.format("Invalid asset: " + id));
       }
     }
-    AssetValidator.validate(das);
+    if (validate) {
+      AssetValidator.validate(das);
+    }
     return das;
   }
 
@@ -105,8 +144,13 @@ public class DefaultAssetService implements AssetService {
   }
 
   public static DefaultAssetService fromYamlResource(String resourcePath)
+      throws IOException, InvalidConfigException, SepNotFoundException {
+    return fromYamlResource(resourcePath, true);
+  }
+
+  public static DefaultAssetService fromYamlResource(String resourcePath, boolean validate)
       throws IOException, SepNotFoundException, InvalidConfigException {
-    return fromYamlContent(FileUtil.getResourceFileAsString(resourcePath));
+    return fromYamlContent(FileUtil.getResourceFileAsString(resourcePath), validate);
   }
 
   @Override

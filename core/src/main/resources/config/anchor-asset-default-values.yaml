@@ -32,7 +32,7 @@ items:
         # The minimum amount that the user can deposit.
         min_amount: 0
         # The maximum amount that the user can deposit.
-        max_amount: 1000
+        max_amount:
         # The list of the methods that the user can use to deposit the asset.
         # Example:
         #   - SEPA
@@ -41,7 +41,7 @@ items:
       # The Configuration for the withdrawal operation of the SEP-6.
       withdraw:
         # `true`, if the asset is available for the withdrawal operations.
-        enabled: true
+        enabled: false
         # The minimum amount that the user can withdraw.
         min_amount: 0
         # The maximum amount that the user can withdraw.
@@ -55,15 +55,15 @@ items:
     # The configuration for the SEP-24 transactions.
     sep24:
       # `true` if the asset supports the SEP-24.
-      enabled: true
+      enabled: false
       # The configuration for the deposit operation of the SEP-24.
       deposit:
         # The asset will be available for the deposit operations.
-        enabled: true
+        enabled: false
         # The minimum amount that the user can deposit.
         min_amount: 0
         # The maximum amount that the user can deposit.
-        max_amount: 1000
+        max_amount:
         # The list of the methods that the user can use to deposit the asset.
         # Example:
         #   - SEPA
@@ -73,11 +73,11 @@ items:
       # The configuration for the withdrawal operation of the SEP-24.
       withdraw:
         # `true`, if the asset is available for the withdrawal operations.
-        enabled: true
+        enabled: false
         # the minimum amount that the user can withdraw.
         min_amount: 0
         # the maximum amount that the user can withdraw.
-        max_amount: 1000
+        max_amount:
         # the list of the methods that the anchor supports for the withdrawal of the asset.
         # Example:
         #   - bank_account
@@ -87,9 +87,9 @@ items:
     # The configuration for the SEP-31 transactions.
     sep31:
       # `true` if the asset supports the SEP-31.
-      enabled: true
+      enabled: false
       # `true` if the asset supports quotesinforesponse.java.
-      quotes_supported: true
+      quotes_supported: false
       # `true` if the asset requires quotes.
       # If `quotes_supported` is `false`, this value must not be true
       quotes_required: false
@@ -112,7 +112,7 @@ items:
   #
   # Fiat (ISO4217) assets
   #
-  - id: iso4217:USD
+  - id: "iso4217:"
     significant_decimals: 2
     # The configuration for the SEP-31 transactions.
     sep31:
@@ -121,7 +121,7 @@ items:
       receive:
         # the maximum amount that the user can receive.
         min_amount: 0
-        max_amount: 1000
+        max_amount:
       # `true` if the asset supports quotesinforesponse.java.
       quotes_supported: true
       # `true` if the asset requires quotes.

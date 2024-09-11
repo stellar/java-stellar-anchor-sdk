@@ -181,7 +181,7 @@ sep1_toml: |
   ORG_GITHUB = "stellar"
 
 assets_config: |
-  assets:
+  items:
   - id: stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
     distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
     significant_decimals: 2
