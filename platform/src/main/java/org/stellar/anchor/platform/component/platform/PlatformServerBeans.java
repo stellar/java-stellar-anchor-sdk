@@ -20,6 +20,7 @@ import org.stellar.anchor.filter.PlatformAuthJwtFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.condition.ConditionalOnAnySepsEnabled;
+import org.stellar.anchor.platform.config.PlatformApiConfig;
 import org.stellar.anchor.platform.config.PlatformServerConfig;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
@@ -43,19 +44,20 @@ public class PlatformServerBeans {
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<Filter> platformTokenFilter(PlatformServerConfig config) {
+  public FilterRegistrationBean<Filter> platformTokenFilter(
+      PlatformServerConfig serverConfig, PlatformApiConfig apiConfig) {
     Filter anchorToPlatformFilter;
-    String authSecret = config.getSecretConfig().getPlatformAuthSecret();
-    switch (config.getAuth().getType()) {
+    String authSecret = serverConfig.getSecretConfig().getPlatformAuthSecret();
+    switch (apiConfig.getAuth().getType()) {
       case JWT:
         JwtService jwtService = JwtService.builder().platformAuthSecret(authSecret).build();
         anchorToPlatformFilter =
-            new PlatformAuthJwtFilter(jwtService, config.getAuth().getJwt().getHttpHeader());
+            new PlatformAuthJwtFilter(jwtService, apiConfig.getAuth().getJwt().getHttpHeader());
         break;
 
       case API_KEY:
         anchorToPlatformFilter =
-            new ApiKeyFilter(authSecret, config.getAuth().getApiKey().getHttpHeader());
+            new ApiKeyFilter(authSecret, apiConfig.getAuth().getApiKey().getHttpHeader());
         break;
 
       default:
