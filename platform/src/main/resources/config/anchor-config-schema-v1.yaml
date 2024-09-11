@@ -67,9 +67,6 @@ platform_api.auth.jwt.expiration_milliseconds:
 platform_api.auth.jwt.http_header:
 platform_api.auth.type:
 platform_api.base_url:
-platform_server.auth.api_key.http_header:
-platform_server.auth.jwt.http_header:
-platform_server.auth.type:
 platform_server.context_path:
 platform_server.management_server_port:
 platform_server.port:
