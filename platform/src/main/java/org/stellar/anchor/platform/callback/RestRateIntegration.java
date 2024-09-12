@@ -79,23 +79,24 @@ public class RestRateIntegration implements RateIntegration {
 
     Request httpRequest =
         PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build();
-    Response response = PlatformIntegrationHelper.call(httpClient, httpRequest);
-    String responseContent = PlatformIntegrationHelper.getContent(response);
+    try (Response response = PlatformIntegrationHelper.call(httpClient, httpRequest)) {
+      String responseContent = PlatformIntegrationHelper.getContent(response);
 
-    if (response.code() != HttpStatus.OK.value()) {
-      throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
+      if (response.code() != HttpStatus.OK.value()) {
+        throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
+      }
+
+      GetRateResponse getRateResponse;
+      try {
+        getRateResponse = gson.fromJson(responseContent, GetRateResponse.class);
+      } catch (Exception e) { // cannot read body from response
+        errorEx("Error parsing body response to GetRateResponse", e);
+        throw new ServerErrorException("internal server error", e);
+      }
+
+      validateRateResponse(request, getRateResponse);
+      return getRateResponse;
     }
-
-    GetRateResponse getRateResponse;
-    try {
-      getRateResponse = gson.fromJson(responseContent, GetRateResponse.class);
-    } catch (Exception e) { // cannot read body from response
-      errorEx("Error parsing body response to GetRateResponse", e);
-      throw new ServerErrorException("internal server error", e);
-    }
-
-    validateRateResponse(request, getRateResponse);
-    return getRateResponse;
   }
 
   void validateRateResponse(GetRateRequest request, GetRateResponse getRateResponse)
