@@ -1,3 +1,5 @@
+package org.stellar.anchor.platform.utils;
+
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
@@ -11,9 +13,9 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import org.apache.kafka.common.security.auth.SslEngineFactory;
 
-public class InsecureSslEngineFactory implements SslEngineFactory {
+public class TrustAllSslEngineFactory implements SslEngineFactory {
 
-  private final TrustManager INSECURE_TRUST_MANAGER =
+  private final TrustManager TRUST_ALL_MANAGER =
       new X509TrustManager() {
 
         public X509Certificate[] getAcceptedIssuers() {
@@ -32,7 +34,7 @@ public class InsecureSslEngineFactory implements SslEngineFactory {
   @Override
   public SSLEngine createClientSslEngine(
       String peerHost, int peerPort, String endpointIdentification) {
-    TrustManager[] trustManagers = new TrustManager[] {INSECURE_TRUST_MANAGER};
+    TrustManager[] trustManagers = new TrustManager[] {TRUST_ALL_MANAGER};
     try {
       SSLContext sslContext = SSLContext.getInstance("SSL");
       sslContext.init(null, trustManagers, new SecureRandom());

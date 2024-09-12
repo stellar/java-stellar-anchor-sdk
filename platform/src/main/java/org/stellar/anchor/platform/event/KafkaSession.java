@@ -28,6 +28,7 @@ import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.KafkaConfig;
 import org.stellar.anchor.platform.config.PropertySecretConfig;
 import org.stellar.anchor.platform.configurator.SecretManager;
+import org.stellar.anchor.platform.utils.TrustAllSslEngineFactory;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
@@ -174,6 +175,8 @@ public class KafkaSession implements EventService.Session {
   void configureAuth(Properties props) throws InvalidConfigException {
     switch (kafkaConfig.getSecurityProtocol()) {
       case SASL_PLAINTEXT:
+      case SASL_SSL:
+        // Check if the username and password are set
         if (isEmpty(
             SecretManager.getInstance()
                 .get(PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_USERNAME))) {
@@ -193,8 +196,7 @@ public class KafkaSession implements EventService.Session {
           throw new InvalidConfigException(msg);
         }
 
-        props.put(SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
-        props.put(SASL_MECHANISM, "PLAIN");
+        // Set the SASL login information
         props.put(
             "sasl.jaas.config",
             "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
@@ -204,7 +206,22 @@ public class KafkaSession implements EventService.Session {
                 + SecretManager.getInstance()
                     .get(PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_PASSWORD)
                 + "\";");
+
         break;
+    }
+
+    switch (kafkaConfig.getSecurityProtocol()) {
+      case SASL_PLAINTEXT:
+        props.put(SECURITY_PROTOCOL_CONFIG, "SASL_PLAINTEXT");
+        props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
+        break;
+      case SASL_SSL:
+        props.put(SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
+        props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
+        // Disable hostname verification
+        props.put("ssl.endpoint.identification.algorithm", "");
+        // Disable SSL cert chain verification
+        props.put("ssl.engine.factory.class", TrustAllSslEngineFactory.class);
       case PLAINTEXT:
         break;
       default:

@@ -10,6 +10,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.stellar.anchor.platform.utils.TrustAllSslEngineFactory;
 
 public class KafkaTest {
 
@@ -18,7 +19,7 @@ public class KafkaTest {
 
   public static Properties getKafkaProperties() {
     Properties props = new Properties();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:29092");
     props.put(
         ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
         "org.apache.kafka.common.serialization.StringSerializer");
@@ -40,7 +41,7 @@ public class KafkaTest {
         "sasl.jaas.config",
         "org.apache.kafka.common.security.plain.PlainLoginModule required username='admin' password='admin-secret';");
     props.put("ssl.endpoint.identification.algorithm", ""); // Disable hostname verification
-    props.put("ssl.engine.factory.class", InsecureSslEngineFactory.class);
+    props.put("ssl.engine.factory.class", TrustAllSslEngineFactory.class);
 
     return props;
   }
@@ -115,6 +116,7 @@ public class KafkaTest {
 
   public static void main(String[] args) {
     String topic = "your-topic-name-1";
+    createKafkaTopic(topic, 1, (short) 1);
     KafkaProducer<String, String> producer = createProducer();
     sendMessages(producer, topic);
 

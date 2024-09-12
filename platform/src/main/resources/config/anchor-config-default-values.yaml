@@ -690,19 +690,7 @@ events:
       # The SASL mechanism used for authentication and must match what is used on the broker.
       # `sasl_mechanism` can be one of the following supported mechanisms:
       #   `PLAIN`: PLAIN SASL mechanism
-      sasl_mechanism:
-
-      # Client JAAS config (used in conjunction with SASL_SSL or SASL_PLAINTEXT) blob if needed.
-      # Example:
-      # sasl.jaas.config: "
-      #   org.apache.kafka.common.security.plain.PlainLoginModule required
-      #   username=\"your_username\"
-      #   password=\"your_password\";
-      # "
-      sasl_jaas_config:
-
-      # the SSL configuration for the Kafka connection
-      ssl_truststore_location: # /path/to/your/truststore.jks
+      sasl_mechanism: PLAIN
 
     # If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
     sqs:

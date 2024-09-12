@@ -34,11 +34,27 @@ public class KafkaConfig {
 
   public enum SecurityProtocol {
     PLAINTEXT,
-    SASL_PLAINTEXT
+    SASL_PLAINTEXT,
+    SASL_SSL
   }
 
   public enum SaslMechanism {
-    PLAIN
+    PLAIN("PLAIN"),
+    SCRAM_SHA_256("SCRAM-SHA-256"),
+    SCRAM_SHA_512("SCRAM-SHA-512"),
+    GSSAPI("GSSAPI"),
+    OAUTHBEARER("OAUTHBEARER"),
+    AWS_MSK_IAM("AWS_MSK_IAM");
+
+    String value;
+
+    SaslMechanism(String value) {
+      this.value = value;
+    }
+
+    public String getValue() {
+      return value;
+    }
   }
 
   /** The security protocol used to communicate with brokers. */

@@ -11,17 +11,17 @@ services:
     image: confluentinc/cp-kafka:7.3.0
     container_name: kafka
     ports:
-      - 9092:9092
-      - 9096:9096
+      - 29092:29092
+      - 29093:29093
     depends_on:
       - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       ZOOKEEPER_SASL_ENABLED: "false"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
-      KAFKA_LISTENERS: PLAINTEXT://:9096,SASL_SSL://:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9096,SASL_SSL://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SASL_SSL:SASL_SSL,PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: SASL_SSL://:29092,PLAINTEXT://:29093
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka:29092,PLAINTEXT://kafka:29093
       KAFKA_OPTS: -Djava.security.auth.login.config=/etc/kafka/secrets/jaas.conf
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
