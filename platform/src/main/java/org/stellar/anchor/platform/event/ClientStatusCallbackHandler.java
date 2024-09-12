@@ -79,11 +79,12 @@ public class ClientStatusCallbackHandler extends EventHandler {
       Request request = buildHttpRequest(signer, event);
 
       if (request != null) {
-        Response response = httpClient.newCall(request).execute();
-        debugF("Sending event: {} to client status api: {}", json(event), request.url());
-        if (response.code() < 200 || response.code() >= 400) {
-          errorF("Failed to send event to client status API. Error code: {}", response.code());
-          return false;
+        try (Response response = httpClient.newCall(request).execute()) {
+          debugF("Sending event: {} to client status api: {}", json(event), request.url());
+          if (response.code() < 200 || response.code() >= 400) {
+            errorF("Failed to send event to client status API. Error code: {}", response.code());
+            return false;
+          }
         }
       }
     }
