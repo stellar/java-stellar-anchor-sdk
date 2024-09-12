@@ -206,11 +206,11 @@ public class KafkaSession implements EventService.Session {
 
     switch (kafkaConfig.getSecurityProtocol()) {
       case SASL_PLAINTEXT:
-        props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol());
+        props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol().name());
         props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
         break;
       case SASL_SSL:
-        props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol());
+        props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol().name());
         props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
         props.put(SSL_KEYSTORE_LOCATION_CONFIG, kafkaConfig.getSslKeystoreLocation());
         props.put(SSL_TRUSTSTORE_LOCATION_CONFIG, kafkaConfig.getSslTruststoreLocation());
