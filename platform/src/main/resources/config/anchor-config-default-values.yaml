@@ -50,7 +50,7 @@ callback_api:
   base_url: http://localhost:8081
   # If the flag is set to false, all certificates from the business servers will be trusted.
   check_certificate: false
-  # Authentication config the anchor platform server to safely communicate with the business server.
+  # This defines the authentication method used by the Anchor Platform to authenticate with the business server.
   auth:
     #
     # `type` can be one of: none, api_key, jwt
@@ -63,18 +63,14 @@ callback_api:
     # If the type is api_key, the secret will be used as the api_key.
     # If the type is jwt, the secret will be used as the jwt shared secret.
     #
-    # Secrets are shared on both sides (anchor platform and business server) and are used in `Callback API`
-    # requests (`Platform->Anchor`) so the business server can ensure the party making the request is the anchor
-    # platform server
-    #
     type: none
-    # The JWT authentication config, if the type is set to `jwt`
+    # The JWT authentication config when the type is set to `jwt`
     jwt:
       # The JWT expiration in milliseconds
       expiration_milliseconds: 30000
       # The HTTP header name of the JWT token
       http_header: Authorization
-    # The API key config, if the type is set to `api_key`
+    # The API key config when if the type is set to `api_key`
     api_key:
       # The HTTP header name of the API key
       http_header: X-Api-Key
@@ -87,7 +83,8 @@ platform_api:
   # the `Platform API.yml` spec.
   #
   base_url: http://localhost:8085
-  # Authentication config the anchor platform server to safely communicate with the business server.
+  # This defines the authentication method that should be used by the business server to authenticate with the
+  # Platform API server.
   auth:
     #
     # `type` can be one of: none, api_key, jwt
@@ -100,19 +97,14 @@ platform_api:
     # If the type is api_key, the secret will be used as the api_key.
     # If the type is jwt, the secret will be used as the jwt shared secret.
     #
-    #
-    # Secrets are shared on both sides (anchor platform and business server) and are used in `Platform API`
-    # requests (`business server -> anchor platform`) so the anchor platform can ensure the party making the request
-    # is the business server.
-    #
     type: none
-    # The JWT authentication config, if the type is set to `jwt`
+    # The JWT authentication config when the type is set to `jwt`
     jwt:
       # The JWT expiration in milliseconds
       expiration_milliseconds: 30000
       # The HTTP header name of the JWT token
       http_header: Authorization
-    # The API key config, if the type is set to `api_key`
+    # The API key config when the type is set to `api_key`
     api_key:
       # The HTTP header name of the API key
       http_header: X-Api-Key
@@ -185,32 +177,6 @@ platform_server:
   # The management_server_port is the port used by Spring actuator.
   # https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html
   management_server_port: 9085
-  # Defines the authentication requirements of the platform_api requests. This is used to ensure that the requests
-  # must satisfy the authentication requirements before they can be processed.
-  #
-  # supported_values: none, api_key, jwt
-  #     none: no authentication is used
-  #     api_key: The authentication is done using an API key added to the HTTP request header.
-  #     jwt: The authentication is done using a JWT token added to the `Authorization` header. This token is
-  #          generated from the secret key.
-  #
-  # If the type is `api_key` or `jwt`, the secret must be set by the environment variable `secret.platform_api.auth_secret`.
-  # If the type is api_key, the secret will be used as the api_key.
-  # If the type is jwt, the secret will be used as the jwt shared secret.
-  #
-  # Secrets are shared on both sides (Platform and Anchor) and are used in Platform API requests (`Anchor->Platform`)
-  # so the Platform server can ensure the party making the request is the Anchor
-  auth:
-    # The authentication type
-    type: none
-    # The JWT authentication config, if the type is set to `jwt`
-    jwt:
-      # The JWT expiration in milliseconds
-      http_header: Authorization
-    # The API key config, if the type is set to `api_key`
-    api_key:
-      # The HTTP header name of the API key
-      http_header: X-Api-Key
 
 ######################
 # SEP Server Configuration
