@@ -7,6 +7,7 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
 
+  # Run Kafka with SASL_SSL and PLAINTEXT listeners
   kafka:
     image: confluentinc/cp-kafka:7.3.0
     container_name: kafka
@@ -16,17 +17,23 @@ services:
     depends_on:
       - zookeeper
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Zookeeper
       ZOOKEEPER_SASL_ENABLED: "false"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      # General
+      KAFKA_BROKER_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+      # Listeners
+      # Run SASL_SSL on port 29092 and PLAINTEXT on port 29093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SASL_SSL:SASL_SSL,PLAINTEXT:PLAINTEXT
       KAFKA_LISTENERS: SASL_SSL://:29092,PLAINTEXT://:29093
       KAFKA_ADVERTISED_LISTENERS: SASL_SSL://kafka:29092,PLAINTEXT://kafka:29093
-      KAFKA_OPTS: -Djava.security.auth.login.config=/etc/kafka/secrets/jaas.conf
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
       # SASL
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_OPTS: -Djava.security.auth.login.config=/etc/kafka/secrets/jaas.conf
 
       # SSL
       KAFKA_SSL_KEYSTORE_FILENAME: keystore.jks
@@ -37,56 +44,3 @@ services:
 
     volumes:
       - ./secrets:/etc/kafka/secrets
-#services:
-#  kafka:
-#    image: confluentinc/cp-kafka:7.4.3
-#    ports:
-#      - "29092:29092"
-#      - "29093:29093"
-#    environment:
-#      KAFKA_NODE_ID: 1
-#      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SASL_SSL:SASL_SSL,CONTROLLER:PLAINTEXT
-##      KAFKA_LISTENERS: 'INTERNAL://kafka:29092,CONTROLLER://kafka:29093'
-##      KAFKA_ADVERTISED_LISTENERS: 'INTERNAL://kafka:29092'
-#      KAFKA_INTER_BROKER_LISTENER_NAME: 'INTERNAL'
-#      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
-#      KAFKA_PROCESS_ROLES: 'broker,controller'
-#      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-#      CLUSTER_ID: 'ciWo7IWazngRchmPES6q5A=='
-#      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-#      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/secrets/kafka_server_jaas.conf"
-#
-##      KAFKA_PROCESS_ROLES: broker,controller
-##      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-#
-#      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://localhost:9092
-#      KAFKA_LISTENERS: SASL_SSL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-##      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_SSL
-#      KAFKA_SSL_KEYSTORE_FILENAME: kafka.keystore.jks
-#      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.truststore.jks
-#      KAFKA_SSL_KEYSTORE_CREDENTIALS: kafka-creds
-#      KAFKA_SSL_KEY_CREDENTIALS: kafka-creds
-#      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: kafka-creds
-##      KAFKA_SSL_KEYSTORE_PASSWORD: test123
-##      KAFKA_SSL_TRUSTSTORE_PASSWORD: test123
-##      KAFKA_SSL_KEY_PASSWORD: test123
-#
-#      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
-#      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
-#      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-#      KAFKA_SASL_JAAS_CONFIG: |
-#        org.apache.kafka.common.security.plain.PlainLoginModule required \
-#        username="admin" \
-#        password="test123" \
-#        user_admin="test123";
-##      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
-##      KAFKA_NODE_ID: 1
-##      KAFKA_LOG_DIRS: /var/lib/kafka/data
-#      KAFKA_METADATA_LOG_DIRS: /var/lib/kafka/metadata
-#    volumes:
-#      - ./secrets:/etc/kafka/secrets
-#      - ./data:/var/lib/kafka/data
-#      - ./metadata:/var/lib/kafka/metadata
