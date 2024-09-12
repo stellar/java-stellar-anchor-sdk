@@ -681,15 +681,20 @@ events:
       poll_timeout_seconds: 60
       # The security protocol used to communicate with the brokers.
       # `security_protocol` can be one of the following:
-      #     `PLAINTEXT`: no encryption
-      #     `SASL_PLAINTEXT`: SASL authentication with no encryption
-      #     `SASL_SSL`: SASL authentication with SSL encryption
+      #   `PLAINTEXT`: no encryption
+      #   `SASL_PLAINTEXT`: SASL authentication with no encryption
+      #   `SASL_SSL`: SASL authentication with SSL encryption
       # If SASL_PLAINTEXT is used, the SECRET_EVENTS_QUEUE_KAFKA_USERNAME and SECRET_EVENTS_QUEUE_KAFKA_PASSWORD
       # environment variables must be set.
       security_protocol: PLAINTEXT
       # The SASL mechanism used for authentication and must match what is used on the broker.
       # `sasl_mechanism` can be one of the following supported mechanisms:
       #   `PLAIN`: PLAIN SASL mechanism
+      #   `SCRAM-SHA-256`: SCRAM-SHA-256 SASL mechanism
+      #   `SCRAM-SHA-512`: SCRAM-SHA-512 SASL mechanism
+      #   `GSSAPI`: GSSAPI SASL mechanism
+      #   `OAUTHBEARER`: OAUTHBEARER SASL mechanism
+      # ` AWS_MSK_IAM`: AWS MSK IAM SASL mechanism
       sasl_mechanism: PLAIN
 
     # If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
