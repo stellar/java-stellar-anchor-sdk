@@ -19,7 +19,7 @@ languages: en
 app_logging:
   # The root logger logging level
   # The supported values are: TRACE, DEBUG, INFO, WARN, ERROR, FATAL
-  level: INFO
+  level: ERROR
   # The logging level of the classes under the "org.stellar" package.
   stellar_level: INFO
   # Enable/disable the request logger that logs all request body
