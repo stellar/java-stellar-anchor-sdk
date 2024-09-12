@@ -39,12 +39,7 @@ public class KafkaConfig {
   }
 
   public enum SaslMechanism {
-    PLAIN("PLAIN"),
-    SCRAM_SHA_256("SCRAM-SHA-256"),
-    SCRAM_SHA_512("SCRAM-SHA-512"),
-    GSSAPI("GSSAPI"),
-    OAUTHBEARER("OAUTHBEARER"),
-    AWS_MSK_IAM("AWS_MSK_IAM");
+    PLAIN("PLAIN");
 
     String value;
 

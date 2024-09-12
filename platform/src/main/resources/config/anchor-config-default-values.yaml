@@ -690,11 +690,6 @@ events:
       # The SASL mechanism used for authentication and must match what is used on the broker.
       # `sasl_mechanism` can be one of the following supported mechanisms:
       #   `PLAIN`: PLAIN SASL mechanism
-      #   `SCRAM-SHA-256`: SCRAM-SHA-256 SASL mechanism
-      #   `SCRAM-SHA-512`: SCRAM-SHA-512 SASL mechanism
-      #   `GSSAPI`: GSSAPI SASL mechanism
-      #   `OAUTHBEARER`: OAUTHBEARER SASL mechanism
-      # ` AWS_MSK_IAM`: AWS MSK IAM SASL mechanism
       sasl_mechanism: PLAIN
 
     # If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
