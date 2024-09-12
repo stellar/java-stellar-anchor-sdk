@@ -32,6 +32,18 @@ public class KafkaConfig {
   /** Determines the maximum amount of time to wait for the batch to be filled. */
   int pollTimeoutSeconds;
 
+  /** The security protocol used to communicate with brokers. */
+  SecurityProtocol securityProtocol;
+
+  /** The SASL mechanism used for authentication. */
+  SaslMechanism saslMechanism;
+
+  /** the SSL keystore location. */
+  String sslKeystoreLocation;
+
+  /** the SSL truststore location. */
+  String sslTruststoreLocation;
+
   public enum SecurityProtocol {
     PLAINTEXT,
     SASL_PLAINTEXT,
@@ -51,10 +63,4 @@ public class KafkaConfig {
       return value;
     }
   }
-
-  /** The security protocol used to communicate with brokers. */
-  SecurityProtocol securityProtocol;
-
-  /** The SASL mechanism used for authentication. */
-  SaslMechanism saslMechanism;
 }
