@@ -62,9 +62,4 @@ public class KafkaConfig {
 
   /** The SASL mechanism used for authentication. */
   SaslMechanism saslMechanism;
-
-  String jaasConfig;
-
-  /** The SSL truststore file location. */
-  String sslTruststoreLocation;
 }
