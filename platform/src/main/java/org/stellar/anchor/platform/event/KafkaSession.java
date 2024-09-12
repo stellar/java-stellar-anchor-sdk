@@ -218,8 +218,6 @@ public class KafkaSession implements EventService.Session {
       case SASL_SSL:
         props.put(SECURITY_PROTOCOL_CONFIG, "SASL_SSL");
         props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
-        // Disable hostname verification
-        props.put("ssl.endpoint.identification.algorithm", "");
         // Disable SSL cert chain verification
         props.put("ssl.engine.factory.class", TrustAllSslEngineFactory.class);
       case PLAINTEXT:
