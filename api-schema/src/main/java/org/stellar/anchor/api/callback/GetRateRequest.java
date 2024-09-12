@@ -47,8 +47,6 @@ public class GetRateRequest {
   @SerializedName("client_id")
   String clientId;
 
-  String id;
-
   public enum Type {
     @SerializedName("indicative")
     INDICATIVE("indicative"),
