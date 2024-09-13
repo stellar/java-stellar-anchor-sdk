@@ -681,15 +681,32 @@ events:
       poll_timeout_seconds: 60
       # The security protocol used to communicate with the brokers.
       # `security_protocol` can be one of the following:
-      #     `PLAINTEXT`: no encryption
-      #     `SASL_PLAINTEXT`: SASL authentication with no encryption
-      # If SASL_PLAINTEXT is used, the SECRET_EVENTS_QUEUE_KAFKA_USERNAME and SECRET_EVENTS_QUEUE_KAFKA_PASSWORD
-      # environment variables must be set.
+      #   `PLAINTEXT`: no encryption
+      #   `SASL_PLAINTEXT`: SASL authentication with no encryption
+      #   `SASL_SSL`: SASL authentication with SSL encryption
+      #
+      # If SASL_PLAINTEXT or SASL_SSL is used, the following secrets must be set
+      #   - SECRET_EVENTS_QUEUE_KAFKA_USERNAME
+      #   - SECRET_EVENTS_QUEUE_KAFKA_PASSWORD
+      #
+      # If the SASL_SSL is used, the following values must be set
+      #   - ssl_keystore_location
+      #   - ssl_keystore_password
+      # the following secrets must be set:
+      #   - SECRET_SSL_KEYSTORE_PASSWORD
+      #   - SECRET_SSL_TRUSTSTORE_PASSWORD
+      #   - SECRET_SSL_KEY_PASSWORD
+      #
       security_protocol: PLAINTEXT
-      # The SASL mechanism used for authentication when `security_protocol` is set to `SASL_PLAINTEXT`.
-      # `sasl_mechanism` can be one of the following:
-      #     `PLAIN`: PLAIN SASL mechanism
-      sasl_mechanism:
+      # The SASL mechanism used for authentication and must match what is used on the broker.
+      # `sasl_mechanism` can be one of the following supported mechanisms:
+      #   `PLAIN`: PLAIN SASL mechanism
+      sasl_mechanism: PLAIN
+      # The SSL keystore location. The file path to the keystore file (jks).
+      ssl_keystore_location:
+      # The SSL truststore location. The file path to the truststore file (jks).
+      ssl_truststore_location:
+
     # If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
     sqs:
       # Use IAM authentication for AWS MSK or AWS SQS.

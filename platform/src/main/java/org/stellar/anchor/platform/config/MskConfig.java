@@ -19,7 +19,10 @@ public class MskConfig extends KafkaConfig {
       int batchSize,
       int pollTimeoutSeconds,
       SecurityProtocol securityProtocol,
-      SaslMechanism saslMechanism) {
+      SaslMechanism saslMechanism,
+      String sslKeystoreLocation,
+      String sslTruststoreLocation) {
+
     super(
         bootstrapServer,
         clientId,
@@ -28,7 +31,9 @@ public class MskConfig extends KafkaConfig {
         batchSize,
         pollTimeoutSeconds,
         securityProtocol,
-        saslMechanism);
+        saslMechanism,
+        sslKeystoreLocation,
+        sslTruststoreLocation);
     this.useIAM = useIAM;
   }
 }
