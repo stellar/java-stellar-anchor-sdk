@@ -6,9 +6,13 @@ import static org.apache.kafka.common.config.SaslConfigs.SASL_MECHANISM;
 import static org.apache.kafka.common.config.SslConfigs.*;
 import static org.stellar.anchor.platform.config.PropertySecretConfig.*;
 import static org.stellar.anchor.platform.configurator.SecretManager.*;
+import static org.stellar.anchor.platform.utils.ResourceHelper.findResourceFile;
+import static org.stellar.anchor.platform.utils.ResourceHelper.resource;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.micrometer.core.instrument.Metrics;
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,17 +37,33 @@ import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
 public class KafkaSession implements EventService.Session {
-
   final KafkaConfig kafkaConfig;
   final String sessionName;
   final String topic;
   Producer<String, String> producer = null;
   Consumer<String, String> consumer = null;
+  String sslKeystoreLocation;
+  String sslTruststoreLocation;
 
-  KafkaSession(KafkaConfig kafkaConfig, String sessionName, EventQueue queue) {
+  KafkaSession(KafkaConfig kafkaConfig, String sessionName, EventQueue queue) throws IOException {
     this.kafkaConfig = kafkaConfig;
     this.sessionName = sessionName;
     this.topic = queue.name();
+
+    // If the keystore and truststore files exist, use them, otherwise, use the resources
+    if (new File(kafkaConfig.getSslKeystoreLocation()).exists()) {
+      sslKeystoreLocation = kafkaConfig.getSslKeystoreLocation();
+    } else {
+      sslKeystoreLocation =
+          findResourceFile(resource(kafkaConfig.getSslKeystoreLocation())).getAbsolutePath();
+    }
+
+    if (new File(kafkaConfig.getSslTruststoreLocation()).exists()) {
+      sslTruststoreLocation = kafkaConfig.getSslTruststoreLocation();
+    } else {
+      sslTruststoreLocation =
+          findResourceFile(resource(kafkaConfig.getSslTruststoreLocation())).getAbsolutePath();
+    }
   }
 
   @Override
@@ -212,8 +232,8 @@ public class KafkaSession implements EventService.Session {
       case SASL_SSL:
         props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol().name());
         props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
-        props.put(SSL_KEYSTORE_LOCATION_CONFIG, kafkaConfig.getSslKeystoreLocation());
-        props.put(SSL_TRUSTSTORE_LOCATION_CONFIG, kafkaConfig.getSslTruststoreLocation());
+        props.put(SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);
+        props.put(SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
 
         if (!isEmpty(secret(SECRET_SSL_KEYSTORE_PASSWORD)))
           props.put(SSL_KEYSTORE_PASSWORD_CONFIG, secret(SECRET_SSL_KEYSTORE_PASSWORD));
