@@ -50,19 +50,21 @@ public class KafkaSession implements EventService.Session {
     this.sessionName = sessionName;
     this.topic = queue.name();
 
-    // If the keystore and truststore files exist, use them, otherwise, use the resources
-    if (new File(kafkaConfig.getSslKeystoreLocation()).exists()) {
-      sslKeystoreLocation = kafkaConfig.getSslKeystoreLocation();
-    } else {
-      sslKeystoreLocation =
-          findResourceFile(resource(kafkaConfig.getSslKeystoreLocation())).getAbsolutePath();
-    }
+    if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
+      // If the keystore and truststore files exist, use them, otherwise, use the resources
+      if (new File(kafkaConfig.getSslKeystoreLocation()).exists()) {
+        sslKeystoreLocation = kafkaConfig.getSslKeystoreLocation();
+      } else {
+        sslKeystoreLocation =
+            findResourceFile(resource(kafkaConfig.getSslKeystoreLocation())).getAbsolutePath();
+      }
 
-    if (new File(kafkaConfig.getSslTruststoreLocation()).exists()) {
-      sslTruststoreLocation = kafkaConfig.getSslTruststoreLocation();
-    } else {
-      sslTruststoreLocation =
-          findResourceFile(resource(kafkaConfig.getSslTruststoreLocation())).getAbsolutePath();
+      if (new File(kafkaConfig.getSslTruststoreLocation()).exists()) {
+        sslTruststoreLocation = kafkaConfig.getSslTruststoreLocation();
+      } else {
+        sslTruststoreLocation =
+            findResourceFile(resource(kafkaConfig.getSslTruststoreLocation())).getAbsolutePath();
+      }
     }
   }
 
