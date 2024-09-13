@@ -6,12 +6,10 @@ import static org.apache.kafka.common.config.SaslConfigs.SASL_MECHANISM;
 import static org.apache.kafka.common.config.SslConfigs.*;
 import static org.stellar.anchor.platform.config.PropertySecretConfig.*;
 import static org.stellar.anchor.platform.configurator.SecretManager.*;
-import static org.stellar.anchor.platform.utils.ResourceHelper.findResourceFile;
-import static org.stellar.anchor.platform.utils.ResourceHelper.resource;
+import static org.stellar.anchor.platform.utils.ResourceHelper.*;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.micrometer.core.instrument.Metrics;
-import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -52,19 +50,10 @@ public class KafkaSession implements EventService.Session {
 
     if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
       // If the keystore and truststore files exist, use them, otherwise, use the resources
-      if (new File(kafkaConfig.getSslKeystoreLocation()).exists()) {
-        sslKeystoreLocation = kafkaConfig.getSslKeystoreLocation();
-      } else {
-        sslKeystoreLocation =
-            findResourceFile(resource(kafkaConfig.getSslKeystoreLocation())).getAbsolutePath();
-      }
-
-      if (new File(kafkaConfig.getSslTruststoreLocation()).exists()) {
-        sslTruststoreLocation = kafkaConfig.getSslTruststoreLocation();
-      } else {
-        sslTruststoreLocation =
-            findResourceFile(resource(kafkaConfig.getSslTruststoreLocation())).getAbsolutePath();
-      }
+      sslKeystoreLocation =
+          findFileThenResource(kafkaConfig.getSslKeystoreLocation()).getAbsolutePath();
+      sslTruststoreLocation =
+          findFileThenResource(kafkaConfig.getSslTruststoreLocation()).getAbsolutePath();
     }
   }
 

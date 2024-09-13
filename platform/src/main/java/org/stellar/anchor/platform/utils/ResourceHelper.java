@@ -19,4 +19,19 @@ public class ResourceHelper {
     }
     throw new IOException("Resource not found: " + resource.getFilename());
   }
+
+  /**
+   * Find a file in the filesystem. If not existent in the filesystem, then try in the classpath.
+   *
+   * @param file
+   * @return File the found file
+   * @throws IOException if the file is not found
+   */
+  public static File findFileThenResource(String file) throws IOException {
+    File f = new File(file);
+    if (f.exists()) {
+      return f;
+    }
+    return findResourceFile(resource(file));
+  }
 }
