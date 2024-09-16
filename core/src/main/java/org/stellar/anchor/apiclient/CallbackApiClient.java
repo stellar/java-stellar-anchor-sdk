@@ -68,9 +68,4 @@ public class CallbackApiClient extends BaseApiClient {
   AuthHeader<String, String> createAuthHeader() throws InvalidConfigException {
     return authHelper.createCallbackAuthHeader();
   }
-
-  public static void main(String[] args) {
-    SendEventResponse response = gson.fromJson("", SendEventResponse.class);
-    System.out.println(response);
-  }
 }
