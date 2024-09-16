@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.config;
 
+import static org.stellar.anchor.util.StringHelper.isEmpty;
+
 import java.io.IOException;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +30,7 @@ public class PropertyQueueConfig implements QueueConfig, Validator {
           "type",
           "queue-type-empty",
           "queue.type is not defined. Please specify the type: KAFKA, SQS, or MSK");
+      return;
     }
 
     switch (config.getType()) {
@@ -72,7 +75,7 @@ public class PropertyQueueConfig implements QueueConfig, Validator {
         errors.rejectValue(
             "kafka.bootstrapServer",
             "kafka-bootstrap-server-empty",
-            "queue.kafka.bootstrapServer is not defined. Please specify the Kafka bootstrap server.");
+            "queue.kafka.bootstrap_server is not defined. Please specify the Kafka bootstrap server.");
       }
       if (kafkaConfig.getRetries() < 0) {
         errors.rejectValue(
@@ -85,21 +88,21 @@ public class PropertyQueueConfig implements QueueConfig, Validator {
         errors.rejectValue(
             "kafka.lingerMs",
             "kafka-linger-ms-invalid",
-            "queue.kafka.lingerMs must be greater than or equal to 0.");
+            "queue.kafka.linger_ms must be greater than or equal to 0.");
       }
 
       if (kafkaConfig.getBatchSize() <= 0) {
         errors.rejectValue(
             "kafka.batchSize",
             "kafka-batch-size-invalid",
-            "queue.kafka.batchSize must be greater than 0.");
+            "queue.kafka.batch_size must be greater than 0.");
       }
 
       if (kafkaConfig.getPollTimeoutSeconds() <= 0) {
         errors.rejectValue(
             "kafka.pollTimeoutSeconds",
             "kafka-poll-timeout-seconds-invalid",
-            "queue.kafka.pollTimeoutSeconds must be greater than 0.");
+            "queue.kafka.poll_timeout_seconds must be greater than 0.");
       }
 
       if (kafkaConfig.getSecurityProtocol() != null
@@ -108,39 +111,40 @@ public class PropertyQueueConfig implements QueueConfig, Validator {
           errors.rejectValue(
               "kafka.saslMechanism",
               "kafka-sasl-mechanism-empty",
-              "queue.kafka.saslMechanism must be defined if securityProtocol is not PLAINTEXT.");
+              "queue.kafka.sasl_mechanism must be defined if securityProtocol is not PLAINTEXT.");
         }
       }
 
       if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
-        if (kafkaConfig.getSslKeystoreLocation() == null) {
+        if (isEmpty(kafkaConfig.getSslKeystoreLocation())) {
           errors.rejectValue(
               "kafka.sslKeystoreLocation",
               "kafka-ssl-keystore-location-empty",
-              "queue.kafka.sslKeystoreLocation must be defined if securityProtocol is SASL_SSL.");
+              "queue.kafka.ssl_keystore_location must be defined if securityProtocol is SASL_SSL.");
+        } else {
+          try {
+            ResourceHelper.findFileThenResource(kafkaConfig.getSslKeystoreLocation());
+          } catch (IOException e) {
+            errors.rejectValue(
+                "kafka.sslKeystoreLocation",
+                "kafka-ssl-keystore-location-not-found",
+                "queue.kafka.ssl_keystore_location file not found.");
+          }
         }
-        if (kafkaConfig.getSslTruststoreLocation() == null) {
+        if (isEmpty(kafkaConfig.getSslTruststoreLocation())) {
           errors.rejectValue(
               "kafka.sslTruststoreLocation",
               "kafka-ssl-truststore-location-empty",
-              "queue.kafka.sslTruststoreLocation must be defined if securityProtocol is SASL_SSL.");
-        }
-
-        try {
-          ResourceHelper.findFileThenResource(kafkaConfig.getSslKeystoreLocation());
-        } catch (IOException e) {
-          errors.rejectValue(
-              "kafka.sslKeystoreLocation",
-              "kafka-ssl-keystore-location-not-found",
-              "queue.kafka.sslKeystoreLocation file not found.");
-        }
-        try {
-          ResourceHelper.findFileThenResource(kafkaConfig.getSslTruststoreLocation());
-        } catch (IOException e) {
-          errors.rejectValue(
-              "kafka.sslTruststoreLocation",
-              "kafka-ssl-truststore-location-not-found",
-              "queue.kafka.sslTruststoreLocation file not found.");
+              "queue.kafka.ssl_truststore_location must be defined if securityProtocol is SASL_SSL.");
+        } else {
+          try {
+            ResourceHelper.findFileThenResource(kafkaConfig.getSslTruststoreLocation());
+          } catch (IOException e) {
+            errors.rejectValue(
+                "kafka.sslTruststoreLocation",
+                "kafka-ssl-truststore-location-not-found",
+                "queue.kafka.ssl_truststore_location file not found.");
+          }
         }
       }
     }
