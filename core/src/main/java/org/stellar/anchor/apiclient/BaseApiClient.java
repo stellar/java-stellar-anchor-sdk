@@ -59,4 +59,8 @@ public abstract class BaseApiClient {
   }
 
   abstract AuthHeader<String, String> createAuthHeader() throws InvalidConfigException;
+
+  OkHttpClient getClient() {
+    return client;
+  }
 }
