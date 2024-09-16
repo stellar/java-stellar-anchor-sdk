@@ -1,5 +1,7 @@
 package org.stellar.anchor.apiclient;
 
+import static org.stellar.anchor.util.StringHelper.isEmpty;
+
 import com.google.gson.Gson;
 import java.io.IOException;
 import okhttp3.HttpUrl;
@@ -56,15 +58,19 @@ public class CallbackApiClient extends BaseApiClient {
       throws AnchorException, IOException {
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(sendEventRequest));
     Request request = getRequestBuilder().url(url).post(requestBody).build();
-    Response response = client.newCall(request).execute();
-    SendEventResponse sendEventResponse =
-        gson.fromJson(handleResponse(response), SendEventResponse.class);
-    sendEventResponse.setCode(response.code());
-    return sendEventResponse;
+    Response response = getClient().newCall(request).execute();
+    String responseText = handleResponse(response);
+
+    return new SendEventResponse(response.code(), isEmpty(responseText) ? "" : responseText);
   }
 
   @Override
   AuthHeader<String, String> createAuthHeader() throws InvalidConfigException {
     return authHelper.createCallbackAuthHeader();
+  }
+
+  public static void main(String[] args) {
+    SendEventResponse response = gson.fromJson("", SendEventResponse.class);
+    System.out.println(response);
   }
 }

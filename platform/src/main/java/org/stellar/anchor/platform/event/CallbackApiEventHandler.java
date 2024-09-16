@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.Log.*;
 
 import java.io.IOException;
 import org.stellar.anchor.api.callback.SendEventRequest;
+import org.stellar.anchor.api.callback.SendEventResponse;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -24,7 +25,13 @@ public class CallbackApiEventHandler extends EventHandler {
     traceF("Sending event to callback API: {}", event);
 
     try {
-      callbackApiClient.sendEvent(SendEventRequest.from(event));
+      SendEventResponse sendEventResponse =
+          callbackApiClient.sendEvent(SendEventRequest.from(event));
+      debugF(
+          "Event {} sent to callback API. code: {}, message: {}",
+          event.getId(),
+          sendEventResponse.getCode(),
+          sendEventResponse.getMessage());
       return true;
     } catch (AnchorException e) {
       errorEx("Failed to send event to callback API. Error code: {}", e);
