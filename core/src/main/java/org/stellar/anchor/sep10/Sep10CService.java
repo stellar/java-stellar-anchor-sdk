@@ -2,6 +2,7 @@ package org.stellar.anchor.sep10;
 
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import lombok.AllArgsConstructor;
@@ -13,10 +14,9 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.rpc.RpcClient;
-import org.stellar.sdk.Address;
-import org.stellar.sdk.KeyPair;
-import org.stellar.sdk.Network;
-import org.stellar.sdk.Util;
+import org.stellar.sdk.*;
+import org.stellar.sdk.Transaction;
+import org.stellar.sdk.requests.sorobanrpc.SorobanRpcErrorResponse;
 import org.stellar.sdk.scval.Scv;
 import org.stellar.sdk.xdr.*;
 
@@ -82,7 +82,80 @@ public class Sep10CService {
     }
   }
 
+  /**
+   * Validates the challenge signed by the client.
+   *
+   * @param validationRequest The validation request.
+   * @return The validation response.
+   */
   public ValidationResponse validateChallenge(ValidationRequest validationRequest) {
+    SorobanAuthorizedInvocation invocation;
+    try {
+      invocation = SorobanAuthorizedInvocation.fromXdrBase64(validationRequest.getInvocation());
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to decode challenge invocation", e);
+    }
+    SorobanCredentials serverCredentials;
+    try {
+      serverCredentials =
+          SorobanCredentials.fromXdrBase64(validationRequest.getServerCredentials());
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to decode server credentials", e);
+    }
+
+    // Verify the server signature
+    long nonce = serverCredentials.getAddress().getNonce().getInt64();
+    try {
+      SorobanCredentials expectedCredentials = signInvocation(invocation, nonce);
+      if (!expectedCredentials.equals(serverCredentials)) {
+        throw new RuntimeException("Server credentials do not match expected credentials");
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to sign invocation ", e);
+    }
+
+    // Verify the client signature by simulating the invocation
+    SorobanCredentials clientCredentials;
+
+    KeyPair keyPair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
+    TransactionBuilderAccount source;
+    try {
+      source = rpcClient.getServer().getAccount(keyPair.getAccountId());
+    } catch (IOException | AccountNotFoundException | SorobanRpcErrorResponse e) {
+      throw new RuntimeException("Unable to fetch account", e);
+    }
+
+    String contractId =
+        invocation
+            .getFunction()
+            .getContractFn()
+            .getContractAddress()
+            .getAccountId()
+            .getAccountID()
+            .toString();
+    String functionName =
+        invocation.getFunction().getContractFn().getFunctionName().getSCSymbol().toString();
+    SCVal[] parameters = invocation.getFunction().getContractFn().getArgs();
+    InvokeHostFunctionOperation operation =
+        InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
+                contractId, functionName, Arrays.asList(parameters))
+            .build();
+
+    Network network = new Network(appConfig.getStellarNetworkPassphrase());
+    Transaction transaction =
+        new TransactionBuilder(source, network)
+            .setBaseFee(Transaction.MIN_BASE_FEE)
+            .addOperation(operation)
+            .setTimeout(300)
+            .build();
+
+    try {
+      this.rpcClient.getServer().simulateTransaction(transaction);
+    } catch (IOException | SorobanRpcErrorResponse e) {
+      throw new RuntimeException("Error simulating transaction", e);
+    }
+
+    // TODO: return the JWT
     return ValidationResponse.builder().build();
   }
 
@@ -94,7 +167,7 @@ public class Sep10CService {
    * @return The signed credentials.
    * @throws IOException If an error occurs.
    */
-  private SorobanCredentials signInvocation(SorobanAuthorizedInvocation invocation, int nonce)
+  private SorobanCredentials signInvocation(SorobanAuthorizedInvocation invocation, long nonce)
       throws IOException {
     Network network = new Network(appConfig.getStellarNetworkPassphrase());
     // TODO: fetch from RPC
@@ -108,7 +181,7 @@ public class Sep10CService {
                 new HashIDPreimage.HashIDPreimageSorobanAuthorization.Builder()
                     .networkID(new Hash(network.getNetworkId()))
                     // TODO: should we be using same nonce everywhere?
-                    .nonce(new Int64((long) nonce))
+                    .nonce(new Int64(nonce))
                     .invocation(invocation)
                     .signatureExpirationLedger(
                         new Uint32(new XdrUnsignedInteger(validUntilLedgerSequence)))
@@ -124,7 +197,7 @@ public class Sep10CService {
         .address(
             new SorobanAddressCredentials.Builder()
                 .address(new Address(keypair.getAccountId()).toSCAddress())
-                .nonce(new Int64((long) nonce))
+                .nonce(new Int64(nonce))
                 .signatureExpirationLedger(
                     new Uint32(new XdrUnsignedInteger(validUntilLedgerSequence)))
                 .signature(
