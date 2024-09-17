@@ -29,6 +29,7 @@ import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.platform.GetQuoteResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.*;
+import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
@@ -252,10 +253,15 @@ public class Sep38Service {
             decimal(rate.getSellAmount(), pricePrecision),
             decimal(rate.getBuyAmount(), pricePrecision));
 
+    FeeDetails feeDetails =
+        (rate.getFee() != null)
+            ? rate.getFee()
+            : new FeeDetails("0", sellAssetName, new ArrayList<>());
+
     return GetPriceResponse.builder()
         .price(rate.getPrice())
         .totalPrice(totalPrice)
-        .fee(rate.getFee())
+        .fee(feeDetails)
         .sellAmount(rate.getSellAmount())
         .buyAmount(rate.getBuyAmount())
         .build();

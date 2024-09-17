@@ -79,23 +79,24 @@ public class RestRateIntegration implements RateIntegration {
 
     Request httpRequest =
         PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build();
-    Response response = PlatformIntegrationHelper.call(httpClient, httpRequest);
-    String responseContent = PlatformIntegrationHelper.getContent(response);
+    try (Response response = PlatformIntegrationHelper.call(httpClient, httpRequest)) {
+      String responseContent = PlatformIntegrationHelper.getContent(response);
 
-    if (response.code() != HttpStatus.OK.value()) {
-      throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
+      if (response.code() != HttpStatus.OK.value()) {
+        throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
+      }
+
+      GetRateResponse getRateResponse;
+      try {
+        getRateResponse = gson.fromJson(responseContent, GetRateResponse.class);
+      } catch (Exception e) { // cannot read body from response
+        errorEx("Error parsing body response to GetRateResponse", e);
+        throw new ServerErrorException("internal server error", e);
+      }
+
+      validateRateResponse(request, getRateResponse);
+      return getRateResponse;
     }
-
-    GetRateResponse getRateResponse;
-    try {
-      getRateResponse = gson.fromJson(responseContent, GetRateResponse.class);
-    } catch (Exception e) { // cannot read body from response
-      errorEx("Error parsing body response to GetRateResponse", e);
-      throw new ServerErrorException("internal server error", e);
-    }
-
-    validateRateResponse(request, getRateResponse);
-    return getRateResponse;
   }
 
   void validateRateResponse(GetRateRequest request, GetRateResponse getRateResponse)
@@ -110,10 +111,6 @@ public class RestRateIntegration implements RateIntegration {
     }
 
     if (request.getType() == GetRateRequest.Type.FIRM) {
-      if (Objects.requireNonNull(rate).getFee() == null) {
-        logErrorAndThrow(
-            "'rate.fee' is missing in the GET /rate response", ServerErrorException.class);
-      }
       if (rate.getId() == null || rate.getExpiresAt() == null) {
         logErrorAndThrow(
             "'rate.id' or 'rate.expires_at' are missing in the GET /rate response. When the rate is firm, these fields are required",
@@ -255,7 +252,7 @@ public class RestRateIntegration implements RateIntegration {
       // when fee is not present, check that sell_amount ~= price * buy_amount
       BigDecimal expected =
           new BigDecimal(rate.getPrice()).multiply(new BigDecimal(rate.getBuyAmount()));
-      if (withinRoundingError(
+      if (!withinRoundingError(
           new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
         logErrorAndThrow(
             format(
