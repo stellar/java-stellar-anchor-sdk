@@ -10,5 +10,7 @@ public interface AppConfig {
 
   String getHorizonUrl();
 
+  String getRpcServerUrl();
+
   List<String> getLanguages();
 }

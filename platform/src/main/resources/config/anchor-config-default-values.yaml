@@ -38,6 +38,9 @@ stellar_network:
   # The horizon server endpoint.
   horizon_url: https://horizon-testnet.stellar.org
 
+  # The RPC server endpoint.
+  rpc_server_url: https://soroban-testnet.stellar.org
+
 ##############################
 # Callback API Configuration
 ##############################

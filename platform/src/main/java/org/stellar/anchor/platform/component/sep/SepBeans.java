@@ -22,6 +22,7 @@ import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.platform.condition.ConditionalOnAnySepsEnabled;
 import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor;
+import org.stellar.anchor.rpc.RpcClient;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
@@ -145,10 +146,11 @@ public class SepBeans {
       SecretConfig secretConfig,
       Sep10Config sep10Config,
       Horizon horizon,
+      RpcClient rpcClient,
       JwtService jwtService,
       ClientFinder clientFinder) {
     return new Sep10Service(
-        appConfig, secretConfig, sep10Config, horizon, jwtService, clientFinder);
+        appConfig, secretConfig, sep10Config, horizon, rpcClient, jwtService, clientFinder);
   }
 
   @Bean
