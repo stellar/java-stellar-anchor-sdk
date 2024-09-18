@@ -1,10 +1,12 @@
 package org.stellar.anchor.sep10;
 
+import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.stellar.anchor.api.sep.sep10c.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10c.ChallengeResponse;
@@ -40,13 +42,11 @@ public class Sep10CService {
     int intNonce = new java.math.BigInteger(nonce).intValue();
 
     SCVal[] arguments =
-        new SCVal[] {
-          /* web_auth_domain= */ Scv.toString(sep10Config.getWebAuthDomain()),
-          /* home_domain= */ Scv.toString(challengeRequest.getHomeDomain()),
-          /* account_id= */ Scv.toString(challengeRequest.getAccount()),
-          /* nonce= */ Scv.toUint32(intNonce),
-          // TODO: memo?
-        };
+        createArguments(
+            ImmutableMap.of(
+                "web_auth_domain", sep10Config.getWebAuthDomain(),
+                "home_domain", challengeRequest.getHomeDomain(),
+                "account", challengeRequest.getAccount()));
 
     // TODO: we need to make sure the transaction fails if submitted
     SorobanAuthorizedInvocation invocation =
@@ -57,6 +57,7 @@ public class Sep10CService {
                         SorobanAuthorizedFunctionType.SOROBAN_AUTHORIZED_FUNCTION_TYPE_CONTRACT_FN)
                     .contractFn(
                         new InvokeContractArgs.Builder()
+                            // TODO: should this be a well known contract?
                             .contractAddress(
                                 new Address(challengeRequest.getAccount()).toSCAddress())
                             // Assume the smart wallet interface defines this method
@@ -68,7 +69,6 @@ public class Sep10CService {
             .build();
 
     // Sign the invocation and return the challenge to the client
-    // TODO: do we need to simulate it?
     SorobanCredentials credentials;
     try {
       credentials = signInvocation(invocation, intNonce);
@@ -78,8 +78,23 @@ public class Sep10CService {
           .serverCredentials(credentials.toXdrBase64())
           .build();
     } catch (IOException e) {
-      throw new RuntimeException("Unable to sign invocation ", e);
+      throw new RuntimeException("Unable to sign invocation", e);
     }
+  }
+
+  private SCVal[] createArguments(Map<String, String> args) {
+    SCMapEntry[] entries =
+        args.entrySet().stream()
+            .map(
+                entry ->
+                    new SCMapEntry.Builder()
+                        .key(Scv.toString(entry.getKey()))
+                        .val(Scv.toString(entry.getValue()))
+                        .build())
+            .toArray(SCMapEntry[]::new);
+    SCMap scMap = new SCMap(entries);
+
+    return new SCVal[] {new SCVal.Builder().discriminant(SCValType.SCV_MAP).map(scMap).build()};
   }
 
   /**
