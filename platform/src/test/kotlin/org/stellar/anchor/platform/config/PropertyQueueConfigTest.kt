@@ -33,16 +33,6 @@ class PropertyQueueConfigTest {
     errors = BindException(configs, "config")
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = ["MSK", "SQS"])
-  fun `test MSK and SQS not supported`(type: QueueType) {
-    configs.type = type
-    configs.validate(configs, errors)
-
-    Assertions.assertEquals(1, errors.errorCount)
-    assertErrorCode(errors, "queue-type-${type.toString().lowercase()}-not-implemented")
-  }
-
   @Test
   fun `test invalid null type`() {
     configs.type = null
