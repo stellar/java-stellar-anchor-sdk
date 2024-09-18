@@ -46,9 +46,14 @@ public class Sep10CService {
             ImmutableMap.of(
                 "web_auth_domain", sep10Config.getWebAuthDomain(),
                 "home_domain", challengeRequest.getHomeDomain(),
-                "account", challengeRequest.getAccount()));
+                "account", challengeRequest.getAccount(),
+                "memo", challengeRequest.getMemo(),
+                "client_domain", challengeRequest.getClientDomain(),
+                "nonce", String.valueOf(intNonce)) // TODO: store the nonce and validate it
+            );
 
-    // TODO: we need to make sure the transaction fails if submitted
+    // TODO: we need to make sure the transaction fails if submitted. Maybe return a transaction
+    // instead of the invocation and credentials with the G-zero account as the source account
     SorobanAuthorizedInvocation invocation =
         new SorobanAuthorizedInvocation.Builder()
             .function(
@@ -60,7 +65,9 @@ public class Sep10CService {
                             // TODO: should this be a well known contract?
                             .contractAddress(
                                 new Address(challengeRequest.getAccount()).toSCAddress())
-                            // Assume the smart wallet interface defines this method
+                            // Assume the smart wallet interface defines this method.
+                            // The function will call account.require_auth but ignore the rest of
+                            // the arguments.
                             .functionName(Scv.toSymbol("web_auth_verify").getSym())
                             .args(arguments)
                             .build())
