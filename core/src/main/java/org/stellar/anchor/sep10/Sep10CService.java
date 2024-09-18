@@ -49,8 +49,7 @@ public class Sep10CService {
                 "account", challengeRequest.getAccount(),
                 "memo", challengeRequest.getMemo(),
                 "client_domain", challengeRequest.getClientDomain(),
-                "nonce", String.valueOf(intNonce)) // TODO: store the nonce and validate it
-            );
+                "nonce", String.valueOf(intNonce)));
 
     // TODO: we need to make sure the transaction fails if submitted. Maybe return a transaction
     // instead of the invocation and credentials with the G-zero account as the source account
@@ -126,7 +125,7 @@ public class Sep10CService {
     }
 
     // Verify the server signature
-    long nonce = serverCredentials.getAddress().getNonce().getInt64();
+    long nonce = serverCredentials.getAddress().getNonce().getInt64(); // TODO: consume the nonce
     try {
       SorobanCredentials expectedCredentials = signInvocation(invocation, nonce);
       if (!expectedCredentials.equals(serverCredentials)) {
