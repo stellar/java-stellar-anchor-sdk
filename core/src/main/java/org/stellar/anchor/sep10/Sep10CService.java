@@ -131,6 +131,11 @@ public class Sep10CService {
 
     // Verify the client signature by simulating the invocation
     SorobanCredentials clientCredentials;
+    try {
+      clientCredentials = SorobanCredentials.fromXdrBase64(validationRequest.getCredentials());
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to decode client credentials", e);
+    }
 
     KeyPair keyPair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
     TransactionBuilderAccount source;
@@ -154,6 +159,13 @@ public class Sep10CService {
     InvokeHostFunctionOperation operation =
         InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
                 contractId, functionName, Arrays.asList(parameters))
+            .sourceAccount(source.getAccountId())
+            .auth(
+                Collections.singletonList(
+                    new SorobanAuthorizationEntry.Builder()
+                        .credentials(clientCredentials)
+                        .rootInvocation(invocation)
+                        .build()))
             .build();
 
     Network network = new Network(appConfig.getStellarNetworkPassphrase());
