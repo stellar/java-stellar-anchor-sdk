@@ -1,10 +1,10 @@
 package org.stellar.anchor.api.sep.sep10c;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Builder
 @Data
 public class ValidationRequest {

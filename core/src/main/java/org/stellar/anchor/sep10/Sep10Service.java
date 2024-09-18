@@ -33,7 +33,6 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.rpc.RpcClient;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.*;
 import org.stellar.sdk.Sep10Challenge.ChallengeTransaction;
@@ -46,7 +45,6 @@ public class Sep10Service implements ISep10Service {
   final SecretConfig secretConfig;
   final Sep10Config sep10Config;
   final Horizon horizon;
-  final RpcClient rpcClient;
   final JwtService jwtService;
   final ClientFinder clientFinder;
   final String serverAccountId;
@@ -58,7 +56,6 @@ public class Sep10Service implements ISep10Service {
       SecretConfig secretConfig,
       Sep10Config sep10Config,
       Horizon horizon,
-      RpcClient rpcClient,
       JwtService jwtService,
       ClientFinder clientFinder) {
     debug("appConfig:", appConfig);
@@ -67,7 +64,6 @@ public class Sep10Service implements ISep10Service {
     this.secretConfig = secretConfig;
     this.sep10Config = sep10Config;
     this.horizon = horizon;
-    this.rpcClient = rpcClient;
     this.jwtService = jwtService;
     this.clientFinder = clientFinder;
     this.serverAccountId =

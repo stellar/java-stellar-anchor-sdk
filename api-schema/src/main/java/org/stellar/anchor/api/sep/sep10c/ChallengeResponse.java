@@ -1,10 +1,8 @@
 package org.stellar.anchor.api.sep.sep10c;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Builder
 @Data
 public class ChallengeResponse {
