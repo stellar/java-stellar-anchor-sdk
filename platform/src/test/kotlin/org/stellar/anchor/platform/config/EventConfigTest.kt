@@ -13,13 +13,10 @@ import org.stellar.anchor.config.event.QueueConfig.QueueType.*
 
 class EventConfigTest {
   lateinit var config: PropertyEventConfig
-  //  lateinit var errors: Errors
 
   @BeforeEach
   fun setUp() {
     config = PropertyEventConfig()
-
-    //    errors = BindException(config, "config")
   }
 
   @Test

@@ -90,7 +90,7 @@ public class PropertyQueueConfig implements QueueConfig, Validator {
         if (kafkaConfig.getSaslMechanism() == null) {
           errors.reject(
               "kafka-sasl-mechanism-empty",
-              "events.queue.kafka.sasl_mechanism must be defined when securityProtocol is SASL_PLAINTEXT.");
+              "events.queue.kafka.sasl_mechanism must be defined when queue.kafka.security_protocol is SASL_PLAINTEXT.");
         }
       }
 
@@ -98,12 +98,12 @@ public class PropertyQueueConfig implements QueueConfig, Validator {
         if (kafkaConfig.getSaslMechanism() == null) {
           errors.reject(
               "kafka-sasl-mechanism-empty",
-              "events.queue.kafka.sasl_mechanism must be defined when securityProtocol is SASL_SSL.");
+              "events.queue.kafka.sasl_mechanism must be defined when queue.kafka.security_protocol is SASL_SSL.");
         }
         if (isEmpty(kafkaConfig.getSslKeystoreLocation())) {
           errors.reject(
               "kafka-ssl-keystore-location-empty",
-              "queue.kafka.ssl_keystore_location must be defined if securityProtocol is SASL_SSL.");
+              "queue.kafka.ssl_keystore_location must be defined if queue.kafka.security_protocol is SASL_SSL.");
         } else {
           try {
             findFileThenResource(kafkaConfig.getSslKeystoreLocation());
