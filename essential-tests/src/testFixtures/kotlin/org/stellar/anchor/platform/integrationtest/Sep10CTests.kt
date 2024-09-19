@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Disabled
 import org.stellar.anchor.platform.e2etest.WITHDRAW_FUND_CLIENT_SECRET_2
 import org.stellar.anchor.util.Log
 import org.stellar.sdk.*
-import org.stellar.sdk.Auth
 import org.stellar.sdk.Transaction
 import org.stellar.sdk.scval.Scv
 import org.stellar.sdk.xdr.*
@@ -19,7 +18,7 @@ class Sep10CTests {
   private val secret = philip
   private val keypair = KeyPair.fromSecretSeed(secret)
   private val account = sorobanServer.getAccount(keypair.accountId)
-  private val contractAddress = "CCB7YGKACB5LDXDATYBTC37DXD63LBRR76HZTAXBJJR47JMF5JBNRF4D"
+  private val contractAddress = "CC3HX7UUTL43JXMVOM2SVVCWNBWA4ZTIBJ5WWJ5SGI7EILKQ3OKEINSK"
 
   private val anchorKeypair = KeyPair.fromSecretSeed(WITHDRAW_FUND_CLIENT_SECRET_2)
   private val anchorAccount = sorobanServer.getAccount(anchorKeypair.accountId)
@@ -37,7 +36,7 @@ class Sep10CTests {
               arrayOf(
                 SCVal.Builder()
                   .discriminant(SCValType.SCV_BYTES)
-                  .bytes(SCBytes(keypair.accountId.toByteArray().copyOf(32)))
+                  .bytes(SCBytes(keypair.publicKey))
                   .build()
               )
             )
@@ -76,7 +75,7 @@ class Sep10CTests {
               arrayOf(
                 SCMapEntry.Builder()
                   .key(Scv.toString("account"))
-                  .`val`(Scv.toString(keypair.accountId))
+                  .`val`(Scv.toString(contractAddress))
                   .build(),
                 SCMapEntry.Builder()
                   .key(Scv.toString("web_auth_domain"))
@@ -110,7 +109,19 @@ class Sep10CTests {
         val entry = SorobanAuthorizationEntry.fromXdrBase64(entryXdr)
         Log.info("Unsigned auth entry: ${entry.toXdrBase64()}")
         val validUntilLedgerSeq = simulationResponse.latestLedger + 100
-        val signedEntry = Auth.authorizeEntry(entry, keypair, validUntilLedgerSeq, network)
+
+        val signer =
+          object : Signer {
+            override fun sign(preimage: HashIDPreimage): ByteArray {
+              return keypair.sign(Util.hash(preimage.toXdrByteArray()))
+            }
+
+            override fun publicKey(): ByteArray {
+              return keypair.publicKey
+            }
+          }
+
+        val signedEntry = authorizeEntry(entry, signer, validUntilLedgerSeq, network)
         signedAuthEntries.add(signedEntry)
         Log.info("Signed auth entry: ${signedEntry.toXdrBase64()}")
       }
@@ -135,12 +146,56 @@ class Sep10CTests {
         .build()
 
     val authSimulation = sorobanServer.simulateTransaction(authorizedTransaction)
-    Log.info("Auth simulation result: ${authSimulation.transactionData}")
+    Log.info("Authorized transaction: ${authorizedTransaction.toEnvelopeXdrBase64()}")
+    Log.info("Auth simulation result: $authSimulation")
     assertTrue(authSimulation.error == null)
+  }
 
-    val preparedTransaction = sorobanServer.prepareTransaction(authorizedTransaction)
-    preparedTransaction.sign(anchorKeypair)
-    val result = sorobanServer.sendTransaction(preparedTransaction)
-    Log.info("Transaction result: $result")
+  private fun authorizeEntry(
+    entry: SorobanAuthorizationEntry,
+    signer: Signer,
+    validUntilLedgerSeq: Long,
+    network: Network
+  ): SorobanAuthorizationEntry {
+    val clone = SorobanAuthorizationEntry.fromXdrByteArray(entry.toXdrByteArray())
+
+    if (clone.credentials.discriminant != SorobanCredentialsType.SOROBAN_CREDENTIALS_ADDRESS) {
+      return clone
+    }
+
+    val addressCredentials = clone.credentials.address
+    addressCredentials.signatureExpirationLedger = Uint32(XdrUnsignedInteger(validUntilLedgerSeq))
+
+    val preimage =
+      HashIDPreimage.Builder()
+        .discriminant(EnvelopeType.ENVELOPE_TYPE_SOROBAN_AUTHORIZATION)
+        .sorobanAuthorization(
+          HashIDPreimage.HashIDPreimageSorobanAuthorization.Builder()
+            .networkID(Hash(network.networkId))
+            .nonce(addressCredentials.nonce)
+            .invocation(clone.rootInvocation)
+            .signatureExpirationLedger(addressCredentials.signatureExpirationLedger)
+            .build()
+        )
+        .build()
+
+    val signature = signer.sign(preimage)
+    val publicKey = signer.publicKey()
+
+    val sigScVal =
+      Scv.toMap(
+        linkedMapOf(
+          Scv.toSymbol("public_key") to Scv.toBytes(publicKey),
+          Scv.toSymbol("signature") to Scv.toBytes(signature)
+        )
+      )
+    addressCredentials.signature = Scv.toVec(listOf(sigScVal))
+
+    return clone
+  }
+
+  interface Signer {
+    fun sign(preimage: HashIDPreimage): ByteArray
+    fun publicKey(): ByteArray
   }
 }
