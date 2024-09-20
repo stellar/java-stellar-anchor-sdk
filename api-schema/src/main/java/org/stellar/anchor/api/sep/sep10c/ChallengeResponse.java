@@ -6,6 +6,6 @@ import lombok.*;
 @Builder
 @Data
 public class ChallengeResponse {
-  private String authorizedInvocation;
+  private String authorizationEntry;
   private String serverSignature;
 }

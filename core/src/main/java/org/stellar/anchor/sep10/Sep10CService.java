@@ -1,8 +1,6 @@
 package org.stellar.anchor.sep10;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -21,6 +19,7 @@ import org.stellar.anchor.util.Log;
 import org.stellar.sdk.*;
 import org.stellar.sdk.Transaction;
 import org.stellar.sdk.requests.sorobanrpc.SorobanRpcErrorResponse;
+import org.stellar.sdk.responses.sorobanrpc.SimulateTransactionResponse;
 import org.stellar.sdk.scval.Scv;
 import org.stellar.sdk.xdr.*;
 
@@ -44,54 +43,63 @@ public class Sep10CService {
   public ChallengeResponse createChallenge(ChallengeRequest challengeRequest) {
     Log.debugF(
         "Creating challenge for request {}", GsonUtils.getInstance().toJson(challengeRequest));
-    long nonce = generateNonce();
 
-    // TODO: we need to make sure the transaction fails if submitted.
-    SorobanAuthorizedInvocation invocation =
-        new SorobanAuthorizedInvocation.Builder()
-            .function(
-                new SorobanAuthorizedFunction.Builder()
-                    .discriminant(
-                        SorobanAuthorizedFunctionType.SOROBAN_AUTHORIZED_FUNCTION_TYPE_CONTRACT_FN)
-                    .contractFn(
-                        new InvokeContractArgs.Builder()
-                            .contractAddress(new Address(WEB_AUTH_CONTRACT_ADDRESS).toSCAddress())
-                            .functionName(Scv.toSymbol(WEB_AUTH_VERIFY_FN).getSym())
-                            .args(createArgsFromRequest(challengeRequest))
-                            .build())
-                    .build())
-            .subInvocations(new SorobanAuthorizedInvocation[0])
+    // Simulate the transaction to get the authorization entry
+    KeyPair keyPair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
+    TransactionBuilderAccount source;
+    try {
+      source = rpcClient.getServer().getAccount(keyPair.getAccountId());
+    } catch (IOException | AccountNotFoundException | SorobanRpcErrorResponse e) {
+      throw new RuntimeException("Unable to fetch account", e);
+    }
+
+    SCVal[] args = createArgsFromRequest(challengeRequest);
+    InvokeHostFunctionOperation operation =
+        InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
+                WEB_AUTH_CONTRACT_ADDRESS, WEB_AUTH_VERIFY_FN, Arrays.asList(args))
+            .sourceAccount(source.getAccountId())
             .build();
+    Transaction transaction =
+        new TransactionBuilder(source, new Network(appConfig.getStellarNetworkPassphrase()))
+            .setBaseFee(Transaction.MIN_BASE_FEE)
+            .addOperation(operation)
+            .setTimeout(300)
+            .build();
+    Log.debugF("Transaction: {}", transaction.toEnvelopeXdrBase64());
+
+    SorobanAuthorizationEntry authorizationEntry;
+    try {
+      SimulateTransactionResponse simulateTransactionResponse =
+          rpcClient.getServer().simulateTransaction(transaction);
+      Log.debugF("Simulate transaction response: {}", simulateTransactionResponse);
+      authorizationEntry =
+          SorobanAuthorizationEntry.fromXdrBase64(
+              simulateTransactionResponse.getResults().get(0).getAuth().get(0));
+    } catch (IOException | SorobanRpcErrorResponse e) {
+      throw new RuntimeException("Error simulating transaction", e);
+    }
 
     // Sign the invocation and return the challenge to the client
     try {
       return ChallengeResponse.builder()
-          .authorizedInvocation(invocation.toXdrBase64())
-          .serverSignature(signInvocation(invocation))
+          .authorizationEntry(authorizationEntry.toXdrBase64())
+          .serverSignature(signAuthorizationEntry(authorizationEntry))
           .build();
     } catch (IOException e) {
       throw new RuntimeException("Unable to sign invocation", e);
     }
   }
 
-  private long generateNonce() {
-    byte[] nonce = new byte[32];
-    SecureRandom secureRandom = new SecureRandom();
-    secureRandom.nextBytes(nonce);
-    return new BigInteger(nonce).longValue();
-  }
-
   private SCVal[] createArgsFromRequest(ChallengeRequest challengeRequest) {
     Map<String, String> args = new LinkedHashMap<>();
+    if (challengeRequest.getAccount() != null) args.put("account", challengeRequest.getAccount());
     if (sep10Config.getWebAuthDomain() != null)
       args.put("web_auth_domain", sep10Config.getWebAuthDomain());
     if (challengeRequest.getHomeDomain() != null)
       args.put("home_domain", challengeRequest.getHomeDomain());
-    if (challengeRequest.getAccount() != null) args.put("account", challengeRequest.getAccount());
     if (challengeRequest.getMemo() != null) args.put("memo", challengeRequest.getMemo());
     if (challengeRequest.getClientDomain() != null)
       args.put("client_domain", challengeRequest.getClientDomain());
-    args.put("nonce", String.valueOf(generateNonce()));
 
     return createArguments(args);
   }
@@ -118,17 +126,18 @@ public class Sep10CService {
    * @return The validation response.
    */
   public ValidationResponse validateChallenge(ValidationRequest validationRequest) {
-    SorobanAuthorizedInvocation invocation;
+    SorobanAuthorizationEntry authorizationEntry;
     try {
-      invocation = SorobanAuthorizedInvocation.fromXdrBase64(validationRequest.getInvocation());
+      authorizationEntry =
+          SorobanAuthorizationEntry.fromXdrBase64(validationRequest.getAuthorizationEntry());
     } catch (IOException e) {
       throw new RuntimeException("Failed to decode challenge invocation", e);
     }
 
     // Verify the server signature
     try {
-      String expectedCredentials = signInvocation(invocation);
-      if (!expectedCredentials.equals(validationRequest.getServerCredentials())) {
+      String expectedCredentials = signAuthorizationEntry(authorizationEntry);
+      if (!expectedCredentials.equals(validationRequest.getServerSignature())) {
         throw new RuntimeException("Server credentials do not match expected credentials");
       }
     } catch (IOException e) {
@@ -151,7 +160,8 @@ public class Sep10CService {
       throw new RuntimeException("Unable to fetch account", e);
     }
 
-    SCVal[] parameters = invocation.getFunction().getContractFn().getArgs();
+    SCVal[] parameters =
+        authorizationEntry.getRootInvocation().getFunction().getContractFn().getArgs();
     InvokeHostFunctionOperation operation =
         InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
                 WEB_AUTH_CONTRACT_ADDRESS, WEB_AUTH_CONTRACT_ADDRESS, Arrays.asList(parameters))
@@ -160,7 +170,7 @@ public class Sep10CService {
                 Collections.singletonList(
                     new SorobanAuthorizationEntry.Builder()
                         .credentials(clientCredentials)
-                        .rootInvocation(invocation)
+                        .rootInvocation(authorizationEntry.getRootInvocation())
                         .build()))
             .build();
 
@@ -189,7 +199,7 @@ public class Sep10CService {
    * @return the server signature
    * @throws IOException If an error occurs.
    */
-  private String signInvocation(SorobanAuthorizedInvocation invocation) throws IOException {
+  private String signAuthorizationEntry(SorobanAuthorizationEntry invocation) throws IOException {
     KeyPair keypair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
 
     byte[] hash = Util.hash(invocation.toXdrByteArray());

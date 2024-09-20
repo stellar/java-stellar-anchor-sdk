@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.integrationtest
 
-import net.i2p.crypto.eddsa.Utils
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.sep10c.ChallengeRequest
 import org.stellar.anchor.client.Sep10CClient
@@ -8,7 +7,6 @@ import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.Log
 import org.stellar.sdk.SorobanServer
-import org.stellar.sdk.xdr.SorobanAuthorizedInvocation
 
 class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
   private var sep10CClient: Sep10CClient =
@@ -30,10 +28,7 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
           .homeDomain(webAuthDomain)
           .build()
       )
-    SorobanAuthorizedInvocation.fromXdrBase64(challenge.authorizedInvocation)
-    Utils.hexToBytes(challenge.serverSignature)
-
-    Log.info("authorizedInvocation: ${challenge.authorizedInvocation}")
+    Log.info("authorizationEntry: ${challenge.authorizationEntry}")
     Log.info("signature: ${challenge.serverSignature}")
 
     sep10CClient.sign(challenge)

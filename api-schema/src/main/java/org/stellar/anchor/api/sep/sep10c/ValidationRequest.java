@@ -8,7 +8,7 @@ import lombok.Data;
 @Builder
 @Data
 public class ValidationRequest {
-  String invocation;
-  String serverCredentials;
+  String authorizationEntry;
+  String serverSignature;
   String credentials;
 }

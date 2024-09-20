@@ -5,7 +5,7 @@ import org.stellar.anchor.api.sep.sep10c.ChallengeRequest
 import org.stellar.anchor.api.sep.sep10c.ChallengeResponse
 import org.stellar.anchor.api.sep.sep10c.ValidationRequest
 import org.stellar.sdk.SorobanServer
-import org.stellar.sdk.xdr.SorobanAuthorizedInvocation
+import org.stellar.sdk.xdr.SorobanAuthorizationEntry
 
 class Sep10CClient(
   private val endpoint: String,
@@ -30,13 +30,16 @@ class Sep10CClient(
 
   fun sign(challengeResponse: ChallengeResponse): ValidationRequest {
     val serverSignature = Utils.hexToBytes(challengeResponse.serverSignature)
-    val authorizedInvocation =
-      SorobanAuthorizedInvocation.fromXdrBase64(challengeResponse.authorizedInvocation)
+    val authorizedEntry =
+      SorobanAuthorizationEntry.fromXdrBase64(challengeResponse.authorizationEntry)
 
     // Verify the server signed the authorized invocation
     val serverKeypair = rpc.getAccount(serverAccount).keyPair
-    serverKeypair.verify(authorizedInvocation.toXdrByteArray(), serverSignature)
+    serverKeypair.verify(authorizedEntry.toXdrByteArray(), serverSignature)
 
-    return ValidationRequest.builder().build()
+    return ValidationRequest.builder()
+      .authorizationEntry(challengeResponse.authorizationEntry)
+      .serverSignature(challengeResponse.serverSignature)
+      .build()
   }
 }
