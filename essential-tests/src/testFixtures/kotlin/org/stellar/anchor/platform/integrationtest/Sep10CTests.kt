@@ -31,6 +31,10 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
     Log.info("authorizationEntry: ${challenge.authorizationEntry}")
     Log.info("signature: ${challenge.serverSignature}")
 
-    sep10CClient.sign(challenge)
+    val validationRequest = sep10CClient.sign(challenge)
+    Log.info("credentials: ${validationRequest.credentials}")
+
+    val validationResponse = sep10CClient.validate(validationRequest)
+    Log.info("token: $validationResponse")
   }
 }

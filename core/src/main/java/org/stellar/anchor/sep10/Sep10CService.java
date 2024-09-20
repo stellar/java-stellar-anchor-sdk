@@ -136,8 +136,8 @@ public class Sep10CService {
 
     // Verify the server signature
     try {
-      String expectedCredentials = signAuthorizationEntry(authorizationEntry);
-      if (!expectedCredentials.equals(validationRequest.getServerSignature())) {
+      String expectedAuthorizationEntry = signAuthorizationEntry(authorizationEntry);
+      if (!expectedAuthorizationEntry.equals(validationRequest.getServerSignature())) {
         throw new RuntimeException("Server credentials do not match expected credentials");
       }
     } catch (IOException e) {
@@ -184,6 +184,7 @@ public class Sep10CService {
 
     try {
       this.rpcClient.getServer().simulateTransaction(transaction);
+      Log.info("Transaction successfully validated");
     } catch (IOException | SorobanRpcErrorResponse e) {
       throw new RuntimeException("Error simulating transaction", e);
     }
