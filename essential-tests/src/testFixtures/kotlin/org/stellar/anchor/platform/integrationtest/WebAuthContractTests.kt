@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.integrationtest
 
 import kotlin.test.Test
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.stellar.anchor.client.Sep10CClient
 import org.stellar.anchor.platform.e2etest.WITHDRAW_FUND_CLIENT_SECRET_2
 import org.stellar.anchor.util.Log
@@ -19,51 +18,10 @@ class WebAuthContractTests {
   private val secret = philip
   private val keypair = KeyPair.fromSecretSeed(secret)
   private val account = sorobanServer.getAccount(keypair.accountId)
-  private val contractAddress = "CC3HX7UUTL43JXMVOM2SVVCWNBWA4ZTIBJ5WWJ5SGI7EILKQ3OKEINSK"
+  private val contractAddress = "CA24E6YPM2FOXVVE566TD775RCRZK4GPR67QC7DBW7O722STUHTXGW3Y"
 
   private val anchorKeypair = KeyPair.fromSecretSeed(WITHDRAW_FUND_CLIENT_SECRET_2)
   private val anchorAccount = sorobanServer.getAccount(anchorKeypair.accountId)
-
-  /** Some initialization code to add my account as a signer to the contract account. */
-  @Disabled
-  @Test
-  fun addClientAccountAsSigner() {
-    val parameters =
-      mutableListOf(
-        SCVal.Builder()
-          .discriminant(SCValType.SCV_VEC)
-          .vec(
-            SCVec(
-              arrayOf(
-                SCVal.Builder()
-                  .discriminant(SCValType.SCV_BYTES)
-                  .bytes(SCBytes(keypair.publicKey))
-                  .build()
-              )
-            )
-          )
-          .build()
-      )
-    val operation =
-      InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-          contractAddress,
-          "init",
-          parameters,
-        )
-        .sourceAccount(keypair.accountId)
-        .build()
-
-    val transaction =
-      TransactionBuilder(account, network)
-        .setBaseFee(Transaction.MIN_BASE_FEE.toLong())
-        .addOperation(operation)
-        .setTimeout(300)
-        .build()
-
-    val preparedTransaction = sorobanServer.prepareTransaction(transaction)
-    preparedTransaction.sign(keypair)
-    val result = sorobanServer.sendTransaction(preparedTransaction)
-  }
 
   @Test
   fun testWebAuthVerify() {
