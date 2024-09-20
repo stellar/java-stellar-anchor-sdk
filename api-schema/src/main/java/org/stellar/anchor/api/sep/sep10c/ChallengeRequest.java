@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.sep.sep10c;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,9 @@ public class ChallengeRequest {
 
   private final String memo;
 
+  @JsonProperty("home_domain")
   private final String homeDomain;
 
+  @JsonProperty("client_domain")
   private final String clientDomain;
 }

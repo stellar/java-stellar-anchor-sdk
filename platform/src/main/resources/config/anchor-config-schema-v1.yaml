@@ -112,6 +112,7 @@ sep_server.port:
 stellar_network.horizon_url:
 stellar_network.network:
 stellar_network.network_passphrase:
+stellar_network.rpc_server_url:
 custody_server.context_path:
 custody_server.port:
 custody_server.auth.api_key.http_header:

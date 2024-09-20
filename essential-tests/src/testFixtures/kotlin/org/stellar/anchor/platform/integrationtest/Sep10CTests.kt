@@ -1,201 +1,41 @@
 package org.stellar.anchor.platform.integrationtest
 
-import kotlin.test.Test
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
-import org.stellar.anchor.platform.e2etest.WITHDRAW_FUND_CLIENT_SECRET_2
+import net.i2p.crypto.eddsa.Utils
+import org.junit.jupiter.api.Test
+import org.stellar.anchor.api.sep.sep10c.ChallengeRequest
+import org.stellar.anchor.client.Sep10CClient
+import org.stellar.anchor.platform.AbstractIntegrationTests
+import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.Log
-import org.stellar.sdk.*
-import org.stellar.sdk.Transaction
-import org.stellar.sdk.scval.Scv
-import org.stellar.sdk.xdr.*
+import org.stellar.sdk.SorobanServer
+import org.stellar.sdk.xdr.SorobanAuthorizedInvocation
 
-class Sep10CTests {
-  private val sorobanServer = SorobanServer("https://soroban-testnet.stellar.org")
-  private val network = Network("Test SDF Network ; September 2015")
-  private val philip = "SCAWZ3DBU5UVT3SLDMLNPP4GUDP7WDCOYQDE5JHCTXHLS3TAJIZ4HJOC"
-  private val someone = "SB75HOQAKNX3I6BR6W3VGZT6T26C5UDC2OISIIPK5SODKLPRLPD5VVRM"
-  private val secret = philip
-  private val keypair = KeyPair.fromSecretSeed(secret)
-  private val account = sorobanServer.getAccount(keypair.accountId)
-  private val contractAddress = "CC3HX7UUTL43JXMVOM2SVVCWNBWA4ZTIBJ5WWJ5SGI7EILKQ3OKEINSK"
-
-  private val anchorKeypair = KeyPair.fromSecretSeed(WITHDRAW_FUND_CLIENT_SECRET_2)
-  private val anchorAccount = sorobanServer.getAccount(anchorKeypair.accountId)
-
-  /** Some initialization code to add my account as a signer to the contract account. */
-  @Disabled
-  @Test
-  fun addClientAccountAsSigner() {
-    val parameters =
-      mutableListOf(
-        SCVal.Builder()
-          .discriminant(SCValType.SCV_VEC)
-          .vec(
-            SCVec(
-              arrayOf(
-                SCVal.Builder()
-                  .discriminant(SCValType.SCV_BYTES)
-                  .bytes(SCBytes(keypair.publicKey))
-                  .build()
-              )
-            )
-          )
-          .build()
-      )
-    val operation =
-      InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-          contractAddress,
-          "init",
-          parameters,
-        )
-        .sourceAccount(keypair.accountId)
-        .build()
-
-    val transaction =
-      TransactionBuilder(account, network)
-        .setBaseFee(Transaction.MIN_BASE_FEE.toLong())
-        .addOperation(operation)
-        .setTimeout(300)
-        .build()
-
-    val preparedTransaction = sorobanServer.prepareTransaction(transaction)
-    preparedTransaction.sign(keypair)
-    val result = sorobanServer.sendTransaction(preparedTransaction)
-  }
+class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
+  private var sep10CClient: Sep10CClient =
+    Sep10CClient(
+      "http://localhost:8080/sep10c/auth",
+      toml.getString("SIGNING_KEY"),
+      SorobanServer("https://soroban-testnet.stellar.org")
+    )
+  private var webAuthDomain = toml.getString("WEB_AUTH_DOMAIN")
+  private var clientWalletContractAddress =
+    "CC3HX7UUTL43JXMVOM2SVVCWNBWA4ZTIBJ5WWJ5SGI7EILKQ3OKEINSK"
 
   @Test
-  fun testWebAuthVerify() {
-    val parameters =
-      mutableListOf(
-        SCVal.Builder()
-          .discriminant(SCValType.SCV_MAP)
-          .map(
-            SCMap(
-              arrayOf(
-                SCMapEntry.Builder()
-                  .key(Scv.toString("account"))
-                  .`val`(Scv.toString(contractAddress))
-                  .build(),
-                SCMapEntry.Builder()
-                  .key(Scv.toString("web_auth_domain"))
-                  .`val`(Scv.toString("localhost:8080"))
-                  .build(),
-              )
-            )
-          )
+  fun testChallengeSigning() {
+    val challenge =
+      sep10CClient.getChallenge(
+        ChallengeRequest.builder()
+          .account(clientWalletContractAddress)
+          .homeDomain(webAuthDomain)
           .build()
       )
-    val operation =
-      InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-          contractAddress,
-          "web_auth_verify",
-          parameters,
-        )
-        .sourceAccount(anchorKeypair.accountId)
-        .build()
-    val transaction =
-      TransactionBuilder(account, Network("Test SDF Network ; September 2015"))
-        .setBaseFee(Transaction.MIN_BASE_FEE.toLong())
-        .addOperation(operation)
-        .setTimeout(300)
-        .build()
+    SorobanAuthorizedInvocation.fromXdrBase64(challenge.authorizedInvocation)
+    Utils.hexToBytes(challenge.serverSignature)
 
-    Log.info("Simulating transaction to get auth entries")
-    val simulationResponse = sorobanServer.simulateTransaction(transaction)
-    val signedAuthEntries = mutableListOf<SorobanAuthorizationEntry>()
-    simulationResponse.results.forEach {
-      it.auth.forEach { entryXdr ->
-        val entry = SorobanAuthorizationEntry.fromXdrBase64(entryXdr)
-        Log.info("Unsigned auth entry: ${entry.toXdrBase64()}")
-        val validUntilLedgerSeq = simulationResponse.latestLedger + 100
+    Log.info("authorizedInvocation: ${challenge.authorizedInvocation}")
+    Log.info("signature: ${challenge.serverSignature}")
 
-        val signer =
-          object : Signer {
-            override fun sign(preimage: HashIDPreimage): ByteArray {
-              return keypair.sign(Util.hash(preimage.toXdrByteArray()))
-            }
-
-            override fun publicKey(): ByteArray {
-              return keypair.publicKey
-            }
-          }
-
-        val signedEntry = authorizeEntry(entry, signer, validUntilLedgerSeq, network)
-        signedAuthEntries.add(signedEntry)
-        Log.info("Signed auth entry: ${signedEntry.toXdrBase64()}")
-      }
-    }
-
-    Log.info("Attaching signed auth entries")
-    val signedOperation =
-      InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-          contractAddress,
-          "web_auth_verify",
-          parameters,
-        )
-        .sourceAccount(anchorKeypair.accountId)
-        .auth(signedAuthEntries)
-        .build()
-
-    val authorizedTransaction =
-      TransactionBuilder(anchorAccount, Network("Test SDF Network ; September 2015"))
-        .setBaseFee(Transaction.MIN_BASE_FEE.toLong())
-        .addOperation(signedOperation)
-        .setTimeout(300)
-        .build()
-
-    val authSimulation = sorobanServer.simulateTransaction(authorizedTransaction)
-    Log.info("Authorized transaction: ${authorizedTransaction.toEnvelopeXdrBase64()}")
-    Log.info("Auth simulation result: $authSimulation")
-    assertTrue(authSimulation.error == null)
-  }
-
-  private fun authorizeEntry(
-    entry: SorobanAuthorizationEntry,
-    signer: Signer,
-    validUntilLedgerSeq: Long,
-    network: Network
-  ): SorobanAuthorizationEntry {
-    val clone = SorobanAuthorizationEntry.fromXdrByteArray(entry.toXdrByteArray())
-
-    if (clone.credentials.discriminant != SorobanCredentialsType.SOROBAN_CREDENTIALS_ADDRESS) {
-      return clone
-    }
-
-    val addressCredentials = clone.credentials.address
-    addressCredentials.signatureExpirationLedger = Uint32(XdrUnsignedInteger(validUntilLedgerSeq))
-
-    val preimage =
-      HashIDPreimage.Builder()
-        .discriminant(EnvelopeType.ENVELOPE_TYPE_SOROBAN_AUTHORIZATION)
-        .sorobanAuthorization(
-          HashIDPreimage.HashIDPreimageSorobanAuthorization.Builder()
-            .networkID(Hash(network.networkId))
-            .nonce(addressCredentials.nonce)
-            .invocation(clone.rootInvocation)
-            .signatureExpirationLedger(addressCredentials.signatureExpirationLedger)
-            .build()
-        )
-        .build()
-
-    val signature = signer.sign(preimage)
-    val publicKey = signer.publicKey()
-
-    val sigScVal =
-      Scv.toMap(
-        linkedMapOf(
-          Scv.toSymbol("public_key") to Scv.toBytes(publicKey),
-          Scv.toSymbol("signature") to Scv.toBytes(signature)
-        )
-      )
-    addressCredentials.signature = Scv.toVec(listOf(sigScVal))
-
-    return clone
-  }
-
-  interface Signer {
-    fun sign(preimage: HashIDPreimage): ByteArray
-    fun publicKey(): ByteArray
+    sep10CClient.sign(challenge)
   }
 }

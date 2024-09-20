@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep10;
 
-import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,6 +16,8 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.rpc.RpcClient;
+import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.Log;
 import org.stellar.sdk.*;
 import org.stellar.sdk.Transaction;
 import org.stellar.sdk.requests.sorobanrpc.SorobanRpcErrorResponse;
@@ -29,6 +31,10 @@ public class Sep10CService {
   private final Sep10Config sep10Config;
   private final RpcClient rpcClient;
 
+  private static final String WEB_AUTH_CONTRACT_ADDRESS =
+      "CC3HX7UUTL43JXMVOM2SVVCWNBWA4ZTIBJ5WWJ5SGI7EILKQ3OKEINSK";
+  private static final String WEB_AUTH_VERIFY_FN = "web_auth_verify";
+
   /**
    * Creates a challenge for the client to sign.
    *
@@ -36,23 +42,11 @@ public class Sep10CService {
    * @return The challenge response.
    */
   public ChallengeResponse createChallenge(ChallengeRequest challengeRequest) {
-    byte[] nonce = new byte[32];
-    SecureRandom secureRandom = new SecureRandom();
-    secureRandom.nextBytes(nonce);
-    int intNonce = new java.math.BigInteger(nonce).intValue();
+    Log.debugF(
+        "Creating challenge for request {}", GsonUtils.getInstance().toJson(challengeRequest));
+    long nonce = generateNonce();
 
-    SCVal[] arguments =
-        createArguments(
-            ImmutableMap.of(
-                "web_auth_domain", sep10Config.getWebAuthDomain(),
-                "home_domain", challengeRequest.getHomeDomain(),
-                "account", challengeRequest.getAccount(),
-                "memo", challengeRequest.getMemo(),
-                "client_domain", challengeRequest.getClientDomain(),
-                "nonce", String.valueOf(intNonce)));
-
-    // TODO: we need to make sure the transaction fails if submitted. Maybe return a transaction
-    // instead of the invocation and credentials with the G-zero account as the source account
+    // TODO: we need to make sure the transaction fails if submitted.
     SorobanAuthorizedInvocation invocation =
         new SorobanAuthorizedInvocation.Builder()
             .function(
@@ -61,31 +55,45 @@ public class Sep10CService {
                         SorobanAuthorizedFunctionType.SOROBAN_AUTHORIZED_FUNCTION_TYPE_CONTRACT_FN)
                     .contractFn(
                         new InvokeContractArgs.Builder()
-                            // TODO: should this be a well known contract?
-                            .contractAddress(
-                                new Address(challengeRequest.getAccount()).toSCAddress())
-                            // Assume the smart wallet interface defines this method.
-                            // The function will call account.require_auth but ignore the rest of
-                            // the arguments.
-                            .functionName(Scv.toSymbol("web_auth_verify").getSym())
-                            .args(arguments)
+                            .contractAddress(new Address(WEB_AUTH_CONTRACT_ADDRESS).toSCAddress())
+                            .functionName(Scv.toSymbol(WEB_AUTH_VERIFY_FN).getSym())
+                            .args(createArgsFromRequest(challengeRequest))
                             .build())
                     .build())
             .subInvocations(new SorobanAuthorizedInvocation[0])
             .build();
 
     // Sign the invocation and return the challenge to the client
-    SorobanCredentials credentials;
     try {
-      credentials = signInvocation(invocation, intNonce);
-
       return ChallengeResponse.builder()
           .authorizedInvocation(invocation.toXdrBase64())
-          .serverCredentials(credentials.toXdrBase64())
+          .serverSignature(signInvocation(invocation))
           .build();
     } catch (IOException e) {
       throw new RuntimeException("Unable to sign invocation", e);
     }
+  }
+
+  private long generateNonce() {
+    byte[] nonce = new byte[32];
+    SecureRandom secureRandom = new SecureRandom();
+    secureRandom.nextBytes(nonce);
+    return new BigInteger(nonce).longValue();
+  }
+
+  private SCVal[] createArgsFromRequest(ChallengeRequest challengeRequest) {
+    Map<String, String> args = new LinkedHashMap<>();
+    if (sep10Config.getWebAuthDomain() != null)
+      args.put("web_auth_domain", sep10Config.getWebAuthDomain());
+    if (challengeRequest.getHomeDomain() != null)
+      args.put("home_domain", challengeRequest.getHomeDomain());
+    if (challengeRequest.getAccount() != null) args.put("account", challengeRequest.getAccount());
+    if (challengeRequest.getMemo() != null) args.put("memo", challengeRequest.getMemo());
+    if (challengeRequest.getClientDomain() != null)
+      args.put("client_domain", challengeRequest.getClientDomain());
+    args.put("nonce", String.valueOf(generateNonce()));
+
+    return createArguments(args);
   }
 
   private SCVal[] createArguments(Map<String, String> args) {
@@ -116,19 +124,11 @@ public class Sep10CService {
     } catch (IOException e) {
       throw new RuntimeException("Failed to decode challenge invocation", e);
     }
-    SorobanCredentials serverCredentials;
-    try {
-      serverCredentials =
-          SorobanCredentials.fromXdrBase64(validationRequest.getServerCredentials());
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to decode server credentials", e);
-    }
 
     // Verify the server signature
-    long nonce = serverCredentials.getAddress().getNonce().getInt64(); // TODO: consume the nonce
     try {
-      SorobanCredentials expectedCredentials = signInvocation(invocation, nonce);
-      if (!expectedCredentials.equals(serverCredentials)) {
+      String expectedCredentials = signInvocation(invocation);
+      if (!expectedCredentials.equals(validationRequest.getServerCredentials())) {
         throw new RuntimeException("Server credentials do not match expected credentials");
       }
     } catch (IOException e) {
@@ -151,20 +151,10 @@ public class Sep10CService {
       throw new RuntimeException("Unable to fetch account", e);
     }
 
-    String contractId =
-        invocation
-            .getFunction()
-            .getContractFn()
-            .getContractAddress()
-            .getAccountId()
-            .getAccountID()
-            .toString();
-    String functionName =
-        invocation.getFunction().getContractFn().getFunctionName().getSCSymbol().toString();
     SCVal[] parameters = invocation.getFunction().getContractFn().getArgs();
     InvokeHostFunctionOperation operation =
         InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-                contractId, functionName, Arrays.asList(parameters))
+                WEB_AUTH_CONTRACT_ADDRESS, WEB_AUTH_CONTRACT_ADDRESS, Arrays.asList(parameters))
             .sourceAccount(source.getAccountId())
             .auth(
                 Collections.singletonList(
@@ -193,59 +183,19 @@ public class Sep10CService {
   }
 
   /**
-   * Signs the invocation with the server secret and returns the credentials.
+   * Signs the invocation with the server secret and returns the signature.
    *
    * @param invocation The invocation to sign.
-   * @param nonce The nonce to use.
-   * @return The signed credentials.
+   * @return the server signature
    * @throws IOException If an error occurs.
    */
-  private SorobanCredentials signInvocation(SorobanAuthorizedInvocation invocation, long nonce)
-      throws IOException {
-    Network network = new Network(appConfig.getStellarNetworkPassphrase());
-    // TODO: fetch from RPC
-    long validUntilLedgerSequence = 0;
+  private String signInvocation(SorobanAuthorizedInvocation invocation) throws IOException {
     KeyPair keypair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
 
-    HashIDPreimage preimage =
-        new HashIDPreimage.Builder()
-            .discriminant(EnvelopeType.ENVELOPE_TYPE_SOROBAN_AUTHORIZATION)
-            .sorobanAuthorization(
-                new HashIDPreimage.HashIDPreimageSorobanAuthorization.Builder()
-                    .networkID(new Hash(network.getNetworkId()))
-                    // TODO: should we be using same nonce everywhere?
-                    .nonce(new Int64(nonce))
-                    .invocation(invocation)
-                    .signatureExpirationLedger(
-                        new Uint32(new XdrUnsignedInteger(validUntilLedgerSequence)))
-                    .build())
-            .build();
-
-    byte[] preimageBytes = preimage.toXdrByteArray();
-    byte[] hash = Util.hash(preimageBytes);
+    byte[] hash = Util.hash(invocation.toXdrByteArray());
     byte[] signature = keypair.sign(hash);
 
-    return new SorobanCredentials.Builder()
-        .discriminant(SorobanCredentialsType.SOROBAN_CREDENTIALS_ADDRESS)
-        .address(
-            new SorobanAddressCredentials.Builder()
-                .address(new Address(keypair.getAccountId()).toSCAddress())
-                .nonce(new Int64(nonce))
-                .signatureExpirationLedger(
-                    new Uint32(new XdrUnsignedInteger(validUntilLedgerSequence)))
-                .signature(
-                    Scv.toVec(
-                        Collections.singleton(
-                            Scv.toMap(
-                                new LinkedHashMap<>() {
-                                  {
-                                    put(
-                                        Scv.toSymbol("public_key"),
-                                        Scv.toBytes(keypair.getPublicKey()));
-                                    put(Scv.toSymbol("signature"), Scv.toBytes(signature));
-                                  }
-                                }))))
-                .build())
-        .build();
+    // return the signature in hex
+    return Util.bytesToHex(signature);
   }
 }

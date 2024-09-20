@@ -7,5 +7,5 @@ import lombok.*;
 @Data
 public class ChallengeResponse {
   private String authorizedInvocation;
-  private String serverCredentials;
+  private String serverSignature;
 }
