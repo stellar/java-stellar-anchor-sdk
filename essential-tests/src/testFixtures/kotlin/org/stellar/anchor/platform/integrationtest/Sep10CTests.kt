@@ -17,7 +17,7 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
     )
   private var webAuthDomain = toml.getString("WEB_AUTH_DOMAIN")
   private var clientWalletContractAddress =
-    "CA24E6YPM2FOXVVE566TD775RCRZK4GPR67QC7DBW7O722STUHTXGW3Y"
+    "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
 
   @Test
   fun testChallengeSigning() {

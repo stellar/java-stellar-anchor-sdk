@@ -18,7 +18,8 @@ class WebAuthContractTests {
   private val secret = philip
   private val keypair = KeyPair.fromSecretSeed(secret)
   private val account = sorobanServer.getAccount(keypair.accountId)
-  private val contractAddress = "CA24E6YPM2FOXVVE566TD775RCRZK4GPR67QC7DBW7O722STUHTXGW3Y"
+  private val webAuthContract = "CASGGAU4NE46QVYCK52NEMBYUQR5SZIYRQH7CA37UOGDCPODEDEUXKRL"
+  private val walletContract = "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
 
   private val anchorKeypair = KeyPair.fromSecretSeed(WITHDRAW_FUND_CLIENT_SECRET_2)
   private val anchorAccount = sorobanServer.getAccount(anchorKeypair.accountId)
@@ -34,7 +35,7 @@ class WebAuthContractTests {
               arrayOf(
                 SCMapEntry.Builder()
                   .key(Scv.toString("account"))
-                  .`val`(Scv.toString(contractAddress))
+                  .`val`(Scv.toString(walletContract))
                   .build(),
                 SCMapEntry.Builder()
                   .key(Scv.toString("web_auth_domain"))
@@ -47,7 +48,7 @@ class WebAuthContractTests {
       )
     val operation =
       InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-          contractAddress,
+          webAuthContract,
           "web_auth_verify",
           parameters,
         )
@@ -89,7 +90,7 @@ class WebAuthContractTests {
     Log.info("Attaching signed auth entries")
     val signedOperation =
       InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-          contractAddress,
+          webAuthContract,
           "web_auth_verify",
           parameters,
         )
