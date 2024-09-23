@@ -10,6 +10,7 @@ import org.stellar.anchor.util.OkHttpUtil
 import org.stellar.sdk.KeyPair
 import org.stellar.sdk.Network
 import org.stellar.sdk.SorobanServer
+import org.stellar.sdk.Util
 import org.stellar.sdk.scval.Scv
 import org.stellar.sdk.xdr.*
 
@@ -50,7 +51,7 @@ class Sep10CClient(
     val signer =
       object : Signer {
         override fun sign(preimage: HashIDPreimage): ByteArray {
-          return clientKeypair.sign(preimage.toXdrByteArray())
+          return clientKeypair.sign(Util.hash(preimage.toXdrByteArray()))
         }
 
         override fun publicKey(): ByteArray {

@@ -1,15 +1,13 @@
 package org.stellar.anchor.sep10;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import org.stellar.anchor.api.sep.sep10c.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10c.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10c.ValidationRequest;
 import org.stellar.anchor.api.sep.sep10c.ValidationResponse;
+import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
@@ -28,10 +26,9 @@ public class Sep10CService {
   private final AppConfig appConfig;
   private final SecretConfig secretConfig;
   private final Sep10Config sep10Config;
+  private final JwtService jwtService;
   private final RpcClient rpcClient;
 
-  private static final String WEB_AUTH_CONTRACT_ADDRESS =
-      "CC3HX7UUTL43JXMVOM2SVVCWNBWA4ZTIBJ5WWJ5SGI7EILKQ3OKEINSK";
   private static final String WEB_AUTH_VERIFY_FN = "web_auth_verify";
 
   /**
@@ -56,7 +53,7 @@ public class Sep10CService {
     SCVal[] args = createArgsFromRequest(challengeRequest);
     InvokeHostFunctionOperation operation =
         InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-                WEB_AUTH_CONTRACT_ADDRESS, WEB_AUTH_VERIFY_FN, Arrays.asList(args))
+                sep10Config.getWebAuthContract(), WEB_AUTH_VERIFY_FN, Arrays.asList(args))
             .sourceAccount(source.getAccountId())
             .build();
     Transaction transaction =
@@ -65,7 +62,7 @@ public class Sep10CService {
             .addOperation(operation)
             .setTimeout(300)
             .build();
-    Log.debugF("Transaction: {}", transaction.toEnvelopeXdrBase64());
+    Log.debugF("Challenge transaction: {}", transaction.toEnvelopeXdrBase64());
 
     SorobanAuthorizationEntry authorizationEntry;
     try {
@@ -136,12 +133,12 @@ public class Sep10CService {
 
     // Verify the server signature
     try {
-      String expectedAuthorizationEntry = signAuthorizationEntry(authorizationEntry);
-      if (!expectedAuthorizationEntry.equals(validationRequest.getServerSignature())) {
+      String expectedSignature = signAuthorizationEntry(authorizationEntry);
+      if (!expectedSignature.equals(validationRequest.getServerSignature())) {
         throw new RuntimeException("Server credentials do not match expected credentials");
       }
     } catch (IOException e) {
-      throw new RuntimeException("Unable to sign invocation ", e);
+      throw new RuntimeException("Unable to sign invocation", e);
     }
 
     // Verify the client signature by simulating the invocation
@@ -160,18 +157,23 @@ public class Sep10CService {
       throw new RuntimeException("Unable to fetch account", e);
     }
 
+    SorobanAuthorizationEntry authorizationEntryClone;
+    try {
+      authorizationEntryClone =
+          SorobanAuthorizationEntry.fromXdrBase64(validationRequest.getAuthorizationEntry());
+      authorizationEntryClone.setCredentials(clientCredentials);
+      Log.debugF("Authorization entry clone: {}", authorizationEntryClone.toXdrBase64());
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to decode challenge authorization entry", e);
+    }
+
     SCVal[] parameters =
         authorizationEntry.getRootInvocation().getFunction().getContractFn().getArgs();
     InvokeHostFunctionOperation operation =
         InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-                WEB_AUTH_CONTRACT_ADDRESS, WEB_AUTH_CONTRACT_ADDRESS, Arrays.asList(parameters))
+                sep10Config.getWebAuthContract(), WEB_AUTH_VERIFY_FN, Arrays.asList(parameters))
             .sourceAccount(source.getAccountId())
-            .auth(
-                Collections.singletonList(
-                    new SorobanAuthorizationEntry.Builder()
-                        .credentials(clientCredentials)
-                        .rootInvocation(authorizationEntry.getRootInvocation())
-                        .build()))
+            .auth(Collections.singletonList(authorizationEntryClone))
             .build();
 
     Network network = new Network(appConfig.getStellarNetworkPassphrase());
@@ -183,30 +185,36 @@ public class Sep10CService {
             .build();
 
     try {
-      this.rpcClient.getServer().simulateTransaction(transaction);
-      Log.info("Transaction successfully validated");
+      SimulateTransactionResponse response =
+          this.rpcClient.getServer().simulateTransaction(transaction);
+      if (response.getError() != null) {
+        throw new RuntimeException("Error validating credentials: " + response.getError());
+      }
+      Log.infoF("Credentials successfully validated: {}", response);
     } catch (IOException | SorobanRpcErrorResponse e) {
       throw new RuntimeException("Error simulating transaction", e);
     }
 
-    // TODO: return the JWT
-    return ValidationResponse.builder().build();
+    return ValidationResponse.builder().token(generateJwt(authorizationEntry)).build();
+  }
+
+  private String generateJwt(SorobanAuthorizationEntry authorizationEntry) {
+    return null;
   }
 
   /**
-   * Signs the invocation with the server secret and returns the signature.
+   * Signs the authorization entry with the server secret and returns the hex-encoded signature.
    *
-   * @param invocation The invocation to sign.
+   * @param entry the authorization entry to sign
    * @return the server signature
    * @throws IOException If an error occurs.
    */
-  private String signAuthorizationEntry(SorobanAuthorizationEntry invocation) throws IOException {
+  private String signAuthorizationEntry(SorobanAuthorizationEntry entry) throws IOException {
     KeyPair keypair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
 
-    byte[] hash = Util.hash(invocation.toXdrByteArray());
+    byte[] hash = Util.hash(entry.toXdrByteArray());
     byte[] signature = keypair.sign(hash);
 
-    // return the signature in hex
     return Util.bytesToHex(signature);
   }
 }

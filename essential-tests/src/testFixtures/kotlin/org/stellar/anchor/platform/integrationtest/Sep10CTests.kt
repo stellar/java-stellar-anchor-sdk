@@ -11,7 +11,7 @@ import org.stellar.sdk.SorobanServer
 class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
   private var sep10CClient: Sep10CClient =
     Sep10CClient(
-      "http://localhost:8080/sep10c/auth",
+      toml.getString("WEB_AUTH_ENDPOINT_C"),
       toml.getString("SIGNING_KEY"),
       SorobanServer("https://soroban-testnet.stellar.org")
     )

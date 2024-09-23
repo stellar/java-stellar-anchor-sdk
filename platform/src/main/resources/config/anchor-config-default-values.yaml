@@ -271,6 +271,13 @@ sep10:
   #    Ex: home_domains: ap.stellar.org, sdp.stellar.org
   #    Ex: home_domains: *.sdp.stellar.org
   web_auth_domain:
+  #
+  # The `web_auth_domain` property of SEP-10c.
+  web_auth_domain_c:
+  #
+  # The contract address of the Anchor's web auth contract
+  web_auth_contract:
+  #
   # The `home_domains` property of SEP-10. This is a list of domains and/or wildcard patterns that the client can use to authenticate.
   # https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
   # Please also set web_auth_domain if you have more than one home domain in this list.

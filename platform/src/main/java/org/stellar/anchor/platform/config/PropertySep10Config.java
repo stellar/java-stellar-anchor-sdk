@@ -26,6 +26,8 @@ import org.stellar.sdk.*;
 public class PropertySep10Config implements Sep10Config, Validator {
   private Boolean enabled;
   private String webAuthDomain;
+  private String webAuthDomainC;
+  private String webAuthContract;
   private String homeDomain;
   private List<String> homeDomains;
   private boolean clientAttributionRequired = false;

@@ -160,8 +160,9 @@ public class SepBeans {
       AppConfig appConfig,
       SecretConfig secretConfig,
       Sep10Config sep10Config,
+      JwtService jwtService,
       RpcClient rpcClient) {
-    return new Sep10CService(appConfig, secretConfig, sep10Config, rpcClient);
+    return new Sep10CService(appConfig, secretConfig, sep10Config, jwtService, rpcClient);
   }
 
   @Bean

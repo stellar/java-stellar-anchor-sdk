@@ -22,6 +22,10 @@ public interface Sep10Config {
    */
   String getWebAuthDomain();
 
+  String getWebAuthDomainC();
+
+  String getWebAuthContract();
+
   /**
    * The `home_domains` property of <a
    * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request">SEP-10</a>.
