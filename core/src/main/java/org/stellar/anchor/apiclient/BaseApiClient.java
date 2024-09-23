@@ -26,7 +26,6 @@ public abstract class BaseApiClient {
   /**
    * Creates a new BaseApiClient.
    *
-   * @param authHelper the AuthHelper to use for authentication.
    * @param endpoint the API endpoint.
    */
   protected BaseApiClient(String endpoint) {
