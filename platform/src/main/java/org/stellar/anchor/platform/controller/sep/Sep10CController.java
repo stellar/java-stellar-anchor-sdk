@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.Log.debugF;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.sep10c.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10c.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10c.ValidationRequest;
@@ -33,7 +34,8 @@ public class Sep10CController {
       @RequestParam(required = false, name = "memo") String memo,
       @RequestParam(required = false, name = "home_domain") String homeDomain,
       @RequestParam(required = false, name = "client_domain") String clientDomain,
-      @RequestHeader(required = false, name = "Authorization") String authorization) {
+      @RequestHeader(required = false, name = "Authorization") String authorization)
+      throws SepException {
     ChallengeRequest challengeRequest =
         ChallengeRequest.builder()
             .address(address)
@@ -56,7 +58,8 @@ public class Sep10CController {
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
-  public ValidationResponse validateChallenge(@RequestBody ValidationRequest validationRequest) {
+  public ValidationResponse validateChallenge(@RequestBody ValidationRequest validationRequest)
+      throws SepException {
     debugF("POST /auth validationRequest={}", GsonUtils.getInstance().toJson(validationRequest));
     return sep10CService.validateChallenge(validationRequest);
   }

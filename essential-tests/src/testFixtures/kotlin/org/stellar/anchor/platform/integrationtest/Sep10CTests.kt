@@ -35,6 +35,6 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
     Log.info("credentials: ${validationRequest.credentials}")
 
     val validationResponse = sep10CClient.validate(validationRequest)
-    Log.info("token: $validationResponse")
+    Log.info("token: ${validationResponse.token}")
   }
 }

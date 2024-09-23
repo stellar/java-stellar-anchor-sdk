@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.sep10c.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10c.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10c.ValidationRequest;
@@ -38,7 +41,7 @@ public class Sep10CService {
    * @param challengeRequest The challenge request.
    * @return The challenge response.
    */
-  public ChallengeResponse createChallenge(ChallengeRequest challengeRequest) {
+  public ChallengeResponse createChallenge(ChallengeRequest challengeRequest) throws SepException {
     Log.debugF(
         "Creating challenge for request {}", GsonUtils.getInstance().toJson(challengeRequest));
 
@@ -71,7 +74,7 @@ public class Sep10CService {
           SorobanAuthorizationEntry.fromXdrBase64(
               simulateTransactionResponse.getResults().get(0).getAuth().get(0));
     } catch (IOException e) {
-      throw new RuntimeException("Failed to decode challenge invocation", e);
+      throw new SepException("Failed to decode challenge invocation", e);
     }
 
     // Sign the invocation and return the challenge to the client
@@ -81,7 +84,7 @@ public class Sep10CService {
           .serverSignature(signAuthorizationEntry(authorizationEntry))
           .build();
     } catch (IOException e) {
-      throw new RuntimeException("Unable to sign invocation", e);
+      throw new SepException("Unable to sign invocation", e);
     }
   }
 
@@ -120,23 +123,20 @@ public class Sep10CService {
    * @param validationRequest The validation request.
    * @return The validation response.
    */
-  public ValidationResponse validateChallenge(ValidationRequest validationRequest) {
+  public ValidationResponse validateChallenge(ValidationRequest validationRequest)
+      throws SepException {
     SorobanAuthorizationEntry authorizationEntry;
     try {
       authorizationEntry =
           SorobanAuthorizationEntry.fromXdrBase64(validationRequest.getAuthorizationEntry());
     } catch (IOException e) {
-      throw new RuntimeException("Failed to decode challenge invocation", e);
+      throw new SepValidationException("Failed to decode challenge invocation", e);
     }
 
     // Verify the server signature
-    try {
-      String expectedSignature = signAuthorizationEntry(authorizationEntry);
-      if (!expectedSignature.equals(validationRequest.getServerSignature())) {
-        throw new RuntimeException("Server credentials do not match expected credentials");
-      }
-    } catch (IOException e) {
-      throw new RuntimeException("Unable to sign invocation", e);
+    String expectedSignature = signAuthorizationEntry(authorizationEntry);
+    if (!expectedSignature.equals(validationRequest.getServerSignature())) {
+      throw new SepValidationException("Server signature is invalid");
     }
 
     // Verify the client signature by simulating the invocation
@@ -144,7 +144,7 @@ public class Sep10CService {
     try {
       clientCredentials = SorobanCredentials.fromXdrBase64(validationRequest.getCredentials());
     } catch (IOException e) {
-      throw new RuntimeException("Failed to decode client credentials", e);
+      throw new SepException("Failed to decode client credentials", e);
     }
 
     KeyPair keyPair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
@@ -155,9 +155,9 @@ public class Sep10CService {
       authorizationEntryClone =
           SorobanAuthorizationEntry.fromXdrBase64(validationRequest.getAuthorizationEntry());
       authorizationEntryClone.setCredentials(clientCredentials);
-      Log.debugF("Authorization entry clone: {}", authorizationEntryClone.toXdrBase64());
+      Log.debugF("Client signed auth entry: {}", authorizationEntryClone.toXdrBase64());
     } catch (IOException e) {
-      throw new RuntimeException("Failed to decode challenge authorization entry", e);
+      throw new SepException("Failed to decode challenge authorization entry", e);
     }
 
     SCVal[] parameters =
@@ -179,33 +179,34 @@ public class Sep10CService {
 
     SimulateTransactionResponse response = this.rpcClient.simulateTransaction(transaction);
     if (response.getError() != null) {
-      throw new RuntimeException("Error validating credentials: " + response.getError());
+      throw new SepValidationException("Error validating credentials: " + response.getError());
     }
-    Log.infoF("Credentials successfully validated: {}", response);
+    Log.debugF("Credentials successfully validated: {}", response);
 
     return ValidationResponse.builder().token(generateJwt(authorizationEntry)).build();
   }
 
-  private String generateJwt(SorobanAuthorizationEntry authorizationEntry) {
+  private String generateJwt(SorobanAuthorizationEntry authorizationEntry) throws SepException {
     SorobanAuthorizedInvocation invocation = authorizationEntry.getRootInvocation();
 
     long issuedAt = Instant.now().getEpochSecond();
-    String account = getFromContractArgs(invocation, "account").orElse("");
-    String homeDomain = getFromContractArgs(invocation, "home_domain").orElse("");
-    String clientDomain = getFromContractArgs(invocation, "client_domain").orElse("");
+    String address = getFromContractArgs(invocation, "address").orElse(null);
+    String memo = getFromContractArgs(invocation, "memo").orElse(null);
+    String homeDomain = getFromContractArgs(invocation, "home_domain").orElse(null);
+    String clientDomain = getFromContractArgs(invocation, "client_domain").orElse(null);
 
     String authUrl = "https://" + sep10Config.getWebAuthDomainC() + "/auth";
     String hashHex;
     try {
       hashHex = Util.bytesToHex(Util.hash(invocation.toXdrByteArray()));
     } catch (IOException e) {
-      throw new RuntimeException("Unable to decode invocation", e);
+      throw new SepException("Unable to decode invocation", e);
     }
 
     Sep10Jwt jwt =
         Sep10Jwt.of(
             authUrl,
-            account, // TODO: this should be the muxed account if memo is present
+            StringUtils.isEmpty(memo) ? address : address + ":" + memo,
             issuedAt,
             issuedAt + sep10Config.getJwtTimeout(),
             hashHex,
@@ -231,14 +232,17 @@ public class Sep10CService {
    *
    * @param entry the authorization entry to sign
    * @return the server signature
-   * @throws IOException If an error occurs.
    */
-  private String signAuthorizationEntry(SorobanAuthorizationEntry entry) throws IOException {
+  private String signAuthorizationEntry(SorobanAuthorizationEntry entry) {
     KeyPair keypair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
 
-    byte[] hash = Util.hash(entry.toXdrByteArray());
-    byte[] signature = keypair.sign(hash);
+    try {
+      byte[] hash = Util.hash(entry.toXdrByteArray());
+      byte[] signature = keypair.sign(hash);
 
-    return Util.bytesToHex(signature);
+      return Util.bytesToHex(signature);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to decode authorization entry", e);
+    }
   }
 }
