@@ -18,7 +18,6 @@ import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.*;
 import org.stellar.sdk.Transaction;
-import org.stellar.sdk.requests.sorobanrpc.SorobanRpcErrorResponse;
 import org.stellar.sdk.responses.sorobanrpc.SimulateTransactionResponse;
 import org.stellar.sdk.scval.Scv;
 import org.stellar.sdk.xdr.*;
@@ -45,12 +44,7 @@ public class Sep10CService {
 
     // Simulate the transaction to get the authorization entry
     KeyPair keyPair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
-    TransactionBuilderAccount source;
-    try {
-      source = rpcClient.getServer().getAccount(keyPair.getAccountId());
-    } catch (IOException | AccountNotFoundException | SorobanRpcErrorResponse e) {
-      throw new RuntimeException("Unable to fetch account", e);
-    }
+    TransactionBuilderAccount source = rpcClient.getAccount(keyPair.getAccountId());
 
     SCVal[] args = createArgsFromRequest(challengeRequest);
     InvokeHostFunctionOperation operation =
@@ -66,16 +60,18 @@ public class Sep10CService {
             .build();
     Log.debugF("Challenge transaction: {}", transaction.toEnvelopeXdrBase64());
 
+    // Simulate transaction to get auth entries
+    SimulateTransactionResponse simulateTransactionResponse =
+        rpcClient.simulateTransaction(transaction);
+    Log.debugF("Simulate transaction response: {}", simulateTransactionResponse);
+
     SorobanAuthorizationEntry authorizationEntry;
     try {
-      SimulateTransactionResponse simulateTransactionResponse =
-          rpcClient.getServer().simulateTransaction(transaction);
-      Log.debugF("Simulate transaction response: {}", simulateTransactionResponse);
       authorizationEntry =
           SorobanAuthorizationEntry.fromXdrBase64(
               simulateTransactionResponse.getResults().get(0).getAuth().get(0));
-    } catch (IOException | SorobanRpcErrorResponse e) {
-      throw new RuntimeException("Error simulating transaction", e);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to decode challenge invocation", e);
     }
 
     // Sign the invocation and return the challenge to the client
@@ -152,12 +148,7 @@ public class Sep10CService {
     }
 
     KeyPair keyPair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
-    TransactionBuilderAccount source;
-    try {
-      source = rpcClient.getServer().getAccount(keyPair.getAccountId());
-    } catch (IOException | AccountNotFoundException | SorobanRpcErrorResponse e) {
-      throw new RuntimeException("Unable to fetch account", e);
-    }
+    TransactionBuilderAccount source = rpcClient.getAccount(keyPair.getAccountId());
 
     SorobanAuthorizationEntry authorizationEntryClone;
     try {
@@ -186,16 +177,11 @@ public class Sep10CService {
             .setTimeout(300)
             .build();
 
-    try {
-      SimulateTransactionResponse response =
-          this.rpcClient.getServer().simulateTransaction(transaction);
-      if (response.getError() != null) {
-        throw new RuntimeException("Error validating credentials: " + response.getError());
-      }
-      Log.infoF("Credentials successfully validated: {}", response);
-    } catch (IOException | SorobanRpcErrorResponse e) {
-      throw new RuntimeException("Error simulating transaction", e);
+    SimulateTransactionResponse response = this.rpcClient.simulateTransaction(transaction);
+    if (response.getError() != null) {
+      throw new RuntimeException("Error validating credentials: " + response.getError());
     }
+    Log.infoF("Credentials successfully validated: {}", response);
 
     return ValidationResponse.builder().token(generateJwt(authorizationEntry)).build();
   }
