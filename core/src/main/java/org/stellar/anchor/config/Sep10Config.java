@@ -24,7 +24,7 @@ public interface Sep10Config {
 
   String getWebAuthDomainC();
 
-  String getWebAuthContract();
+  String getWebAuthContractId();
 
   /**
    * The `home_domains` property of <a

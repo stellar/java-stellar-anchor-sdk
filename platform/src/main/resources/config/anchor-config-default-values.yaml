@@ -276,7 +276,7 @@ sep10:
   web_auth_domain_c:
   #
   # The contract address of the Anchor's web auth contract
-  web_auth_contract:
+  web_auth_contract_id:
   #
   # The `home_domains` property of SEP-10. This is a list of domains and/or wildcard patterns that the client can use to authenticate.
   # https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request

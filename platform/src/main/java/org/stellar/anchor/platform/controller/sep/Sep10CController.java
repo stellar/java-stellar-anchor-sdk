@@ -2,9 +2,12 @@ package org.stellar.anchor.platform.controller.sep;
 
 import static org.stellar.anchor.util.Log.debugF;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.api.sep.sep10c.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10c.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10c.ValidationRequest;
@@ -15,7 +18,7 @@ import org.stellar.anchor.util.GsonUtils;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/sep10c")
+@RequestMapping("/c")
 @ConditionalOnAllSepsEnabled(seps = {"sep10"})
 public class Sep10CController {
   private final Sep10CService sep10CService;
@@ -62,5 +65,11 @@ public class Sep10CController {
       throws SepException {
     debugF("POST /auth validationRequest={}", GsonUtils.getInstance().toJson(validationRequest));
     return sep10CService.validateChallenge(validationRequest);
+  }
+
+  @ExceptionHandler({SepException.class, SepValidationException.class})
+  @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+  public SepExceptionResponse handleSepException(SepException e) {
+    return new SepExceptionResponse(e.getMessage());
   }
 }

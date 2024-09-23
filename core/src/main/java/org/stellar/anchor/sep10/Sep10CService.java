@@ -52,7 +52,7 @@ public class Sep10CService {
     SCVal[] args = createArgsFromRequest(challengeRequest);
     InvokeHostFunctionOperation operation =
         InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-                sep10Config.getWebAuthContract(), WEB_AUTH_VERIFY_FN, Arrays.asList(args))
+                sep10Config.getWebAuthContractId(), WEB_AUTH_VERIFY_FN, Arrays.asList(args))
             .sourceAccount(source.getAccountId())
             .build();
     Transaction transaction =
@@ -164,7 +164,7 @@ public class Sep10CService {
         authorizationEntry.getRootInvocation().getFunction().getContractFn().getArgs();
     InvokeHostFunctionOperation operation =
         InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-                sep10Config.getWebAuthContract(), WEB_AUTH_VERIFY_FN, Arrays.asList(parameters))
+                sep10Config.getWebAuthContractId(), WEB_AUTH_VERIFY_FN, Arrays.asList(parameters))
             .sourceAccount(source.getAccountId())
             .auth(Collections.singletonList(authorizationEntryClone))
             .build();
@@ -233,7 +233,7 @@ public class Sep10CService {
    * @param entry the authorization entry to sign
    * @return the server signature
    */
-  private String signAuthorizationEntry(SorobanAuthorizationEntry entry) {
+  private String signAuthorizationEntry(SorobanAuthorizationEntry entry) throws SepException {
     KeyPair keypair = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
 
     try {
@@ -242,7 +242,7 @@ public class Sep10CService {
 
       return Util.bytesToHex(signature);
     } catch (IOException e) {
-      throw new RuntimeException("Unable to decode authorization entry", e);
+      throw new SepException("Unable to decode authorization entry", e);
     }
   }
 }
