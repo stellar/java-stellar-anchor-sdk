@@ -5,6 +5,7 @@ import org.stellar.anchor.api.sep.sep10c.ChallengeRequest
 import org.stellar.anchor.client.Sep10CClient
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log
 import org.stellar.sdk.SorobanServer
 
@@ -13,7 +14,7 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
     Sep10CClient(
       toml.getString("WEB_AUTH_ENDPOINT_C"),
       toml.getString("SIGNING_KEY"),
-      SorobanServer("https://soroban-testnet.stellar.org")
+      SorobanServer("https://soroban-testnet.stellar.org"),
     )
   private var webAuthDomain = toml.getString("WEB_AUTH_DOMAIN")
   private var clientWalletContractAddress =
@@ -32,7 +33,7 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
     Log.info("signature: ${challenge.serverSignature}")
 
     val validationRequest = sep10CClient.sign(challenge)
-    Log.info("credentials: ${validationRequest.credentials}")
+    Log.info("credentials: ${GsonUtils.getInstance().toJson(validationRequest.credentials)}")
 
     val validationResponse = sep10CClient.validate(validationRequest)
     Log.info("token: ${validationResponse.token}")

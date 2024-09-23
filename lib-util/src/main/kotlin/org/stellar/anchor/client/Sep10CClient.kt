@@ -66,7 +66,7 @@ class Sep10CClient(
     return ValidationRequest.builder()
       .authorizationEntry(challengeResponse.authorizationEntry)
       .serverSignature(challengeResponse.serverSignature)
-      .credentials(signedEntry.credentials.toXdrBase64())
+      .credentials(arrayOf(signedEntry.credentials.toXdrBase64()))
       .build()
   }
 
@@ -74,7 +74,7 @@ class Sep10CClient(
     val request =
       OkHttpUtil.buildJsonPostRequest(
         this.endpoint,
-        GsonUtils.getInstance().toJson(validationRequest)
+        GsonUtils.getInstance().toJson(validationRequest),
       )
     val response = client.newCall(request).execute()
     if (!response.isSuccessful) {
@@ -90,7 +90,7 @@ class Sep10CClient(
       entry: SorobanAuthorizationEntry,
       signer: Signer,
       validUntilLedgerSeq: Long,
-      network: Network
+      network: Network,
     ): SorobanAuthorizationEntry {
       val clone = SorobanAuthorizationEntry.fromXdrByteArray(entry.toXdrByteArray())
 
@@ -121,7 +121,7 @@ class Sep10CClient(
         Scv.toMap(
           linkedMapOf(
             Scv.toSymbol("public_key") to Scv.toBytes(publicKey),
-            Scv.toSymbol("signature") to Scv.toBytes(signature)
+            Scv.toSymbol("signature") to Scv.toBytes(signature),
           )
         )
       addressCredentials.signature = Scv.toVec(listOf(sigScVal))
@@ -131,6 +131,7 @@ class Sep10CClient(
 
     interface Signer {
       fun sign(preimage: HashIDPreimage): ByteArray
+
       fun publicKey(): ByteArray
     }
   }

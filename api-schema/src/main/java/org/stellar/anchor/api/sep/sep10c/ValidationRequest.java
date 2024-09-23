@@ -19,5 +19,5 @@ public class ValidationRequest {
 
   /** The credentials provided by the client to authenticate with. */
   @SerializedName("credentials")
-  String credentials;
+  String[] credentials;
 }

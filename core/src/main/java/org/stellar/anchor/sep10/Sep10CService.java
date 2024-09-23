@@ -142,7 +142,7 @@ public class Sep10CService {
     // Verify the client signature by simulating the invocation
     SorobanCredentials clientCredentials;
     try {
-      clientCredentials = SorobanCredentials.fromXdrBase64(validationRequest.getCredentials());
+      clientCredentials = SorobanCredentials.fromXdrBase64(validationRequest.getCredentials()[0]);
     } catch (IOException e) {
       throw new SepException("Failed to decode client credentials", e);
     }
