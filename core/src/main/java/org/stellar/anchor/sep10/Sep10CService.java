@@ -87,7 +87,7 @@ public class Sep10CService {
 
   private SCVal[] createArgsFromRequest(ChallengeRequest challengeRequest) {
     Map<String, String> args = new LinkedHashMap<>();
-    if (challengeRequest.getAccount() != null) args.put("account", challengeRequest.getAccount());
+    if (challengeRequest.getAddress() != null) args.put("address", challengeRequest.getAddress());
     if (sep10Config.getWebAuthDomain() != null)
       args.put("web_auth_domain", sep10Config.getWebAuthDomain());
     if (challengeRequest.getHomeDomain() != null)

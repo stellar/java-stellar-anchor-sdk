@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 public class ChallengeRequest {
   /** The contract account */
-  private final String account;
+  private final String address;
 
   private final String memo;
 

@@ -22,7 +22,7 @@ class Sep10CClient(
 
   fun getChallenge(request: ChallengeRequest): ChallengeResponse {
     val params = mutableMapOf<String, String>()
-    params["account"] = request.account ?: ""
+    params["address"] = request.address ?: ""
     params["memo"] = request.memo ?: ""
     params["home_domain"] = request.homeDomain ?: ""
     params["client_domain"] = request.clientDomain ?: ""

@@ -29,21 +29,21 @@ public class Sep10CController {
       produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public ChallengeResponse createChallenge(
-      @RequestParam(name = "account") String account,
+      @RequestParam(name = "address") String address,
       @RequestParam(required = false, name = "memo") String memo,
       @RequestParam(required = false, name = "home_domain") String homeDomain,
       @RequestParam(required = false, name = "client_domain") String clientDomain,
       @RequestHeader(required = false, name = "Authorization") String authorization) {
     ChallengeRequest challengeRequest =
         ChallengeRequest.builder()
-            .account(account)
+            .address(address)
             .memo(memo)
             .homeDomain(homeDomain)
             .clientDomain(clientDomain)
             .build();
     debugF(
-        "GET /auth account={} memo={} home_domain={}, client_domain={}",
-        account,
+        "GET /auth address={} memo={} home_domain={}, client_domain={}",
+        address,
         memo,
         homeDomain,
         clientDomain);

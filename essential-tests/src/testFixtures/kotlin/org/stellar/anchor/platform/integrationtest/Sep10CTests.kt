@@ -24,7 +24,7 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
     val challenge =
       sep10CClient.getChallenge(
         ChallengeRequest.builder()
-          .account(clientWalletContractAddress)
+          .address(clientWalletContractAddress)
           .homeDomain(webAuthDomain)
           .build()
       )
