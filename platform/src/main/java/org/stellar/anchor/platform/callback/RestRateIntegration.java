@@ -154,7 +154,7 @@ public class RestRateIntegration implements RateIntegration {
     FeeDetails fee = rate.getFee();
     // if fee is set, check the following
     if (fee != null) {
-      // fee.total is present and is a positive number
+      // fee.total is present and is a non-negative number
       if (!isNonNegativeNumber(fee.getTotal())) {
         logErrorAndThrow(
             "'rate.fee.total' is missing or a negative number in the GET /rate response",

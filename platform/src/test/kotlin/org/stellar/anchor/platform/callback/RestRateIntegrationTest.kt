@@ -200,6 +200,28 @@ class RestRateIntegrationTest {
     )
   }
 
+  @ParameterizedTest
+  @CsvSource(
+    value =
+      [
+        "-1.00, true, is missing or a negative number in the GET /rate response",
+        "0.00, true, rate.sell_amount' (100) is not within rounding error of the expected (99.0045) ('price * buy_amount + fee') in the GET /rate response",
+        "1.00, false, null",
+      ]
+  )
+  fun `test fee total`(total: String?, hasError: Boolean, errorMessage: String) {
+    rateResponseWithFee.rate.fee.total = total
+    if (hasError) {
+      val ex =
+        assertThrows<ServerErrorException> {
+          rateIntegration.validateRateResponse(request, rateResponseWithFee)
+        }
+      assertTrue(ex.message!!.contains(errorMessage))
+    } else {
+      rateIntegration.validateRateResponse(request, rateResponseWithFee)
+    }
+  }
+
   @Test
   fun `test bad fee total and asset`() {
     rateResponseWithFee.rate.fee.total = null
