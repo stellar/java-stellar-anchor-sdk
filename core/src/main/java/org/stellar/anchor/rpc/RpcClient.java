@@ -4,6 +4,8 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.sdk.SorobanServer;
 
 public class RpcClient {
+
+  // TODO: wrap apis
   private final SorobanServer sorobanServer;
 
   public RpcClient(AppConfig appConfig) {

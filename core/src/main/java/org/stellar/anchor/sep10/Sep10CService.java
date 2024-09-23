@@ -1,6 +1,7 @@
 package org.stellar.anchor.sep10;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 import lombok.AllArgsConstructor;
 import org.stellar.anchor.api.sep.sep10c.ChallengeRequest;
@@ -8,6 +9,7 @@ import org.stellar.anchor.api.sep.sep10c.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10c.ValidationRequest;
 import org.stellar.anchor.api.sep.sep10c.ValidationResponse;
 import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
@@ -199,7 +201,43 @@ public class Sep10CService {
   }
 
   private String generateJwt(SorobanAuthorizationEntry authorizationEntry) {
-    return null;
+    SorobanAuthorizedInvocation invocation = authorizationEntry.getRootInvocation();
+
+    long issuedAt = Instant.now().getEpochSecond();
+    String account = getFromContractArgs(invocation, "account").orElse("");
+    String homeDomain = getFromContractArgs(invocation, "home_domain").orElse("");
+    String clientDomain = getFromContractArgs(invocation, "client_domain").orElse("");
+
+    String authUrl = "https://" + sep10Config.getWebAuthDomainC() + "/auth";
+    String hashHex;
+    try {
+      hashHex = Util.bytesToHex(Util.hash(invocation.toXdrByteArray()));
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to decode invocation", e);
+    }
+
+    Sep10Jwt jwt =
+        Sep10Jwt.of(
+            authUrl,
+            account, // TODO: this should be the muxed account if memo is present
+            issuedAt,
+            issuedAt + sep10Config.getJwtTimeout(),
+            hashHex,
+            homeDomain,
+            clientDomain);
+
+    return jwtService.encode(jwt);
+  }
+
+  private Optional<String> getFromContractArgs(SorobanAuthorizedInvocation invocation, String key) {
+    SCString scKey = Scv.toString(key).getStr();
+    SCMap args = invocation.getFunction().getContractFn().getArgs()[0].getMap();
+    for (SCMapEntry entry : args.getSCMap()) {
+      if (entry.getKey().getStr().equals(scKey)) {
+        return Optional.of(entry.getVal().getStr().getSCString().toString());
+      }
+    }
+    return Optional.empty();
   }
 
   /**
