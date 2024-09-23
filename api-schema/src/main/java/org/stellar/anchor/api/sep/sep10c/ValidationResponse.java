@@ -8,6 +8,6 @@ import lombok.Data;
 @Builder
 @Data
 public class ValidationResponse {
-  /** The SEP-10 JWT. */
+  /** The JWT token that the client can use to authenticate with the server. */
   private String token;
 }
