@@ -208,7 +208,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
-      "'rate.fee.total' is missing or not a positive number in the GET /rate response",
+      "'rate.fee.total' is missing or a negative number in the GET /rate response",
       ex.message,
     )
 

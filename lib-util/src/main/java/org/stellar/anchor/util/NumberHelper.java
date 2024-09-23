@@ -21,6 +21,18 @@ public class NumberHelper {
     }
   }
 
+  public static boolean isNonNegativeNumber(String str) {
+    if (str == null) {
+      return false;
+    }
+
+    try {
+      return new BigDecimal(str).compareTo(BigDecimal.ZERO) >= 0;
+    } catch (NumberFormatException e) {
+      return false;
+    }
+  }
+
   public static boolean hasProperSignificantDecimals(String input, int maxDecimals) {
     try {
       BigDecimal decimal = new BigDecimal(input);

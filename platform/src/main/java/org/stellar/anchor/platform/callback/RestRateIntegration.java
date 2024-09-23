@@ -5,8 +5,7 @@ import static java.lang.String.format;
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.util.ErrorHelper.logErrorAndThrow;
 import static org.stellar.anchor.util.Log.*;
-import static org.stellar.anchor.util.NumberHelper.hasProperSignificantDecimals;
-import static org.stellar.anchor.util.NumberHelper.isPositiveNumber;
+import static org.stellar.anchor.util.NumberHelper.*;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -156,9 +155,9 @@ public class RestRateIntegration implements RateIntegration {
     // if fee is set, check the following
     if (fee != null) {
       // fee.total is present and is a positive number
-      if (!isPositiveNumber(fee.getTotal())) {
+      if (!isNonNegativeNumber(fee.getTotal())) {
         logErrorAndThrow(
-            "'rate.fee.total' is missing or not a positive number in the GET /rate response",
+            "'rate.fee.total' is missing or a negative number in the GET /rate response",
             ServerErrorException.class);
       }
       // fee.asset is a valid asset
