@@ -163,6 +163,7 @@ allprojects {
   group = "org.stellar.anchor-sdk"
   version = "2.10.1"
 
+
   tasks.jar {
     manifest {
       attributes(
