@@ -218,7 +218,7 @@ public class Sep10CService {
     String clientDomain = getFromContractArgs(invocation, "client_domain").orElse(null);
     String homeDomain = getFromContractArgs(invocation, "home_domain").orElse(null);
 
-    String authUrl = "https://" + sep10Config.getWebAuthDomain() + "/c/auth";
+    String authUrl = "http://" + sep10Config.getWebAuthDomain() + "/c/auth";
     String hashHex;
     try {
       hashHex = Util.bytesToHex(Util.hash(invocation.toXdrByteArray()));

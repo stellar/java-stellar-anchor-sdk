@@ -63,7 +63,7 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
     assertEquals(clientWalletContractAddress, jwt.account)
     assertEquals("123", jwt.accountMemo)
     assertNotNull(jwt.jti)
-    assertEquals("https://localhost:8080/c/auth", jwt.iss)
+    assertEquals(webAuthDomain, jwt.iss)
     assertEquals("${clientWalletContractAddress}:123", jwt.sub)
     assertNotNull(jwt.issuedAt)
     assertNotNull(jwt.expiresAt)
