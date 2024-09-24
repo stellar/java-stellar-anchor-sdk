@@ -272,9 +272,6 @@ sep10:
   #    Ex: home_domains: *.sdp.stellar.org
   web_auth_domain:
   #
-  # The `web_auth_domain` property of SEP-10c.
-  web_auth_domain_c:
-  #
   # The contract address of the Anchor's web auth contract
   web_auth_contract_id:
   #

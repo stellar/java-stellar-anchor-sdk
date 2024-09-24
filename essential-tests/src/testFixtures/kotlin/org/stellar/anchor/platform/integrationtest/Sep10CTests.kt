@@ -16,7 +16,7 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
       toml.getString("SIGNING_KEY"),
       SorobanServer("https://soroban-testnet.stellar.org"),
     )
-  private var webAuthDomain = toml.getString("WEB_AUTH_DOMAIN")
+  private var webAuthDomain = toml.getString("WEB_AUTH_ENDPOINT_C")
   private var clientWalletContractAddress =
     "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
 
@@ -24,10 +24,7 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
   fun testChallengeSigning() {
     val challenge =
       sep10CClient.getChallenge(
-        ChallengeRequest.builder()
-          .address(clientWalletContractAddress)
-          .homeDomain(webAuthDomain)
-          .build()
+        ChallengeRequest.builder().address(clientWalletContractAddress).build()
       )
     Log.info("authorizationEntry: ${challenge.authorizationEntry}")
     Log.info("signature: ${challenge.serverSignature}")

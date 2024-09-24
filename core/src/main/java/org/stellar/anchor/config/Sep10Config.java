@@ -22,8 +22,6 @@ public interface Sep10Config {
    */
   String getWebAuthDomain();
 
-  String getWebAuthDomainC();
-
   String getWebAuthContractId();
 
   /**

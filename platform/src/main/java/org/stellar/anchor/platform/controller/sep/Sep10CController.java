@@ -47,7 +47,7 @@ public class Sep10CController {
             .clientDomain(clientDomain)
             .build();
     debugF(
-        "GET /auth address={} memo={} home_domain={}, client_domain={}",
+        "GET /c/auth address={} memo={} home_domain={}, client_domain={}",
         address,
         memo,
         homeDomain,
@@ -63,7 +63,7 @@ public class Sep10CController {
       method = {RequestMethod.POST})
   public ValidationResponse validateChallenge(@RequestBody ValidationRequest validationRequest)
       throws SepException {
-    debugF("POST /auth validationRequest={}", GsonUtils.getInstance().toJson(validationRequest));
+    debugF("POST /c/auth validationRequest={}", GsonUtils.getInstance().toJson(validationRequest));
     return sep10CService.validateChallenge(validationRequest);
   }
 

@@ -80,7 +80,6 @@ sep10.enabled:
 sep10.home_domains:
 sep10.jwt_timeout:
 sep10.web_auth_domain:
-sep10.web_auth_domain_c:
 sep10.web_auth_contract_id:
 sep12.enabled:
 sep24.enabled:
