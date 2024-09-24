@@ -89,32 +89,26 @@ public class Sep10CService {
   }
 
   private SCVal[] createArgsFromRequest(ChallengeRequest challengeRequest) {
-    Map<String, String> args = new LinkedHashMap<>();
-    if (challengeRequest.getAddress() != null) args.put("address", challengeRequest.getAddress());
-    if (sep10Config.getWebAuthDomain() != null)
-      args.put("web_auth_domain", sep10Config.getWebAuthDomain());
-    if (challengeRequest.getHomeDomain() != null)
-      args.put("home_domain", challengeRequest.getHomeDomain());
-    if (challengeRequest.getMemo() != null) args.put("memo", challengeRequest.getMemo());
-    if (challengeRequest.getClientDomain() != null)
-      args.put("client_domain", challengeRequest.getClientDomain());
+    SCVal[] args = new SCVal[6];
+    args[0] = arg(challengeRequest.getAddress());
+    args[1] = arg(challengeRequest.getMemo());
+    args[2] = arg(challengeRequest.getHomeDomain());
+    args[3] = arg(sep10Config.getWebAuthDomain());
+    args[4] = arg(challengeRequest.getClientDomain());
+    args[5] = arg(null);
 
-    return createArguments(args);
+    return args;
   }
 
-  private SCVal[] createArguments(Map<String, String> args) {
-    SCMapEntry[] entries =
-        args.entrySet().stream()
-            .map(
-                entry ->
-                    new SCMapEntry.Builder()
-                        .key(Scv.toString(entry.getKey()))
-                        .val(Scv.toString(entry.getValue()))
-                        .build())
-            .toArray(SCMapEntry[]::new);
-    SCMap scMap = new SCMap(entries);
-
-    return new SCVal[] {new SCVal.Builder().discriminant(SCValType.SCV_MAP).map(scMap).build()};
+  private SCVal arg(String value) {
+    if (value == null) {
+      return new SCVal.Builder().discriminant(SCValType.SCV_VOID).build();
+    } else {
+      return new SCVal.Builder()
+          .discriminant(SCValType.SCV_STRING)
+          .str(Scv.toString(value).getStr())
+          .build();
+    }
   }
 
   /**
@@ -217,12 +211,23 @@ public class Sep10CService {
   }
 
   private Optional<String> getFromContractArgs(SorobanAuthorizedInvocation invocation, String key) {
-    SCString scKey = Scv.toString(key).getStr();
-    SCMap args = invocation.getFunction().getContractFn().getArgs()[0].getMap();
-    for (SCMapEntry entry : args.getSCMap()) {
-      if (entry.getKey().getStr().equals(scKey)) {
-        return Optional.of(entry.getVal().getStr().getSCString().toString());
-      }
+    switch (key) {
+      case "address":
+        return Optional.ofNullable(invocation.getFunction().getContractFn().getArgs()[0].getStr())
+            .map(SCString::getSCString)
+            .map(XdrString::toString);
+      case "memo":
+        return Optional.ofNullable(invocation.getFunction().getContractFn().getArgs()[1].getStr())
+            .map(SCString::getSCString)
+            .map(XdrString::toString);
+      case "home_domain":
+        return Optional.ofNullable(invocation.getFunction().getContractFn().getArgs()[2].getStr())
+            .map(SCString::getSCString)
+            .map(XdrString::toString);
+      case "client_domain":
+        return Optional.ofNullable(invocation.getFunction().getContractFn().getArgs()[4].getStr())
+            .map(SCString::getSCString)
+            .map(XdrString::toString);
     }
     return Optional.empty();
   }

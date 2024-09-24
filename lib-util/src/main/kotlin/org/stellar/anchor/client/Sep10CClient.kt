@@ -59,7 +59,7 @@ class Sep10CClient(
         }
       }
 
-    val validUntilLedgerSeq = rpc.latestLedger.sequence + 100.toLong()
+    val validUntilLedgerSeq = rpc.latestLedger.sequence + 1.toLong()
     val signedEntry =
       authorizeEntry(authorizedEntry, signer, validUntilLedgerSeq, Network(rpc.network.passphrase))
 
