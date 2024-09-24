@@ -1,5 +1,8 @@
 package org.stellar.anchor.platform.config;
 
+import static java.lang.String.*;
+import static org.springframework.validation.ValidationUtils.rejectIfEmptyOrWhitespace;
+import static org.stellar.anchor.platform.utils.ResourceHelper.*;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.io.IOException;
@@ -8,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.event.*;
-import org.stellar.anchor.platform.utils.ResourceHelper;
 
 @Data
 public class PropertyQueueConfig implements QueueConfig, Validator {
@@ -26,8 +28,7 @@ public class PropertyQueueConfig implements QueueConfig, Validator {
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     PropertyQueueConfig config = (PropertyQueueConfig) target;
     if (config.getType() == null) {
-      errors.rejectValue(
-          "type",
+      errors.reject(
           "queue-type-empty",
           "queue.type is not defined. Please specify the type: KAFKA, SQS, or MSK");
       return;
@@ -44,109 +45,116 @@ public class PropertyQueueConfig implements QueueConfig, Validator {
         validateMsk(config, errors);
         break;
       default:
-        errors.rejectValue(
-            "type", "invalidType-queue-type", "queue.type must be one of 'KAFKA', 'SQS', or MSK");
+        errors.reject("invalidType-queue-type", "queue.type must be one of 'KAFKA', 'SQS', or MSK");
     }
   }
 
-  private void validateMsk(PropertyQueueConfig ignoredConfig, Errors errors) {
-    errors.rejectValue(
-        "msk",
-        "queue-type-msk-not-implemented",
-        "MSK is not implemented. Please specify a different queue type.");
-  }
-
-  private void validateSqs(PropertyQueueConfig ignoredConfig, Errors errors) {
-    errors.rejectValue(
-        "sqs",
-        "queue-type-sqs-not-implemented",
-        "SQS is not implemented. Please specify a different queue type.");
-  }
-
-  private void validateKafka(PropertyQueueConfig config, Errors errors) {
+  void validateKafka(PropertyQueueConfig config, Errors errors) {
     if (config.getKafka() == null) {
-      errors.rejectValue(
-          "kafka",
+      errors.reject(
           "queue-kafka-empty",
           "queue.kafka is not defined. Please specify the Kafka configuration.");
     } else {
       KafkaConfig kafkaConfig = config.getKafka();
-      if (kafkaConfig.getBootstrapServer() == null) {
-        errors.rejectValue(
-            "kafka.bootstrapServer",
+      if (isEmpty(kafkaConfig.getBootstrapServer())) {
+        errors.reject(
             "kafka-bootstrap-server-empty",
             "queue.kafka.bootstrap_server is not defined. Please specify the Kafka bootstrap server.");
       }
       if (kafkaConfig.getRetries() < 0) {
-        errors.rejectValue(
-            "kafka.retries",
-            "kafka-retries-invalid",
-            "queue.kafka.retries must be greater than or equal to 0.");
+        errors.reject(
+            "kafka-retries-invalid", "queue.kafka.retries must be greater than or equal to 0.");
       }
 
       if (kafkaConfig.getLingerMs() < 0) {
-        errors.rejectValue(
-            "kafka.lingerMs",
-            "kafka-linger-ms-invalid",
-            "queue.kafka.linger_ms must be greater than or equal to 0.");
+        errors.reject(
+            "kafka-linger-ms-invalid", "queue.kafka.linger_ms must be greater than or equal to 0.");
       }
 
       if (kafkaConfig.getBatchSize() <= 0) {
-        errors.rejectValue(
-            "kafka.batchSize",
-            "kafka-batch-size-invalid",
-            "queue.kafka.batch_size must be greater than 0.");
+        errors.reject("kafka-batch-size-invalid", "queue.kafka.batch_size must be greater than 0.");
       }
 
       if (kafkaConfig.getPollTimeoutSeconds() <= 0) {
-        errors.rejectValue(
-            "kafka.pollTimeoutSeconds",
+        errors.reject(
             "kafka-poll-timeout-seconds-invalid",
             "queue.kafka.poll_timeout_seconds must be greater than 0.");
       }
 
-      if (kafkaConfig.getSecurityProtocol() != null
-          && kafkaConfig.getSecurityProtocol() != KafkaConfig.SecurityProtocol.PLAINTEXT) {
+      if (kafkaConfig.getSecurityProtocol() == null) {
+        errors.reject(
+            "kafka-security-protocol-empty", "queue.kafka.security_protocol must be defined.");
+      }
+
+      if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_PLAINTEXT) {
         if (kafkaConfig.getSaslMechanism() == null) {
-          errors.rejectValue(
-              "kafka.saslMechanism",
+          errors.reject(
               "kafka-sasl-mechanism-empty",
-              "queue.kafka.sasl_mechanism must be defined if securityProtocol is not PLAINTEXT.");
+              "events.queue.kafka.sasl_mechanism must be defined when queue.kafka.security_protocol is SASL_PLAINTEXT.");
         }
       }
 
       if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
+        if (kafkaConfig.getSaslMechanism() == null) {
+          errors.reject(
+              "kafka-sasl-mechanism-empty",
+              "events.queue.kafka.sasl_mechanism must be defined when queue.kafka.security_protocol is SASL_SSL.");
+        }
         if (isEmpty(kafkaConfig.getSslKeystoreLocation())) {
-          errors.rejectValue(
-              "kafka.sslKeystoreLocation",
+          errors.reject(
               "kafka-ssl-keystore-location-empty",
-              "queue.kafka.ssl_keystore_location must be defined if securityProtocol is SASL_SSL.");
+              "queue.kafka.ssl_keystore_location must be defined if queue.kafka.security_protocol is SASL_SSL.");
         } else {
           try {
-            ResourceHelper.findFileThenResource(kafkaConfig.getSslKeystoreLocation());
+            findFileThenResource(kafkaConfig.getSslKeystoreLocation());
           } catch (IOException e) {
-            errors.rejectValue(
-                "kafka.sslKeystoreLocation",
+            errors.reject(
                 "kafka-ssl-keystore-location-not-found",
-                "queue.kafka.ssl_keystore_location file not found.");
+                format(
+                    "queue.kafka.ssl_keystore_location file \"%s\" not found.",
+                    kafkaConfig.getSslKeystoreLocation()));
           }
         }
         if (isEmpty(kafkaConfig.getSslTruststoreLocation())) {
-          errors.rejectValue(
-              "kafka.sslTruststoreLocation",
+          errors.reject(
               "kafka-ssl-truststore-location-empty",
               "queue.kafka.ssl_truststore_location must be defined if securityProtocol is SASL_SSL.");
         } else {
           try {
-            ResourceHelper.findFileThenResource(kafkaConfig.getSslTruststoreLocation());
+            findFileThenResource(kafkaConfig.getSslTruststoreLocation());
           } catch (IOException e) {
-            errors.rejectValue(
-                "kafka.sslTruststoreLocation",
+            errors.reject(
                 "kafka-ssl-truststore-location-not-found",
-                "queue.kafka.ssl_truststore_location file not found.");
+                format(
+                    "queue.kafka.ssl_truststore_location file \"%s\" not found.",
+                    kafkaConfig.getSslTruststoreLocation()));
           }
         }
       }
+    }
+  }
+
+  void validateMsk(PropertyQueueConfig config, Errors errors) {
+    rejectIfEmptyOrWhitespace(errors, "msk.bootstrapServer", "msk-bootstrap-server-empty");
+
+    if (config.msk.retries < 0) {
+      errors.reject("msk-retries-invalid", "events.publisher.msk.retries must be greater than 0");
+    }
+
+    if (config.msk.lingerMs < 0) {
+      errors.reject(
+          "msk-linger-ms-invalid", "events.publisher.msk.linger_ms must be greater than 0");
+    }
+
+    if (config.msk.batchSize < 0) {
+      errors.reject(
+          "msk-batch-size-invalid", "events.publisher.msk.batch_size must be greater than 0");
+    }
+  }
+
+  void validateSqs(PropertyQueueConfig config, Errors errors) {
+    if (isEmpty(config.getSqs().awsRegion)) {
+      errors.reject("sqs-aws-region-empty", "events.publisher.sqs.aws_region must be defined");
     }
   }
 }
