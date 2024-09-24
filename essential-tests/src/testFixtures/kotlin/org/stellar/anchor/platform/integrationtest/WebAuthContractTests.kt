@@ -18,7 +18,7 @@ class WebAuthContractTests {
   private val secret = philip
   private val keypair = KeyPair.fromSecretSeed(secret)
   private val account = sorobanServer.getAccount(keypair.accountId)
-  private val webAuthContract = "CASGGAU4NE46QVYCK52NEMBYUQR5SZIYRQH7CA37UOGDCPODEDEUXKRL"
+  private val webAuthContract = "CC5QXQ23SB3P4ILU6KXL7KB4NMKOVRKBJRA4NEWSFKHA3QR63UP3IHYH"
   private val walletContract = "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
 
   private val anchorKeypair = KeyPair.fromSecretSeed(WITHDRAW_FUND_CLIENT_SECRET_2)
@@ -29,22 +29,29 @@ class WebAuthContractTests {
     val parameters =
       mutableListOf(
         SCVal.Builder()
-          .discriminant(SCValType.SCV_MAP)
-          .map(
-            SCMap(
-              arrayOf(
-                SCMapEntry.Builder()
-                  .key(Scv.toString("account"))
-                  .`val`(Scv.toString(walletContract))
-                  .build(),
-                SCMapEntry.Builder()
-                  .key(Scv.toString("web_auth_domain"))
-                  .`val`(Scv.toString("localhost:8080"))
-                  .build(),
-              )
-            )
-          )
-          .build()
+          .discriminant(SCValType.SCV_STRING)
+          .str(Scv.toString(walletContract).str)
+          .build(),
+        SCVal.Builder()
+          .discriminant(SCValType.SCV_STRING)
+          .str(Scv.toString("12345678901234567890").str)
+          .build(),
+        SCVal.Builder()
+          .discriminant(SCValType.SCV_STRING)
+          .str(Scv.toString("http://home_domain.com:8080/").str)
+          .build(),
+        SCVal.Builder()
+          .discriminant(SCValType.SCV_STRING)
+          .str(Scv.toString("http://web_auth_domain.com:8080/").str)
+          .build(),
+        SCVal.Builder()
+          .discriminant(SCValType.SCV_STRING)
+          .str(Scv.toString("http://client_domain:8080/").str)
+          .build(),
+        SCVal.Builder()
+          .discriminant(SCValType.SCV_STRING)
+          .str(Scv.toString(walletContract).str)
+          .build(),
       )
     val operation =
       InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
