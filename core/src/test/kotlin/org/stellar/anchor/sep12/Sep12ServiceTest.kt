@@ -190,13 +190,11 @@ class Sep12ServiceTest {
         )
         .build()
     every { platformApiClient.getTransaction(any()) } returns transaction
-    val jwtToken = createJwtToken(TEST_ACCOUNT)
 
-    val putRequestBase =
-      Sep12PutCustomerRequest.builder().transactionId(TEST_TRANSACTION_ID).build()
-    assertDoesNotThrow { sep12Service.populateRequestFromTransactionId(putRequestBase) }
-    assertEquals(TEST_ACCOUNT, putRequestBase.account)
-    assertEquals(TEST_MEMO, putRequestBase.memo)
+    val putRequest = Sep12PutCustomerRequest.builder().transactionId(TEST_TRANSACTION_ID).build()
+    assertDoesNotThrow { sep12Service.populateRequestFromTransactionId(putRequest) }
+    assertEquals(TEST_ACCOUNT, putRequest.account)
+    assertEquals(TEST_MEMO, putRequest.memo)
 
     val getRequestBase =
       Sep12GetCustomerRequest.builder().transactionId(TEST_TRANSACTION_ID).build()
