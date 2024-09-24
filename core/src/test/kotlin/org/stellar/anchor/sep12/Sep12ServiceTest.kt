@@ -40,6 +40,7 @@ class Sep12ServiceTest {
       "MBFZNZTFSI6TWLVAID7VOLCIFX2PMUOS2X7U6H4TNK4PAPSHPWMMUAAAAAAAAAPCIA2IM"
     private const val CLIENT_DOMAIN = "demo-wallet.stellar.org"
     private const val TEST_HOST_URL = "http://localhost:8080"
+    private const val TEST_TRANSACTION_ID = "test-transaction-id"
     private const val wantedSep12GetCustomerResponse =
       """
 {
@@ -191,13 +192,15 @@ class Sep12ServiceTest {
     every { platformApiClient.getTransaction(any()) } returns transaction
     val jwtToken = createJwtToken(TEST_ACCOUNT)
 
-    val putRequestBase = Sep12PutCustomerRequest.builder().transactionId("id").build()
-    assertDoesNotThrow { sep12Service.validateGetOrPutRequest(putRequestBase, jwtToken) }
+    val putRequestBase =
+      Sep12PutCustomerRequest.builder().transactionId(TEST_TRANSACTION_ID).build()
+    assertDoesNotThrow { sep12Service.populateRequestFromTransactionId(putRequestBase) }
     assertEquals(TEST_ACCOUNT, putRequestBase.account)
     assertEquals(TEST_MEMO, putRequestBase.memo)
 
-    val getRequestBase = Sep12GetCustomerRequest.builder().transactionId("id").build()
-    assertDoesNotThrow { sep12Service.validateGetOrPutRequest(getRequestBase, jwtToken) }
+    val getRequestBase =
+      Sep12GetCustomerRequest.builder().transactionId(TEST_TRANSACTION_ID).build()
+    assertDoesNotThrow { sep12Service.populateRequestFromTransactionId(getRequestBase) }
     assertEquals(TEST_ACCOUNT, getRequestBase.account)
     assertEquals(TEST_MEMO, getRequestBase.memo)
   }
@@ -325,6 +328,75 @@ class Sep12ServiceTest {
     verify(exactly = 1) { customerIntegration.putCustomer(any()) }
     verify(exactly = 1) { eventSession.publish(any()) }
     assertEquals(TEST_ACCOUNT, mockPutRequest.account)
+  }
+
+  @Test
+  fun `Test put customer request with transaction_id`() {
+    // mock `PUT {callbackApi}/customer` response
+    val callbackApiPutRequestSlot = slot<PutCustomerRequest>()
+    val callbackApiGetRequestSlot = slot<GetCustomerRequest>()
+    val kycUpdateEventSlot = slot<AnchorEvent>()
+    val mockCallbackApiPutCustomerResponse = PutCustomerResponse()
+    val mockCallbackApiGetCustomerResponse = GetCustomerResponse()
+    mockCallbackApiPutCustomerResponse.id = "customer-id"
+    every { customerIntegration.putCustomer(capture(callbackApiPutRequestSlot)) } returns
+      mockCallbackApiPutCustomerResponse
+    every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } returns
+      mockCallbackApiGetCustomerResponse
+    every { eventSession.publish(capture(kycUpdateEventSlot)) } returns Unit
+    every { platformApiClient.getTransaction(any()) } returns
+      GetTransactionResponse.builder()
+        .customers(
+          Customers.builder()
+            .sender(StellarId.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).build())
+            .build()
+        )
+        .build()
+
+    // Execute the request
+    val mockPutRequest =
+      Sep12PutCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sending_user")
+        .firstName("John")
+        .birthDate("2000-01-01")
+        .idIssueDate("2023-12-13")
+        .idExpirationDate("2023-12-13T19:33:07Z")
+        .emailAddressVerification("12345678")
+        .bankName("Bank of America")
+        .mobileMoneyNumber("12345678")
+        .mobileMoneyProvider("M-PESA")
+        .externalTransferMemo("memo")
+        .transactionId(TEST_TRANSACTION_ID)
+        .build()
+    val jwtToken = createJwtToken(TEST_ACCOUNT)
+    assertDoesNotThrow { sep12Service.putCustomer(jwtToken, mockPutRequest) }
+
+    // validate the request
+    val wantCallbackApiPutRequest =
+      PutCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sending_user")
+        .firstName("John")
+        .birthDate("2000-01-01")
+        .idIssueDate("2023-12-13")
+        .idExpirationDate("2023-12-13T19:33:07Z")
+        .emailAddressVerification("12345678")
+        .bankName("Bank of America")
+        .mobileMoneyNumber("12345678")
+        .mobileMoneyProvider("M-PESA")
+        .externalTransferMemo("memo")
+        .transactionId(TEST_TRANSACTION_ID)
+        .build()
+    assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
+
+    val wantCallbackApiGetCustomerResponse =
+      GetCustomerRequest.builder().id("customer-id").transactionId(TEST_TRANSACTION_ID).build()
+    assertEquals(wantCallbackApiGetCustomerResponse, callbackApiGetRequestSlot.captured)
   }
 
   @Test
