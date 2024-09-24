@@ -1,7 +1,11 @@
 package org.stellar.anchor.platform.integrationtest
 
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.sep10c.ChallengeRequest
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.client.Sep10CClient
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
@@ -16,6 +20,17 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
       toml.getString("SIGNING_KEY"),
       SorobanServer("https://soroban-testnet.stellar.org"),
     )
+  private val jwtService =
+    JwtService(
+      config.env["secret.sep6.more_info_url.jwt_secret"],
+      config.env["secret.sep10.jwt_secret"]!!,
+      config.env["secret.sep24.interactive_url.jwt_secret"]!!,
+      config.env["secret.sep24.more_info_url.jwt_secret"]!!,
+      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.platform_api.auth_secret"]!!,
+      null,
+    )
+
   private var webAuthDomain = toml.getString("WEB_AUTH_ENDPOINT_C")
   private var clientWalletContractAddress =
     "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
@@ -24,7 +39,12 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
   fun testChallengeSigning() {
     val challenge =
       sep10CClient.getChallenge(
-        ChallengeRequest.builder().address(clientWalletContractAddress).build()
+        ChallengeRequest.builder()
+          .address(clientWalletContractAddress)
+          .memo("123")
+          .homeDomain(webAuthDomain)
+          .clientDomain("example.com")
+          .build()
       )
     Log.info("authorizationEntry: ${challenge.authorizationEntry}")
     Log.info("signature: ${challenge.serverSignature}")
@@ -34,5 +54,18 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
 
     val validationResponse = sep10CClient.validate(validationRequest)
     Log.info("token: ${validationResponse.token}")
+
+    val jwt = jwtService.decode(validationResponse.token, Sep10Jwt::class.java)
+    Log.info("jwt: ${GsonUtils.getInstance().toJson(jwt)}")
+
+    assertEquals("example.com", jwt.clientDomain)
+    assertEquals(webAuthDomain, jwt.homeDomain)
+    assertEquals(clientWalletContractAddress, jwt.account)
+    assertEquals("123", jwt.accountMemo)
+    assertNotNull(jwt.jti)
+    assertEquals("https://localhost:8080/c/auth", jwt.iss)
+    assertEquals("${clientWalletContractAddress}:123", jwt.sub)
+    assertNotNull(jwt.issuedAt)
+    assertNotNull(jwt.expiresAt)
   }
 }
