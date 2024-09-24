@@ -68,6 +68,7 @@ jobs:
           KT_REFERENCE_SERVER_CONFIG: /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/config/reference-config.yaml
           SEP1_TOML_VALUE: /home/runner/java-stellar-anchor-sdk/service-runner/src/main/resources/config/stellar.host.docker.internal.toml
           SEP10_WEB_AUTH_DOMAIN: host.docker.internal:8080
+          SEP10_WEB_AUTH_CONTRACT_ID: CDQDXQPUUDLUZGSBQZBUMZA6ZKVR5JWEX4Y32K3MYQYUMAHIJFLVNOYB
           SEP10_HOME_DOMAINS: host.docker.internal:8080,*.stellar.org
           TOML_PATH: /home/runner/java-stellar-anchor-sdk/wallet-reference-server/src/main/resources/toml
         run: |
