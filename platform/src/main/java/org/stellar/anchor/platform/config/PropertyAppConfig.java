@@ -23,6 +23,9 @@ public class PropertyAppConfig implements AppConfig, Validator {
   @Value("${stellar_network.horizon_url}")
   private String horizonUrl;
 
+  @Value("${stellar_network.rpc_server_url}")
+  private String rpcServerUrl;
+
   @Value("${languages}")
   private List<String> languages;
 

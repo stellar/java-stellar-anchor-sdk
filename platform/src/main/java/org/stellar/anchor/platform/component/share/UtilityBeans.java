@@ -21,6 +21,7 @@ import org.stellar.anchor.platform.service.HealthCheckService;
 import org.stellar.anchor.platform.service.Sep24MoreInfoUrlConstructor;
 import org.stellar.anchor.platform.service.Sep6MoreInfoUrlConstructor;
 import org.stellar.anchor.platform.validator.RequestValidator;
+import org.stellar.anchor.rpc.RpcClient;
 import org.stellar.anchor.util.GsonUtils;
 
 @Configuration
@@ -101,6 +102,11 @@ public class UtilityBeans {
   @Bean
   public Horizon horizon(AppConfig appConfig) {
     return new Horizon(appConfig);
+  }
+
+  @Bean
+  public RpcClient rpc(AppConfig appConfig) {
+    return new RpcClient(appConfig);
   }
 
   @Bean
