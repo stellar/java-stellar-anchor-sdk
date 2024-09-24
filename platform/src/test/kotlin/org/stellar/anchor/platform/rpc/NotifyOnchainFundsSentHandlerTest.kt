@@ -567,6 +567,7 @@ class NotifyOnchainFundsSentHandlerTest {
         "min_account_sequence_age": 0,
         "min_account_sequence_ledger_gap": 0
       },
+      "memo_type": "none",
       "links": {
         "account": {
           "href": "https://horizon-testnet.stellar.org/accounts/testAccount",

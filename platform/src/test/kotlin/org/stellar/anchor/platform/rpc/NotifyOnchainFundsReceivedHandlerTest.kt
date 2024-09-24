@@ -1111,6 +1111,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
         "min_accountSequenceAge": 0,
         "min_accountSequenceLedgerGap": 0
       },
+      "memo_type": "none",
       "links": {
         "account": {
           "href": "https://horizon-testnet.stellar.org/accounts/testAccount",
