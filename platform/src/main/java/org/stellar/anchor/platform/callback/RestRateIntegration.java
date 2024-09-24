@@ -221,18 +221,18 @@ public class RestRateIntegration implements RateIntegration {
         for (FeeDescription feeDescription : fee.getDetails()) {
           if (!isPositiveNumber(feeDescription.getAmount())) {
             logErrorAndThrow(
-                "'rate.fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
+                "'rate.fee.details[?].amount' is missing or not a positive number in the GET /rate response",
                 ServerErrorException.class);
           }
           if (!hasProperSignificantDecimals(
               feeDescription.getAmount(), feeAsset.getSignificantDecimals())) {
             logErrorAndThrow(
-                "'rate.fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
+                "'rate.fee.details[?].amount' has incorrect number of significant decimals in the GET /rate response",
                 ServerErrorException.class);
           }
           if (feeDescription.getName() == null) {
             logErrorAndThrow(
-                "'rate.fee.details.description[?].name' is missing in the GET /rate response",
+                "'rate.fee.details[?].name' is missing in the GET /rate response",
                 ServerErrorException.class);
           }
           totalFee = totalFee.add(new BigDecimal(feeDescription.getAmount()));
