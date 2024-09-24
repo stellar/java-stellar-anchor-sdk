@@ -18,7 +18,7 @@ class WebAuthContractTests {
   private val secret = philip
   private val keypair = KeyPair.fromSecretSeed(secret)
   private val account = sorobanServer.getAccount(keypair.accountId)
-  private val webAuthContract = "CC5QXQ23SB3P4ILU6KXL7KB4NMKOVRKBJRA4NEWSFKHA3QR63UP3IHYH"
+  private val webAuthContract = "CDQDXQPUUDLUZGSBQZBUMZA6ZKVR5JWEX4Y32K3MYQYUMAHIJFLVNOYB"
   private val walletContract = "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
 
   private val anchorKeypair = KeyPair.fromSecretSeed(WITHDRAW_FUND_CLIENT_SECRET_2)
@@ -32,10 +32,7 @@ class WebAuthContractTests {
           .discriminant(SCValType.SCV_STRING)
           .str(Scv.toString(walletContract).str)
           .build(),
-        SCVal.Builder()
-          .discriminant(SCValType.SCV_STRING)
-          .str(Scv.toString("12345678901234567890").str)
-          .build(),
+        SCVal.Builder().discriminant(SCValType.SCV_VOID).build(), // memo is None
         SCVal.Builder()
           .discriminant(SCValType.SCV_STRING)
           .str(Scv.toString("http://home_domain.com:8080/").str)
