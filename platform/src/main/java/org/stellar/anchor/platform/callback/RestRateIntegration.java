@@ -94,6 +94,12 @@ public class RestRateIntegration implements RateIntegration {
       }
 
       validateRateResponse(request, getRateResponse);
+
+      // If the rate.fee is not present, we need to set it to 0 so that the fee always exists
+      if (getRateResponse.getRate().getFee() == null) {
+        getRateResponse.getRate().setFee(new FeeDetails("0", request.getSellAsset()));
+      }
+
       return getRateResponse;
     }
   }
@@ -160,6 +166,14 @@ public class RestRateIntegration implements RateIntegration {
             "'rate.fee.total' is missing or a negative number in the GET /rate response",
             ServerErrorException.class);
       }
+
+      // if fee.total is zero, fee.details must be empty or non-existent
+      if (fee.getTotal().equals("0") && fee.getDetails() != null && !fee.getDetails().isEmpty()) {
+        logErrorAndThrow(
+            "'rate.fee.details' must be empty or not-existent when 'rate.fee.total' is zero in the GET /rate response",
+            ServerErrorException.class);
+      }
+
       // fee.asset is a valid asset
       AssetInfo feeAsset = assetService.getAssetByName(fee.getAsset());
       if (fee.getAsset() == null || feeAsset == null) {
