@@ -19,6 +19,17 @@ import org.stellar.walletsdk.auth.AuthToken
 import org.stellar.walletsdk.horizon.SigningKeyPair
 
 abstract class AbstractIntegrationTests(val config: TestConfig) {
+  companion object {
+    const val TEST_PAYMENT_ID = "574872782651393"
+    const val TEST_PAYMENT_AMOUNT = "10.0000000"
+    const val TEST_STELLAR_TRANSACTION_HASH =
+      "47dd0547e48513b967ba1c3cdf83cb90d450800a182b10d54e7858b32a10207f"
+    const val TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT =
+      "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU"
+    const val TEST_STELLAR_TRANSACTION_DEST_ACCOUNT =
+      "GABCKCYPAGDDQMSCTMSBO7C2L34NU3XXCW7LR4VVSWCCXMAJY3B4YCZP"
+  }
+
   var toml: TomlContent =
     parse(resourceAsString("${config.env["anchor.domain"]}/.well-known/stellar.toml"))
   var wallet =
