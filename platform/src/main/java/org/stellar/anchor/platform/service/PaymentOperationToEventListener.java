@@ -46,13 +46,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   @Override
   public void onReceived(ObservedPayment payment) throws IOException {
-    // Check if payment is connected to a transaction
-    if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
-        || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
-      traceF("Ignore the payment {} is not connected to a transaction.", payment.getId());
-      return;
-    }
-
     // Check if the payment contains the expected asset type
     if (!List.of("credit_alphanum4", "credit_alphanum12", "native")
         .contains(payment.getAssetType())) {
@@ -61,15 +54,28 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
 
-    // Parse memo
-    String memo = payment.getTransactionMemo();
-    String memoType = payment.getTransactionMemoType();
-    if (memoType.equals(MemoHelper.memoTypeAsString(MemoType.MEMO_HASH))) {
-      try {
-        memo = MemoHelper.convertHexToBase64(payment.getTransactionMemo());
-      } catch (DecoderException ex) {
-        infoF(
-            "The memo type is \"hash\" but the memo string {} could not be parsed as such.", memo);
+    // Extract memo from payment if it exists
+    String memo = null;
+    String memoType = null;
+
+    if (!payment.getType().equals(ObservedPayment.Type.SAC_TRANSFER)) {
+      if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
+          || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
+        traceF("Ignore the payment {} is not connected to a transaction.", payment.getId());
+        return;
+      }
+
+      // Parse memo
+      memo = payment.getTransactionMemo();
+      memoType = payment.getTransactionMemoType();
+      if (memoType.equals(MemoHelper.memoTypeAsString(MemoType.MEMO_HASH))) {
+        try {
+          memo = MemoHelper.convertHexToBase64(payment.getTransactionMemo());
+        } catch (DecoderException ex) {
+          infoF(
+              "The memo type is \"hash\" but the memo string {} could not be parsed as such.",
+              memo);
+        }
       }
     }
 
@@ -96,9 +102,15 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Find a transaction matching the memo, assumes transactions are unique to account+memo
     JdbcSep24Transaction sep24Txn = null;
     try {
-      sep24Txn =
-          sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
-              payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
+      if (memo != null) {
+        sep24Txn =
+            sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
+                payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
+      } else {
+        sep24Txn =
+            sep24TransactionStore.findOneByToAccountAndStatus(
+                payment.getTo(), SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
+      }
     } catch (Exception ex) {
       errorEx(ex);
     }
