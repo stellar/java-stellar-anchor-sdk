@@ -6,7 +6,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
@@ -28,7 +27,6 @@ import org.stellar.anchor.platform.AbstractIntegrationTests.Companion.TEST_STELL
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 
-@Disabled
 class PlatformApiCustodyTests : AbstractIntegrationTests(TestConfig("custody")) {
   companion object {
     private const val TX_ID_KEY = "TX_ID"

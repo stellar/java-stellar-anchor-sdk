@@ -29,7 +29,6 @@ import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.RSAUtil
 
-@Disabled
 class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
   private val custodyApiClient =
     CustodyApiClient(
