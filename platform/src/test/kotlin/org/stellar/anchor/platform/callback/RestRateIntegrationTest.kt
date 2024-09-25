@@ -230,6 +230,7 @@ class RestRateIntegrationTest {
   )
   fun `test fee total`(total: String?, hasError: Boolean, errorMessage: String) {
     rateResponseWithFee.rate.fee.total = total
+    rateResponseWithFee.rate.fee.details = null
     if (hasError) {
       val ex =
         assertThrows<ServerErrorException> {
