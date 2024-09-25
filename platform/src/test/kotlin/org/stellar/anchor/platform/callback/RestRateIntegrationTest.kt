@@ -266,7 +266,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
-      "'rate.fee.details.description[?].name' is missing in the GET /rate response",
+      "'rate.fee.details[?].name' is missing in the GET /rate response",
       ex.message,
     )
 
@@ -277,7 +277,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
-      "'rate.fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
+      "'rate.fee.details[?].amount' is missing or not a positive number in the GET /rate response",
       ex.message,
     )
 
@@ -327,7 +327,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
-      "'rate.fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
+      "'rate.fee.details[?].amount' has incorrect number of significant decimals in the GET /rate response",
       ex.message,
     )
   }
