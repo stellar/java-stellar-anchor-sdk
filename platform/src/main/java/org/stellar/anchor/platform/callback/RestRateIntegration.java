@@ -26,6 +26,7 @@ import org.stellar.anchor.api.callback.GetRateRequest;
 import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.FeeDescription;
@@ -65,20 +66,8 @@ public class RestRateIntegration implements RateIntegration {
 
   @Override
   public GetRateResponse getRate(GetRateRequest request) throws AnchorException {
-    Builder urlBuilder = get(anchorEndpoint).newBuilder().addPathSegment("rate");
-    Type type = new TypeToken<Map<String, ?>>() {}.getType();
-    Map<String, String> paramsMap = gson.fromJson(gson.toJson(request), type);
-    paramsMap.forEach(
-        (key, value) -> {
-          if (value != null) {
-            urlBuilder.addQueryParameter(key, value);
-          }
-        });
-    HttpUrl url = urlBuilder.build();
 
-    Request httpRequest =
-        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build();
-    try (Response response = PlatformIntegrationHelper.call(httpClient, httpRequest)) {
+    try (Response response = invokeGetRateRequest(request, authHelper)) {
       String responseContent = PlatformIntegrationHelper.getContent(response);
 
       if (response.code() != HttpStatus.OK.value()) {
@@ -168,7 +157,9 @@ public class RestRateIntegration implements RateIntegration {
       }
 
       // if fee.total is zero, fee.details must be empty or non-existent
-      if (fee.getTotal().equals("0") && fee.getDetails() != null && !fee.getDetails().isEmpty()) {
+      if ((new BigDecimal(fee.getTotal()).compareTo(BigDecimal.ZERO) == 0)
+          && fee.getDetails() != null
+          && !fee.getDetails().isEmpty()) {
         logErrorAndThrow(
             "'rate.fee.details' must be empty or not-existent when 'rate.fee.total' is zero in the GET /rate response",
             ServerErrorException.class);
@@ -274,6 +265,25 @@ public class RestRateIntegration implements RateIntegration {
             ServerErrorException.class);
       }
     }
+  }
+
+  Response invokeGetRateRequest(GetRateRequest request, AuthHelper authHelper)
+      throws InvalidConfigException, ServerErrorException {
+    Builder urlBuilder = get(anchorEndpoint).newBuilder().addPathSegment("rate");
+    Type type = new TypeToken<Map<String, ?>>() {}.getType();
+    Map<String, String> paramsMap = gson.fromJson(gson.toJson(request), type);
+    paramsMap.forEach(
+        (key, value) -> {
+          if (value != null) {
+            urlBuilder.addQueryParameter(key, value);
+          }
+        });
+
+    HttpUrl url = urlBuilder.build();
+
+    Request httpRequest =
+        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build();
+    return PlatformIntegrationHelper.call(httpClient, httpRequest);
   }
 
   /**
