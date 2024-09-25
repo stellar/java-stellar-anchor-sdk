@@ -42,6 +42,7 @@ import org.stellar.sdk.requests.PaymentsRequestBuilder;
 import org.stellar.sdk.requests.RequestBuilder;
 import org.stellar.sdk.requests.SSEStream;
 import org.stellar.sdk.responses.Page;
+import org.stellar.sdk.responses.operations.InvokeHostFunctionOperationResponse;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
@@ -360,13 +361,14 @@ public class StellarPaymentObserver implements HealthCheckable {
 
     ObservedPayment observedPayment = null;
     try {
-      if (operationResponse instanceof PaymentOperationResponse) {
-        PaymentOperationResponse payment = (PaymentOperationResponse) operationResponse;
+      if (operationResponse instanceof PaymentOperationResponse payment) {
         observedPayment = ObservedPayment.fromPaymentOperationResponse(payment);
-      } else if (operationResponse instanceof PathPaymentBaseOperationResponse) {
-        PathPaymentBaseOperationResponse pathPayment =
-            (PathPaymentBaseOperationResponse) operationResponse;
+      } else if (operationResponse instanceof PathPaymentBaseOperationResponse pathPayment) {
         observedPayment = ObservedPayment.fromPathPaymentOperationResponse(pathPayment);
+      } else if (operationResponse
+          instanceof InvokeHostFunctionOperationResponse invokeHostFunction) {
+        observedPayment =
+            ObservedPayment.fromInvokeHostFunctionOperationResponse(invokeHostFunction);
       }
     } catch (SepException ex) {
       if (operationResponse.getTransaction().isPresent()) {
