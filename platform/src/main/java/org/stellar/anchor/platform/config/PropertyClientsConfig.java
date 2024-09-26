@@ -29,8 +29,7 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
   ClientsConfigType type;
   String value;
   // List<RawClient> items is required for loading inline client configurations, as it needs a
-  // concrete class to
-  // instantiate the object.
+  // concrete class to instantiate the object.
   List<RawClient> items = new ArrayList<>();
   Gson gson = GsonUtils.getInstance();
 
