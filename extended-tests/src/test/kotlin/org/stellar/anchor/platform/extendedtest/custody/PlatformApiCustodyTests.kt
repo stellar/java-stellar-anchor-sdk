@@ -20,6 +20,7 @@ import org.stellar.anchor.client.Sep12Client
 import org.stellar.anchor.client.Sep24Client
 import org.stellar.anchor.client.Sep31Client
 import org.stellar.anchor.platform.AbstractIntegrationTests
+import org.stellar.anchor.platform.AbstractIntegrationTests.Companion.TEST_ASSET_USDC
 import org.stellar.anchor.platform.AbstractIntegrationTests.Companion.TEST_PAYMENT_AMOUNT
 import org.stellar.anchor.platform.AbstractIntegrationTests.Companion.TEST_STELLAR_TRANSACTION_DEST_ACCOUNT
 import org.stellar.anchor.platform.AbstractIntegrationTests.Companion.TEST_STELLAR_TRANSACTION_HASH
@@ -448,7 +449,7 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS =
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 3",
-      "stellar_transaction_id": "${TEST_STELLAR_TRANSACTION_HASH}",
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH",
       "amount_in": {
         "amount": "1"
       }
@@ -594,18 +595,18 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "message": "test message 3",
       "stellar_transactions": [
         {
-          "id": "${TEST_STELLAR_TRANSACTION_HASH}",
+          "id": "$TEST_STELLAR_TRANSACTION_HASH",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
-                "amount": "${TEST_PAYMENT_AMOUNT}",
-                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                "amount": "$TEST_PAYMENT_AMOUNT",
+                "asset": "$TEST_ASSET_USDC"
               },
               "payment_type": "payment",
-              "source_account": "${TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT}",
-              "destination_account": "${TEST_STELLAR_TRANSACTION_DEST_ACCOUNT}"
+              "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+              "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
             }
           ]
         }
@@ -646,18 +647,18 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       "message": "test message 4",
       "stellar_transactions": [
         {
-          "id": "${TEST_STELLAR_TRANSACTION_HASH}",
+          "id": "$TEST_STELLAR_TRANSACTION_HASH",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
                 "amount": "${TEST_PAYMENT_AMOUNT}",
-                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                "asset": "${TEST_ASSET_USDC}"
               },
               "payment_type": "payment",
-              "source_account": "${TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT}",
-              "destination_account": "${TEST_STELLAR_TRANSACTION_DEST_ACCOUNT}"
+              "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+              "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
             }
           ]
         }
@@ -723,18 +724,18 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
       },
       "stellar_transactions": [
         {
-          "id": "${TEST_STELLAR_TRANSACTION_HASH}",
+          "id": "$TEST_STELLAR_TRANSACTION_HASH",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
                 "amount": "${TEST_PAYMENT_AMOUNT}",
-                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                "asset": "${TEST_ASSET_USDC}"
               },
               "payment_type": "payment",
-              "source_account": "${TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT}",
-              "destination_account": "${TEST_STELLAR_TRANSACTION_DEST_ACCOUNT}"
+              "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+              "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
             }
           ]
         }
@@ -760,7 +761,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_REQUESTS
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 1",
-      "stellar_transaction_id": "${TEST_STELLAR_TRANSACTION_HASH}"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   },
   {
@@ -834,18 +835,18 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       "message": "test message 1",
       "stellar_transactions": [
         {
-          "id": "${TEST_STELLAR_TRANSACTION_HASH}",
+          "id": "$TEST_STELLAR_TRANSACTION_HASH",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
                 "amount": "${TEST_PAYMENT_AMOUNT}",
-                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                "asset": "${TEST_ASSET_USDC}"
               },
               "payment_type": "payment",
-              "source_account": "${TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT}",
-              "destination_account": "${TEST_STELLAR_TRANSACTION_DEST_ACCOUNT}"
+              "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+              "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
             }
           ]
         }
@@ -889,18 +890,18 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       "message": "test message 2",
       "stellar_transactions": [
         {
-          "id": "${TEST_STELLAR_TRANSACTION_HASH}",
+          "id": "$TEST_STELLAR_TRANSACTION_HASH",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
                 "amount": "${TEST_PAYMENT_AMOUNT}",
-                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                "asset": "${TEST_ASSET_USDC}"
               },
               "payment_type": "payment",
-              "source_account": "${TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT}",
-              "destination_account": "${TEST_STELLAR_TRANSACTION_DEST_ACCOUNT}"
+              "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+              "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
             }
           ]
         }
@@ -969,18 +970,18 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       },
       "stellar_transactions": [
         {
-          "id": "${TEST_STELLAR_TRANSACTION_HASH}",
+          "id": "$TEST_STELLAR_TRANSACTION_HASH",
           "memo": "testMemo",
           "memo_type": "id",
           "payments": [
             {
               "amount": {
                 "amount": "${TEST_PAYMENT_AMOUNT}",
-                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                "asset": "${TEST_ASSET_USDC}"
               },
               "payment_type": "payment",
-              "source_account": "${TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT}",
-              "destination_account": "${TEST_STELLAR_TRANSACTION_DEST_ACCOUNT}"
+              "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+              "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
             }
           ]
         }

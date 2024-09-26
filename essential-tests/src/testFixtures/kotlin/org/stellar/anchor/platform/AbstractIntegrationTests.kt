@@ -20,6 +20,7 @@ import org.stellar.walletsdk.horizon.SigningKeyPair
 
 abstract class AbstractIntegrationTests(val config: TestConfig) {
   companion object {
+    const val TEST_MEMO = "18bf7341574e4b1082516a2e84a8"
     const val TEST_PAYMENT_ID = "574872782651393"
     const val TEST_PAYMENT_AMOUNT = "10.0000000"
     const val TEST_STELLAR_TRANSACTION_HASH =
@@ -28,6 +29,7 @@ abstract class AbstractIntegrationTests(val config: TestConfig) {
       "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU"
     const val TEST_STELLAR_TRANSACTION_DEST_ACCOUNT =
       "GABCKCYPAGDDQMSCTMSBO7C2L34NU3XXCW7LR4VVSWCCXMAJY3B4YCZP"
+    const val TEST_ASSET_USDC = "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   }
 
   var toml: TomlContent =
