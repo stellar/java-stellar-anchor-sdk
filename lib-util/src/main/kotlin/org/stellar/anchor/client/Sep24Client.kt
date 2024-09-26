@@ -13,7 +13,6 @@ class Sep24Client(private val endpoint: String, private val jwt: String) : SepCl
 
   fun withdraw(requestData: Map<String, String>?): InteractiveTransactionResponse {
     val url = "$endpoint/transactions/withdraw/interactive"
-    println("EP24 $url")
     val responseBody = httpPost(url, requestData!!, jwt)
     return gson.fromJson(responseBody, InteractiveTransactionResponse::class.java)
   }

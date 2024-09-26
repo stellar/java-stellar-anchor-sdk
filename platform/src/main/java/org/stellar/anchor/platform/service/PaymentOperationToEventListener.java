@@ -20,7 +20,6 @@ import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.util.AssetHelper;
-import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
@@ -108,14 +107,12 @@ public class PaymentOperationToEventListener implements PaymentListener {
             sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
                 payment.getTo(), memo, SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
       } else {
-        Log.debugF(
-            "Memo is null, searching for SEP-24 transaction without memo {}",
-            GsonUtils.getInstance().toJson(payment));
+        // SAC transfers do not include a memo, so we need to search by from_account as well.
         sep24Txn =
-            sep24TransactionStore.findOneByToAccountAndStatus(
-                payment.getTo(), SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
-        Log.debugF(
-            "SEP-24 transaction without memo found {}", GsonUtils.getInstance().toJson(sep24Txn));
+            sep24TransactionStore.findOneByToAccountAndFromAccountAndStatus(
+                payment.getTo(),
+                payment.getFrom(),
+                SepTransactionStatus.PENDING_USR_TRANSFER_START.toString());
       }
     } catch (Exception ex) {
       errorEx(ex);

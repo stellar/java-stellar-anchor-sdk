@@ -35,7 +35,6 @@ import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.platform.utils.DaemonExecutors;
 import org.stellar.anchor.util.ExponentialBackoffTimer;
-import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
@@ -388,10 +387,6 @@ public class StellarPaymentObserver implements HealthCheckable {
       try {
         if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getTo())) {
           for (PaymentListener listener : paymentListeners) {
-            if (observedPayment.getType().equals(ObservedPayment.Type.SAC_TRANSFER)) {
-              Log.debugF(
-                  "Received SAC transfer: {}", GsonUtils.getInstance().toJson(observedPayment));
-            }
             listener.onReceived(observedPayment);
           }
         }
