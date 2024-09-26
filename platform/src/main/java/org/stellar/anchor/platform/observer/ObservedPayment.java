@@ -132,6 +132,7 @@ public class ObservedPayment {
     String assetType = transferOp.getAssetBalanceChanges().get(0).getAssetType();
     String assetCode = transferOp.getAssetBalanceChanges().get(0).getAssetCode();
     String assetIssuer = transferOp.getAssetBalanceChanges().get(0).getAssetIssuer();
+    // TODO: sometimes asset code is null
     String assetName = AssetHelper.getSep11AssetName(assetCode, assetIssuer);
 
     return ObservedPayment.builder()

@@ -10,11 +10,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.api.sep.sep10c.ChallengeRequest
 import org.stellar.anchor.client.Sep10CClient
 import org.stellar.anchor.client.Sep24Client
 import org.stellar.anchor.platform.AbstractIntegrationTests
+import org.stellar.anchor.platform.SMART_WALLET_ADDRESS
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.USDC_CONTRACT
 import org.stellar.anchor.util.Log.info
 import org.stellar.sdk.*
 import org.stellar.sdk.scval.Scv
@@ -31,38 +32,11 @@ class Sep24CEnd2EndTest : AbstractIntegrationTests(TestConfig()) {
       socketTimeoutMillis = 300000
     }
   }
-  private var sep10CClient: Sep10CClient =
-    Sep10CClient(
-      toml.getString("WEB_AUTH_ENDPOINT_C"),
-      toml.getString("SIGNING_KEY"),
-      SorobanServer("https://soroban-testnet.stellar.org"),
-    )
-  private var sep24Client: Sep24Client
-  private val webAuthDomain = toml.getString("WEB_AUTH_ENDPOINT_C")
-  private val clientWalletContractAddress =
-    "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
+  private var sep24Client: Sep24Client =
+    Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), smartWalletSep10Jwt)
 
   private val sorobanServer: SorobanServer = SorobanServer("https://soroban-testnet.stellar.org")
   private val network = Network("Test SDF Network ; September 2015")
-  private val walletContract = "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
-  private val USDCContract = "CDTY3P6OVY3SMZXR3DZA667NAXFECA6A3AOZXEU33DD2ACBY43CIKDPT"
-
-  private val philip = "SCAWZ3DBU5UVT3SLDMLNPP4GUDP7WDCOYQDE5JHCTXHLS3TAJIZ4HJOC"
-  private val keyPair = KeyPair.fromSecretSeed(philip)
-
-  init {
-    val challenge =
-      sep10CClient.getChallenge(
-        ChallengeRequest.builder()
-          .address(clientWalletContractAddress)
-          .homeDomain(webAuthDomain)
-          .build()
-      )
-    val validationRequest = sep10CClient.sign(challenge)
-    val token = sep10CClient.validate(validationRequest).token
-
-    sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), token)
-  }
 
   @Test
   fun testWithdrawFullFlow() = runBlocking {
@@ -71,7 +45,7 @@ class Sep24CEnd2EndTest : AbstractIntegrationTests(TestConfig()) {
         "amount" to "1",
         "asset_code" to "USDC",
         "asset_issuer" to "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-        "account" to clientWalletContractAddress,
+        "account" to SMART_WALLET_ADDRESS,
         "lang" to "en",
       )
     val response = sep24Client.withdraw(request)
@@ -84,13 +58,17 @@ class Sep24CEnd2EndTest : AbstractIntegrationTests(TestConfig()) {
 
     // Transfer funds
     waitForTxnStatus(transaction.id, "pending_user_transfer_start")
-    transferFunds(transaction.to, walletContract, 1, keyPair)
+    transferFunds(transaction.to, SMART_WALLET_ADDRESS, 1, smartWalletKeyPair)
 
     // Wait for the transaction to complete
     waitForTxnStatus(transaction.id, "completed")
   }
 
-  suspend fun waitForTxnStatus(id: String, expectedStatus: String, exitStatus: String = "error") {
+  private suspend fun waitForTxnStatus(
+    id: String,
+    expectedStatus: String,
+    exitStatus: String = "error",
+  ) {
     var status: String? = null
 
     for (i in 0..30) {
@@ -134,7 +112,7 @@ class Sep24CEnd2EndTest : AbstractIntegrationTests(TestConfig()) {
       )
     val operation =
       InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-          USDCContract,
+          USDC_CONTRACT,
           "transfer",
           parameters,
         )
@@ -176,7 +154,7 @@ class Sep24CEnd2EndTest : AbstractIntegrationTests(TestConfig()) {
 
     val signedOperation =
       InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
-          USDCContract,
+          USDC_CONTRACT,
           "transfer",
           parameters,
         )

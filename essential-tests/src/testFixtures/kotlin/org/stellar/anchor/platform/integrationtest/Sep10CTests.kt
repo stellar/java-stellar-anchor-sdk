@@ -6,20 +6,13 @@ import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.sep10c.ChallengeRequest
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep10Jwt
-import org.stellar.anchor.client.Sep10CClient
 import org.stellar.anchor.platform.AbstractIntegrationTests
+import org.stellar.anchor.platform.SMART_WALLET_ADDRESS
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Log
-import org.stellar.sdk.SorobanServer
 
 class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
-  private var sep10CClient: Sep10CClient =
-    Sep10CClient(
-      toml.getString("WEB_AUTH_ENDPOINT_C"),
-      toml.getString("SIGNING_KEY"),
-      SorobanServer("https://soroban-testnet.stellar.org"),
-    )
   private val jwtService =
     JwtService(
       config.env["secret.sep6.more_info_url.jwt_secret"],
@@ -32,15 +25,13 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
     )
 
   private var webAuthDomain = toml.getString("WEB_AUTH_ENDPOINT_C")
-  private var clientWalletContractAddress =
-    "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
 
   @Test
   fun testChallengeSigning() {
     val challenge =
       sep10CClient.getChallenge(
         ChallengeRequest.builder()
-          .address(clientWalletContractAddress)
+          .address(SMART_WALLET_ADDRESS)
           .memo("123")
           .homeDomain(webAuthDomain)
           .clientDomain("example.com")
@@ -60,11 +51,11 @@ class Sep10CTests : AbstractIntegrationTests(TestConfig()) {
 
     assertEquals("example.com", jwt.clientDomain)
     assertEquals(webAuthDomain, jwt.homeDomain)
-    assertEquals(clientWalletContractAddress, jwt.account)
+    assertEquals(SMART_WALLET_ADDRESS, jwt.account)
     assertEquals("123", jwt.accountMemo)
     assertNotNull(jwt.jti)
     assertEquals(webAuthDomain, jwt.iss)
-    assertEquals("${clientWalletContractAddress}:123", jwt.sub)
+    assertEquals("${SMART_WALLET_ADDRESS}:123", jwt.sub)
     assertNotNull(jwt.issuedAt)
     assertNotNull(jwt.expiresAt)
   }
