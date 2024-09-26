@@ -302,7 +302,7 @@ open class Sep24End2EndTests : AbstractIntegrationTests(TestConfig()) {
     return events
   }
 
-  private suspend fun waitForTxnStatus(
+  suspend fun waitForTxnStatus(
     id: String,
     expectedStatus: TransactionStatus,
     token: AuthToken,
