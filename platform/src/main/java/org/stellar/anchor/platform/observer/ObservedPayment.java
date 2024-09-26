@@ -5,8 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.util.AssetHelper;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.*;
+import org.stellar.sdk.responses.operations.InvokeHostFunctionOperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
@@ -44,8 +46,7 @@ public class ObservedPayment {
       throws SepException {
     String assetCode = null, assetIssuer = null;
 
-    if (paymentOp.getAsset() instanceof AssetTypeCreditAlphaNum) {
-      AssetTypeCreditAlphaNum issuedAsset = (AssetTypeCreditAlphaNum) paymentOp.getAsset();
+    if (paymentOp.getAsset() instanceof AssetTypeCreditAlphaNum issuedAsset) {
       assetCode = issuedAsset.getCode();
       assetIssuer = issuedAsset.getIssuer();
     } else if (paymentOp.getAsset() instanceof AssetTypeNative) {
@@ -80,8 +81,7 @@ public class ObservedPayment {
   public static ObservedPayment fromPathPaymentOperationResponse(
       PathPaymentBaseOperationResponse pathPaymentOp) throws SepException {
     String assetCode = null, assetIssuer = null;
-    if (pathPaymentOp.getAsset() instanceof AssetTypeCreditAlphaNum) {
-      AssetTypeCreditAlphaNum issuedAsset = (AssetTypeCreditAlphaNum) pathPaymentOp.getAsset();
+    if (pathPaymentOp.getAsset() instanceof AssetTypeCreditAlphaNum issuedAsset) {
       assetCode = issuedAsset.getCode();
       assetIssuer = issuedAsset.getIssuer();
     } else if (pathPaymentOp.getAsset() instanceof AssetTypeNative) {
@@ -89,9 +89,7 @@ public class ObservedPayment {
     }
 
     String sourceAssetCode = null, sourceAssetIssuer = null;
-    if (pathPaymentOp.getSourceAsset() instanceof AssetTypeCreditAlphaNum) {
-      AssetTypeCreditAlphaNum sourceIssuedAsset =
-          (AssetTypeCreditAlphaNum) pathPaymentOp.getSourceAsset();
+    if (pathPaymentOp.getSourceAsset() instanceof AssetTypeCreditAlphaNum sourceIssuedAsset) {
       sourceAssetCode = sourceIssuedAsset.getCode();
       sourceAssetIssuer = sourceIssuedAsset.getIssuer();
     } else if (pathPaymentOp.getSourceAsset() instanceof AssetTypeNative) {
@@ -128,6 +126,34 @@ public class ObservedPayment {
         .build();
   }
 
+  public static ObservedPayment fromInvokeHostFunctionOperationResponse(
+      InvokeHostFunctionOperationResponse transferOp) {
+
+    String assetType = transferOp.getAssetBalanceChanges().get(0).getAssetType();
+    String assetCode =
+        assetType.equals("native")
+            ? AssetInfo.NATIVE_ASSET_CODE
+            : transferOp.getAssetBalanceChanges().get(0).getAssetCode();
+    String assetIssuer = transferOp.getAssetBalanceChanges().get(0).getAssetIssuer();
+    String assetName = AssetHelper.getSep11AssetName(assetCode, assetIssuer);
+
+    return ObservedPayment.builder()
+        .id(transferOp.getId().toString())
+        .type(Type.SAC_TRANSFER)
+        .from(transferOp.getAssetBalanceChanges().get(0).getFrom())
+        .to(transferOp.getAssetBalanceChanges().get(0).getTo())
+        .amount(transferOp.getAssetBalanceChanges().get(0).getAmount())
+        .assetType(assetType)
+        .assetCode(assetCode)
+        .assetIssuer(assetIssuer)
+        .assetName(assetName)
+        .sourceAccount(transferOp.getSourceAccount())
+        .createdAt(transferOp.getCreatedAt())
+        .transactionHash(transferOp.getTransactionHash())
+        .transactionEnvelope(transferOp.getTransaction().get().getEnvelopeXdr())
+        .build();
+  }
+
   public enum Type {
     @SerializedName("payment")
     PAYMENT("payment"),
@@ -136,7 +162,10 @@ public class ObservedPayment {
     PATH_PAYMENT("path_payment"),
 
     @SerializedName("circle_transfer")
-    CIRCLE_TRANSFER("circle_transfer");
+    CIRCLE_TRANSFER("circle_transfer"),
+
+    @SerializedName("sac_transfer")
+    SAC_TRANSFER("sac_transfer");
 
     private final String name;
 

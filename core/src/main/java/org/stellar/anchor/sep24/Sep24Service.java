@@ -54,8 +54,10 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator;
 import org.stellar.anchor.util.*;
+import org.stellar.sdk.Address;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
+import org.stellar.sdk.scval.Scv;
 
 public class Sep24Service {
 
@@ -187,7 +189,7 @@ public class Sep24Service {
     // Validate sourceAccount
     try {
       debugF("checking if withdraw source account:{} is valid", sourceAccount);
-      KeyPair.fromAccountId(sourceAccount);
+      Address.fromSCAddress(Scv.fromAddress(Scv.toAddress(sourceAccount)).toSCAddress());
     } catch (Exception ex) {
       infoF("invalid account format: {}", sourceAccount);
       throw new SepValidationException(String.format("invalid account: %s", sourceAccount), ex);

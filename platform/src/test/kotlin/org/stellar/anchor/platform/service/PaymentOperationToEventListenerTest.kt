@@ -44,7 +44,7 @@ class PaymentOperationToEventListenerTest {
         sep24TransactionStore,
         sep6TransactionStore,
         platformApiClient,
-        rpcConfig
+        rpcConfig,
       )
   }
 
@@ -55,6 +55,7 @@ class PaymentOperationToEventListenerTest {
     p.transactionHash = null
     p.transactionMemoType = "text"
     p.transactionMemo = "my_memo_1"
+    p.type = ObservedPayment.Type.PAYMENT
     paymentOperationToEventListener.onReceived(p)
     verify { sep31TransactionStore wasNot Called }
     verify { sep24TransactionStore wasNot Called }
@@ -93,7 +94,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByToAccountAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns null
     every { sep24TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
@@ -106,7 +107,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "my_memo_2",
-        "pending_sender"
+        "pending_sender",
       )
     }
     assertEquals("my_memo_2", slotMemo.captured)
@@ -120,7 +121,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByToAccountAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } throws SepException("Something went wrong")
     paymentOperationToEventListener.onReceived(p)
@@ -128,7 +129,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "my_memo_3",
-        "pending_sender"
+        "pending_sender",
       )
     }
     assertEquals("my_memo_3", slotMemo.captured)
@@ -146,7 +147,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByToAccountAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
@@ -154,7 +155,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "my_memo_4",
-        "pending_sender"
+        "pending_sender",
       )
     }
     assertEquals("my_memo_4", slotMemo.captured)
@@ -176,7 +177,7 @@ class PaymentOperationToEventListenerTest {
     inAssetIssuer: String?,
     outAssetType: String,
     outAssetCode: String,
-    outAssetIssuer: String?
+    outAssetIssuer: String?,
   ) {
     val startedAtMock = Instant.now().minusSeconds(120)
     val transferReceivedAt = Instant.now()
@@ -239,7 +240,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByToAccountAndMemoAndStatus(
         capture(slotAccountId),
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns sep31TxCopy
 
@@ -254,7 +255,7 @@ class PaymentOperationToEventListenerTest {
         capture(txnIdCapture),
         capture(stellarTxnIdCapture),
         capture(amountCapture),
-        capture(messageCapture)
+        capture(messageCapture),
       )
     } just Runs
 
@@ -263,7 +264,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "pending_sender"
+        "pending_sender",
       )
     }
 
@@ -335,7 +336,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns sep31TxCopy
 
@@ -350,7 +351,7 @@ class PaymentOperationToEventListenerTest {
         capture(txnIdCapture),
         capture(stellarTxnIdCapture),
         capture(amountCapture),
-        capture(messageCapture)
+        capture(messageCapture),
       )
     } just Runs
 
@@ -359,7 +360,7 @@ class PaymentOperationToEventListenerTest {
       sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "pending_sender"
+        "pending_sender",
       )
     }
 
@@ -380,7 +381,7 @@ class PaymentOperationToEventListenerTest {
   fun `test SEP-24 onReceived with sufficient payment patches the transaction`(
     assetType: String,
     assetCode: String,
-    assetIssuer: String?
+    assetIssuer: String?,
   ) {
     val transferReceivedAt = Instant.now()
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
@@ -430,7 +431,7 @@ class PaymentOperationToEventListenerTest {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns sep24TxnCopy
 
@@ -445,7 +446,7 @@ class PaymentOperationToEventListenerTest {
         capture(txnIdCapture),
         capture(stellarTxnIdCapture),
         capture(amountCapture),
-        capture(messageCapture)
+        capture(messageCapture),
       )
     } just Runs
 
@@ -454,7 +455,7 @@ class PaymentOperationToEventListenerTest {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "pending_user_transfer_start"
+        "pending_user_transfer_start",
       )
     }
 
@@ -475,7 +476,7 @@ class PaymentOperationToEventListenerTest {
   fun `test SEP-6 onReceived with sufficient payment patches the transaction`(
     assetType: String,
     assetCode: String,
-    assetIssuer: String?
+    assetIssuer: String?,
   ) {
     val transferReceivedAt = Instant.now()
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
@@ -524,7 +525,7 @@ class PaymentOperationToEventListenerTest {
       sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns sep6TxnCopy
 
@@ -539,7 +540,7 @@ class PaymentOperationToEventListenerTest {
         capture(txnIdCapture),
         capture(stellarTxnIdCapture),
         capture(amountCapture),
-        capture(messageCapture)
+        capture(messageCapture),
       )
     } just Runs
 
@@ -548,7 +549,7 @@ class PaymentOperationToEventListenerTest {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "pending_user_transfer_start"
+        "pending_user_transfer_start",
       )
     }
 
@@ -569,7 +570,7 @@ class PaymentOperationToEventListenerTest {
   fun `test SEP-6 onReceived with payment but no expected amount patches the transaction`(
     assetType: String,
     assetCode: String,
-    assetIssuer: String?
+    assetIssuer: String?,
   ) {
     val transferReceivedAt = Instant.now()
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
@@ -616,7 +617,7 @@ class PaymentOperationToEventListenerTest {
       sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         capture(slotMemo),
-        capture(slotStatus)
+        capture(slotStatus),
       )
     } returns sep6TxnCopy
 
@@ -631,7 +632,7 @@ class PaymentOperationToEventListenerTest {
         capture(txnIdCapture),
         capture(stellarTxnIdCapture),
         capture(amountCapture),
-        capture(messageCapture)
+        capture(messageCapture),
       )
     } just Runs
 
@@ -640,7 +641,7 @@ class PaymentOperationToEventListenerTest {
       sep24TransactionStore.findOneByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
-        "pending_user_transfer_start"
+        "pending_user_transfer_start",
       )
     }
 

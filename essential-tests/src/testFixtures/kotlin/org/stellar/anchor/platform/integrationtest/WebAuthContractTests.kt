@@ -3,6 +3,8 @@ package org.stellar.anchor.platform.integrationtest
 import kotlin.test.Test
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.stellar.anchor.client.Sep10CClient
+import org.stellar.anchor.platform.SMART_WALLET_ADDRESS
+import org.stellar.anchor.platform.SMART_WALLET_SIGNER_SECRET
 import org.stellar.anchor.platform.e2etest.WITHDRAW_FUND_CLIENT_SECRET_2
 import org.stellar.anchor.util.Log
 import org.stellar.sdk.*
@@ -13,13 +15,9 @@ import org.stellar.sdk.xdr.*
 class WebAuthContractTests {
   private val sorobanServer = SorobanServer("https://soroban-testnet.stellar.org")
   private val network = Network("Test SDF Network ; September 2015")
-  private val philip = "SCAWZ3DBU5UVT3SLDMLNPP4GUDP7WDCOYQDE5JHCTXHLS3TAJIZ4HJOC"
-  private val someone = "SB75HOQAKNX3I6BR6W3VGZT6T26C5UDC2OISIIPK5SODKLPRLPD5VVRM"
-  private val secret = philip
-  private val keypair = KeyPair.fromSecretSeed(secret)
+  private val keypair = KeyPair.fromSecretSeed(SMART_WALLET_SIGNER_SECRET)
   private val account = sorobanServer.getAccount(keypair.accountId)
   private val webAuthContract = "CDQDXQPUUDLUZGSBQZBUMZA6ZKVR5JWEX4Y32K3MYQYUMAHIJFLVNOYB"
-  private val walletContract = "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
 
   private val anchorKeypair = KeyPair.fromSecretSeed(WITHDRAW_FUND_CLIENT_SECRET_2)
   private val anchorAccount = sorobanServer.getAccount(anchorKeypair.accountId)
@@ -30,7 +28,7 @@ class WebAuthContractTests {
       mutableListOf(
         SCVal.Builder()
           .discriminant(SCValType.SCV_STRING)
-          .str(Scv.toString(walletContract).str)
+          .str(Scv.toString(SMART_WALLET_ADDRESS).str)
           .build(),
         SCVal.Builder().discriminant(SCValType.SCV_VOID).build(), // memo is None
         SCVal.Builder()
@@ -47,7 +45,7 @@ class WebAuthContractTests {
           .build(),
         SCVal.Builder()
           .discriminant(SCValType.SCV_STRING)
-          .str(Scv.toString(walletContract).str)
+          .str(Scv.toString(SMART_WALLET_ADDRESS).str)
           .build(),
       )
     val operation =
