@@ -4,36 +4,33 @@
 items:
   # Custodial Client
     # The unique name identifying the client. This should be a recognizable name that represents the client entity.
-  - name: Client1
+  - name: CustodialClient
     # The type of the client. It can be either `custodial` or `noncustodial`.
     type: custodial
     # The public keys used for SEP-10 authentication.
-    signing_keys:
-      - GDADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-      - GDBDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+    signing_keys: []
     # The URLs to which the service can send callbacks for different SEP types. Optional due to some wallets may opt
     # to poll instead, or may use polling first before implementing callbacks at a later stage.
-    callbackUrls:
-      sep6: https://example.com/callbacks/sep6
-      sep24: https://example.com/callbacks/sep24
-      sep31: https://example.com/callbacks/sep31
-      sep12: https://example.com/callbacks/sep12
+    callback_urls:
+      sep6:
+      sep24:
+      sep31:
+      sep12:
     # A boolean flag that, when set to true, allows any destination for deposits. Defaults to false,
     # which enforces that the destination account must be listed in the destination_accounts list.
     allowAnyDestination: false
     # List of accounts allowed to be used for the deposit. By default, only SEP-10 authenticated account can be used to
     # deposit funds into. If allows_any_destinations set to true, this configuration option is ignored.
-    destinationAccounts:
+    destinationAccounts: []
 
   # Noncustodial Client
-  - name: Client2
+  - name: NoncustodialClient
     type: noncustodial
     # The domains associated with the client, used for verifying the client's identity.
-    domains:
-      - wallet-server:8092
+    domains: []
     callback_urls:
-      sep6: http://wallet-server:8092/callbacks/sep6
-      sep24: http://wallet-server:8092/callbacks/sep24
-      sep31: http://wallet-server:8092/callbacks/sep31
-      sep12: http://wallet-server:8092/callbacks/sep12
+      sep6:
+      sep24:
+      sep31:
+      sep12:
 
