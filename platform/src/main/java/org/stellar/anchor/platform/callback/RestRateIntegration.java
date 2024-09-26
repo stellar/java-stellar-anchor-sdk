@@ -66,6 +66,7 @@ public class RestRateIntegration implements RateIntegration {
 
   @Override
   public GetRateResponse getRate(GetRateRequest request) throws AnchorException {
+    validateRateRequest(request);
 
     try (Response response = invokeGetRateRequest(request, authHelper)) {
       String responseContent = PlatformIntegrationHelper.getContent(response);
@@ -93,17 +94,38 @@ public class RestRateIntegration implements RateIntegration {
     }
   }
 
+  void validateRateRequest(GetRateRequest request) {
+    if (request.getType() == null) {
+      logErrorAndThrow(
+          "'type' is missing in the GET /rate request", IllegalArgumentException.class);
+    }
+
+    if (request.getSellAmount() == null && request.getBuyAmount() == null) {
+      logErrorAndThrow(
+          "One of 'sell_amount' and 'buy_amount' must exist but none provided",
+          IllegalArgumentException.class);
+    }
+
+    if (request.getSellAmount() != null && request.getBuyAmount() != null) {
+      logErrorAndThrow(
+          "Only one of 'sell_amount' and 'buy_amount' can exist but both provided",
+          IllegalArgumentException.class);
+    }
+  }
+
   void validateRateResponse(GetRateRequest request, GetRateResponse getRateResponse)
       throws ServerErrorException {
     AssetInfo sellAsset = assetService.getAssetByName(request.getSellAsset());
     AssetInfo buyAsset = assetService.getAssetByName(request.getBuyAsset());
 
+    // rate and price must be present
     GetRateResponse.Rate rate = getRateResponse.getRate();
     if (rate == null || rate.getPrice() == null) {
       logErrorAndThrow(
           "missing 'rate.price' in the GET /rate response", ServerErrorException.class);
     }
 
+    // expires_at and id must be present when the rate is firm
     if (request.getType() == GetRateRequest.Type.FIRM) {
       if (rate.getId() == null || rate.getExpiresAt() == null) {
         logErrorAndThrow(
@@ -144,6 +166,28 @@ public class RestRateIntegration implements RateIntegration {
               "'rate.buy_amount' (%s) has incorrect number of significant decimals (expected: %d) in the GET /rate response",
               rate.getBuyAmount(), buyAsset.getSignificantDecimals()),
           ServerErrorException.class);
+    }
+
+    if (request.getSellAmount() != null) {
+      if (new BigDecimal(request.getSellAmount()).compareTo(new BigDecimal(rate.getSellAmount()))
+          != 0) {
+        logErrorAndThrow(
+            format(
+                "'rate.sell_amount' (%s) is not equal to the requested 'sell_amount' (%s) in the GET /rate response",
+                rate.getSellAmount(), request.getSellAmount()),
+            ServerErrorException.class);
+      }
+    }
+
+    if (request.getBuyAmount() != null) {
+      if (new BigDecimal(request.getBuyAmount()).compareTo(new BigDecimal(rate.getBuyAmount()))
+          != 0) {
+        logErrorAndThrow(
+            format(
+                "'rate.buy_amount' (%s) is not equal to the requested 'buy_amount' (%s) in the GET /rate response",
+                rate.getBuyAmount(), request.getBuyAmount()),
+            ServerErrorException.class);
+      }
     }
 
     FeeDetails fee = rate.getFee();
@@ -201,8 +245,8 @@ public class RestRateIntegration implements RateIntegration {
             new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
               format(
-                  "'rate.sell_amount' (%s) is not within rounding error of the expected (%s) ('price * buy_amount + fee') in the GET /rate response",
-                  rate.getSellAmount(), expected),
+                  "'rate.sell_amount' (%s) is not within the rounding error of the expected (%s[=%s*%s]) ('price * buy_amount + fee') in the GET /rate response",
+                  rate.getSellAmount(), expected, rate.getPrice(), rate.getBuyAmount()),
               ServerErrorException.class);
         }
       } else {
@@ -215,8 +259,8 @@ public class RestRateIntegration implements RateIntegration {
             new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
               format(
-                  "'rate.sell_amount' (%s) is not within rounding error of the expected (%s) ('price * (buy_amount + fee)') in the GET /rate response",
-                  rate.getSellAmount(), expected),
+                  "'rate.sell_amount' (%s) is not within the rounding error of the expected (%s=[%s*%s]) ('price * (buy_amount + fee)') in the GET /rate response",
+                  rate.getSellAmount(), expected, rate.getPrice(), rate.getBuyAmount()),
               ServerErrorException.class);
         }
       }
@@ -260,8 +304,8 @@ public class RestRateIntegration implements RateIntegration {
           new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
         logErrorAndThrow(
             format(
-                "'rate.sell_amount' (%s) is not within the expected (%s) ('price * buy_amount') in the GET /rate response",
-                rate.getSellAmount(), expected),
+                "'rate.sell_amount' (%s) is not within the expected (%s[=%s*%s]) ('price * buy_amount') in the GET /rate response",
+                rate.getSellAmount(), expected, rate.getPrice(), rate.getBuyAmount()),
             ServerErrorException.class);
       }
     }

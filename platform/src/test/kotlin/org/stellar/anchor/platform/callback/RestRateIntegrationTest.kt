@@ -62,7 +62,7 @@ class RestRateIntegrationTest {
         {
           "type": "indicative",
           "sell_asset": "iso4217:USD",
-          "sell_amount": "106",
+          "sell_amount": "100",
           "buy_asset": "stellar:USDC:GABCD"
         }
         """,
@@ -126,6 +126,7 @@ class RestRateIntegrationTest {
     every { mockResponseBody.string() } returns gson.toJson(rateResponseWithoutFee)
     every { spyRateIntegration.invokeGetRateRequest(any(), any()) } returns mockResponse
 
+    request.sellAmount = "8000"
     val rate = spyRateIntegration.getRate(request)
     assertNotNull(rate.rate.fee)
     assertEquals(BigDecimal(rate.rate.fee.total).compareTo(BigDecimal.ZERO), 0)
@@ -155,9 +156,28 @@ class RestRateIntegrationTest {
   @ValueSource(strings = ["indicative", "firm"])
   fun `test INDICATIVE and FIRM validateRateResponse without fee`(type: String) {
     request.type = from(type)
+    request.sellAmount = "8000"
     rateResponseWithoutFee.rate.id = "1234"
     rateResponseWithoutFee.rate.expiresAt = Instant.now()
     rateIntegration.validateRateResponse(request, rateResponseWithoutFee)
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["indicative", "firm"])
+  fun `test bad sell and buy amounts without fee`(type: String) {
+    request.type = from(type)
+    request.sellAmount = "8000"
+    rateResponseWithoutFee.rate.id = "1234"
+    rateResponseWithoutFee.rate.expiresAt = Instant.now()
+    rateResponseWithoutFee.rate.price = "4001"
+    val ex =
+      assertThrows<ServerErrorException> {
+        rateIntegration.validateRateResponse(request, rateResponseWithoutFee)
+      }
+    assertEquals(
+      "'rate.sell_amount' (8000) is not within the expected (8002.00[=4001*2.00]) ('price * buy_amount') in the GET /rate response",
+      ex.message
+    )
   }
 
   @ParameterizedTest
@@ -173,6 +193,7 @@ class RestRateIntegrationTest {
   )
   fun `test bad sell and buy amounts`(badAmount: String?, errorMessage: String) {
     // Bad sell amount
+    request.sellAmount = badAmount
     rateResponseWithFee.rate.sellAmount = badAmount
     rateResponseWithFee.rate.buyAmount = "94.29"
     var ex =
@@ -183,6 +204,7 @@ class RestRateIntegrationTest {
     assertTrue(ex.message!!.contains(errorMessage))
 
     // Bad buy amount
+    request.sellAmount = "100"
     rateResponseWithFee.rate.sellAmount = "100"
     rateResponseWithFee.rate.buyAmount = badAmount
     ex =
@@ -195,17 +217,19 @@ class RestRateIntegrationTest {
   @Test
   fun `test mis-matched sell_amount and buy_amount`() {
     // Bad sell amount
-    rateResponseWithFee.rate.sellAmount = "100.02" // expect 100.00
+    request.sellAmount = "100.02"
+    rateResponseWithFee.rate.sellAmount = "100.02" // expect 100.01
     rateResponseWithFee.rate.buyAmount = "94.29"
     var ex =
       assertThrows<ServerErrorException> {
         rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
-      "'rate.sell_amount' (100.02) is not within rounding error of the expected (100.0045) ('price * buy_amount + fee') in the GET /rate response",
+      "'rate.sell_amount' (100.02) is not within the rounding error of the expected (100.0045[=1.05*94.29]) ('price * buy_amount + fee') in the GET /rate response",
       ex.message,
     )
 
+    request.sellAmount = "100.00"
     rateResponseWithFee.rate.sellAmount = "100.00"
     rateResponseWithFee.rate.buyAmount = "94.00"
 
@@ -214,7 +238,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
-      "'rate.sell_amount' (100.00) is not within rounding error of the expected (99.7000) ('price * buy_amount + fee') in the GET /rate response",
+      "'rate.sell_amount' (100.00) is not within the rounding error of the expected (99.7000[=1.05*94.00]) ('price * buy_amount + fee') in the GET /rate response",
       ex.message,
     )
   }
@@ -224,7 +248,7 @@ class RestRateIntegrationTest {
     value =
       [
         "-1.00, true, is missing or a negative number in the GET /rate response",
-        "0.00, true, rate.sell_amount' (100) is not within rounding error of the expected (99.0045) ('price * buy_amount + fee') in the GET /rate response",
+        "0.00, true, 'rate.sell_amount' (100) is not within the rounding error of the expected (99.0045[=1.05*94.29]) ('price * buy_amount + fee') in the GET /rate response",
         "1.00, false, null",
       ]
   )
@@ -313,7 +337,8 @@ class RestRateIntegrationTest {
   @Test
   fun `test bad decimals from the response`() {
     // Bad sell amount
-    rateResponseWithFee.rate.sellAmount = "100.00001234"
+    request.sellAmount = "106.00000001"
+    rateResponseWithFee.rate.sellAmount = "106.00000001"
     rateResponseWithFee.rate.buyAmount = "94.29"
     rateResponseWithFee.rate.fee.details[0].amount = "0.7"
     var ex =
@@ -321,11 +346,12 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
-      "'rate.sell_amount' (100.00001234) has incorrect number of significant decimals (expected: 2) in the GET /rate response",
+      "'rate.sell_amount' (106.00000001) has incorrect number of significant decimals (expected: 2) in the GET /rate response",
       ex.message,
     )
 
     // Bad buy amount
+    request.sellAmount = "100"
     rateResponseWithFee.rate.sellAmount = "100"
     rateResponseWithFee.rate.buyAmount = "94.000000029"
     rateResponseWithFee.rate.fee.details[0].amount = "0.7"
