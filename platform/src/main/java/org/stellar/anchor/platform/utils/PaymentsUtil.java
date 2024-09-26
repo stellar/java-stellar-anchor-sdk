@@ -20,6 +20,7 @@ import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.util.Log;
+import org.stellar.sdk.responses.operations.InvokeHostFunctionOperationResponse;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
@@ -100,6 +101,11 @@ public class PaymentsUtil {
                 } else if (operation instanceof PathPaymentBaseOperationResponse) {
                   return ObservedPayment.fromPathPaymentOperationResponse(
                       (PathPaymentBaseOperationResponse) operation);
+                } else if (operation instanceof InvokeHostFunctionOperationResponse) {
+                  return ObservedPayment.fromInvokeHostFunctionOperationResponse(
+                      (InvokeHostFunctionOperationResponse) operation);
+                } else {
+                  return null;
                 }
               } catch (SepException e) {
                 error("Failed to parse operation response", e);

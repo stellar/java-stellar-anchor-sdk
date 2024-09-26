@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.util.AssetHelper;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.*;
 import org.stellar.sdk.responses.operations.InvokeHostFunctionOperationResponse;
@@ -127,16 +128,22 @@ public class ObservedPayment {
 
   public static ObservedPayment fromInvokeHostFunctionOperationResponse(
       InvokeHostFunctionOperationResponse transferOp) {
+
+    String assetType = transferOp.getAssetBalanceChanges().get(0).getAssetType();
+    String assetCode = transferOp.getAssetBalanceChanges().get(0).getAssetCode();
+    String assetIssuer = transferOp.getAssetBalanceChanges().get(0).getAssetIssuer();
+    String assetName = AssetHelper.getSep11AssetName(assetCode, assetIssuer);
+
     return ObservedPayment.builder()
         .id(transferOp.getId().toString())
         .type(Type.SAC_TRANSFER)
-        // TODO: check if SAC transfers always have 1 asset balance change
         .from(transferOp.getAssetBalanceChanges().get(0).getFrom())
         .to(transferOp.getAssetBalanceChanges().get(0).getTo())
         .amount(transferOp.getAssetBalanceChanges().get(0).getAmount())
-        .assetType(transferOp.getAssetBalanceChanges().get(0).getAssetType())
-        .assetType(transferOp.getAssetBalanceChanges().get(0).getAssetCode())
-        .assetType(transferOp.getAssetBalanceChanges().get(0).getAssetIssuer())
+        .assetType(assetType)
+        .assetCode(assetCode)
+        .assetIssuer(assetIssuer)
+        .assetName(assetName)
         .sourceAccount(transferOp.getSourceAccount())
         .createdAt(transferOp.getCreatedAt())
         .transactionHash(transferOp.getTransactionHash())

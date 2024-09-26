@@ -129,7 +129,7 @@ class Sep24CEnd2EndTest : AbstractIntegrationTests(TestConfig()) {
         // amount=
         SCVal.Builder()
           .discriminant(SCValType.SCV_I128)
-          .i128(Scv.toInt128(BigInteger.valueOf(amount)).i128)
+          .i128(Scv.toInt128(BigInteger.valueOf(amount * 10000000)).i128)
           .build(),
       )
     val operation =
