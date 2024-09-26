@@ -46,18 +46,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   @Override
   public void onReceived(ObservedPayment payment) throws IOException {
-    // Check if the payment contains the expected asset type
-    if (!List.of("credit_alphanum4", "credit_alphanum12", "native")
-        .contains(payment.getAssetType())) {
-      // Asset type does not match
-      debugF("{} is not an issued asset.", payment.getAssetType());
-      return;
-    }
-
-    // Extract memo from payment if it exists
     String memo = null;
-    String memoType = null;
-
+    String memoType;
     if (!payment.getType().equals(ObservedPayment.Type.SAC_TRANSFER)) {
       if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
           || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
@@ -77,6 +67,14 @@ public class PaymentOperationToEventListener implements PaymentListener {
               memo);
         }
       }
+    }
+
+    // Check if the payment contains the expected asset type
+    if (!List.of("credit_alphanum4", "credit_alphanum12", "native")
+        .contains(payment.getAssetType())) {
+      // Asset type does not match
+      debugF("{} is not an issued asset.", payment.getAssetType());
+      return;
     }
 
     // Find a transaction matching the memo, assumes transactions are unique to account+memo
