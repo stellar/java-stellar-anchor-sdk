@@ -1,28 +1,29 @@
 package org.stellar.anchor.platform.integrationtest
 
+import kotlin.test.assertNotNull
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.sep10c.ChallengeRequest
 import org.stellar.anchor.client.Sep10CClient
+import org.stellar.anchor.client.Sep24Client
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.sdk.SorobanServer
-import org.stellar.walletsdk.asset.IssuedAssetId
-import org.stellar.walletsdk.auth.AuthToken
 
 class Sep24CTests : AbstractIntegrationTests(TestConfig()) {
-  private val sep10CClient =
+  private var sep10CClient: Sep10CClient =
     Sep10CClient(
       toml.getString("WEB_AUTH_ENDPOINT_C"),
       toml.getString("SIGNING_KEY"),
       SorobanServer("https://soroban-testnet.stellar.org"),
     )
-  private var webAuthDomain = toml.getString("WEB_AUTH_ENDPOINT_C")
-  private var clientWalletContractAddress =
+  private var sep24Client: Sep24Client
+  private val webAuthDomain = toml.getString("WEB_AUTH_ENDPOINT_C")
+  private val clientWalletContractAddress =
     "CDYOQJLKZWHZ2CVN43EVEQNDLEN544IGCO5A52UG4YS6KDN5QQ2LUWKY"
 
-  @Test
-  fun testWithdraw() = runBlocking {
+  init {
     val challenge =
       sep10CClient.getChallenge(
         ChallengeRequest.builder()
@@ -33,6 +34,11 @@ class Sep24CTests : AbstractIntegrationTests(TestConfig()) {
     val validationRequest = sep10CClient.sign(challenge)
     val token = sep10CClient.validate(validationRequest).token
 
+    sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), token)
+  }
+
+  @Test
+  fun testWithdraw() = runBlocking {
     val withdrawRequest =
       mapOf(
         "amount" to "1",
@@ -42,14 +48,12 @@ class Sep24CTests : AbstractIntegrationTests(TestConfig()) {
         "lang" to "en",
       )
 
-    val response =
-      anchor
-        .sep24()
-        .withdraw(
-          IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"),
-          AuthToken.from(token),
-          withdrawRequest,
-        )
-    println("Withdraw response: $response")
+    val response = sep24Client.withdraw(withdrawRequest)
+    val transaction = sep24Client.getTransaction(response.id, "USDC").transaction
+
+    assertEquals(response.id, transaction.id)
+    assertNotNull(transaction.moreInfoUrl)
+    assertEquals("incomplete", transaction.status)
+    assertEquals(clientWalletContractAddress, transaction.from)
   }
 }
