@@ -70,7 +70,7 @@ class WebAuthContractTests {
       it.auth.forEach { entryXdr ->
         val entry = SorobanAuthorizationEntry.fromXdrBase64(entryXdr)
         Log.info("Unsigned auth entry: ${entry.toXdrBase64()}")
-        val validUntilLedgerSeq = simulationResponse.latestLedger + 1
+        val validUntilLedgerSeq = simulationResponse.latestLedger + 100
 
         val signer =
           object : Sep10CClient.Companion.Signer {
