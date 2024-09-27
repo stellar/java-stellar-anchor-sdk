@@ -38,6 +38,9 @@ public class KafkaConfig {
   /** The SASL mechanism used for authentication. */
   SaslMechanism saslMechanism;
 
+  /** The certificate verification flag. */
+  Boolean sslVerifyCert = Boolean.TRUE;
+
   /** the SSL keystore location. */
   String sslKeystoreLocation;
 
