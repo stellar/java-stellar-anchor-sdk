@@ -26,6 +26,7 @@ import org.stellar.anchor.api.callback.GetRateRequest;
 import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.FeeDescription;
@@ -65,20 +66,8 @@ public class RestRateIntegration implements RateIntegration {
 
   @Override
   public GetRateResponse getRate(GetRateRequest request) throws AnchorException {
-    Builder urlBuilder = get(anchorEndpoint).newBuilder().addPathSegment("rate");
-    Type type = new TypeToken<Map<String, ?>>() {}.getType();
-    Map<String, String> paramsMap = gson.fromJson(gson.toJson(request), type);
-    paramsMap.forEach(
-        (key, value) -> {
-          if (value != null) {
-            urlBuilder.addQueryParameter(key, value);
-          }
-        });
-    HttpUrl url = urlBuilder.build();
 
-    Request httpRequest =
-        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build();
-    try (Response response = PlatformIntegrationHelper.call(httpClient, httpRequest)) {
+    try (Response response = invokeGetRateRequest(request, authHelper)) {
       String responseContent = PlatformIntegrationHelper.getContent(response);
 
       if (response.code() != HttpStatus.OK.value()) {
@@ -94,6 +83,12 @@ public class RestRateIntegration implements RateIntegration {
       }
 
       validateRateResponse(request, getRateResponse);
+
+      // If the rate.fee is not present, we need to set it to 0 so that the fee always exists
+      if (getRateResponse.getRate().getFee() == null) {
+        getRateResponse.getRate().setFee(new FeeDetails("0", request.getSellAsset()));
+      }
+
       return getRateResponse;
     }
   }
@@ -160,6 +155,16 @@ public class RestRateIntegration implements RateIntegration {
             "'rate.fee.total' is missing or a negative number in the GET /rate response",
             ServerErrorException.class);
       }
+
+      // if fee.total is zero, fee.details must be empty or non-existent
+      if ((new BigDecimal(fee.getTotal()).compareTo(BigDecimal.ZERO) == 0)
+          && fee.getDetails() != null
+          && !fee.getDetails().isEmpty()) {
+        logErrorAndThrow(
+            "'rate.fee.details' must be empty or not-existent when 'rate.fee.total' is zero in the GET /rate response",
+            ServerErrorException.class);
+      }
+
       // fee.asset is a valid asset
       AssetInfo feeAsset = assetService.getAssetByName(fee.getAsset());
       if (fee.getAsset() == null || feeAsset == null) {
@@ -221,18 +226,18 @@ public class RestRateIntegration implements RateIntegration {
         for (FeeDescription feeDescription : fee.getDetails()) {
           if (!isPositiveNumber(feeDescription.getAmount())) {
             logErrorAndThrow(
-                "'rate.fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
+                "'rate.fee.details[?].amount' is missing or not a positive number in the GET /rate response",
                 ServerErrorException.class);
           }
           if (!hasProperSignificantDecimals(
               feeDescription.getAmount(), feeAsset.getSignificantDecimals())) {
             logErrorAndThrow(
-                "'rate.fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
+                "'rate.fee.details[?].amount' has incorrect number of significant decimals in the GET /rate response",
                 ServerErrorException.class);
           }
           if (feeDescription.getName() == null) {
             logErrorAndThrow(
-                "'rate.fee.details.description[?].name' is missing in the GET /rate response",
+                "'rate.fee.details[?].name' is missing in the GET /rate response",
                 ServerErrorException.class);
           }
           totalFee = totalFee.add(new BigDecimal(feeDescription.getAmount()));
@@ -260,6 +265,25 @@ public class RestRateIntegration implements RateIntegration {
             ServerErrorException.class);
       }
     }
+  }
+
+  Response invokeGetRateRequest(GetRateRequest request, AuthHelper authHelper)
+      throws InvalidConfigException, ServerErrorException {
+    Builder urlBuilder = get(anchorEndpoint).newBuilder().addPathSegment("rate");
+    Type type = new TypeToken<Map<String, ?>>() {}.getType();
+    Map<String, String> paramsMap = gson.fromJson(gson.toJson(request), type);
+    paramsMap.forEach(
+        (key, value) -> {
+          if (value != null) {
+            urlBuilder.addQueryParameter(key, value);
+          }
+        });
+
+    HttpUrl url = urlBuilder.build();
+
+    Request httpRequest =
+        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build();
+    return PlatformIntegrationHelper.call(httpClient, httpRequest);
   }
 
   /**

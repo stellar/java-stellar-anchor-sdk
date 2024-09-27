@@ -14,10 +14,11 @@ public class ResourceHelper {
   }
 
   public static File findResourceFile(Resource resource) throws IOException {
-    if (resource.exists()) {
-      return resource.getFile();
-    }
-    throw new IOException("Resource not found: " + resource.getFilename());
+    File resourceFile = null;
+    if (resource.exists()) resourceFile = resource.getFile();
+    if (resourceFile == null || !resourceFile.isFile())
+      throw new IOException("Resource not found: " + resource.getFilename());
+    return resourceFile;
   }
 
   /**
