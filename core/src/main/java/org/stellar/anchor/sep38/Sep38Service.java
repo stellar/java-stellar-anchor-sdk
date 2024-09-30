@@ -363,7 +363,9 @@ public class Sep38Service {
             .expiresAt(rate.getExpiresAt())
             .price(rate.getPrice())
             .sellAsset(request.getSellAssetName())
+            .sellDeliveryMethod(request.getSellDeliveryMethod())
             .buyAsset(request.getBuyAssetName())
+            .buyDeliveryMethod(request.getBuyDeliveryMethod())
             .fee(rate.getFee());
 
     String sellAmount = formatAmount(decimal(rate.getSellAmount()), sellAsset.getDecimals());
@@ -412,8 +414,10 @@ public class Sep38Service {
     updateField(newQuote, "id", event, "quote.id");
     updateField(newQuote, "sellAsset", event, "quote.sellAsset");
     updateField(newQuote, "sellAmount", event, "quote.sellAmount");
+    updateField(newQuote, "sellDeliveryMethod", event, "quote.sellDeliveryMethod");
     updateField(newQuote, "buyAsset", event, "quote.buyAsset");
     updateField(newQuote, "buyAmount", event, "quote.buyAmount");
+    updateField(newQuote, "buyDeliveryMethod", event, "quote.buyDeliveryMethod");
     updateField(newQuote, "expiresAt", event, "quote.expiresAt");
     updateField(newQuote, "createdAt", event, "quote.createdAt");
     updateField(newQuote, "price", event, "quote.price");
@@ -473,8 +477,10 @@ public class Sep38Service {
         .price(quote.getPrice())
         .sellAsset(quote.getSellAsset())
         .sellAmount(quote.getSellAmount())
+        .sellDeliveryMethod(quote.getSellDeliveryMethod())
         .buyAsset(quote.getBuyAsset())
         .buyAmount(quote.getBuyAmount())
+        .buyDeliveryMethod(quote.getBuyDeliveryMethod())
         .fee(quote.getFee())
         .build();
   }

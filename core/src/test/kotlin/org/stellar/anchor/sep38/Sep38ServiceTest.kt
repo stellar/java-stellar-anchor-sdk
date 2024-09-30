@@ -1081,6 +1081,7 @@ class Sep38ServiceTest {
         .totalPrice("1.0300000004")
         .sellAsset(fiatUSD)
         .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
         .buyAsset(stellarUSDC)
         .buyAmount("97.09")
         .fee(mockFee)
@@ -1113,6 +1114,7 @@ class Sep38ServiceTest {
     wantEvent.quote.id = "123"
     wantEvent.quote.sellAsset = fiatUSD
     wantEvent.quote.sellAmount = "100"
+    wantEvent.quote.sellDeliveryMethod = "WIRE"
     wantEvent.quote.buyAsset = stellarUSDC
     wantEvent.quote.buyAmount = "97.09"
     wantEvent.quote.expiresAt = tomorrow
@@ -1183,6 +1185,7 @@ class Sep38ServiceTest {
         .totalPrice("1.03")
         .sellAsset(fiatUSD)
         .sellAmount("103")
+        .sellDeliveryMethod("WIRE")
         .buyAsset(stellarUSDC)
         .buyAmount("100")
         .fee(mockFee)
@@ -1215,6 +1218,7 @@ class Sep38ServiceTest {
     wantEvent.quote.id = "456"
     wantEvent.quote.sellAsset = fiatUSD
     wantEvent.quote.sellAmount = "103"
+    wantEvent.quote.sellDeliveryMethod = "WIRE"
     wantEvent.quote.buyAsset = stellarUSDC
     wantEvent.quote.buyAmount = "100"
     wantEvent.quote.expiresAt = tomorrow
@@ -1293,6 +1297,7 @@ class Sep38ServiceTest {
         .totalPrice(anchorCalculatedPrice)
         .sellAsset(fiatUSD)
         .sellAmount(anchorCalculatedSellAmount)
+        .sellDeliveryMethod("WIRE")
         .buyAsset(stellarUSDC)
         .buyAmount(anchorCalculatedBuyAmount)
         .fee(mockFee)
@@ -1325,6 +1330,7 @@ class Sep38ServiceTest {
     wantEvent.quote.id = "456"
     wantEvent.quote.sellAsset = fiatUSD
     wantEvent.quote.sellAmount = anchorCalculatedSellAmount
+    wantEvent.quote.sellDeliveryMethod = "WIRE"
     wantEvent.quote.buyAsset = stellarUSDC
     wantEvent.quote.buyAmount = anchorCalculatedBuyAmount
     wantEvent.quote.expiresAt = tomorrow
@@ -1473,6 +1479,7 @@ class Sep38ServiceTest {
         .totalPrice("1.03")
         .sellAsset(fiatUSD)
         .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
         .buyAsset(stellarUSDC)
         .buyAmount("97.0873786")
         .fee(mockFee)

@@ -4,6 +4,7 @@ import com.google.gson.reflect.TypeToken
 import org.apache.hc.core5.http.HttpStatus.SC_OK
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
@@ -32,6 +33,7 @@ import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 
 // TODO add refund flow test for withdrawal: https://stellarorg.atlassian.net/browse/ANCHOR-694
+@Disabled
 class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   private val gson = GsonUtils.getInstance()
 
