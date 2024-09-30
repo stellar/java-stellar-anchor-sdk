@@ -4,8 +4,8 @@ services:
       file: common/docker-compose.yaml
       service: platform
     env_file:
-      - profiles/${TEST_PROFILE_NAME:-default}/config.env
-      - profiles/${TEST_PROFILE_NAME:-default}/test.env
+      - profiles/${TEST_PROFILE_NAME:-demo}/config.env
+      - profiles/${TEST_PROFILE_NAME:-demo}/test.env
     depends_on:
       - db
       - kafka
