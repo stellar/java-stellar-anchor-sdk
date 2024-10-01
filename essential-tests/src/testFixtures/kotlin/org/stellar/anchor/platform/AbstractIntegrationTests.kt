@@ -35,11 +35,6 @@ abstract class AbstractIntegrationTests(val config: TestConfig) {
     const val TEST_PAYMENT_DEST_ACCOUNT = "GBDYDBJKQBJK4GY4V7FAONSFF2IBJSKNTBYJ65F5KCGBY2BIGPGGLJOH"
     const val TEST_PAYMENT_ASSET_CIRCLE_USDC =
       "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-    // For consistency, the following variable names are captialized
-    //    lateinit var TEST_PAYMENT_ID: String
-    //    lateinit var TESTPAYMENT_AMOUNT: String
-    //    lateinit var TESTPAYMENT_TXN_HASH: String
-    //    lateinit var TESTPAYMENT_SRC_ACCOUNT: String
 
     lateinit var testPaymentValues: List<Pair<String, String>>
 
