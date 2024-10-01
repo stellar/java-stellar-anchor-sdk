@@ -702,6 +702,10 @@ events:
       # `sasl_mechanism` can be one of the following supported mechanisms:
       #   `PLAIN`: PLAIN SASL mechanism
       sasl_mechanism: PLAIN
+      # The configuration to enable SSL certificate verification. If true, the SSL certificate will be verified.
+      # For dev and test environments, it can be used to disable SSL certificate verification.
+      # For production environments, it is strongly recommended to set to true to avoid man-in-the-middle attacks.
+      ssl_verify_cert: true
       # The SSL keystore location. The file path to the keystore file (jks).
       ssl_keystore_location:
       # The SSL truststore location. The file path to the truststore file (jks).

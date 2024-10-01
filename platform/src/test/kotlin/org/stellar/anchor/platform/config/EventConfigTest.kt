@@ -88,6 +88,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -104,6 +105,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -120,6 +122,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -136,6 +139,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -152,6 +156,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -168,6 +173,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -175,7 +181,7 @@ class EventConfigTest {
         Arguments.of(
           1,
           "kafka-security-protocol-empty",
-          KafkaConfig("localhost:29092", "client_id", 1, 10, 500, 10, null, null, null, null),
+          KafkaConfig("localhost:29092", "client_id", 1, 10, 500, 10, null, null, true, null, null),
         ),
         Arguments.of(
           1,
@@ -189,6 +195,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.SASL_PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -222,6 +229,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -239,6 +247,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -256,6 +265,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -273,6 +283,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -290,6 +301,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
@@ -307,6 +319,7 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
             null,
             null
           ),
