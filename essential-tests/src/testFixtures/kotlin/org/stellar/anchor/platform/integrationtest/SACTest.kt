@@ -18,15 +18,6 @@ class SACTest {
   private val anchorAccount = sorobanServer.getAccount(anchorKeyPair.accountId)
 
   @Test
-  fun testEnvelope() {
-    val txn =
-      sorobanServer.getTransaction(
-        "8d86a04c7bf3583ee811f4547218dc83f2c56ce68d3c08a63c223ed3dd93119c"
-      )
-    println("Transaction: $txn")
-  }
-
-  @Test
   fun testSACTransfer() {
     val parameters =
       mutableListOf(
