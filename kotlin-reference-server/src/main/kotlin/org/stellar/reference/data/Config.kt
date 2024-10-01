@@ -12,7 +12,12 @@ data class Config(
   val sep24: Sep24,
 )
 
-data class Sep24(val secret: String, val interactiveJwtKey: String) {
+data class Sep24(
+  val secret: String,
+  val interactiveJwtKey: String,
+  val usdcContract: String,
+  val nativeContract: String,
+) {
   val keyPair = KeyPair.fromSecretSeed(secret)
 }
 
@@ -21,6 +26,7 @@ data class AppSettings(
   val isTest: Boolean,
   val port: Int,
   val horizonEndpoint: String,
+  val rpcEndpoint: String,
   val platformApiEndpoint: String,
   val distributionWallet: String,
   val distributionWalletMemo: String,
@@ -40,7 +46,7 @@ data class AuthSettings(
   enum class Type {
     NONE,
     API_KEY,
-    JWT
+    JWT,
   }
 }
 
@@ -48,5 +54,5 @@ data class DataSettings(
   val url: String,
   val database: String,
   val user: String,
-  val password: String
+  val password: String,
 )
