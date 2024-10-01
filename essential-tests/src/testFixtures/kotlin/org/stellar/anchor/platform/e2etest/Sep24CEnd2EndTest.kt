@@ -39,6 +39,25 @@ class Sep24CEnd2EndTest : AbstractIntegrationTests(TestConfig()) {
   private val network = Network("Test SDF Network ; September 2015")
 
   @Test
+  fun testDepositFullFlow() = runBlocking {
+    val request =
+      mapOf(
+        "asset_code" to "USDC",
+        "asset_issuer" to "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+        "amount" to "1"
+      )
+    val response = sep24Client.deposit(request)
+    val transaction = sep24Client.getTransaction(response.id, "USDC").transaction
+    assertEquals("incomplete", transaction.status)
+
+    // Start the deposit process
+    val interactiveUrlRes = client.get(response.url)
+    assertEquals(200, interactiveUrlRes.status.value)
+
+    waitForTxnStatus(transaction.id, "completed")
+  }
+
+  @Test
   fun testWithdrawFullFlow() = runBlocking {
     val request =
       mapOf(

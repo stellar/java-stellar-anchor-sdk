@@ -20,6 +20,9 @@ import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.data.*
 import org.stellar.reference.data.Transaction
 import org.stellar.sdk.*
+import org.stellar.sdk.scval.Scv
+import org.stellar.sdk.xdr.SCVal
+import org.stellar.sdk.xdr.SCValType
 
 class SepHelper(private val cfg: Config) {
   private val log = KotlinLogging.logger {}
@@ -32,6 +35,7 @@ class SepHelper(private val cfg: Config) {
   val baseUrl = cfg.appSettings.platformApiEndpoint
 
   val server = Server(cfg.appSettings.horizonEndpoint)
+  val soroban = SorobanServer(cfg.appSettings.rpcEndpoint)
 
   internal suspend fun patchTransaction(patchRecord: PatchTransactionTransaction) {
     val resp =
@@ -71,7 +75,7 @@ class SepHelper(private val cfg: Config) {
   internal suspend fun patchTransaction(
     transactionId: String,
     newStatus: String,
-    message: String? = null
+    message: String? = null,
   ) {
     patchTransaction(PatchTransactionTransaction(transactionId, newStatus, message))
   }
@@ -85,7 +89,7 @@ class SepHelper(private val cfg: Config) {
     assetString: String,
     amount: BigDecimal,
     memo: String?,
-    memoType: String?
+    memoType: String?,
   ): String {
     val myAccount = server.accounts().account(cfg.sep24.keyPair!!.accountId)
     val asset = Asset.create(assetString.replace("stellar:", ""))
@@ -124,6 +128,67 @@ class SepHelper(private val cfg: Config) {
     }
 
     return resp.hash
+  }
+
+  internal fun sendSACTransferTransaction(
+    destinationAddress: String,
+    assetString: String,
+    amount: BigDecimal,
+  ): String {
+    log.info { "Sending SAC transfer transaction" }
+    val contractId =
+      when (assetString) {
+        // TODO: test with native asset
+        "native" -> cfg.sep24.nativeContract
+        "USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP" -> cfg.sep24.usdcContract
+        else -> {
+          log.info { "Unsupported asset $assetString" }
+          throw Exception("Unsupported asset $assetString")
+        }
+      }
+
+    val parameters =
+      mutableListOf(
+        // from=
+        SCVal.Builder()
+          .discriminant(SCValType.SCV_ADDRESS)
+          .address(Scv.toAddress(cfg.sep24.keyPair!!.accountId).address)
+          .build(),
+        // to=
+        SCVal.Builder()
+          .discriminant(SCValType.SCV_ADDRESS)
+          .address(Scv.toAddress(destinationAddress).address)
+          .build(),
+        // amount=
+        SCVal.Builder()
+          .discriminant(SCValType.SCV_I128)
+          .i128(Scv.toInt128(amount.toBigInteger()).i128)
+          .build(),
+      )
+
+    val operation =
+      InvokeHostFunctionOperation.invokeContractFunctionOperationBuilder(
+          contractId,
+          "transfer",
+          parameters,
+        )
+        .sourceAccount(cfg.sep24.keyPair.accountId)
+        .build()
+
+    val transaction =
+      TransactionBuilder(server.accounts().account(cfg.sep24.keyPair.accountId), Network.TESTNET)
+        .addOperation(operation)
+        .setBaseFee(org.stellar.sdk.Transaction.MIN_BASE_FEE.toLong())
+        .setTimeout(300)
+        .build()
+
+    val preparedTransaction = soroban.prepareTransaction(transaction)
+    preparedTransaction.sign(cfg.sep24.keyPair)
+
+    val response = soroban.sendTransaction(preparedTransaction)
+    log.info { "Transaction response: $response" }
+
+    return response.hash
   }
 
   internal suspend fun sendCustodyStellarTransaction(transactionId: String) {

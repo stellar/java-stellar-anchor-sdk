@@ -55,7 +55,6 @@ import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator;
 import org.stellar.anchor.util.*;
 import org.stellar.sdk.Address;
-import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 import org.stellar.sdk.scval.Scv;
 
@@ -383,7 +382,7 @@ public class Sep24Service {
 
     try {
       debugF("checking if deposit destination account:{} is valid", destinationAccount);
-      KeyPair.fromAccountId(destinationAccount);
+      Address.fromSCAddress(Scv.fromAddress(Scv.toAddress(destinationAccount)).toSCAddress());
     } catch (Exception ex) {
       infoF("invalid account format: {}", destinationAccount);
       throw new SepValidationException(

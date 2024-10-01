@@ -3,9 +3,15 @@ package org.stellar.reference.sep24
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.math.BigDecimal
 import java.math.RoundingMode
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.flow.single
 import org.stellar.reference.data.*
 import org.stellar.reference.service.SepHelper
 import org.stellar.reference.transactionWithRetry
+import org.stellar.sdk.responses.operations.InvokeHostFunctionOperationResponse
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
 
 private val log = KotlinLogging.logger {}
@@ -50,7 +56,12 @@ class DepositService(private val cfg: Config) {
       } else {
         transactionWithRetry {
           // 5. Sign and send transaction
-          val txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
+          val txHash: String
+          if (account.startsWith("G")) {
+            txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
+          } else {
+            txHash = sep24.sendSACTransferTransaction(account, asset, amount)
+          }
 
           // 6. Finalize Stellar anchor transaction
           finalizeStellarTransaction(transactionId, txHash, asset, amount)
@@ -154,15 +165,7 @@ class DepositService(private val cfg: Config) {
         ),
       )
     } else {
-      val operationId: Long =
-        sep24.server
-          .operations()
-          .forTransaction(stellarTransactionId)
-          .execute()
-          .records
-          .filterIsInstance<PaymentOperationResponse>()
-          .first()
-          .id
+      val operationId: Long = getFirstOperationIdWithRetry(stellarTransactionId)
 
       sep24.patchTransaction(
         PatchTransactionTransaction(
@@ -185,6 +188,34 @@ class DepositService(private val cfg: Config) {
         )
       )
     }
+  }
+
+  suspend fun getFirstOperationIdWithRetry(
+    stellarTransactionId: String,
+    maxAttempts: Int = 5,
+    delaySeconds: Int = 5,
+  ): Long {
+    return flow {
+        val operationId =
+          sep24.server
+            .operations()
+            .forTransaction(stellarTransactionId)
+            .execute()
+            .records
+            .filter { it is PaymentOperationResponse || it is InvokeHostFunctionOperationResponse }
+            .first()
+            .id
+        emit(operationId)
+      }
+      .retryWhen { _, attempt ->
+        if (attempt < maxAttempts) {
+          delay(delaySeconds.seconds)
+          true
+        } else {
+          false
+        }
+      }
+      .single()
   }
 
   private suspend fun failTransaction(transactionId: String, message: String?) {

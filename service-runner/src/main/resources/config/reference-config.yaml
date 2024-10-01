@@ -6,6 +6,8 @@ app:
   port: 8091
   # The URL of the Stellar network to which the Anchor will connect.
   horizonEndpoint: https://horizon-testnet.stellar.org
+  # The URL of the Soroban RPC server.
+  rpcEndpoint: https://soroban-testnet.stellar.org
   # The URL of the platform server.
   platformApiEndpoint: http://platform:8085
   # The Stellar wallet to which the customer will send the Stellar assets.
@@ -46,6 +48,8 @@ sep24:
   secret: "SAJ34AG5XC7BWGK3GGQGCXERSEP7LZYXBBDMD33NMBASZVNKACEMNEIY"
   # Encryption key for interactive JWT
   interactiveJwtKey: "secret_sep24_interactive_url_jwt_secret"
+  usdcContract: "CDTY3P6OVY3SMZXR3DZA667NAXFECA6A3AOZXEU33DD2ACBY43CIKDPT"
+  nativeContract: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
 
 data:
   url: reference-db:5433
