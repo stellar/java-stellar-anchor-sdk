@@ -31,6 +31,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.KafkaConfig;
+import org.stellar.anchor.platform.utils.TrustAllSslEngineFactory;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
@@ -183,55 +184,57 @@ public class KafkaSession implements EventService.Session {
     return new KafkaConsumer<>(props);
   }
 
+  void configureAuthSaslLogin(Properties props) throws InvalidConfigException {
+    // Check if the username and password are set
+    if (isEmpty(secret(SECRET_EVENTS_QUEUE_KAFKA_USERNAME))) {
+      String msg =
+          SECRET_EVENTS_QUEUE_KAFKA_USERNAME + " is not set. Please provide the Kafka username.";
+      Log.error(msg);
+      throw new InvalidConfigException(msg);
+    }
+    if (isEmpty(secret(SECRET_EVENTS_QUEUE_KAFKA_PASSWORD))) {
+      String msg =
+          SECRET_EVENTS_QUEUE_KAFKA_PASSWORD + " is not set. Please provide the Kafka password.";
+      Log.error(msg);
+      throw new InvalidConfigException(msg);
+    }
+
+    // Set the SASL login information
+    props.put(
+        "sasl.jaas.config",
+        "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
+            + secret(SECRET_EVENTS_QUEUE_KAFKA_USERNAME)
+            + "\" password=\""
+            + secret(SECRET_EVENTS_QUEUE_KAFKA_PASSWORD)
+            + "\";");
+  }
+
   void configureAuth(Properties props) throws InvalidConfigException {
     switch (kafkaConfig.getSecurityProtocol()) {
       case SASL_PLAINTEXT:
-      case SASL_SSL:
-        // Check if the username and password are set
-        if (isEmpty(secret(SECRET_EVENTS_QUEUE_KAFKA_USERNAME))) {
-          String msg =
-              SECRET_EVENTS_QUEUE_KAFKA_USERNAME
-                  + " is not set. Please provide the Kafka username.";
-          Log.error(msg);
-          throw new InvalidConfigException(msg);
-        }
-        if (isEmpty(secret(SECRET_EVENTS_QUEUE_KAFKA_PASSWORD))) {
-          String msg =
-              SECRET_EVENTS_QUEUE_KAFKA_PASSWORD
-                  + " is not set. Please provide the Kafka password.";
-          Log.error(msg);
-          throw new InvalidConfigException(msg);
-        }
-
-        // Set the SASL login information
-        props.put(
-            "sasl.jaas.config",
-            "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
-                + secret(SECRET_EVENTS_QUEUE_KAFKA_USERNAME)
-                + "\" password=\""
-                + secret(SECRET_EVENTS_QUEUE_KAFKA_PASSWORD)
-                + "\";");
-
-        break;
-    }
-
-    switch (kafkaConfig.getSecurityProtocol()) {
-      case SASL_PLAINTEXT:
+        configureAuthSaslLogin(props);
         props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol().name());
         props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
         break;
       case SASL_SSL:
+        configureAuthSaslLogin(props);
         props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol().name());
         props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
-        props.put(SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);
-        props.put(SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
 
-        if (!isEmpty(secret(SECRET_SSL_KEYSTORE_PASSWORD)))
-          props.put(SSL_KEYSTORE_PASSWORD_CONFIG, secret(SECRET_SSL_KEYSTORE_PASSWORD));
-        if (!isEmpty(secret(SECRET_SSL_KEY_PASSWORD)))
-          props.put(SSL_KEY_PASSWORD_CONFIG, secret(SECRET_SSL_KEY_PASSWORD));
-        if (!isEmpty(secret(SECRET_SSL_TRUSTSTORE_PASSWORD)))
-          props.put(SSL_TRUSTSTORE_PASSWORD_CONFIG, secret(SECRET_SSL_TRUSTSTORE_PASSWORD));
+        if (!kafkaConfig.getSslVerifyCert()) {
+          props.put(SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+          props.put(SSL_ENGINE_FACTORY_CLASS_CONFIG, TrustAllSslEngineFactory.class);
+        } else {
+          props.put(SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);
+          props.put(SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
+
+          if (!isEmpty(secret(SECRET_SSL_KEYSTORE_PASSWORD)))
+            props.put(SSL_KEYSTORE_PASSWORD_CONFIG, secret(SECRET_SSL_KEYSTORE_PASSWORD));
+          if (!isEmpty(secret(SECRET_SSL_KEY_PASSWORD)))
+            props.put(SSL_KEY_PASSWORD_CONFIG, secret(SECRET_SSL_KEY_PASSWORD));
+          if (!isEmpty(secret(SECRET_SSL_TRUSTSTORE_PASSWORD)))
+            props.put(SSL_TRUSTSTORE_PASSWORD_CONFIG, secret(SECRET_SSL_TRUSTSTORE_PASSWORD));
+        }
         break;
       case PLAINTEXT:
         break;

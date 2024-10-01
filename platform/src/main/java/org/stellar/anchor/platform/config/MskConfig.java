@@ -20,6 +20,7 @@ public class MskConfig extends KafkaConfig {
       int pollTimeoutSeconds,
       SecurityProtocol securityProtocol,
       SaslMechanism saslMechanism,
+      Boolean sslVerifyCert,
       String sslKeystoreLocation,
       String sslTruststoreLocation) {
 
@@ -32,6 +33,7 @@ public class MskConfig extends KafkaConfig {
         pollTimeoutSeconds,
         securityProtocol,
         saslMechanism,
+        sslVerifyCert,
         sslKeystoreLocation,
         sslTruststoreLocation);
     this.useIAM = useIAM;
