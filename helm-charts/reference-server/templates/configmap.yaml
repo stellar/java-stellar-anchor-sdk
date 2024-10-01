@@ -18,6 +18,10 @@ data:
 
     auth:
       type: NONE
+    
+    sep24:
+      usdcContract: CDTY3P6OVY3SMZXR3DZA667NAXFECA6A3AOZXEU33DD2ACBY43CIKDPT
+      nativeContract: CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
 
     data:
       database: postgres
