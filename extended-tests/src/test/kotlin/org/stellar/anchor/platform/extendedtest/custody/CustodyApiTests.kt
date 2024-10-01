@@ -5,8 +5,8 @@ import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
-import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -21,11 +21,15 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.client.CustodyApiClient
 import org.stellar.anchor.client.Sep24Client
 import org.stellar.anchor.platform.AbstractIntegrationTests
+import org.stellar.anchor.platform.AbstractIntegrationTests.Companion.TEST_ASSET_USDC
+import org.stellar.anchor.platform.AbstractIntegrationTests.Companion.TEST_PAYMENT_AMOUNT
+import org.stellar.anchor.platform.AbstractIntegrationTests.Companion.TEST_STELLAR_TRANSACTION_DEST_ACCOUNT
+import org.stellar.anchor.platform.AbstractIntegrationTests.Companion.TEST_STELLAR_TRANSACTION_HASH
+import org.stellar.anchor.platform.AbstractIntegrationTests.Companion.TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.RSAUtil
 
-@Disabled
 class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
   private val custodyApiClient =
     CustodyApiClient(
@@ -99,7 +103,7 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
       val recordedRequest = custodyMockServer.takeRequest()
       if (
         recordedRequest.method.equals("POST") &&
-          recordedRequest.path.toString().equals("//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses")
+          recordedRequest.path.toString() == "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses"
       ) {
         Assertions.assertEquals(
           "//v1/vault/accounts/1/XLM_USDC_T_CEKS/addresses",
@@ -164,7 +168,7 @@ class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
       val recordedRequest = custodyMockServer.takeRequest()
       if (
         recordedRequest.method.equals("POST") &&
-          recordedRequest.path.toString().equals("//v1/transactions")
+          recordedRequest.path.toString() == "//v1/transactions"
       ) {
         JSONAssert.assertEquals(
           CUSTODY_TRANSACTION_PAYMENT_REQUEST,
@@ -400,12 +404,12 @@ private const val WEBHOOK_REQUEST =
     "amount": 1,
     "networkFee": 0.00001,
     "netAmount": 1,
-    "sourceAddress": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-    "destinationAddress": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT",
+    "sourceAddress": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+    "destinationAddress": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT",
     "destinationAddressDescription": "",
     "destinationTag": "",
     "status": "CONFIRMING",
-    "txHash": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+    "txHash": "$TEST_STELLAR_TRANSACTION_HASH",
     "subStatus": "CONFIRMED",
     "signedBy": [],
     "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
@@ -466,12 +470,12 @@ private const val REFUND_WEBHOOK_REQUEST =
     "amount": 1,
     "networkFee": 0.00001,
     "netAmount": 1,
-    "sourceAddress": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT",
+    "sourceAddress": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT",
     "destinationAddress": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
     "destinationAddressDescription": "",
     "destinationTag": "12345",
     "status": "CONFIRMING",
-    "txHash": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+    "txHash": "$TEST_STELLAR_TRANSACTION_HASH",
     "subStatus": "CONFIRMED",
     "signedBy": [],
     "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
@@ -506,12 +510,6 @@ private const val REFUND_WEBHOOK_REQUEST =
 }
 """
 
-private const val WEBHOOK_SIGNATURE =
-  "jwWIW/EX4XdkD9sS0YSybaYCnITwdDsCADV99mVyimhLPz6EhQDV6hJEfA4/BcNtXveJNbchKCwVI1l5o0eHc/1F0l4WsfIGNcDl68CDBWpe6LyQ3ZWUS7X/VMEeFFTBkgGcRl7aDjX2Yn9HuLFnSFRR2r4eDKP8y4G7hUbPUdE="
-
-private const val REFUND_WEBHOOK_SIGNATURE =
-  "JQD32Ux2N1pJo61giuvABGyRtkn9Da1nJd8GGoedTKfvdwGFBkU4H78u0s7iHu4dhGgSg5NFL1mkkhSdoeuzkva/jgadFrn3JDQ3t1lFffiBBMNumOcn5c7ImCecIjizhR1uzW4rWmelpeG+Dah5C8q+EQ82qjlmMOVoYYuSzvM="
-
 private const val EXPECTED_TRANSACTION_RESPONSE =
   """
   {
@@ -540,16 +538,16 @@ private const val EXPECTED_TRANSACTION_RESPONSE =
   "external_transaction_id": "1",
   "stellar_transactions": [
     {
-      "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+      "id": "$TEST_STELLAR_TRANSACTION_HASH",
       "payments": [
         {
           "amount": {
-            "amount": "1.0000000",
-            "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            "amount": "$TEST_PAYMENT_AMOUNT",
+            "asset": "$TEST_ASSET_USDC"
           },
           "payment_type": "payment",
-          "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-          "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+          "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+          "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
         }
       ]
     }
@@ -595,10 +593,10 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
     },
     "payments": [
       {
-        "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+        "id": "$TEST_STELLAR_TRANSACTION_HASH",
         "id_type": "stellar",
         "amount": {
-          "amount": "1.0000000",
+          "amount": "$TEST_PAYMENT_AMOUNT",
           "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
         },
         "fee": {
@@ -610,18 +608,18 @@ private const val EXPECTED_TXN_REFUND_RESPONSE =
   },
   "stellar_transactions": [
     {
-      "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+      "id": "$TEST_STELLAR_TRANSACTION_HASH",
       "memo": "testTag",
       "memo_type": "id",
       "payments": [
         {
           "amount": {
-            "amount": "1.0000000",
-            "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            "amount": "$TEST_PAYMENT_AMOUNT",
+            "asset": "$TEST_ASSET_USDC"
           },
           "payment_type": "payment",
-          "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-          "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+          "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+          "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
         }
       ]
     }
@@ -704,7 +702,7 @@ private const val NOTIFY_ONCHAIN_FUNDS_RECEIVED_REQUEST =
   {
     "transaction_id": "TX_ID",
     "message": "test message 1",
-    "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+    "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
   }
 """
 

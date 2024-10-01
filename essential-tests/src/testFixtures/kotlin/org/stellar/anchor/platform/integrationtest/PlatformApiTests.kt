@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.integrationtest
 import com.google.gson.reflect.TypeToken
 import org.apache.http.HttpStatus.SC_OK
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
@@ -28,7 +27,6 @@ import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
 
 // TODO add refund flow test for withdrawal: https://stellarorg.atlassian.net/browse/ANCHOR-694
-@Disabled
 class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   private val gson = GsonUtils.getInstance()
 
@@ -405,6 +403,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       response.body?.string()?.trimIndent(),
       CustomComparator(
         JSONCompareMode.STRICT,
+        Customization("[*].result.transfer_received_at") { _, _ -> true },
         Customization("[*].result.started_at") { _, _ -> true },
         Customization("[*].result.updated_at") { _, _ -> true }
       )
@@ -509,6 +508,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       actualResult,
       CustomComparator(
         JSONCompareMode.LENIENT,
+        Customization("[*].result.transfer_received_at") { _, _ -> true },
         Customization("[*].result.started_at") { _, _ -> true },
         Customization("[*].result.updated_at") { _, _ -> true },
         Customization("[*].result.completed_at") { _, _ -> true },
@@ -573,7 +573,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 3",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
             }
           }
         ]
@@ -680,17 +680,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -813,17 +813,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -930,7 +930,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 6",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
             }
           }
         ]
@@ -1144,17 +1144,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 6",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -1252,7 +1252,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 5",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
             }
           }
         ]
@@ -1433,17 +1433,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 5",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -1562,7 +1562,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 5",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
             }
           }
         ]
@@ -1779,17 +1779,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -1845,7 +1845,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 2",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
             }
           },
           {
@@ -1938,17 +1938,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -2000,17 +2000,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -2111,17 +2111,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -2173,17 +2173,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -2241,7 +2241,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 2",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
             }
           },
           {
@@ -2344,17 +2344,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -2405,17 +2405,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -2468,17 +2468,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -2536,7 +2536,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 2",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
             }
           },
           {
@@ -2638,19 +2638,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "created_at": "2024-06-13T20:02:49Z",
-                  "envelope": "AAAAAgAAAABJ+JNr9UKNhr/WnkJXRsTseMmlzYV9MvIRP3CUunbfWAAAAGQAACxmAAAABQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAABPzQEm0b8X39yUDrTrdeHdJWSi3pnVNqobUFWTbGFCdwAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAACYloAAAAAAAAAAAbp231gAAABAcP00o/io68PrayhP1YRtWxzuWXWzCwqG7Z6Q5YgGMgazMK6cE+FmEWz12U3Scs8Y+Tm807DzjrDo5y7X6GHMBA==",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -2701,18 +2699,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "created_at": "2024-06-13T20:02:49Z",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -2765,18 +2762,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "created_at": "2024-06-13T20:02:49Z",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -2834,7 +2830,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "params": {
               "transaction_id": "TX_ID",
               "message": "test message 2",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
             }
           },
           {
@@ -2937,17 +2933,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -3023,17 +3019,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -3104,7 +3100,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 3",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   }
 ]
@@ -3190,17 +3186,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -3313,7 +3309,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 6",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   }
 ]
@@ -3479,17 +3475,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 6",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -3578,7 +3574,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 5",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   }
 ]
@@ -3718,17 +3714,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 5",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -3839,7 +3835,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 5",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   }
 ]    
@@ -4015,17 +4011,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -4073,7 +4069,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 2",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   },
   {
@@ -4156,19 +4152,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZjdiMzQ0YmUtZjNlZC00NWYwLThlNWItYWQ0NjAzMzY=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -4211,19 +4207,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZjdiMzQ0YmUtZjNlZC00NWYwLThlNWItYWQ0NjAzMzY=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -4274,7 +4270,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 2",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   },
   {
@@ -4367,19 +4363,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "NGQwMDk3NTgtODg3My00OGE1LWE4M2UtYTllOGU0OGM=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -4421,19 +4417,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "NGQwMDk3NTgtODg3My00OGE1LWE4M2UtYTllOGU0OGM=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -4477,19 +4473,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "NGQwMDk3NTgtODg3My00OGE1LWE4M2UtYTllOGU0OGM=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -4573,19 +4569,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZWZhNWI5YWUtNWJiNS00ZmQyLThiZjQtOWY5M2NmNmY=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -4627,19 +4623,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZWZhNWI5YWUtNWJiNS00ZmQyLThiZjQtOWY5M2NmNmY=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -4683,19 +4679,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZWZhNWI5YWUtNWJiNS00ZmQyLThiZjQtOWY5M2NmNmY=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -4746,7 +4742,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 2",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   },
   {
@@ -4806,7 +4802,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 2",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   },
   {
@@ -4899,19 +4895,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "NmUyZTcyYjktNzIyMC00OGRiLTkwZDItNDkyOWU1OWU=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -4978,19 +4974,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "NmUyZTcyYjktNzIyMC00OGRiLTkwZDItNDkyOWU1OWU=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -5016,7 +5012,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 1",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   },
   {
@@ -5075,19 +5071,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 1",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZWQ0NmIwMzAtM2E5NC00M2RkLThkMWYtYWUwMjNhMGI=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -5157,19 +5153,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZWQ0NmIwMzAtM2E5NC00M2RkLThkMWYtYWUwMjNhMGI=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -5198,7 +5194,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 1",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   },
   {
@@ -5293,19 +5289,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 1",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -5351,19 +5347,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -5409,19 +5405,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -5467,19 +5463,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -5525,19 +5521,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 5",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -5583,19 +5579,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 6",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -5643,19 +5639,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 7",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "$TEST_STELLAR_TRANSACTION_HASH",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "$TEST_PAYMENT_ID",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "$TEST_PAYMENT_AMOUNT",
+                        "asset": "$TEST_ASSET_USDC"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "$TEST_STELLAR_TRANSACTION_SOURCE_ACCOUNT",
+                      "destination_account": "$TEST_STELLAR_TRANSACTION_DEST_ACCOUNT"
                     }
                   ]
                 }
@@ -5996,7 +5992,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 14",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   },
   {
@@ -6092,7 +6088,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 19",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   },
   {
@@ -6102,7 +6098,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "params": {
       "transaction_id": "TX_ID",
       "message": "test message 20",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "$TEST_STELLAR_TRANSACTION_HASH"
     }
   }
 ]
@@ -6365,12 +6361,12 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       "message": "test message 19",
       "stellar_transactions": [
         {
-          "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+          "id": "$TEST_STELLAR_TRANSACTION_HASH",
           "payments": [
             {
               "amount": {
                 "amount": "100.0000000",
-                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                "asset": "$TEST_ASSET_USDC"
               },
               "payment_type": "payment",
               "source_account": "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B",
