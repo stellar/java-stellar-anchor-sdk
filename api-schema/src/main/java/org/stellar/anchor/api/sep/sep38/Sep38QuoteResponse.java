@@ -32,11 +32,17 @@ public class Sep38QuoteResponse {
   @SerializedName("sell_amount")
   String sellAmount;
 
+  @SerializedName("sell_delivery_method")
+  String sellDeliveryMethod;
+
   @SerializedName("buy_asset")
   String buyAsset;
 
   @SerializedName("buy_amount")
   String buyAmount;
+
+  @SerializedName("buy_delivery_method")
+  String buyDeliveryMethod;
 
   FeeDetails fee;
 }

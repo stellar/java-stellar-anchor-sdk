@@ -38,12 +38,6 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
 
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    // If type is FILE, value must be defined
-    // if type is INLINE, items can be left empty as this not a required config
-    if (this.getType() == ClientsConfigType.FILE && isEmpty(this.getValue())) {
-      errors.reject("invalid-no-value-defined", "clients.value is empty. Please define.");
-    }
-
     // Parse the file and validate the contents
     try {
       parseConfigIntoItemList();
@@ -119,9 +113,10 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
   }
 
   private void parseConfigIntoItemList() throws InvalidConfigException {
-    if (this.getType().equals(ClientsConfigType.INLINE)) {
+    if (this.getType().equals(ClientsConfigType.INLINE) || isEmpty(this.getValue())) {
       return;
     }
+
     // 1. Parse the content into a map with "items" as the key and a List<Object> as the value.
     Map<String, List<Object>> contentMap = new HashMap<>();
     switch (this.getType()) {

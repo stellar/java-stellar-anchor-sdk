@@ -1,9 +1,10 @@
 package org.stellar.anchor.platform.config
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.client.ClientConfig.CallbackUrls
@@ -161,5 +162,22 @@ class ClientsConfigTest {
     config.setItems(listOf(custodial))
     config.validate(config, errors)
     assertEquals(4, errors.errorCount)
+  }
+
+  @ParameterizedTest
+  @EnumSource(ClientsConfig.ClientsConfigType::class, names = ["FILE", "JSON", "YAML"])
+  fun `test empty value for file, json, yaml config type`(
+    configType: ClientsConfig.ClientsConfigType
+  ) {
+    config.setType(configType)
+    assertTrue(config.getValue().isNullOrEmpty())
+    assertDoesNotThrow { config.validate(config, errors) }
+  }
+
+  @Test
+  fun `test empty value for inline config type`() {
+    config.setType(ClientsConfig.ClientsConfigType.INLINE)
+    assertTrue { config.getItems().isEmpty() }
+    assertDoesNotThrow { config.validate(config, errors) }
   }
 }
