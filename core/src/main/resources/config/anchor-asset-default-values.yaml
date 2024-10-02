@@ -127,6 +127,7 @@ items:
         # the maximum amount that the user can receive.
         min_amount: 0
         max_amount:
+        methods: []
       # `true` if the asset supports quotesinforesponse.java.
       quotes_supported: true
       # `true` if the asset requires quotes.
