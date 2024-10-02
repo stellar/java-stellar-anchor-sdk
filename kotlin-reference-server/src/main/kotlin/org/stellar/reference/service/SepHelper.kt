@@ -162,7 +162,7 @@ class SepHelper(private val cfg: Config) {
         // amount=
         SCVal.Builder()
           .discriminant(SCValType.SCV_I128)
-          .i128(Scv.toInt128(amount.toBigInteger()).i128)
+          .i128(Scv.toInt128((amount.times(BigDecimal.valueOf(10000000))).toBigInteger()).i128)
           .build(),
       )
 
