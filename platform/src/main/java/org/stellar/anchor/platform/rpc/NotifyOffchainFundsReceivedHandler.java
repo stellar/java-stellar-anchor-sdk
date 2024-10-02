@@ -148,9 +148,7 @@ public class NotifyOffchainFundsReceivedHandler
         if (ImmutableSet.of(DEPOSIT, DEPOSIT_EXCHANGE).contains(Kind.from(txn6.getKind()))) {
           supportedStatuses.add(PENDING_USR_TRANSFER_START);
           supportedStatuses.add(ON_HOLD);
-          if (areFundsReceived(txn6)) {
-            supportedStatuses.add(PENDING_EXTERNAL);
-          }
+          supportedStatuses.add(PENDING_EXTERNAL);
         }
         break;
       case SEP_24:
@@ -158,9 +156,7 @@ public class NotifyOffchainFundsReceivedHandler
         if (DEPOSIT == Kind.from(txn24.getKind())) {
           supportedStatuses.add(PENDING_USR_TRANSFER_START);
           supportedStatuses.add(ON_HOLD);
-          if (areFundsReceived(txn24)) {
-            supportedStatuses.add(PENDING_EXTERNAL);
-          }
+          supportedStatuses.add(PENDING_EXTERNAL);
         }
         break;
       default:
