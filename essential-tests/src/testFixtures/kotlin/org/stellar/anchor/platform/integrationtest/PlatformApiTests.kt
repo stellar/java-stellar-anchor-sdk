@@ -34,7 +34,6 @@ import org.stellar.anchor.util.GsonUtils
 
 @Disabled
 // TODO add refund flow test for withdrawal: https://stellarorg.atlassian.net/browse/ANCHOR-694
-@Disabled
 class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   private val gson = GsonUtils.getInstance()
 
