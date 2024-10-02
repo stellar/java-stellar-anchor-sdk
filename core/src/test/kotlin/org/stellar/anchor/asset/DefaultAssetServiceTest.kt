@@ -160,7 +160,11 @@ internal class DefaultAssetServiceTest {
                   "enabled": true,
                   "receive": {
                     "min_amount": 1,
-                    "max_amount": 1000000
+                    "max_amount": 1000000,
+                    "methods": [
+                      "SEPA",
+                      "SWIFT"
+                    ]
                   },
                   "quotes_supported": true,
                   "quotes_required": true
@@ -197,7 +201,11 @@ internal class DefaultAssetServiceTest {
                   "enabled": true,
                   "receive": {
                     "min_amount": 1,
-                    "max_amount": 1000000
+                    "max_amount": 1000000,
+                    "methods": [
+                      "SEPA",
+                      "SWIFT"
+                    ]
                   },
                   "quotes_supported": true,
                   "quotes_required": true
@@ -217,7 +225,11 @@ internal class DefaultAssetServiceTest {
                   "enabled": false,
                   "receive": {
                     "min_amount": 1,
-                    "max_amount": 1000000
+                    "max_amount": 1000000,
+                    "methods": [
+                      "SEPA",
+                      "SWIFT"
+                    ]
                   }
                 },
                 "sep38": {
@@ -266,7 +278,11 @@ internal class DefaultAssetServiceTest {
                   "enabled": true,
                   "receive": {
                     "min_amount": 1,
-                    "max_amount": 1000000
+                    "max_amount": 1000000,
+                    "methods": [
+                      "SEPA",
+                      "SWIFT"
+                    ]
                   },
                   "quotes_supported": true,
                   "quotes_required": true

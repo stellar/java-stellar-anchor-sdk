@@ -128,27 +128,7 @@
           ]
         },
         "quotes_supported": true,
-        "quotes_required": true,
-        "fields": {
-          "transaction": {
-            "receiver_routing_number": {
-              "description": "routing number of the destination bank account",
-              "optional": false
-            },
-            "receiver_account_number": {
-              "description": "bank account number of the destination",
-              "optional": false
-            },
-            "type": {
-              "description": "type of deposit to make",
-              "choices": [
-                "ACH",
-                "SWIFT",
-                "WIRE"
-              ]
-            }
-          }
-        }
+        "quotes_required": true
       },
       "sep38": {
         "enabled": true,
@@ -165,7 +145,11 @@
         "enabled": false,
         "receive": {
           "min_amount": 1,
-          "max_amount": 1000000
+          "max_amount": 1000000,
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
         }
       },
       "sep38": {
@@ -230,24 +214,7 @@
           ]
         },
         "quotes_supported": true,
-        "quotes_required": true,
-        "fields": {
-          "transaction": {
-            "receiver_routing_number": {
-              "description": "routing number of the destination bank account"
-            },
-            "receiver_account_number": {
-              "description": "bank account number of the destination"
-            },
-            "type": {
-              "description": "type of deposit to make",
-              "choices": [
-                "SEPA",
-                "SWIFT"
-              ]
-            }
-          }
-        }
+        "quotes_required": true
       },
       "sep38": {
         "enabled": true,
