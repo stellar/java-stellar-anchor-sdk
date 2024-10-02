@@ -89,6 +89,19 @@ public class AssetValidator {
       // Validate SEP-31 `receive.min_amount` and `receive.max_amount` fields
       ReceiveOperation receiveInfo = sep31Info.getReceive();
       if (receiveInfo != null) {
+        if (isEmpty(receiveInfo.getMethods())) {
+          throw new InvalidConfigException(
+              format("No receive methods defined for asset %s", assetId));
+        }
+        // Check for duplicate deposit methods
+        Set<String> existingReceiveTypes = new HashSet<>();
+        for (String method : receiveInfo.getMethods()) {
+          if (!existingReceiveTypes.add(method)) {
+            throw new InvalidConfigException(
+                format(
+                    "Duplicate receive method defined for asset %s. Type = %s", assetId, method));
+          }
+        }
         if (receiveInfo.getMinAmount() < 0)
           throw new InvalidConfigException(
               format(
