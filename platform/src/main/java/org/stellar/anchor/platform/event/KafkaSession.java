@@ -130,7 +130,7 @@ public class KafkaSession implements EventService.Session {
   }
 
   @Override
-  public void close() throws AnchorException {
+  public void close() {
     if (producer != null) {
       producer.close();
     }
