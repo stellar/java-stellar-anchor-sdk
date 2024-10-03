@@ -160,7 +160,6 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
   }
 
   private Map<String, List<Object>> parseYamlStringToMap(String yamlString) {
-    System.out.println("yamlString: " + new Yaml().load(yamlString));
     return new Yaml().load(yamlString);
   }
 
