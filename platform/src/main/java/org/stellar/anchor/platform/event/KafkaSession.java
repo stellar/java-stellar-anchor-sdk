@@ -15,7 +15,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import lombok.AllArgsConstructor;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -44,12 +47,14 @@ public class KafkaSession implements EventService.Session {
   String sslKeystoreLocation;
   String sslTruststoreLocation;
 
-  KafkaSession(KafkaConfig kafkaConfig, String sessionName, EventQueue queue) throws IOException {
+  public KafkaSession(KafkaConfig kafkaConfig, String sessionName, EventQueue queue)
+      throws IOException {
     this.kafkaConfig = kafkaConfig;
     this.sessionName = sessionName;
     this.topic = queue.name();
 
-    if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
+    if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL
+        || kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SSL) {
       // If the keystore and truststore files exist, use them, otherwise, use the resources
       sslKeystoreLocation =
           findFileThenResource(kafkaConfig.getSslKeystoreLocation()).getAbsolutePath();
@@ -144,9 +149,15 @@ public class KafkaSession implements EventService.Session {
     return sessionName;
   }
 
-  private Producer<String, String> createProducer() throws InvalidConfigException {
-    Log.debugF("kafkaConfig: {}", kafkaConfig);
+  public void testConnection() throws Exception {
+    Properties props = createProducerConfig();
+    AdminClient adminClient = AdminClient.create(props);
+    Set<String> topics =
+        adminClient.listTopics(new ListTopicsOptions().timeoutMs(1000)).names().get();
+    Log.infoF("Kafka topics: {}", topics);
+  }
 
+  Properties createProducerConfig() throws InvalidConfigException {
     Properties props = new Properties();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
     props.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -162,8 +173,12 @@ public class KafkaSession implements EventService.Session {
     // maximum reconnect back-off is 10 seconds
     props.put(RECONNECT_BACKOFF_MAX_MS_CONFIG, "10000");
     configureAuth(props);
+    return props;
+  }
 
-    return new KafkaProducer<>(props);
+  Producer<String, String> createProducer() throws InvalidConfigException {
+    Log.debugF("kafkaConfig: {}", kafkaConfig);
+    return new KafkaProducer<>(createProducerConfig());
   }
 
   Consumer<String, String> createConsumer() throws InvalidConfigException {
@@ -218,6 +233,7 @@ public class KafkaSession implements EventService.Session {
         break;
       case SASL_SSL:
         configureAuthSaslLogin(props);
+      case SSL: // fall through
         props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol().name());
         props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
 

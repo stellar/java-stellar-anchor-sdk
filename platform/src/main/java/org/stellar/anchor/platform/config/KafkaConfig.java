@@ -51,6 +51,7 @@ public class KafkaConfig {
 
   public enum SecurityProtocol {
     PLAINTEXT,
+    SSL,
     SASL_PLAINTEXT,
     SASL_SSL
   }
