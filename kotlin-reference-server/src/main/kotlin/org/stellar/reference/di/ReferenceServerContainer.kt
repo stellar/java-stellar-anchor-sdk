@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.engine.*
+import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
@@ -55,7 +56,7 @@ object ReferenceServerContainer {
       ServiceContainer.sepHelper,
       ServiceContainer.depositService,
       ServiceContainer.withdrawalService,
-      config.sep24.interactiveJwtKey
+      config.sep24.interactiveJwtKey,
     )
     event(ServiceContainer.eventService)
     customer(ServiceContainer.customerService)
@@ -67,13 +68,15 @@ object ReferenceServerContainer {
         ServiceContainer.sepHelper,
         ServiceContainer.depositService,
         ServiceContainer.withdrawalService,
-        config.sep24.interactiveJwtKey
+        config.sep24.interactiveJwtKey,
       )
       testSep31(ServiceContainer.receiveService)
     }
     if (config.appSettings.isTest) {
       testCustomer(ServiceContainer.customerService)
     }
+
+    staticResources("/static", "assets")
   }
 
   private fun Application.configureAuth() {
