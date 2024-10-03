@@ -28,8 +28,6 @@ import org.yaml.snakeyaml.Yaml;
 public class PropertyClientsConfig implements ClientsConfig, Validator {
   ClientsConfigType type;
   String value;
-  // List<RawClient> items is required for loading inline client configurations, as it needs a
-  // concrete class to instantiate the object.
   List<RawClient> items = new ArrayList<>();
   Gson gson = GsonUtils.getInstance();
 
@@ -120,7 +118,7 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     }
 
     // 1. Parse the content into a map with "items" as the key and a List<Object> as the value.
-    Map<String, List<RawClient>> contentMap;
+    Map<String, List<Object>> contentMap = new HashMap<>();
     switch (this.getType()) {
       case FILE:
         contentMap = parseFileToMap(this.getValue());
@@ -137,12 +135,13 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     }
 
     // 2. Process the map into a list of RawClient objects.
-    items = contentMap.get("items");
-    items.removeIf(Objects::isNull);
+    contentMap.get("items").removeIf(Objects::isNull);
+    items =
+        gson.fromJson(
+            gson.toJson(contentMap.get("items")), new TypeToken<List<RawClient>>() {}.getType());
   }
 
-  private Map<String, List<RawClient>> parseFileToMap(String filePath)
-      throws InvalidConfigException {
+  private Map<String, List<Object>> parseFileToMap(String filePath) throws InvalidConfigException {
     try {
       String fileContent = FileUtil.read(Path.of(filePath));
       String fileExtension = FilenameUtils.getExtension(filePath).toLowerCase();
@@ -160,12 +159,12 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
     }
   }
 
-  private Map<String, List<RawClient>> parseYamlStringToMap(String yamlString) {
+  private Map<String, List<Object>> parseYamlStringToMap(String yamlString) {
     System.out.println("yamlString: " + new Yaml().load(yamlString));
     return new Yaml().load(yamlString);
   }
 
-  private Map<String, List<RawClient>> parseJsonStringToMap(String jsonString) {
-    return gson.fromJson(jsonString, new TypeToken<Map<String, List<RawClient>>>() {}.getType());
+  private Map<String, List<Object>> parseJsonStringToMap(String jsonString) {
+    return gson.fromJson(jsonString, new TypeToken<Map<String, List<Object>>>() {}.getType());
   }
 }
