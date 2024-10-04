@@ -2,7 +2,6 @@ package org.stellar.reference.sep24
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.math.BigDecimal
-import java.math.RoundingMode
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
@@ -82,7 +81,6 @@ class DepositService(private val cfg: Config) {
   }
 
   private suspend fun initiateTransfer(transactionId: String, amount: BigDecimal, asset: String) {
-    val fee = calculateFee(amount)
     val stellarAsset = "stellar:$asset"
 
     if (cfg.appSettings.rpcEnabled) {
@@ -92,9 +90,8 @@ class DepositService(private val cfg: Config) {
           transactionId = transactionId,
           message = "waiting on the user to transfer funds",
           amountIn = AmountAssetRequest(asset = "iso4217:USD", amount = amount.toPlainString()),
-          amountOut =
-            AmountAssetRequest(asset = stellarAsset, amount = amount.subtract(fee).toPlainString()),
-          feeDetails = FeeDetails(total = fee.toPlainString(), asset = "iso4217:USD"),
+          amountOut = AmountAssetRequest(asset = stellarAsset, amount = amount.toPlainString()),
+          feeDetails = FeeDetails(total = "0", asset = "iso4217:USD"),
         ),
       )
     } else {
@@ -104,8 +101,8 @@ class DepositService(private val cfg: Config) {
           status = "pending_user_transfer_start",
           message = "waiting on the user to transfer funds",
           amountIn = Amount(amount.toPlainString(), stellarAsset),
-          amountOut = Amount(amount.subtract(fee).toPlainString(), stellarAsset),
-          feeDetails = FeeDetails(fee.toPlainString(), stellarAsset),
+          amountOut = Amount(amount.toPlainString(), stellarAsset),
+          feeDetails = FeeDetails(total = "0", stellarAsset),
         )
       )
     }
@@ -227,12 +224,5 @@ class DepositService(private val cfg: Config) {
     } else {
       sep24.patchTransaction(transactionId, "error", message)
     }
-  }
-
-  // Set 10% fee
-  private fun calculateFee(amount: BigDecimal): BigDecimal {
-    val fee = amount.multiply(BigDecimal.valueOf(0.1))
-    val scale = if (amount.scale() == 0) 1 else amount.scale()
-    return fee.setScale(scale, RoundingMode.DOWN)
   }
 }
