@@ -1,17 +1,22 @@
 #
 # This file contains client configuration details. The provided values are for illustrative purposes only.
 #
-
 items:
   # Custodial Client Configuration
     # (Required) A unique identifier for the client, typically a name that clearly represents the client entity.
   - name:
     # (Required) The type of the client. It can be either `custodial` or `noncustodial`.
     type: custodial
-    # (Required) A list of public keys used for SEP-10 authentication.
+    # (Required) A list of public keys used for SEP-10 authentication. Example:
+    # signing_keys:
+    #   - GDAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    #   - GDBYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
     signing_keys: []
     # (Optional) The URLs to which the service can send callbacks for different SEP types. Optional due to some wallets may opt
-    # to poll instead, or may use polling first before implementing callbacks at a later stage.
+    # to poll instead, or may use polling first before implementing callbacks at a later stage. Example:
+    # callback_urls:
+    #   sep6: https://client.com/sep6
+    #   sep24: https://client.com/sep24
     callback_urls:
       sep6:
       sep24:
@@ -28,7 +33,10 @@ items:
   - name:
     # (Required) The type of the client, similar to custodial clients.
     type: noncustodial
-    # (Required) A list of domains associated with the client, used to verify the client’s identity.
+    # (Required) A list of domains associated with the client, used to verify the client’s identity. Example:
+    # domains:
+    #   - client.com
+    #   - client.org
     domains: []
     # (Optional) URLs for sending callbacks related to various SEP protocols, similar to custodial clients.
     callback_urls:
