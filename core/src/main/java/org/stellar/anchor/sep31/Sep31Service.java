@@ -19,6 +19,7 @@ import static org.stellar.anchor.util.SepHelper.validateAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
+import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Counter;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
@@ -570,11 +571,18 @@ public class Sep31Service {
       if (assetInfo.getSep31() != null && assetInfo.getSep31().getEnabled()) {
         boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
         boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
+        List<String> methods = assetInfo.getSep31().getReceive().getMethods();
+        AssetInfo.Field type =
+            AssetInfo.Field.builder()
+                .description("methods supported by the anchor for asset deposits")
+                .choices(methods)
+                .build();
         AssetResponse assetResponse = new AssetResponse();
         assetResponse.setQuotesSupported(isQuotesSupported);
         assetResponse.setQuotesRequired(isQuotesRequired);
         assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
         assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
+        assetResponse.setFields(ImmutableMap.of("type", type));
         response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
     }

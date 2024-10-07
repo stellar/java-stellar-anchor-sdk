@@ -23,6 +23,9 @@ items:
       receive:
         min_amount: 0
         max_amount: 10000
+        methods:
+          - SEPA
+          - SWIFT
       quotes_supported: true
       quotes_required: true
     sep38:
@@ -36,6 +39,9 @@ items:
       receive:
         min_amount: 1
         max_amount: 1000000
+        methods:
+          - SEPA
+          - SWIFT
     sep38:
       enabled: true
       exchangeable_assets:

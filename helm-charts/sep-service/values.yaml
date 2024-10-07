@@ -220,6 +220,9 @@ assets_config: |
       receive:
         min_amount: 1
         max_amount: 1000000
+        methods:
+          - SEPA
+          - SWIFT
       quotes_supported: true
       quotes_required: false
     sep38:
@@ -244,6 +247,9 @@ assets_config: |
       receive:
         min_amount: 1
         max_amount: 1000000
+        methods:
+          - SEPA
+          - SWIFT
       quotes_supported: true
       quotes_required: false
     sep38:
@@ -264,6 +270,9 @@ assets_config: |
     sep31:
       enabled: true
       receive:
+        methods:
+          - SEPA
+          - SWIFT
       quotes_supported: true
       quotes_required: false
     sep38:
@@ -277,6 +286,9 @@ assets_config: |
       receive:
         min_amount: 0
         max_amount: 10000
+        methods:
+          - SEPA
+          - SWIFT
     sep38:
       enabled: true
       exchangeable_assets:
@@ -307,6 +319,9 @@ assets_config: |
       enabled: true
       receive:
         max_amount: 1000000
+        methods:
+          - SEPA
+          - SWIFT
       quotes_supported: true
       quotes_required: true
     sep38:
