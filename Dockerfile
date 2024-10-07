@@ -13,5 +13,8 @@ RUN apt-get update && \
 
 COPY --from=build /code/service-runner/build/libs/anchor-platform-runner*.jar /app/anchor-platform-runner.jar
 COPY --from=build /code/scripts/docker-start.sh /app/start.sh
+COPY --from=build /code/assets /app/assets
 
-ENTRYPOINT ["/bin/bash", "/app/start.sh"]
+WORKDIR /app
+
+ENTRYPOINT ["/bin/bash", "start.sh"]

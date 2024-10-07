@@ -14,6 +14,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import java.io.File
 import org.stellar.reference.callbacks.customer.customer
 import org.stellar.reference.callbacks.interactive.sep24Interactive
 import org.stellar.reference.callbacks.rate.rate
@@ -76,7 +77,7 @@ object ReferenceServerContainer {
       testCustomer(ServiceContainer.customerService)
     }
 
-    staticResources("/static", "assets")
+    staticFiles("/static", File("assets"))
   }
 
   private fun Application.configureAuth() {
