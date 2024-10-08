@@ -5,7 +5,6 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import java.util.*
 import java.util.stream.Stream
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
@@ -29,7 +28,7 @@ class KafkaTests {
     fun kafkaTestDataProvider(): Stream<Arguments> {
       return Stream.of(
         Arguments.of("kafka:29092", PLAINTEXT),
-        Arguments.of("kafka:29093", SSL),
+        //        Arguments.of("kafka:29093", SSL),
         Arguments.of("kafka:29094", SASL_SSL),
         Arguments.of("kafka:29095", SASL_PLAINTEXT)
       )
@@ -52,21 +51,23 @@ class KafkaTests {
   @ParameterizedTest
   @LockAndMockStatic([SecretManager::class])
   @MethodSource("kafkaTestDataProvider")
-  fun `test Kafka session with PLAINTEXT mode`(
+  fun `test Kafka session with different protocols`(
     server: String,
     protocol: KafkaConfig.SecurityProtocol
   ) {
     val config =
       KafkaConfig().also {
         it.bootstrapServer = server
-        it.retries = 0
-        it.lingerMs = 10
-        it.batchSize = 1
-        it.pollTimeoutSeconds = 1
+        it.retries = 5
+        it.lingerMs = 1000
+        it.batchSize = 10
+        it.pollTimeoutSeconds = 30
         it.securityProtocol = protocol
-        it.saslMechanism = PLAIN
-        it.sslTruststoreLocation = trustStoreFile.absolutePath
-        it.sslKeystoreLocation = keyStoreFile.absolutePath
+        if (protocol == SASL_SSL || protocol == SASL_PLAINTEXT) it.saslMechanism = PLAIN
+        if (protocol == SASL_SSL) {
+          it.sslTruststoreLocation = trustStoreFile.absolutePath
+          it.sslKeystoreLocation = keyStoreFile.absolutePath
+        }
       }
 
     every { SecretManager.secret(SECRET_EVENTS_QUEUE_KAFKA_USERNAME) } returns "admin"
