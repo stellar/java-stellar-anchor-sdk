@@ -41,6 +41,8 @@ tasks { bootJar { archiveBaseName.set("anchor-platform-runner") } }
 
 application { mainClass.set("org.stellar.anchor.platform.ServiceRunner") }
 
+
+
 /** Start all the servers based on the `default` test configuration. */
 tasks.register<JavaExec>("startAllServers") {
   println("Starting all servers based on the `default` test configuration.")
