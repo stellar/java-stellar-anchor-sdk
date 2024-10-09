@@ -53,8 +53,7 @@ public class KafkaSession implements EventService.Session {
     this.sessionName = sessionName;
     this.topic = queue.name();
 
-    if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL
-        || kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SSL) {
+    if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
       // If the keystore and truststore files exist, use them, otherwise, use the resources
       sslKeystoreLocation =
           findFileThenResource(kafkaConfig.getSslKeystoreLocation()).getAbsolutePath();
@@ -118,7 +117,7 @@ public class KafkaSession implements EventService.Session {
   }
 
   @AllArgsConstructor
-  public class KafkaReadResponse implements EventService.ReadResponse {
+  public static class KafkaReadResponse implements EventService.ReadResponse {
     private final List<AnchorEvent> events;
 
     @Override
@@ -151,10 +150,11 @@ public class KafkaSession implements EventService.Session {
 
   public void testConnection() throws Exception {
     Properties props = createProducerConfig();
-    AdminClient adminClient = AdminClient.create(props);
-    Set<String> topics =
-        adminClient.listTopics(new ListTopicsOptions().timeoutMs(1000)).names().get();
-    Log.infoF("Kafka topics: {}", topics);
+    try (AdminClient adminClient = AdminClient.create(props)) {
+      Set<String> topics =
+          adminClient.listTopics(new ListTopicsOptions().timeoutMs(1000)).names().get();
+      Log.infoF("Kafka topics: {}", topics);
+    }
   }
 
   Properties createProducerConfig() throws InvalidConfigException {
@@ -233,7 +233,6 @@ public class KafkaSession implements EventService.Session {
         break;
       case SASL_SSL:
         configureAuthSaslLogin(props);
-      case SSL: // fall through
         props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol().name());
         props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
 
