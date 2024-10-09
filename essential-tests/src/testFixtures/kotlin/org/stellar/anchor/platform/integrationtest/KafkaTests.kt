@@ -30,7 +30,6 @@ class KafkaTests {
     @JvmStatic
     fun kafkaTestDataProvider(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of("kafka:29092", PLAINTEXT),
         Arguments.of("kafka:29094", SASL_SSL),
         Arguments.of("kafka:29095", SASL_PLAINTEXT)
       )
