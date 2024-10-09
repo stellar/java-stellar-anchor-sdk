@@ -7,6 +7,7 @@ import static org.apache.kafka.common.config.SslConfigs.*;
 import static org.stellar.anchor.platform.config.PropertySecretConfig.*;
 import static org.stellar.anchor.platform.configurator.SecretManager.*;
 import static org.stellar.anchor.platform.utils.ResourceHelper.*;
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.micrometer.core.instrument.Metrics;
@@ -103,7 +104,7 @@ public class KafkaSession implements EventService.Session {
         consumer.poll(Duration.ofSeconds(kafkaConfig.getPollTimeoutSeconds()));
     ArrayList<AnchorEvent> events = new ArrayList<>(consumerRecords.count());
     if (consumerRecords.isEmpty()) {
-      Log.debugF("Received {} Kafka records", consumerRecords.count());
+      debugF("Received {} Kafka records", consumerRecords.count());
     } else {
       Log.infoF("Received {} Kafka records", consumerRecords.count());
       for (ConsumerRecord<String, String> record : consumerRecords) {
@@ -153,7 +154,7 @@ public class KafkaSession implements EventService.Session {
     try (AdminClient adminClient = AdminClient.create(props)) {
       Set<String> topics =
           adminClient.listTopics(new ListTopicsOptions().timeoutMs(10000)).names().get();
-      Log.infoF("Kafka topics: {}", topics);
+      debugF("Kafka topics: {}", topics);
     }
   }
 
@@ -177,7 +178,7 @@ public class KafkaSession implements EventService.Session {
   }
 
   Producer<String, String> createProducer() throws InvalidConfigException {
-    Log.debugF("kafkaConfig: {}", kafkaConfig);
+    debugF("kafkaConfig: {}", kafkaConfig);
     return new KafkaProducer<>(createProducerConfig());
   }
 
