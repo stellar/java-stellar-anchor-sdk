@@ -152,7 +152,7 @@ public class KafkaSession implements EventService.Session {
     Properties props = createProducerConfig();
     try (AdminClient adminClient = AdminClient.create(props)) {
       Set<String> topics =
-          adminClient.listTopics(new ListTopicsOptions().timeoutMs(1000)).names().get();
+          adminClient.listTopics(new ListTopicsOptions().timeoutMs(10000)).names().get();
       Log.infoF("Kafka topics: {}", topics);
     }
   }

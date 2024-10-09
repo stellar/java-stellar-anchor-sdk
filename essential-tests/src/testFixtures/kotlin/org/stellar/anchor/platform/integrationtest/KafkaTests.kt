@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.integrationtest
 
 import io.mockk.every
 import java.io.File
+import java.lang.Thread.sleep
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
@@ -30,6 +31,7 @@ class KafkaTests {
     @JvmStatic
     fun kafkaTestDataProvider(): Stream<Arguments> {
       return Stream.of(
+        Arguments.of("kafka:29092", PLAINTEXT),
         Arguments.of("kafka:29094", SASL_SSL),
         Arguments.of("kafka:29095", SASL_PLAINTEXT)
       )
@@ -78,5 +80,6 @@ class KafkaTests {
     every { SecretManager.secret(SECRET_SSL_TRUSTSTORE_PASSWORD) } returns "test123"
 
     KafkaSession(config, "testKafkaSession", TEST).testConnection()
+    sleep(1000)
   }
 }
