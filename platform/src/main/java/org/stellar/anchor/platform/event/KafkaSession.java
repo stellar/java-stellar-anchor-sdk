@@ -7,6 +7,7 @@ import static org.apache.kafka.common.config.SslConfigs.*;
 import static org.stellar.anchor.platform.config.PropertySecretConfig.*;
 import static org.stellar.anchor.platform.configurator.SecretManager.*;
 import static org.stellar.anchor.platform.utils.ResourceHelper.*;
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.micrometer.core.instrument.Metrics;
@@ -15,7 +16,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import lombok.AllArgsConstructor;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -44,7 +48,8 @@ public class KafkaSession implements EventService.Session {
   String sslKeystoreLocation;
   String sslTruststoreLocation;
 
-  KafkaSession(KafkaConfig kafkaConfig, String sessionName, EventQueue queue) throws IOException {
+  public KafkaSession(KafkaConfig kafkaConfig, String sessionName, EventQueue queue)
+      throws IOException {
     this.kafkaConfig = kafkaConfig;
     this.sessionName = sessionName;
     this.topic = queue.name();
@@ -99,7 +104,7 @@ public class KafkaSession implements EventService.Session {
         consumer.poll(Duration.ofSeconds(kafkaConfig.getPollTimeoutSeconds()));
     ArrayList<AnchorEvent> events = new ArrayList<>(consumerRecords.count());
     if (consumerRecords.isEmpty()) {
-      Log.debugF("Received {} Kafka records", consumerRecords.count());
+      debugF("Received {} Kafka records", consumerRecords.count());
     } else {
       Log.infoF("Received {} Kafka records", consumerRecords.count());
       for (ConsumerRecord<String, String> record : consumerRecords) {
@@ -113,7 +118,7 @@ public class KafkaSession implements EventService.Session {
   }
 
   @AllArgsConstructor
-  public class KafkaReadResponse implements EventService.ReadResponse {
+  public static class KafkaReadResponse implements EventService.ReadResponse {
     private final List<AnchorEvent> events;
 
     @Override
@@ -130,7 +135,7 @@ public class KafkaSession implements EventService.Session {
   }
 
   @Override
-  public void close() throws AnchorException {
+  public void close() {
     if (producer != null) {
       producer.close();
     }
@@ -144,9 +149,16 @@ public class KafkaSession implements EventService.Session {
     return sessionName;
   }
 
-  private Producer<String, String> createProducer() throws InvalidConfigException {
-    Log.debugF("kafkaConfig: {}", kafkaConfig);
+  public void testConnection() throws Exception {
+    Properties props = createProducerConfig();
+    try (AdminClient adminClient = AdminClient.create(props)) {
+      Set<String> topics =
+          adminClient.listTopics(new ListTopicsOptions().timeoutMs(10000)).names().get();
+      debugF("Kafka topics: {}", topics);
+    }
+  }
 
+  Properties createProducerConfig() throws InvalidConfigException {
     Properties props = new Properties();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
     props.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -162,8 +174,12 @@ public class KafkaSession implements EventService.Session {
     // maximum reconnect back-off is 10 seconds
     props.put(RECONNECT_BACKOFF_MAX_MS_CONFIG, "10000");
     configureAuth(props);
+    return props;
+  }
 
-    return new KafkaProducer<>(props);
+  Producer<String, String> createProducer() throws InvalidConfigException {
+    debugF("kafkaConfig: {}", kafkaConfig);
+    return new KafkaProducer<>(createProducerConfig());
   }
 
   Consumer<String, String> createConsumer() throws InvalidConfigException {
