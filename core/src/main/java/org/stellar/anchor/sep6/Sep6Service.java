@@ -15,7 +15,6 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep6.*;
 import org.stellar.anchor.api.sep.sep6.InfoResponse.*;
-import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.client.ClientFinder;
@@ -199,16 +198,11 @@ public class Sep6Service {
           exchangeAmountsCalculator.calculateFromQuote(
               request.getQuoteId(), sellAsset, request.getAmount());
     } else {
-      // TODO(philip): remove this
-      // If a quote is not provided, set the fee and out amounts to 0.
-      // The business server should use the request_offchain_funds RPC to update the amounts.
       amounts =
           Amounts.builder()
               .amountIn(request.getAmount())
               .amountInAsset(sellAsset.getSep38AssetName())
-              .amountOut("0")
               .amountOutAsset(buyAsset.getSep38AssetName())
-              .feeDetails(new FeeDetails("0", sellAsset.getSep38AssetName(), null))
               .build();
     }
 
@@ -373,16 +367,11 @@ public class Sep6Service {
           exchangeAmountsCalculator.calculateFromQuote(
               request.getQuoteId(), sellAsset, request.getAmount());
     } else {
-      // TODO(philip): remove this
-      // If a quote is not provided, set the fee and out amounts to 0.
-      // The business server should use the request_onchain_funds RPC to update the amounts.
       amounts =
           Amounts.builder()
               .amountIn(request.getAmount())
               .amountInAsset(sellAsset.getSep38AssetName())
-              .amountOut("0")
               .amountOutAsset(buyAsset.getSep38AssetName())
-              .feeDetails(new FeeDetails("0", sellAsset.getSep38AssetName(), null))
               .build();
     }
 

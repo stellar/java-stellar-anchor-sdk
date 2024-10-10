@@ -251,10 +251,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "status": "incomplete",
           "amount_in": "1",
           "amount_in_asset": "iso4217:USD",
-          "amount_out": "0",
           "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amount_fee": "0",
-          "amount_fee_asset": "iso4217:USD",
           "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
       }
@@ -299,10 +296,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "status": "incomplete",
           "amount_in": "1",
           "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amount_out": "0",
           "amount_out_asset": "iso4217:USD",
-          "amount_fee": "0",
-          "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
       }

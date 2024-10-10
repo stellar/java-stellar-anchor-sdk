@@ -301,6 +301,7 @@ class NotifyAmountsUpdatedHandlerTest {
     expectedResponse.kind = WITHDRAWAL
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount(null, FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
@@ -438,6 +439,7 @@ class NotifyAmountsUpdatedHandlerTest {
     expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount(null, FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
