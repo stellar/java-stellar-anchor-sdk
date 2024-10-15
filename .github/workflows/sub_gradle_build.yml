@@ -27,7 +27,7 @@ jobs:
       - name: Gradle Build with unit tests only
         env:
           run_docker: false
-        run: ./gradlew githubBuildAndTest
+        run: ./gradlew runBuild
 
       - name: Archive Project Folder
         run: |
