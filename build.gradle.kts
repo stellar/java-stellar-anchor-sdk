@@ -200,8 +200,10 @@ subprojects {
         val existingFile = file("$buildDir/resources/main/metadata.properties")
         existingFile.delete()
       }
-      // This is to replace the %APP_VERSION_TOKEN% in the  metadata.properties file.
-      filter { line -> line.replace("%APP_VERSION_TOKEN%", rootProject.version.toString()) }
+      filesMatching("**/metadata.properties") {
+        // This is to replace the %APP_VERSION_TOKEN% in the metadata.properties file.
+        filter { line -> line.replace("%APP_VERSION_TOKEN%", rootProject.version.toString()) }
+      }
     }
   }
 
