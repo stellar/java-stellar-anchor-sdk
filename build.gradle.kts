@@ -53,6 +53,9 @@ tasks.register("runBuild") {
   }
 }
 
+// The runEssentialTests task is used to run the essential tests. The task is used to check if the
+// AnchorPlatform server is running before running the tests. The task also skips the non-critical
+// tasks.
 tasks.register("runEssentialTests") {
   group = "github"
   description = "Run the essential tests."
