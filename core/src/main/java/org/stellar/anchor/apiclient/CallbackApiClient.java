@@ -51,7 +51,7 @@ public class CallbackApiClient extends BaseApiClient {
       throws AnchorException, IOException {
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(sendEventRequest));
     Request request = getRequestBuilder().url(url).post(requestBody).build();
-    Response response = getClient().newCall(request).execute();
+    Response response = client.newCall(request).execute();
     String responseText = handleResponse(response);
 
     return new SendEventResponse(response.code(), isEmpty(responseText) ? "" : responseText);
