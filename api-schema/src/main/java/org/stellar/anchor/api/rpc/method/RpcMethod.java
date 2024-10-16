@@ -72,7 +72,10 @@ public enum RpcMethod {
   GET_TRANSACTION("get_transaction"),
 
   @SerializedName("get_transactions")
-  GET_TRANSACTIONS("get_transactions");
+  GET_TRANSACTIONS("get_transactions"),
+
+  @SerializedName("get_quote")
+  GET_QUOTE("get_quote");
 
   private final String method;
 
