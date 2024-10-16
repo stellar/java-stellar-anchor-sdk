@@ -14,8 +14,6 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 public class Sep12PutCustomerRequest extends Sep12CustomerRequestBase {
-  String type;
-
   @SerializedName("first_name")
   String firstName;
 

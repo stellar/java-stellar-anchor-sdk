@@ -7,6 +7,7 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 public class Sep12CustomerRequestBase {
+  String type;
   String id;
   String account;
   String memo;

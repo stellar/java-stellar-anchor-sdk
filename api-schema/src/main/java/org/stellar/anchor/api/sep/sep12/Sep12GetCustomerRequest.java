@@ -13,6 +13,5 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 public class Sep12GetCustomerRequest extends Sep12CustomerRequestBase {
-  String type;
   String lang;
 }
