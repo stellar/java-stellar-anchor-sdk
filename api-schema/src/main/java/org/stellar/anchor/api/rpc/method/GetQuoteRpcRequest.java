@@ -7,6 +7,7 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 public class GetQuoteRpcRequest extends RpcMethodParamsRequest {
   @SerializedName("quote_id")

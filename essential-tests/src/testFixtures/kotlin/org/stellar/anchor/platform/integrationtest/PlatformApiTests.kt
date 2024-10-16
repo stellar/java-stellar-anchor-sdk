@@ -23,14 +23,13 @@ import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
-import org.stellar.anchor.client.Sep12Client
-import org.stellar.anchor.client.Sep24Client
-import org.stellar.anchor.client.Sep31Client
-import org.stellar.anchor.client.Sep6Client
+import org.stellar.anchor.client.*
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.CLIENT_WALLET_ACCOUNT
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.anchor.util.StringHelper.json
+import org.stellar.walletsdk.asset.IssuedAssetId
 
 // TODO add refund flow test for withdrawal: https://stellarorg.atlassian.net/browse/ANCHOR-694
 @Disabled
@@ -43,6 +42,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   private val sep6Client = Sep6Client(toml.getString("TRANSFER_SERVER"), token.token)
   private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), token.token)
   private val sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), token.token)
+  private val sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), token.token)
 
   /**
    * 1. incomplete -> request_offchain_funds
@@ -233,6 +233,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES
     )
   }
+
   /**
    * 1. incomplete -> request_offchain_funds
    * 2. pending_user_transfer_start -> notify_offchain_funds_received
@@ -262,6 +263,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
     )
   }
+
   /**
    * 1. incomplete -> request_onchain_funds
    * 2. pending_user_transfer_start -> notify_onchain_funds_received
@@ -484,6 +486,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     assertEquals(SepTransactionStatus.PENDING_ANCHOR, txResponse.status)
   }
 
+  @Test
+  fun `test SEP38 post quote will result in the quote stored in the platform server`() {
+    val quote = sep38Client.postQuote(USDC.sep38, "100", "iso4217:USD")
+    val fetchedQuote = platformApiClient.getQuote(quote.id)
+    assertEquals(quote.id, fetchedQuote.id)
+    assertEquals(quote.price, fetchedQuote.price)
+    JSONAssert.assertEquals(
+      json(quote),
+      json(fetchedQuote),
+      CustomComparator(JSONCompareMode.LENIENT)
+    )
+  }
+
   private fun `validations and errors`() {
     `test sep24 deposit flow`(VALIDATIONS_AND_ERRORS_REQUESTS, VALIDATIONS_AND_ERRORS_RESPONSES)
   }
@@ -619,6 +634,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     private const val RECEIVER_ID_KEY = "RECEIVER_ID"
     private const val SENDER_ID_KEY = "SENDER_ID"
     private const val CUSTOMER_ID_KEY = "CUSTOMER_ID"
+    private val USDC =
+      IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
 
     private const val SEP_6_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
       """

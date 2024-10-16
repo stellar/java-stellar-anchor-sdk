@@ -3,6 +3,7 @@ package org.stellar.anchor.sep38;
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.*;
 import static org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse.*;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
+import static org.stellar.anchor.sep38.Sep38Helper.sep38QuoteResponseFromQuote;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -291,23 +292,7 @@ public class Sep38Service {
     // increment counter
     sep38QuoteCreatedCounter.increment();
 
-    return fromQuote(quote);
-  }
-
-  public Sep38QuoteResponse fromQuote(Sep38Quote quote) {
-    return builder()
-        .id(quote.getId())
-        .expiresAt(quote.getExpiresAt())
-        .price(quote.getPrice())
-        .sellAsset(quote.getSellAsset())
-        .sellAmount(quote.getSellAmount())
-        .sellDeliveryMethod(quote.getSellDeliveryMethod())
-        .buyAsset(quote.getBuyAsset())
-        .buyAmount(quote.getBuyAmount())
-        .buyDeliveryMethod(quote.getBuyDeliveryMethod())
-        .fee(quote.getFee())
-        .totalPrice(quote.getTotalPrice())
-        .build();
+    return sep38QuoteResponseFromQuote(quote);
   }
 
   private void sendQuoteCreatedEvent(Sep38Quote quote, GetRateResponse.Rate rate)
