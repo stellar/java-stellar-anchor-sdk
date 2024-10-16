@@ -37,6 +37,9 @@ events.queue.kafka.security_protocol:
 events.queue.kafka.sasl_mechanism:
 events.queue.kafka.username:
 events.queue.kafka.password:
+events.queue.kafka.ssl_verify_cert:
+events.queue.kafka.ssl_keystore_location:
+events.queue.kafka.ssl_truststore_location:
 events.queue.msk.batch_size:
 events.queue.msk.bootstrap_server:
 events.queue.msk.client_id:

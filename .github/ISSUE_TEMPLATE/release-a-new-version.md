@@ -20,6 +20,11 @@ assignees: ''
 - [ ] DO NOT RELEASE before holidays or weekends! Mondays and Tuesdays are preferred.
 - [ ] Create a new release draft on GitHub with the name `2.2.x` and tag: `2.2.x` (without the `release-` prefix).
 - [ ] Write the proper release notes.
+  - [ ] Use `Generate release notes` in the GitHub UI to generate the changes.
+  - [ ] Remove chore and refactor commits from the release notes. (eg. merge to `develop`, version bump, etc.)
+  - [ ] Add `What's New` section if applicable.
+  - [ ] Add `What's Changed` section if applicable.
+  - [ ] Add `Bug Fixes` section if applicable.
 - [ ] After reviewing the release draft, publish!!!
 ### Post Release Publication
 - [ ] Check the docker image of the release automatically published to [Docker Hub](https://hub.docker.com/r/stellar/anchor-platform).
