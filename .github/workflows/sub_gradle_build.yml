@@ -27,7 +27,7 @@ jobs:
       - name: Gradle Build with unit tests only
         env:
           run_docker: false
-        run: ./gradlew build jacocoTestReport -x essential-tests:test -x extended-tests:test --no-daemon --stacktrace -x spotlessApply -x spotlessKotlinApply -x javadoc -x javadocJar -x sourcesJar -x distTar -x distZip -x shadowJar -x shadowDistZip -x shadowDistTar -x bootDistTar -x bootDistZip
+        run: ./gradlew runBuild
 
       - name: Archive Project Folder
         run: |

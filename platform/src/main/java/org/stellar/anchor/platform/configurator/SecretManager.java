@@ -30,7 +30,10 @@ public class SecretManager
           PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_USERNAME,
           PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_PASSWORD,
           PropertyCustodySecretConfig.SECRET_FIREBLOCKS_SECRET_KEY,
-          PropertyCustodySecretConfig.SECRET_FIREBLOCKS_API_KEY);
+          PropertyCustodySecretConfig.SECRET_FIREBLOCKS_API_KEY,
+          PropertySecretConfig.SECRET_SSL_KEYSTORE_PASSWORD,
+          PropertySecretConfig.SECRET_SSL_KEY_PASSWORD,
+          PropertySecretConfig.SECRET_SSL_TRUSTSTORE_PASSWORD);
 
   final Properties props = new Properties();
 
@@ -40,6 +43,10 @@ public class SecretManager
 
   public static SecretManager getInstance() {
     return secretManager;
+  }
+
+  public static String secret(String key) {
+    return getInstance().get(key);
   }
 
   @Override
