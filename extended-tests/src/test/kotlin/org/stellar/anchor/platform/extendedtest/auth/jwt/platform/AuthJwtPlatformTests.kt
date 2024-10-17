@@ -12,9 +12,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetRateRequest
-import org.stellar.anchor.api.exception.SepNotAuthorizedException
-import org.stellar.anchor.api.exception.SepNotFoundException
-import org.stellar.anchor.api.exception.UnauthorizedException
+import org.stellar.anchor.api.callback.GetRateRequest.Type.INDICATIVE
+import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
@@ -108,6 +107,11 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
       )
     // Assert the request does not throw a 403.
     assertThrows<UnauthorizedException> { rri.getRate(GetRateRequest.builder().build()) }
+    assertThrows<BadRequestException> {
+      rri.getRate(
+        GetRateRequest.builder().type(INDICATIVE).sellAsset("iso4217:USD").sellAmount("1.0").build()
+      )
+    }
   }
 
   @Test
@@ -155,8 +159,13 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         gson,
         mockk<AssetService>()
       )
-    assertThrows<UnauthorizedException> {
-      expiredTokenClient.getRate(GetRateRequest.builder().build())
+    assertThrows<ServerErrorException> {
+      expiredTokenClient.getRate(
+        GetRateRequest.builder().type(INDICATIVE).sellAsset("iso4217:USD").sellAmount("1.0").build()
+      )
+      assertThrows<UnauthorizedException> {
+        expiredTokenClient.getRate(GetRateRequest.builder().build())
+      }
     }
   }
 }

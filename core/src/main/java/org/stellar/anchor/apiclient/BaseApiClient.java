@@ -60,4 +60,8 @@ public abstract class BaseApiClient {
         ? requestBuilder
         : requestBuilder.header(authHeader.getName(), authHeader.getValue());
   }
+
+  OkHttpClient getClient() {
+    return client;
+  }
 }
