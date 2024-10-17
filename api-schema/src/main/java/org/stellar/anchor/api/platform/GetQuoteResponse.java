@@ -23,6 +23,10 @@ public class GetQuoteResponse {
   @SerializedName("sell_asset")
   String sellAsset;
 
+  @JsonProperty("sell_delivery_method")
+  @SerializedName("sell_delivery_method")
+  String sellDeliveryMethod;
+
   @JsonProperty("buy_amount")
   @SerializedName("buy_amount")
   String buyAmount;
@@ -30,6 +34,10 @@ public class GetQuoteResponse {
   @JsonProperty("buy_asset")
   @SerializedName("buy_asset")
   String buyAsset;
+
+  @JsonProperty("buy_delivery_method")
+  @SerializedName("buy_delivery_method")
+  String buyDeliveryMethod;
 
   @JsonProperty("expires_at")
   @SerializedName("expires_at")

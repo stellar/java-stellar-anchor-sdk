@@ -2,8 +2,8 @@ package org.stellar.anchor.filter;
 
 import static org.stellar.anchor.util.Log.*;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.NonNull;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;

@@ -1,12 +1,12 @@
 package org.stellar.anchor.api.callback;
 
 import com.google.gson.annotations.SerializedName;
+import jakarta.annotation.Nullable;
 import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.shared.FeeDetails;
-import reactor.util.annotation.Nullable;
 
 /**
  * The response body of the GET /rate endpoint.

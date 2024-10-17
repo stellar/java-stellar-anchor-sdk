@@ -30,12 +30,21 @@ class CustomerService(
         // set which means it only works for SEP-6 transactions.
         request.transactionId != null -> {
           val transaction = sepHelper.getTransaction(request.transactionId)
-          val sender = transaction.customers!!.sender
-          val memoType = if (sender!!.memo != null) "id" else null
+          val txnCustomer =
+            if ("sep31-receiver" == request.type) {
+              transaction.customers!!.receiver
+            } else {
+              transaction.customers!!.sender
+            }
+          val memoType = if (txnCustomer!!.memo != null) "id" else null
 
           val customer =
-            customerRepository.get(sender.account!!, sender.memo, memoType)
-              ?: Customer(stellarAccount = sender.account, memo = sender.memo, memoType = memoType)
+            getCustomerFromTransaction(request.transactionId, request.type)
+              ?: Customer(
+                stellarAccount = txnCustomer.account,
+                memo = txnCustomer.memo,
+                memoType = memoType
+              )
 
           // Determine if this transaction requires additional fields
           val transactionKYC = transactionKYCRepository.get(request.transactionId)
@@ -65,15 +74,11 @@ class CustomerService(
   }
 
   suspend fun upsertCustomer(request: PutCustomerRequest): PutCustomerResponse {
-    log.info("Upserting customer: $request")
+    log.info { "Upserting customer: $request" }
     val customer =
       when {
         request.transactionId != null -> {
-          val transaction = sepHelper.getTransaction(request.transactionId)
-          val sender = transaction.customers!!.sender
-          val memoType = if (sender!!.memo != null) "id" else null
-
-          customerRepository.get(sender.account!!, sender.memo, memoType)
+          getCustomerFromTransaction(request.transactionId, request.type)
         }
         request.id != null -> customerRepository.get(request.id)
         request.account != null ->
@@ -84,119 +89,128 @@ class CustomerService(
       }
 
     // Update the customer if it exists, otherwise create a new one.
-    if (customer != null) {
-      customerRepository.update(
-        customer.copy(
-          firstName = request.firstName ?: customer.firstName,
-          lastName = request.lastName ?: customer.lastName,
-          additionalName = request.additionalName ?: customer.additionalName,
-          addressCountryCode = request.addressCountryCode ?: customer.addressCountryCode,
-          stateOrProvince = request.stateOrProvince ?: customer.stateOrProvince,
-          city = request.city ?: customer.city,
-          postalCode = request.postalCode ?: customer.postalCode,
-          address = request.address ?: customer.address,
-          mobileNumber = request.mobileNumber ?: customer.mobileNumber,
-          emailAddress = request.emailAddress ?: customer.emailAddress,
-          birthDate = request.birthDate ?: customer.birthDate,
-          birthPlace = request.birthPlace ?: customer.birthPlace,
-          birthCountryCode = request.birthCountryCode ?: customer.birthCountryCode,
-          bankName = request.bankName ?: customer.bankName,
-          bankAccountNumber = request.bankAccountNumber ?: customer.bankAccountNumber,
-          bankAccountType = request.bankAccountType ?: customer.bankAccountType,
-          bankNumber = request.bankNumber ?: customer.bankNumber,
-          bankPhoneNumber = request.bankPhoneNumber ?: customer.bankPhoneNumber,
-          bankBranchNumber = request.bankBranchNumber ?: customer.bankBranchNumber,
-          externalTransferMemo = request.externalTransferMemo ?: customer.externalTransferMemo,
-          clabeNumber = request.clabeNumber ?: customer.clabeNumber,
-          cbuNumber = request.cbuNumber ?: customer.cbuNumber,
-          cbuAlias = request.cbuAlias ?: customer.cbuAlias,
-          mobileMoneyNumber = request.mobileMoneyNumber ?: customer.mobileMoneyNumber,
-          mobileMoneyProvider = request.mobileMoneyProvider ?: customer.mobileMoneyProvider,
-          cryptoAddress = request.cryptoAddress ?: customer.cryptoAddress,
-          cryptoMemo = request.cryptoMemo ?: customer.cryptoMemo,
-          taxId = request.taxId ?: customer.taxId,
-          taxIdName = request.taxIdName ?: customer.taxIdName,
-          occupation = request.occupation ?: customer.occupation,
-          employerName = request.employerName ?: customer.employerName,
-          employerAddress = request.employerAddress ?: customer.employerAddress,
-          languageCode = request.languageCode ?: customer.languageCode,
-          idType = request.idType ?: customer.idType,
-          idCountryCode = request.idCountryCode ?: customer.idCountryCode,
-          idIssueDate = request.idIssueDate ?: customer.idIssueDate,
-          idExpirationDate = request.idExpirationDate ?: customer.idExpirationDate,
-          idNumber = request.idNumber ?: customer.idNumber,
-          photoIdFront = request.photoIdFront ?: customer.photoIdFront,
-          photoIdBack = request.photoIdBack ?: customer.photoIdBack,
-          notaryApprovalOfPhotoId = request.notaryApprovalOfPhotoId
-              ?: customer.notaryApprovalOfPhotoId,
-          ipAddress = request.ipAddress ?: customer.ipAddress,
-          photoProofResidence = request.photoProofResidence ?: customer.photoProofResidence,
-          sex = request.sex ?: customer.sex,
-          photoProofOfIncome = request.photoProofOfIncome ?: customer.photoProofOfIncome,
-          proofOfLiveness = request.proofOfLiveness ?: customer.proofOfLiveness,
-          referralId = request.referralId ?: customer.referralId,
+    val updatedCustomer =
+      if (customer != null) {
+        val updatedCustomer =
+          customer.copy(
+            firstName = request.firstName ?: customer.firstName,
+            lastName = request.lastName ?: customer.lastName,
+            additionalName = request.additionalName ?: customer.additionalName,
+            addressCountryCode = request.addressCountryCode ?: customer.addressCountryCode,
+            stateOrProvince = request.stateOrProvince ?: customer.stateOrProvince,
+            city = request.city ?: customer.city,
+            postalCode = request.postalCode ?: customer.postalCode,
+            address = request.address ?: customer.address,
+            mobileNumber = request.mobileNumber ?: customer.mobileNumber,
+            emailAddress = request.emailAddress ?: customer.emailAddress,
+            birthDate = request.birthDate ?: customer.birthDate,
+            birthPlace = request.birthPlace ?: customer.birthPlace,
+            birthCountryCode = request.birthCountryCode ?: customer.birthCountryCode,
+            bankName = request.bankName ?: customer.bankName,
+            bankAccountNumber = request.bankAccountNumber ?: customer.bankAccountNumber,
+            bankAccountType = request.bankAccountType ?: customer.bankAccountType,
+            bankNumber = request.bankNumber ?: customer.bankNumber,
+            bankPhoneNumber = request.bankPhoneNumber ?: customer.bankPhoneNumber,
+            bankBranchNumber = request.bankBranchNumber ?: customer.bankBranchNumber,
+            externalTransferMemo = request.externalTransferMemo ?: customer.externalTransferMemo,
+            clabeNumber = request.clabeNumber ?: customer.clabeNumber,
+            cbuNumber = request.cbuNumber ?: customer.cbuNumber,
+            cbuAlias = request.cbuAlias ?: customer.cbuAlias,
+            mobileMoneyNumber = request.mobileMoneyNumber ?: customer.mobileMoneyNumber,
+            mobileMoneyProvider = request.mobileMoneyProvider ?: customer.mobileMoneyProvider,
+            cryptoAddress = request.cryptoAddress ?: customer.cryptoAddress,
+            cryptoMemo = request.cryptoMemo ?: customer.cryptoMemo,
+            taxId = request.taxId ?: customer.taxId,
+            taxIdName = request.taxIdName ?: customer.taxIdName,
+            occupation = request.occupation ?: customer.occupation,
+            employerName = request.employerName ?: customer.employerName,
+            employerAddress = request.employerAddress ?: customer.employerAddress,
+            languageCode = request.languageCode ?: customer.languageCode,
+            idType = request.idType ?: customer.idType,
+            idCountryCode = request.idCountryCode ?: customer.idCountryCode,
+            idIssueDate = request.idIssueDate ?: customer.idIssueDate,
+            idExpirationDate = request.idExpirationDate ?: customer.idExpirationDate,
+            idNumber = request.idNumber ?: customer.idNumber,
+            photoIdFront = request.photoIdFront ?: customer.photoIdFront,
+            photoIdBack = request.photoIdBack ?: customer.photoIdBack,
+            notaryApprovalOfPhotoId = request.notaryApprovalOfPhotoId
+                ?: customer.notaryApprovalOfPhotoId,
+            ipAddress = request.ipAddress ?: customer.ipAddress,
+            photoProofResidence = request.photoProofResidence ?: customer.photoProofResidence,
+            sex = request.sex ?: customer.sex,
+            photoProofOfIncome = request.photoProofOfIncome ?: customer.photoProofOfIncome,
+            proofOfLiveness = request.proofOfLiveness ?: customer.proofOfLiveness,
+            referralId = request.referralId ?: customer.referralId,
+          )
+        customerRepository.update(updatedCustomer)
+        getCustomer(GetCustomerRequest.builder().id(customer.id!!).build())
+      } else {
+        val id = UUID.randomUUID().toString()
+        customerRepository.create(
+          Customer(
+            id = id,
+            stellarAccount = request.account,
+            memo = request.memo,
+            memoType = request.memoType,
+            firstName = request.firstName,
+            lastName = request.lastName,
+            additionalName = request.additionalName,
+            addressCountryCode = request.addressCountryCode,
+            stateOrProvince = request.stateOrProvince,
+            city = request.city,
+            postalCode = request.postalCode,
+            address = request.address,
+            mobileNumber = request.mobileNumber,
+            emailAddress = request.emailAddress,
+            birthDate = request.birthDate,
+            birthPlace = request.birthPlace,
+            birthCountryCode = request.birthCountryCode,
+            bankName = request.bankName,
+            bankAccountNumber = request.bankAccountNumber,
+            bankAccountType = request.bankAccountType,
+            bankNumber = request.bankNumber,
+            bankPhoneNumber = request.bankPhoneNumber,
+            bankBranchNumber = request.bankBranchNumber,
+            externalTransferMemo = request.externalTransferMemo,
+            clabeNumber = request.clabeNumber,
+            cbuNumber = request.cbuNumber,
+            cbuAlias = request.cbuAlias,
+            mobileMoneyNumber = request.mobileMoneyNumber,
+            mobileMoneyProvider = request.mobileMoneyProvider,
+            cryptoAddress = request.cryptoAddress,
+            cryptoMemo = request.cryptoMemo,
+            taxId = request.taxId,
+            taxIdName = request.taxIdName,
+            occupation = request.occupation,
+            employerName = request.employerName,
+            employerAddress = request.employerAddress,
+            languageCode = request.languageCode,
+            idType = request.idType,
+            idCountryCode = request.idCountryCode,
+            idIssueDate = request.idIssueDate,
+            idExpirationDate = request.idExpirationDate,
+            idNumber = request.idNumber,
+            photoIdFront = request.photoIdFront,
+            photoIdBack = request.photoIdBack,
+            notaryApprovalOfPhotoId = request.notaryApprovalOfPhotoId,
+            ipAddress = request.ipAddress,
+            photoProofResidence = request.photoProofResidence,
+            sex = request.sex,
+            photoProofOfIncome = request.photoProofOfIncome,
+            proofOfLiveness = request.proofOfLiveness,
+            referralId = request.referralId,
+          )
         )
-      )
-      return PutCustomerResponse(customer.id)
-    } else {
-      val id = UUID.randomUUID().toString()
-      customerRepository.create(
-        Customer(
-          id = id,
-          stellarAccount = request.account,
-          memo = request.memo,
-          memoType = request.memoType,
-          firstName = request.firstName,
-          lastName = request.lastName,
-          additionalName = request.additionalName,
-          addressCountryCode = request.addressCountryCode,
-          stateOrProvince = request.stateOrProvince,
-          city = request.city,
-          postalCode = request.postalCode,
-          address = request.address,
-          mobileNumber = request.mobileNumber,
-          emailAddress = request.emailAddress,
-          birthDate = request.birthDate,
-          birthPlace = request.birthPlace,
-          birthCountryCode = request.birthCountryCode,
-          bankName = request.bankName,
-          bankAccountNumber = request.bankAccountNumber,
-          bankAccountType = request.bankAccountType,
-          bankNumber = request.bankNumber,
-          bankPhoneNumber = request.bankPhoneNumber,
-          bankBranchNumber = request.bankBranchNumber,
-          externalTransferMemo = request.externalTransferMemo,
-          clabeNumber = request.clabeNumber,
-          cbuNumber = request.cbuNumber,
-          cbuAlias = request.cbuAlias,
-          mobileMoneyNumber = request.mobileMoneyNumber,
-          mobileMoneyProvider = request.mobileMoneyProvider,
-          cryptoAddress = request.cryptoAddress,
-          cryptoMemo = request.cryptoMemo,
-          taxId = request.taxId,
-          taxIdName = request.taxIdName,
-          occupation = request.occupation,
-          employerName = request.employerName,
-          employerAddress = request.employerAddress,
-          languageCode = request.languageCode,
-          idType = request.idType,
-          idCountryCode = request.idCountryCode,
-          idIssueDate = request.idIssueDate,
-          idExpirationDate = request.idExpirationDate,
-          idNumber = request.idNumber,
-          photoIdFront = request.photoIdFront,
-          photoIdBack = request.photoIdBack,
-          notaryApprovalOfPhotoId = request.notaryApprovalOfPhotoId,
-          ipAddress = request.ipAddress,
-          photoProofResidence = request.photoProofResidence,
-          sex = request.sex,
-          photoProofOfIncome = request.photoProofOfIncome,
-          proofOfLiveness = request.proofOfLiveness,
-          referralId = request.referralId,
-        )
-      )
-      return PutCustomerResponse(id)
-    }
+        getCustomer(GetCustomerRequest.builder().id(id).build())
+      }
+
+    return PutCustomerResponse.builder()
+      .id(updatedCustomer.id)
+      .status(updatedCustomer.status)
+      .fields(updatedCustomer.fields)
+      .providedFields(updatedCustomer.providedFields)
+      .message(updatedCustomer.message)
+      .build()
   }
 
   fun requestAdditionalFieldsForTransaction(id: String, requiredFields: List<String>) {
@@ -216,6 +230,24 @@ class CustomerService(
       customerRepository.update(customerRepository.get(id)!!.copy(clabeNumber = null))
     } catch (e: Exception) {
       throw NotFoundException("customer for 'id' '$id' not found", id)
+    }
+  }
+
+  private suspend fun getCustomerFromTransaction(transactionId: String, type: String?): Customer? {
+    val transaction = sepHelper.getTransaction(transactionId)
+    val txnCustomer =
+      if (type == "sep31-receiver") {
+        transaction.customers!!.receiver
+      } else {
+        transaction.customers!!.sender
+      }
+    val memoType = if (txnCustomer!!.memo != null) "id" else null
+
+    return when {
+      txnCustomer.id != null -> customerRepository.get(txnCustomer.id)
+      txnCustomer.account != null ->
+        customerRepository.get(txnCustomer.account, txnCustomer.memo, memoType)
+      else -> throw BadRequestException("Either id or account must be provided")
     }
   }
 

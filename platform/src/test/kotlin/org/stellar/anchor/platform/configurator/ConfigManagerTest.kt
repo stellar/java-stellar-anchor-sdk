@@ -30,23 +30,18 @@ class ConfigManagerTest {
 
     val config = configManager.processConfigurations(null)
     assertEquals(config.get("languages").value, "tw, en, fr")
-    assertEquals(config.get("clients[0].name").value, "vibrant")
-    assertEquals(config.get("clients[0].domain").value, "vibrant.co")
+    assertEquals(config.get("clients.items[0].name").value, "vibrant")
+    assertEquals(config.get("clients.items[0].domains[0]").value, "vibrant.co")
     assertEquals(
-      config.get("clients[0].callback_url").value,
-      "https://callback.vibrant.com/api/v2/anchor/callback"
-    )
-    assertEquals(
-      config.get("clients[0].signing_key").value,
-      "GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU"
+      config.get("clients.items[0].callback_urls.sep24").value,
+      "https://callback.vibrant.com/api/v2/anchor/callback/sep24"
     )
 
-    assertEquals(config.get("clients[1].name").value, "lobstr")
-    assertEquals(config.get("clients[1].type").value, "noncustodial")
-    assertEquals(config.get("clients[1].domain").value, "lobstr.co")
+    assertEquals(config.get("clients.items[1].name").value, "lobstr")
+    assertEquals(config.get("clients.items[1].domains[0]").value, "lobstr.co")
     assertEquals(
-      config.get("clients[1].callback_url").value,
-      "https://callback.lobstr.co/api/v2/anchor/callback"
+      config.get("clients.items[1].callback_urls.sep6").value,
+      "https://callback.lobstr.co/api/v2/anchor/callback/sep6"
     )
   }
 

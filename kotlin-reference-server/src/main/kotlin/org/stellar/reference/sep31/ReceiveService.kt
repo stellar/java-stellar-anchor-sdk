@@ -1,6 +1,6 @@
 package org.stellar.reference.service.sep31
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.stellar.reference.data.Config
 import org.stellar.reference.data.NotifyOffchainFundsSentRequest
 import org.stellar.reference.data.NotifyTransactionErrorRequest

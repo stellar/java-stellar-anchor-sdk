@@ -30,12 +30,9 @@ internal class DefaultAssetServiceTest {
       "yaml" -> das = DefaultAssetService.fromYamlResource(filename)
     }
 
-    JSONAssert.assertEquals(expectedAssetsJson, gson.toJson(das.assets), LENIENT)
-
-    // check listing function.
-    val assets = das.listAllAssets()
-
+    val assets = das.getAssets()
     assertEquals(4, assets.size)
+    JSONAssert.assertEquals(expectedAssetsJson, gson.toJson(assets), LENIENT)
   }
 
   @Test
@@ -62,13 +59,6 @@ internal class DefaultAssetServiceTest {
   }
 
   @Test
-  fun `test invalid config with missing withdraw type when sep-6 enabled`() {
-    assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromYamlResource("test_assets_missing_withdraw_type.yaml")
-    }
-  }
-
-  @Test
   fun `test invalid config with duplicate withdraw type when sep-6 enabled`() {
     assertThrows<InvalidConfigException> {
       DefaultAssetService.fromYamlResource("test_assets_duplicate_withdraw_type.yaml")
@@ -76,9 +66,9 @@ internal class DefaultAssetServiceTest {
   }
 
   @Test
-  fun `test invalid config with missing deposit type when sep-6 enabled`() {
+  fun `test invalid config with missing withdraw type when sep-6 enabled`() {
     assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromYamlResource("test_assets_missing_deposit_type.yaml")
+      DefaultAssetService.fromYamlResource("test_assets_missing_withdraw_type.yaml")
     }
   }
 
@@ -90,307 +80,192 @@ internal class DefaultAssetServiceTest {
   }
 
   @Test
+  fun `test invalid config with missing deposit type when sep-6 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_missing_deposit_type.yaml")
+    }
+  }
+
+  @Test
   fun `test trailing comma in JSON does not result in null element`() {
-    val assetsService = DefaultAssetService.fromJson(trailingCommaInAssets)
-    assert(assetsService.assets.assets.all { it != null })
+    val assetsService = DefaultAssetService.fromJsonContent(trailingCommaInAssets)
+    assert(assetsService.stellarAssets.all { it != null })
   }
 
   // This is supposed to match the result from loading test_assets.json file.
   private val expectedAssetsJson =
     """
-      {
-        "assets": [
-          {
-            "schema": "stellar",
-            "code": "USDC",
-            "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-            "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-            "significant_decimals": 2,
-            "deposit": {
-              "enabled": true,
-              "min_amount": 1,
-              "max_amount": 10000,
-              "methods": [
-                "SEPA",
-                "SWIFT"
-              ]
-            },
-            "withdraw": {
-              "enabled": true,
-              "min_amount": 1,
-              "max_amount": 10000,
-              "methods": [
-                "bank_account",
-                "cash"
-              ]
-            },
-            "send": {
-              "fee_fixed": 0,
-              "fee_percent": 0,
-              "min_amount": 1,
-              "max_amount": 1000000
-            },
-            "sep31": {
-              "quotes_supported": true,
-              "quotes_required": true,
-              "sep12": {
-                "sender": {
-                  "types": {
-                    "sep31-sender": {
-                      "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-                    },
-                    "sep31-large-sender": {
-                      "description": "U.S. citizens that do not have sending limits"
-                    },
-                    "sep31-foreign-sender": {
-                      "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-                    }
-                  }
-                },
-                "receiver": {
-                  "types": {
-                    "sep31-receiver": {
-                      "description": "U.S. citizens receiving USD"
-                    },
-                    "sep31-foreign-receiver": {
-                      "description": "non-U.S. citizens receiving USD"
-                    }
-                  }
-                }
-              },
-              "fields": {
-                "transaction": {
-                  "receiver_routing_number": {
-                    "description": "routing number of the destination bank account",
-                    "optional": false
-                  },
-                  "receiver_account_number": {
-                    "description": "bank account number of the destination",
-                    "optional": false
-                  },
-                  "receiver_phone_number": {
-                    "description": "phone number of the receiver",
-                    "optional": true
-                  },
-                  "type": {
-                    "description": "type of deposit to make",
-                    "choices": [
+       [
+              {
+                "id": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+                "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
+                "significant_decimals": 2,
+                "sep6": {
+                  "enabled": true,
+                  "deposit": {
+                    "enabled": true,
+                    "min_amount": 1,
+                    "max_amount": 10000,
+                    "methods": [
                       "SEPA",
                       "SWIFT"
                     ]
-                  }
-                }
-              }
-            },
-            "sep38": {
-              "exchangeable_assets": [
-                "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-                "iso4217:USD"
-              ]
-            },
-            "sep6_enabled": true,
-            "sep24_enabled": true,
-            "sep31_enabled": true,
-            "sep38_enabled": true
-          },
-          {
-            "schema": "stellar",
-            "code": "JPYC",
-            "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-            "significant_decimals": 2,
-            "deposit": {
-              "enabled": true,
-              "min_amount": 1,
-              "max_amount": 1000000
-            },
-            "withdraw": {
-              "enabled": false,
-              "min_amount": 1,
-              "max_amount": 1000000
-            },
-            "send": {
-              "fee_fixed": 0,
-              "fee_percent": 0,
-              "min_amount": 1,
-              "max_amount": 1000000
-            },
-            "sep31": {
-              "quotes_supported": true,
-              "quotes_required": true,
-              "sep12": {
-                "sender": {
-                  "types": {
-                    "sep31-sender": {
-                      "description": "Japanese citizens"
-                    }
-                  }
-                },
-                "receiver": {
-                  "types": {
-                    "sep31-receiver": {
-                      "description": "Japanese citizens receiving USD"
-                    }
-                  }
-                }
-              },
-              "fields": {
-                "transaction": {
-                  "receiver_routing_number": {
-                    "description": "routing number of the destination bank account",
-                    "optional": false
                   },
-                  "receiver_account_number": {
-                    "description": "bank account number of the destination",
-                    "optional": false
-                  },
-                  "type": {
-                    "description": "type of deposit to make",
-                    "choices": [
-                      "ACH",
-                      "SWIFT",
-                      "WIRE"
+                  "withdraw": {
+                    "enabled": true,
+                    "min_amount": 1,
+                    "max_amount": 10000,
+                    "methods": [
+                      "bank_account",
+                      "cash"
                     ]
                   }
-                }
-              }
-            },
-            "sep38": {
-              "exchangeable_assets": [
-                "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-                "iso4217:USD"
-              ]
-            },
-            "sep6_enabled": false,
-            "sep24_enabled": true,
-            "sep31_enabled": true,
-            "sep38_enabled": true
-          },
-          {
-            "schema": "iso4217",
-            "code": "USD",
-            "significant_decimals": 2,
-            "deposit": {
-              "enabled": true,
-              "min_amount": 1,
-              "max_amount": 1000000
-            },
-            "withdraw": {
-              "enabled": false,
-              "min_amount": 1,
-              "max_amount": 1000000
-            },
-            "send": {
-              "fee_fixed": 0,
-              "fee_percent": 0,
-              "min_amount": 1,
-              "max_amount": 1000000
-            },
-            "sep38": {
-              "exchangeable_assets": [
-                "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-                "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              ],
-              "country_codes": [
-                "USA"
-              ],
-              "decimals": 4,
-              "sell_delivery_methods": [
-                {
-                  "name": "WIRE",
-                  "description": "Send USD directly to the Anchor's bank account."
-                }
-              ],
-              "buy_delivery_methods": [
-                {
-                  "name": "WIRE",
-                  "description": "Have USD sent directly to your bank account."
-                }
-              ]
-            },
-            "sep6_enabled": false,
-            "sep24_enabled": true,
-            "sep31_enabled": false,
-            "sep38_enabled": true
-          },
-          {
-            "schema": "stellar",
-            "code": "native",
-            "significant_decimals": 7,
-            "deposit": {
-              "enabled": true,
-              "min_amount": 1,
-              "max_amount": 1000000
-            },
-            "withdraw": {
-              "enabled": true,
-              "min_amount": 1,
-              "max_amount": 1000000
-            },
-            "send": {
-              "fee_fixed": 0,
-              "fee_percent": 0,
-              "min_amount": 1,
-              "max_amount": 1000000
-            },
-            "sep31": {
-              "quotes_supported": true,
-              "quotes_required": true,
-              "sep12": {
-                "sender": {
-                  "types": {
-                    "sep31-sender": {
-                      "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-                    },
-                    "sep31-large-sender": {
-                      "description": "U.S. citizens that do not have sending limits"
-                    },
-                    "sep31-foreign-sender": {
-                      "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-                    }
-                  }
                 },
-                "receiver": {
-                  "types": {
-                    "sep31-receiver": {
-                      "description": "U.S. citizens receiving USD"
-                    },
-                    "sep31-foreign-receiver": {
-                      "description": "non-U.S. citizens receiving USD"
-                    }
-                  }
-                }
-              },
-              "fields": {
-                "transaction": {
-                  "receiver_routing_number": {
-                    "description": "routing number of the destination bank account"
-                  },
-                  "receiver_account_number": {
-                    "description": "bank account number of the destination"
-                  },
-                  "type": {
-                    "description": "type of deposit to make",
-                    "choices": [
+                "sep24": {
+                  "enabled": true,
+                  "deposit": {
+                    "enabled": true,
+                    "min_amount": 1,
+                    "max_amount": 10000,
+                    "methods": [
                       "SEPA",
                       "SWIFT"
                     ]
+                  },
+                  "withdraw": {
+                    "enabled": true,
+                    "min_amount": 1,
+                    "max_amount": 10000,
+                    "methods": [
+                      "bank_account",
+                      "cash"
+                    ]
                   }
+                },
+                "sep31": {
+                  "enabled": true,
+                  "receive": {
+                    "min_amount": 1,
+                    "max_amount": 1000000
+                  },
+                  "quotes_supported": true,
+                  "quotes_required": true
+                },
+                "sep38": {
+                  "enabled": true,
+                  "exchangeable_assets": [
+                    "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+                    "iso4217:USD"
+                  ]
+                }
+              },
+              {
+                "id": "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+                "significant_decimals": 2,
+                "sep6" : {
+                  "enabled": false
+                },
+                "sep24": {
+                  "enabled": true,
+                  "deposit": {
+                    "enabled": true,
+                    "min_amount": 1,
+                    "max_amount": 1000000
+                  },
+                  "withdraw": {
+                    "enabled": false,
+                    "min_amount": 1,
+                    "max_amount": 1000000
+                  }
+                },
+          
+                "sep31": {
+                  "enabled": true,
+                  "receive": {
+                    "min_amount": 1,
+                    "max_amount": 1000000
+                  },
+                  "quotes_supported": true,
+                  "quotes_required": true
+                },
+                "sep38": {
+                  "enabled": true,
+                  "exchangeable_assets": [
+                    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+                    "iso4217:USD"
+                  ]
+                }
+              },
+              {
+                "id": "iso4217:USD",
+                "significant_decimals": 2,
+                "sep31": {
+                  "enabled": false,
+                  "receive": {
+                    "min_amount": 1,
+                    "max_amount": 1000000
+                  }
+                },
+                "sep38": {
+                  "enabled": true,
+                  "exchangeable_assets": [
+                    "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+                    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+                  ],
+                  "country_codes": [
+                    "USA"
+                  ],
+                  "sell_delivery_methods": [
+                    {
+                      "name": "WIRE",
+                      "description": "Send USD directly to the Anchor's bank account."
+                    }
+                  ],
+                  "buy_delivery_methods": [
+                    {
+                      "name": "WIRE",
+                      "description": "Have USD sent directly to your bank account."
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "stellar:native",
+                "significant_decimals": 7,
+                "sep6": {
+                  "enabled": false
+                },
+                "sep24": {
+                  "enabled": true,
+                  "deposit": {
+                    "enabled": true,
+                    "min_amount": 1,
+                    "max_amount": 1000000
+                  },
+                  "withdraw": {
+                    "enabled": true,
+                    "min_amount": 1,
+                    "max_amount": 1000000
+                  }
+                },
+                "sep31": {
+                  "enabled": true,
+                  "receive": {
+                    "min_amount": 1,
+                    "max_amount": 1000000
+                  },
+                  "quotes_supported": true,
+                  "quotes_required": true
+                },
+                "sep38": {
+                  "enabled": true,
+                  "exchangeable_assets": [
+                    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+                  ]
                 }
               }
-            },
-            "sep38": {
-              "exchangeable_assets": [
-                "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-              ],
-              "decimals": 7
-            },
-            "sep6_enabled": false,
-            "sep24_enabled": true,
-            "sep31_enabled": true,
-            "sep38_enabled": true
-          }
-        ]
-      }
+            ]
+          
     """
       .trimIndent()
 }
@@ -398,10 +273,9 @@ internal class DefaultAssetServiceTest {
 val trailingCommaInAssets =
   """
   {
-    "assets": [
+    "items": [
       {
-        "schema": "stellar",
-        "code": "native",
+        "id": "stellar:native",
         "significant_decimals": 7
       },
     ]

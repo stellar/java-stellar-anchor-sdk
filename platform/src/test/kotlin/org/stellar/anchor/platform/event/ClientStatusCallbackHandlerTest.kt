@@ -19,8 +19,8 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.api.sep.sep24.TransactionResponse
 import org.stellar.anchor.api.sep.sep6.Sep6TransactionResponse
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.config.ClientsConfig.ClientConfig
-import org.stellar.anchor.config.ClientsConfig.ClientType.CUSTODIAL
+import org.stellar.anchor.client.ClientConfig.CallbackUrls
+import org.stellar.anchor.client.CustodialClient
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.platform.service.Sep24MoreInfoUrlConstructor
 import org.stellar.anchor.platform.service.Sep6MoreInfoUrlConstructor
@@ -38,7 +38,7 @@ import org.stellar.sdk.KeyPair
 class ClientStatusCallbackHandlerTest {
   private lateinit var handler: ClientStatusCallbackHandler
   private lateinit var secretConfig: PropertySecretConfig
-  private lateinit var clientConfig: ClientConfig
+  private lateinit var clientConfig: CustodialClient
   private lateinit var signer: KeyPair
   private lateinit var ts: String
   private lateinit var event: AnchorEvent
@@ -52,11 +52,26 @@ class ClientStatusCallbackHandlerTest {
 
   @BeforeEach
   fun setUp() {
-    clientConfig = ClientConfig()
-    clientConfig.type = CUSTODIAL
-    clientConfig.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
-    clientConfig.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
-
+    clientConfig =
+      CustodialClient.builder()
+        .name("circle")
+        .signingKeys(
+          setOf(
+            "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
+            "GACYKME36AI6UYAV7A5ZUA6MG4C4K2VAPNYMW5YLOM6E7GS6FSHDPV4F",
+          )
+        )
+        .callbackUrls(
+          CallbackUrls.builder()
+            .sep6("https://callback.circle.com/api/v1/anchor/callback/sep6")
+            .sep24("https://callback.circle.com/api/v1/anchor/callback/sep24")
+            .sep31("https://callback.circle.com/api/v1/anchor/callback/sep31")
+            .sep12("https://callback.circle.com/api/v1/anchor/callback/sep12")
+            .build()
+        )
+        .allowAnyDestination(false)
+        .destinationAccounts(emptySet())
+        .build()
     sep6TransactionStore = mockk<Sep6TransactionStore>()
     every { sep6TransactionStore.findByTransactionId(any()) } returns null
 
@@ -107,7 +122,7 @@ class ClientStatusCallbackHandlerTest {
 
     val payload = json(event)
     val request =
-      ClientStatusCallbackHandler.buildHttpRequest(signer, payload, clientConfig.callbackUrl)
+      ClientStatusCallbackHandler.buildHttpRequest(signer, payload, clientConfig.callbackUrls.sep6)
     val requestHeader = request.headers["Signature"]
     val parsedSignature = requestHeader?.split(", ")?.get(1)?.substring(2)
     val decodedSignature = Base64.getDecoder().decode(parsedSignature)
@@ -121,57 +136,48 @@ class ClientStatusCallbackHandlerTest {
   }
 
   @Test
-  fun `test getCallbackUrl fallback`() {
-    clientConfig.callbackUrlSep24 = null
-    val url = handler.getCallbackUrl(event)
-
-    Assertions.assertEquals(clientConfig.callbackUrl, url)
-  }
-
-  @Test
   fun `test getCallbackUrl with SEP-6 event`() {
     event.transaction.sep = PlatformTransactionData.Sep.SEP_6
-    clientConfig.callbackUrlSep6 = "https://callback.circle.com/api/v1/anchor/callback/sep6"
+    clientConfig.callbackUrls.sep6 = "https://callback.circle.com/api/v1/anchor/callback/sep6"
     val url = handler.getCallbackUrl(event)
 
-    Assertions.assertEquals(clientConfig.callbackUrlSep6, url)
+    Assertions.assertEquals(clientConfig.callbackUrls.sep6, url)
   }
 
   @Test
   fun `test getCallbackUrl with SEP-24 event`() {
     event.transaction.sep = PlatformTransactionData.Sep.SEP_24
-    clientConfig.callbackUrlSep24 = "https://callback.circle.com/api/v1/anchor/callback/sep24"
+    clientConfig.callbackUrls.sep24 = "https://callback.circle.com/api/v1/anchor/callback/sep24"
     val url = handler.getCallbackUrl(event)
 
-    Assertions.assertEquals(clientConfig.callbackUrlSep24, url)
+    Assertions.assertEquals(clientConfig.callbackUrls.sep24, url)
   }
 
   @Test
   fun `test getCallbackUrl with SEP-31 event`() {
     event.transaction.sep = PlatformTransactionData.Sep.SEP_31
-    clientConfig.callbackUrlSep31 = "https://callback.circle.com/api/v1/anchor/callback/sep31"
+    clientConfig.callbackUrls.sep31 = "https://callback.circle.com/api/v1/anchor/callback/sep31"
     val url = handler.getCallbackUrl(event)
 
-    Assertions.assertEquals(clientConfig.callbackUrlSep31, url)
+    Assertions.assertEquals(clientConfig.callbackUrls.sep31, url)
   }
 
   @Test
   fun `test getCallbackUrl with SEP-12 event`() {
     event.transaction = null
     event.customer = Sep12GetCustomerResponse.builder().build()
-    clientConfig.callbackUrlSep12 = "https://callback.circle.com/api/v1/anchor/callback/sep12"
+    clientConfig.callbackUrls.sep12 = "https://callback.circle.com/api/v1/anchor/callback/sep12"
     val url = handler.getCallbackUrl(event)
 
-    Assertions.assertEquals(clientConfig.callbackUrlSep12, url)
+    Assertions.assertEquals(clientConfig.callbackUrls.sep12, url)
   }
 
   @Test
   fun `test buildHttpRequest with no callback URLs defined`() {
-    clientConfig.callbackUrl = null
-    clientConfig.callbackUrlSep6 = null
-    clientConfig.callbackUrlSep24 = null
-    clientConfig.callbackUrlSep31 = null
-    clientConfig.callbackUrlSep12 = null
+    clientConfig.callbackUrls.sep6 = null
+    clientConfig.callbackUrls.sep24 = null
+    clientConfig.callbackUrls.sep31 = null
+    clientConfig.callbackUrls.sep12 = null
 
     val request = handler.buildHttpRequest(signer, event)
     Assertions.assertNull(request)

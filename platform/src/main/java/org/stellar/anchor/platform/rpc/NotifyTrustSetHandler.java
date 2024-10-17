@@ -32,7 +32,7 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
-public class NotifyTrustSetHandler extends RpcMethodHandler<NotifyTrustSetRequest> {
+public class NotifyTrustSetHandler extends RpcTransactionStatusHandler<NotifyTrustSetRequest> {
 
   private final PropertyCustodyConfig custodyConfig;
   private final CustodyService custodyService;

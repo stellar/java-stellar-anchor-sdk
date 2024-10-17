@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -27,7 +29,7 @@ import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.config.ClientsConfig.ClientConfig;
+import org.stellar.anchor.client.ClientConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.sep24.*;
@@ -95,7 +97,10 @@ public class ClientStatusCallbackHandler extends EventHandler {
   Request buildHttpRequest(KeyPair signer, AnchorEvent event) {
     String callbackUrl = getCallbackUrl(event);
     if (callbackUrl == null) {
-      Log.debugF("No callback URL found for event: {}", json(event));
+      Log.debugF(
+          "No callback URL found for event: {} for client: {}",
+          json(event),
+          clientConfig.getName());
       return null;
     }
 
@@ -103,23 +108,33 @@ public class ClientStatusCallbackHandler extends EventHandler {
     return buildHttpRequest(signer, payload, callbackUrl);
   }
 
+  @Nullable
   String getCallbackUrl(AnchorEvent event) throws InvalidConfigException {
-    String callbackUrl = clientConfig.getCallbackUrl();
+    String callbackUrl = null;
     if (event.getTransaction() != null) {
       switch (event.getTransaction().getSep()) {
         case SEP_6:
-          if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep6())) {
-            callbackUrl = clientConfig.getCallbackUrlSep6();
+          if (!StringUtils.isEmpty(
+              Optional.ofNullable(clientConfig.getCallbackUrls())
+                  .map(ClientConfig.CallbackUrls::getSep6)
+                  .orElse(""))) {
+            callbackUrl = clientConfig.getCallbackUrls().getSep6();
           }
           break;
         case SEP_24:
-          if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep24())) {
-            callbackUrl = clientConfig.getCallbackUrlSep24();
+          if (!StringUtils.isEmpty(
+              Optional.ofNullable(clientConfig.getCallbackUrls())
+                  .map(ClientConfig.CallbackUrls::getSep24)
+                  .orElse(""))) {
+            callbackUrl = clientConfig.getCallbackUrls().getSep24();
           }
           break;
         case SEP_31:
-          if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep31())) {
-            callbackUrl = clientConfig.getCallbackUrlSep31();
+          if (!StringUtils.isEmpty(
+              Optional.ofNullable(clientConfig.getCallbackUrls())
+                  .map(ClientConfig.CallbackUrls::getSep31)
+                  .orElse(""))) {
+            callbackUrl = clientConfig.getCallbackUrls().getSep31();
           }
           break;
         default:
@@ -127,8 +142,11 @@ public class ClientStatusCallbackHandler extends EventHandler {
               String.format("Unsupported SEP: %s", event.getTransaction().getSep()));
       }
     } else if (event.getCustomer() != null) {
-      if (!StringUtils.isEmpty(clientConfig.getCallbackUrlSep12())) {
-        callbackUrl = clientConfig.getCallbackUrlSep12();
+      if (!StringUtils.isEmpty(
+          Optional.ofNullable(clientConfig.getCallbackUrls())
+              .map(ClientConfig.CallbackUrls::getSep12)
+              .orElse(""))) {
+        callbackUrl = clientConfig.getCallbackUrls().getSep12();
       }
     }
     return callbackUrl;
@@ -197,10 +215,6 @@ public class ClientStatusCallbackHandler extends EventHandler {
       sep24Txn.setAmountOut(txn.getAmountOut().getAmount());
       sep24Txn.setAmountOutAsset(txn.getAmountOut().getAsset());
     }
-    if (txn.getAmountFee() != null) {
-      sep24Txn.setAmountFee(txn.getAmountFee().getAmount());
-      sep24Txn.setAmountFeeAsset(txn.getAmountFee().getAsset());
-    }
     if (txn.getFeeDetails() != null) {
       sep24Txn.setFeeDetails(txn.getFeeDetails());
     }
@@ -237,30 +251,26 @@ public class ClientStatusCallbackHandler extends EventHandler {
   }
 
   private Sep31Transaction fromSep31Txn(GetTransactionResponse txn) {
-    JdbcSep31Transaction sep24Txn = new JdbcSep31Transaction();
-    sep24Txn.setId(txn.getId());
-    sep24Txn.setStatus(txn.getStatus().getStatus());
+    JdbcSep31Transaction sep31Txn = new JdbcSep31Transaction();
+    sep31Txn.setId(txn.getId());
+    sep31Txn.setStatus(txn.getStatus().getStatus());
     if (txn.getAmountIn() != null) {
-      sep24Txn.setAmountIn(txn.getAmountIn().getAmount());
-      sep24Txn.setAmountInAsset(txn.getAmountIn().getAsset());
+      sep31Txn.setAmountIn(txn.getAmountIn().getAmount());
+      sep31Txn.setAmountInAsset(txn.getAmountIn().getAsset());
     }
     if (txn.getAmountOut() != null) {
-      sep24Txn.setAmountOut(txn.getAmountOut().getAmount());
-      sep24Txn.setAmountOutAsset(txn.getAmountOut().getAsset());
-    }
-    if (txn.getAmountFee() != null) {
-      sep24Txn.setAmountFee(txn.getAmountFee().getAmount());
-      sep24Txn.setAmountFeeAsset(txn.getAmountFee().getAsset());
+      sep31Txn.setAmountOut(txn.getAmountOut().getAmount());
+      sep31Txn.setAmountOutAsset(txn.getAmountOut().getAsset());
     }
     if (txn.getFeeDetails() != null) {
-      sep24Txn.setFeeDetails(txn.getFeeDetails());
+      sep31Txn.setFeeDetails(txn.getFeeDetails());
     }
-    sep24Txn.setStartedAt(txn.getStartedAt());
-    sep24Txn.setCompletedAt(txn.getCompletedAt());
-    sep24Txn.setExternalTransactionId(txn.getExternalTransactionId());
-    sep24Txn.setRequiredInfoMessage(txn.getMessage());
-    sep24Txn.setStellarMemo(txn.getMemo());
-    sep24Txn.setStellarMemoType(txn.getMemoType());
+    sep31Txn.setStartedAt(txn.getStartedAt());
+    sep31Txn.setCompletedAt(txn.getCompletedAt());
+    sep31Txn.setExternalTransactionId(txn.getExternalTransactionId());
+    sep31Txn.setRequiredInfoMessage(txn.getMessage());
+    sep31Txn.setStellarMemo(txn.getMemo());
+    sep31Txn.setStellarMemoType(txn.getMemoType());
 
     if (txn.getRefunds() != null) {
       List<RefundPayment> paymentList =
@@ -279,9 +289,9 @@ public class ClientStatusCallbackHandler extends EventHandler {
       refunds.setAmountRefunded(txn.getRefunds().getAmountRefunded().getAmount());
       refunds.setAmountFee(txn.getRefunds().getAmountFee().getAmount());
       refunds.setRefundPayments(paymentList);
-      sep24Txn.setRefunds(refunds);
+      sep31Txn.setRefunds(refunds);
     }
 
-    return sep24Txn;
+    return sep31Txn;
   }
 }

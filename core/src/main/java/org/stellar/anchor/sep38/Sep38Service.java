@@ -11,8 +11,6 @@ import static org.stellar.anchor.util.MetricConstants.SEP38_PRICE_QUERIED;
 import static org.stellar.anchor.util.MetricConstants.SEP38_QUOTE_CREATED;
 import static org.stellar.anchor.util.NumberHelper.DEFAULT_ROUNDING_MODE;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
-import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
-import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
@@ -27,7 +25,6 @@ import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.platform.GetQuoteResponse;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.*;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.StellarId;
@@ -59,7 +56,7 @@ public class Sep38Service {
     this.rateIntegration = rateIntegration;
     this.sep38QuoteStore = sep38QuoteStore;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
-    this.infoResponse = new InfoResponse(this.assetService.listAllAssets());
+    this.infoResponse = new InfoResponse(this.assetService.getAssets());
     assetMap = new HashMap<>();
     this.infoResponse.getAssets().forEach(asset -> assetMap.put(asset.getAsset(), asset));
     Log.info("Sep38Service initialized.");
@@ -201,22 +198,6 @@ public class Sep38Service {
       throw new BadRequestException("Unsupported context. Should be one of [sep6, sep31].");
     }
 
-    // Check SEP31 send limits
-    if (context == SEP31) {
-      if (sellAsset == null) {
-        throw new BadRequestException("Unsupported sell asset.");
-      }
-      String[] assetCode = sellAsset.getAsset().split(":");
-      AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
-
-      // When sell_amount is specified
-      if (sellAmount != null) {
-        validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
-      }
-    }
-
     GetRateRequest.GetRateRequestBuilder rrBuilder =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.INDICATIVE)
@@ -237,16 +218,6 @@ public class Sep38Service {
     GetRateRequest request = rrBuilder.build();
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
     GetRateResponse.Rate rate = rateResponse.getRate();
-
-    // Check SEP31 sell_amount from rate integration when buy_amount is specified
-    if (context == SEP31 && isNotEmpty(buyAmount)) {
-      String[] assetCode = sellAsset.getAsset().split(":");
-      AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
-
-      validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
-    }
 
     String totalPrice =
         getTotalPrice(
@@ -353,22 +324,6 @@ public class Sep38Service {
       throw new BadRequestException("Unsupported context. Should be one of [sep6, sep24, sep31].");
     }
 
-    // Check SEP31 send limits
-    if (context == SEP31) {
-      if (sellAsset == null) {
-        throw new BadRequestException("Unsupported sell asset.");
-      }
-      String[] assetCode = sellAsset.getAsset().split(":");
-      AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
-
-      // When sell_amount is specified
-      if (request.getSellAmount() != null) {
-        validateAmountLimit("sell_", request.getSellAmount(), sendMinLimit, sendMaxLimit);
-      }
-    }
-
     GetRateRequest.GetRateRequestBuilder getRateRequestBuilder =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.FIRM)
@@ -408,23 +363,15 @@ public class Sep38Service {
             .expiresAt(rate.getExpiresAt())
             .price(rate.getPrice())
             .sellAsset(request.getSellAssetName())
+            .sellDeliveryMethod(request.getSellDeliveryMethod())
             .buyAsset(request.getBuyAssetName())
+            .buyDeliveryMethod(request.getBuyDeliveryMethod())
             .fee(rate.getFee());
 
     String sellAmount = formatAmount(decimal(rate.getSellAmount()), sellAsset.getDecimals());
     String buyAmount = formatAmount(decimal(rate.getBuyAmount()), buyAsset.getDecimals());
     responseBuilder =
         responseBuilder.totalPrice(totalPrice).sellAmount(sellAmount).buyAmount(buyAmount);
-
-    // Check SEP31 sell_amount from rate integration when buy_amount is specified
-    if (context == SEP31 && isNotEmpty(buyAmount)) {
-      String[] assetCode = sellAsset.getAsset().split(":");
-      AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
-
-      validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
-    }
 
     // save firm quote in the local database
     Sep38Quote newQuote =
@@ -467,8 +414,10 @@ public class Sep38Service {
     updateField(newQuote, "id", event, "quote.id");
     updateField(newQuote, "sellAsset", event, "quote.sellAsset");
     updateField(newQuote, "sellAmount", event, "quote.sellAmount");
+    updateField(newQuote, "sellDeliveryMethod", event, "quote.sellDeliveryMethod");
     updateField(newQuote, "buyAsset", event, "quote.buyAsset");
     updateField(newQuote, "buyAmount", event, "quote.buyAmount");
+    updateField(newQuote, "buyDeliveryMethod", event, "quote.buyDeliveryMethod");
     updateField(newQuote, "expiresAt", event, "quote.expiresAt");
     updateField(newQuote, "createdAt", event, "quote.createdAt");
     updateField(newQuote, "price", event, "quote.price");
@@ -528,8 +477,10 @@ public class Sep38Service {
         .price(quote.getPrice())
         .sellAsset(quote.getSellAsset())
         .sellAmount(quote.getSellAmount())
+        .sellDeliveryMethod(quote.getSellDeliveryMethod())
         .buyAsset(quote.getBuyAsset())
         .buyAmount(quote.getBuyAmount())
+        .buyDeliveryMethod(quote.getBuyDeliveryMethod())
         .fee(quote.getFee())
         .build();
   }

@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.stellar.anchor.api.sep.operation.Sep31Operation;
+import org.stellar.anchor.api.asset.Sep31Info;
 import org.stellar.anchor.api.shared.FeeDetails;
 
 /**
@@ -45,17 +45,11 @@ public class Sep31GetTransactionResponse {
     @SerializedName("amount_out_asset")
     String amountOutAsset;
 
-    @SerializedName("amount_fee")
-    String amountFee;
-
     @SerializedName("fee_details")
     FeeDetails feeDetails;
 
     @SerializedName("quote_id")
     String quoteId;
-
-    @SerializedName("amount_fee_asset")
-    String amountFeeAsset;
 
     @SerializedName("stellar_account_id")
     String stellarAccountId;
@@ -88,7 +82,7 @@ public class Sep31GetTransactionResponse {
     String requiredInfoMessage;
 
     @SerializedName("required_info_updates")
-    Sep31Operation.Fields requiredInfoUpdates;
+    Sep31Info.Fields requiredInfoUpdates;
   }
 
   @Data

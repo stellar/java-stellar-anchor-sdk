@@ -17,7 +17,6 @@ import static org.stellar.anchor.util.MetricConstants.*;
 import com.google.common.collect.ImmutableSet;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -25,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -38,7 +38,6 @@ import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.platform.TransactionsSeps;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.FeeDetails;
@@ -132,7 +131,7 @@ public class TransactionService {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
-    this.assets = assetService.listAllAssets();
+    this.assets = assetService.getAssets();
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.assetService = assetService;
     this.sep6DepositInfoGenerator = sep6DepositInfoGenerator;
@@ -142,8 +141,7 @@ public class TransactionService {
   }
 
   /**
-   * Fetch the transaction and convert the transaction to an object of Sep24GetTransactionResponse
-   * class.
+   * Fetch the transaction and convert the transaction to an object of GetTransactionResponse class.
    *
    * @param txnId the transaction ID
    * @return the result
@@ -230,6 +228,7 @@ public class TransactionService {
    * @param request the request
    * @return the response
    */
+  @Deprecated
   public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
       throws AnchorException {
     List<PatchTransactionRequest> patchRequests = request.getRecords();
@@ -246,6 +245,7 @@ public class TransactionService {
     return new PatchTransactionsResponse(txnResponses);
   }
 
+  @Deprecated
   private GetTransactionResponse patchTransaction(PatchTransactionRequest patch)
       throws AnchorException {
     if (patch.getTransaction() == null) {
@@ -255,9 +255,8 @@ public class TransactionService {
     validateIfStatusIsSupported(patch.getTransaction().getStatus().toString());
     validateAsset("amount_in", patch.getTransaction().getAmountIn());
     validateAsset("amount_out", patch.getTransaction().getAmountOut());
-    validateAsset("amount_fee", patch.getTransaction().getAmountFee(), true);
 
-    FeeDetails feeDetails = validateAndGetRateFee(patch.getTransaction());
+    FeeDetails feeDetails = patch.getTransaction().getFeeDetails();
 
     JdbcSepTransaction txn = queryTransactionById(patch.getTransaction().getId());
     if (txn == null)
@@ -306,7 +305,7 @@ public class TransactionService {
                 .sep("6")
                 .type(TRANSACTION_STATUS_CHANGED)
                 .transaction(
-                    TransactionHelper.toGetTransactionResponse(sep6Transaction, assetService))
+                    TransactionMapper.toGetTransactionResponse(sep6Transaction, assetService))
                 .build());
         patchSep6TransactionCounter.increment();
         break;
@@ -332,7 +331,7 @@ public class TransactionService {
                 .id(UUID.randomUUID().toString())
                 .sep("24")
                 .type(TRANSACTION_STATUS_CHANGED)
-                .transaction(TransactionHelper.toGetTransactionResponse(sep24Txn, assetService))
+                .transaction(TransactionMapper.toGetTransactionResponse(sep24Txn, assetService))
                 .build());
         patchSep24TransactionCounter.increment();
         break;
@@ -349,7 +348,7 @@ public class TransactionService {
                 .id(UUID.randomUUID().toString())
                 .sep("31")
                 .type(TRANSACTION_STATUS_CHANGED)
-                .transaction(TransactionHelper.toGetTransactionResponse(sep31Txn))
+                .transaction(TransactionMapper.toGetTransactionResponse(sep31Txn))
                 .build());
         patchSep31TransactionCounter.increment();
         break;
@@ -358,6 +357,7 @@ public class TransactionService {
     return PlatformTransactionHelper.toGetTransactionResponse(txn, assetService);
   }
 
+  @Deprecated
   void updateSepTransaction(PlatformTransactionData patch, JdbcSepTransaction txn)
       throws AnchorException {
     boolean txnUpdated = false;
@@ -374,9 +374,6 @@ public class TransactionService {
     // update amount_out
     txnUpdated = updateField(patch, "amountOut.amount", txn, "amountOut", txnUpdated);
     txnUpdated = updateField(patch, "amountOut.asset", txn, "amountOutAsset", txnUpdated);
-    // update amount_fee
-    txnUpdated = updateField(patch, "amountFee.amount", txn, "amountFee", txnUpdated);
-    txnUpdated = updateField(patch, "amountFee.asset", txn, "amountFeeAsset", txnUpdated);
     // update started_at, completed_at, updated_at, transferReceivedAt
     txnUpdated = updateField(patch, txn, "startedAt", txnUpdated);
     txnUpdated = updateField(patch, txn, "updatedAt", txnUpdated);
@@ -394,15 +391,13 @@ public class TransactionService {
           .ifPresent(stellarTransaction -> txn.setStellarTransactionId(stellarTransaction.getId()));
     }
 
-    FeeDetails feeDetails = validateAndGetRateFee(patch);
+    FeeDetails feeDetails = patch.getFeeDetails();
 
     switch (txn.getProtocol()) {
       case "6":
         JdbcSep6Transaction sep6Txn = (JdbcSep6Transaction) txn;
         txnUpdated = updateField(patch, sep6Txn, "requiredInfoMessage", txnUpdated);
         txnUpdated = updateField(patch, sep6Txn, "requiredInfoUpdates", txnUpdated);
-        txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoMessage", txnUpdated);
-        txnUpdated = updateField(patch, sep6Txn, "requiredCustomerInfoUpdates", txnUpdated);
         txnUpdated = updateField(patch, sep6Txn, "instructions", txnUpdated);
         if (feeDetails != null) {
           sep6Txn.setFeeDetails(feeDetails);
@@ -423,6 +418,7 @@ public class TransactionService {
             && Kind.WITHDRAWAL.getKind().equals(sep24Txn.getKind())
             && sep24Txn.getStatus().equals(PENDING_USR_TRANSFER_START.toString())) {
           SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(sep24Txn);
+          sep24Txn.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
           sep24Txn.setMemo(sep24DepositInfo.getMemo());
           sep24Txn.setMemoType(sep24DepositInfo.getMemoType());
         }
@@ -479,31 +475,6 @@ public class TransactionService {
     }
   }
 
-  FeeDetails validateAndGetRateFee(PlatformTransactionData patch) throws BadRequestException {
-    // If both fee_details and fee is set, validate that they match. If only one set, properly set
-    // the other one.
-    FeeDetails feeDetails = patch.getFeeDetails();
-
-    if (feeDetails != null) {
-      if (patch.getAmountFee() != null) {
-        if (new BigDecimal(patch.getAmountFee().getAmount())
-                .compareTo(new BigDecimal(patch.getFeeDetails().getTotal()))
-            != 0) {
-          throw new BadRequestException(
-              "amount_fee's amount doesn't match amount from fee_details");
-        }
-        if (!patch.getAmountFee().getAsset().equals(patch.getFeeDetails().getAsset())) {
-          throw new BadRequestException("amount_fee's asset doesn't match asset from fee_details");
-        }
-      }
-    } else if (patch.getAmountFee() != null) {
-      feeDetails =
-          new FeeDetails(patch.getAmountFee().getAmount(), patch.getAmountFee().getAsset(), null);
-    }
-
-    return feeDetails;
-  }
-
   /**
    * validateIfStatusIsSupported will check if the provided string is a SepTransactionStatus
    * supported by the PlatformAPI
@@ -543,15 +514,14 @@ public class TransactionService {
     }
 
     // asset name needs to be supported
-    if (assets.stream()
-        .noneMatch(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))) {
+    if (assets.stream().noneMatch(assetInfo -> assetInfo.getId().equals(amount.getAsset()))) {
       throw new BadRequestException(
           String.format("'%s' is not a supported asset.", amount.getAsset()));
     }
 
     List<AssetInfo> allAssets =
         assets.stream()
-            .filter(assetInfo -> assetInfo.getSep38AssetName().equals(amount.getAsset()))
+            .filter(assetInfo -> assetInfo.getId().equals(amount.getAsset()))
             .collect(Collectors.toList());
 
     AssetValidationUtils.valiateAssetDecimals(allAssets, amount.getAmount());
@@ -565,7 +535,7 @@ public class TransactionService {
           && Objects.equals(txn.getAmountInAsset(), txn.getAmountOutAsset()))
         if (decimal(txn.getAmountIn())
                 .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getFeeDetails().getTotal())))
-            != 0) throw new BadRequestException("amount_in != amount_out + amount_fee");
+            != 0) throw new BadRequestException("amount_in != amount_out + fee_details.total");
     } else {
       // with exchange
       Sep38Quote quote = quoteStore.findByQuoteId(txn.getQuoteId());
@@ -590,14 +560,6 @@ public class TransactionService {
 
       if (!equalsAsDecimals(txn.getAmountOut(), quote.getBuyAmount())) {
         throw new BadRequestException("transaction.amount_out != quote.buy_amount");
-      }
-
-      if (!Objects.equals(txn.getAmountFeeAsset(), quote.getFee().getAsset())) {
-        throw new BadRequestException("transaction.amount_fee_asset != quote.fee.asset");
-      }
-
-      if (!equalsAsDecimals(txn.getAmountFee(), quote.getFee().getTotal())) {
-        throw new BadRequestException("amount_fee != sum(quote.fee.total)");
       }
 
       if (!Objects.equals(txn.getFeeDetails().getAsset(), quote.getFee().getAsset())) {

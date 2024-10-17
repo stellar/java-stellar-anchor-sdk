@@ -34,7 +34,7 @@ class Sep31DepositInfoSelfGeneratorTest {
   fun test_sep31_selfGenerator_success(txnId: String, address: String?, memo: String) {
     val txn = JdbcSep31Transaction()
     txn.id = txnId
-    txn.stellarAccountId = address
+    txn.toAccount = address
     val generator = Sep31DepositInfoSelfGenerator()
 
     val actualInfo = generator.generate(txn)

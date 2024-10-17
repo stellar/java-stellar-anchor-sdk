@@ -13,46 +13,34 @@ dependencies {
 
   api(libs.lombok)
 
-  // Lombok should be used by all subprojects to reduce Java verbosity
   annotationProcessor(libs.lombok)
 
-  implementation("io.jsonwebtoken:jjwt-gson:0.12.5")
-
-  implementation(libs.spring.kafka)
-  implementation(libs.spring.data.commons)
-
-  implementation(
-    libs.scala.library
-  ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
-  // one.
-  implementation(libs.bundles.kafka)
-
-  // TODO: Consider to simplify
-  implementation(libs.micrometer.prometheus)
-  implementation(libs.javax.transaction.api)
-
-  implementation(libs.commons.beanutils)
-  implementation(libs.commons.io)
   implementation(libs.apache.commons.lang3)
-  implementation(libs.log4j2.core)
-  implementation(libs.httpclient)
-  implementation(libs.google.gson)
-  implementation(libs.toml4j)
-  implementation(libs.okhttp3)
-  implementation(libs.commons.codec)
-  implementation(libs.jjwt)
   implementation(libs.bcastle)
-  implementation(libs.reactor.core)
-  implementation(libs.javax.jaxb.api)
+  implementation(libs.commons.beanutils)
+  implementation(libs.commons.codec)
+  implementation(libs.commons.io)
+  implementation(libs.google.gson)
+  implementation(libs.httpclient)
+  implementation(libs.jakarta.annotation.api)
+  implementation(libs.jakarta.transaction.api)
+  implementation(libs.jakarta.validation.api)
+  implementation(libs.jjwt)
+  implementation(libs.log4j2.core)
+  implementation(libs.micrometer.prometheus)
+  implementation(libs.okhttp3)
+  implementation(libs.snakeyaml)
+  implementation(libs.spring.context)
+  implementation(libs.spring.data.commons)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(project(":api-schema"))
   implementation(project(":lib-util"))
 
+  testImplementation(libs.coroutines.core)
   testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)
-  testImplementation(libs.coroutines.core)
   testImplementation(libs.stellar.wallet.sdk)
 }
 

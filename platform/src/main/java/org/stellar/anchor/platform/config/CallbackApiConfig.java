@@ -7,10 +7,7 @@ import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.auth.AuthConfig;
-import org.stellar.anchor.auth.AuthHelper;
-import org.stellar.anchor.auth.AuthType;
-import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.*;
 import org.stellar.anchor.util.KeyUtil;
 import org.stellar.anchor.util.NetUtil;
 
@@ -89,7 +86,8 @@ public class CallbackApiConfig implements Validator {
         return AuthHelper.forJwtToken(
             getAuth().getJwt().getHttpHeader(),
             JwtService.builder().callbackAuthSecret(secret).build(),
-            Long.parseLong(getAuth().getJwt().getExpirationMilliseconds()));
+            Long.parseLong(getAuth().getJwt().getExpirationMilliseconds()),
+            ApiAuthJwt.CallbackAuthJwt.class);
       case API_KEY:
         return AuthHelper.forApiKey(getAuth().getApiKey().getHttpHeader(), secret);
       default:

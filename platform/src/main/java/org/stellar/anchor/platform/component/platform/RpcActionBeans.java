@@ -15,11 +15,14 @@ import org.stellar.anchor.platform.component.sep.ApiClientBeans;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.rpc.*;
 import org.stellar.anchor.platform.service.RpcService;
+import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
+import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
@@ -81,6 +84,16 @@ public class RpcActionBeans {
         custodyService,
         eventService,
         metricsService);
+  }
+
+  @Bean
+  GetTransactionHandler getTransactionHandler(TransactionService txnService) {
+    return new GetTransactionHandler(txnService);
+  }
+
+  @Bean
+  GetTransactionsHandler getTransactionsHandler(TransactionService txnService) {
+    return new GetTransactionsHandler(txnService);
   }
 
   @Bean
@@ -385,25 +398,6 @@ public class RpcActionBeans {
   }
 
   @Bean
-  RequestCustomerInfoUpdateHandler requestCustomerInfoUpdateHandler(
-      Sep6TransactionStore txn6Store,
-      Sep24TransactionStore txn24Store,
-      Sep31TransactionStore txn31Store,
-      RequestValidator requestValidator,
-      AssetService assetService,
-      EventService eventService,
-      MetricsService metricsService) {
-    return new RequestCustomerInfoUpdateHandler(
-        txn6Store,
-        txn24Store,
-        txn31Store,
-        requestValidator,
-        assetService,
-        eventService,
-        metricsService);
-  }
-
-  @Bean
   NotifyCustomerInfoUpdatedHandler notifyCustomerInfoUpdatedHandler(
       Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
@@ -454,6 +448,8 @@ public class RpcActionBeans {
       CustodyConfig custodyConfig,
       Sep6DepositInfoGenerator sep6DepositInfoGenerator,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
+      Sep31DepositInfoGenerator sep31DepositInfoGenerator,
+      PaymentObservingAccountsManager paymentObservingAccountsManager,
       EventService eventService,
       MetricsService metricsService) {
     return new RequestOnchainFundsHandler(
@@ -466,6 +462,8 @@ public class RpcActionBeans {
         custodyConfig,
         sep6DepositInfoGenerator,
         sep24DepositInfoGenerator,
+        sep31DepositInfoGenerator,
+        paymentObservingAccountsManager,
         eventService,
         metricsService);
   }

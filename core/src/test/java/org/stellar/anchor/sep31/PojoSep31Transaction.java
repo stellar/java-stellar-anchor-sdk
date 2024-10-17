@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
-import org.stellar.anchor.api.sep.operation.Sep31Operation;
+import org.stellar.anchor.api.asset.Sep31Info;
 import org.stellar.anchor.api.shared.FeeDescription;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.StellarId;
@@ -21,7 +21,8 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String amountOutAsset;
   String amountFee;
   String amountFeeAsset;
-  String stellarAccountId;
+  String fromAccount;
+  String toAccount;
   String stellarMemo;
   String stellarMemoType;
   Instant startedAt;
@@ -34,7 +35,7 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String quoteId;
   String clientDomain;
   String clientName;
-  Sep31Operation.Fields requiredInfoUpdates;
+  Sep31Info.Fields requiredInfoUpdates;
   Map<String, String> fields;
   Boolean refunded;
   PojoSep31Refunds refunds;

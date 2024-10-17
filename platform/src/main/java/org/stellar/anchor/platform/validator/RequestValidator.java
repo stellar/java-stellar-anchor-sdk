@@ -2,9 +2,9 @@ package org.stellar.anchor.platform.validator;
 
 import static java.util.stream.Collectors.joining;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import java.util.Set;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
 import org.apache.commons.collections.CollectionUtils;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 

@@ -76,9 +76,9 @@ public class Sep10Helper {
   }
 
   /**
-   * Checks if the given domain name matches any pattern or exact domain in the provided list.
+   * Checks if the given domain name matches any pattern or fixed domain in the provided list.
    *
-   * @param patternsAndDomains A list containing patterns and/or exact domain names to match
+   * @param patternsAndDomains A list containing patterns and/or fixed domain names to match
    *     against.
    * @param domainName The domain name to check for a match.
    * @return true if the domain name matches any pattern or exact domain in the list, false
@@ -106,9 +106,9 @@ public class Sep10Helper {
   }
 
   /**
-   * Retrieves the first non-wildcard domain name from the provided list of patterns and domains.
+   * Retrieves the first fixed domain name from the provided list of patterns and domains.
    *
-   * @param patternsAndDomains A list containing patterns and/or exact domain names to search.
+   * @param patternsAndDomains A list containing patterns and/or fixed domain names to search.
    * @return The first exact domain name found in the list, or null if no exact domain is present.
    */
   public static String getDefaultDomainName(List<String> patternsAndDomains) {

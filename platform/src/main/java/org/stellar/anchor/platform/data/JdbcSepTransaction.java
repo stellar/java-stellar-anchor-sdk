@@ -2,15 +2,16 @@ package org.stellar.anchor.platform.data;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Transient;
 import java.time.Instant;
 import java.util.List;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.stellar.anchor.api.shared.FeeDescription;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.StellarTransaction;
@@ -56,7 +57,7 @@ public abstract class JdbcSepTransaction {
 
   @SerializedName("fee_details")
   @Column(name = "fee_details")
-  @Type(type = "json")
+  @JdbcTypeCode(SqlTypes.JSON)
   List<FeeDescription> feeDetailsList;
 
   @SerializedName("started_at")
@@ -84,7 +85,7 @@ public abstract class JdbcSepTransaction {
   String externalTransactionId;
 
   @Column(columnDefinition = "json")
-  @Type(type = "json")
+  @JdbcTypeCode(SqlTypes.JSON)
   List<StellarTransaction> stellarTransactions;
 
   public abstract String getProtocol();

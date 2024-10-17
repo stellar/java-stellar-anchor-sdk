@@ -16,17 +16,13 @@ plugins {
 }
 
 dependencies {
-  implementation(
-      libs.snakeyaml) // used to force the version of snakeyaml (used by springboot) to a safer one.
   implementation("org.springframework.boot:spring-boot-starter-web")
 
   implementation(libs.commons.cli)
+  implementation(libs.coroutines.core)
   implementation(libs.docker.compose.rule)
-  implementation(libs.dotenv)
   implementation(libs.google.gson)
   implementation(libs.kotlin.serialization.json)
-  implementation(libs.okhttp3)
-  implementation(libs.coroutines.core)
 
   // From projects
   implementation(project(":api-schema"))
@@ -108,7 +104,7 @@ val dockerCreateAnchorTest by
       dependsOn(dockerPullAnchorTest)
       targetImageId { dockerPullAnchorTest.image.get() }
 
-      val homeDomain = System.getenv("TEST_HOME_DO`MAIN") ?: "http://host.docker.internal:8080"
+      val homeDomain = System.getenv("TEST_HOME_DOMAIN") ?: "http://host.docker.internal:8080"
       println("TEST_HOME_DOMAIN=$homeDomain")
       val seps = System.getenv().getOrDefault("TEST_SEPS", "1,6,10,12,24,31,38").split(",")
       println("TEST_SEPS=$seps")

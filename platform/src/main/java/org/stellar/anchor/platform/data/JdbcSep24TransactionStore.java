@@ -16,7 +16,6 @@ import org.stellar.anchor.util.DateUtil;
 import org.stellar.anchor.util.TransactionsParams;
 
 public class JdbcSep24TransactionStore implements Sep24TransactionStore {
-  static final String CB_KEY_NAMESPACE = "SAS:RESOURCE:";
   final JdbcSep24TransactionRepo txnRepo;
 
   public JdbcSep24TransactionStore(JdbcSep24TransactionRepo txnRepo) {
