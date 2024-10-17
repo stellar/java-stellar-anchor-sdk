@@ -14,3 +14,7 @@ dependencies {
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
   implementation(project(":api-schema"))
 }
+
+tasks.withType<Jar> {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
