@@ -8,24 +8,20 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.validation.BindException
-import org.springframework.validation.Errors
 import org.springframework.validation.ValidationUtils
 import org.stellar.anchor.config.event.QueueConfig.QueueType.*
-import org.stellar.anchor.platform.config.*
 
 class EventConfigTest {
   lateinit var config: PropertyEventConfig
-  lateinit var errors: Errors
 
   @BeforeEach
   fun setUp() {
     config = PropertyEventConfig()
-
-    errors = BindException(config, "config")
   }
 
   @Test
   fun `test enabled flag`() {
+    val errors = BindException(config, "config")
     config.isEnabled = false
     ValidationUtils.invokeValidator(config, config, errors)
     assertEquals(0, errors.errorCount)
@@ -38,7 +34,8 @@ class EventConfigTest {
     config.queue = PropertyQueueConfig()
     config.queue.type = KAFKA
     config.queue.kafka = kafkaConfig
-    config.validateKafka(config, errors)
+    val errors = BindException(config.queue, "config")
+    config.queue.validateKafka(config.queue, errors)
     assertEquals(errorCount, errors.errorCount)
     if (errorCount > 0) {
       assertEquals(errorCode, errors.allErrors[0].code)
@@ -52,7 +49,8 @@ class EventConfigTest {
     config.queue = PropertyQueueConfig()
     config.queue.type = SQS
     config.queue.sqs = sqsConfig
-    config.validateSqs(config, errors)
+    val errors = BindException(config.queue, "config")
+    config.queue.validateSqs(config.queue, errors)
     assertEquals(errorCount, errors.errorCount)
     if (errorCount > 0) {
       assertEquals(errorCode, errors.allErrors[0].code)
@@ -66,7 +64,8 @@ class EventConfigTest {
     config.queue = PropertyQueueConfig()
     config.queue.type = MSK
     config.queue.msk = mskConfig
-    config.validateMsk(config, errors)
+    val errors = BindException(config.queue, "config")
+    config.queue.validateMsk(config.queue, errors)
     assertEquals(errorCount, errors.errorCount)
     if (errorCount > 0) {
       assertEquals(errorCode, errors.allErrors[0].code)
@@ -89,6 +88,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -103,6 +105,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -117,6 +122,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -131,6 +139,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -144,6 +155,9 @@ class EventConfigTest {
             500,
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
+            null,
+            true,
+            null,
             null
           ),
         ),
@@ -159,12 +173,15 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
         Arguments.of(
           1,
           "kafka-security-protocol-empty",
-          KafkaConfig("localhost:29092", "client_id", 1, 10, 500, 10, null, null),
+          KafkaConfig("localhost:29092", "client_id", 1, 10, 500, 10, null, null, true, null, null),
         ),
         Arguments.of(
           1,
@@ -178,6 +195,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.SASL_PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
       )
@@ -209,6 +229,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -224,6 +247,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -239,6 +265,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -254,6 +283,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -269,6 +301,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
         Arguments.of(
@@ -284,6 +319,9 @@ class EventConfigTest {
             10,
             KafkaConfig.SecurityProtocol.PLAINTEXT,
             null,
+            true,
+            null,
+            null
           ),
         ),
       )

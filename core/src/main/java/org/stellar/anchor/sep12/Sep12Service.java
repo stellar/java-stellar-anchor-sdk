@@ -51,6 +51,20 @@ public class Sep12Service {
     Log.info("Sep12Service initialized.");
   }
 
+  public void populateRequestFromTransactionId(Sep12CustomerRequestBase requestBase)
+      throws SepNotFoundException {
+    if (requestBase.getTransactionId() != null) {
+      try {
+        GetTransactionResponse txn =
+            platformApiClient.getTransaction(requestBase.getTransactionId());
+        requestBase.setAccount(txn.getCustomers().getSender().getAccount());
+        requestBase.setMemo(txn.getCustomers().getSender().getMemo());
+      } catch (Exception e) {
+        throw new SepNotFoundException("The transaction specified does not exist");
+      }
+    }
+  }
+
   public Sep12GetCustomerResponse getCustomer(Sep10Jwt token, Sep12GetCustomerRequest request)
       throws AnchorException {
     validateGetOrPutRequest(request, token);

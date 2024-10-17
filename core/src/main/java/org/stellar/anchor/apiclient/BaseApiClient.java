@@ -28,7 +28,6 @@ public abstract class BaseApiClient {
   /**
    * Creates a new BaseApiClient.
    *
-   * @param authHelper the AuthHelper to use for authentication.
    * @param endpoint the API endpoint.
    */
   protected BaseApiClient(AuthHelper authHelper, String endpoint) {
@@ -59,5 +58,11 @@ public abstract class BaseApiClient {
     return authHeader == null
         ? requestBuilder
         : requestBuilder.header(authHeader.getName(), authHeader.getValue());
+  }
+
+  abstract AuthHeader<String, String> createAuthHeader() throws InvalidConfigException;
+
+  OkHttpClient getClient() {
+    return client;
   }
 }
