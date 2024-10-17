@@ -13,6 +13,7 @@ import org.stellar.anchor.api.callback.SendEventResponse;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.OkHttpUtil;
 
@@ -55,5 +56,10 @@ public class CallbackApiClient extends BaseApiClient {
     String responseText = handleResponse(response);
 
     return new SendEventResponse(response.code(), isEmpty(responseText) ? "" : responseText);
+  }
+
+  @Override
+  AuthHeader<String, String> createAuthHeader() throws InvalidConfigException {
+    return authHelper.createCallbackAuthHeader();
   }
 }
