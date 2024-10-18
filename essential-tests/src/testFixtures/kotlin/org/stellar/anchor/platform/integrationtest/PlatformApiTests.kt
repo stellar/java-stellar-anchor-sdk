@@ -5165,6 +5165,17 @@ private val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_REQUESTS =
 [
   {
     "id": "1",
+    "method": "request_onchain_funds",
+    "jsonrpc": "2.0",
+    "params": {
+      "transaction_id": "%TX_ID%",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+      "memo_type": "hash"
+    }
+  },
+  {
+    "id": "2",
     "method": "notify_onchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
@@ -5174,7 +5185,7 @@ private val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_REQUESTS =
     }
   },
   {
-    "id": "2",
+    "id": "3",
     "method": "notify_refund_sent",
     "jsonrpc": "2.0",
     "params": {
@@ -5205,6 +5216,42 @@ private val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
               "id": "%TX_ID%",
               "sep": "31",
               "kind": "receive",
+              "status": "pending_sender",
+              "amount_expected": {
+                "amount": "10",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_in": {
+                "amount": "10",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_out": {},
+              "fee_details": {
+                "total": "1",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "memo": "ZWQ0NmIwMzAtM2E5NC00M2RkLThkMWYtYWUwMjNhMGI=",
+              "memo_type": "hash",
+              "refund_memo": "MjJkMmM1MjEtMmQ4MS00ZmIxLWE0ZGItZjhjMDdiZjg",
+              "refund_memo_type": "hash",
+              "client_name": "referenceCustodial",
+              "customers": {
+                "sender": { "id": "%SENDER_ID%" },
+                "receiver": { "id": "%RECEIVER_ID%" }
+              },
+              "creator": {
+                "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+              }
+            },
+            "id": "1"
+          },
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "%TX_ID%",
+              "sep": "31",
+              "kind": "receive",
               "status": "pending_receiver",
               "amount_expected": {
                 "amount": "10",
@@ -5219,8 +5266,6 @@ private val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:31:46.178476Z",
-              "updated_at": "2024-06-25T20:31:47.251666Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 1",
               "stellar_transactions": [
@@ -5251,7 +5296,7 @@ private val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "1"
+            "id": "2"
           },
           {
             "jsonrpc": "2.0",
@@ -5273,8 +5318,6 @@ private val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
                 "total": "1",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "started_at": "2024-06-25T20:31:46.178476Z",
-              "updated_at": "2024-06-25T20:31:48.272531Z",
               "transfer_received_at": "2024-06-13T20:02:49Z",
               "message": "test message 2",
               "refunds": {
@@ -5329,7 +5372,7 @@ private val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
               }
             },
-            "id": "2"
+            "id": "3"
           }
         ]
       """
