@@ -6,7 +6,6 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
@@ -25,7 +24,6 @@ import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.inject
 import org.stellar.anchor.util.GsonUtils
 
-@Disabled
 class PlatformApiCustodyTests : AbstractIntegrationTests(TestConfig("custody")) {
   companion object {
     private val custodyMockServer = MockWebServer()
@@ -749,59 +747,67 @@ private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
 
 private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_REQUESTS =
   """
-[
-  {
-    "id": "1",
-    "method": "notify_onchain_funds_received",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "%TX_ID%",
-      "message": "test message 1",
-      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
-    }
-  },
-  {
-    "id": "2",
-    "method": "do_stellar_refund",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "%TX_ID%",
-      "message": "test message 2",
-      "refund": {
-        "id": "123456",
-        "amount": {
-          "amount": "5",
-          "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-        },
-        "amount_fee": {
-          "amount": "5",
-          "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    [
+      {
+        "id": "1",
+        "method": "request_onchain_funds",
+        "jsonrpc": "2.0",
+        "params": {
+          "transaction_id": "%TX_ID%"
+        }
+      },
+      {
+        "id": "2",
+        "method": "notify_onchain_funds_received",
+        "jsonrpc": "2.0",
+        "params": {
+          "transaction_id": "%TX_ID%",
+          "message": "test message 1",
+          "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
+        }
+      },
+      {
+        "id": "3",
+        "method": "do_stellar_refund",
+        "jsonrpc": "2.0",
+        "params": {
+          "transaction_id": "%TX_ID%",
+          "message": "test message 2",
+          "refund": {
+            "id": "123456",
+            "amount": {
+              "amount": "5",
+              "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            },
+            "amount_fee": {
+              "amount": "5",
+              "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            }
+          }
+        }
+      },
+      {
+        "id": "4",
+        "method": "notify_refund_sent",
+        "jsonrpc": "2.0",
+        "params": {
+          "transaction_id": "%TX_ID%",
+          "message": "test message 3",
+          "refund": {
+            "id": "123456",
+            "amount": {
+              "amount": "5",
+              "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            },
+            "amount_fee": {
+              "amount": "5",
+              "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            }
+          }
         }
       }
-    }
-  },
-  {
-    "id": "3",
-    "method": "notify_refund_sent",
-    "jsonrpc": "2.0",
-    "params": {
-      "transaction_id": "%TX_ID%",
-      "message": "test message 3",
-      "refund": {
-        "id": "123456",
-        "amount": {
-          "amount": "5",
-          "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-        },
-        "amount_fee": {
-          "amount": "5",
-          "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-        }
-      }
-    }
-  }
-]
-"""
+    ]
+  """
 
 private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSES =
   """
@@ -809,7 +815,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
   {
     "jsonrpc": "2.0",
     "result": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "sep": "31",
       "kind": "receive",
       "status": "pending_sender",
@@ -828,15 +834,15 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       },
       "started_at": "2024-08-20T14:51:13.884362Z",
       "updated_at": "2024-08-20T14:51:14.998779Z",
-      "destination_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+      "destination_account": "%CUSTODY_DEST_ACCOUNT%",
       "memo": "testMemo",
       "memo_type": "id",
       "refund_memo": "testMemo",
       "refund_memo_type": "id",
       "client_name": "referenceCustodial",
       "customers": {
-        "sender": { "id": "SENDER_ID" },
-        "receiver": { "id": "RECEIVER_ID" }
+        "sender": { "id": "%SENDER_ID%" },
+        "receiver": { "id": "%RECEIVER_ID%" }
       },
       "creator": {
         "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -866,7 +872,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       },
       "started_at": "2024-08-20T14:51:13.884362Z",
       "updated_at": "2024-08-20T14:51:16.193778Z",
-      "transfer_received_at": "2024-06-13T20:02:49Z",
+      "transfer_received_at": "2024-10-01T00:34:38Z",
       "message": "test message 1",
       "stellar_transactions": [
         {
@@ -886,8 +892,8 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
           ]
         }
       ],
-      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-      "destination_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+      "destination_account": "%CUSTODY_DEST_ACCOUNT%",
       "memo": "testMemo",
       "memo_type": "id",
       "refund_memo": "testMemo",
@@ -929,7 +935,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       },
       "started_at": "2024-08-20T14:51:13.884362Z",
       "updated_at": "2024-08-20T14:51:17.301305Z",
-      "transfer_received_at": "2024-06-13T20:02:49Z",
+      "transfer_received_at": "2024-10-01T00:34:38Z",
       "message": "test message 2",
       "stellar_transactions": [
         {
@@ -949,8 +955,8 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
           ]
         }
       ],
-      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-      "destination_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+      "destination_account": "%CUSTODY_DEST_ACCOUNT%",
       "memo": "testMemo",
       "memo_type": "id",
       "refund_memo": "testMemo",
@@ -993,7 +999,7 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
       "started_at": "2024-08-20T14:51:13.884362Z",
       "updated_at": "2024-08-20T14:51:18.325903Z",
       "completed_at": "2024-08-20T14:51:18.325901Z",
-      "transfer_received_at": "2024-06-13T20:02:49Z",
+      "transfer_received_at": "2024-10-01T00:34:38Z",
       "message": "test message 3",
       "refunds": {
         "amount_refunded": {
@@ -1037,8 +1043,8 @@ private const val SEP_31_RECEIVE_REFUNDED_DO_STELLAR_REFUND_FLOW_ACTION_RESPONSE
           ]
         }
       ],
-      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-      "destination_account": "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O",
+      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+      "destination_account": "%CUSTODY_DEST_ACCOUNT%",
       "memo": "testMemo",
       "memo_type": "id",
       "refund_memo": "testMemo",

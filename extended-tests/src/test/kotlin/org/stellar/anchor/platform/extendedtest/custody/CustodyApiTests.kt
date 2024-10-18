@@ -26,7 +26,6 @@ import org.stellar.anchor.platform.gson
 import org.stellar.anchor.platform.inject
 import org.stellar.anchor.util.RSAUtil
 
-@Disabled
 class CustodyApiTests : AbstractIntegrationTests(TestConfig("custody")) {
   companion object {
     const val CUSTODY_TX_ID_KEY = "%CUSTODY_TX_ID%"
