@@ -208,6 +208,10 @@ subprojects {
       exclude(group = "commons-logging", module = "commons-logging")
      }
   }
+
+  tasks.withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  }
 }
 
 allprojects {

@@ -24,6 +24,7 @@ import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
@@ -89,6 +90,11 @@ public class RpcActionBeans {
   @Bean
   GetTransactionHandler getTransactionHandler(TransactionService txnService) {
     return new GetTransactionHandler(txnService);
+  }
+
+  @Bean
+  GetQuoteHandler getQuoteHandler(Sep38QuoteStore sep38QuoteStore) {
+    return new GetQuoteHandler(sep38QuoteStore);
   }
 
   @Bean
