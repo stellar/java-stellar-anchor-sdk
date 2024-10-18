@@ -63,6 +63,20 @@ public class PlatformApiClient extends BaseApiClient {
     return gson.fromJson(gson.toJson(txnObj), GetTransactionResponse.class);
   }
 
+  public GetQuoteResponse getQuote(String quoteId) throws IOException, AnchorException {
+    GetQuoteRpcRequest requestParams = GetQuoteRpcRequest.builder().quoteId(quoteId).build();
+    RpcRequest rpcRequest =
+        RpcRequest.builder()
+            .id(UUID.randomUUID().toString())
+            .method(GET_QUOTE.toString())
+            .jsonrpc(JSON_RPC_VERSION)
+            .params(requestParams)
+            .build();
+    Response rpcResponse = sendRpcRequest(List.of(rpcRequest));
+    Object quoteObj = RpcHelper.getResultFromRpcResponse(rpcResponse);
+    return gson.fromJson(gson.toJson(quoteObj), GetQuoteResponse.class);
+  }
+
   /**
    * Search the transactions with the given filters by calling the /transactions endpoint.
    *

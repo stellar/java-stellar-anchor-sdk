@@ -579,16 +579,11 @@ class Sep38ServiceTest {
     var ex: AnchorException = assertThrows {
       sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build())
     }
-    assertInstanceOf(ServerErrorException::class.java, ex)
-    assertEquals("internal server error", ex.message)
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("missing sep10 jwt token", ex.message)
 
     sep38Service =
       Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
-
-    // empty sep38QuoteStore should throw an error
-    ex = assertThrows { sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build()) }
-    assertInstanceOf(ServerErrorException::class.java, ex)
-    assertEquals("internal server error", ex.message)
 
     // mocked quote store
     sep38Service =
