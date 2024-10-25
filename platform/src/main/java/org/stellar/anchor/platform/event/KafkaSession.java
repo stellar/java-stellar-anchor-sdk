@@ -10,6 +10,7 @@ import static org.stellar.anchor.platform.utils.ResourceHelper.*;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
+import com.google.gson.JsonSyntaxException;
 import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
 import java.time.Duration;
@@ -54,12 +55,12 @@ public class KafkaSession implements EventService.Session {
     this.sessionName = sessionName;
     this.topic = queue.name();
 
-    if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
-      // If the keystore and truststore files exist, use them, otherwise, use the resources
-      sslKeystoreLocation =
-          findFileThenResource(kafkaConfig.getSslKeystoreLocation()).getAbsolutePath();
-      sslTruststoreLocation =
-          findFileThenResource(kafkaConfig.getSslTruststoreLocation()).getAbsolutePath();
+    if (kafkaConfig.getSslVerifyCert()) {
+      if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
+        // If the keystore and truststore files exist, use them, otherwise, use the resources
+        sslKeystoreLocation = find(kafkaConfig.getSslKeystoreLocation());
+        sslTruststoreLocation = find(kafkaConfig.getSslTruststoreLocation());
+      }
     }
   }
 
@@ -108,9 +109,17 @@ public class KafkaSession implements EventService.Session {
     } else {
       Log.infoF("Received {} Kafka records", consumerRecords.count());
       for (ConsumerRecord<String, String> record : consumerRecords) {
-        AnchorEvent deserialized =
-            GsonUtils.getInstance().fromJson(record.value(), AnchorEvent.class);
-        events.add(deserialized);
+        try {
+          AnchorEvent deserialized =
+              GsonUtils.getInstance().fromJson(record.value(), AnchorEvent.class);
+          if (deserialized.getType() == null) {
+            throw new EventPublishException("null event type");
+          }
+          events.add(deserialized);
+        } catch (JsonSyntaxException | AnchorException ex) {
+          Log.debugF(
+              "Skipping mal-formatted event from Kafka. ex={}, message={}", ex, ex.getMessage());
+        }
       }
       // TOOD: emit metrics here.
     }
@@ -257,5 +266,9 @@ public class KafkaSession implements EventService.Session {
       default:
         throw new IllegalStateException("Unexpected value: " + kafkaConfig.getSecurityProtocol());
     }
+  }
+
+  String find(String sslKeystoreLocation) throws IOException {
+    return findFileThenResource(kafkaConfig.getSslKeystoreLocation()).getAbsolutePath();
   }
 }
