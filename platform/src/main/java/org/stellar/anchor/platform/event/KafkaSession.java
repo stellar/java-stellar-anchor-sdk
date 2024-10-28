@@ -269,6 +269,6 @@ public class KafkaSession implements EventService.Session {
   }
 
   String find(String sslKeystoreLocation) throws IOException {
-    return findFileThenResource(kafkaConfig.getSslKeystoreLocation()).getAbsolutePath();
+    return findFileThenResource(sslKeystoreLocation).getAbsolutePath();
   }
 }
