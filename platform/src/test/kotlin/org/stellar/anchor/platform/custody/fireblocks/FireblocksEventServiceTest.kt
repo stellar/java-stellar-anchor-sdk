@@ -245,7 +245,7 @@ class FireblocksEventServiceTest {
     } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
-
+    println(gson.toJson(paymentCapture.captured))
     JSONAssert.assertEquals(
       stellarTxnPayment,
       gson.toJson(paymentCapture.captured),
@@ -723,6 +723,8 @@ class FireblocksEventServiceTest {
     },
     "transaction": {
       "hash": "testTxHash",
+      "memo": "12345",
+      "memo_type": "id",
       "ledger": 1234,
       "created_at": "2023-05-10T10:18:20Z",
       "source_account": "testSourceAccount",
@@ -827,6 +829,8 @@ class FireblocksEventServiceTest {
     },
     "transaction": {
       "hash": "testTxHash",
+      "memo": "12345",
+      "memo_type": "id",
       "ledger": 1234,
       "created_at": "2023-05-10T10:18:20Z",
       "source_account": "testSourceAccount",
@@ -907,7 +911,8 @@ class FireblocksEventServiceTest {
   "updatedAt": "2023-05-10T10:18:26.130Z",
   "status": "SUCCESS",
   "transactionHash": "testTxHash",
-  "transactionMemoType": "none",
+  "transactionMemo": "12345",
+  "transactionMemoType": "id",
   "transactionEnvelope": "testEnvelopeXdr"
 }  
 """
@@ -927,7 +932,8 @@ class FireblocksEventServiceTest {
   "updatedAt": "2023-05-10T10:18:26.130Z",
   "status": "SUCCESS",
   "transactionHash": "testTxHash",
-  "transactionMemoType": "none",
+  "transactionMemo": "12345",
+  "transactionMemoType": "id",
   "transactionEnvelope": "testEnvelopeXdr"
 }  
 """
