@@ -245,7 +245,6 @@ class FireblocksEventServiceTest {
     } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
-    println(gson.toJson(paymentCapture.captured))
     JSONAssert.assertEquals(
       stellarTxnPayment,
       gson.toJson(paymentCapture.captured),
