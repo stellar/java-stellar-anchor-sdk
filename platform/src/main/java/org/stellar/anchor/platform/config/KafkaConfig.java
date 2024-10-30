@@ -1,12 +1,14 @@
 package org.stellar.anchor.platform.config;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class KafkaConfig {
   /**
    * A comma-separated list of host:port pairs that are the addresses of one or more brokers in a
@@ -37,6 +39,9 @@ public class KafkaConfig {
 
   /** The SASL mechanism used for authentication. */
   SaslMechanism saslMechanism;
+
+  /** The certificate verification flag. */
+  Boolean sslVerifyCert = Boolean.TRUE;
 
   /** the SSL keystore location. */
   String sslKeystoreLocation;

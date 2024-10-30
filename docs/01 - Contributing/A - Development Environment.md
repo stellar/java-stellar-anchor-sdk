@@ -123,6 +123,11 @@ Run subproject tests: `./gradlew :[subproject]:test`
 
 `./gradlew startAllServers`
 
+### Run essential tests
+After the docker compose start and starting all servers, you can run the essential tests by running:
+
+`./gradlew runEssentialTests`
+
 ### Starting the servers with a specific test profile
 
 `export TEST_PROFILE_NAME=rpc && ./gradlew startServersWithTestProfile`
