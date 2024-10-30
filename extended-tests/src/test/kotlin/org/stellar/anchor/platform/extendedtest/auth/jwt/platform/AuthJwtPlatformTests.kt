@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
+import org.stellar.anchor.api.callback.GetRateRequest.Type.INDICATIVE
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.asset.AssetService
@@ -106,7 +107,11 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         mockk<AssetService>(),
       )
     // Assert the request does not throw a 403.
-    assertThrows<BadRequestException> { rri.getRate(GetRateRequest.builder().build()) }
+    assertThrows<BadRequestException> {
+      rri.getRate(
+        GetRateRequest.builder().type(INDICATIVE).sellAsset("iso4217:USD").sellAmount("1.0").build()
+      )
+    }
   }
 
   @Test
@@ -157,7 +162,11 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         gson,
         mockk<AssetService>(),
       )
-    assertThrows<ServerErrorException> { badTokenClient.getRate(GetRateRequest.builder().build()) }
+    assertThrows<ServerErrorException> {
+      badTokenClient.getRate(
+        GetRateRequest.builder().type(INDICATIVE).sellAsset("iso4217:USD").sellAmount("1.0").build()
+      )
+    }
 
     val expiredTokenClient =
       RestRateIntegration(
@@ -168,7 +177,9 @@ internal class AuthJwtPlatformTests : AbstractAuthIntegrationTest() {
         mockk<AssetService>(),
       )
     assertThrows<ServerErrorException> {
-      expiredTokenClient.getRate(GetRateRequest.builder().build())
+      expiredTokenClient.getRate(
+        GetRateRequest.builder().type(INDICATIVE).sellAsset("iso4217:USD").sellAmount("1.0").build()
+      )
     }
   }
 

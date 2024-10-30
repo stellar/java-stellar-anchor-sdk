@@ -40,7 +40,7 @@ class Sep38Tests : AbstractIntegrationTests(TestConfig()) {
         "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         SEP31,
       )
-    printResponse(price)
+    assertEquals(price.sellAmount, "100")
 
     // POST {SEP38}/quote
     printRequest("Calling POST /quote")
@@ -51,7 +51,7 @@ class Sep38Tests : AbstractIntegrationTests(TestConfig()) {
         "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
         SEP31,
       )
-    printResponse(postQuote)
+    assertEquals(postQuote.sellAmount, "100")
 
     // POST {SEP38}/quote with `expires_after`
     printRequest("Calling POST /quote")
@@ -64,7 +64,12 @@ class Sep38Tests : AbstractIntegrationTests(TestConfig()) {
         SEP31,
         expireAfter = expireAfter,
       )
-    printResponse(postQuote)
+    assertEquals(postQuote.sellAmount, "100")
+    assertEquals(postQuote.sellAsset, "iso4217:USD")
+    assertEquals(
+      postQuote.buyAsset,
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    )
 
     // GET {SEP38}/quote/{id}
     printRequest("Calling GET /quote")

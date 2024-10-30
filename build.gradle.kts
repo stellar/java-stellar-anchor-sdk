@@ -1,3 +1,4 @@
+import java.net.Socket
 import org.apache.tools.ant.taskdefs.condition.Os
 
 // The alias call in plugins scope produces IntelliJ false error which is suppressed here.
@@ -13,6 +14,64 @@ plugins {
 // *******************************************************************************
 // Task registration and configuration
 // *******************************************************************************
+fun skipNonCriticalTasks(tasks: TaskContainer) {
+  tasks.matching { it.name == "spotlessApply" }.configureEach { enabled = false }
+  tasks.matching { it.name == "spotlessKotlinApply" }.configureEach { enabled = false }
+  tasks.matching { it.name == "javadoc" }.configureEach { enabled = false }
+  tasks.matching { it.name == "javadocJar" }.configureEach { enabled = false }
+  tasks.matching { it.name == "sourcesJar" }.configureEach { enabled = false }
+  tasks.matching { it.name == "distTar" }.configureEach { enabled = false }
+  tasks.matching { it.name == "distZip" }.configureEach { enabled = false }
+  tasks.matching { it.name == "javadoc" }.configureEach { enabled = false }
+  tasks.matching { it.name == "shadowJar" }.configureEach { enabled = false }
+  tasks.matching { it.name == "shadowDistZip" }.configureEach { enabled = false }
+  tasks.matching { it.name == "shadowDistTar" }.configureEach { enabled = false }
+  tasks.matching { it.name == "bootDistTar" }.configureEach { enabled = false }
+  tasks.matching { it.name == "bootDistZip" }.configureEach { enabled = false }
+}
+
+fun isPortActive(host: String = "localhost", port: Int): Boolean {
+  return try {
+    Socket(host, port).use { _ -> true }
+  } catch (e: Exception) {
+    false
+  }
+}
+
+// The build task executed at GitHub Actions. This task is used to build the project and run the
+// unit tests. The task is also used to generate the Jacoco test report.
+tasks.register("runBuild") {
+  group = "github"
+  description = "Build the project, run jacocoTestReport, and skip specific tasks."
+  dependsOn("clean", "build", "jacocoTestReport")
+  subprojects {
+    if (name == "essential-tests" || name == "extended-tests") {
+      tasks.named("test") { enabled = false }
+    }
+    dependsOn(tasks.named("build"))
+    skipNonCriticalTasks(tasks)
+  }
+}
+
+// The runEssentialTests task is used to run the essential tests. The task is used to check if the
+// AnchorPlatform server is running before running the tests. The task also skips the non-critical
+// tasks.
+tasks.register("runEssentialTests") {
+  group = "github"
+  description = "Run the essential tests."
+  if (!isPortActive(port = 8080)) {
+    println("************************************************************")
+    println(
+        "ERROR: The AnchorPlatform server is not running. Please start the server before running the tests.")
+    throw GradleException("AnchorPlatform server is not running.")
+  }
+  dependsOn(":essential-tests:test")
+  subprojects {
+    if (name == "essential-tests") {
+      skipNonCriticalTasks(tasks)
+    }
+  }
+}
 
 // The printVersionName task is used to print the version name of the project. This
 // is useful for CI/CD pipelines to get the version string of the project.
@@ -144,8 +203,10 @@ subprojects {
         val existingFile = file("$buildDir/resources/main/metadata.properties")
         existingFile.delete()
       }
-      // This is to replace the %APP_VERSION_TOKEN% in the  metadata.properties file.
-      filter { line -> line.replace("%APP_VERSION_TOKEN%", rootProject.version.toString()) }
+      filesMatching("**/metadata.properties") {
+        // This is to replace the %APP_VERSION_TOKEN% in the metadata.properties file.
+        filter { line -> line.replace("%APP_VERSION_TOKEN%", rootProject.version.toString()) }
+      }
     }
   }
 
@@ -154,15 +215,14 @@ subprojects {
       exclude(group = "ch.qos.logback", module = "logback-classic")
       exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
       exclude(group = "org.slf4j", module = "slf4j-log4j12")
-      exclude(group = "org.slf4j", module ="slf4j-simple")
-     }
+      exclude(group = "org.slf4j", module = "slf4j-simple")
+    }
   }
 }
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.10.2"
-
+  version = "2.11.1"
 
   tasks.jar {
     manifest {
@@ -173,6 +233,8 @@ allprojects {
   }
 }
 
+// *******************************************************************************
+// print the gradle script usages
 tasks.register("printUsage") {
   doLast {
     val green = "\u001B[32m"
@@ -191,6 +253,7 @@ tasks.register("printUsage") {
                     - ${bold}dockerComposeStart${reset}: Runs docker-compose up to start Postgres, Kafka, etc.
                     - ${bold}dockerComposeStop${reset}: Runs docker-compose down to stop Postgres, Kafka, etc.
                     - ${bold}anchorTest${reset}: Runs stellar anchor tests. Set `TEST_HOME_DOMAIN` and `TEST_SEPS` environment variables to customize the tests.
+                    
     """
             .trimIndent())
   }

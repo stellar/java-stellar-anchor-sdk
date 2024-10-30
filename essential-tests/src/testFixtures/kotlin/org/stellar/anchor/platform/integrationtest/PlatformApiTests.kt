@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.integrationtest
 import com.google.gson.reflect.TypeToken
 import org.apache.http.HttpStatus.SC_OK
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
@@ -25,10 +24,10 @@ import org.stellar.anchor.client.Sep31Client
 import org.stellar.anchor.client.Sep6Client
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.inject
 import org.stellar.anchor.util.GsonUtils
 
 // TODO add refund flow test for withdrawal: https://stellarorg.atlassian.net/browse/ANCHOR-694
-@Disabled
 class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   private val gson = GsonUtils.getInstance()
 
@@ -50,6 +49,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     `test sep6 deposit flow`(
       SEP_6_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS,
       SEP_6_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
+    )
+  }
+
+  /**
+   * 1. incomplete -> request_offchain_funds
+   * 2. pending_user_transfer_start -> notify_offchain_funds_sent
+   * 3. pending_user_transfer_start -> notify_offchain_funds_received
+   * 4. pending_anchor -> notify_onchain_funds_sent
+   * 5. completed
+   */
+  @Test
+  fun `SEP-6 deposit with pending-external status`() {
+    `test sep6 deposit flow`(
+      SEP_6_DEPOSIT_WITH_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS,
+      SEP_6_DEPOSIT_WITH_PENDING_EXTERNAL_FLOW_ACTION_RESPONSES
     )
   }
 
@@ -228,6 +242,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES
     )
   }
+
   /**
    * 1. incomplete -> request_offchain_funds
    * 2. pending_user_transfer_start -> notify_offchain_funds_received
@@ -257,6 +272,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES
     )
   }
+
   /**
    * 1. incomplete -> request_onchain_funds
    * 2. pending_user_transfer_start -> notify_onchain_funds_received
@@ -353,7 +369,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     val response = platformApiClient.sendRpcRequest(listOf(rpcRequest))
     assertEquals(SC_OK, response.code)
     JSONAssert.assertEquals(
-      EXPECTED_RPC_RESPONSE.replace(TX_ID, txId).trimIndent(),
+      EXPECTED_RPC_RESPONSE.inject(TX_ID_KEY, txId),
       response.body?.string()?.trimIndent(),
       CustomComparator(
         JSONCompareMode.STRICT,
@@ -401,10 +417,11 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     assertEquals(SC_OK, response.code)
 
     JSONAssert.assertEquals(
-      EXPECTED_RPC_BATCH_RESPONSE.replace(TX_ID, txId).trimIndent(),
+      EXPECTED_RPC_BATCH_RESPONSE.inject(TX_ID_KEY, txId),
       response.body?.string()?.trimIndent(),
       CustomComparator(
         JSONCompareMode.STRICT,
+        Customization("[*].result.transfer_received_at") { _, _ -> true },
         Customization("[*].result.started_at") { _, _ -> true },
         Customization("[*].result.updated_at") { _, _ -> true }
       )
@@ -414,7 +431,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     assertEquals(SepTransactionStatus.PENDING_ANCHOR, txResponse.status)
   }
 
-  private fun `validations and errors`() {
+  @Test
+  fun `Test validations and errors`() {
     `test sep24 deposit flow`(VALIDATIONS_AND_ERRORS_REQUESTS, VALIDATIONS_AND_ERRORS_RESPONSES)
   }
 
@@ -427,19 +445,22 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
 
     val receiveRequestJson =
-      SEP_31_RECEIVE_FLOW_REQUEST.replace(RECEIVER_ID_KEY, receiverCustomer!!.id)
-        .replace(SENDER_ID_KEY, senderCustomer!!.id)
+      SEP_31_RECEIVE_FLOW_REQUEST.inject(RECEIVER_ID_KEY, receiverCustomer!!.id)
+        .inject(SENDER_ID_KEY, senderCustomer!!.id)
+
+    SEP_31_RECEIVE_FLOW_REQUEST.inject(RECEIVER_ID_KEY, receiverCustomer.id)
+      .inject(SENDER_ID_KEY, senderCustomer.id)
     val receiveRequest = gson.fromJson(receiveRequestJson, Sep31PostTransactionRequest::class.java)
     val receiveResponse = sep31Client.postTransaction(receiveRequest)
 
     val updatedActionRequests =
       actionRequests
-        .replace(RECEIVER_ID_KEY, receiverCustomer.id)
-        .replace(SENDER_ID_KEY, senderCustomer.id)
+        .inject(RECEIVER_ID_KEY, receiverCustomer.id)
+        .inject(SENDER_ID_KEY, senderCustomer.id)
     val updatedActionResponses =
       actionResponses
-        .replace(RECEIVER_ID_KEY, receiverCustomer.id)
-        .replace(SENDER_ID_KEY, senderCustomer.id)
+        .inject(RECEIVER_ID_KEY, receiverCustomer.id)
+        .inject(SENDER_ID_KEY, senderCustomer.id)
 
     `test flow`(receiveResponse.id, updatedActionRequests, updatedActionResponses)
   }
@@ -497,18 +518,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   private fun `test flow`(txId: String, actionRequests: String, actionResponses: String) {
     val rpcActionRequestsType = object : TypeToken<List<RpcRequest>>() {}.type
     val rpcActionRequests: List<RpcRequest> =
-      gson.fromJson(actionRequests.replace(TX_ID_KEY, txId), rpcActionRequestsType)
+      gson.fromJson(actionRequests.inject(TX_ID_KEY, txId), rpcActionRequestsType)
 
     val rpcActionResponses = platformApiClient.sendRpcRequest(rpcActionRequests)
 
-    val expectedResult = actionResponses.replace(TX_ID_KEY, txId).trimIndent()
+    val expectedResult = actionResponses.inject(TX_ID_KEY, txId)
     val actualResult = rpcActionResponses.body?.string()?.trimIndent()
-
     JSONAssert.assertEquals(
       expectedResult,
       actualResult,
       CustomComparator(
         JSONCompareMode.LENIENT,
+        Customization("[*].result.transfer_received_at") { _, _ -> true },
         Customization("[*].result.started_at") { _, _ -> true },
         Customization("[*].result.updated_at") { _, _ -> true },
         Customization("[*].result.completed_at") { _, _ -> true },
@@ -517,23 +538,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
       )
     )
   }
+}
 
-  companion object {
-    private const val TX_ID = "testTxId"
-    private const val JSON_RPC_VERSION = "2.0"
-    private const val TX_ID_KEY = "TX_ID"
-    private const val RECEIVER_ID_KEY = "RECEIVER_ID"
-    private const val SENDER_ID_KEY = "SENDER_ID"
-
-    private const val SEP_6_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_6_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
+  """
         [
           {
             "id": "1",
             "method": "request_offchain_funds",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 1",
               "amount_in": {
                 "amount": "100",
@@ -557,7 +572,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_offchain_funds_received",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 2",
               "funds_received_at": "2023-07-04T12:34:56Z",
               "external_transaction_id": "ext-123456",
@@ -571,21 +586,88 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_onchain_funds_sent",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 3",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
             }
           }
         ]
       """
 
-    private const val SEP_6_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_6_DEPOSIT_WITH_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS =
+  """
+  [
+          {
+            "id": "1",
+            "method": "request_offchain_funds",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "%TX_ID%",
+              "message": "test message 1",
+              "amount_in": {
+                "amount": "100",
+                "asset": "iso4217:USD"
+              },
+              "amount_out": {
+                "amount": "95",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_fee": {
+                "amount": "5",
+                "asset": "iso4217:USD"
+              },
+              "amount_expected": {
+                "amount": "100"
+              }
+            }
+          },
+          {
+            "id": "2",
+            "method": "notify_offchain_funds_sent",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "%TX_ID%",
+              "message": "test message 2",
+              "funds_sent_at": "2023-07-04T12:34:56Z",
+              "external_transaction_id": "ext-123456"
+            }
+          },
+          {
+            "id": "3",
+            "method": "notify_offchain_funds_received",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "%TX_ID%",
+              "message": "test message 2",
+              "funds_received_at": "2023-07-04T12:34:56Z",
+              "external_transaction_id": "ext-123456",
+              "amount_in": {
+                "amount": "100"
+              }
+            }
+          },
+          {
+            "id": "4",
+            "method": "notify_onchain_funds_sent",
+            "jsonrpc": "2.0",
+            "params": {
+              "transaction_id": "%TX_ID%",
+              "message": "test message 3",
+              "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
+            }
+          }
+        ]
+
+  """
+    .trimIndent()
+
+private val SEP_6_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_user_transfer_start",
@@ -620,7 +702,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -657,7 +739,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "completed",
@@ -680,17 +762,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -712,13 +794,158 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_DEPOSIT_EXCHANGE_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_6_DEPOSIT_WITH_PENDING_EXTERNAL_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
+              "sep": "6",
+              "kind": "deposit",
+              "status": "pending_user_transfer_start",
+              "type": "SWIFT",
+              "amount_expected": {
+                "amount": "100",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": { "amount": "100", "asset": "iso4217:USD" },
+              "amount_out": {
+                "amount": "95",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_fee": { "amount": "5", "asset": "iso4217:USD" },
+              "fee_details": { "total": "5", "asset": "iso4217:USD" },
+              "started_at": "2024-06-25T20:02:31.003419Z",
+              "updated_at": "2024-06-25T20:02:32.055853Z",
+              "message": "test message 1",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "client_name": "referenceCustodial",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              }
+            },
+            "id": "1"
+          },
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "%TX_ID%",
+              "sep": "6",
+              "kind": "deposit",
+              "status": "pending_external",
+              "type": "SWIFT"
+            },
+            "id": "2"
+          },
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "%TX_ID%",
+              "sep": "6",
+              "kind": "deposit",
+              "status": "pending_anchor",
+              "type": "SWIFT",
+              "amount_expected": {
+                "amount": "100",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": { "amount": "100", "asset": "iso4217:USD" },
+              "amount_out": {
+                "amount": "95",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_fee": { "amount": "5", "asset": "iso4217:USD" },
+              "fee_details": { "total": "5", "asset": "iso4217:USD" },
+              "started_at": "2024-06-25T20:02:31.003419Z",
+              "updated_at": "2024-06-25T20:02:33.085143Z",
+              "transfer_received_at": "2023-07-04T12:34:56Z",
+              "message": "test message 2",
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "external_transaction_id": "ext-123456",
+              "client_name": "referenceCustodial",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              }
+            },
+            "id": "3"
+          },
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "%TX_ID%",
+              "sep": "6",
+              "kind": "deposit",
+              "status": "completed",
+              "type": "SWIFT",
+              "amount_expected": {
+                "amount": "100",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "amount_in": { "amount": "100", "asset": "iso4217:USD" },
+              "amount_out": {
+                "amount": "95",
+                "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+              },
+              "amount_fee": { "amount": "5", "asset": "iso4217:USD" },
+              "fee_details": { "total": "5", "asset": "iso4217:USD" },
+              "started_at": "2024-06-25T20:02:31.003419Z",
+              "updated_at": "2024-06-25T20:02:34.180861Z",
+              "completed_at": "2024-06-25T20:02:34.180858Z",
+              "transfer_received_at": "2023-07-04T12:34:56Z",
+              "message": "test message 3",
+              "stellar_transactions": [
+                {
+                  "id": "%TESTPAYMENT_TXN_HASH%",
+                  "payments": [
+                    {
+                      "id": "%TESTPAYMENT_ID%",
+                      "amount": {
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
+                      },
+                      "payment_type": "payment",
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
+                    }
+                  ]
+                }
+              ],
+              "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+              "external_transaction_id": "ext-123456",
+              "client_name": "referenceCustodial",
+              "customers": {
+                "sender": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                },
+                "receiver": {
+                  "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+                }
+              }
+            },
+            "id": "4"
+          }
+        ]
+  """
+    .trimIndent()
+
+private val SEP_6_DEPOSIT_EXCHANGE_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
+  """
+        [
+          {
+            "jsonrpc": "2.0",
+            "result": {
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit-exchange",
               "status": "pending_user_transfer_start",
@@ -753,7 +980,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit-exchange",
               "status": "pending_anchor",
@@ -790,7 +1017,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit-exchange",
               "status": "completed",
@@ -813,17 +1040,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -845,15 +1072,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_6_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_REQUESTS =
+  """
         [
           {
             "id": "1",
             "method": "request_customer_info_update",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 1",
               "required_customer_info_updates": ["first_name", "last_name"]
             }
@@ -863,7 +1090,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "request_offchain_funds",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 2",
               "amount_in": {
                 "amount": "10.11",
@@ -887,7 +1114,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_offchain_funds_received",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 3",
               "funds_received_at": "2023-07-04T12:34:56Z",
               "external_transaction_id": "ext-123456",
@@ -910,7 +1137,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "request_trust",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 4"
             }
           },
@@ -919,7 +1146,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_trust_set",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 5"
             }
           },
@@ -928,21 +1155,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_onchain_funds_sent",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 6",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
             }
           }
         ]
       """
 
-    private const val SEP_6_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_6_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_customer_info_update",
@@ -971,7 +1198,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_user_transfer_start",
@@ -1007,7 +1234,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -1045,7 +1272,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_trust",
@@ -1083,7 +1310,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -1121,7 +1348,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "completed",
@@ -1144,17 +1371,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 6",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -1177,15 +1404,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_6_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
+  """
         [
           {
             "id": "1",
             "method": "request_offchain_funds",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 1",
               "amount_in": {
                 "amount": "10.11",
@@ -1209,7 +1436,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_offchain_funds_received",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 2",
               "funds_received_at": "2023-07-04T12:34:56Z",
               "external_transaction_id": "ext-123456",
@@ -1232,7 +1459,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_transaction_error",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 3"
             }
           },
@@ -1241,7 +1468,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_transaction_recovery",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 4"
             }
           },
@@ -1250,21 +1477,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_onchain_funds_sent",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 5",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
             }
           }
         ]
       """
 
-    private const val SEP_6_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_6_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_user_transfer_start",
@@ -1299,7 +1526,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -1336,7 +1563,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "error",
@@ -1373,7 +1600,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -1410,7 +1637,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "completed",
@@ -1433,17 +1660,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 5",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -1465,15 +1692,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_6_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_REQUESTS =
+  """
         [
           {
             "id": "1",
             "method": "request_offchain_funds",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 1",
               "amount_in": {
                 "amount": "10.11",
@@ -1497,7 +1724,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_offchain_funds_received",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 2",
               "funds_received_at": "2023-07-04T12:34:56Z",
               "external_transaction_id": "ext-123456",
@@ -1520,7 +1747,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_refund_pending",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 3",
               "refund": {
                 "id": "123456",
@@ -1540,7 +1767,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_refund_sent",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 4",
               "refund": {
                 "id": "123456",
@@ -1560,21 +1787,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_onchain_funds_sent",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 5",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
             }
           }
         ]
       """
 
-    private const val SEP_6_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_6_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_user_transfer_start",
@@ -1609,7 +1836,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -1646,7 +1873,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_external",
@@ -1695,7 +1922,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -1744,7 +1971,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "deposit",
               "status": "completed",
@@ -1779,17 +2006,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -1811,15 +2038,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_6_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
+  """
         [
           {
             "id": "1",
             "method": "request_onchain_funds",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 1",
               "amount_in": {
                 "amount": "100",
@@ -1843,9 +2070,9 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_onchain_funds_received",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 2",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
             }
           },
           {
@@ -1853,7 +2080,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_offchain_funds_sent",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 3",
               "external_transaction_id": "ext-123456"
             }
@@ -1861,13 +2088,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_6_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "pending_user_transfer_start",
@@ -1910,7 +2137,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "pending_anchor",
@@ -1938,17 +2165,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -1971,7 +2198,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "completed",
@@ -2000,17 +2227,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -2034,13 +2261,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_WITHDRAW_EXCHANGE_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_6_WITHDRAW_EXCHANGE_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal-exchange",
               "status": "pending_user_transfer_start",
@@ -2083,7 +2310,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal-exchange",
               "status": "pending_anchor",
@@ -2111,17 +2338,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -2144,7 +2371,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal-exchange",
               "status": "completed",
@@ -2173,17 +2400,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -2207,15 +2434,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_6_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS =
+  """
         [
           {
             "id": "1",
             "method": "request_onchain_funds",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 1",
               "amount_in": {
                 "amount": "100",
@@ -2239,9 +2466,9 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_onchain_funds_received",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 2",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
             }
           },
           {
@@ -2249,7 +2476,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_offchain_funds_pending",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 3",
               "external_transaction_id": "ext-123456"
             }
@@ -2259,7 +2486,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_offchain_funds_sent",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 4",
               "external_transaction_id": "ext-123456"
             }
@@ -2267,13 +2494,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_6_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "pending_user_transfer_start",
@@ -2316,7 +2543,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "pending_anchor",
@@ -2344,17 +2571,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -2377,7 +2604,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "pending_external",
@@ -2405,17 +2632,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -2439,7 +2666,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "completed",
@@ -2468,17 +2695,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -2502,15 +2729,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_6_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_REQUESTS =
+  """
         [
           {
             "id": "1",
             "method": "request_onchain_funds",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 1",
               "amount_in": {
                 "amount": "100",
@@ -2534,9 +2761,9 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_onchain_funds_received",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 2",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+              "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
             }
           },
           {
@@ -2544,7 +2771,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_offchain_funds_available",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 3",
               "external_transaction_id": "ext-123456"
             }
@@ -2554,7 +2781,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_offchain_funds_sent",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 4",
               "external_transaction_id": "ext-123456"
             }
@@ -2562,8 +2789,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_6_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
@@ -2610,7 +2837,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "pending_anchor",
@@ -2638,19 +2865,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "created_at": "2024-06-13T20:02:49Z",
-                  "envelope": "AAAAAgAAAABJ+JNr9UKNhr/WnkJXRsTseMmlzYV9MvIRP3CUunbfWAAAAGQAACxmAAAABQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAABPzQEm0b8X39yUDrTrdeHdJWSi3pnVNqobUFWTbGFCdwAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAACYloAAAAAAAAAAAbp231gAAABAcP00o/io68PrayhP1YRtWxzuWXWzCwqG7Z6Q5YgGMgazMK6cE+FmEWz12U3Scs8Y+Tm807DzjrDo5y7X6GHMBA==",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -2673,7 +2898,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "pending_user_transfer_complete",
@@ -2701,18 +2926,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "created_at": "2024-06-13T20:02:49Z",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -2736,7 +2960,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "completed",
@@ -2765,18 +2989,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
-                  "created_at": "2024-06-13T20:02:49Z",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -2800,15 +3023,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_6_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS =
+  """
         [
           {
             "id": "1",
             "method": "request_onchain_funds",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 1",
               "amount_in": {
                 "amount": "100",
@@ -2832,9 +3055,10 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_onchain_funds_received",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 2",
-              "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+
+              "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
             }
           },
           {
@@ -2842,7 +3066,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
             "method": "notify_refund_sent",
             "jsonrpc": "2.0",
             "params": {
-              "transaction_id": "TX_ID",
+              "transaction_id": "%TX_ID%",
               "message": "test message 3",
               "refund": {
                 "id": "123456",
@@ -2860,13 +3084,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_6_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_6_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "pending_user_transfer_start",
@@ -2909,7 +3133,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "pending_anchor",
@@ -2937,17 +3161,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -2970,7 +3194,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "6",
               "kind": "withdrawal",
               "status": "refunded",
@@ -3023,17 +3247,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -3056,15 +3280,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
     "method": "request_offchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 1",
       "amount_in": {
         "amount": "100",
@@ -3088,7 +3312,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_offchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2",
       "funds_received_at": "2023-07-04T12:34:56Z",
       "external_transaction_id": "ext-123456",
@@ -3102,21 +3326,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 3",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   }
 ]
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_24_DEPOSIT_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_user_transfer_start",
@@ -3142,7 +3366,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -3169,7 +3393,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "completed",
@@ -3190,17 +3414,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -3214,15 +3438,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
     "method": "notify_interactive_flow_completed",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 1",
       "amount_in": {
         "amount": "100",
@@ -3246,7 +3470,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "request_offchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2",
       "amount_in": {
         "amount": "10.11",
@@ -3270,7 +3494,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   "method": "notify_offchain_funds_received",
   "jsonrpc": "2.0",
   "params": {
-    "transaction_id": "TX_ID",
+    "transaction_id": "%TX_ID%",
     "message": "test message 3",
     "funds_received_at": "2023-07-04T12:34:56Z",
     "external_transaction_id": "ext-123456",
@@ -3293,7 +3517,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "request_trust",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 4"
     }
   },
@@ -3302,7 +3526,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_trust_set",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 5"
     }
   },
@@ -3311,21 +3535,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 6",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   }
 ]
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_TRUST_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -3351,7 +3575,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_user_transfer_start",
@@ -3377,7 +3601,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -3404,7 +3628,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_trust",
@@ -3431,7 +3655,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -3458,7 +3682,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "completed",
@@ -3479,17 +3703,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 6",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -3503,15 +3727,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
     "method": "request_offchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 1",
       "amount_in": {
         "amount": "10.11",
@@ -3535,7 +3759,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_offchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2",
       "funds_received_at": "2023-07-04T12:34:56Z",
       "external_transaction_id": "ext-123456",
@@ -3558,7 +3782,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_transaction_error",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 3"
     }
   },
@@ -3567,7 +3791,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_transaction_recovery",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 4"
     }
   },
@@ -3576,21 +3800,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 5",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   }
 ]
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_24_DEPOSIT_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_user_transfer_start",
@@ -3616,7 +3840,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -3643,7 +3867,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "error",
@@ -3670,7 +3894,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -3697,7 +3921,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "completed",
@@ -3718,17 +3942,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 5",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -3742,15 +3966,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
     "method": "request_offchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 1",
       "amount_in": {
         "amount": "10.11",
@@ -3774,7 +3998,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_offchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2",
       "funds_received_at": "2023-07-04T12:34:56Z",
       "external_transaction_id": "ext-123456",
@@ -3797,7 +4021,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_refund_pending",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 3",
       "refund": {
         "id": "123456",
@@ -3817,7 +4041,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_refund_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 4",
       "refund": {
         "id": "123456",
@@ -3837,21 +4061,21 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 5",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   }
 ]    
   """
 
-    private const val SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_24_DEPOSIT_COMPLETE_SHORT_PARTIAL_REFUND_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_user_transfer_start",
@@ -3877,7 +4101,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -3904,7 +4128,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_external",
@@ -3943,7 +4167,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -3982,7 +4206,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "completed",
@@ -4015,17 +4239,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -4039,15 +4263,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
     "method": "request_onchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 1",
       "amount_in": {
         "amount": "100",
@@ -4071,9 +4295,9 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   },
   {
@@ -4081,7 +4305,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_offchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 3",
       "external_transaction_id": "ext-123456"
     }
@@ -4089,13 +4313,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
 ]
   """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_24_WITHDRAW_COMPLETE_SHORT_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "pending_user_transfer_start",
@@ -4130,7 +4354,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "pending_anchor",
@@ -4156,19 +4380,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZjdiMzQ0YmUtZjNlZC00NWYwLThlNWItYWQ0NjAzMzY=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -4184,7 +4408,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "completed",
@@ -4211,19 +4435,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZjdiMzQ0YmUtZjNlZC00NWYwLThlNWItYWQ0NjAzMzY=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -4240,15 +4464,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
     "method": "request_onchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 1",
       "amount_in": {
         "amount": "100",
@@ -4272,9 +4496,9 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   },
   {
@@ -4282,7 +4506,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_offchain_funds_pending",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 3",
       "external_transaction_id": "ext-123456"
     }
@@ -4292,7 +4516,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_offchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 4",
       "external_transaction_id": "ext-123456"
     }
@@ -4300,13 +4524,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
 ]
   """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_EXTERNAL_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "pending_user_transfer_start",
@@ -4341,7 +4565,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "pending_anchor",
@@ -4367,19 +4591,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "NGQwMDk3NTgtODg3My00OGE1LWE4M2UtYTllOGU0OGM=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -4395,7 +4619,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "pending_external",
@@ -4421,19 +4645,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "NGQwMDk3NTgtODg3My00OGE1LWE4M2UtYTllOGU0OGM=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -4450,7 +4674,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "completed",
@@ -4477,19 +4701,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "NGQwMDk3NTgtODg3My00OGE1LWE4M2UtYTllOGU0OGM=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -4506,13 +4730,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "pending_user_transfer_start",
@@ -4547,7 +4771,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "pending_anchor",
@@ -4573,19 +4797,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZWZhNWI5YWUtNWJiNS00ZmQyLThiZjQtOWY5M2NmNmY=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -4601,7 +4825,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "pending_user_transfer_complete",
@@ -4627,19 +4851,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZWZhNWI5YWUtNWJiNS00ZmQyLThiZjQtOWY5M2NmNmY=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -4656,7 +4880,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "completed",
@@ -4683,19 +4907,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZWZhNWI5YWUtNWJiNS00ZmQyLThiZjQtOWY5M2NmNmY=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -4712,15 +4936,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_24_WITHDRAW_COMPLETE_FULL_VIA_PENDING_USER_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
     "method": "request_onchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 1",
       "amount_in": {
         "amount": "100",
@@ -4744,9 +4968,9 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   },
   {
@@ -4754,7 +4978,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_offchain_funds_available",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 3",
       "external_transaction_id": "ext-123456"
     }
@@ -4764,7 +4988,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_offchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 4",
       "external_transaction_id": "ext-123456"
     }
@@ -4772,15 +4996,15 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
 ]
   """
 
-    private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
     "method": "request_onchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 1",
       "amount_in": {
         "amount": "100",
@@ -4804,9 +5028,9 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   },
   {
@@ -4814,7 +5038,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_refund_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 3",
       "refund": {
         "id": "123456",
@@ -4832,13 +5056,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
 ]
   """
 
-    private const val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_24_WITHDRAW_FULL_REFUND_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "pending_user_transfer_start",
@@ -4873,7 +5097,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "pending_anchor",
@@ -4899,19 +5123,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "NmUyZTcyYjktNzIyMC00OGRiLTkwZDItNDkyOWU1OWU=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -4927,7 +5151,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "withdrawal",
               "status": "refunded",
@@ -4978,19 +5202,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "NmUyZTcyYjktNzIyMC00OGRiLTkwZDItNDkyOWU1OWU=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -5006,17 +5230,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_REQUESTS =
-      """
+private val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_REQUESTS =
+  """
 [
   {
     "id": "1",
     "method": "notify_onchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 1",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   },
   {
@@ -5024,7 +5248,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_refund_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2",
       "refund": {
         "id": "123456",
@@ -5042,13 +5266,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
 ]   
   """
 
-    private const val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
-      """
+private val SEP_31_RECEIVE_REFUNDED_SHORT_FLOW_ACTION_RESPONSES =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "31",
               "kind": "receive",
               "status": "pending_receiver",
@@ -5075,27 +5299,27 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 1",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZWQ0NmIwMzAtM2E5NC00M2RkLThkMWYtYWUwMjNhMGI=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "SENDER_ID" },
-                "receiver": { "id": "RECEIVER_ID" }
+                "sender": { "id": "%SENDER_ID%" },
+                "receiver": { "id": "%RECEIVER_ID%" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5106,7 +5330,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "31",
               "kind": "receive",
               "status": "pending_anchor",
@@ -5157,27 +5381,27 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               },
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZWQ0NmIwMzAtM2E5NC00M2RkLThkMWYtYWUwMjNhMGI=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "SENDER_ID" },
-                "receiver": { "id": "RECEIVER_ID" }
+                "sender": { "id": "%SENDER_ID%" },
+                "receiver": { "id": "%RECEIVER_ID%" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5188,17 +5412,17 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
-      """ 
+private val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_REQUESTS =
+  """ 
 [
   {
     "id": "1",
     "method": "notify_onchain_funds_received",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 1",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   },
   {
@@ -5206,7 +5430,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "request_customer_info_update",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2"
     }
   },
@@ -5215,7 +5439,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_customer_info_updated",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 3"
     }
   },
@@ -5224,7 +5448,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_transaction_error",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 4"
     }
   },
@@ -5233,7 +5457,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_transaction_recovery",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 5"
     }
   },
@@ -5242,7 +5466,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_offchain_funds_pending",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 6",
       "external_transaction_id": "ext123456789"
     }
@@ -5252,7 +5476,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_offchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 7",
       "external_transaction_id": "ext123456789"
     }
@@ -5260,13 +5484,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
 ]
   """
 
-    private const val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
-      """ 
+private val SEP_31_RECEIVE_COMPLETE_FULL_WITH_RECOVERY_FLOW_ACTION_RESPONSES =
+  """ 
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "31",
               "kind": "receive",
               "status": "pending_receiver",
@@ -5293,27 +5517,27 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 1",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "SENDER_ID" },
-                "receiver": { "id": "RECEIVER_ID" }
+                "sender": { "id": "%SENDER_ID%" },
+                "receiver": { "id": "%RECEIVER_ID%" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5324,7 +5548,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "31",
               "kind": "receive",
               "status": "pending_customer_info_update",
@@ -5351,27 +5575,27 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 2",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "SENDER_ID" },
-                "receiver": { "id": "RECEIVER_ID" }
+                "sender": { "id": "%SENDER_ID%" },
+                "receiver": { "id": "%RECEIVER_ID%" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5382,7 +5606,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "31",
               "kind": "receive",
               "status": "pending_receiver",
@@ -5409,27 +5633,27 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 3",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "SENDER_ID" },
-                "receiver": { "id": "RECEIVER_ID" }
+                "sender": { "id": "%SENDER_ID%" },
+                "receiver": { "id": "%RECEIVER_ID%" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5440,7 +5664,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "31",
               "kind": "receive",
               "status": "error",
@@ -5467,27 +5691,27 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 4",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "SENDER_ID" },
-                "receiver": { "id": "RECEIVER_ID" }
+                "sender": { "id": "%SENDER_ID%" },
+                "receiver": { "id": "%RECEIVER_ID%" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5498,7 +5722,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "31",
               "kind": "receive",
               "status": "pending_receiver",
@@ -5525,27 +5749,27 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 5",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
               ],
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "SENDER_ID" },
-                "receiver": { "id": "RECEIVER_ID" }
+                "sender": { "id": "%SENDER_ID%" },
+                "receiver": { "id": "%RECEIVER_ID%" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5556,7 +5780,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "31",
               "kind": "receive",
               "status": "pending_external",
@@ -5583,19 +5807,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 6",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -5603,8 +5827,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "external_transaction_id": "ext123456789",
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "SENDER_ID" },
-                "receiver": { "id": "RECEIVER_ID" }
+                "sender": { "id": "%SENDER_ID%" },
+                "receiver": { "id": "%RECEIVER_ID%" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5615,7 +5839,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "TX_ID",
+              "id": "%TX_ID%",
               "sep": "31",
               "kind": "receive",
               "status": "completed",
@@ -5643,19 +5867,19 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "message": "test message 7",
               "stellar_transactions": [
                 {
-                  "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
+                  "id": "%TESTPAYMENT_TXN_HASH%",
                   "memo": "ZDA1NjVlYWYtNjVmNy00ZGIzLWJmZWMtZjNiM2EzMDg=",
                   "memo_type": "hash",
                   "payments": [
                     {
-                      "id": "138860587651073",
+                      "id": "%TESTPAYMENT_ID%",
                       "amount": {
-                        "amount": "1.0000000",
-                        "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                        "amount": "%TESTPAYMENT_AMOUNT%",
+                        "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
                       },
                       "payment_type": "payment",
-                      "source_account": "GBE7RE3L6VBI3BV722PEEV2GYTWHRSNFZWCX2MXSCE7XBFF2O3PVRTXI",
-                      "destination_account": "GBH42AJG2G7RPX64SQHLJ23V4HOSKZFC32M5KNVKDNIFLE3MMFBHP6CT"
+                      "source_account": "%TESTPAYMENT_SRC_ACCOUNT%",
+                      "destination_account": "%TESTPAYMENT_DEST_ACCOUNT%"
                     }
                   ]
                 }
@@ -5663,8 +5887,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
               "external_transaction_id": "ext123456789",
               "client_name": "referenceCustodial",
               "customers": {
-                "sender": { "id": "SENDER_ID" },
-                "receiver": { "id": "RECEIVER_ID" }
+                "sender": { "id": "%SENDER_ID%" },
+                "receiver": { "id": "%RECEIVER_ID%" }
               },
               "creator": {
                 "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
@@ -5675,8 +5899,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val VALIDATIONS_AND_ERRORS_REQUESTS =
-      """
+private val VALIDATIONS_AND_ERRORS_REQUESTS =
+  """
 [
   {
     "id": "1",
@@ -5706,7 +5930,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_interactive_flow_completed",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 2",
       "amount_in": {
         "amount": "100",
@@ -5730,7 +5954,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_interactive_flow_completed",
     "jsonrpc": "3.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 3",
       "amount_in": {
         "amount": "100",
@@ -5754,7 +5978,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "unsupported method",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 4",
       "amount_in": {
         "amount": "100",
@@ -5778,7 +6002,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "request_onchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 5",
       "amount_in": {
         "amount": "10.11",
@@ -5802,7 +6026,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "request_offchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 6",
       "amount_in": {
         "amount": "10.11",
@@ -5826,7 +6050,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "request_offchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 7",
       "amount_in": {
         "amount": "0",
@@ -5850,7 +6074,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "request_offchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 8",
       "amount_in": {
         "amount": "10.11",
@@ -5874,7 +6098,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "request_offchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 9",
       "amount_in": {
         "amount": "10.11",
@@ -5898,7 +6122,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_interactive_flow_completed",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 10",
       "amount_in": {
         "amount": "100",
@@ -5922,7 +6146,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_interactive_flow_completed",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 11",
       "amount_in": {
         "amount": "100",
@@ -5946,7 +6170,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "request_offchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 12",
       "amount_in": {
         "amount": "10.11",
@@ -5970,7 +6194,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "request_offchain_funds",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 13",
       "amount_in": {
         "amount": "10.11",
@@ -5994,9 +6218,9 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 14",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   },
   {
@@ -6004,7 +6228,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   "method": "notify_offchain_funds_received",
   "jsonrpc": "2.0",
   "params": {
-    "transaction_id": "TX_ID",
+    "transaction_id": "%TX_ID%",
     "message": "test message 15",
     "funds_received_at": "2023-07-04T12:34:56Z",
     "external_transaction_id": "ext-123456",
@@ -6027,7 +6251,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   "method": "notify_offchain_funds_received",
   "jsonrpc": "2.0",
   "params": {
-    "transaction_id": "TX_ID",
+    "transaction_id": "%TX_ID%",
     "message": "test message 16",
     "funds_received_at": "2023-07-04T12:34:56Z",
     "external_transaction_id": "ext-123456",
@@ -6050,7 +6274,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_refund_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 17",
       "refund": {
         "id": "123456",
@@ -6070,7 +6294,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_refund_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 18",
       "refund": {
         "id": "123456",
@@ -6090,9 +6314,9 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 19",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   },
   {
@@ -6100,16 +6324,16 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "method": "notify_onchain_funds_sent",
     "jsonrpc": "2.0",
     "params": {
-      "transaction_id": "TX_ID",
+      "transaction_id": "%TX_ID%",
       "message": "test message 20",
-      "stellar_transaction_id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15"
+      "stellar_transaction_id": "%TESTPAYMENT_TXN_HASH%"
     }
   }
 ]
   """
 
-    private const val VALIDATIONS_AND_ERRORS_RESPONSES =
-      """
+private val VALIDATIONS_AND_ERRORS_RESPONSES =
+  """
 [
   {
     "jsonrpc": "2.0",
@@ -6123,7 +6347,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32600,
       "message": "Id can't be NULL"
     }
@@ -6131,7 +6355,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32600,
       "message": "Unsupported JSON-RPC protocol version[3.0]"
     },
@@ -6140,7 +6364,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32601,
       "message": "No matching RPC method[unsupported method]"
     },
@@ -6149,7 +6373,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32600,
       "message": "RPC method[request_onchain_funds] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]"
     },
@@ -6158,7 +6382,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32602,
       "message": "amount_in.asset should be non-stellar asset"
     },
@@ -6167,25 +6391,25 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32602,
-      "message": "amount_in.amount should be positive"
+      "message": "'stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5iso4217:USD' is not a supported asset."
     },
     "id": "7"
   },
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32602,
-      "message": "amount_out.amount should be positive"
+      "message": "'stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5iso4217:USD' is not a supported asset."
     },
     "id": "8"
   },
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32602,
       "message": "'iso111:III' is not a supported asset."
     },
@@ -6194,7 +6418,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "result": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "sep": "24",
       "kind": "deposit",
       "status": "pending_anchor",
@@ -6214,17 +6438,20 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         "amount": "5",
         "asset": "iso4217:USD"
       },
-      "started_at": "2023-08-07T10:53:58.811934Z",
-      "updated_at": "2023-08-07T10:53:59.928900700Z",
+      "fee_details": {
+        "total": "5",
+        "asset": "iso4217:USD"
+      },
       "message": "test message 10",
-      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+      "client_name": "referenceCustodial"
     },
     "id": "10"
   },
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32600,
       "message": "RPC method[notify_interactive_flow_completed] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]"
     },
@@ -6233,7 +6460,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "result": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "sep": "24",
       "kind": "deposit",
       "status": "pending_user_transfer_start",
@@ -6253,8 +6480,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         "amount": "1.11",
         "asset": "iso4217:USD"
       },
-      "started_at": "2023-08-07T10:53:58.811934Z",
-      "updated_at": "2023-08-07T10:54:00.955526600Z",
       "message": "test message 12",
       "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
     },
@@ -6263,7 +6488,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32600,
       "message": "RPC method[request_offchain_funds] is not supported. Status[pending_user_transfer_start], kind[deposit], protocol[24], funds received[false]"
     },
@@ -6272,7 +6497,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32600,
       "message": "RPC method[notify_onchain_funds_sent] is not supported. Status[pending_user_transfer_start], kind[deposit], protocol[24], funds received[false]"
     },
@@ -6281,7 +6506,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "result": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "sep": "24",
       "kind": "deposit",
       "status": "pending_anchor",
@@ -6301,8 +6526,6 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         "amount": "1.11",
         "asset": "iso4217:USD"
       },
-      "started_at": "2023-08-07T10:53:58.811934Z",
-      "updated_at": "2023-08-07T10:54:01.996630700Z",
       "message": "test message 15",
       "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
       "external_transaction_id": "ext-123456"
@@ -6312,7 +6535,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32600,
       "message": "RPC method[notify_offchain_funds_received] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[true]"
     },
@@ -6321,7 +6544,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32602,
       "message": "Refund amount exceeds amount_in"
     },
@@ -6330,7 +6553,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32602,
       "message": "refund.amount.asset does not match transaction amount_in_asset"
     },
@@ -6339,7 +6562,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "result": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "sep": "24",
       "kind": "deposit",
       "status": "completed",
@@ -6359,22 +6582,18 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         "amount": "1.11",
         "asset": "iso4217:USD"
       },
-      "started_at": "2023-08-07T10:53:58.811934Z",
-      "updated_at": "2023-08-07T10:54:03.165199600Z",
-      "completed_at": "2023-08-07T10:54:03.165199600Z",
       "message": "test message 19",
       "stellar_transactions": [
         {
-          "id": "a6d3819777fc7f4f92b8085d0020951b89014c746418316024786776db100b15",
           "payments": [
             {
               "amount": {
-                "amount": "100.0000000",
-                "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                "amount": "1.0000000",
+                "asset": "%TESTPAYMENT_ASSET_CIRCLE_USDC%"
               },
               "payment_type": "payment",
-              "source_account": "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B",
-              "destination_account": "GD5JCGP4AX7IASTMV3CDQIXGZ6EMZELQ7R6E5FA6Z3YGZ2WWDEXNWOF3"
+              "source_account": "GABCKCYPAGDDQMSCTMSBO7C2L34NU3XXCW7LR4VVSWCCXMAJY3B4YCZP",
+              "destination_account": "GBDYDBJKQBJK4GY4V7FAONSFF2IBJSKNTBYJ65F5KCGBY2BIGPGGLJOH"
             }
           ]
         }
@@ -6387,7 +6606,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   {
     "jsonrpc": "2.0",
     "error": {
-      "id": "TX_ID",
+      "id": "%TX_ID%",
       "code": -32600,
       "message": "RPC method[notify_onchain_funds_sent] is not supported. Status[completed], kind[deposit], protocol[24], funds received[true]"
     },
@@ -6395,8 +6614,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   }
 ]
   """
-    private const val SEP_6_WITHDRAW_FLOW_REQUEST =
-      """
+private val SEP_6_WITHDRAW_FLOW_REQUEST =
+  """
         {
           "asset_code": "USDC",
           "type": "bank_account",
@@ -6404,8 +6623,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         }
       """
 
-    private const val SEP_6_WITHDRAW_EXCHANGE_FLOW_REQUEST =
-      """
+private val SEP_6_WITHDRAW_EXCHANGE_FLOW_REQUEST =
+  """
         {
           "destination_asset": "iso4217:USD",
           "source_asset": "USDC",
@@ -6414,8 +6633,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         }
       """
 
-    private const val SEP_6_DEPOSIT_FLOW_REQUEST =
-      """
+private val SEP_6_DEPOSIT_FLOW_REQUEST =
+  """
         {
           "asset_code": "USDC",
           "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
@@ -6424,8 +6643,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         }
       """
 
-    private const val SEP_6_DEPOSIT_EXCHANGE_FLOW_REQUEST =
-      """
+private val SEP_6_DEPOSIT_EXCHANGE_FLOW_REQUEST =
+  """
         {
           "destination_asset": "USDC",
           "source_asset": "iso4217:USD",
@@ -6435,14 +6654,14 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         }
       """
 
-    private const val SEP_24_DEPOSIT_FLOW_REQUEST = """
+private val SEP_24_DEPOSIT_FLOW_REQUEST = """
 {
   "asset_code": "USDC"
 }
   """
 
-    private const val SEP_24_WITHDRAW_FLOW_REQUEST =
-      """{
+private val SEP_24_WITHDRAW_FLOW_REQUEST =
+  """{
     "amount": "10",
     "asset_code": "USDC",
     "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
@@ -6450,14 +6669,14 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "lang": "en"
 }"""
 
-    private const val SEP_31_RECEIVE_FLOW_REQUEST =
-      """
+private val SEP_31_RECEIVE_FLOW_REQUEST =
+  """
 {
   "amount": "10",
   "asset_code": "USDC",
   "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-  "receiver_id": "RECEIVER_ID",
-  "sender_id": "SENDER_ID",
+  "receiver_id": "%RECEIVER_ID%",
+  "sender_id": "%SENDER_ID%",
   "fields": {
     "transaction": {
       "receiver_routing_number": "r0123",
@@ -6468,16 +6687,16 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
 }
   """
 
-    private const val SEP_24_DEPOSIT_REQUEST =
-      """{
+private val SEP_24_DEPOSIT_REQUEST =
+  """{
     "asset_code": "USDC",
     "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
     "lang": "en"
   }"""
 
-    private const val REQUEST_OFFCHAIN_FUNDS_PARAMS =
-      """{
-    "transaction_id": "testTxId",
+private val REQUEST_OFFCHAIN_FUNDS_PARAMS =
+  """{
+    "transaction_id": "%TX_ID%",
     "message": "test message",
     "amount_in": {
         "amount": "1",
@@ -6496,9 +6715,9 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     }
   }"""
 
-    private const val NOTIFY_OFFCHAIN_FUNDS_RECEIVED_PARAMS =
-      """{
-    "transaction_id": "testTxId",
+private val NOTIFY_OFFCHAIN_FUNDS_RECEIVED_PARAMS =
+  """{
+    "transaction_id": "%TX_ID%",
     "message": "test message",
     "amount_in": {
         "amount": "1"
@@ -6512,13 +6731,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
     "external_transaction_id": "1"
   }"""
 
-    private const val EXPECTED_RPC_RESPONSE =
-      """
+private val EXPECTED_RPC_RESPONSE =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "testTxId",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_user_transfer_start",
@@ -6544,13 +6763,13 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val EXPECTED_RPC_BATCH_RESPONSE =
-      """
+private val EXPECTED_RPC_BATCH_RESPONSE =
+  """
         [
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "testTxId",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_user_transfer_start",
@@ -6576,7 +6795,7 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
           {
             "jsonrpc": "2.0",
             "result": {
-              "id": "testTxId",
+              "id": "%TX_ID%",
               "sep": "24",
               "kind": "deposit",
               "status": "pending_anchor",
@@ -6603,8 +6822,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
         ]
       """
 
-    private const val CUSTOMER_1 =
-      """
+private val CUSTOMER_1 =
+  """
 {
   "first_name": "John",
   "last_name": "Doe",
@@ -6620,8 +6839,8 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
 }
 """
 
-    private const val CUSTOMER_2 =
-      """
+private val CUSTOMER_2 =
+  """
 {
   "first_name": "Jane",
   "last_name": "Doe",
@@ -6636,5 +6855,3 @@ class PlatformApiTests : AbstractIntegrationTests(TestConfig()) {
   "bank_account_type": "checking"
 }
 """
-  }
-}

@@ -7,15 +7,20 @@ import static org.apache.kafka.common.config.SslConfigs.*;
 import static org.stellar.anchor.platform.config.PropertySecretConfig.*;
 import static org.stellar.anchor.platform.configurator.SecretManager.*;
 import static org.stellar.anchor.platform.utils.ResourceHelper.*;
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
+import com.google.gson.JsonSyntaxException;
 import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import lombok.AllArgsConstructor;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -31,6 +36,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.KafkaConfig;
+import org.stellar.anchor.platform.utils.TrustAllSslEngineFactory;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
@@ -43,17 +49,18 @@ public class KafkaSession implements EventService.Session {
   String sslKeystoreLocation;
   String sslTruststoreLocation;
 
-  KafkaSession(KafkaConfig kafkaConfig, String sessionName, EventQueue queue) throws IOException {
+  public KafkaSession(KafkaConfig kafkaConfig, String sessionName, EventQueue queue)
+      throws IOException {
     this.kafkaConfig = kafkaConfig;
     this.sessionName = sessionName;
     this.topic = queue.name();
 
-    if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
-      // If the keystore and truststore files exist, use them, otherwise, use the resources
-      sslKeystoreLocation =
-          findFileThenResource(kafkaConfig.getSslKeystoreLocation()).getAbsolutePath();
-      sslTruststoreLocation =
-          findFileThenResource(kafkaConfig.getSslTruststoreLocation()).getAbsolutePath();
+    if (kafkaConfig.getSslVerifyCert()) {
+      if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
+        // If the keystore and truststore files exist, use them, otherwise, use the resources
+        sslKeystoreLocation = find(kafkaConfig.getSslKeystoreLocation());
+        sslTruststoreLocation = find(kafkaConfig.getSslTruststoreLocation());
+      }
     }
   }
 
@@ -98,13 +105,21 @@ public class KafkaSession implements EventService.Session {
         consumer.poll(Duration.ofSeconds(kafkaConfig.getPollTimeoutSeconds()));
     ArrayList<AnchorEvent> events = new ArrayList<>(consumerRecords.count());
     if (consumerRecords.isEmpty()) {
-      Log.debugF("Received {} Kafka records", consumerRecords.count());
+      debugF("Received {} Kafka records", consumerRecords.count());
     } else {
       Log.infoF("Received {} Kafka records", consumerRecords.count());
       for (ConsumerRecord<String, String> record : consumerRecords) {
-        AnchorEvent deserialized =
-            GsonUtils.getInstance().fromJson(record.value(), AnchorEvent.class);
-        events.add(deserialized);
+        try {
+          AnchorEvent deserialized =
+              GsonUtils.getInstance().fromJson(record.value(), AnchorEvent.class);
+          if (deserialized.getType() == null) {
+            throw new EventPublishException("null event type");
+          }
+          events.add(deserialized);
+        } catch (JsonSyntaxException | AnchorException ex) {
+          Log.debugF(
+              "Skipping mal-formatted event from Kafka. ex={}, message={}", ex, ex.getMessage());
+        }
       }
       // TOOD: emit metrics here.
     }
@@ -112,7 +127,7 @@ public class KafkaSession implements EventService.Session {
   }
 
   @AllArgsConstructor
-  public class KafkaReadResponse implements EventService.ReadResponse {
+  public static class KafkaReadResponse implements EventService.ReadResponse {
     private final List<AnchorEvent> events;
 
     @Override
@@ -129,7 +144,7 @@ public class KafkaSession implements EventService.Session {
   }
 
   @Override
-  public void close() throws AnchorException {
+  public void close() {
     if (producer != null) {
       producer.close();
     }
@@ -143,9 +158,16 @@ public class KafkaSession implements EventService.Session {
     return sessionName;
   }
 
-  private Producer<String, String> createProducer() throws InvalidConfigException {
-    Log.debugF("kafkaConfig: {}", kafkaConfig);
+  public void testConnection() throws Exception {
+    Properties props = createProducerConfig();
+    try (AdminClient adminClient = AdminClient.create(props)) {
+      Set<String> topics =
+          adminClient.listTopics(new ListTopicsOptions().timeoutMs(10000)).names().get();
+      debugF("Kafka topics: {}", topics);
+    }
+  }
 
+  Properties createProducerConfig() throws InvalidConfigException {
     Properties props = new Properties();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
     props.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -161,8 +183,12 @@ public class KafkaSession implements EventService.Session {
     // maximum reconnect back-off is 10 seconds
     props.put(RECONNECT_BACKOFF_MAX_MS_CONFIG, "10000");
     configureAuth(props);
+    return props;
+  }
 
-    return new KafkaProducer<>(props);
+  Producer<String, String> createProducer() throws InvalidConfigException {
+    debugF("kafkaConfig: {}", kafkaConfig);
+    return new KafkaProducer<>(createProducerConfig());
   }
 
   Consumer<String, String> createConsumer() throws InvalidConfigException {
@@ -183,60 +209,66 @@ public class KafkaSession implements EventService.Session {
     return new KafkaConsumer<>(props);
   }
 
+  void configureAuthSaslLogin(Properties props) throws InvalidConfigException {
+    // Check if the username and password are set
+    if (isEmpty(secret(SECRET_EVENTS_QUEUE_KAFKA_USERNAME))) {
+      String msg =
+          SECRET_EVENTS_QUEUE_KAFKA_USERNAME + " is not set. Please provide the Kafka username.";
+      Log.error(msg);
+      throw new InvalidConfigException(msg);
+    }
+    if (isEmpty(secret(SECRET_EVENTS_QUEUE_KAFKA_PASSWORD))) {
+      String msg =
+          SECRET_EVENTS_QUEUE_KAFKA_PASSWORD + " is not set. Please provide the Kafka password.";
+      Log.error(msg);
+      throw new InvalidConfigException(msg);
+    }
+
+    // Set the SASL login information
+    props.put(
+        "sasl.jaas.config",
+        "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
+            + secret(SECRET_EVENTS_QUEUE_KAFKA_USERNAME)
+            + "\" password=\""
+            + secret(SECRET_EVENTS_QUEUE_KAFKA_PASSWORD)
+            + "\";");
+  }
+
   void configureAuth(Properties props) throws InvalidConfigException {
     switch (kafkaConfig.getSecurityProtocol()) {
       case SASL_PLAINTEXT:
-      case SASL_SSL:
-        // Check if the username and password are set
-        if (isEmpty(secret(SECRET_EVENTS_QUEUE_KAFKA_USERNAME))) {
-          String msg =
-              SECRET_EVENTS_QUEUE_KAFKA_USERNAME
-                  + " is not set. Please provide the Kafka username.";
-          Log.error(msg);
-          throw new InvalidConfigException(msg);
-        }
-        if (isEmpty(secret(SECRET_EVENTS_QUEUE_KAFKA_PASSWORD))) {
-          String msg =
-              SECRET_EVENTS_QUEUE_KAFKA_PASSWORD
-                  + " is not set. Please provide the Kafka password.";
-          Log.error(msg);
-          throw new InvalidConfigException(msg);
-        }
-
-        // Set the SASL login information
-        props.put(
-            "sasl.jaas.config",
-            "org.apache.kafka.common.security.plain.PlainLoginModule required username=\""
-                + secret(SECRET_EVENTS_QUEUE_KAFKA_USERNAME)
-                + "\" password=\""
-                + secret(SECRET_EVENTS_QUEUE_KAFKA_PASSWORD)
-                + "\";");
-
-        break;
-    }
-
-    switch (kafkaConfig.getSecurityProtocol()) {
-      case SASL_PLAINTEXT:
+        configureAuthSaslLogin(props);
         props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol().name());
         props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
         break;
       case SASL_SSL:
+        configureAuthSaslLogin(props);
         props.put(SECURITY_PROTOCOL_CONFIG, kafkaConfig.getSecurityProtocol().name());
         props.put(SASL_MECHANISM, kafkaConfig.getSaslMechanism().getValue());
-        props.put(SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);
-        props.put(SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
 
-        if (!isEmpty(secret(SECRET_SSL_KEYSTORE_PASSWORD)))
-          props.put(SSL_KEYSTORE_PASSWORD_CONFIG, secret(SECRET_SSL_KEYSTORE_PASSWORD));
-        if (!isEmpty(secret(SECRET_SSL_KEY_PASSWORD)))
-          props.put(SSL_KEY_PASSWORD_CONFIG, secret(SECRET_SSL_KEY_PASSWORD));
-        if (!isEmpty(secret(SECRET_SSL_TRUSTSTORE_PASSWORD)))
-          props.put(SSL_TRUSTSTORE_PASSWORD_CONFIG, secret(SECRET_SSL_TRUSTSTORE_PASSWORD));
+        if (!kafkaConfig.getSslVerifyCert()) {
+          props.put(SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+          props.put(SSL_ENGINE_FACTORY_CLASS_CONFIG, TrustAllSslEngineFactory.class);
+        } else {
+          props.put(SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);
+          props.put(SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
+
+          if (!isEmpty(secret(SECRET_SSL_KEYSTORE_PASSWORD)))
+            props.put(SSL_KEYSTORE_PASSWORD_CONFIG, secret(SECRET_SSL_KEYSTORE_PASSWORD));
+          if (!isEmpty(secret(SECRET_SSL_KEY_PASSWORD)))
+            props.put(SSL_KEY_PASSWORD_CONFIG, secret(SECRET_SSL_KEY_PASSWORD));
+          if (!isEmpty(secret(SECRET_SSL_TRUSTSTORE_PASSWORD)))
+            props.put(SSL_TRUSTSTORE_PASSWORD_CONFIG, secret(SECRET_SSL_TRUSTSTORE_PASSWORD));
+        }
         break;
       case PLAINTEXT:
         break;
       default:
         throw new IllegalStateException("Unexpected value: " + kafkaConfig.getSecurityProtocol());
     }
+  }
+
+  String find(String sslKeystoreLocation) throws IOException {
+    return findFileThenResource(sslKeystoreLocation).getAbsolutePath();
   }
 }

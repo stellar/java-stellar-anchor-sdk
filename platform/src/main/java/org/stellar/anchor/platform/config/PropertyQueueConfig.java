@@ -94,7 +94,8 @@ public class PropertyQueueConfig implements QueueConfig, Validator {
         }
       }
 
-      if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL) {
+      if (kafkaConfig.getSecurityProtocol() == KafkaConfig.SecurityProtocol.SASL_SSL
+          && kafkaConfig.getSslVerifyCert()) {
         if (kafkaConfig.getSaslMechanism() == null) {
           errors.reject(
               "kafka-sasl-mechanism-empty",
