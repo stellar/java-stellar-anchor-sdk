@@ -189,6 +189,7 @@ Several IntelliJ run configurations are provided to make it easier to run the pr
 
 - `Docker - Run Dev Stack - Kafka, Postgres, SEP24 Reference UI`: runs the development stack locally, using `docker-compose`.
 - `Test Profile: default`: runs the tests with the default profile.
+- `Test Profile: deployment`: runs the tests with the deployment profile.
 - `Test Profile: rpc`: runs the tests with the rpc profile.
 - `Test Profile: custody`: runs the tests with the custody profile.
 - `Test Profile: auth-apikey-custody`: runs the tests with the auth-apikey-custody profile.
@@ -210,6 +211,7 @@ There are several test profiles that can be used to start the Anchor platform se
 the `service-runner/src/main/resources/profiles` folder.
 
 - `default`: starts all servers with the most commonly used configuration.
+- `deployment`: starts all servers so that all SEPs can be tested using the demo wallet.
 - `rpc`: starts all servers with the RPC enabled.
 - `custody`: starts all servers with the custody servers enabled.
 - `auth-apikey-custody`: starts the custody servers with the API key authentication enabled.
