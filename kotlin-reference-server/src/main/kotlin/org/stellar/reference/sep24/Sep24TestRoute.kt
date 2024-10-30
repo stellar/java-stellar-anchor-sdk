@@ -86,7 +86,7 @@ fun Route.testSep24(
 
             val stellarAsset = asset.replace("stellar:", "")
 
-            // Run withdrawal processing asynchronously
+            // Run deposit processing asynchronously
             CoroutineScope(Dispatchers.Default).launch {
               withdrawalService.processWithdrawal(transactionId, amountExpected, stellarAsset)
             }

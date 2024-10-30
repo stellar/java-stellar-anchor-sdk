@@ -232,7 +232,7 @@ public class KafkaSession implements EventService.Session {
           props.put(SSL_KEY_PASSWORD_CONFIG, secret(SECRET_SSL_KEY_PASSWORD));
         if (!isEmpty(secret(SECRET_SSL_TRUSTSTORE_PASSWORD)))
           props.put(SSL_TRUSTSTORE_PASSWORD_CONFIG, secret(SECRET_SSL_TRUSTSTORE_PASSWORD));
-        break;
+
       case PLAINTEXT:
         break;
       default:

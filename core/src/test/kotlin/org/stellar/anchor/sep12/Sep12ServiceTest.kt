@@ -12,9 +12,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.NullSource
-import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.event.AnchorEvent
@@ -43,7 +40,6 @@ class Sep12ServiceTest {
       "MBFZNZTFSI6TWLVAID7VOLCIFX2PMUOS2X7U6H4TNK4PAPSHPWMMUAAAAAAAAAPCIA2IM"
     private const val CLIENT_DOMAIN = "demo-wallet.stellar.org"
     private const val TEST_HOST_URL = "http://localhost:8080"
-    private const val TEST_TRANSACTION_ID = "test-transaction-id"
     private const val wantedSep12GetCustomerResponse =
       """
 {
@@ -193,15 +189,15 @@ class Sep12ServiceTest {
         )
         .build()
     every { platformApiClient.getTransaction(any()) } returns transaction
+    val jwtToken = createJwtToken(TEST_ACCOUNT)
 
-    val putRequest = Sep12PutCustomerRequest.builder().transactionId(TEST_TRANSACTION_ID).build()
-    assertDoesNotThrow { sep12Service.populateRequestFromTransactionId(putRequest) }
-    assertEquals(TEST_ACCOUNT, putRequest.account)
-    assertEquals(TEST_MEMO, putRequest.memo)
+    val putRequestBase = Sep12PutCustomerRequest.builder().transactionId("id").build()
+    assertDoesNotThrow { sep12Service.validateGetOrPutRequest(putRequestBase, jwtToken) }
+    assertEquals(TEST_ACCOUNT, putRequestBase.account)
+    assertEquals(TEST_MEMO, putRequestBase.memo)
 
-    val getRequestBase =
-      Sep12GetCustomerRequest.builder().transactionId(TEST_TRANSACTION_ID).build()
-    assertDoesNotThrow { sep12Service.populateRequestFromTransactionId(getRequestBase) }
+    val getRequestBase = Sep12GetCustomerRequest.builder().transactionId("id").build()
+    assertDoesNotThrow { sep12Service.validateGetOrPutRequest(getRequestBase, jwtToken) }
     assertEquals(TEST_ACCOUNT, getRequestBase.account)
     assertEquals(TEST_MEMO, getRequestBase.memo)
   }
@@ -259,10 +255,8 @@ class Sep12ServiceTest {
     assertEquals("Invalid 'memo' for 'memo_type'", ex.message)
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = [TEST_TRANSACTION_ID])
-  @NullSource
-  fun `Test put customer request ok`(transactionId: String?) {
+  @Test
+  fun `Test put customer request ok`() {
     // mock `PUT {callbackApi}/customer` response
     val callbackApiPutRequestSlot = slot<PutCustomerRequest>()
     val callbackApiGetRequestSlot = slot<GetCustomerRequest>()
@@ -275,14 +269,6 @@ class Sep12ServiceTest {
     every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } returns
       mockCallbackApiGetCustomerResponse
     every { eventSession.publish(capture(kycUpdateEventSlot)) } returns Unit
-    every { platformApiClient.getTransaction(any()) } returns
-      GetTransactionResponse.builder()
-        .customers(
-          Customers.builder()
-            .sender(StellarId.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).build())
-            .build()
-        )
-        .build()
 
     // Execute the request
     val mockPutRequest =
@@ -300,7 +286,6 @@ class Sep12ServiceTest {
         .mobileMoneyNumber("12345678")
         .mobileMoneyProvider("M-PESA")
         .externalTransferMemo("memo")
-        .transactionId(transactionId)
         .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
     assertDoesNotThrow { sep12Service.putCustomer(jwtToken, mockPutRequest) }
@@ -321,12 +306,10 @@ class Sep12ServiceTest {
         .mobileMoneyNumber("12345678")
         .mobileMoneyProvider("M-PESA")
         .externalTransferMemo("memo")
-        .transactionId(transactionId)
         .build()
     assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
 
-    val wantCallbackApiGetCustomerResponse =
-      GetCustomerRequest.builder().id("customer-id").transactionId(transactionId).build()
+    val wantCallbackApiGetCustomerResponse = GetCustomerRequest.builder().id("customer-id").build()
     assertEquals(wantCallbackApiGetCustomerResponse, callbackApiGetRequestSlot.captured)
 
     // validate the published event

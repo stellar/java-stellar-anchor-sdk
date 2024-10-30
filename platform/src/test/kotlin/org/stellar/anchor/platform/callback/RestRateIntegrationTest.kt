@@ -3,12 +3,10 @@ package org.stellar.anchor.platform.callback
 import com.google.gson.Gson
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.spyk
 import java.math.BigDecimal
 import java.time.Instant
-import okhttp3.Response
-import okhttp3.ResponseBody
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -31,8 +29,7 @@ class RestRateIntegrationTest {
   private val gson: Gson = GsonUtils.getInstance()
   private var usdAssetInfo = AssetInfo()
   private var usdcAssetInfo = AssetInfo()
-  private val rateIntegration =
-    RestRateIntegration("http://localhost/callback", null, null, gson, assetService)
+  private val rateIntegration = RestRateIntegration("/", null, null, gson, assetService)
   private var request: GetRateRequest = GetRateRequest()
   private var rateResponseWithFee: GetRateResponse = GetRateResponse()
   private var rateResponseWithoutFee: GetRateResponse = GetRateResponse()
@@ -113,22 +110,6 @@ class RestRateIntegrationTest {
       """,
         GetRateResponse::class.java,
       )
-  }
-
-  @Test
-  fun `test getRate when the callback response does not provide a fee`() {
-    val mockResponse = mockk<Response>()
-    val mockResponseBody = mockk<ResponseBody>()
-    val spyRateIntegration = spyk(rateIntegration)
-    every { mockResponse.body } returns mockResponseBody
-    every { mockResponse.code } returns 200
-    every { mockResponse.close() } returns Unit
-    every { mockResponseBody.string() } returns gson.toJson(rateResponseWithoutFee)
-    every { spyRateIntegration.invokeGetRateRequest(any(), any()) } returns mockResponse
-
-    val rate = spyRateIntegration.getRate(request)
-    assertNotNull(rate.rate.fee)
-    assertEquals(BigDecimal(rate.rate.fee.total).compareTo(BigDecimal.ZERO), 0)
   }
 
   @ParameterizedTest
@@ -230,7 +211,6 @@ class RestRateIntegrationTest {
   )
   fun `test fee total`(total: String?, hasError: Boolean, errorMessage: String) {
     rateResponseWithFee.rate.fee.total = total
-    rateResponseWithFee.rate.fee.details = null
     if (hasError) {
       val ex =
         assertThrows<ServerErrorException> {
@@ -286,7 +266,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
-      "'rate.fee.details[?].name' is missing in the GET /rate response",
+      "'rate.fee.details.description[?].name' is missing in the GET /rate response",
       ex.message,
     )
 
@@ -297,7 +277,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
-      "'rate.fee.details[?].amount' is missing or not a positive number in the GET /rate response",
+      "'rate.fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
       ex.message,
     )
 
@@ -347,7 +327,7 @@ class RestRateIntegrationTest {
         rateIntegration.validateRateResponse(request, rateResponseWithFee)
       }
     assertEquals(
-      "'rate.fee.details[?].amount' has incorrect number of significant decimals in the GET /rate response",
+      "'rate.fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
       ex.message,
     )
   }
@@ -398,21 +378,6 @@ class RestRateIntegrationTest {
     assertEquals(
       shouldAllow.toBoolean(),
       withinRoundingError(BigDecimal(amount), BigDecimal(expected), scale.toInt()),
-    )
-  }
-
-  @Test
-  fun `test 0 fee with details`() {
-    rateResponseWithFee.rate.fee.total = "0.00"
-    rateResponseWithFee.rate.fee.details[0].amount = "0.00"
-    rateResponseWithFee.rate.fee.details[1].amount = "0.00"
-    val ex =
-      assertThrows<ServerErrorException> {
-        rateIntegration.validateRateResponse(request, rateResponseWithFee)
-      }
-    assertEquals(
-      "'rate.fee.details' must be empty or not-existent when 'rate.fee.total' is zero in the GET /rate response",
-      ex.message
     )
   }
 }

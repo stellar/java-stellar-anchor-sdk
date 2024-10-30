@@ -8,20 +8,23 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.validation.BindException
+import org.springframework.validation.Errors
 import org.springframework.validation.ValidationUtils
 import org.stellar.anchor.config.event.QueueConfig.QueueType.*
 
 class EventConfigTest {
   lateinit var config: PropertyEventConfig
+  lateinit var errors: Errors
 
   @BeforeEach
   fun setUp() {
     config = PropertyEventConfig()
+
+    errors = BindException(config, "config")
   }
 
   @Test
   fun `test enabled flag`() {
-    val errors = BindException(config, "config")
     config.isEnabled = false
     ValidationUtils.invokeValidator(config, config, errors)
     assertEquals(0, errors.errorCount)
@@ -34,8 +37,7 @@ class EventConfigTest {
     config.queue = PropertyQueueConfig()
     config.queue.type = KAFKA
     config.queue.kafka = kafkaConfig
-    val errors = BindException(config.queue, "config")
-    config.queue.validateKafka(config.queue, errors)
+    config.validateKafka(config, errors)
     assertEquals(errorCount, errors.errorCount)
     if (errorCount > 0) {
       assertEquals(errorCode, errors.allErrors[0].code)
@@ -49,8 +51,7 @@ class EventConfigTest {
     config.queue = PropertyQueueConfig()
     config.queue.type = SQS
     config.queue.sqs = sqsConfig
-    val errors = BindException(config.queue, "config")
-    config.queue.validateSqs(config.queue, errors)
+    config.validateSqs(config, errors)
     assertEquals(errorCount, errors.errorCount)
     if (errorCount > 0) {
       assertEquals(errorCode, errors.allErrors[0].code)
@@ -64,8 +65,7 @@ class EventConfigTest {
     config.queue = PropertyQueueConfig()
     config.queue.type = MSK
     config.queue.msk = mskConfig
-    val errors = BindException(config.queue, "config")
-    config.queue.validateMsk(config.queue, errors)
+    config.validateMsk(config, errors)
     assertEquals(errorCount, errors.errorCount)
     if (errorCount > 0) {
       assertEquals(errorCode, errors.allErrors[0].code)
