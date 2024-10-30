@@ -189,7 +189,6 @@ Several IntelliJ run configurations are provided to make it easier to run the pr
 
 - `Docker - Run Dev Stack - Kafka, Postgres, SEP24 Reference UI`: runs the development stack locally, using `docker-compose`.
 - `Test Profile: default`: runs the tests with the default profile.
-- `Test Profile: deployment`: runs the tests with the deployment profile.
 - `Test Profile: rpc`: runs the tests with the rpc profile.
 - `Test Profile: custody`: runs the tests with the custody profile.
 - `Test Profile: auth-apikey-custody`: runs the tests with the auth-apikey-custody profile.
@@ -197,6 +196,7 @@ Several IntelliJ run configurations are provided to make it easier to run the pr
 - `Test Profile: auth-apikey-platform`: runs the tests with the auth-apikey-platform profile.
 - `Test Profile: auth-jwt-platform`: runs the tests with the auth-jwt-platform profile.
 - `Test Profile: host-docker-internal`: runs the tests with the host-docker-internal profile.
+- `Test Profile: deployment`: runs all servers so that all SEPs can be tested using the demo wallet.
 - `Sep Server: default`: runs the SEP server locally with `default` profile.
 - `Stellar Observer: default`: runs the Stellar Observer locally with `default` profile.
 - `Platform Server: default`: runs the Platform server locally with `default` profile.
@@ -211,13 +211,13 @@ There are several test profiles that can be used to start the Anchor platform se
 the `service-runner/src/main/resources/profiles` folder.
 
 - `default`: starts all servers with the most commonly used configuration.
-- `deployment`: starts all servers so that all SEPs can be tested using the demo wallet.
 - `rpc`: starts all servers with the RPC enabled.
 - `custody`: starts all servers with the custody servers enabled.
 - `auth-apikey-custody`: starts the custody servers with the API key authentication enabled.
 - `auth-jwt-custody`: starts the custody servers with the JWT authentication enabled.
 - `auth-apikey-platform`: starts the platform servers with the API key authentication enabled.
 - `auth-jwt-platform`: starts the platform servers with the JWT authentication enabled.
+- `deployment`: starts all servers so that all SEPs can be tested using the demo wallet.
 
 ## Development Scenarios
 
