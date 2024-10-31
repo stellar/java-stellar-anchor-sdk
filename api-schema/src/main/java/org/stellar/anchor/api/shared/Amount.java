@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @Builder
@@ -15,7 +16,7 @@ public class Amount {
   public Amount() {}
 
   public static @Nullable Amount create(String amount, String asset) {
-    if (amount == null) {
+    if (amount == null && StringUtils.isEmpty(asset)) {
       return null;
     }
 

@@ -53,9 +53,11 @@ public class PojoSep6Transaction implements Sep6Transaction {
   List<FeeDescription> feeDetailsList;
 
   public void setFeeDetails(FeeDetails feeDetails) {
-    setAmountFee(feeDetails.getTotal());
-    setAmountFeeAsset(feeDetails.getAsset());
-    setFeeDetailsList(feeDetails.getDetails());
+    if (feeDetails != null) {
+      setAmountFee(feeDetails.getTotal());
+      setAmountFeeAsset(feeDetails.getAsset());
+      setFeeDetailsList(feeDetails.getDetails());
+    }
   }
 
   public FeeDetails getFeeDetails() {

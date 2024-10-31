@@ -281,6 +281,7 @@ class DoStellarPaymentHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_STELLAR
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.amountOut = Amount(null, AMOUNT_OUT_ASSET)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.destinationAccount = TO_ACCOUNT
 
@@ -365,6 +366,7 @@ class DoStellarPaymentHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_TRUST
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.amountOut = Amount(null, AMOUNT_OUT_ASSET)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.destinationAccount = TO_ACCOUNT
 
@@ -536,6 +538,7 @@ class DoStellarPaymentHandlerTest {
     expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = PENDING_STELLAR
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.amountOut = Amount(null, AMOUNT_OUT_ASSET)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.destinationAccount = TO_ACCOUNT
@@ -623,6 +626,7 @@ class DoStellarPaymentHandlerTest {
     expectedResponse.kind = PlatformTransactionData.Kind.from(kind)
     expectedResponse.status = PENDING_TRUST
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.amountOut = Amount(null, AMOUNT_OUT_ASSET)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.destinationAccount = TO_ACCOUNT

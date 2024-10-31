@@ -439,8 +439,10 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.kind = WITHDRAWAL
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount("1", FIAT_USD)
+    expectedResponse.amountOut = Amount(null, FIAT_USD)
+    expectedResponse.amountFee = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
 
     JSONAssert.assertEquals(
@@ -528,6 +530,9 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount(null, FIAT_USD)
+    expectedResponse.amountOut = Amount(null, FIAT_USD)
+    expectedResponse.amountFee = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
 
     JSONAssert.assertEquals(
@@ -891,8 +896,10 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
-    expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount("1", FIAT_USD)
+    expectedResponse.amountOut = Amount(null, FIAT_USD)
+    expectedResponse.amountFee = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
@@ -983,6 +990,9 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = Instant.parse(STELLAR_PAYMENT_DATE)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount(null, FIAT_USD)
+    expectedResponse.amountOut = Amount(null, FIAT_USD)
+    expectedResponse.amountFee = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
 
