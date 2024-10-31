@@ -20,7 +20,7 @@ public class PlatformIntegrationHelper {
         new Request.Builder().header("Content-Type", "application/json");
 
     AuthHeader<String, String> authHeader =
-        (authHelper == null) ? null : authHelper.createCallbackAuthHeader();
+        (authHelper == null) ? null : authHelper.createAuthHeader();
     return authHeader == null
         ? requestBuilder
         : requestBuilder.header(authHeader.getName(), authHeader.getValue());
