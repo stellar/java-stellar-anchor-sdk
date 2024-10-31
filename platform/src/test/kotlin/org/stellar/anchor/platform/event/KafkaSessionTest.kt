@@ -4,6 +4,7 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.spyk
+import io.mockk.verify
 import java.util.*
 import org.apache.kafka.clients.CommonClientConfigs.SECURITY_PROTOCOL_CONFIG
 import org.apache.kafka.common.config.SaslConfigs.SASL_MECHANISM
@@ -23,6 +24,7 @@ import org.stellar.anchor.platform.config.KafkaConfig.SecurityProtocol.PLAINTEXT
 import org.stellar.anchor.platform.config.PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_PASSWORD
 import org.stellar.anchor.platform.config.PropertySecretConfig.SECRET_EVENTS_QUEUE_KAFKA_USERNAME
 import org.stellar.anchor.platform.configurator.SecretManager
+import org.stellar.anchor.platform.utils.ResourceHelper
 import org.stellar.anchor.platform.utils.TrustAllSslEngineFactory
 
 @ExtendWith(LockAndMockTest::class)
@@ -71,7 +73,7 @@ class KafkaSessionTest {
     )
   }
 
-  @LockAndMockStatic([SecretManager::class])
+  @LockAndMockStatic([SecretManager::class, ResourceHelper::class])
   @ParameterizedTest
   @ValueSource(booleans = [true, false])
   fun `test security-protocol SASL_SSL `(sslVerifyCert: Boolean) {
@@ -102,6 +104,9 @@ class KafkaSessionTest {
       assertEquals("", properties.getProperty(SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG))
       val cls = properties.get(SSL_ENGINE_FACTORY_CLASS_CONFIG) as Class<TrustAllSslEngineFactory>
       assertEquals("org.stellar.anchor.platform.utils.TrustAllSslEngineFactory", cls.name)
+
+      // make sure we don't look for keystore and truststore
+      verify(exactly = 0) { kafkaSession.find(any()) }
     }
   }
 }

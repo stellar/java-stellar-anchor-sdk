@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.integrationtest
 
 import com.google.gson.reflect.TypeToken
-import org.apache.hc.core5.http.HttpStatus.SC_OK
+import org.apache.http.HttpStatus.SC_OK
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
@@ -725,8 +725,8 @@ private val SEP_6_DEPOSIT_WITH_PENDING_EXTERNAL_FLOW_ACTION_REQUESTS =
                 "amount": "95",
                 "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
               },
-              "fee_details": {
-                "total": "5",
+              "amount_fee": {
+                "amount": "5",
                 "asset": "iso4217:USD"
               },
               "amount_expected": {
