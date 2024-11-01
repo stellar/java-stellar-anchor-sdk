@@ -32,7 +32,8 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
-public class RequestOffchainFundsHandler extends RpcMethodHandler<RequestOffchainFundsRequest> {
+public class RequestOffchainFundsHandler
+    extends RpcTransactionStatusHandler<RequestOffchainFundsRequest> {
 
   public RequestOffchainFundsHandler(
       Sep6TransactionStore txn6Store,
@@ -62,20 +63,13 @@ public class RequestOffchainFundsHandler extends RpcMethodHandler<RequestOffchai
     if (!
     // None of the amounts are provided
     ((request.getAmountIn() == null
-            && request.getAmountFee() == null
             && request.getFeeDetails() == null
             && request.getAmountExpected() == null)
         ||
-        // All the amounts are provided (allow either amount_fee or fee_details)
-        (request.getAmountIn() != null
-            && (request.getAmountFee() != null || request.getFeeDetails() != null)))) {
+        // All the amounts are provided
+        (request.getAmountIn() != null && request.getFeeDetails() != null))) {
       throw new InvalidParamsException(
-          "All (amount_out is optional) or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set");
-    }
-
-    // In case 2nd predicate in previous IF statement was TRUE
-    if (request.getFeeDetails() != null && request.getAmountFee() != null) {
-      throw new InvalidParamsException("Either fee_details or amount_fee should be set");
+          "All (amount_out is optional) or none of the amount_in, amount_out, and fee_details should be set");
     }
 
     if (request.getAmountIn() != null) {
@@ -91,13 +85,6 @@ public class RequestOffchainFundsHandler extends RpcMethodHandler<RequestOffchai
       }
       AssetValidationUtils.validateAssetAmount(
           "amount_out", request.getAmountOut(), true, assetService);
-    }
-    if (request.getAmountFee() != null) {
-      if (AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
-        throw new InvalidParamsException("amount_fee.asset should be non-stellar asset");
-      }
-      AssetValidationUtils.validateAssetAmount(
-          "amount_fee", request.getAmountFee(), true, assetService);
     }
     if (request.getFeeDetails() != null) {
       if (AssetValidationUtils.isStellarAsset(request.getFeeDetails().getAsset())) {
@@ -140,10 +127,8 @@ public class RequestOffchainFundsHandler extends RpcMethodHandler<RequestOffchai
         }
       }
     }
-    if (request.getAmountFee() == null
-        && request.getFeeDetails() == null
-        && txn.getAmountFee() == null) {
-      throw new InvalidParamsException("fee_details or amount_fee is required");
+    if (request.getFeeDetails() == null && txn.getAmountFee() == null) {
+      throw new InvalidParamsException("fee_details is required");
     }
   }
 
@@ -197,10 +182,6 @@ public class RequestOffchainFundsHandler extends RpcMethodHandler<RequestOffchai
     if (request.getAmountOut() != null) {
       txn.setAmountOut(request.getAmountOut().getAmount());
       txn.setAmountOutAsset(request.getAmountOut().getAsset());
-    }
-    if (request.getAmountFee() != null) {
-      txn.setAmountFee(request.getAmountFee().getAmount());
-      txn.setAmountFeeAsset(request.getAmountFee().getAsset());
     }
     if (request.getFeeDetails() != null) {
       txn.setAmountFee(request.getFeeDetails().getTotal());

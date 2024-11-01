@@ -15,6 +15,7 @@ import static org.stellar.anchor.util.MathHelper.formatAmount;
 import com.google.common.collect.ImmutableSet;
 import java.math.BigDecimal;
 import java.util.*;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
@@ -23,7 +24,6 @@ import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.method.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.method.NotifyRefundSentRequest;
 import org.stellar.anchor.api.rpc.method.RpcMethod;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.Refunds;
@@ -41,7 +41,7 @@ import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
-public class NotifyRefundSentHandler extends RpcMethodHandler<NotifyRefundSentRequest> {
+public class NotifyRefundSentHandler extends RpcTransactionStatusHandler<NotifyRefundSentRequest> {
 
   public NotifyRefundSentHandler(
       Sep6TransactionStore txn6Store,

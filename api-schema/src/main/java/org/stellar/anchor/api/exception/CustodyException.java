@@ -2,7 +2,7 @@ package org.stellar.anchor.api.exception;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 
 @EqualsAndHashCode(callSuper = false)
 public class CustodyException extends AnchorException {

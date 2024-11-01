@@ -3,10 +3,10 @@ package org.stellar.anchor.api.sep.sep38;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import lombok.Data;
-import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.operation.Sep38Operation;
+import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.FiatAssetInfo;
+import org.stellar.anchor.api.asset.Sep38Info;
 
 /**
  * The response body of the GET /info endpoint of SEP-38.
@@ -21,27 +21,24 @@ public class InfoResponse {
 
   public InfoResponse(List<AssetInfo> assetInfoList) {
     for (AssetInfo assetInfo : assetInfoList) {
-      if (!assetInfo.getSep38Enabled()) continue;
-      Asset newAsset = new Asset();
-      String assetName = assetInfo.getSchema().toString() + ":" + assetInfo.getCode();
-      if (!Objects.toString(assetInfo.getIssuer(), "").isEmpty()) {
-        assetName += ":" + assetInfo.getIssuer();
+      if (assetInfo.getSep38() == null
+          || assetInfo.getSep38().getEnabled() == null
+          || !assetInfo.getSep38().getEnabled()) continue;
+      Sep38Info sep38Info = assetInfo.getSep38();
+
+      Asset assetResponse = new Asset();
+
+      if (assetInfo instanceof FiatAssetInfo fiatAssetInfo) {
+        assetResponse.setSellDeliveryMethods(fiatAssetInfo.getSep38().getSellDeliveryMethods());
+        assetResponse.setBuyDeliveryMethods(fiatAssetInfo.getSep38().getBuyDeliveryMethods());
       }
-      newAsset.setAsset(assetName);
 
-      Sep38Operation sep38Info = assetInfo.getSep38();
-      newAsset.setCountryCodes(sep38Info.getCountryCodes());
-      newAsset.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
-      newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
-      newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
+      assetResponse.setAsset(assetInfo.getId());
+      assetResponse.setCountryCodes(sep38Info.getCountryCodes());
+      assetResponse.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
+      assetResponse.setDecimals(assetInfo.getSignificantDecimals());
 
-      int decimals = 7;
-      if (!assetName.startsWith("stellar") && sep38Info.getDecimals() != null) {
-        decimals = sep38Info.getDecimals();
-      }
-      newAsset.setDecimals(decimals);
-
-      assets.add(newAsset);
+      assets.add(assetResponse);
     }
   }
 
@@ -53,10 +50,10 @@ public class InfoResponse {
     private List<String> countryCodes;
 
     @SerializedName("sell_delivery_methods")
-    private List<Sep38Operation.DeliveryMethod> sellDeliveryMethods;
+    private List<Sep38Info.DeliveryMethod> sellDeliveryMethods;
 
     @SerializedName("buy_delivery_methods")
-    private List<Sep38Operation.DeliveryMethod> buyDeliveryMethods;
+    private List<Sep38Info.DeliveryMethod> buyDeliveryMethods;
 
     private transient List<String> exchangeableAssetNames;
 
@@ -73,7 +70,7 @@ public class InfoResponse {
     }
 
     private boolean supportsDeliveryMethod(
-        List<Sep38Operation.DeliveryMethod> deliveryMethods, String method) {
+        List<Sep38Info.DeliveryMethod> deliveryMethods, String method) {
       boolean noneIsAvailable = deliveryMethods == null || deliveryMethods.size() == 0;
       boolean noneIsProvided = method == null || method.equals("");
       if (noneIsAvailable && noneIsProvided) {
@@ -88,7 +85,7 @@ public class InfoResponse {
         return true;
       }
 
-      Sep38Operation.DeliveryMethod foundMethod =
+      Sep38Info.DeliveryMethod foundMethod =
           deliveryMethods.stream()
               .filter(dMethod -> dMethod.getName().equals(method))
               .findFirst()

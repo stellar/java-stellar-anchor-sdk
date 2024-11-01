@@ -30,11 +30,11 @@ internal class AuthJwtCustodyTests : AbstractAuthIntegrationTest() {
     CustodyApiConfig(PropertyCustodySecretConfig()).apply { baseUrl = "http://localhost:8086" }
 
   private val jwtCustodyClient: CustodyApiClient =
-    CustodyApiClient(httpClient, jwtAuthHelper, custodyApiConfig)
+    CustodyApiClient(httpClient, custodyJwtAuthHelper, custodyApiConfig)
   private val jwtWrongKeyCustodyClient: CustodyApiClient =
-    CustodyApiClient(httpClient, jwtWrongKeyAuthHelper, custodyApiConfig)
+    CustodyApiClient(httpClient, custodyJwtWrongKeyAuthHelper, custodyApiConfig)
   private val jwtExpiredTokenCustodyClient: CustodyApiClient =
-    CustodyApiClient(httpClient, jwtExpiredAuthHelper, custodyApiConfig)
+    CustodyApiClient(httpClient, custodyJwtExpiredAuthHelper, custodyApiConfig)
 
   @Test
   fun `test the custody endpoints with JWT auth`() {

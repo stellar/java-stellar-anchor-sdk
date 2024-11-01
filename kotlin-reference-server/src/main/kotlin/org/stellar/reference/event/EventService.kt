@@ -18,9 +18,9 @@ class EventService {
     val instant = Instant.parse(receivedEvent.timestamp)
     val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
 
-    log.info(
+    log.info {
       "Received event ${receivedEvent.id} of type ${receivedEvent.type} at ${dateTime.format(formatter)}"
-    )
+    }
     channel.send(receivedEvent)
     receivedEvents.add(receivedEvent)
   }
@@ -45,7 +45,7 @@ class EventService {
 
   // Clear all events. This is for testing purpose
   fun clearEvents() {
-    log.debug("Clearing events")
+    log.debug { "Clearing events" }
     receivedEvents.clear()
   }
 }

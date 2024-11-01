@@ -3,7 +3,7 @@ package org.stellar.anchor.sep31;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import org.stellar.anchor.api.sep.operation.Sep31Operation;
+import org.stellar.anchor.api.asset.Sep31Info;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.api.shared.StellarTransaction;
@@ -61,8 +61,13 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
-  public Sep31TransactionBuilder stellarAccountId(String stellarAccountId) {
-    txn.setStellarAccountId(stellarAccountId);
+  public Sep31TransactionBuilder fromAccount(String fromAccount) {
+    txn.setFromAccount(fromAccount);
+    return this;
+  }
+
+  public Sep31TransactionBuilder toAccount(String toAccount) {
+    txn.setToAccount(toAccount);
     return this;
   }
 
@@ -131,7 +136,7 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
-  public Sep31TransactionBuilder requiredInfoUpdates(Sep31Operation.Fields requiredInfoUpdates) {
+  public Sep31TransactionBuilder requiredInfoUpdates(Sep31Info.Fields requiredInfoUpdates) {
     txn.setRequiredInfoUpdates(requiredInfoUpdates);
     return this;
   }

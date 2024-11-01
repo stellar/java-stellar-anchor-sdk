@@ -31,7 +31,6 @@ import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.*
-import org.stellar.anchor.platform.utils.toRate
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator
 import org.stellar.anchor.sep24.Sep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -210,7 +209,7 @@ class TransactionServiceTest {
     assertEquals("amount_in.asset cannot be empty", ex.message)
 
     // fails if listAllAssets is empty
-    every { assetService.listAllAssets() } returns listOf()
+    every { assetService.getAssets() } returns listOf()
     val mockAsset = Amount("10", fiatUSD)
     ex = assertThrows { transactionService.validateAsset("amount_in", mockAsset) }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -561,8 +560,8 @@ class TransactionServiceTest {
                 "amount": "98",
                 "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
               },
-              "amount_fee": {
-                "amount": "2",
+              "fee_details": {
+                "total": "2",
                 "asset": "iso4217:USD"
               },
               "updated_at": "2023-01-19T01:51:57.648850500Z",
@@ -715,14 +714,6 @@ class TransactionServiceTest {
         "completed_at": "2023-10-31T21:16:44.652008Z",
         "stellar_transaction_id": "a8b7f7ba67a5c63975512aa113c5a177e675c5e195a2e15920b39f5a5a91f306",
         "message": "Funds sent to user",
-        "required_customer_info_updates": [
-          "id_type",
-          "id_country_code",
-          "id_issue_date",
-          "id_expiration_date",
-          "id_number",
-          "address"
-        ],
         "instructions": {
           "organization.bank_number": {
             "value": "121122676",
@@ -895,8 +886,8 @@ class TransactionServiceTest {
           "amount": "98.0000000",
           "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
         },
-        "amount_fee": {
-          "amount": "2.0000",
+        "fee_details": {
+          "total": "2.0000",
           "asset": "iso4217:USD"
         },
         "quote_id": "quote-id",
@@ -991,8 +982,8 @@ class TransactionServiceTest {
           "amount": "98.0000000",
           "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
         },
-        "amount_fee": {
-          "amount": "2.0000",
+        "fee_details": {
+          "total": "2.0000",
           "asset": "iso4217:USD"
         },
         "started_at": "2022-12-19T02:06:44.500182800Z",
@@ -1072,30 +1063,12 @@ class TransactionServiceTest {
           "amount": "1",
           "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
         },
-        "amount_fee": { "amount": "0", "asset": "iso4217:USD" },
+        "fee_details": { "total": "0", "asset": "iso4217:USD" },
         "started_at": "2023-10-31T21:16:29.764842Z",
         "updated_at": "2023-10-31T21:16:44.652018Z",
         "completed_at": "2023-10-31T21:16:44.652008Z",
         "message": "Funds sent to user",
-        "customers": { "sender": {}, "receiver": {} },
-        "required_customer_info_updates": [
-          "id_type",
-          "id_country_code",
-          "id_issue_date",
-          "id_expiration_date",
-          "id_number",
-          "address"
-        ],
-        "instructions": {
-          "organization.bank_number": {
-            "value": "121122676",
-            "description": "US Bank routing number"
-          },
-          "organization.bank_account_number": {
-            "value": "13719713158835300",
-            "description": "US Bank account number"
-          }
-        }
+        "customers": { "sender": {}, "receiver": {} }
       }
     """
       .trimIndent()
@@ -1121,27 +1094,5 @@ class TransactionServiceTest {
       }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Transaction is missing.", ex.message)
-  }
-
-  @Test
-  fun `validateAndGetRateFee test`() {
-    val data = PlatformTransactionData()
-    data.amountFee = Amount("10", "USDC")
-
-    assertEquals(Amount("10", "USDC").toRate(), transactionService.validateAndGetRateFee(data))
-
-    data.feeDetails = FeeDetails("10", "USDC", listOf(FeeDescription("test", "10")))
-    assertEquals(
-      FeeDetails("10", "USDC", listOf(FeeDescription("test", "10"))),
-      transactionService.validateAndGetRateFee(data)
-    )
-
-    data.feeDetails = Amount("9", "USDC").toRate()
-    var ex = assertThrows<BadRequestException> { transactionService.validateAndGetRateFee(data) }
-    assertEquals("amount_fee's amount doesn't match amount from fee_details", ex.message)
-
-    data.feeDetails = Amount("10", "NOTUSDC").toRate()
-    ex = assertThrows<BadRequestException> { transactionService.validateAndGetRateFee(data) }
-    assertEquals("amount_fee's asset doesn't match asset from fee_details", ex.message)
   }
 }

@@ -35,7 +35,8 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.sdk.responses.operations.OperationResponse;
 
-public class NotifyOnchainFundsSentHandler extends RpcMethodHandler<NotifyOnchainFundsSentRequest> {
+public class NotifyOnchainFundsSentHandler
+    extends RpcTransactionStatusHandler<NotifyOnchainFundsSentRequest> {
 
   private final Horizon horizon;
 

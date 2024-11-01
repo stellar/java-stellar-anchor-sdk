@@ -17,10 +17,10 @@ version: 1
 languages: en
 
 app_logging:
-  # The root logger logging level
+  # The root logger's logging level, which will be inherited by all other loggers.
   # The supported values are: TRACE, DEBUG, INFO, WARN, ERROR, FATAL
-  level: INFO
-  # The logging level of the classes under the "org.stellar" package.
+  level: ERROR
+  # Logging level for anchor-platform modules, specifically classes in the "org.stellar" package.
   stellar_level: INFO
   # Enable/disable the request logger that logs all request body
   #   Setting the stellar_level to DEBUG will log the request URL
@@ -43,11 +43,14 @@ stellar_network:
 ##############################
 callback_api:
   # The base URL of the Anchor Backend server that implements the callback API endpoints described in the
-  # `Callbacks API.yml` file.
+  # `Callbacks API.yml` file. The base URL must be accessible by the Anchor Platform server.
+  # For example, if the Anchor Platform server is running in a docker container while the business server is running
+  # at port 8081 of the host, the base_url should be http://host.docker.internal:8081
+  #
   base_url: http://localhost:8081
   # If the flag is set to false, all certificates from the business servers will be trusted.
   check_certificate: false
-  # Authentication config the anchor platform server to safely communicate with the business server.
+  # This defines the authentication method used by the Anchor Platform to authenticate with the business server.
   auth:
     #
     # `type` can be one of: none, api_key, jwt
@@ -60,18 +63,14 @@ callback_api:
     # If the type is api_key, the secret will be used as the api_key.
     # If the type is jwt, the secret will be used as the jwt shared secret.
     #
-    # Secrets are shared on both sides (anchor platform and business server) and are used in `Callback API`
-    # requests (`Platform->Anchor`) so the business server can ensure the party making the request is the anchor
-    # platform server
-    #
     type: none
-    # The JWT authentication config, if the type is set to `jwt`
+    # The JWT authentication config when the type is set to `jwt`
     jwt:
       # The JWT expiration in milliseconds
       expiration_milliseconds: 30000
       # The HTTP header name of the JWT token
       http_header: Authorization
-    # The API key config, if the type is set to `api_key`
+    # The API key config when if the type is set to `api_key`
     api_key:
       # The HTTP header name of the API key
       http_header: X-Api-Key
@@ -84,7 +83,8 @@ platform_api:
   # the `Platform API.yml` spec.
   #
   base_url: http://localhost:8085
-  # Authentication config the anchor platform server to safely communicate with the business server.
+  # This defines the authentication method that should be used by the business server to authenticate with the
+  # Platform API server.
   auth:
     #
     # `type` can be one of: none, api_key, jwt
@@ -97,19 +97,14 @@ platform_api:
     # If the type is api_key, the secret will be used as the api_key.
     # If the type is jwt, the secret will be used as the jwt shared secret.
     #
-    #
-    # Secrets are shared on both sides (anchor platform and business server) and are used in `Platform API`
-    # requests (`business server -> anchor platform`) so the anchor platform can ensure the party making the request
-    # is the business server.
-    #
     type: none
-    # The JWT authentication config, if the type is set to `jwt`
+    # The JWT authentication config when the type is set to `jwt`
     jwt:
       # The JWT expiration in milliseconds
       expiration_milliseconds: 30000
       # The HTTP header name of the JWT token
       http_header: Authorization
-    # The API key config, if the type is set to `api_key`
+    # The API key config when the type is set to `api_key`
     api_key:
       # The HTTP header name of the API key
       http_header: X-Api-Key
@@ -171,66 +166,6 @@ event_processor:
     # Whether to enable the event delivery to the anchor business server
     enabled: true
 
-##############################
-# Anchor Platform Clients Configuration
-##############################
-# The list of clients for the Anchor server to safely communicate with the outside wallet servers or clients.
-# Each item in the list may contain the following fields:
-#   - name: (required) the name of the client
-#   - type: (required) `custodial` or `noncustodial`
-#
-#   If the type is `custodial`,
-#   - signing_keys: (required) the custodial SEP-10 signing keys of the client.
-#   - callback_url: (optional) the URL of the client's callback API endpoint. Optional due to some wallets may opt to
-#                  poll instead, or may use polling first before implementing callbacks at a later stage. If one of
-#                  SEP-specific URLs is also provided, then this URL will be used as a fallback. For example, if
-#                  `callback_url_sep6` is not provided, but `callback_url_sep24` is, SEP-6 transactions will use the
-#                  `callback_url` as the callback URL. This field is deprecated and will be removed in 3.0.
-#   - callback_url_sep6: (optional) the URL of the client's SEP-6 callback API endpoint. If set, it will be used as
-#                  the callback URL for SEP-6 transactions.
-#   - callback_url_sep24: (optional) the URL of the client's SEP-24 callback API endpoint. If set, it will be used as
-#                  the callback URL for SEP-24 transactions.
-#   - callback_url_sep31: (optional) the URL of the client's SEP-31 callback API endpoint. If set, it will be used as
-#                  the callback URL for SEP-31 transactions.
-#   - callback_url_sep12: (optional) the URL of the client's SEP-12 callback API endpoint. If set, it will be used as
-#                  the callback URL for SEP-12 transactions.
-#   - allow_any_destination: (optional) default to false. If set to true, allows any destination for deposits.
-#   - destination_accounts: (optional) list of accounts allowed to be used for the deposit. By default, only SEP-10
-#                  authenticated account can be used to deposit funds into. If allows_any_destinations set to true,
-#                  this configuration option is ignored.
-#   If the type is `noncustodial`,
-#   - domains: (required) the domain of the client.
-#   - callback_url: (optional) the URL of the client's callback API endpoint
-#   - callback_url_sep6: (optional) the URL of the client's SEP-6 callback API endpoint.
-#   - callback_url_sep24: (optional) the URL of the client's SEP-24 callback API endpoint.
-#   - callback_url_sep31: (optional) the URL of the client's SEP-31 callback API endpoint.
-#   - callback_url_sep12: (optional) the URL of the client's SEP-12 callback API endpoint.
-#
-# Examples:
-#     - name: circle
-#       type: custodial
-#       signing_keys: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2,GACYKME36AI6UYAV7A5ZUA6MG4C4K2VAPNYMW5YLOM6E7GS6FSHDPV4F
-#       callback_url: https://callback.circle.com/api/v1/anchor/callback
-#     - name: lobstr
-#       type: noncustodial
-#       domains: lobstr.co,lobstr.com
-#       callback_url: https://callback.lobstr.co/api/v2/anchor/callback
-#     - name: vibrant
-#       type: noncustodial
-#       domain: vibrant.co
-#       callback_url: https://callback.vibrant.com/api/v2/anchor/callback
-clients:
-#     - name:
-#       type: custodial
-#       signing_keys:
-#       callback_url:
-#       allow_any_destination:
-#       destination_accounts:
-#     - name:
-#       type: noncustodial
-#       domains:
-#       callback_url:
-
 ######################
 ## Platform Server Configuration
 ######################
@@ -242,32 +177,6 @@ platform_server:
   # The management_server_port is the port used by Spring actuator.
   # https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html
   management_server_port: 9085
-  # Defines the authentication requirements of the platform_api requests. This is used to ensure that the requests
-  # must satisfy the authentication requirements before they can be processed.
-  #
-  # supported_values: none, api_key, jwt
-  #     none: no authentication is used
-  #     api_key: The authentication is done using an API key added to the HTTP request header.
-  #     jwt: The authentication is done using a JWT token added to the `Authorization` header. This token is
-  #          generated from the secret key.
-  #
-  # If the type is `api_key` or `jwt`, the secret must be set by the environment variable `secret.platform_api.auth_secret`.
-  # If the type is api_key, the secret will be used as the api_key.
-  # If the type is jwt, the secret will be used as the jwt shared secret.
-  #
-  # Secrets are shared on both sides (Platform and Anchor) and are used in Platform API requests (`Anchor->Platform`)
-  # so the Platform server can ensure the party making the request is the Anchor
-  auth:
-    # The authentication type
-    type: none
-    # The JWT authentication config, if the type is set to `jwt`
-    jwt:
-      # The JWT expiration in milliseconds
-      http_header: Authorization
-    # The API key config, if the type is set to `api_key`
-    api_key:
-      # The HTTP header name of the API key
-      http_header: X-Api-Key
 
 ######################
 # SEP Server Configuration
@@ -352,25 +261,20 @@ sep10:
   enabled: false
   #
   # The `web_auth_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response
-  # The `web_auth_domain` is optional and will be set to the value of the `home_domain` or `home_domains` if it can only be translated to one domain.
+  # The `web_auth_domain` is optional and will be set to the value of the `home_domains` if "home_domains" can only be translated to one domain.
   # 1) web_auth_domain is optional:
-  #    Ex: home_domain: ap.stellar.org
   #    Ex: home_domains: ap.stellar.org
   # 2) web_auth_domain is required:
   #    Ex: home_domains: ap.stellar.org, sdp.stellar.org
   #    Ex: home_domains: *.sdp.stellar.org
   web_auth_domain:
-  # The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
-  # `home_domain` value must be equal to the host of the toml file. If sep1 is enabled, toml file will be hosted on the SEP server.
-  # This property cannot coexist with `home_domains` and is going to be deprecated. Please use `home_domains` instead.
-  home_domain:
   # The `home_domains` property of SEP-10. This is a list of domains and/or wildcard patterns that the client can use to authenticate.
   # https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
-  # This property cannot coexist with `home_domain`. Please also set web_auth_domain if you have more than one home domain in this list.
+  # Please also set web_auth_domain if you have more than one home domain in this list.
   # The following lists are examples:
   # Ex: home_domains: [ap.stellar.org, *.sdp.stellar.org]
   # Ex: home_domains: ap.stellar.org, *.sdp.stellar.org
-  home_domains:
+  home_domains: localhost:8080
   # Set if the client attribution is required. Client Attribution requires clients to verify their identity by passing
   # a domain in the challenge transaction request and signing the challenge with the ``SIGNING_KEY`` on that domain's
   # SEP-1 stellar.toml. See the SEP-10 section `Verifying Client Application Identity` for more information
@@ -493,9 +397,9 @@ sep31:
   # The `deposit_info_generator_type` must be one of the following:
   #     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
   #     custody: the memo and memo type are generated through Custody API, for example Fireblocks, as well as the deposit address.
-  #     api: the memo and memo type are generated through calling the anchor's GET /unique_address endpoint.
+  #     none: deposit address, memo and memo type should be provided by the business in PATCH/RPC request.
   #
-  deposit_info_generator_type: self
+  deposit_info_generator_type: none
 
 ######################
 # SEP-38 Configuration
@@ -745,16 +649,59 @@ events:
 # Assets Configuration
 #########################
 # Assets are empty by default.
-# Accepts file reference (eg. 'file:assets.yaml') or in-line definition.
+# Accepts file reference (e.g. 'file:assets.yaml') or in-line definition.
 assets:
-  # The type of the assets definition.
-  # `type` can be one of the following:
-  #     `json`: value field contains the content of the assets in JSON format
-  #     `yaml`: value field contains the content of the assets in YAML format
-  #     `file`: value field contains the path to the assets file. The file name can be *.json or *.yaml.
-  #     `url`: value contains the url to the assets file. The file name can be *.json or *.yaml.
+  # Option 1: Use a file to provide the configuration.
+  # Specify the type as 'file' and provide the file path in the value field.
+  # The file can only be in .yaml or .json format.
+  # The file content should follow the format used in Option 2.
+  #
+  # type: file
+  # value: path/to/file.yaml
+  #
+  # Option 2: Define assets inline using a YAML string.
+  # Specify the type as 'yaml', and define your clients value in YAML string format.
+  #
+  # type: yaml
+  # value: "items:\n  - id: stellar:USDC:<Issuer>\n  - id: iso4217:USD"
+  #
+  # Option 3: Define assets inline using a JSON string.
+  # Specify the type as 'json', and define your clients value in JSON string format.
+  #
+  # type: json
+  # value: "{\n  \"items\": [\n    {\n      \"id\": \"stellar:<Issuer>\"\n    },\n    {\n      \"id\": \"iso4217:USD5\"\n    }\n]\n}"
   type: json
   # The value of the assets definition depending on the `type` field.
+  value:
+
+##############################
+# Anchor Platform Clients Configuration
+##############################
+# The list of clients for the Anchor server to safely communicate with the outside wallet servers or clients.
+# The list is empty if not defined.
+# You can either use a file to provide the configuration or define it inline. See anchor-client-default-values.yaml for examples.
+# Use only one of the following combinations:
+clients:
+  # Option 1: Use a file to provide the configuration.
+  # Specify the type as 'file' and provide the file path in the value field.
+  # The file can only be in .yaml or .json format.
+  # The file content should follow the format used in Option 2.
+  #
+  # type: file
+  # value: path/to/file.yaml
+  #
+  # Option 2: Define clients inline using a YAML string.
+  # Specify the type as 'yaml', and define your clients value in YAML string format.
+  #
+  # type: yaml
+  # value: "items:\n  - name: client1\n    type: custodial\n  - name: client2"
+  #
+  # Option 3: Define clients inline using a JSON string.
+  # Specify the type as 'json', and define your clients value in JSON string format.
+  #
+  # type: json
+  # value: "{\n  \"items\": [\n    {\n      \"name\": \"referenceCustodial\",\n      \"type\": \"custodial\"\n    }\n]\n}"
+  type: json
   value:
 
 ################################

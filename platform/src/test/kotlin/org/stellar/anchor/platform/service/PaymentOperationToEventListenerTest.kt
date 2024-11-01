@@ -90,7 +90,7 @@ class PaymentOperationToEventListenerTest {
     val slotAccount = slot<String>()
     val slotStatus = slot<String>()
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep31TransactionStore.findByToAccountAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
         capture(slotStatus)
@@ -103,7 +103,7 @@ class PaymentOperationToEventListenerTest {
     } returns null
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "my_memo_2",
         "pending_sender"
@@ -117,7 +117,7 @@ class PaymentOperationToEventListenerTest {
     slotMemo = slot()
     p.transactionMemo = "my_memo_3"
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep31TransactionStore.findByToAccountAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
         capture(slotStatus)
@@ -125,7 +125,7 @@ class PaymentOperationToEventListenerTest {
     } throws SepException("Something went wrong")
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "my_memo_3",
         "pending_sender"
@@ -143,7 +143,7 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.amountInAsset = "BAR"
     sep31TxMock.amountIn = "1"
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep31TransactionStore.findByToAccountAndMemoAndStatus(
         capture(slotAccount),
         capture(slotMemo),
         capture(slotStatus)
@@ -151,7 +151,7 @@ class PaymentOperationToEventListenerTest {
     } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "my_memo_4",
         "pending_sender"
@@ -236,7 +236,7 @@ class PaymentOperationToEventListenerTest {
 
     val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep31TransactionStore.findByToAccountAndMemoAndStatus(
         capture(slotAccountId),
         capture(slotMemo),
         capture(slotStatus)
@@ -260,7 +260,7 @@ class PaymentOperationToEventListenerTest {
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
         "pending_sender"
@@ -332,7 +332,7 @@ class PaymentOperationToEventListenerTest {
 
     val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
     every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         capture(slotMemo),
         capture(slotStatus)
@@ -356,7 +356,7 @@ class PaymentOperationToEventListenerTest {
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(
+      sep31TransactionStore.findByToAccountAndMemoAndStatus(
         "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
         "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=",
         "pending_sender"
@@ -419,9 +419,8 @@ class PaymentOperationToEventListenerTest {
     sep24TxMock.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
 
     // TODO: this shouldn't be necessary
-    every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
-    } returns null
+    every { sep31TransactionStore.findByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      null
     every {
       sep6TransactionStore.findOneByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
     } returns null
@@ -515,9 +514,8 @@ class PaymentOperationToEventListenerTest {
     sep6TxMock.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
 
     // TODO: this shouldn't be necessary
-    every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
-    } returns null
+    every { sep31TransactionStore.findByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      null
     every { sep24TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
       null
 
@@ -608,9 +606,8 @@ class PaymentOperationToEventListenerTest {
     sep6TxMock.memoType = "hash"
     sep6TxMock.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
 
-    every {
-      sep31TransactionStore.findByStellarAccountIdAndMemoAndStatus(any(), any(), any())
-    } returns null
+    every { sep31TransactionStore.findByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      null
     every { sep24TransactionStore.findOneByToAccountAndMemoAndStatus(any(), any(), any()) } returns
       null
 

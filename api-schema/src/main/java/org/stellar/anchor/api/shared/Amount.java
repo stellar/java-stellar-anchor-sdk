@@ -1,6 +1,6 @@
 package org.stellar.anchor.api.shared;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

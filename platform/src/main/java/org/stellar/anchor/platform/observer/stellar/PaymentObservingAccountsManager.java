@@ -3,6 +3,8 @@ package org.stellar.anchor.platform.observer.stellar;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -11,8 +13,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.AllArgsConstructor;
 import org.stellar.anchor.platform.data.PaymentObservingAccount;
 import org.stellar.anchor.platform.utils.DaemonExecutors;

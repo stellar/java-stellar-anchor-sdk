@@ -24,10 +24,6 @@ public class RequestOffchainFundsRequest extends RpcMethodParamsRequest
   @SerializedName("amount_out")
   private AmountAssetRequest amountOut;
 
-  @SerializedName("amount_fee")
-  @Deprecated // ANCHOR-636
-  private AmountAssetRequest amountFee;
-
   @SerializedName("fee_details")
   private FeeDetails feeDetails;
 

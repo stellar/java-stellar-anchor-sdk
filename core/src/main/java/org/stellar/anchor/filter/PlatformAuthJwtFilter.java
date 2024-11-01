@@ -1,7 +1,7 @@
 package org.stellar.anchor.filter;
 
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.NonNull;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;

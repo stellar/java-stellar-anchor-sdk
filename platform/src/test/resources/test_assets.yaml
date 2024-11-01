@@ -1,87 +1,45 @@
-assets:
-  - schema: stellar
-    code: USDC
-    issuer: GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+items:
+  - id: stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
     distribution_account: GBJDTHT4562X2H37JMOE6IUTZZSDU6RYGYUNFYCHVFG3J4MYJIMU33HK
     significant_decimals: 2
-    deposit:
+    sep24:
       enabled: true
-      fee_minimum: 0
-      fee_percent: 0
-      min_amount: 0
-      max_amount: 10000
-    withdraw:
-      enabled: true
-      fee_fixed: 0
-      fee_percent: 0
-      min_amount: 0
-      max_amount: 10000
-    send:
-      fee_fixed: 0
-      fee_percent: 0
-      min_amount: 0
-      max_amount: 10000
+      deposit:
+        enabled: true
+        min_amount: 0
+        max_amount: 10000
+        methods:
+          - SEPA
+          - SWIFT
+      withdraw:
+        enabled: true
+        min_amount: 0
+        max_amount: 10000
+        methods:
+          - bank_account
+          - cash
     sep31:
+      enabled: true
+      receive:
+        min_amount: 0
+        max_amount: 10000
       quotes_supported: true
       quotes_required: true
-      sep12:
-        sender:
-          types:
-            sep31-sender:
-              description: U.S. citizens limited to sending payments of less than $10,000
-                in value
-            sep31-large-sender:
-              description: U.S. citizens that do not have sending limits
-            sep31-foreign-sender:
-              description: non-U.S. citizens sending payments of less than $10,000 in
-                value
-        receiver:
-          types:
-            sep31-receiver:
-              description: U.S. citizens receiving USD
-            sep31-foreign-receiver:
-              description: non-U.S. citizens receiving USD
-      fields:
-        transaction:
-          receiver_routing_number:
-            description: routing number of the destination bank account
-          receiver_account_number:
-            description: bank account number of the destination
-          type:
-            description: type of deposit to make
-            choices:
-              - SEPA
-              - SWIFT
     sep38:
-      exchangeable_assets:
-        - stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-        - iso4217:USD
-    sep24_enabled: true
-    sep31_enabled: true
-    sep38_enabled: true
-  - schema: iso4217
-    code: USD
-    deposit:
       enabled: true
-      fee_minimum: 0
-      fee_percent: 0
-      min_amount: 1
-      max_amount: 1000000
-    withdraw:
-      enabled: false
-      fee_fixed: 0
-      fee_percent: 0
-      min_amount: 1
-      max_amount: 1000000
-    send:
-      fee_fixed: 0
-      fee_percent: 0
-      min_amount: 1
-      max_amount: 1000000
-    sep38:
       exchangeable_assets:
-        - stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-        - stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+        - stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+        - iso4217:USD
+  - id: iso4217:USD
+    sep31:
+      enabled: false
+      receive:
+        min_amount: 1
+        max_amount: 1000000
+    sep38:
+      enabled: true
+      exchangeable_assets:
+        - stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
       country_codes:
         - USA
       decimals: 4
@@ -91,5 +49,3 @@ assets:
       buy_delivery_methods:
         - name: WIRE
           description: Have USD sent directly to your bank account.
-    sep31_enabled: false
-    sep38_enabled: true

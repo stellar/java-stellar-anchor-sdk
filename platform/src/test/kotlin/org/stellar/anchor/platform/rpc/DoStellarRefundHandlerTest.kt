@@ -456,11 +456,12 @@ class DoStellarRefundHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1.1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.refundMemo = MEMO
     expectedResponse.refundMemoType = MEMO_TYPE
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -548,7 +549,6 @@ class DoStellarRefundHandlerTest {
     expectedResponse.amountExpected = Amount(null, STELLAR_USDC)
     expectedResponse.amountIn = Amount("1.1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("1", FIAT_USD)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = Amount("0.1", STELLAR_USDC).toRate()
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
@@ -913,13 +913,13 @@ class DoStellarRefundHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1.1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.refundMemo = MEMO
     expectedResponse.refundMemoType = MEMO_TYPE
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

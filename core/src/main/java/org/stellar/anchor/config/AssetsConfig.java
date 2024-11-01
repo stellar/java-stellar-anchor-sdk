@@ -16,9 +16,7 @@ public interface AssetsConfig {
     @SerializedName("yaml")
     YAML,
     @SerializedName("file")
-    FILE,
-    @SerializedName("url")
-    URL;
+    FILE;
 
     public static AssetConfigType from(String name) throws InvalidConfigException {
       if (isEmpty(name)) throw new InvalidConfigException("Invalid asset type: " + name);
@@ -29,8 +27,6 @@ public interface AssetsConfig {
           return YAML;
         case "file":
           return FILE;
-        case "url":
-          return URL;
       }
       throw new InvalidConfigException(String.format("Invalid sep1.type:[%s]", name));
     }

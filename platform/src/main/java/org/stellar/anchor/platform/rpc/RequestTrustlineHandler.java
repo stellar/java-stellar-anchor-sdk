@@ -29,7 +29,7 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
-public class RequestTrustlineHandler extends RpcMethodHandler<RequestTrustRequest> {
+public class RequestTrustlineHandler extends RpcTransactionStatusHandler<RequestTrustRequest> {
 
   private final CustodyConfig custodyConfig;
 

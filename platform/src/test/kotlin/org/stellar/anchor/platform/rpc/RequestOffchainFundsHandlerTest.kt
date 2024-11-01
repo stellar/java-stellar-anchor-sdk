@@ -202,33 +202,7 @@ class RequestOffchainFundsHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("fee_details or amount_fee is required", ex.message)
-
-    verify(exactly = 0) { txn6Store.save(any()) }
-    verify(exactly = 0) { txn24Store.save(any()) }
-    verify(exactly = 0) { txn31Store.save(any()) }
-    verify(exactly = 0) { sepTransactionCounter.increment() }
-  }
-
-  @Test
-  fun test_handle_withoutAmounts_amount_fee_absent() {
-    val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = INCOMPLETE.toString()
-    txn24.kind = DEPOSIT.kind
-    txn24.amountIn = "1"
-    txn24.amountInAsset = FIAT_USD
-    txn24.amountOut = "0.9"
-    txn24.amountOutAsset = STELLAR_USDC
-    val sep24TxnCapture = slot<JdbcSep24Transaction>()
-
-    every { txn6Store.findByTransactionId(any()) } returns null
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-
-    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("fee_details or amount_fee is required", ex.message)
+    assertEquals("fee_details is required", ex.message)
 
     verify(exactly = 0) { txn6Store.save(any()) }
     verify(exactly = 0) { txn24Store.save(any()) }
@@ -256,7 +230,7 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "All (amount_out is optional) or none of the amount_in, amount_out, and (fee_details or amount_fee) should be set",
+      "All (amount_out is optional) or none of the amount_in, amount_out, and fee_details should be set",
       ex.message
     )
 
@@ -506,10 +480,11 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -594,11 +569,12 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.userActionRequiredBy = actionRequiredBy
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -682,10 +658,11 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = FeeDetails("0.1", STELLAR_USDC, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -889,12 +866,11 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
-    expectedResponse.instructions = mapOf("first_name" to InstructionField.builder().build())
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -989,12 +965,11 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = FeeDetails("0.1", FIAT_USD, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
-    expectedResponse.instructions = mapOf("first_name" to InstructionField.builder().build())
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -1094,12 +1069,11 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.status = PENDING_USR_TRANSFER_START
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.feeDetails = FeeDetails("0.1", STELLAR_USDC, null)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
-    expectedResponse.instructions = mapOf("first_name" to InstructionField.builder().build())
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

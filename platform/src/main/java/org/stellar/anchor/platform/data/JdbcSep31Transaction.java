@@ -2,17 +2,16 @@ package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
 import java.util.Map;
-import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.SepTransaction;
-import org.stellar.anchor.api.sep.operation.Sep31Operation;
+import org.stellar.anchor.api.asset.Sep31Info;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -22,7 +21,6 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "sep31_transaction")
-@TypeDef(name = "json", typeClass = JsonType.class)
 @NoArgsConstructor
 public class JdbcSep31Transaction extends JdbcSepTransaction
     implements Sep31Transaction, SepTransaction {
@@ -34,9 +32,13 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   @Column(name = "status_eta")
   Long statusEta;
 
-  @SerializedName("stellar_account_id")
-  @Column(name = "stellar_account_id")
-  String stellarAccountId;
+  @SerializedName("from_account")
+  @Column(name = "from_account")
+  String fromAccount;
+
+  @SerializedName("to_account")
+  @Column(name = "to_account")
+  String toAccount;
 
   @SerializedName("stellar_memo")
   @Column(name = "stellar_memo")
@@ -94,7 +96,7 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   // Ignored by JPA and Gson
   @SerializedName("required_info_updates")
   @Transient
-  Sep31Operation.Fields requiredInfoUpdates;
+  Sep31Info.Fields requiredInfoUpdates;
 
   @Access(AccessType.PROPERTY)
   @Column(name = "requiredInfoUpdates")
@@ -104,15 +106,14 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
 
   public void setRequiredInfoUpdatesJson(String requiredInfoUpdatesJson) {
     if (requiredInfoUpdatesJson != null) {
-      this.requiredInfoUpdates =
-          gson.fromJson(requiredInfoUpdatesJson, Sep31Operation.Fields.class);
+      this.requiredInfoUpdates = gson.fromJson(requiredInfoUpdatesJson, Sep31Info.Fields.class);
     }
   }
 
   Boolean refunded;
 
   @Column(columnDefinition = "json")
-  @Type(type = "json")
+  @JdbcTypeCode(SqlTypes.JSON)
   JdbcSep31Refunds refunds;
 
   public Sep31Refunds getRefunds() {

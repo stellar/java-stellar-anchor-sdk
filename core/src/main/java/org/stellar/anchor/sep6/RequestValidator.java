@@ -1,11 +1,14 @@
 package org.stellar.anchor.sep6;
 
+import static org.stellar.anchor.util.AssetHelper.isDepositEnabled;
+import static org.stellar.anchor.util.AssetHelper.isWithdrawEnabled;
+
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.sdk.KeyPair;
 
@@ -21,9 +24,9 @@ public class RequestValidator {
    * @return the asset if its valid and enabled for deposit
    * @throws SepValidationException if the asset is invalid or not enabled for deposit
    */
-  public AssetInfo getDepositAsset(String assetCode) throws SepValidationException {
-    AssetInfo asset = assetService.getAsset(assetCode);
-    if (asset == null || !asset.getSep6Enabled() || !asset.getDeposit().getEnabled()) {
+  public StellarAssetInfo getDepositAsset(String assetCode) throws SepValidationException {
+    StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode);
+    if (asset == null || !isDepositEnabled(asset.getSep6())) {
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
     return asset;
@@ -36,9 +39,9 @@ public class RequestValidator {
    * @return the asset if its valid and enabled for withdrawal
    * @throws SepValidationException if the asset is invalid or not enabled for withdrawal
    */
-  public AssetInfo getWithdrawAsset(String assetCode) throws SepValidationException {
-    AssetInfo asset = assetService.getAsset(assetCode);
-    if (asset == null || !asset.getSep6Enabled() || !asset.getWithdraw().getEnabled()) {
+  public StellarAssetInfo getWithdrawAsset(String assetCode) throws SepValidationException {
+    StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode);
+    if (asset == null || !isWithdrawEnabled(asset.getSep6())) {
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
     return asset;

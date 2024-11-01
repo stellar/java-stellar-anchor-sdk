@@ -18,35 +18,25 @@ import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
-import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 
 import io.micrometer.core.instrument.Counter;
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
-import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
-import org.stellar.anchor.api.callback.CustomerIntegration;
-import org.stellar.anchor.api.callback.FeeIntegration;
-import org.stellar.anchor.api.callback.GetCustomerRequest;
-import org.stellar.anchor.api.callback.GetCustomerResponse;
-import org.stellar.anchor.api.callback.GetFeeRequest;
+import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.StellarAssetInfo;
+import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.NotFoundException;
-import org.stellar.anchor.api.exception.Sep31CustomerInfoNeededException;
 import org.stellar.anchor.api.exception.Sep31MissingFieldException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.exception.ServerErrorException;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.sep.operation.Sep12Operation;
-import org.stellar.anchor.api.sep.operation.Sep31Operation.Fields;
-import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest;
@@ -54,38 +44,30 @@ import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest;
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.FeeDetails;
-import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
+import org.stellar.anchor.client.ClientConfig;
+import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.ClientsConfig;
-import org.stellar.anchor.config.ClientsConfig.ClientConfig;
-import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep31Config;
-import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
-import org.stellar.anchor.util.CustodyUtils;
 import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.TransactionHelper;
+import org.stellar.anchor.util.TransactionMapper;
 
 public class Sep31Service {
   private final AppConfig appConfig;
   private final Sep10Config sep10Config;
   private final Sep31Config sep31Config;
   private final Sep31TransactionStore sep31TransactionStore;
-  private final Sep31DepositInfoGenerator sep31DepositInfoGenerator;
   private final Sep38QuoteStore sep38QuoteStore;
-  private final ClientsConfig clientsConfig;
+  private final ClientService clientService;
   private final AssetService assetService;
-  private final FeeIntegration feeIntegration;
-  private final CustomerIntegration customerIntegration;
+  private final RateIntegration rateIntegration;
   private final Sep31InfoResponse infoResponse;
-  private final CustodyService custodyService;
-  private final CustodyConfig custodyConfig;
   private final EventService.Session eventSession;
   private final Counter sep31TransactionCreatedCounter = counter(SEP31_TRANSACTION_CREATED);
   private final Counter sep31TransactionPatchedCounter = counter(SEP31_TRANSACTION_PATCHED);
@@ -95,31 +77,23 @@ public class Sep31Service {
       Sep10Config sep10Config,
       Sep31Config sep31Config,
       Sep31TransactionStore sep31TransactionStore,
-      Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
-      ClientsConfig clientsConfig,
+      ClientService clientService,
       AssetService assetService,
-      FeeIntegration feeIntegration,
-      CustomerIntegration customerIntegration,
-      EventService eventService,
-      CustodyService custodyService,
-      CustodyConfig custodyConfig) {
+      RateIntegration rateIntegration,
+      EventService eventService) {
     debug("appConfig:", appConfig);
     debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
     this.sep10Config = sep10Config;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;
-    this.sep31DepositInfoGenerator = sep31DepositInfoGenerator;
     this.sep38QuoteStore = sep38QuoteStore;
-    this.clientsConfig = clientsConfig;
+    this.clientService = clientService;
     this.assetService = assetService;
-    this.feeIntegration = feeIntegration;
-    this.customerIntegration = customerIntegration;
+    this.rateIntegration = rateIntegration;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
-    this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
-    this.custodyService = custodyService;
-    this.custodyConfig = custodyConfig;
+    this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.getAssets());
     Log.info("Sep31Service initialized.");
   }
 
@@ -134,7 +108,8 @@ public class Sep31Service {
     Context.get().setRequest(request);
     Context.get().setSep10Jwt(sep10Jwt);
 
-    AssetInfo assetInfo = assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
+    StellarAssetInfo assetInfo =
+        (StellarAssetInfo) assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
     if (assetInfo == null) {
       // the asset is not supported.
       infoF("Asset: [{}:{}]", request.getAssetCode(), request.getAssetIssuer());
@@ -149,8 +124,8 @@ public class Sep31Service {
     validateAmountLimit(
         "sell_",
         request.getAmount(),
-        assetInfo.getSend().getMinAmount(),
-        assetInfo.getSend().getMaxAmount());
+        assetInfo.getSep31().getReceive().getMinAmount(),
+        assetInfo.getSep31().getReceive().getMaxAmount());
     validateLanguage(appConfig, request.getLang());
 
     /*
@@ -170,7 +145,6 @@ public class Sep31Service {
     validateRequiredFields();
 
     // Validation that execute HTTP requests
-    validateSenderAndReceiver();
     preValidateQuote();
 
     // Query the fee
@@ -198,7 +172,7 @@ public class Sep31Service {
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
-            .status(SepTransactionStatus.PENDING_SENDER.getStatus())
+            .status(SepTransactionStatus.PENDING_RECEIVER.getStatus())
             .statusEta(null)
             .feeDetails(feeDetails)
             .startedAt(now)
@@ -220,18 +194,10 @@ public class Sep31Service {
             // updateAmounts will update these ⬇️
             .amountExpected(request.getAmount())
             .amountIn(request.getAmount())
-            .amountInAsset(assetInfo.getSep38AssetName())
+            .amountInAsset(assetInfo.getId())
             .amountOut(null)
             .amountOutAsset(null)
-            .stellarAccountId(assetInfo.getDistributionAccount())
-            .stellarMemo(null)
-            .stellarMemoType(null)
             .build();
-
-    // updateDepositInfo will update these ⬇️
-    if (!isEmpty(assetInfo.getDistributionAccount())) {
-      txn.setStellarAccountId(assetInfo.getDistributionAccount());
-    }
 
     Context.get().setTransaction(txn);
     updateAmounts();
@@ -240,28 +206,16 @@ public class Sep31Service {
     Context.get().setTransaction(sep31TransactionStore.save(txn));
     txn = Context.get().getTransaction();
 
-    updateDepositInfo();
-
-    if (custodyConfig.isCustodyIntegrationEnabled()) {
-      custodyService.createTransaction(txn);
-    }
-
     eventSession.publish(
         AnchorEvent.builder()
             .id(UUID.randomUUID().toString())
             .sep("31")
             .type(TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn))
             .build());
 
     Sep31PostTransactionResponse response =
-        Sep31PostTransactionResponse.builder()
-            .id(txn.getId())
-            .stellarAccountId(txn.getStellarAccountId())
-            .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
-            .stellarMemoType(
-                isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
-            .build();
+        Sep31PostTransactionResponse.builder().id(txn.getId()).build();
     // increment counter
     sep31TransactionCreatedCounter.increment();
     return response;
@@ -301,8 +255,7 @@ public class Sep31Service {
     txn.setAmountExpected(quote.getSellAmount());
     txn.setAmountOutAsset(quote.getBuyAsset());
     txn.setAmountOut(quote.getBuyAmount());
-    txn.setAmountFee(quote.getFee().getTotal());
-    txn.setAmountFeeAsset(quote.getFee().getAsset());
+    txn.setFeeDetails(quote.getFee());
   }
 
   /**
@@ -335,7 +288,7 @@ public class Sep31Service {
     }
     debugF("Updating transaction ({}) with fee ({}) - reqAsset ({})", txn.getId(), fee, reqAsset);
 
-    String amountInAsset = reqAsset.getSep38AssetName();
+    String amountInAsset = reqAsset.getId();
     String amountOutAsset = request.getDestinationAsset();
 
     boolean isSimpleQuote = Objects.equals(amountInAsset, amountOutAsset);
@@ -351,30 +304,8 @@ public class Sep31Service {
 
     // Update fee
     String feeStr = formatAmount(fee, scale);
-    txn.setAmountFee(feeStr);
-    txn.setAmountFeeAsset(feeResponse.getAsset());
+    txn.setFeeDetails(new FeeDetails(feeStr, feeResponse.getAsset()));
     Context.get().getFee().setAmount(feeStr);
-  }
-
-  /**
-   * updateDepositInfo will populate the transaction's deposit information (stellar_account_id, memo
-   * and memo_type), as provided by the sep31DepositInfoGenerator.
-   */
-  void updateDepositInfo() throws AnchorException {
-    Sep31Transaction txn = Context.get().getTransaction();
-    SepDepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
-    infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
-
-    if (!CustodyUtils.isMemoTypeSupported(custodyConfig.getType(), depositInfo.getMemoType())) {
-      throw new BadRequestException(
-          String.format(
-              "Memo type[%s] is not supported for custody type[%s]",
-              depositInfo.getMemoType(), custodyConfig.getType()));
-    }
-
-    txn.setStellarAccountId(depositInfo.getStellarAddress());
-    txn.setStellarMemo(depositInfo.getMemo());
-    txn.setStellarMemoType(isEmpty(depositInfo.getMemoType()) ? "none" : depositInfo.getMemoType());
   }
 
   public Sep31GetTransactionResponse getTransaction(String id) throws AnchorException {
@@ -492,11 +423,11 @@ public class Sep31Service {
     boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
     boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
 
+    // Check if a quote is provided.
     if (isQuotesRequired && request.getQuoteId() == null) {
       throw new BadRequestException("quotes_required is set to true; quote id cannot be empty");
     }
 
-    // Check if quote is provided.
     if (!isQuotesSupported || request.getQuoteId() == null) {
       return;
     }
@@ -522,7 +453,7 @@ public class Sep31Service {
     }
 
     // Check quote asset: `post_transaction.asset == quote.sell_asset`
-    String assetName = Context.get().getAsset().getSep38AssetName();
+    String assetName = Context.get().getAsset().getId();
     if (!assetName.equals(quote.getSellAsset())) {
       infoF(
           "Quote ({}) - sellAsset ({}) is different from the SEP-31 transaction asset ({})",
@@ -559,27 +490,30 @@ public class Sep31Service {
     }
 
     Sep31PostTransactionRequest request = Context.get().getRequest();
-    Sep10Jwt token = Context.get().getSep10Jwt();
-    String assetName = Context.get().getAsset().getSep38AssetName();
+    String assetName = Context.get().getAsset().getId();
     infoF("Requesting fee for request ({})", request);
-    Amount fee =
-        feeIntegration
-            .getFee(
-                GetFeeRequest.builder()
-                    .sendAmount(request.getAmount())
-                    .sendAsset(assetName)
-                    .receiveAsset(
+    var rate =
+        rateIntegration
+            .getRate(
+                GetRateRequest.builder()
+                    .type(GetRateRequest.Type.INDICATIVE)
+                    .sellAmount(request.getAmount())
+                    .sellAsset(assetName)
+                    .buyAsset(
                         (request.getDestinationAsset() == null)
                             ? assetName
                             : request.getDestinationAsset())
-                    .receiveAmount(null)
-                    .senderId(request.getSenderId())
-                    .receiverId(request.getReceiverId())
+                    .buyAmount(null)
                     .clientId(getClientName())
                     .build())
-            .getFee();
+            .getRate();
+    FeeDetails fee = rate.getFee();
+    if (fee == null) {
+      throw new SepValidationException("Fee is not present in /rate response");
+    }
     infoF("Fee for request ({}) is ({})", request, fee);
-    Context.get().setFee(fee);
+    Amount amountFee = Amount.create(fee.getTotal(), fee.getAsset());
+    Context.get().setFee(amountFee);
   }
 
   String getClientName() throws BadRequestException {
@@ -587,70 +521,13 @@ public class Sep31Service {
   }
 
   String getClientName(String account) throws BadRequestException {
-    ClientConfig client = clientsConfig.getClientConfigBySigningKey(account);
+    ClientConfig client = clientService.getClientConfigBySigningKey(account);
     if (sep10Config.isClientAttributionRequired() && client == null) {
       throw new BadRequestException("Client not found");
     }
     if (client != null && !sep10Config.getAllowedClientNames().contains(client.getName()))
       client = null;
     return client == null ? null : client.getName();
-  }
-
-  /**
-   * validateSenderAndReceiver will validate if the SEP-31 sender and receiver exist and their
-   * status is ACCEPTED.
-   *
-   * @throws BadRequestException if `sender_id` or `receiver_id` is empty.
-   * @throws Sep31CustomerInfoNeededException if the SEP-12 customer does not exist or if its status
-   *     is not ACCEPTED.
-   * @throws AnchorException is something else went wrong.
-   */
-  private void validateSenderAndReceiver()
-      throws AnchorException, BadRequestException, Sep31CustomerInfoNeededException {
-    String receiverId = Context.get().getRequest().getReceiverId();
-    if (receiverId == null) {
-      infoF("'receiver_id' cannot be empty for request ({})", Context.get().getRequest());
-      throw new BadRequestException("receiver_id cannot be empty.");
-    }
-
-    // TODO: Populate customer type with the first receiver type; this is a temporary fix for cases
-    // where customerType is required
-    Sep12Operation sep12Operation = Context.get().getAsset().getSep31().getSep12();
-    String receiverType = null;
-    if (sep12Operation != null) {
-      Optional<String> receiverTypeOptional =
-          sep12Operation.getReceiver().getTypes().keySet().stream().findFirst();
-      receiverType = receiverTypeOptional.orElse(null);
-    }
-    GetCustomerRequest request =
-        GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
-    GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
-    if (receiver == null || !Objects.equals(receiver.getStatus(), Sep12Status.ACCEPTED.name())) {
-      infoF("Customer (receiver) info needed for request ({})", Context.get().getRequest());
-      throw new Sep31CustomerInfoNeededException("sep31-receiver");
-    }
-
-    String senderId = Context.get().getRequest().getSenderId();
-    if (senderId == null) {
-      infoF("'sender_id' cannot be empty for request ({})", Context.get().getRequest());
-      throw new BadRequestException("sender_id cannot be empty.");
-    }
-
-    // TODO: Populate customer type with the first sender type; this is a temporary fix for cases
-    // where customerType is required
-    String senderType = null;
-    if (sep12Operation != null) {
-      Optional<String> senderTypeOptional =
-          Context.get().getAsset().getSep31().getSep12().getSender().getTypes().keySet().stream()
-              .findFirst();
-      senderType = senderTypeOptional.orElse(null);
-    }
-    request = GetCustomerRequest.builder().id(senderId).type(senderType).build();
-    GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
-    if (sender == null || !Objects.equals(sender.getStatus(), Sep12Status.ACCEPTED.name())) {
-      infoF("Customer (sender) info needed for request ({})", Context.get().getRequest());
-      throw new Sep31CustomerInfoNeededException("sep31-sender");
-    }
   }
 
   /**
@@ -683,27 +560,6 @@ public class Sep31Service {
           Context.get().getRequest());
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
-
-    Map<String, AssetInfo.Field> missingFields =
-        fieldSpecs.getFields().getTransaction().entrySet().stream()
-            .filter(
-                entry -> {
-                  AssetInfo.Field field = entry.getValue();
-                  if (field.isOptional()) return false;
-                  return requestFields.get(entry.getKey()) == null;
-                })
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    Fields sep31MissingTxnFields = new Fields();
-    sep31MissingTxnFields.setTransaction(missingFields);
-
-    if (missingFields.size() > 0) {
-      infoF(
-          "Missing SEP-31 fields ({}) for request ({})",
-          sep31MissingTxnFields,
-          Context.get().getRequest());
-      throw new Sep31MissingFieldException(sep31MissingTxnFields);
-    }
   }
 
   @SneakyThrows
@@ -711,26 +567,17 @@ public class Sep31Service {
     Sep31InfoResponse response = new Sep31InfoResponse();
     response.setReceive(new HashMap<>());
     for (AssetInfo assetInfo : assetInfos) {
-      if (assetInfo.getSep31Enabled()) {
+      if (assetInfo.getSep31() != null && assetInfo.getSep31().getEnabled()) {
         boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
         boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
-        if (isQuotesRequired && !isQuotesSupported) {
-          throw new SepValidationException(
-              "if quotes_required is true, quotes_supported must also be true");
-        }
         AssetResponse assetResponse = new AssetResponse();
         assetResponse.setQuotesSupported(isQuotesSupported);
         assetResponse.setQuotesRequired(isQuotesRequired);
-        assetResponse.setFeeFixed(assetInfo.getSend().getFeeFixed());
-        assetResponse.setFeePercent(assetInfo.getSend().getFeePercent());
-        assetResponse.setMinAmount(assetInfo.getSend().getMinAmount());
-        assetResponse.setMaxAmount(assetInfo.getSend().getMaxAmount());
-        assetResponse.setFields(assetInfo.getSep31().getFields());
-        assetResponse.setSep12(assetInfo.getSep31().getSep12());
+        assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
+        assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
         response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
     }
-
     return response;
   }
 

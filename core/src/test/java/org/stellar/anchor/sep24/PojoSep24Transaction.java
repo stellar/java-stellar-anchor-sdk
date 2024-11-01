@@ -10,7 +10,6 @@ import org.stellar.anchor.api.shared.StellarTransaction;
 @Data
 public class PojoSep24Transaction implements Sep24Transaction {
   String id;
-  String documentType;
   String transactionId;
   String stellarTransactionId;
   String externalTransactionId;
