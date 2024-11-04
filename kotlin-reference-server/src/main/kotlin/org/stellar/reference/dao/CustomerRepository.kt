@@ -20,12 +20,17 @@ interface CustomerRepository {
 
 class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
   init {
-    transaction(db) { SchemaUtils.create(Customers) }
+    transaction(db) {
+      SchemaUtils.create(Customers)
+      val missingColumnsStatements = SchemaUtils.addMissingColumnsStatements(Customers)
+      missingColumnsStatements.forEach { exec(it) }
+    }
   }
 
   override fun get(id: String): Customer? =
     transaction(db) {
-        Customers.select { Customers.id.eq(id) }
+        Customers.selectAll()
+          .where { Customers.id.eq(id) }
           .mapNotNull {
             Customer(
               id = id,
@@ -99,7 +104,8 @@ class JdbcCustomerRepository(private val db: Database) : CustomerRepository {
         }
       }
     return transaction(db) {
-        Customers.select { query }
+        Customers.selectAll()
+          .where { query }
           .mapNotNull {
             Customer(
               id = it[Customers.id],

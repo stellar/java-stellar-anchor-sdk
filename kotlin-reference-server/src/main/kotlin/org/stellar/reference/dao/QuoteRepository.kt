@@ -1,10 +1,7 @@
 package org.stellar.reference.dao
 
 import java.time.Instant
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.model.FeeDetails
@@ -17,12 +14,17 @@ interface QuoteRepository {
 
 class JdbcQuoteRepository(private val db: Database) : QuoteRepository {
   init {
-    transaction(db) { SchemaUtils.create(Quotes) }
+    transaction(db) {
+      SchemaUtils.create(Quotes)
+      val missingColumnsStatements = SchemaUtils.addMissingColumnsStatements(Quotes)
+      missingColumnsStatements.forEach { exec(it) }
+    }
   }
 
   override fun get(id: String): Quote? =
     transaction(db) {
-      Quotes.select { Quotes.id.eq(id) }
+      Quotes.selectAll()
+        .where { Quotes.id.eq(id) }
         .mapNotNull { it ->
           Quote(
             id = id,
