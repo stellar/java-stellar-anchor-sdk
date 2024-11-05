@@ -1,39 +1,46 @@
 #
-# This file contains the configuration for the client. The values used here are for testing purposes only.
+# This file contains client configuration details. The provided values are for illustrative purposes only.
 #
 items:
-  # Custodial Client
-    # The unique name identifying the client. This should be a recognizable name that represents the client entity.
-  - name: Client1
-    # The type of the client. It can be either `custodial` or `noncustodial`.
+  # Custodial Client Configuration
+    # (Required) A unique identifier for the client, typically a name that clearly represents the client entity.
+  - name:
+    # (Required) The type of the client. It can be either `custodial` or `noncustodial`.
     type: custodial
-    # The public keys used for SEP-10 authentication.
-    signing_keys:
-      - GDADDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-      - GDBDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
-    # The URLs to which the service can send callbacks for different SEP types. Optional due to some wallets may opt
-    # to poll instead, or may use polling first before implementing callbacks at a later stage.
-    callbackUrls:
-      sep6: https://example.com/callbacks/sep6
-      sep24: https://example.com/callbacks/sep24
-      sep31: https://example.com/callbacks/sep31
-      sep12: https://example.com/callbacks/sep12
-    # A boolean flag that, when set to true, allows any destination for deposits. Defaults to false,
+    # (Required) A list of public keys used for SEP-10 authentication. Example:
+    # signing_keys:
+    #   - GDAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    #   - GDBYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+    signing_keys: []
+    # (Optional) The URLs to which the service can send callbacks for different SEP types. Optional due to some wallets may opt
+    # to poll instead, or may use polling first before implementing callbacks at a later stage. Example:
+    # callback_urls:
+    #   sep6: https://client.com/sep6
+    #   sep24: https://client.com/sep24
+    callback_urls:
+      sep6:
+      sep24:
+      sep31:
+      sep12:
+    # (Optional) A boolean flag that, when set to true, allows any destination for deposits. Defaults to false,
     # which enforces that the destination account must be listed in the destination_accounts list.
     allowAnyDestination: false
-    # List of accounts allowed to be used for the deposit. By default, only SEP-10 authenticated account can be used to
-    # deposit funds into. If allows_any_destinations set to true, this configuration option is ignored.
-    destinationAccounts:
+    # (Optional) A list of accounts authorized for deposits. If `allowAnyDestination` is true, this option is ignored.
+    destinationAccounts: []
 
-  # Noncustodial Client
-  - name: Client2
+  # Noncustodial Client Configuration
+    # (Required) A unique identifier for the client, similar to custodial clients.
+  - name:
+    # (Required) The type of the client, similar to custodial clients.
     type: noncustodial
-    # The domains associated with the client, used for verifying the client's identity.
-    domains:
-      - wallet-server:8092
+    # (Required) A list of domains associated with the client, used to verify the client’s identity. Example:
+    # domains:
+    #   - client.com
+    #   - client.org
+    domains: []
+    # (Optional) URLs for sending callbacks related to various SEP protocols, similar to custodial clients.
     callback_urls:
-      sep6: http://wallet-server:8092/callbacks/sep6
-      sep24: http://wallet-server:8092/callbacks/sep24
-      sep31: http://wallet-server:8092/callbacks/sep31
-      sep12: http://wallet-server:8092/callbacks/sep12
-
+      sep6:
+      sep24:
+      sep31:
+      sep12:

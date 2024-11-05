@@ -5,8 +5,7 @@ import static java.lang.String.format;
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.util.ErrorHelper.logErrorAndThrow;
 import static org.stellar.anchor.util.Log.*;
-import static org.stellar.anchor.util.NumberHelper.hasProperSignificantDecimals;
-import static org.stellar.anchor.util.NumberHelper.isPositiveNumber;
+import static org.stellar.anchor.util.NumberHelper.*;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -28,6 +27,7 @@ import org.stellar.anchor.api.callback.GetRateRequest;
 import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.shared.FeeDescription;
 import org.stellar.anchor.api.shared.FeeDetails;
@@ -66,36 +66,51 @@ public class RestRateIntegration implements RateIntegration {
 
   @Override
   public GetRateResponse getRate(GetRateRequest request) throws AnchorException {
-    Builder urlBuilder = get(anchorEndpoint).newBuilder().addPathSegment("rate");
-    Type type = new TypeToken<Map<String, ?>>() {}.getType();
-    Map<String, String> paramsMap = gson.fromJson(gson.toJson(request), type);
-    paramsMap.forEach(
-        (key, value) -> {
-          if (value != null) {
-            urlBuilder.addQueryParameter(key, value);
-          }
-        });
-    HttpUrl url = urlBuilder.build();
+    validateRateRequest(request);
 
-    Request httpRequest =
-        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build();
-    Response response = PlatformIntegrationHelper.call(httpClient, httpRequest);
-    String responseContent = PlatformIntegrationHelper.getContent(response);
+    try (Response response = invokeGetRateRequest(request, authHelper)) {
+      String responseContent = PlatformIntegrationHelper.getContent(response);
 
-    if (response.code() != HttpStatus.OK.value()) {
-      throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
+      if (response.code() != HttpStatus.OK.value()) {
+        throw PlatformIntegrationHelper.httpError(responseContent, response.code(), gson);
+      }
+
+      GetRateResponse getRateResponse;
+      try {
+        getRateResponse = gson.fromJson(responseContent, GetRateResponse.class);
+      } catch (Exception e) { // cannot read body from response
+        errorEx("Error parsing body response to GetRateResponse", e);
+        throw new ServerErrorException("internal server error", e);
+      }
+
+      validateRateResponse(request, getRateResponse);
+
+      // If the rate.fee is not present, we need to set it to 0 so that the fee always exists
+      if (getRateResponse.getRate().getFee() == null) {
+        getRateResponse.getRate().setFee(new FeeDetails("0", request.getSellAsset()));
+      }
+
+      return getRateResponse;
+    }
+  }
+
+  void validateRateRequest(GetRateRequest request) {
+    if (request.getType() == null) {
+      logErrorAndThrow(
+          "'type' is missing in the GET /rate request", IllegalArgumentException.class);
     }
 
-    GetRateResponse getRateResponse;
-    try {
-      getRateResponse = gson.fromJson(responseContent, GetRateResponse.class);
-    } catch (Exception e) { // cannot read body from response
-      errorEx("Error parsing body response to GetRateResponse", e);
-      throw new ServerErrorException("internal server error", e);
+    if (request.getSellAmount() == null && request.getBuyAmount() == null) {
+      logErrorAndThrow(
+          "One of 'sell_amount' and 'buy_amount' must exist but none provided",
+          IllegalArgumentException.class);
     }
 
-    validateRateResponse(request, getRateResponse);
-    return getRateResponse;
+    if (request.getSellAmount() != null && request.getBuyAmount() != null) {
+      logErrorAndThrow(
+          "Only one of 'sell_amount' and 'buy_amount' can exist but both provided",
+          IllegalArgumentException.class);
+    }
   }
 
   void validateRateResponse(GetRateRequest request, GetRateResponse getRateResponse)
@@ -103,12 +118,14 @@ public class RestRateIntegration implements RateIntegration {
     AssetInfo sellAsset = assetService.getAssetById(request.getSellAsset());
     AssetInfo buyAsset = assetService.getAssetById(request.getBuyAsset());
 
+    // rate and price must be present
     GetRateResponse.Rate rate = getRateResponse.getRate();
     if (rate == null || rate.getPrice() == null) {
       logErrorAndThrow(
           "missing 'rate.price' in the GET /rate response", ServerErrorException.class);
     }
 
+    // expires_at and id must be present when the rate is firm
     if (request.getType() == GetRateRequest.Type.FIRM) {
       if (rate.getId() == null || rate.getExpiresAt() == null) {
         logErrorAndThrow(
@@ -132,8 +149,9 @@ public class RestRateIntegration implements RateIntegration {
     }
 
     // sell_amount has a proper number of significant decimals
-    if (!hasProperSignificantDecimals(
-        Objects.requireNonNull(rate).getSellAmount(), sellAsset.getSignificantDecimals())) {
+    if (sellAsset != null
+        && !hasProperSignificantDecimals(
+            Objects.requireNonNull(rate).getSellAmount(), sellAsset.getSignificantDecimals())) {
       logErrorAndThrow(
           format(
               "'rate.sell_amount' (%s) has incorrect number of significant decimals (expected: %d) in the GET /rate response",
@@ -142,8 +160,9 @@ public class RestRateIntegration implements RateIntegration {
     }
 
     // buy_amount has a proper number of significant decimals
-    if (!hasProperSignificantDecimals(
-        Objects.requireNonNull(rate).getBuyAmount(), buyAsset.getSignificantDecimals())) {
+    if (buyAsset != null
+        && !hasProperSignificantDecimals(
+            Objects.requireNonNull(rate).getBuyAmount(), buyAsset.getSignificantDecimals())) {
       logErrorAndThrow(
           format(
               "'rate.buy_amount' (%s) has incorrect number of significant decimals (expected: %d) in the GET /rate response",
@@ -151,15 +170,47 @@ public class RestRateIntegration implements RateIntegration {
           ServerErrorException.class);
     }
 
+    if (request.getSellAmount() != null) {
+      if (new BigDecimal(request.getSellAmount()).compareTo(new BigDecimal(rate.getSellAmount()))
+          != 0) {
+        logErrorAndThrow(
+            format(
+                "'rate.sell_amount' (%s) is not equal to the requested 'sell_amount' (%s) in the GET /rate response",
+                rate.getSellAmount(), request.getSellAmount()),
+            ServerErrorException.class);
+      }
+    }
+
+    if (request.getBuyAmount() != null) {
+      if (new BigDecimal(request.getBuyAmount()).compareTo(new BigDecimal(rate.getBuyAmount()))
+          != 0) {
+        logErrorAndThrow(
+            format(
+                "'rate.buy_amount' (%s) is not equal to the requested 'buy_amount' (%s) in the GET /rate response",
+                rate.getBuyAmount(), request.getBuyAmount()),
+            ServerErrorException.class);
+      }
+    }
+
     FeeDetails fee = rate.getFee();
     // if fee is set, check the following
     if (fee != null) {
-      // fee.total is present and is a positive number
-      if (!isPositiveNumber(fee.getTotal())) {
+      // fee.total is present and is a non-negative number
+      if (!isNonNegativeNumber(fee.getTotal())) {
         logErrorAndThrow(
-            "'rate.fee.total' is missing or not a positive number in the GET /rate response",
+            "'rate.fee.total' is missing or a negative number in the GET /rate response",
             ServerErrorException.class);
       }
+
+      // if fee.total is zero, fee.details must be empty or non-existent
+      if ((new BigDecimal(fee.getTotal()).compareTo(BigDecimal.ZERO) == 0)
+          && fee.getDetails() != null
+          && !fee.getDetails().isEmpty()) {
+        logErrorAndThrow(
+            "'rate.fee.details' must be empty or not-existent when 'rate.fee.total' is zero in the GET /rate response",
+            ServerErrorException.class);
+      }
+
       // fee.asset is a valid asset
       AssetInfo feeAsset = assetService.getAssetById(fee.getAsset());
       if (fee.getAsset() == null || feeAsset == null) {
@@ -196,8 +247,12 @@ public class RestRateIntegration implements RateIntegration {
             new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
               format(
-                  "'rate.sell_amount' (%s) is not within rounding error of the expected (%s) ('price * buy_amount + fee') in the GET /rate response",
-                  rate.getSellAmount(), expected),
+                  "'rate.sell_amount' (%s) is not within the rounding error of the expected (%s[=%s*%s+%s]) ('price * buy_amount + fee') in the GET /rate response",
+                  rate.getSellAmount(),
+                  expected,
+                  rate.getPrice(),
+                  rate.getBuyAmount(),
+                  rate.getFee().getTotal()),
               ServerErrorException.class);
         }
       } else {
@@ -210,8 +265,12 @@ public class RestRateIntegration implements RateIntegration {
             new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
           logErrorAndThrow(
               format(
-                  "'rate.sell_amount' (%s) is not within rounding error of the expected (%s) ('price * (buy_amount + fee)') in the GET /rate response",
-                  rate.getSellAmount(), expected),
+                  "'rate.sell_amount' (%s) is not within the rounding error of the expected (%s=[%s*%s+%s]) ('price * (buy_amount + fee)') in the GET /rate response",
+                  rate.getSellAmount(),
+                  expected,
+                  rate.getPrice(),
+                  rate.getBuyAmount(),
+                  rate.getFee().getTotal()),
               ServerErrorException.class);
         }
       }
@@ -221,18 +280,18 @@ public class RestRateIntegration implements RateIntegration {
         for (FeeDescription feeDescription : fee.getDetails()) {
           if (!isPositiveNumber(feeDescription.getAmount())) {
             logErrorAndThrow(
-                "'rate.fee.details[?].description.amount' is missing or not a positive number in the GET /rate response",
+                "'rate.fee.details[?].amount' is missing or not a positive number in the GET /rate response",
                 ServerErrorException.class);
           }
           if (!hasProperSignificantDecimals(
               feeDescription.getAmount(), feeAsset.getSignificantDecimals())) {
             logErrorAndThrow(
-                "'rate.fee.details[?].description.amount' has incorrect number of significant decimals in the GET /rate response",
+                "'rate.fee.details[?].amount' has incorrect number of significant decimals in the GET /rate response",
                 ServerErrorException.class);
           }
           if (feeDescription.getName() == null) {
             logErrorAndThrow(
-                "'rate.fee.details.description[?].name' is missing in the GET /rate response",
+                "'rate.fee.details[?].name' is missing in the GET /rate response",
                 ServerErrorException.class);
           }
           totalFee = totalFee.add(new BigDecimal(feeDescription.getAmount()));
@@ -255,11 +314,30 @@ public class RestRateIntegration implements RateIntegration {
           new BigDecimal(rate.getSellAmount()), expected, sellAsset.getSignificantDecimals())) {
         logErrorAndThrow(
             format(
-                "'rate.sell_amount' (%s) is not within the expected (%s) ('price * buy_amount') in the GET /rate response",
-                rate.getSellAmount(), expected),
+                "'rate.sell_amount' (%s) is not within the expected (%s[=%s*%s]) ('price * buy_amount') in the GET /rate response",
+                rate.getSellAmount(), expected, rate.getPrice(), rate.getBuyAmount()),
             ServerErrorException.class);
       }
     }
+  }
+
+  Response invokeGetRateRequest(GetRateRequest request, AuthHelper authHelper)
+      throws InvalidConfigException, ServerErrorException {
+    Builder urlBuilder = get(anchorEndpoint).newBuilder().addPathSegment("rate");
+    Type type = new TypeToken<Map<String, ?>>() {}.getType();
+    Map<String, String> paramsMap = gson.fromJson(gson.toJson(request), type);
+    paramsMap.forEach(
+        (key, value) -> {
+          if (value != null) {
+            urlBuilder.addQueryParameter(key, value);
+          }
+        });
+
+    HttpUrl url = urlBuilder.build();
+
+    Request httpRequest =
+        PlatformIntegrationHelper.getRequestBuilder(authHelper).url(url).get().build();
+    return PlatformIntegrationHelper.call(httpClient, httpRequest);
   }
 
   /**

@@ -123,6 +123,11 @@ Run subproject tests: `./gradlew :[subproject]:test`
 
 `./gradlew startAllServers`
 
+### Run essential tests
+After the docker compose start and starting all servers, you can run the essential tests by running:
+
+`./gradlew runEssentialTests`
+
 ### Starting the servers with a specific test profile
 
 `export TEST_PROFILE_NAME=rpc && ./gradlew startServersWithTestProfile`
@@ -191,6 +196,7 @@ Several IntelliJ run configurations are provided to make it easier to run the pr
 - `Test Profile: auth-apikey-platform`: runs the tests with the auth-apikey-platform profile.
 - `Test Profile: auth-jwt-platform`: runs the tests with the auth-jwt-platform profile.
 - `Test Profile: host-docker-internal`: runs the tests with the host-docker-internal profile.
+- `Test Profile: deployment`: runs all servers so that all SEPs can be tested using the demo wallet.
 - `Sep Server: default`: runs the SEP server locally with `default` profile.
 - `Stellar Observer: default`: runs the Stellar Observer locally with `default` profile.
 - `Platform Server: default`: runs the Platform server locally with `default` profile.
@@ -211,6 +217,7 @@ the `service-runner/src/main/resources/profiles` folder.
 - `auth-jwt-custody`: starts the custody servers with the JWT authentication enabled.
 - `auth-apikey-platform`: starts the platform servers with the API key authentication enabled.
 - `auth-jwt-platform`: starts the platform servers with the JWT authentication enabled.
+- `deployment`: starts all servers so that all SEPs can be tested using the demo wallet.
 
 ## Development Scenarios
 
