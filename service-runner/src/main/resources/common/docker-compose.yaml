@@ -40,6 +40,8 @@ services:
       - ../config:/config
     environment:
       KT_REFERENCE_SERVER_CONFIG: /config/reference-config.yaml
+    ports:
+      - "8091:8091"
 
   kafka:
     platform: linux/x86_64
