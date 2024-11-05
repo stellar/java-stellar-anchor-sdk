@@ -18,12 +18,17 @@ interface TransactionKYCRepository {
 
 class JdbcTransactionKYCRepository(private val db: Database) : TransactionKYCRepository {
   init {
-    transaction(db) { SchemaUtils.create(TransactionKYCs) }
+    transaction(db) {
+      SchemaUtils.create(TransactionKYCs)
+      val missingColumnsStatements = SchemaUtils.addMissingColumnsStatements(TransactionKYCs)
+      missingColumnsStatements.forEach { exec(it) }
+    }
   }
 
   override fun get(transactionId: String): TransactionKYC? =
     transaction(db) {
-        TransactionKYCs.select { TransactionKYCs.transactionId.eq(transactionId) }
+        TransactionKYCs.selectAll()
+          .where { TransactionKYCs.transactionId.eq(transactionId) }
           .mapNotNull {
             TransactionKYC(
               transactionId = it[TransactionKYCs.transactionId],
