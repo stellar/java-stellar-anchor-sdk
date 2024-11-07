@@ -42,6 +42,8 @@ dependencies {
   testImplementation(libs.okhttp3.mockserver)
 //  testImplementation(libs.servlet.api)
   testImplementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
+// https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
+  testImplementation("javax.xml.bind:jaxb-api:2.3.1")
 
   testImplementation(libs.slf4j.api)
 }

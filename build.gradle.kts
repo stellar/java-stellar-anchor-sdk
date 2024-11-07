@@ -89,6 +89,9 @@ subprojects {
 
     test {
       useJUnitPlatform()
+      jvmArgs("--add-opens", "java.base/java.time=ALL-UNNAMED")
+      jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+      jvmArgs("--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED")
 
       testLogging {
         events("SKIPPED", "FAILED")
