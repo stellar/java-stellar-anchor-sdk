@@ -1,10 +1,10 @@
 package org.stellar.anchor.reference.model;
 
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import java.time.Instant;
 import java.util.UUID;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
 import lombok.Data;
 import org.stellar.anchor.api.callback.GetRateRequest;
 import org.stellar.anchor.api.callback.GetRateResponse;

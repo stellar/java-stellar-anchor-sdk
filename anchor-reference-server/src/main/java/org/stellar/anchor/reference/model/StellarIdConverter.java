@@ -1,8 +1,8 @@
 package org.stellar.anchor.reference.model;
 
 import com.google.gson.Gson;
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.util.GsonUtils;
 

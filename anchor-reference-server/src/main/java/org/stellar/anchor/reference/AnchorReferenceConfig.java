@@ -1,7 +1,7 @@
 package org.stellar.anchor.reference;
 
 import com.google.gson.Gson;
-import javax.servlet.Filter;
+import jakarta.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

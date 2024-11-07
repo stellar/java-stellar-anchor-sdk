@@ -4,7 +4,7 @@ import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.errorEx;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

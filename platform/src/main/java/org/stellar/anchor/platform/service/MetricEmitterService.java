@@ -2,12 +2,12 @@ package org.stellar.anchor.platform.service;
 
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import org.stellar.anchor.config.MetricConfig;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionRepo;
 import org.stellar.anchor.util.Log;

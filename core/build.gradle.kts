@@ -8,7 +8,9 @@ plugins {
 }
 
 dependencies {
-  compileOnly(libs.servlet.api)
+//  compileOnly(libs.servlet.api)
+  compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
+
   compileOnly(libs.slf4j.api)
 
   api(libs.lombok)
@@ -22,7 +24,6 @@ dependencies {
 
   // TODO: Consider to simplify
   implementation(libs.micrometer.prometheus)
-  implementation(libs.javax.transaction.api)
 
   implementation(libs.commons.beanutils)
   implementation(libs.apache.commons.lang3)
@@ -34,13 +35,14 @@ dependencies {
   implementation(libs.commons.codec)
   implementation(libs.jjwt)
   implementation(libs.reactor.core)
-  implementation(libs.javax.jaxb.api)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(project(":api-schema"))
 
   testImplementation(libs.okhttp3.mockserver)
-  testImplementation(libs.servlet.api)
+//  testImplementation(libs.servlet.api)
+  testImplementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
+
   testImplementation(libs.slf4j.api)
 }
 

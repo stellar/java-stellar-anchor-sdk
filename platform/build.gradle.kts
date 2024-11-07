@@ -20,6 +20,9 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-aop")
+  // https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api
+  implementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
+
 
   implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)

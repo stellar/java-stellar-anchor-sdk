@@ -4,12 +4,12 @@ import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
 import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
 
 import com.google.gson.annotations.SerializedName;
+import jakarta.annotation.PreDestroy;
 import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import javax.annotation.PreDestroy;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.kafka.clients.consumer.*;
