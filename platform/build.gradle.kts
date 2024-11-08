@@ -22,10 +22,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-aop")
   implementation("org.springframework.boot:spring-boot-starter-validation")
   implementation("org.springframework:spring-context")
-  // https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api
-  implementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
-// https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
-  implementation("javax.xml.bind:jaxb-api:2.3.1")
+
 
 //  implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
@@ -36,6 +33,8 @@ dependencies {
   implementation(libs.flyway.core)
   implementation(libs.hibernate.types)
   implementation(libs.google.gson)
+  implementation(libs.jakarta.servlet.api)
+  implementation(libs.javax.jaxb.api)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(libs.sqlite.jdbc)

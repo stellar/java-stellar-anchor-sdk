@@ -14,11 +14,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
-  // https://mvnrepository.com/artifact/org.hibernate.dialect/sqlite-dialect
-//  implementation("org.hibernate.dialect:sqlite-dialect:0.1.0")
 
-
-//  implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
   implementation(libs.h2database)
   implementation(libs.sqlite.jdbc)

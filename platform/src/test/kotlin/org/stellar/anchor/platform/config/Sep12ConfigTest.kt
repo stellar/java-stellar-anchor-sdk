@@ -23,7 +23,7 @@ open class Sep12ConfigTest {
     val sep12Config = PropertySep12Config()
     sep12Config.enabled = true
     val errors = BindException(sep12Config, "sep12Config")
-    sep12Config.validate(sep12Config, errors)
+    ValidationUtils.invokeValidator(sep12Config, sep12Config, errors)
     assertEquals(2, errors.errorCount)
     errors.message?.let { assertContains(it, "empty-customerIntegrationEndPoint") }
     errors.message?.let { assertContains(it, "invalidUrl-customerIntegrationEndPoint") }

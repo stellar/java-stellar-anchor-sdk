@@ -60,7 +60,7 @@ open class AppConfigTest {
     appConfig.hostUrl = "http://localhost:2222"
     val errors = BindException(appConfig, "appConfig")
 
-    appConfig.validate(appConfig, errors)
+    ValidationUtils.invokeValidator(appConfig, appConfig, errors)
     //    ValidationUtils.invokeValidator(appConfig, appConfig, errors)
     assertEquals(1, errors.errorCount)
     errors.message?.let { assertContains(it, "invalidUrl-horizonUrl") }

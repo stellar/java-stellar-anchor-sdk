@@ -28,7 +28,6 @@ class AuthHelperTest {
     when (authType) {
       AuthType.JWT_TOKEN -> {
         // Mock calendar to guarantee the jwt token format
-        //        val calendarSingleton = Calendar.getInstance()
         val calendarSingleton = mockk<Calendar>()
         val currentTimeMilliseconds = Instant.now().toEpochMilli()
         every { calendarSingleton.timeInMillis } returns currentTimeMilliseconds

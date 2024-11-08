@@ -8,9 +8,7 @@ plugins {
 }
 
 dependencies {
-//  compileOnly(libs.servlet.api)
-  compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
-
+  compileOnly(libs.jakarta.servlet.api)
   compileOnly(libs.slf4j.api)
 
   api(libs.lombok)
@@ -36,15 +34,11 @@ dependencies {
   implementation(libs.jjwt)
   implementation(libs.reactor.core)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
-
   implementation(project(":api-schema"))
 
   testImplementation(libs.okhttp3.mockserver)
-//  testImplementation(libs.servlet.api)
-  testImplementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
-// https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
-  testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-
+  testImplementation(libs.jakarta.servlet.api)
+  testImplementation(libs.javax.jaxb.api)
   testImplementation(libs.slf4j.api)
 }
 
