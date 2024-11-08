@@ -14,7 +14,7 @@ flyway-core = "8.5.13"
 google-gson = "2.8.9"
 httpclient = "4.5.13"
 h2database = "1.4.200"
-hibernate-types = "2.21.1"
+hibernate-types = "3.8.1"
 jackson-dataformat-yaml = "2.13.2"
 java-stellar-sdk = "0.43.0"
 jjwt = "0.9.1"
@@ -30,7 +30,7 @@ lombok = "1.18.22"
 mockk = "1.12.2"
 micrometer-prometheus = "1.9.0"
 okhttp3 = "4.12.0"
-postgresql = "42.3.5"
+postgresql = "42.7.3"
 reactor-core = "3.4.14"
 reactor-netty = "1.0.15"
 #servlet-api = "2.5"
@@ -61,7 +61,7 @@ flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core"
 google-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
 httpclient = { module = "org.apache.httpcomponents:httpclient", version.ref = "httpclient" }
 h2database = { module = "com.h2database:h2", version.ref = "h2database" }
-hibernate-types = { module = "com.vladmihalcea:hibernate-types-55", version.ref = "hibernate-types" }
+hibernate-types = { module = "io.hypersistence:hypersistence-utils-hibernate-63", version.ref = "hibernate-types" }
 jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }
 java-stellar-sdk = { module = "com.github.stellar:java-stellar-sdk", version.ref = "java-stellar-sdk" }
 jjwt = { module = "io.jsonwebtoken:jjwt", version.ref = "jjwt" }
