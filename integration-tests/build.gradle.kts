@@ -52,15 +52,3 @@ dependencies {
 }
 
 tasks { bootJar { enabled = false } }
-
-configurations {
-  all {
-    //    exclude(group = "ch.qos.logback", module = "logback-classic")
-    //    exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-    //    exclude(group = "org.slf4j", module = "slf4j-log4j12")
-    //    exclude(group = "org.slf4j", module = "slf4j-simple")
-    //    exclude(group = "commons-logging", module = "commons-logging")
-    //    exclude(group = "org.apache.logging.log4j", module = "log4j-core")
-    //    exclude(group = "org.apache.logging.log4j", module = "log4j-api")
-  }
-}
