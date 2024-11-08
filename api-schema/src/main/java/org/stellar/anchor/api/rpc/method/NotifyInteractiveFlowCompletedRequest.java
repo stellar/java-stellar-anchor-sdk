@@ -1,8 +1,8 @@
 package org.stellar.anchor.api.rpc.method;
 
 import com.google.gson.annotations.SerializedName;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
-import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,10 +24,6 @@ public class NotifyInteractiveFlowCompletedRequest extends RpcMethodParamsReques
   @NotNull
   @SerializedName("amount_out")
   private AmountAssetRequest amountOut;
-
-  @SerializedName("amount_fee")
-  @Deprecated // ANCHOR-636
-  private AmountAssetRequest amountFee;
 
   @SerializedName("fee_details")
   private FeeDetails feeDetails;

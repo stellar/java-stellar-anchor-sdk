@@ -171,29 +171,6 @@ public interface Sep6Transaction extends SepTransaction {
 
   void setAmountOutAsset(String amountOutAsset);
 
-  /**
-   * The amount of fee charged by the anchor.
-   *
-   * @return the amount of fee charged by the anchor.
-   */
-  @Deprecated // ANCHOR-636
-  String getAmountFee();
-
-  @Deprecated // ANCHOR-636
-  void setAmountFee(String amountFee);
-
-  /**
-   * The asset in which fees are calculated in. Must be present if the deposit/withdrawal was made
-   * using non-equivalent assets. The value must bein SEP-38 Asset Identification format.
-   *
-   * @return the asset in which fees are calculated in.
-   */
-  @Deprecated // ANCHOR-636
-  String getAmountFeeAsset();
-
-  @Deprecated // ANCHOR-636
-  void setAmountFeeAsset(String amountFeeAsset);
-
   void setFeeDetails(FeeDetails feeDetails);
 
   /**
@@ -365,26 +342,6 @@ public interface Sep6Transaction extends SepTransaction {
   List<String> getRequiredInfoUpdates();
 
   void setRequiredInfoUpdates(List<String> requiredInfoUpdates);
-
-  /**
-   * A human-readable message indicating why the SEP-12 information provided by the user is not
-   * sufficient to complete the transaction.
-   *
-   * @return the required customer info message.
-   */
-  String getRequiredCustomerInfoMessage();
-
-  void setRequiredCustomerInfoMessage(String requiredCustomerInfoMessage);
-
-  /**
-   * A set of SEP-9 fields that require update from the user via SEP-12. This field is only relevant
-   * when `status` is `pending_customer_info_update`.
-   *
-   * @return the required customer info updates.
-   */
-  List<String> getRequiredCustomerInfoUpdates();
-
-  void setRequiredCustomerInfoUpdates(List<String> requiredCustomerInfoUpdates);
 
   /**
    * Describes how to complete the off-chain deposit.

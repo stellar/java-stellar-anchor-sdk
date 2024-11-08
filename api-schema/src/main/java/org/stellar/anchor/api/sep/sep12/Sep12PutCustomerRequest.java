@@ -2,6 +2,7 @@ package org.stellar.anchor.api.sep.sep12;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -11,11 +12,10 @@ import lombok.experimental.SuperBuilder;
  *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#fields">Refer
  *     to SEP-12</a>
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
 public class Sep12PutCustomerRequest extends Sep12CustomerRequestBase {
-  String type;
-
   @SerializedName("first_name")
   String firstName;
 

@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.component.custody;
 
+import jakarta.servlet.Filter;
 import java.util.concurrent.TimeUnit;
-import javax.servlet.Filter;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.shared.Refunds;
 

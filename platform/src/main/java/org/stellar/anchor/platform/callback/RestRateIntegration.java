@@ -22,13 +22,13 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpStatus;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.callback.GetRateRequest;
 import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.ServerErrorException;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.FeeDescription;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.asset.AssetService;
@@ -115,8 +115,8 @@ public class RestRateIntegration implements RateIntegration {
 
   void validateRateResponse(GetRateRequest request, GetRateResponse getRateResponse)
       throws ServerErrorException {
-    AssetInfo sellAsset = assetService.getAssetByName(request.getSellAsset());
-    AssetInfo buyAsset = assetService.getAssetByName(request.getBuyAsset());
+    AssetInfo sellAsset = assetService.getAssetById(request.getSellAsset());
+    AssetInfo buyAsset = assetService.getAssetById(request.getBuyAsset());
 
     // rate and price must be present
     GetRateResponse.Rate rate = getRateResponse.getRate();
@@ -212,7 +212,7 @@ public class RestRateIntegration implements RateIntegration {
       }
 
       // fee.asset is a valid asset
-      AssetInfo feeAsset = assetService.getAssetByName(fee.getAsset());
+      AssetInfo feeAsset = assetService.getAssetById(fee.getAsset());
       if (fee.getAsset() == null || feeAsset == null) {
         logErrorAndThrow(
             "'rate.fee.asset' is missing or not a valid asset in the GET /rate response",

@@ -16,7 +16,11 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
-import org.stellar.anchor.api.callback.*
+import org.stellar.anchor.api.callback.CustomerIntegration
+import org.stellar.anchor.api.callback.GetCustomerRequest
+import org.stellar.anchor.api.callback.GetCustomerResponse
+import org.stellar.anchor.api.callback.PutCustomerRequest
+import org.stellar.anchor.api.callback.PutCustomerResponse
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.platform.GetTransactionResponse
@@ -103,12 +107,12 @@ class Sep12ServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
     val rjas = DefaultAssetService.fromJsonResource("test_assets.json")
-    val assets = rjas.listAllAssets()
+    val assets = rjas.getAssets()
 
-    every { assetService.listAllAssets() } returns assets
+    every { assetService.getAssets() } returns assets
     every { eventService.createSession(any(), any()) } returns eventSession
 
-    sep12Service = Sep12Service(customerIntegration, assetService, platformApiClient, eventService)
+    sep12Service = Sep12Service(customerIntegration, platformApiClient, eventService)
   }
 
   @Test
@@ -265,15 +269,23 @@ class Sep12ServiceTest {
   fun `Test put customer request ok`(transactionId: String?) {
     // mock `PUT {callbackApi}/customer` response
     val callbackApiPutRequestSlot = slot<PutCustomerRequest>()
-    val callbackApiGetRequestSlot = slot<GetCustomerRequest>()
     val kycUpdateEventSlot = slot<AnchorEvent>()
-    val mockCallbackApiPutCustomerResponse = PutCustomerResponse()
-    val mockCallbackApiGetCustomerResponse = GetCustomerResponse()
-    mockCallbackApiPutCustomerResponse.id = "customer-id"
+    val mockCallbackApiGetCustomerResponse =
+      GetCustomerResponse.builder()
+        .id("customer-id")
+        .status(Sep12Status.ACCEPTED.toString())
+        .fields(mockFields)
+        .providedFields(mockProvidedFields)
+        .build()
+    val mockCallbackApiPutCustomerResponse =
+      PutCustomerResponse.builder()
+        .id("customer-id")
+        .status(Sep12Status.ACCEPTED.toString())
+        .fields(mockFields)
+        .providedFields(mockProvidedFields)
+        .build()
     every { customerIntegration.putCustomer(capture(callbackApiPutRequestSlot)) } returns
       mockCallbackApiPutCustomerResponse
-    every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } returns
-      mockCallbackApiGetCustomerResponse
     every { eventSession.publish(capture(kycUpdateEventSlot)) } returns Unit
     every { platformApiClient.getTransaction(any()) } returns
       GetTransactionResponse.builder()
@@ -324,10 +336,6 @@ class Sep12ServiceTest {
         .transactionId(transactionId)
         .build()
     assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
-
-    val wantCallbackApiGetCustomerResponse =
-      GetCustomerRequest.builder().id("customer-id").transactionId(transactionId).build()
-    assertEquals(wantCallbackApiGetCustomerResponse, callbackApiGetRequestSlot.captured)
 
     // validate the published event
     assertNotNull(kycUpdateEventSlot.captured.id)
@@ -549,8 +557,7 @@ class Sep12ServiceTest {
     }
     assertInstanceOf(SepNotFoundException::class.java, ex)
     assertEquals("User not found.", ex.message)
-    // Verify getting customer for every existing type
-    verify(exactly = 5) { customerIntegration.getCustomer(any()) }
+    verify(exactly = 1) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
 
     // customer deletion succeeds
@@ -558,9 +565,9 @@ class Sep12ServiceTest {
     mockValidCustomerFound.id = "customer-id"
     every { customerIntegration.getCustomer(any()) } returns mockValidCustomerFound
     assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
-    verify(exactly = 10) { customerIntegration.getCustomer(any()) }
+    verify(exactly = 2) { customerIntegration.getCustomer(any()) }
     // callback API is called twice
-    verify(exactly = 5) { customerIntegration.deleteCustomer(any()) }
+    verify(exactly = 1) { customerIntegration.deleteCustomer(any()) }
     val wantDeleteCustomerId = "customer-id"
     assertEquals(wantDeleteCustomerId, deleteCustomerIdSlot.captured)
   }

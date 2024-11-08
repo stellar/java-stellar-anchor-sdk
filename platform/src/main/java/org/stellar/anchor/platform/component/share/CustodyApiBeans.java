@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.auth.ApiAuthJwt;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
@@ -40,7 +41,8 @@ public class CustodyApiBeans {
         return AuthHelper.forJwtToken(
             custodyApiConfig.getAuth().getJwt().getHttpHeader(),
             JwtService.builder().custodyAuthSecret(authSecret).build(),
-            Long.parseLong(custodyApiConfig.getAuth().getJwt().getExpirationMilliseconds()));
+            Long.parseLong(custodyApiConfig.getAuth().getJwt().getExpirationMilliseconds()),
+            ApiAuthJwt.CustodyAuthJwt.class);
       case API_KEY:
         return AuthHelper.forApiKey(
             custodyApiConfig.getAuth().getApiKey().getHttpHeader(), authSecret);

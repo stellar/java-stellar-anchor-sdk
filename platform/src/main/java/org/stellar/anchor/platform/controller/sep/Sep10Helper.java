@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.controller.sep;
 
 import static org.stellar.anchor.filter.Sep10JwtFilter.JWT_TOKEN;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.auth.Sep10Jwt;
 

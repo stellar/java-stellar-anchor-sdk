@@ -17,6 +17,8 @@ public interface SepTransaction {
 
   List<StellarTransaction> getStellarTransactions();
 
+  void setStellarTransactions(List<StellarTransaction> stellarTransactions);
+
   /**
    * Processing status of the transaction
    *
@@ -62,6 +64,7 @@ public interface SepTransaction {
   Instant getUserActionRequiredBy();
 
   void setUserActionRequiredBy(Instant requiredBy);
+
   /**
    * <code>transaction_id</code> on Stellar network of the transfer that either completed the
    * deposit or started the withdrawal.

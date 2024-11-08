@@ -17,9 +17,9 @@ val RequestLoggerPlugin =
       if (call.attributes.contains(onCallTimeKey)) {
         val onCallTime = call.attributes[onCallTimeKey]
         val onCallReceiveTime = System.currentTimeMillis()
-        log.info(
+        log.info {
           "${call.request.httpMethod.value} ${call.request.local.uri} (${onCallReceiveTime - onCallTime}ms)"
-        )
+        }
       }
     }
   }

@@ -283,6 +283,8 @@ class DoStellarPaymentHandlerTest {
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.destinationAccount = TO_ACCOUNT
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -367,6 +369,8 @@ class DoStellarPaymentHandlerTest {
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.destinationAccount = TO_ACCOUNT
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -540,6 +544,7 @@ class DoStellarPaymentHandlerTest {
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.destinationAccount = TO_ACCOUNT
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -627,6 +632,7 @@ class DoStellarPaymentHandlerTest {
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.destinationAccount = TO_ACCOUNT
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

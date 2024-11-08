@@ -1,8 +1,8 @@
 package org.stellar.reference.sep24
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.math.BigDecimal
 import java.math.RoundingMode
-import mu.KotlinLogging
 import org.stellar.reference.data.*
 import org.stellar.reference.service.SepHelper
 
@@ -69,7 +69,7 @@ class WithdrawalService(private val cfg: Config) {
               asset = "iso4217:USD",
               amount = amount.subtract(fee).toPlainString()
             ),
-          amountFee = AmountAssetRequest(asset = stellarAsset, amount = fee.toPlainString())
+          feeDetails = FeeDetails(total = fee.toPlainString(), asset = stellarAsset)
         )
       )
     } else {
@@ -80,7 +80,7 @@ class WithdrawalService(private val cfg: Config) {
           message = "waiting on the user to transfer funds",
           amountIn = Amount(amount.toPlainString(), stellarAsset),
           amountOut = Amount(amount.subtract(fee).toPlainString(), stellarAsset),
-          amountFee = Amount(fee.toPlainString(), stellarAsset),
+          feeDetails = FeeDetails(fee.toPlainString(), stellarAsset),
         )
       )
     }

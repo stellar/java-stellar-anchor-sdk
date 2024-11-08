@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
@@ -24,7 +25,6 @@ import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.method.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.method.NotifyRefundPendingRequest;
 import org.stellar.anchor.api.rpc.method.RpcMethod;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.RefundPayment;
@@ -42,7 +42,8 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
-public class NotifyRefundPendingHandler extends RpcMethodHandler<NotifyRefundPendingRequest> {
+public class NotifyRefundPendingHandler
+    extends RpcTransactionStatusHandler<NotifyRefundPendingRequest> {
 
   public NotifyRefundPendingHandler(
       Sep6TransactionStore txn6Store,

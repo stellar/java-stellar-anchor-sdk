@@ -2,12 +2,12 @@ package org.stellar.anchor.platform.controller.sep;
 
 import static org.stellar.anchor.util.Log.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.MethodArgumentNotValidException;

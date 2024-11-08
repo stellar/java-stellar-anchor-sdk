@@ -36,6 +36,9 @@ abstract class AbstractIntegrationTests(val config: TestConfig) {
     const val TEST_PAYMENT_ASSET_CIRCLE_USDC =
       "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
 
+    // custody deposit address
+    const val CUSTODY_DEST_ACCOUNT = "GC6X2ANA2OS3O2ESHUV6X44NH6J46EP2EO2JB7563Y7DYOIXFKHMHJ5O"
+
     lateinit var testPaymentValues: List<Pair<String, String>>
 
     fun inject(target: String, vararg replacements: Pair<String, String>): String {
@@ -76,7 +79,8 @@ abstract class AbstractIntegrationTests(val config: TestConfig) {
                 Pair("%TESTPAYMENT_TXN_HASH%", payment.transactionHash),
                 Pair("%TESTPAYMENT_SRC_ACCOUNT%", payment.from),
                 Pair("%TESTPAYMENT_DEST_ACCOUNT%", payment.to),
-                Pair("%TESTPAYMENT_ASSET_CIRCLE_USDC%", TEST_PAYMENT_ASSET_CIRCLE_USDC)
+                Pair("%TESTPAYMENT_ASSET_CIRCLE_USDC%", TEST_PAYMENT_ASSET_CIRCLE_USDC),
+                Pair("%CUSTODY_DEST_ACCOUNT%", CUSTODY_DEST_ACCOUNT)
               )
 
             return

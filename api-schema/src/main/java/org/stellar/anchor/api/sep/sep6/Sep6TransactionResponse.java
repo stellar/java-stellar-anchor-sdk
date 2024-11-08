@@ -36,14 +36,6 @@ public class Sep6TransactionResponse {
   @SerializedName("amount_out_asset")
   String amountOutAsset;
 
-  @SerializedName("amount_fee")
-  @Deprecated // ANCHOR-636
-  String amountFee;
-
-  @SerializedName("amount_fee_asset")
-  @Deprecated // ANCHOR-636
-  String amountFeeAsset;
-
   @SerializedName("fee_details")
   FeeDetails feeDetails;
 
@@ -96,14 +88,6 @@ public class Sep6TransactionResponse {
 
   @SerializedName("required_info_updates")
   List<String> requiredInfoUpdates;
-
-  @Deprecated
-  @SerializedName("required_customer_info_message")
-  String requiredCustomerInfoMessage;
-
-  @Deprecated
-  @SerializedName("required_customer_info_updates")
-  List<String> requiredCustomerInfoUpdates;
 
   Map<String, InstructionField> instructions;
 }

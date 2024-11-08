@@ -4,9 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.shared.CustomerField;
 import org.stellar.anchor.api.shared.ProvidedCustomerField;
@@ -21,7 +21,7 @@ import org.stellar.anchor.api.shared.ProvidedCustomerField;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder(toBuilder = true)
 public class GetCustomerResponse {
   String id;
   String status;

@@ -132,7 +132,8 @@ fun getJarFile(): File? {
   val classUrl = ServiceRunner::class.java.classLoader.getResource("$className.class")
 
   return if (classUrl != null && "jar" == classUrl.protocol) {
-    val jarPath = classUrl.path.substring(5, classUrl.path.indexOf('!'))
+    val jarPath =
+      classUrl.path.substring(classUrl.path.indexOf(":") + 1, classUrl.path.indexOf('!'))
     File(URLDecoder.decode(jarPath, "UTF-8"))
   } else {
     null

@@ -1,5 +1,6 @@
 package org.stellar.reference.sep24
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -8,7 +9,6 @@ import io.ktor.util.logging.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
 import org.stellar.reference.ClientException
 import org.stellar.reference.data.DepositRequest
 import org.stellar.reference.data.ErrorResponse
@@ -23,7 +23,7 @@ fun Route.sep24(
   sep24: SepHelper,
   depositService: DepositService,
   withdrawalService: WithdrawalService,
-  jwtKey: String
+  jwtKey: String,
 ) {
   route("/start") {
     post {
@@ -40,7 +40,7 @@ fun Route.sep24(
 
         val transactionId = token.transactionId
 
-        log.info("Starting /sep24/interactive with token $token")
+        log.info { "Starting /sep24/interactive with token $token" }
 
         if (token.expiration > System.currentTimeMillis()) {
           throw ClientException("Token expired")
@@ -49,13 +49,11 @@ fun Route.sep24(
         // TODO: return new JWT here
         call.respond(Success(transactionId))
       } catch (e: ClientException) {
-        log.error(e)
+        log.error { e }
         call.respond(ErrorResponse(e.message!!))
       } catch (e: Exception) {
-        log.error(e)
-        call.respond(
-          ErrorResponse("Error occurred: ${e.message}"),
-        )
+        log.error { e }
+        call.respond(ErrorResponse("Error occurred: ${e.message}"))
       }
     }
   }
@@ -108,7 +106,7 @@ fun Route.sep24(
                 account,
                 stellarAsset,
                 memo,
-                memoType
+                memoType,
               )
             }
           }
@@ -128,23 +126,21 @@ fun Route.sep24(
               withdrawalService.processWithdrawal(
                 transaction.id,
                 withdrawal.amount.toBigDecimal(),
-                stellarAsset
+                stellarAsset,
               )
             }
           }
           else ->
             call.respond(
-              ErrorResponse("The only supported operations are \"deposit\" or \"withdrawal\""),
+              ErrorResponse("The only supported operations are \"deposit\" or \"withdrawal\"")
             )
         }
       } catch (e: ClientException) {
-        log.error(e)
+        log.error { e }
         call.respond(ErrorResponse(e.message!!))
       } catch (e: Exception) {
-        log.error(e)
-        call.respond(
-          ErrorResponse("Error occurred: ${e.message}"),
-        )
+        log.error { e }
+        call.respond(ErrorResponse("Error occurred: ${e.message}"))
       }
     }
   }
@@ -167,13 +163,11 @@ fun Route.sep24(
 
         call.respond(transaction)
       } catch (e: ClientException) {
-        log.error(e)
+        log.error { e }
         call.respond(ErrorResponse(e.message!!))
       } catch (e: Exception) {
-        log.error(e)
-        call.respond(
-          ErrorResponse("Error occurred: ${e.message}"),
-        )
+        log.error { e }
+        call.respond(ErrorResponse("Error occurred: ${e.message}"))
       }
     }
   }

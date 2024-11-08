@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.integrationtest
 
 import java.time.Instant
-import kotlin.streams.toList
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.parallel.Execution
@@ -10,7 +9,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.springframework.data.domain.Sort.Direction
-import org.springframework.data.domain.Sort.Direction.*
+import org.springframework.data.domain.Sort.Direction.DESC
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.*
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31
@@ -25,7 +24,10 @@ import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
-import org.stellar.anchor.client.*
+import org.stellar.anchor.client.Sep12Client
+import org.stellar.anchor.client.Sep31Client
+import org.stellar.anchor.client.Sep38Client
+import org.stellar.anchor.client.TYPE_MULTIPART_FORM_DATA
 import org.stellar.anchor.platform.AbstractIntegrationTests
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.gson
@@ -33,7 +35,7 @@ import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCust
 import org.stellar.anchor.platform.integrationtest.Sep12Tests.Companion.testCustomer2Json
 import org.stellar.anchor.platform.printRequest
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.anchor.util.Log.*
+import org.stellar.anchor.util.Log.debug
 import org.stellar.anchor.util.StringHelper.json
 
 lateinit var savedTxn: Sep31GetTransactionResponse
@@ -54,7 +56,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
   fun `test info endpoint`() {
     printRequest("Calling GET /info")
     val info = sep31Client.getInfo()
-    JSONAssert.assertEquals(gson.toJson(info), expectedSep31Info, JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(expectedSep31Info, gson.toJson(info), JSONCompareMode.STRICT)
   }
 
   @Test
@@ -68,8 +70,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     savedTxn = sep31Client.getTransaction(postTxResponse.id)
     JSONAssert.assertEquals(expectedTxn, json(savedTxn), LENIENT)
     assertEquals(postTxResponse.id, savedTxn.transaction.id)
-    assertEquals(postTxResponse.stellarMemo, savedTxn.transaction.stellarMemo)
-    assertEquals(PENDING_SENDER.status, savedTxn.transaction.status)
+    assertEquals(PENDING_RECEIVER.status, savedTxn.transaction.status)
   }
 
   private fun mkCustomers(): Pair<Sep12PutCustomerResponse, Sep12PutCustomerResponse> {
@@ -104,10 +105,6 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     txnRequest.receiverId = receiverCustomer.id
     txnRequest.quoteId = quote.id
     val postTxResponse = sep31Client.postTransaction(txnRequest)
-    assertEquals(
-      "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-      postTxResponse.stellarAccountId
-    )
     return postTxResponse
   }
 
@@ -291,7 +288,7 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     // GET platformAPI transaction
     val getTxResponse = platformApiClient.getTransaction(postTxResponse.id)
     assertEquals(postTxResponse.id, getTxResponse.id)
-    assertEquals(PENDING_SENDER, getTxResponse.status)
+    assertEquals(PENDING_RECEIVER, getTxResponse.status)
     assertEquals(txnRequest.amount, getTxResponse.amountIn.amount)
     assertTrue(getTxResponse.amountIn.asset.contains(txnRequest.assetCode))
     assertEquals(SEP_31, getTxResponse.sep)
@@ -343,7 +340,11 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
 
     // PUT sep12/customer with the correct clabe_number
     sep12Client.putCustomer(
-      Sep12PutCustomerRequest.builder().id(receiverCustomer.id).clabeNumber("5678").build()
+      Sep12PutCustomerRequest.builder()
+        .transactionId(getTxResponse.id)
+        .type("sep31-receiver")
+        .clabeNumber("5678")
+        .build()
     )
     updatedReceiverCustomer = sep12Client.getCustomer(receiverCustomer.id, "sep31-receiver")
     assertEquals(Sep12Status.ACCEPTED, updatedReceiverCustomer?.status)
@@ -367,7 +368,6 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     assertEquals(getTxResponse.id, patchedTx.id)
     assertEquals(COMPLETED, patchedTx.status)
     assertEquals(SEP_31, patchedTx.sep)
-    assertNull(patchedTx.message)
     assertTrue(patchedTx.startedAt < patchedTx.updatedAt)
     assertNotNull(patchedTx.completedAt)
 
@@ -375,7 +375,6 @@ class Sep31Tests : AbstractIntegrationTests(TestConfig()) {
     gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)
     assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
     assertEquals(COMPLETED.status, gotSep31TxResponse.transaction.status)
-    assertNull(gotSep31TxResponse.transaction.requiredInfoMessage)
     assertNotNull(patchedTx.completedAt)
   }
 }
@@ -400,15 +399,15 @@ private const val expectedTxn =
   """
   {
   "transaction": {
-    "status": "pending_sender",
+    "status": "pending_receiver",
     "amount_in": "10",
     "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "amount_out": "1071.4286",
     "amount_out_asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    "amount_fee": "1.00",
-    "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    "stellar_account_id": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
-    "stellar_memo_type": "hash"
+    "fee_details": {
+      "total": "1.00",
+      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    }
   }
 }
 """
@@ -421,96 +420,15 @@ private const val expectedSep31Info =
         "enabled": true,
         "quotes_supported": true,
         "quotes_required": false,
-        "fee_fixed": 0,
-        "fee_percent": 0,
-        "sep12": {
-          "sender": {
-            "types": {
-              "sep31-sender": {
-                "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-              },
-              "sep31-large-sender": {
-                "description": "U.S. citizens that do not have sending limits"
-              },
-              "sep31-foreign-sender": {
-                "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-              }
-            }
-          },
-          "receiver": {
-            "types": {
-              "sep31-receiver": { "description": "U.S. citizens receiving JPY" },
-              "sep31-foreign-receiver": {
-                "description": "non-U.S. citizens receiving JPY"
-              }
-            }
-          }
-        },
-        "fields": {
-          "transaction": {
-            "receiver_routing_number": {
-              "description": "routing number of the destination bank account",
-              "optional": false
-            },
-            "receiver_account_number": {
-              "description": "bank account number of the destination",
-              "optional": false
-            },
-            "type": {
-              "description": "type of deposit to make",
-              "choices": ["SEPA", "SWIFT"],
-              "optional": false
-            }
-          }
-        }
+        "min_amount": 0,
+        "max_amount": 1000000
       },
       "USDC": {
         "enabled": true,
         "quotes_supported": true,
         "quotes_required": false,
-        "fee_fixed": 0,
-        "fee_percent": 0,
         "min_amount": 0,
-        "max_amount": 10,
-        "sep12": {
-          "sender": {
-            "types": {
-              "sep31-sender": {
-                "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-              },
-              "sep31-large-sender": {
-                "description": "U.S. citizens that do not have sending limits"
-              },
-              "sep31-foreign-sender": {
-                "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-              }
-            }
-          },
-          "receiver": {
-            "types": {
-              "sep31-receiver": { "description": "U.S. citizens receiving USD" },
-              "sep31-foreign-receiver": {
-                "description": "non-U.S. citizens receiving USD"
-              }
-            }
-          }
-        },
-        "fields": {
-          "transaction": {
-            "receiver_routing_number": {
-              "description": "routing number of the destination bank account",
-              "optional": false
-            },
-            "receiver_account_number": {
-              "description": "bank account number of the destination",
-              "optional": false
-            },
-            "type": {
-              "description": "type of deposit to make",
-              "choices": ["SEPA", "SWIFT"],
-              "optional": false
-            }
-          }
+        "max_amount": 10
         }
       }
     }
@@ -584,8 +502,8 @@ private const val expectedAfterPatch =
     "amount": "1071.4286",
     "asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
-  "amount_fee": {
-    "amount": "1.00",
+  "fee_details": {
+    "total": "1.00",
     "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
   "message": "this is the message",

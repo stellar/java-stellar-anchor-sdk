@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Arrays;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.AssetInfo;
 
 public class MathHelper {
   public static BigDecimal decimal(String value) {

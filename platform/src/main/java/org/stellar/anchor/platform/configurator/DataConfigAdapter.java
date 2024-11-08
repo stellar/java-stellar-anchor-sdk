@@ -101,13 +101,14 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.embedded-database-connection", "H2");
         set("spring.datasource.name", "anchor-platform");
         set("spring.datasource.url", constructH2Url(config));
-        set("spring.jpa.database-platform", "org.hibernate.dialect.H2Dialect");
         set("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.H2Dialect");
         break;
       case DATABASE_SQLITE:
         set("spring.datasource.driver-class-name", "org.sqlite.JDBC");
         set("spring.datasource.name", "anchor-platform");
-        set("spring.jpa.database-platform", "org.stellar.anchor.platform.sqlite.SQLiteDialect");
+        set(
+            "spring.jpa.properties.hibernate.dialect",
+            "org.stellar.anchor.platform.sqlite.SQLiteDialect");
         set("spring.jpa.generate-ddl", true);
         set("spring.jpa.hibernate.ddl-auto", "update");
         set("spring.datasource.url", constructSQLiteUrl(config));
@@ -121,7 +122,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
       case DATABASE_AURORA:
         set("spring.datasource.driver-class-name", "org.postgresql.Driver");
         set("spring.datasource.name", "anchor-platform");
-        set("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQL9Dialect");
+        set("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         set(
             "spring.datasource.hikari.max-lifetime",
             840000); // 14 minutes because IAM tokens are valid for 15 min
@@ -137,7 +138,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
       case DATABASE_POSTGRES:
         set("spring.datasource.driver-class-name", "org.postgresql.Driver");
         set("spring.datasource.name", "anchor-platform");
-        set("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQL9Dialect");
+        set("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         set("spring.datasource.url", constructPostgressUrl(config));
         set(
             "spring.datasource.username",

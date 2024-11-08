@@ -9,9 +9,9 @@ import java.time.Instant
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.api.sep.AssetInfo.Field
+import org.stellar.anchor.api.asset.AssetInfo.Field
+import org.stellar.anchor.api.asset.Sep31Info
 import org.stellar.anchor.api.sep.SepTransactionStatus
-import org.stellar.anchor.api.sep.operation.Sep31Operation
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.Sep31RefundPayment
 import org.stellar.anchor.api.shared.*
@@ -64,7 +64,7 @@ class Sep31TransactionTest {
         .build()
 
     // mock missing SEP-31 "transaction.fields"
-    val mockMissingFields = Sep31Operation.Fields()
+    val mockMissingFields = Sep31Info.Fields()
     mockMissingFields.transaction =
       mapOf(
         "receiver_account_number" to Field("bank account number of the destination", null, false),
@@ -102,7 +102,7 @@ class Sep31TransactionTest {
         .amountOut("98.0000000")
         .amountOutAsset(stellarUSDC)
         .feeDetails(FeeDetails("2.0000", fiatUSD))
-        .stellarAccountId(TEST_ACCOUNT)
+        .toAccount(TEST_ACCOUNT)
         .stellarMemo(TEST_MEMO)
         .stellarMemoType("text")
         .startedAt(mockStartedAt)
@@ -138,7 +138,7 @@ class Sep31TransactionTest {
         )
         .build()
 
-    val requiredInfoUpdates = Sep31Operation.Fields()
+    val requiredInfoUpdates = Sep31Info.Fields()
     requiredInfoUpdates.transaction =
       mapOf(
         "receiver_account_number" to Field("bank account number of the destination", null, false)
@@ -155,8 +155,6 @@ class Sep31TransactionTest {
             .amountInAsset(fiatUSD)
             .amountOut("98.0000000")
             .amountOutAsset(stellarUSDC)
-            .amountFee("2.0000")
-            .amountFeeAsset(fiatUSD)
             .feeDetails(FeeDetails("2.0000", fiatUSD))
             .quoteId("quote-id")
             .stellarAccountId(TEST_ACCOUNT)

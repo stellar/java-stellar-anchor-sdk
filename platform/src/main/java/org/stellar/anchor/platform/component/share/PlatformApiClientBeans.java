@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.component.share;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.apiclient.PlatformApiClient;
+import org.stellar.anchor.auth.ApiAuthJwt;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.platform.config.PlatformApiConfig;
@@ -22,7 +23,8 @@ public class PlatformApiClientBeans {
         return AuthHelper.forJwtToken(
             platformApiConfig.getAuth().getJwt().getHttpHeader(),
             JwtService.builder().platformAuthSecret(secret).build(),
-            Long.parseLong(platformApiConfig.getAuth().getJwt().getExpirationMilliseconds()));
+            Long.parseLong(platformApiConfig.getAuth().getJwt().getExpirationMilliseconds()),
+            ApiAuthJwt.PlatformAuthJwt.class);
       case API_KEY:
         return AuthHelper.forApiKey(
             platformApiConfig.getAuth().getApiKey().getHttpHeader(), secret);

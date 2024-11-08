@@ -25,7 +25,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyTransactionRecoveryHandler
-    extends RpcMethodHandler<NotifyTransactionRecoveryRequest> {
+    extends RpcTransactionStatusHandler<NotifyTransactionRecoveryRequest> {
 
   public NotifyTransactionRecoveryHandler(
       Sep6TransactionStore txn6Store,

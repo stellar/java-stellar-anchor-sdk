@@ -7,7 +7,7 @@ import io.mockk.impl.annotations.MockK
 import java.net.URI
 import java.nio.charset.Charset
 import java.time.Instant
-import org.apache.http.client.utils.URLEncodedUtils
+import org.apache.hc.core5.net.URLEncodedUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -29,7 +29,6 @@ import org.stellar.anchor.TestConstants.Companion.TEST_QUOTE_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
-import org.stellar.anchor.api.callback.FeeIntegration
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.sep24.GetTransactionRequest
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
@@ -39,7 +38,7 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
-import org.stellar.anchor.client.ClientFinder
+import org.stellar.anchor.client.*
 import org.stellar.anchor.config.*
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.sep38.PojoSep38Quote
@@ -105,8 +104,6 @@ internal class Sep24ServiceTest {
 
   @MockK(relaxed = true) lateinit var eventService: EventService
 
-  @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
-
   @MockK(relaxed = true) lateinit var clientFinder: ClientFinder
 
   @MockK(relaxed = true) lateinit var txnStore: Sep24TransactionStore
@@ -117,11 +114,9 @@ internal class Sep24ServiceTest {
 
   @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
 
-  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig
-
-  @MockK(relaxed = true) lateinit var clientConfig: ClientsConfig.ClientConfig
-
   @MockK(relaxed = true) lateinit var sep38QuoteStore: Sep38QuoteStore
+
+  @MockK(relaxed = true) lateinit var clientService: ClientService
 
   private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
@@ -147,7 +142,22 @@ internal class Sep24ServiceTest {
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
     every { moreInfoUrlConstructor.construct(any(), any()) } returns
       "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
-    every { clientsConfig.getClientConfigByDomain(any()) } returns clientConfig
+    every { clientService.getClientConfigByDomain(any()) } returns
+      NonCustodialClient.builder()
+        .name("reference")
+        .domains(setOf("wallet-server:8092"))
+        .callbackUrls(
+          ClientConfig.CallbackUrls.builder()
+            .sep24("http://wallet-server:8092/callbacks/sep24")
+            .build()
+        )
+        .build()
+    every { clientService.getClientConfigBySigningKey(any()) } returns
+      CustodialClient.builder()
+        .name("referenceCustodial")
+        .signingKeys(setOf("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"))
+        .allowAnyDestination(false)
+        .build()
     every { clientFinder.getClientName(any()) } returns TEST_CLIENT_NAME
     calculator = ExchangeAmountsCalculator(sep38QuoteStore)
 
@@ -155,7 +165,7 @@ internal class Sep24ServiceTest {
       Sep24Service(
         appConfig,
         sep24Config,
-        clientsConfig,
+        clientService,
         assetService,
         jwtService,
         clientFinder,
@@ -201,6 +211,7 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_AMOUNT, slotTxn.captured.amountExpected)
     assertEquals(TEST_OFFCHAIN_ASSET, slotTxn.captured.amountOutAsset)
     assertNull(slotTxn.captured.amountInAsset)
+    assertNull(slotTxn.captured.withdrawAnchorAccount)
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
@@ -251,6 +262,7 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals(TEST_CLIENT_NAME, slotTxn.captured.clientName)
+    assertNull(slotTxn.captured.withdrawAnchorAccount)
   }
 
   @Test
@@ -453,7 +465,6 @@ internal class Sep24ServiceTest {
 
   @Test
   fun `test deposit to unknown account`() {
-    every { clientConfig.destinationAccounts }.returns(null)
     val request = createTestTransactionRequest()
     val unknownAccount = "GC6TP2RCW665CBOTMR5Q2JXNRK77FWV2FCTHNQXS3FNDMWZCGJBJ4QCY"
     request["account"] = unknownAccount
@@ -474,7 +485,13 @@ internal class Sep24ServiceTest {
     every { txnStore.save(capture(slotTxn)) } returns null
 
     val whitelistedAccount = "GC6TP2RCW665CBOTMR5Q2JXNRK77FWV2FCTHNQXS3FNDMWZCGJBJ4QCY"
-    every { clientConfig.destinationAccounts }.returns(setOf(whitelistedAccount))
+    every { clientService.getClientConfigBySigningKey(any()) } returns
+      CustodialClient.builder()
+        .name("referenceCustodial")
+        .signingKeys(setOf("GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"))
+        .allowAnyDestination(false)
+        .destinationAccounts(setOf(whitelistedAccount))
+        .build()
     val request = createTestTransactionRequest()
     request["account"] = whitelistedAccount
 

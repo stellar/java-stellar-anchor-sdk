@@ -6,10 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.SepValidationException;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
@@ -59,18 +59,18 @@ public class ExchangeAmountsCalculator {
       throw new BadRequestException("Quote not found");
     }
 
-    if (sellAsset != null && !sellAsset.getSep38AssetName().equals(quote.getSellAsset())) {
+    if (sellAsset != null && !sellAsset.getId().equals(quote.getSellAsset())) {
       throw new BadRequestException(
           String.format(
               "source asset(%s) does not match quote sell asset(%s)",
-              sellAsset.getSep38AssetName(), quote.getSellAsset()));
+              sellAsset.getId(), quote.getSellAsset()));
     }
 
-    if (buyAsset != null && !buyAsset.getSep38AssetName().equals(quote.getBuyAsset())) {
+    if (buyAsset != null && !buyAsset.getId().equals(quote.getBuyAsset())) {
       throw new BadRequestException(
           String.format(
               "destination asset(%s) does not match quote buy asset(%s)",
-              buyAsset.getSep38AssetName(), quote.getBuyAsset()));
+              buyAsset.getId(), quote.getBuyAsset()));
     }
 
     if (sellAmount != null && !amountEquals(sellAmount, quote.getSellAmount())) {

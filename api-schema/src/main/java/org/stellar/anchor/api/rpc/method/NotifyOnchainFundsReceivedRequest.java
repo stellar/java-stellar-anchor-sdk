@@ -1,7 +1,7 @@
 package org.stellar.anchor.api.rpc.method;
 
 import com.google.gson.annotations.SerializedName;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,10 +23,6 @@ public class NotifyOnchainFundsReceivedRequest extends RpcMethodParamsRequest {
 
   @SerializedName("amount_out")
   private AmountRequest amountOut;
-
-  @SerializedName("amount_fee")
-  @Deprecated // ANCHOR-636
-  private AmountRequest amountFee;
 
   @SerializedName("fee_details")
   private FeeDetails feeDetails;

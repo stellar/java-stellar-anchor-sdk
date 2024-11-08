@@ -16,6 +16,6 @@ public class Sep31DepositInfoSelfGenerator implements Sep31DepositInfoGenerator 
     String memo = StringUtils.truncate(txn.getId(), 32);
     memo = StringUtils.leftPad(memo, 32, '0');
     memo = new String(Base64.getEncoder().encode(memo.getBytes()));
-    return new SepDepositInfo(txn.getStellarAccountId(), memo, memoTypeAsString(MEMO_HASH));
+    return new SepDepositInfo(txn.getToAccount(), memo, memoTypeAsString(MEMO_HASH));
   }
 }

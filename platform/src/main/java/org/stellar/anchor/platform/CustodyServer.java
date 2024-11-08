@@ -4,6 +4,7 @@ import static org.springframework.boot.Banner.Mode.OFF;
 import static org.stellar.anchor.util.Log.info;
 
 import java.util.Map;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -44,6 +45,10 @@ public class CustodyServer extends AbstractPlatformServer implements WebMvcConfi
     springApplication.addInitializers(SecretManager.getInstance());
     info("Adding custody config manager as initializers...");
     springApplication.addInitializers(CustodyConfigManager.getInstance());
+
+    // Bridge Tomcat's JUL logging to SLF4J
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
 
     return ctx = springApplication.run();
   }

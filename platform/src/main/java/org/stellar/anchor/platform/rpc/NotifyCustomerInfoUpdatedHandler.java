@@ -30,7 +30,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyCustomerInfoUpdatedHandler
-    extends RpcMethodHandler<NotifyCustomerInfoUpdatedRequest> {
+    extends RpcTransactionStatusHandler<NotifyCustomerInfoUpdatedRequest> {
   private final CustomerIntegration customerIntegration;
   private final EventService.Session eventSession;
 

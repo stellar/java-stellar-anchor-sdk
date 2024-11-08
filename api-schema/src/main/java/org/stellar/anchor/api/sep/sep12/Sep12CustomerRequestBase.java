@@ -16,4 +16,6 @@ public class Sep12CustomerRequestBase {
 
   @SerializedName("transaction_id")
   String transactionId;
+
+  String type;
 }

@@ -1,0 +1,25 @@
+items:
+  - name: some-wallet
+    type: custodial
+    signing_keys:
+      - GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
+      - GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+  - name: lobstr
+    type: noncustodial
+    domains:
+      - lobstr.co
+    callback_urls:
+      sep6: https://callback.lobstr.co/api/v2/anchor/callback/sep6
+      sep24: https://callback.lobstr.co/api/v2/anchor/callback/sep24
+      sep31: https://callback.lobstr.co/api/v2/anchor/callback/sep31
+      sep12: https://callback.lobstr.co/api/v2/anchor/callback/sep12
+  - name: circle
+    type: noncustodial
+    domains:
+      - circle.com
+    callback_urls:
+      sep6: https://callback.circle.com/api/v2/anchor/callback/sep6
+      sep24: https://callback.circle.com/api/v2/anchor/callback/sep24
+      sep31: https://callback.circle.com/api/v2/anchor/callback/sep31
+      sep12: https://callback.circle.com/api/v2/anchor/callback/sep12
+
