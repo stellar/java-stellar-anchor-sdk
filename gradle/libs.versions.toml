@@ -34,8 +34,8 @@ postgresql = "42.3.5"
 reactor-core = "3.4.14"
 reactor-netty = "1.0.15"
 #servlet-api = "2.5"
-spring-kafka = "2.8.4"
-spring-aws-messaging = "2.2.6.RELEASE"
+spring-kafka = "3.2.1"
+#spring-aws-messaging = "2.2.6.RELEASE"
 sqlite-jdbc = "3.34.0"
 slf4j = "2.0.13"
 toml4j = "0.7.2"
@@ -93,7 +93,7 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j" }
 toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
-spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-messaging", version.ref = "spring-aws-messaging" }
+#spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-messaging", version.ref = "spring-aws-messaging" }
 
 [bundles]
 slf4j = ["slf4j-api", "slf4j-log4j12"]

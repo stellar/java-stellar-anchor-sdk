@@ -20,10 +20,14 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-aop")
+  implementation("org.springframework.boot:spring-boot-starter-validation")
+  implementation("org.springframework:spring-context")
   // https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api
   implementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
+// https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
+  implementation("javax.xml.bind:jaxb-api:2.3.1")
 
-  implementation(libs.spring.aws.messaging)
+//  implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
   implementation(libs.aws.rds)
   implementation(libs.aws.iam.auth)
@@ -39,7 +43,6 @@ dependencies {
   implementation(libs.jackson.dataformat.yaml)
   implementation(libs.log4j2.core)
   implementation(libs.log4j2.slf4j)
-  testImplementation(libs.slf4j.api)
 
   // From projects
   implementation(project(":api-schema"))
@@ -48,6 +51,7 @@ dependencies {
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(libs.okhttp3.mockserver)
+  testImplementation(libs.slf4j.api)
 }
 
 tasks.test {

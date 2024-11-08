@@ -18,7 +18,7 @@ dependencies {
 //  implementation("org.hibernate.dialect:sqlite-dialect:0.1.0")
 
 
-  implementation(libs.spring.aws.messaging)
+//  implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
   implementation(libs.h2database)
   implementation(libs.sqlite.jdbc)
