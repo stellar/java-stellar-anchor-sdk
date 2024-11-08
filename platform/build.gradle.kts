@@ -23,7 +23,6 @@ dependencies {
   // https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api
   implementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
 
-
   implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
   implementation(libs.aws.rds)
@@ -40,6 +39,7 @@ dependencies {
   implementation(libs.jackson.dataformat.yaml)
   implementation(libs.log4j2.core)
   implementation(libs.log4j2.slf4j)
+  testImplementation(libs.slf4j.api)
 
   // From projects
   implementation(project(":api-schema"))
