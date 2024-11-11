@@ -36,7 +36,10 @@ import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.*;
 import org.stellar.sdk.Sep10Challenge.ChallengeTransaction;
-import org.stellar.sdk.requests.ErrorResponse;
+import org.stellar.sdk.exception.InvalidSep10ChallengeException;
+import org.stellar.sdk.exception.NetworkException;
+import org.stellar.sdk.operations.ManageDataOperation;
+import org.stellar.sdk.operations.Operation;
 import org.stellar.sdk.responses.AccountResponse;
 
 /** The Sep-10 protocol service. */
@@ -415,7 +418,7 @@ public class Sep10Service implements ISep10Service {
 
   Set<Sep10Challenge.Signer> fetchSigners(AccountResponse account) {
     // Find the signers of the client account.
-    return Arrays.stream(account.getSigners())
+    return account.getSigners().stream()
         .filter(as -> as.getType().equals("ed25519_public_key"))
         .map(as -> new Sep10Challenge.Signer(as.getKey(), as.getWeight()))
         .collect(Collectors.toSet());
@@ -432,7 +435,7 @@ public class Sep10Service implements ISep10Service {
       traceF("challenge account: {}", account);
       sep10ChallengeValidatedCounter.increment();
       return account;
-    } catch (ErrorResponse | IOException ex) {
+    } catch (NetworkException ex) {
       infoF("Account {} does not exist in the Stellar Network");
       // account not found
       // The client account does not exist, using the client's master key to verify.
@@ -559,8 +562,7 @@ public class Sep10Service implements ISep10Service {
    */
   String extractHomeDomainFromChallengeXdr(String challengeXdr, Network network)
       throws IOException, SepValidationException {
-    AbstractTransaction parsed =
-        Transaction.fromEnvelopeXdr(AccountConverter.enableMuxed(), challengeXdr, network);
+    AbstractTransaction parsed = Transaction.fromEnvelopeXdr(challengeXdr, network);
     if (!(parsed instanceof Transaction)) {
       throw new SepValidationException("Transaction cannot be a fee bump transaction");
     }

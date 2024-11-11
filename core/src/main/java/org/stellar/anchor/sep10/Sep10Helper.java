@@ -10,8 +10,9 @@ import java.util.regex.Pattern;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.util.Sep1Helper;
-import org.stellar.sdk.FormatException;
+// checked
 import org.stellar.sdk.KeyPair;
+import org.stellar.sdk.exception.StrKeyException;
 
 public class Sep10Helper {
 
@@ -39,7 +40,7 @@ public class Sep10Helper {
       debugF("Validating client_domain signing key: {}", clientSigningKey);
       KeyPair.fromAccountId(clientSigningKey);
       return clientSigningKey;
-    } catch (IllegalArgumentException | FormatException e) {
+    } catch (IllegalArgumentException | StrKeyException e) {
       infoF("SIGNING_KEY {} is not a valid Stellar account Id.", clientSigningKey);
       throw new SepException(
           String.format("SIGNING_KEY %s is not a valid Stellar account Id.", clientSigningKey));

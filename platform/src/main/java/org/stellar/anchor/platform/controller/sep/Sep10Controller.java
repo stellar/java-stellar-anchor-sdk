@@ -17,7 +17,7 @@ import org.stellar.anchor.api.sep.sep10.ValidationRequest;
 import org.stellar.anchor.api.sep.sep10.ValidationResponse;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.sep10.Sep10Service;
-import org.stellar.sdk.InvalidSep10ChallengeException;
+import org.stellar.sdk.exception.InvalidSep10ChallengeException;
 
 @RestController
 @CrossOrigin(origins = "*")
