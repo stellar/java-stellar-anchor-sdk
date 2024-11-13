@@ -7,7 +7,6 @@ import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10.ValidationRequest;
-// checked
 import org.stellar.sdk.Memo;
 
 public interface ISep10Service {

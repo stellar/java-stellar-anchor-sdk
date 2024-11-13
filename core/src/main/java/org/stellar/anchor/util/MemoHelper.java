@@ -8,7 +8,6 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepValidationException;
-// checked
 import org.stellar.sdk.*;
 import org.stellar.sdk.xdr.MemoType;
 

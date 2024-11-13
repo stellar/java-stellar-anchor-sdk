@@ -26,7 +26,6 @@ import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
-// checked
 import org.stellar.sdk.xdr.MemoType;
 
 public class Sep12Service {

@@ -5,7 +5,8 @@ assertj = "3.26.0"
 aws-iam-auth = "2.1.1"
 aws-rds = "1.12.759"
 aws-sqs = "1.12.757"
-bcastle = "1.77"
+bcastle = "1.79"
+bcutil = "1.79"
 commons-beanutils = "1.9.4"
 commons-cli = "1.8.0"
 commons-codec = "1.17.0"
@@ -52,7 +53,8 @@ spotbugs-annotations = "4.8.6"
 spring-context = "6.1.11"
 spring-kafka = "3.2.1"
 spring-retry = "2.0.6"
-stellar-wallet-sdk = "1.7.1"
+# TODO: change to real version when available
+stellar-wallet-sdk = "9eeb17f868b02c937de74b6c179891f0e7efdcbd"
 
 # Plugin versions
 spotless = "6.25.0"
@@ -67,6 +69,7 @@ aws-iam-auth = { module = "software.amazon.msk:aws-msk-iam-auth", version.ref = 
 aws-rds = { module = "com.amazonaws:aws-java-sdk-rds", version.ref = "aws-rds" }
 aws-sqs = { module = "com.amazonaws:aws-java-sdk-sqs", version.ref = "aws-sqs" }
 bcastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bcastle" }
+bcutil = { module = "org.bouncycastle:bcutil-jdk18on", version.ref = "bcutil" }
 commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils" }
 commons-cli = { module = "commons-cli:commons-cli", version.ref = "commons-cli" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec" }
@@ -137,7 +140,8 @@ spring-context = { module = "org.springframework:spring-context", version.ref = 
 spring-data-commons = { module = "org.springframework.data:spring-data-commons", version.ref = "spring-boot" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-retry = { module = "org.springframework.retry:spring-retry", version.ref = "spring-retry" }
-stellar-wallet-sdk = { module = "org.stellar:wallet-sdk", version.ref = "stellar-wallet-sdk" }
+# TODO: change to real version when available
+stellar-wallet-sdk = { module = "com.github.lightsail-network:kotlin-wallet-sdk", version.ref = "stellar-wallet-sdk" }
 
 [bundles]
 slf4j = ["slf4j-api", "slf4j-log4j12", "slf4j-jul-bridge"]

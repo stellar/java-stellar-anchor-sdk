@@ -1,7 +1,6 @@
 package org.stellar.anchor.util;
 
 import java.lang.reflect.Field;
-// checked
 import org.stellar.sdk.requests.SSEStream;
 
 public class ReflectionUtil {

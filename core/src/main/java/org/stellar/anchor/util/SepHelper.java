@@ -10,7 +10,6 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InvalidStellarAccountException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-// checked
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.MuxedAccount;
 import org.stellar.sdk.xdr.MemoType;

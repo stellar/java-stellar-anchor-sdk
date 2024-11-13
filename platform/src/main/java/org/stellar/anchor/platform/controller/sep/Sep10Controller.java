@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.controller.sep;
 
 import static org.stellar.anchor.util.Log.*;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -65,8 +64,7 @@ public class Sep10Controller {
       produces = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
   public ValidationResponse validateChallenge(
-      @RequestParam(name = "transaction") String transaction)
-      throws InvalidSep10ChallengeException, IOException, SepValidationException {
+      @RequestParam(name = "transaction") String transaction) throws SepValidationException {
     debugF("POST /auth transaction={}", transaction);
     return validateChallenge(ValidationRequest.of(transaction));
   }
@@ -79,7 +77,7 @@ public class Sep10Controller {
       method = {RequestMethod.POST})
   public ValidationResponse validateChallenge(
       @RequestBody(required = false) ValidationRequest validationRequest)
-      throws InvalidSep10ChallengeException, IOException, SepValidationException {
+      throws SepValidationException {
     debug("POST /auth details:", validationRequest);
     return sep10Service.validateChallenge(validationRequest);
   }

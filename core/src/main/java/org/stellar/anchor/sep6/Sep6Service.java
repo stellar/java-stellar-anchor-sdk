@@ -29,7 +29,6 @@ import org.stellar.anchor.sep6.ExchangeAmountsCalculator.Amounts;
 import org.stellar.anchor.util.MetricConstants;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.TransactionMapper;
-// checked
 import org.stellar.sdk.Memo;
 
 public class Sep6Service {

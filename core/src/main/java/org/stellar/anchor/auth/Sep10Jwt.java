@@ -9,7 +9,6 @@ import io.jsonwebtoken.Jwt;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-// checked
 import org.stellar.sdk.MuxedAccount;
 
 @Getter

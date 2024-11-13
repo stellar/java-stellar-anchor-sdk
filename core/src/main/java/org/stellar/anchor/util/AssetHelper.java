@@ -6,7 +6,6 @@ import java.util.Currency;
 import org.stellar.anchor.api.asset.AssetInfo;
 import org.stellar.anchor.api.asset.DepositWithdrawInfo;
 import org.stellar.anchor.api.asset.DepositWithdrawOperation;
-// checked
 import org.stellar.sdk.KeyPair;
 
 public class AssetHelper {

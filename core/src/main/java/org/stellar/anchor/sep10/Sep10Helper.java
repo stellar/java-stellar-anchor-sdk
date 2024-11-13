@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.util.Sep1Helper;
-// checked
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.exception.StrKeyException;
 

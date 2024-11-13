@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.asset.AssetService;
-// checked
 import org.stellar.sdk.KeyPair;
 
 /** SEP-6 request validations */

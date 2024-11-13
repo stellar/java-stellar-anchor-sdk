@@ -30,7 +30,6 @@ import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.util.KeyUtil;
 import org.stellar.anchor.util.Log;
-// checked
 import org.stellar.sdk.KeyPair;
 
 @Getter

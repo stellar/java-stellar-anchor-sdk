@@ -54,7 +54,6 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep6.ExchangeAmountsCalculator;
 import org.stellar.anchor.util.*;
-// checked
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
