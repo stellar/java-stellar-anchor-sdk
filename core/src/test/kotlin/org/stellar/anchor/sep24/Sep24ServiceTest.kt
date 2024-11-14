@@ -50,7 +50,6 @@ import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
 import org.stellar.sdk.MemoId
 import org.stellar.sdk.MemoText
-import org.stellar.sdk.Network.TESTNET
 
 internal class Sep24ServiceTest {
   companion object {
@@ -133,7 +132,6 @@ internal class Sep24ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     secretConfig.setupMock()
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
