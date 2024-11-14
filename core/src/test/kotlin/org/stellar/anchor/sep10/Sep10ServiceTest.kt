@@ -682,7 +682,7 @@ internal class Sep10ServiceTest {
   @ParameterizedTest
   @MethodSource("stellarNetworks")
   fun `test the challenge with existent account, multisig, and client domain`(
-    stellarUrl: String,
+    horizonUrl: String,
     network: Network
   ) {
     // 1 ------ Create Test Transaction
@@ -739,7 +739,7 @@ internal class Sep10ServiceTest {
 
     // 2 ------ Create Services
     every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
-    every { appConfig.horizonUrl } returns stellarUrl
+    every { appConfig.horizonUrl } returns horizonUrl
     every { appConfig.stellarNetworkPassphrase } returns network.networkPassphrase
     val horizon = Horizon(appConfig)
     this.sep10Service =
@@ -748,7 +748,7 @@ internal class Sep10ServiceTest {
     // 3 ------ Setup multisig
     val httpRequest =
       Request.Builder()
-        .url("$stellarUrl/friendbot?addr=" + clientMasterKP.accountId)
+        .url("$horizonUrl/friendbot?addr=" + clientMasterKP.accountId)
         .header("Content-Type", "application/json")
         .get()
         .build()
