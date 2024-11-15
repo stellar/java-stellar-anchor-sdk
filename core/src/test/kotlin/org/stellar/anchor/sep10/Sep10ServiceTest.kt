@@ -5,7 +5,6 @@ package org.stellar.anchor.sep10
 import com.google.common.io.BaseEncoding
 import com.google.gson.annotations.SerializedName
 import io.jsonwebtoken.Jwts
-import io.ktor.http.*
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
@@ -60,8 +60,7 @@ import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil
 import org.stellar.sdk.*
-import org.stellar.sdk.Network.PUBLIC
-import org.stellar.sdk.Network.TESTNET
+import org.stellar.sdk.Network.*
 import org.stellar.sdk.exception.BadRequestException
 import org.stellar.sdk.exception.InvalidSep10ChallengeException
 import org.stellar.sdk.operations.ManageDataOperation
@@ -102,6 +101,14 @@ internal class Sep10ServiceTest {
     @JvmStatic
     fun homeDomains(): Stream<String> {
       return Stream.of(null, TEST_HOME_DOMAIN)
+    }
+
+    @JvmStatic
+    fun stellarNetworks(): Stream<Arguments> {
+      return Stream.of(
+        Arguments.of("https://horizon-testnet.stellar.org", TESTNET),
+        Arguments.of("https://horizon-futurenet.stellar.org", FUTURENET)
+      )
     }
 
     val testAccountWithNonCompliantSigner: String =
@@ -168,8 +175,11 @@ internal class Sep10ServiceTest {
     return txn.toEnvelopeXdrBase64()
   }
 
-  @Test
-  fun `test challenge with non existent account and client domain`() {
+  @ParameterizedTest
+  @ValueSource(
+    strings = ["https://horizon-testnet.stellar.org", "https://horizon-futurenet.stellar.org"]
+  )
+  fun `test challenge with non existent account and client domain`(horizonUrl: String) {
     // 1 ------ Create Test Transaction
 
     // serverKP does not exist in the network.
@@ -227,7 +237,7 @@ internal class Sep10ServiceTest {
 
     // 2 ------ Create Services
     every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
-    every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
+    every { appConfig.horizonUrl } returns horizonUrl
     every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     val horizon = Horizon(appConfig)
     this.sep10Service =
@@ -690,8 +700,12 @@ internal class Sep10ServiceTest {
     verify(exactly = 2) { sep10Config.knownCustodialAccountList }
   }
 
-  @Test
-  fun `test the challenge with existent account, multisig, and client domain`() {
+  @ParameterizedTest
+  @MethodSource("stellarNetworks")
+  fun `test the challenge with existent account, multisig, and client domain`(
+    horizonUrl: String,
+    network: Network
+  ) {
     // 1 ------ Create Test Transaction
 
     // serverKP does not exist in the network.
@@ -735,7 +749,7 @@ internal class Sep10ServiceTest {
         .build()
 
     val transaction =
-      TransactionBuilder(sourceAccount, TESTNET)
+      TransactionBuilder(sourceAccount, network)
         .addPreconditions(
           TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
         )
@@ -752,8 +766,8 @@ internal class Sep10ServiceTest {
 
     // 2 ------ Create Services
     every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
-    every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
-    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
+    every { appConfig.horizonUrl } returns horizonUrl
+    every { appConfig.stellarNetworkPassphrase } returns network.networkPassphrase
     val horizon = Horizon(appConfig)
     this.sep10Service =
       Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService, clientFinder)
@@ -761,7 +775,7 @@ internal class Sep10ServiceTest {
     // 3 ------ Setup multisig
     val httpRequest =
       Request.Builder()
-        .url("https://horizon-testnet.stellar.org/friendbot?addr=" + clientMasterKP.accountId)
+        .url("$horizonUrl/friendbot?addr=" + clientMasterKP.accountId)
         .header("Content-Type", "application/json")
         .get()
         .build()
@@ -770,7 +784,7 @@ internal class Sep10ServiceTest {
 
     val clientAccount = horizon.server.accounts().account(clientMasterKP.accountId)
     val multisigTx =
-      TransactionBuilder(clientAccount, TESTNET)
+      TransactionBuilder(clientAccount, network)
         .addPreconditions(
           TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
         )
@@ -937,28 +951,25 @@ internal class Sep10ServiceTest {
     var token =
       createAuthSignToken(custodialKp, authEndpoint, params, authHeaderSigner = custodialSigner)
     var req = ChallengeRequest.builder().account(custodialKp.address).build()
-    var ex =
-      assertThrows<SepValidationException> {
-        sep10Service.validateAuthorizationToken(req, token, null)
-      }
+    assertThrows<SepValidationException> {
+      sep10Service.validateAuthorizationToken(req, token, null)
+    }
 
     params = mutableMapOf("account" to custodialKp.address)
     token =
       createAuthSignToken(custodialKp, authEndpoint, params, authHeaderSigner = custodialSigner)
     req = ChallengeRequest.builder().account(custodialKp.address).memo(custodialMemo).build()
-    ex =
-      assertThrows<SepValidationException> {
-        sep10Service.validateAuthorizationToken(req, token, null)
-      }
+    assertThrows<SepValidationException> {
+      sep10Service.validateAuthorizationToken(req, token, null)
+    }
 
     params = mutableMapOf("account" to custodialKp.address, "memo" to custodialMemo + "0")
     token =
       createAuthSignToken(custodialKp, authEndpoint, params, authHeaderSigner = custodialSigner)
     req = ChallengeRequest.builder().account(custodialKp.address).memo(custodialMemo).build()
-    ex =
-      assertThrows<SepValidationException> {
-        sep10Service.validateAuthorizationToken(req, token, null)
-      }
+    assertThrows<SepValidationException> {
+      sep10Service.validateAuthorizationToken(req, token, null)
+    }
 
     params = mutableMapOf("account" to custodialKp.address, "memo" to custodialMemo)
     token =
@@ -969,10 +980,9 @@ internal class Sep10ServiceTest {
         .memo(custodialMemo)
         .homeDomain("testdomain.com")
         .build()
-    ex =
-      assertThrows<SepValidationException> {
-        sep10Service.validateAuthorizationToken(req, token, null)
-      }
+    assertThrows<SepValidationException> {
+      sep10Service.validateAuthorizationToken(req, token, null)
+    }
 
     params =
       mutableMapOf(
@@ -988,10 +998,9 @@ internal class Sep10ServiceTest {
         .homeDomain("testdomain.com")
         .clientDomain(clientDomain)
         .build()
-    ex =
-      assertThrows<SepValidationException> {
-        sep10Service.validateAuthorizationToken(req, token, domainKp.address)
-      }
+    assertThrows<SepValidationException> {
+      sep10Service.validateAuthorizationToken(req, token, domainKp.address)
+    }
 
     params =
       mutableMapOf(
