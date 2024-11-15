@@ -381,7 +381,7 @@ public class Sep10Service implements ISep10Service {
     // Validate account
     try {
       KeyPair.fromAccountId(request.getAccount());
-    } catch (Exception ex) {
+    } catch (IllegalArgumentException ex) {
       infoF("client wallet account ({}) is invalid", request.getAccount());
       throw new SepValidationException("Invalid account.");
     }

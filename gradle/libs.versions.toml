@@ -28,7 +28,7 @@ jakarta-annotation-api = "3.0.0"
 jakarta-transaction-api = "2.0.1"
 jakarta-validation-api = "3.1.0"
 jakarta-xml-bind-api = "4.0.2"
-java-stellar-sdk = "1.0.0-beta1"
+java-stellar-sdk = "1.0.0-rc0"
 jjwt = "0.12.5"
 jsonassert = "1.5.0"
 junit = "5.10.3"
@@ -54,7 +54,7 @@ spring-context = "6.1.11"
 spring-kafka = "3.2.1"
 spring-retry = "2.0.6"
 # TODO: change to real version when available
-stellar-wallet-sdk = "9eeb17f868b02c937de74b6c179891f0e7efdcbd"
+stellar-wallet-sdk = "6cf8a014c0f47a9cf4e96fcaa0d14cb9e2853e2d"
 
 # Plugin versions
 spotless = "6.25.0"
