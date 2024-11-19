@@ -2,8 +2,13 @@
 
 ## Unreleased
 
-## 1.0.13
+## 1.0.21
 * Add new field to the JWT token [#885](https://github.com/stellar/java-stellar-anchor-sdk/pull/885)
+
+## 1.0.13
+* Upgrade to JDK-17
+* Migrate `javax` to `jakarta` packages
+
 
 ## 1.0.12
 
