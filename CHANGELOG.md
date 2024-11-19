@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 1.0.13
+* Upgrade to JDK-17
+* Migrate `javax` to `jakarta` packages
+
+
 ## 1.0.12
 
 ### Updates
