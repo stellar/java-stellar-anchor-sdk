@@ -421,15 +421,16 @@ private const val expectedSep31Info =
         "quotes_supported": true,
         "quotes_required": false,
         "min_amount": 0,
-        "max_amount": 1000000
+        "max_amount": 1000000,
+        "funding_methods": ["SEPA","SWIFT"]
       },
       "USDC": {
         "enabled": true,
         "quotes_supported": true,
         "quotes_required": false,
         "min_amount": 0,
-        "max_amount": 10
-        }
+        "max_amount": 10,
+        "funding_methods": ["SEPA","SWIFT"]
       }
     }
   }

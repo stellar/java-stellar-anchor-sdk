@@ -1,6 +1,7 @@
 package org.stellar.anchor.api.sep.sep31;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 
@@ -30,5 +31,8 @@ public class Sep31InfoResponse {
 
     @SerializedName("max_amount")
     Long maxAmount;
+
+    @SerializedName("funding_methods")
+    List<String> fundingMethods;
   }
 }

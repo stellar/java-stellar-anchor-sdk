@@ -87,6 +87,20 @@ internal class DefaultAssetServiceTest {
   }
 
   @Test
+  fun `test invalid config with duplicate receive type when sep-31 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_duplicate_receive_methods.yaml")
+    }
+  }
+
+  @Test
+  fun `test invalid config with missing receive type when sep-31 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_missing_receive_method.yaml")
+    }
+  }
+
+  @Test
   fun `test trailing comma in JSON does not result in null element`() {
     val assetsService = DefaultAssetService.fromJsonContent(trailingCommaInAssets)
     assert(assetsService.stellarAssets.all { it != null })
@@ -146,7 +160,11 @@ internal class DefaultAssetServiceTest {
                   "enabled": true,
                   "receive": {
                     "min_amount": 1,
-                    "max_amount": 1000000
+                    "max_amount": 1000000,
+                    "methods": [
+                      "SEPA",
+                      "SWIFT"
+                    ]
                   },
                   "quotes_supported": true,
                   "quotes_required": true
@@ -183,7 +201,11 @@ internal class DefaultAssetServiceTest {
                   "enabled": true,
                   "receive": {
                     "min_amount": 1,
-                    "max_amount": 1000000
+                    "max_amount": 1000000,
+                    "methods": [
+                      "SEPA",
+                      "SWIFT"
+                    ]
                   },
                   "quotes_supported": true,
                   "quotes_required": true
@@ -203,7 +225,11 @@ internal class DefaultAssetServiceTest {
                   "enabled": false,
                   "receive": {
                     "min_amount": 1,
-                    "max_amount": 1000000
+                    "max_amount": 1000000,
+                    "methods": [
+                      "SEPA",
+                      "SWIFT"
+                    ]
                   }
                 },
                 "sep38": {

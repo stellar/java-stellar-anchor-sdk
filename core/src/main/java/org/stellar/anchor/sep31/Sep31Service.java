@@ -570,11 +570,13 @@ public class Sep31Service {
       if (assetInfo.getSep31() != null && assetInfo.getSep31().getEnabled()) {
         boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
         boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
+        List<String> methods = assetInfo.getSep31().getReceive().getMethods();
         AssetResponse assetResponse = new AssetResponse();
         assetResponse.setQuotesSupported(isQuotesSupported);
         assetResponse.setQuotesRequired(isQuotesRequired);
         assetResponse.setMinAmount(assetInfo.getSep31().getReceive().getMinAmount());
         assetResponse.setMaxAmount(assetInfo.getSep31().getReceive().getMaxAmount());
+        assetResponse.setFundingMethods(methods);
         response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
     }
