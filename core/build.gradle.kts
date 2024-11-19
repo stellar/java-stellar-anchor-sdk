@@ -5,13 +5,17 @@ plugins {
   id("org.jetbrains.kotlin.jvm") version "1.6.10"
 }
 
-version = "1.0.20"
+version = "1.0.21"
 
 dependencies {
   compileOnly(libs.servlet.api)
 
   compileOnly(libs.slf4j.api)
   api(libs.lombok)
+
+  annotationProcessor(libs.lombok)
+
+  compileOnly(libs.servlet.api)
 
   implementation(libs.apache.commons.lang3)
   implementation(libs.log4j.core)
@@ -22,11 +26,8 @@ dependencies {
   implementation(libs.commons.codec)
   implementation(libs.jjwt)
   implementation(libs.reactor.core)
-  implementation(libs.javax.jaxb.api)
-  implementation("com.github.stellar:java-stellar-sdk:0.42.0")
-
-  // Lombok should be used by all sub-projects to reduce Java verbosity
-  annotationProcessor(libs.lombok)
+  implementation(libs.jakarta.xml.bind.api)
+  implementation(libs.java.stellar.sdk)
 
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)
@@ -95,8 +96,5 @@ publishing {
   }
 
   apply<SigningPlugin>()
-  configure<SigningExtension> {
-    useGpgCmd()
-    sign(publishing.publications)
-  }
+  configure<SigningExtension> { sign(publishing.publications) }
 }

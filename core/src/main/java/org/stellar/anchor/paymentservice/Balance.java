@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class Balance {
   String amount;
+
   /**
    * The name of the currency that will be ultimately credited into the beneficiary user account. It
    * should obey the {scheme}:{identifier} format described in <a

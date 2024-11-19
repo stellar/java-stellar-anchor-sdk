@@ -54,7 +54,9 @@ public class Sep10Controller {
       consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE},
       method = {RequestMethod.POST})
   public ValidationResponse validateChallenge(@RequestParam String transaction)
-      throws InvalidSep10ChallengeException, IOException, URISyntaxException,
+      throws InvalidSep10ChallengeException,
+          IOException,
+          URISyntaxException,
           SepValidationException {
     debug("/auth transaction={}", transaction);
     return validateChallenge(ValidationRequest.of(transaction));
@@ -67,7 +69,9 @@ public class Sep10Controller {
       method = {RequestMethod.POST})
   public ValidationResponse validateChallenge(
       @RequestBody(required = false) ValidationRequest validationRequest)
-      throws InvalidSep10ChallengeException, IOException, URISyntaxException,
+      throws InvalidSep10ChallengeException,
+          IOException,
+          URISyntaxException,
           SepValidationException {
     debug("/auth details:", validationRequest);
     return sep10Service.validateChallenge(validationRequest);

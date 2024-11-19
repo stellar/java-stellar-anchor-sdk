@@ -10,6 +10,7 @@ public class Payment {
   String idTag;
   Account sourceAccount;
   Account destinationAccount;
+
   /** The balance currency name contains the scheme of the destination network of the payment. */
   Balance balance;
 

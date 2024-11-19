@@ -1,7 +1,7 @@
 plugins {
   `java-library`
-  id("org.springframework.boot") version "2.6.3"
-  id("io.spring.dependency-management") version "1.0.11.RELEASE"
+  id("org.springframework.boot") version "3.2.4"
+  id("io.spring.dependency-management") version "1.1.0"
 }
 
 dependencies {
@@ -10,6 +10,7 @@ dependencies {
   implementation(libs.google.gson)
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
 
   annotationProcessor(libs.lombok)
 
