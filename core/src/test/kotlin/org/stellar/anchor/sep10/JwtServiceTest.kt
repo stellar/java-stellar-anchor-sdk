@@ -16,10 +16,35 @@ internal class JwtServiceTest {
     val TEST_EXP = System.currentTimeMillis() / 1000 + 900
     const val TEST_JTI = "test_jti"
     const val TEST_CLIENT_DOMAIN = "test_client_domain"
+    const val TEST_REQUEST_ACCOUNT = "test_request_account"
   }
 
   @Test
   fun testcodec() {
+    val appConfig = mockk<AppConfig>()
+    every { appConfig.jwtSecretKey } returns "jwt_secret"
+
+    val jwtService = JwtService(appConfig)
+    val token =
+      JwtToken.of(TEST_ISS, TEST_SUB, TEST_IAT, TEST_EXP, TEST_JTI, TEST_CLIENT_DOMAIN, null)
+    val cipher = jwtService.encode(token)
+    val dt = jwtService.decode(cipher)
+
+    assertEquals(dt.iss, token.iss)
+    assertEquals(dt.sub, token.sub)
+    assertEquals(dt.iat, token.iat)
+    assertEquals(dt.exp, token.exp)
+    assertEquals(dt.jti, token.jti)
+    assertEquals(dt.clientDomain, token.clientDomain)
+    assertEquals(dt.account, token.sub)
+    assertEquals(dt.transactionId, token.jti)
+    assertEquals(dt.issuer, token.iss)
+    assertEquals(dt.issuedAt, token.iat)
+    assertEquals(dt.expiresAt, token.exp)
+  }
+
+  @Test
+  fun testcodecRequestAccount() {
     val appConfig = mockk<AppConfig>()
     every { appConfig.jwtSecretKey } returns "jwt_secret"
 
@@ -32,6 +57,7 @@ internal class JwtServiceTest {
         TEST_EXP,
         TEST_JTI,
         TEST_CLIENT_DOMAIN,
+        TEST_REQUEST_ACCOUNT
       )
     val cipher = jwtService.encode(token)
     val dt = jwtService.decode(cipher)
@@ -47,6 +73,8 @@ internal class JwtServiceTest {
     assertEquals(dt.issuer, token.iss)
     assertEquals(dt.issuedAt, token.iat)
     assertEquals(dt.expiresAt, token.exp)
+    assertEquals(dt.requestedAccount, token.requestedAccount)
+    assertEquals(dt.requestedAccount, TEST_REQUEST_ACCOUNT)
   }
 
   @Test

@@ -83,7 +83,8 @@ internal class Sep24ServiceTest {
       issuedAt,
       issuedAt + 60,
       "",
-      TEST_CLIENT_DOMAIN
+      TEST_CLIENT_DOMAIN,
+      null
     )
   }
 

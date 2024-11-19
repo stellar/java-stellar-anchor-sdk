@@ -15,6 +15,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
+import java.util.Base64;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Hex;
@@ -369,11 +370,12 @@ public class Sep24Service {
   JwtToken buildRedirectJwtToken(String fullRequestUrl, JwtToken token, Sep24Transaction txn) {
     return JwtToken.of(
         fullRequestUrl,
-        token.getAccount(),
+        token.getSub(),
         Instant.now().getEpochSecond(),
         Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
         txn.getTransactionId(),
-        token.getClientDomain());
+        token.getClientDomain(),
+        null);
   }
 
   List<AssetResponse> listAllAssets() {

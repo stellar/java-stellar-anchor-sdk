@@ -198,14 +198,17 @@ public class Sep10Service {
       signers.add(challenge.getClientAccountId());
 
       infoF(
-          "Verifying challenge threshold. server_account={}, signers={}",
+          "Verifying challenge threshold. server_account={}, client_domain={}, signers={}",
           shorter(serverAccountId),
+          clientDomain,
           signers.size());
 
       if ((clientDomain != null && challenge.getTransaction().getSignatures().size() != 3)
           || (clientDomain == null && challenge.getTransaction().getSignatures().size() != 2)) {
         infoF(
-            "ALERT: Invalid SEP 10 challenge exception, there is more than one client signer on challenge transaction for an account that doesn't exist");
+            "ALERT: Invalid SEP 10 challenge exception, there is more than one client signer on challenge transaction for an account that doesn't exist. client_domain={}, account_id={}",
+            clientDomain,
+            challenge.getClientAccountId());
         throw new InvalidSep10ChallengeException(
             "There is more than one client signer on challenge transaction for an account that doesn't exist");
       }
@@ -232,8 +235,9 @@ public class Sep10Service {
     // the signatures must be greater than the medium threshold of the account.
     int threshold = account.getThresholds().getMedThreshold();
     infoF(
-        "Verifying challenge threshold. server_account={}, threshold={}, signers={}",
+        "Verifying challenge threshold. server_account={}, client_domain={}, threshold={}, signers={}",
         shorter(serverAccountId),
+        clientDomain,
         threshold,
         signers.size());
 
@@ -257,7 +261,13 @@ public class Sep10Service {
       String tomlValue = NetUtil.fetch(url);
       Log.debug("Fetched client_domain's stellar.toml.", tomlValue);
 
-      Toml toml = new Toml().read(tomlValue);
+      Toml toml;
+      try {
+        toml = new Toml().read(tomlValue);
+      } catch (Exception ex) {
+        Log.errorEx(ex);
+        throw new SepException("Failed to read toml file (missing or invalid) from url " + url);
+      }
       clientSigningKey = toml.getString("SIGNING_KEY");
       if (clientSigningKey == null) {
         throw new SepException("SIGNING_KEY not present in 'client_domain' TOML");
@@ -283,7 +293,7 @@ public class Sep10Service {
             new Network(appConfig.getStellarNetworkPassphrase()),
             sep10Config.getHomeDomain(),
             getDomainFromURI(appConfig.getHostUrl()));
-    long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
+    long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime().longValueExact();
     Memo memo = challenge.getTransaction().getMemo();
     JwtToken jwtToken =
         JwtToken.of(
@@ -294,7 +304,8 @@ public class Sep10Service {
             issuedAt,
             issuedAt + sep10Config.getJwtTimeout(),
             challenge.getTransaction().hashHex(),
-            clientDomain);
+            clientDomain,
+            null);
     return jwtService.encode(jwtToken);
   }
 

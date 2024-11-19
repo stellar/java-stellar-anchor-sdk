@@ -176,7 +176,8 @@ internal class Sep10TokenFilterTest {
         issuedAt,
         issuedAt + 60,
         "",
-        "vibrant.stellar.org"
+        "vibrant.stellar.org",
+        null
       )
     return jwtService.encode(jwtToken)
   }
