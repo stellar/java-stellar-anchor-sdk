@@ -1,6 +1,6 @@
 plugins {
   java
-  id("com.diffplug.spotless") version "6.2.1"
+  id("com.diffplug.spotless") version "6.24.0"
 }
 
 subprojects {
@@ -13,11 +13,13 @@ subprojects {
   repositories {
     mavenLocal()
     mavenCentral()
+    maven { url = uri("https://packages.confluent.io/maven") }
+    maven { url = uri("https://repository.mulesoft.org/nexus/content/repositories/public/") }
     maven { url = uri("https://jitpack.io") }
   }
 
-  /** Specifies JDK-11 */
-  java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
+  /** Specifies JDK-17 */
+  java { toolchain { languageVersion.set(JavaLanguageVersion.of(17)) } }
 
   /** Enforces google-java-format at Java compilation. */
   tasks.named("compileJava") { this.dependsOn("spotlessApply") }

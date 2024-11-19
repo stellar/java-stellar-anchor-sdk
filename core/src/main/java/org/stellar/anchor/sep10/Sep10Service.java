@@ -150,7 +150,9 @@ public class Sep10Service {
   }
 
   public ValidationResponse validateChallenge(ValidationRequest validationRequest)
-      throws IOException, InvalidSep10ChallengeException, URISyntaxException,
+      throws IOException,
+          InvalidSep10ChallengeException,
+          URISyntaxException,
           SepValidationException {
     if (validationRequest == null || validationRequest.getTransaction() == null) {
       throw new SepValidationException("{transaction} is required.");

@@ -13,6 +13,10 @@ dependencies {
   compileOnly(libs.slf4j.api)
   api(libs.lombok)
 
+  annotationProcessor(libs.lombok)
+
+  compileOnly(libs.servlet.api)
+
   implementation(libs.apache.commons.lang3)
   implementation(libs.log4j.core)
   implementation(libs.httpclient)
@@ -22,16 +26,8 @@ dependencies {
   implementation(libs.commons.codec)
   implementation(libs.jjwt)
   implementation(libs.reactor.core)
-  implementation(libs.javax.jaxb.api)
+  implementation(libs.jakarta.xml.bind.api)
   implementation(libs.java.stellar.sdk)
-
-
-  // https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api
-  compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
-
-
-  // Lombok should be used by all sub-projects to reduce Java verbosity
-  annotationProcessor(libs.lombok)
 
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)

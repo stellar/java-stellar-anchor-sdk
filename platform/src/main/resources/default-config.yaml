@@ -73,7 +73,6 @@ payment-stellar:
 # Spring Data JDBC settings
 #
 data-spring-jdbc-settings:
-  spring.jpa.database-platform: org.stellar.anchor.server.sqlite.SQLiteDialect
   spring.jpa.hibernate.ddl-auto: update
   spring.jpa.generate-ddl: true
   spring.jpa.hibernate.show_sql: false
