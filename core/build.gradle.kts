@@ -25,6 +25,11 @@ dependencies {
   implementation(libs.javax.jaxb.api)
   implementation(libs.java.stellar.sdk)
 
+
+  // https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api
+  compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
+
+
   // Lombok should be used by all sub-projects to reduce Java verbosity
   annotationProcessor(libs.lombok)
 
