@@ -182,13 +182,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
-            "fields": {
-              "type": {
-                "description": "type of deposit to make",
-                "choices": ["SEPA", "SWIFT"],
-                "optional": false
-              }
-            }
+            "funding_methods": ["SEPA", "SWIFT"]
           }
         },
         "deposit-exchange": {
@@ -197,13 +191,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
-            "fields": {
-              "type": {
-                "description": "type of deposit to make",
-                "choices": ["SEPA", "SWIFT"],
-                "optional": false
-              }
-            }
+            "funding_methods": ["SEPA", "SWIFT"]
           }
         },
         "withdraw": {
@@ -212,7 +200,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
-            "types": { "cash": { "fields": {} }, "bank_account": { "fields": {} } }
+            "funding_methods": ["bank_account", "cash"]
           }
         },
         "withdraw-exchange": {
@@ -221,7 +209,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
-            "types": { "cash": { "fields": {} }, "bank_account": { "fields": {} } }
+            "funding_methods": ["bank_account", "cash"]
           }
         },
         "fee": { "enabled": false, "description": "Fee endpoint is not supported." },

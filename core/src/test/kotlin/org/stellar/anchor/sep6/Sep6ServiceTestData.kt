@@ -11,16 +11,8 @@ class Sep6ServiceTestData {
                     "authentication_required": true,
                     "min_amount": 1,
                     "max_amount": 10000,
-                    "fields": {
-                        "type": {
-                            "description": "type of deposit to make",
-                            "choices": [
-                                "SEPA",
-                                "SWIFT"
-                            ],
-                            "optional": false
-                        }
-                    }
+                    "funding_methods": ["SEPA", "SWIFT"]
+       
                 }
             },
             "deposit-exchange": {
@@ -29,16 +21,7 @@ class Sep6ServiceTestData {
                     "authentication_required": true,
                     "min_amount": 1,
                     "max_amount": 10000,
-                    "fields": {
-                        "type": {
-                            "description": "type of deposit to make",
-                            "choices": [
-                                "SEPA",
-                                "SWIFT"
-                            ],
-                            "optional": false
-                        }
-                    }
+                    "funding_methods": ["SEPA", "SWIFT"]
                 }
             },
             "withdraw": {
@@ -47,14 +30,7 @@ class Sep6ServiceTestData {
                     "authentication_required": true,
                     "min_amount": 1,
                     "max_amount": 10000,
-                    "types": {
-                        "cash": {
-                            "fields": {}
-                        },
-                        "bank_account": {
-                            "fields": {}
-                        }
-                    }
+                    "funding_methods": ["bank_account", "cash"]
                 }
             },
             "withdraw-exchange": {
@@ -63,14 +39,7 @@ class Sep6ServiceTestData {
                     "authentication_required": true,
                     "min_amount": 1,
                     "max_amount": 10000,
-                    "types": {
-                        "cash": {
-                            "fields": {}
-                        },
-                        "bank_account": {
-                            "fields": {}
-                        }
-                    }
+                    "funding_methods": ["bank_account", "cash"]
                 }
             },
             "fee": {
