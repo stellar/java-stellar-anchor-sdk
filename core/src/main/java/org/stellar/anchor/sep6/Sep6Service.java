@@ -107,7 +107,7 @@ public class Sep6Service {
 
     StellarAssetInfo asset = requestValidator.getDepositAsset(request.getAssetCode());
     String fundingMethod =
-        request.getFundingMethod() != null ? request.getFundingMethod() : request.getMemoType();
+        request.getFundingMethod() != null ? request.getFundingMethod() : request.getType();
     requestValidator.validateTypes(
         fundingMethod, asset.getCode(), asset.getSep6().getDeposit().getMethods());
 
