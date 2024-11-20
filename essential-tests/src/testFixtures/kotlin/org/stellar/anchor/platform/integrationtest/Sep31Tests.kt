@@ -386,6 +386,7 @@ private const val postTxnRequest =
     "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "receiver_id": "MOCK_RECEIVER_ID",
     "sender_id": "MOCK_SENDER_ID",
+    "funding_method": "SEPA",
     "fields": {
         "transaction": {
             "receiver_routing_number": "r0123",
