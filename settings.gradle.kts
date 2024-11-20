@@ -10,7 +10,7 @@ dependencyResolutionManagement {
       alias("commons.validator").to("commons-validator:commons-validator:1.7")
       alias("google.gson").to("com.google.code.gson:gson:2.8.9")
       alias("httpclient").to("org.apache.httpcomponents:httpclient:4.5.13")
-      alias("java.stellar.sdk").to("com.github.stellar:java-stellar-sdk:0.44.1")
+      alias("java.stellar.sdk").to("com.github.stellar:java-stellar-sdk:0.42.0")
 
       alias("jakarta.xml.bind.api").to("jakarta.xml.bind:jakarta.xml.bind-api:2.3.3")
 
