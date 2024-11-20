@@ -148,7 +148,7 @@ public class SepHelper {
    *     methods.
    */
   public static void validateFundingMethod(
-      String assetID, String method, List<String> supportedMethods) throws AnchorException {
+      String assetID, String method, List<String> supportedMethods) throws BadRequestException {
     if (StringHelper.isEmpty(method)) {
       throw new BadRequestException("funding_method cannot be empty");
     }
