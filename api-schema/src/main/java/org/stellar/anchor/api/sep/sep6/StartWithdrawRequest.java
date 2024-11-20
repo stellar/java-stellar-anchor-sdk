@@ -20,8 +20,12 @@ public class StartWithdrawRequest {
   @NonNull
   String assetCode;
 
-  /** Type of withdrawal. */
-  String type;
+  /** Withdraw method used for the transaction. */
+  @SerializedName("funding_method")
+  String fundingMethod;
+
+  /** Type of withdrawal. Deprecated in favor of funding_method */
+  @Deprecated String type;
 
   /** The account to withdraw from. */
   String account;

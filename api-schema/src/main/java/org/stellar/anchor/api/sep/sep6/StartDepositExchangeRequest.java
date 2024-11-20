@@ -49,8 +49,12 @@ public class StartDepositExchangeRequest {
   /** The memo to use for the deposit. */
   String memo;
 
-  /** Type of deposit. */
-  @NonNull String type;
+  /** Deposit method used for the transaction. */
+  @SerializedName("funding_method")
+  String fundingMethod;
+
+  /** Type of deposit. Deprecated in favor of funding_method */
+  @Deprecated String type;
 
   /**
    * Defaults to en if not specified or if the specified language is not supported. Currently,

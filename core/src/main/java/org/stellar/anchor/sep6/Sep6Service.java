@@ -106,10 +106,11 @@ public class Sep6Service {
     }
 
     StellarAssetInfo asset = requestValidator.getDepositAsset(request.getAssetCode());
-    if (request.getType() != null) {
-      requestValidator.validateTypes(
-          request.getType(), asset.getCode(), asset.getSep6().getDeposit().getMethods());
-    }
+    String fundingMethod =
+        request.getFundingMethod() != null ? request.getFundingMethod() : request.getMemoType();
+    requestValidator.validateTypes(
+        fundingMethod, asset.getCode(), asset.getSep6().getDeposit().getMethods());
+
     if (request.getAmount() != null) {
       requestValidator.validateAmount(
           request.getAmount(),
@@ -185,8 +186,10 @@ public class Sep6Service {
     }
 
     StellarAssetInfo buyAsset = requestValidator.getDepositAsset(request.getDestinationAsset());
+    String fundingMethod =
+        request.getFundingMethod() != null ? request.getFundingMethod() : request.getType();
     requestValidator.validateTypes(
-        request.getType(), buyAsset.getCode(), buyAsset.getSep6().getDeposit().getMethods());
+        fundingMethod, buyAsset.getCode(), buyAsset.getSep6().getDeposit().getMethods());
     requestValidator.validateAmount(
         request.getAmount(),
         buyAsset.getCode(),
@@ -280,10 +283,11 @@ public class Sep6Service {
     }
 
     StellarAssetInfo asset = requestValidator.getWithdrawAsset(request.getAssetCode());
-    if (request.getType() != null) {
-      requestValidator.validateTypes(
-          request.getType(), asset.getCode(), asset.getSep6().getWithdraw().getMethods());
-    }
+    String fundingMethod =
+        request.getFundingMethod() != null ? request.getFundingMethod() : request.getType();
+    requestValidator.validateTypes(
+        fundingMethod, asset.getCode(), asset.getSep6().getWithdraw().getMethods());
+
     if (request.getAmount() != null) {
       requestValidator.validateAmount(
           request.getAmount(),
@@ -356,8 +360,10 @@ public class Sep6Service {
     }
 
     StellarAssetInfo sellAsset = requestValidator.getWithdrawAsset(request.getSourceAsset());
+    String fundingMethod =
+        request.getFundingMethod() != null ? request.getFundingMethod() : request.getType();
     requestValidator.validateTypes(
-        request.getType(), sellAsset.getCode(), sellAsset.getSep6().getWithdraw().getMethods());
+        fundingMethod, sellAsset.getCode(), sellAsset.getSep6().getWithdraw().getMethods());
     requestValidator.validateAmount(
         request.getAmount(),
         sellAsset.getCode(),
