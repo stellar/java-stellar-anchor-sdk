@@ -523,10 +523,14 @@ class Sep31ServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("amount should be positive", ex.message)
 
-    // ----- QUOTE_ID IS USED ⬇️ -----
     postTxRequest.lang = "en"
     postTxRequest.amount = "1"
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("funding_method cannot be empty", ex.message)
 
+    postTxRequest.fundingMethod = "SEPA"
+    // ----- QUOTE_ID IS USED ⬇️ -----
     // not found quote_id
     val fields =
       hashMapOf(
@@ -608,6 +612,7 @@ class Sep31ServiceTest {
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
     postTxRequest.quoteId = "my_quote_id"
+    postTxRequest.fundingMethod = "SEPA"
     postTxRequest.fields =
       Sep31TxnFields(
         hashMapOf(
@@ -664,6 +669,7 @@ class Sep31ServiceTest {
       """{
       "id": "$txId",
       "status": "pending_receiver",
+      "fundingMethod": "SEPA",
       "amountFee": "10",
       "amountFeeAsset": "$stellarUSDC",
       "startedAt": "$txStartedAt",
@@ -707,6 +713,7 @@ class Sep31ServiceTest {
     postTxRequest.assetIssuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
+    postTxRequest.fundingMethod = "SEPA"
     postTxRequest.fields =
       Sep31TxnFields(
         hashMapOf(
@@ -764,6 +771,7 @@ class Sep31ServiceTest {
     postTxRequest.assetIssuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
+    postTxRequest.fundingMethod = "SEPA"
     postTxRequest.fields =
       Sep31TxnFields(
         hashMapOf(

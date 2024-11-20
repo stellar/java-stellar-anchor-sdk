@@ -45,6 +45,7 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String receiverId;
   String senderId;
   StellarId creator;
+  String fundingMethod;
   List<FeeDescription> feeDetailsList;
 
   public void setFeeDetails(FeeDetails feeDetails) {

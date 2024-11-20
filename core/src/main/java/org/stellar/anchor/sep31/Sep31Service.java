@@ -13,10 +13,7 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_CREATED;
 import static org.stellar.anchor.util.MetricConstants.SEP31_TRANSACTION_PATCHED;
-import static org.stellar.anchor.util.SepHelper.amountEquals;
-import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
-import static org.stellar.anchor.util.SepHelper.validateAmount;
-import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
+import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
 import io.micrometer.core.instrument.Counter;
@@ -126,6 +123,10 @@ public class Sep31Service {
         request.getAmount(),
         assetInfo.getSep31().getReceive().getMinAmount(),
         assetInfo.getSep31().getReceive().getMaxAmount());
+    validateFundingMethod(
+        assetInfo.getId(),
+        request.getFundingMethod(),
+        assetInfo.getSep31().getReceive().getMethods());
     validateLanguage(appConfig, request.getLang());
 
     /*
@@ -173,6 +174,7 @@ public class Sep31Service {
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
             .status(SepTransactionStatus.PENDING_RECEIVER.getStatus())
+            .fundingMethod(request.getFundingMethod())
             .statusEta(null)
             .feeDetails(feeDetails)
             .startedAt(now)

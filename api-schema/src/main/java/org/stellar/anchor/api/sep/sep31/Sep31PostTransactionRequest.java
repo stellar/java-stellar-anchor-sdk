@@ -34,8 +34,12 @@ public class Sep31PostTransactionRequest {
   @SerializedName("receiver_id")
   String receiverId;
 
-  Sep31TxnFields fields;
+  @Deprecated Sep31TxnFields fields;
+
   String lang;
+
+  @SerializedName("funding_method")
+  String fundingMethod;
 
   @Data
   @AllArgsConstructor
