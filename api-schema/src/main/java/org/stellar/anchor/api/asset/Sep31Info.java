@@ -1,6 +1,7 @@
 package org.stellar.anchor.api.asset;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 
@@ -23,6 +24,8 @@ public class Sep31Info {
 
     @SerializedName("max_amount")
     Long maxAmount;
+
+    List<String> methods;
   }
 
   @Data

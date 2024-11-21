@@ -95,6 +95,7 @@ public class TransactionMapper {
         .sep(PlatformTransactionData.Sep.SEP_31)
         .kind(RECEIVE)
         .status(SepTransactionStatus.from(txn.getStatus()))
+        .type(txn.getFundingMethod())
         .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
         .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
         .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))

@@ -108,6 +108,10 @@ public interface Sep31Transaction extends SepTransaction {
 
   void setCreator(StellarId creator);
 
+  String getFundingMethod();
+
+  void setFundingMethod(String fundingMethod);
+
   default Customers getCustomers() {
     return new Customers(
         StellarId.builder().id(getSenderId()).build(),
