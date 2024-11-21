@@ -171,6 +171,11 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
+  public Sep31TransactionBuilder fundingMethod(String fundingMethod) {
+    txn.setFundingMethod(fundingMethod);
+    return this;
+  }
+
   public Sep31Transaction build() {
     return txn;
   }

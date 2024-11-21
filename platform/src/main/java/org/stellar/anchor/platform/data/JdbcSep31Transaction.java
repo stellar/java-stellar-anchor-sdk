@@ -76,6 +76,10 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   @Column(length = 2047)
   StellarId creator;
 
+  @SerializedName("funding_method")
+  @Column(name = "funding_method")
+  String fundingMethod;
+
   // Ignored by JPA and Gson
   @SerializedName("fields")
   @Transient

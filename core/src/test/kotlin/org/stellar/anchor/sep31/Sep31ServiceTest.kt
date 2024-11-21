@@ -99,30 +99,14 @@ class Sep31ServiceTest {
                 "enabled": true,
                 "receive": {
                   "min_amount": 1,
-                  "max_amount": 1000000
+                  "max_amount": 1000000,
+                  "methods": [
+                    "SEPA",
+                    "SWIFT"
+                  ]
                 },
                 "quotes_supported": true,
-                "quotes_required": true,
-                "fields": {
-                  "transaction": {
-                    "receiver_routing_number": {
-                      "description": "routing number of the destination bank account",
-                      "optional": false
-                    },
-                    "receiver_account_number": {
-                      "description": "bank account number of the destination",
-                      "optional": false
-                    },
-                    "type": {
-                      "description": "type of deposit to make",
-                      "choices": [
-                        "SEPA",
-                        "SWIFT"
-                      ],
-                      "optional": false
-                    }
-                  }
-                }
+                "quotes_required": true
               },
               "sep38": {
                 "enabled": true,
@@ -537,10 +521,14 @@ class Sep31ServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("amount should be positive", ex.message)
 
-    // ----- QUOTE_ID IS USED ⬇️ -----
     postTxRequest.lang = "en"
     postTxRequest.amount = "1"
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("funding_method cannot be empty", ex.message)
 
+    postTxRequest.fundingMethod = "SEPA"
+    // ----- QUOTE_ID IS USED ⬇️ -----
     // not found quote_id
     val fields =
       hashMapOf(
@@ -622,6 +610,7 @@ class Sep31ServiceTest {
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
     postTxRequest.quoteId = "my_quote_id"
+    postTxRequest.fundingMethod = "SEPA"
     postTxRequest.fields =
       Sep31TxnFields(
         hashMapOf(
@@ -678,6 +667,7 @@ class Sep31ServiceTest {
       """{
       "id": "$txId",
       "status": "pending_receiver",
+      "fundingMethod": "SEPA",
       "amountFee": "10",
       "amountFeeAsset": "$stellarUSDC",
       "startedAt": "$txStartedAt",
@@ -721,6 +711,7 @@ class Sep31ServiceTest {
     postTxRequest.assetIssuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
+    postTxRequest.fundingMethod = "SEPA"
     postTxRequest.fields =
       Sep31TxnFields(
         hashMapOf(
@@ -778,6 +769,7 @@ class Sep31ServiceTest {
     postTxRequest.assetIssuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
+    postTxRequest.fundingMethod = "SEPA"
     postTxRequest.fields =
       Sep31TxnFields(
         hashMapOf(
@@ -807,13 +799,13 @@ class Sep31ServiceTest {
 
   private val jpycJson =
     """
-    {"enabled":true,"quotes_supported":true,"quotes_required":true,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
-  """
+      {"enabled":true,"quotes_supported":true,"quotes_required":true,"min_amount":1,"max_amount":1000000,"funding_methods":["SEPA","SWIFT"]}
+    """
       .trimIndent()
 
   private val usdcJson =
     """
-    {"enabled":true,"quotes_supported":true,"quotes_required":true,"min_amount":1,"max_amount":1000000,"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false}, "receiver_phone_number": {"description": "phone number of the receiver", "optional": true},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
+    {"enabled":true,"quotes_supported":true,"quotes_required":true,"min_amount":1,"max_amount":1000000,"funding_methods":["SEPA","SWIFT"]}
   """
       .trimIndent()
 

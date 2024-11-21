@@ -386,6 +386,7 @@ private const val postTxnRequest =
     "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "receiver_id": "MOCK_RECEIVER_ID",
     "sender_id": "MOCK_SENDER_ID",
+    "funding_method": "SEPA",
     "fields": {
         "transaction": {
             "receiver_routing_number": "r0123",
@@ -421,15 +422,16 @@ private const val expectedSep31Info =
         "quotes_supported": true,
         "quotes_required": false,
         "min_amount": 0,
-        "max_amount": 1000000
+        "max_amount": 1000000,
+        "funding_methods": ["SEPA","SWIFT"]
       },
       "USDC": {
         "enabled": true,
         "quotes_supported": true,
         "quotes_required": false,
         "min_amount": 0,
-        "max_amount": 10
-        }
+        "max_amount": 10,
+        "funding_methods": ["SEPA","SWIFT"]
       }
     }
   }
