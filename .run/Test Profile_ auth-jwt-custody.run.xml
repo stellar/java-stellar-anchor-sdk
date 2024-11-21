@@ -3,7 +3,6 @@
     <envs>
       <env name="app.enableTest" value="true" />
       <env name="TEST_PROFILE_NAME" value="auth-jwt-custody" />
-      <env name="KT_REFERENCE_SERVER_CONFIG" value="service-runner/src/main/resources/config/reference-config.yaml" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunTestProfile" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
