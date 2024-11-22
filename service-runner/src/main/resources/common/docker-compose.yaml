@@ -8,11 +8,10 @@ services:
     ports:
       - "8080:8080" # SEP server
       - "8085:8085" # Platform server
-      - "8091:8091" # Reference server
-      - "8092:8092" # Reference server
+      - "8091:8091" # Business Reference server
+      - "8092:8092" # Wallet Reference server
 
   platform:
-    image: anchor-platform:local
     command: --sep-server --platform-server --event-processor
     volumes:
       - ../config:/config
@@ -20,13 +19,7 @@ services:
       - "8080:8080" # SEP server
       - "8085:8085" # Platform server
 
-  sep24-reference-ui:
-    image: stellar/sep24-reference-ui
-    ports:
-      - "3000:80"
-
   observer:
-    image: anchor-platform:local
     build:
       context: ../../../../../essential-tests/src/test
       dockerfile: essential-tests/docker-compose-configs/Dockerfile
@@ -38,14 +31,12 @@ services:
       - "host.docker.internal:host-gateway"
 
   custody-server:
-    image: anchor-platform:local
     command: "--custody-server"
     volumes:
       # add mounts for the new config directory
       - ../config:/config
 
   reference-server:
-    image: anchor-platform:local
     command: "--kotlin-reference-server"
     volumes:
       # add mounts for the new config directory
@@ -54,6 +45,11 @@ services:
       KT_REFERENCE_SERVER_CONFIG: /config/reference-config.yaml
     ports:
       - "8091:8091"
+
+  sep24-reference-ui:
+    image: stellar/sep24-reference-ui
+    ports:
+      - "3000:80"
 
   kafka:
     platform: linux

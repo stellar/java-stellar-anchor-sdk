@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=gradle:7.6.4-jdk17-alpine
+ARG BASE_IMAGE=gradle:8.2.1-jdk17-alpine
 
 FROM ${BASE_IMAGE} AS build
 WORKDIR /code

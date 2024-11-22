@@ -25,6 +25,19 @@ services:
         To start the services: `docker-compose --profile latest up`
       maintainer: "jamie@stellar.org"
 
+  local-built-servers:
+    extends:
+      file: service-runner/src/main/resources/common/docker-compose.yaml
+      service: dev-servers
+    image: stellar/anchor-platform:local
+    profiles:
+      - 'local'
+    labels:
+      description: |
+        Runs all of the Anchor Platform services from the locally built image.
+        To start the services: `docker-compose --profile local up`
+      maintainer: "jamie@stellar.org"
+
   platform:
     profiles:
       - ''
