@@ -1,7 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Test Profile: rpc" type="JetRunConfigurationType" folderName="Run Test Profile">
     <envs>
-      <env name="app.enableTest" value="true" />
       <env name="TEST_PROFILE_NAME" value="rpc" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunTestProfile" />
