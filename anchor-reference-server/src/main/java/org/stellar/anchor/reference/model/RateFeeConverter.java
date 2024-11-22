@@ -2,9 +2,9 @@ package org.stellar.anchor.reference.model;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import java.lang.reflect.Type;
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 import org.stellar.anchor.api.sep.sep38.RateFee;
 import org.stellar.anchor.util.GsonUtils;
 

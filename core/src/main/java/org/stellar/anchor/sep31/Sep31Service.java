@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.CustomerIntegration;
@@ -110,7 +109,6 @@ public class Sep31Service {
     }
   }
 
-  @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
   public void saveAndCommit(Sep31Transaction txn) throws AnchorException {
 
     debugF(
@@ -163,7 +161,6 @@ public class Sep31Service {
     eventService.publish(event);
   }
 
-  @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
   public Sep31Transaction createAndCommitPostTransaction(
       JwtToken jwtToken, Sep31PostTransactionRequest request) throws AnchorException {
     Context.reset();
@@ -385,7 +382,6 @@ public class Sep31Service {
     return txn.toSep31GetTransactionResponse();
   }
 
-  @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
   public Sep31GetTransactionResponse patchTransaction(Sep31PatchTransactionRequest request)
       throws AnchorException {
     if (request == null) {

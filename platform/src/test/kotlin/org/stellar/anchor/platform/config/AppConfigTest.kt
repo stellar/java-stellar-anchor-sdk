@@ -1,9 +1,8 @@
 package org.stellar.anchor.platform.config
 
 import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.fail
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
 
@@ -60,7 +59,9 @@ open class AppConfigTest {
     appConfig.stellarNetworkPassphrase = "Test SDF Network ; September 2015"
     appConfig.hostUrl = "http://localhost:2222"
     val errors = BindException(appConfig, "appConfig")
+
     ValidationUtils.invokeValidator(appConfig, appConfig, errors)
+    //    ValidationUtils.invokeValidator(appConfig, appConfig, errors)
     assertEquals(1, errors.errorCount)
     errors.message?.let { assertContains(it, "invalidUrl-horizonUrl") }
   }

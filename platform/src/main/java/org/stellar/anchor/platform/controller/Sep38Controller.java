@@ -6,8 +6,8 @@ import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.errorEx;
 
 import com.google.gson.Gson;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;

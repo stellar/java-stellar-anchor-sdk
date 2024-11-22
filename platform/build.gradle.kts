@@ -20,8 +20,11 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-aop")
+  implementation("org.springframework.boot:spring-boot-starter-validation")
+  implementation("org.springframework:spring-context")
 
-  implementation(libs.spring.aws.messaging)
+
+//  implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
   implementation(libs.aws.rds)
   implementation(libs.aws.iam.auth)
@@ -30,6 +33,8 @@ dependencies {
   implementation(libs.flyway.core)
   implementation(libs.hibernate.types)
   implementation(libs.google.gson)
+  implementation(libs.jakarta.servlet.api)
+  implementation(libs.javax.jaxb.api)
   implementation(variantOf(libs.java.stellar.sdk) { classifier("uber") })
 
   implementation(libs.sqlite.jdbc)
@@ -45,6 +50,7 @@ dependencies {
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(libs.okhttp3.mockserver)
+  testImplementation(libs.slf4j.api)
 }
 
 tasks.test {

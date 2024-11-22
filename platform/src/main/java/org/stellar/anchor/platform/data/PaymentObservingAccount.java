@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.data;
 
+import jakarta.persistence.*;
 import java.time.Instant;
-import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

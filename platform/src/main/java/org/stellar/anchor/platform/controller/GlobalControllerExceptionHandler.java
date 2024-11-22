@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.controller;
 
 import static org.stellar.anchor.util.Log.*;
 
-import javax.transaction.NotSupportedException;
+import jakarta.transaction.NotSupportedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;

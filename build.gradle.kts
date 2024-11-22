@@ -28,20 +28,11 @@ subprojects {
     maven { url = uri("https://packages.confluent.io/maven") }
   }
 
-  /** Specifies JDK-11 */
-  java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
+  /** Specifies JDK-17 */
+  java { toolchain { languageVersion.set(JavaLanguageVersion.of(17)) } }
 
   spotless {
     val javaVersion = System.getProperty("java.version")
-    if (javaVersion >= "17") {
-      logger.warn("!!! WARNING !!!")
-      logger.warn("=================")
-      logger.warn(
-          "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
-          javaVersion)
-      logger.warn(
-          "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM")
-    }
 
     if (javaVersion < "11") {
       throw GradleException("Java 11 or greater is required for spotless Gradle plugin.")
@@ -98,20 +89,15 @@ subprojects {
 
     test {
       useJUnitPlatform()
+      jvmArgs("--add-opens", "java.base/java.time=ALL-UNNAMED")
+      jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+      jvmArgs("--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED")
 
       testLogging {
         events("SKIPPED", "FAILED")
         showExceptions = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
       }
-    }
-  }
-
-  configurations {
-    all {
-      exclude(group = "ch.qos.logback", module = "logback-classic")
-      exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-      exclude(group = "org.slf4j", module = "slf4j-log4j12")
     }
   }
 }

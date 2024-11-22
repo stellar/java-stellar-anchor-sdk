@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import java.util.UUID;
-import javax.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
