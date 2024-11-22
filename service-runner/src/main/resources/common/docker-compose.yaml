@@ -1,4 +1,16 @@
 services:
+  dev-servers:
+    environment:
+      - KT_REFERENCE_SERVER_CONFIG=/config/reference-config.yaml
+    command: -t
+    volumes:
+      - ../config:/config
+    ports:
+      - "8080:8080" # SEP server
+      - "8085:8085" # Platform server
+      - "8091:8091" # Reference server
+      - "8092:8092" # Reference server
+
   platform:
     image: anchor-platform:local
     command: --sep-server --platform-server --event-processor
@@ -44,7 +56,7 @@ services:
       - "8091:8091"
 
   kafka:
-    platform: linux/x86_64
+    platform: linux
     image: confluentinc/cp-kafka:7.4.3
     ports:
       - "29092:29092"

@@ -1,0 +1,77 @@
+services:
+  v2-stable-servers:
+    extends:
+      file: service-runner/src/main/resources/common/docker-compose.yaml
+      service: dev-servers
+    image: stellar/anchor-platform:2.11.2
+    profiles:
+      - 'v2-stable'
+    labels:
+      description: |
+        Runs all of the Anchor Platform services for the v2 stable release.
+        To start the services: `docker-compose --profile v2-stable up`
+      maintainer: "jamie@stellar.org"
+
+  stable-servers:
+    extends:
+      file: service-runner/src/main/resources/common/docker-compose.yaml
+      service: dev-servers
+    image: stellar/anchor-platform:latest
+    profiles:
+      - 'latest'
+    labels:
+      description: |
+        Runs all of the Anchor Platform services for the latest release.
+        To start the services: `docker-compose --profile latest up`
+      maintainer: "jamie@stellar.org"
+
+  platform:
+    profiles:
+      - ''
+    extends:
+      file: service-runner/src/main/resources/common/docker-compose.yaml
+      service: platform
+    depends_on:
+      - db
+      - kafka
+      - reference-server
+      - sep24-reference-ui
+
+  observer:
+    profiles:
+      - ''
+    extends:
+      file: service-runner/src/main/resources/common/docker-compose.yaml
+      service: observer
+    depends_on:
+      - db
+      - kafka
+
+  reference-server:
+    profiles:
+      - ''
+    extends:
+      file: service-runner/src/main/resources/common/docker-compose.yaml
+      service: reference-server
+    depends_on:
+      - reference-db
+
+  sep24-reference-ui:
+    extends:
+      file: service-runner/src/main/resources/common/docker-compose.yaml
+      service: sep24-reference-ui
+
+  kafka:
+    extends:
+      file: service-runner/src/main/resources/common/docker-compose.yaml
+      service: kafka
+
+  db:
+    extends:
+      file: service-runner/src/main/resources/common/docker-compose.yaml
+      service: db
+
+  reference-db:
+    extends:
+      file: service-runner/src/main/resources/common/docker-compose.yaml
+      service: reference-db
