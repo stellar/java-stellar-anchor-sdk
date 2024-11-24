@@ -10,46 +10,33 @@
           "enabled": true,
           "min_amount": 1,
           "max_amount": 1000000,
-            "methods": [
-                "SEPA",
-                "SWIFT"
-            ]
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
         },
         "withdraw": {
           "enabled": true,
           "min_amount": 1,
           "max_amount": 1000000,
-            "methods": [
-                "SEPA",
-                "SWIFT"
-            ]
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
         }
       },
       "sep31" : {
         "enabled": true,
         "receive": {
           "min_amount": 0,
-          "max_amount": 10000
+          "max_amount": 10000,
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
         },
         "quotes_supported": true,
-        "quotes_required": true,
-        "fields": {
-          "transaction": {
-            "receiver_routing_number": {
-              "description": "routing number of the destination bank account"
-            },
-            "receiver_account_number": {
-              "description": "bank account number of the destination"
-            },
-            "type": {
-              "description": "type of deposit to make",
-              "choices": [
-                "SEPA",
-                "SWIFT"
-              ]
-            }
-          }
-        }
+        "quotes_required": true
       },
       "sep38": {
         "enabled": true,
@@ -66,7 +53,11 @@
         "enabled": false,
         "receive": {
           "min_amount": 0,
-          "max_amount": 10000
+          "max_amount": 10000,
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
         }
       },
       "sep38": {

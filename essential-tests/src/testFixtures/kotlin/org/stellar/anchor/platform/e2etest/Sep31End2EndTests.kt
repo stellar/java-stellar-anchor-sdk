@@ -116,6 +116,7 @@ open class Sep31End2EndTests : AbstractIntegrationTests(TestConfig()) {
     txnRequest.senderId = senderCustomer!!.id
     txnRequest.receiverId = receiverCustomer!!.id
     txnRequest.quoteId = quote.id
+    txnRequest.fundingMethod = "SWIFT"
     val postTxResponse = sep31Client.postTransaction(txnRequest)
     info("POST /transaction initiated ${postTxResponse.id}")
 

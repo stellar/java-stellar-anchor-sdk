@@ -1090,6 +1090,7 @@ private const val SEP_31_RECEIVE_FLOW_REQUEST =
   "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
   "receiver_id": "%RECEIVER_ID%",
   "sender_id": "%SENDER_ID%",
+  "funding_method": "SEPA",
   "fields": {
     "transaction": {
       "receiver_routing_number": "r0123",

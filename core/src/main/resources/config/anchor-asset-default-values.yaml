@@ -97,6 +97,11 @@ items:
         # the maximum amount that the user can receive.
         min_amount: 0
         max_amount: 1000
+        # The list of methods supported by the anchor to receive assets.
+        # Example:
+        #   - SEPA
+        #   - SWIFT
+        methods: []
 
     # The configuration for the SEP-38 transactions.
     sep38:
@@ -122,6 +127,7 @@ items:
         # the maximum amount that the user can receive.
         min_amount: 0
         max_amount:
+        methods: []
       # `true` if the asset supports quotesinforesponse.java.
       quotes_supported: true
       # `true` if the asset requires quotes.

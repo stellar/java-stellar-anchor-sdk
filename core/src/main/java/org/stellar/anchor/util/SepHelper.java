@@ -4,6 +4,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -130,6 +131,28 @@ public class SepHelper {
       if (sAmount.compareTo(bdMax) > 0) {
         throw new BadRequestException(String.format("%samount exceeds max limit", messagePrefix));
       }
+    }
+  }
+
+  /**
+   * Validates whether a specified funding method is supported for a given asset.
+   *
+   * @param assetID the unique id of the asset being validated.
+   * @param method the funding method to validate.
+   * @param supportedMethods a list of funding methods supported for the asset.
+   * @throws BadRequestException if the provided funding method is not in the list of supported
+   *     methods.
+   */
+  public static void validateFundingMethod(
+      String assetID, String method, List<String> supportedMethods) throws BadRequestException {
+    if (StringHelper.isEmpty(method)) {
+      throw new BadRequestException("funding_method cannot be empty");
+    }
+    if (!supportedMethods.contains(method)) {
+      throw new BadRequestException(
+          String.format(
+              "invalid funding method %s for asset %s, supported types are %s",
+              method, assetID, supportedMethods));
     }
   }
 

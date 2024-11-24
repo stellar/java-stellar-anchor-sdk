@@ -86,7 +86,7 @@ public class AssetValidator {
                 "if quotes_required is true, quotes_supported must also be true for asset: %s",
                 assetId));
 
-      // Validate SEP-31 `receive.min_amount` and `receive.max_amount` fields
+      // Validate SEP-31 `receive.min_amount`, `receive.max_amount`, and `receive.methods` fields
       ReceiveOperation receiveInfo = sep31Info.getReceive();
       if (receiveInfo != null) {
         if (receiveInfo.getMinAmount() < 0)
@@ -100,6 +100,19 @@ public class AssetValidator {
               format(
                   "Invalid max_amount defined for asset %s. sep31.receive.max_amount = %s",
                   assetId, receiveInfo.getMaxAmount()));
+        // Check for empty and duplicate receive methods
+        if (isEmpty(receiveInfo.getMethods())) {
+          throw new InvalidConfigException(
+              format("No receive methods defined for asset %s", assetId));
+        }
+        Set<String> existingReceiveMethods = new HashSet<>();
+        for (String method : receiveInfo.getMethods()) {
+          if (!existingReceiveMethods.add(method)) {
+            throw new InvalidConfigException(
+                format(
+                    "Duplicate receive method defined for asset %s. Type = %s", assetId, method));
+          }
+        }
       }
     }
   }

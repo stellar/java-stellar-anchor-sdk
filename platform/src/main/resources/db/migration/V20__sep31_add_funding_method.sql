@@ -1,0 +1,1 @@
+ALTER TABLE sep31_transaction ADD funding_method VARCHAR(255);
