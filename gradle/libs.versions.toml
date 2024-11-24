@@ -28,7 +28,7 @@ jakarta-annotation-api = "3.0.0"
 jakarta-transaction-api = "2.0.1"
 jakarta-validation-api = "3.1.0"
 jakarta-xml-bind-api = "4.0.2"
-java-stellar-sdk = "1.0.0-rc0"
+java-stellar-sdk = "1.0.0"
 jjwt = "0.12.5"
 jsonassert = "1.5.0"
 junit = "5.10.3"
@@ -53,8 +53,7 @@ spotbugs-annotations = "4.8.6"
 spring-context = "6.1.11"
 spring-kafka = "3.2.1"
 spring-retry = "2.0.6"
-# TODO: change to real version when available
-stellar-wallet-sdk = "6cf8a014c0f47a9cf4e96fcaa0d14cb9e2853e2d"
+stellar-wallet-sdk = "2.0.0"
 
 # Plugin versions
 spotless = "6.25.0"
@@ -140,8 +139,7 @@ spring-context = { module = "org.springframework:spring-context", version.ref = 
 spring-data-commons = { module = "org.springframework.data:spring-data-commons", version.ref = "spring-boot" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-retry = { module = "org.springframework.retry:spring-retry", version.ref = "spring-retry" }
-# TODO: change to real version when available
-stellar-wallet-sdk = { module = "com.github.lightsail-network:kotlin-wallet-sdk", version.ref = "stellar-wallet-sdk" }
+stellar-wallet-sdk = { module = "org.stellar:wallet-sdk", version.ref = "stellar-wallet-sdk" }
 
 [bundles]
 slf4j = ["slf4j-api", "slf4j-log4j12", "slf4j-jul-bridge"]
