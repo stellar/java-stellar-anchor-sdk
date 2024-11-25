@@ -68,8 +68,8 @@ docker compose --profile latest up -d
 ### For locally built image
 To build the Anchor Platform image locally, run the following command in the root directory of the project.
 ```shell
-  # In the root directory of the project
-docker build -t stellar/anchor-platform .
+# In the root directory of the project
+docker build -t stellar/anchor-platform:local .
 ```
 
 Then, run the following command to start the Anchor Platform.
