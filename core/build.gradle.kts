@@ -88,8 +88,8 @@ publishing {
                 name = "OSSRH"
                 setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2")
                 credentials {
-                    username = System.getenv("OSSRH_USER") ?: return@credentials
-                    password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
+                    username = (project.property("ossrhUsername") ?: return@credentials).toString()
+                    password = (project.property("ossrhPassword") ?: return@credentials).toString()
                 }
             }
         }
