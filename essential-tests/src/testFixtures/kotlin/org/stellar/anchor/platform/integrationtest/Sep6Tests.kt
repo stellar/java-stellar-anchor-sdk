@@ -182,7 +182,14 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
-            "funding_methods": ["SEPA", "SWIFT"]
+            "funding_methods": ["SEPA", "SWIFT"],
+            "fields": {
+              "type": {
+                "description": "type of deposit to make",
+                "choices": ["SEPA", "SWIFT"],
+                "optional": false
+              }
+            }
           }
         },
         "deposit-exchange": {
@@ -191,7 +198,14 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
-            "funding_methods": ["SEPA", "SWIFT"]
+            "funding_methods": ["SEPA", "SWIFT"],
+            "fields": {
+              "type": {
+                "description": "type of deposit to make",
+                "choices": ["SEPA", "SWIFT"],
+                "optional": false
+              }
+            }
           }
         },
         "withdraw": {
@@ -200,7 +214,8 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
-            "funding_methods": ["bank_account", "cash"]
+            "funding_methods": ["bank_account", "cash"],
+            "types": { "cash": { "fields": {} }, "bank_account": { "fields": {} } }
           }
         },
         "withdraw-exchange": {
@@ -209,7 +224,8 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
-            "funding_methods": ["bank_account", "cash"]
+            "funding_methods": ["bank_account", "cash"],
+            "types": { "cash": { "fields": {} }, "bank_account": { "fields": {} } }
           }
         },
         "fee": { "enabled": false, "description": "Fee endpoint is not supported." },

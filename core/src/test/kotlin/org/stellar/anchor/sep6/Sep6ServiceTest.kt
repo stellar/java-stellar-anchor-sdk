@@ -173,6 +173,36 @@ class Sep6ServiceTest {
   }
 
   @Test
+  fun `test deposit with funding_method`() {
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val fundingMethod = "SWIFT"
+    val request =
+      StartDepositRequest.builder()
+        .assetCode(TEST_ASSET)
+        .account(TEST_ACCOUNT)
+        .fundingMethod(fundingMethod)
+        .amount("100")
+        .build()
+    sep6Service.deposit(token, request)
+
+    // Verify validations
+    verify(exactly = 1) { requestValidator.getDepositAsset(TEST_ASSET) }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+
+    // Verify effects
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+
+    // verify funding_method is saved
+    assertEquals(fundingMethod, slotTxn.captured.type)
+  }
+
+  @Test
   fun `test deposit without amount or type`() {
     val slotTxn = slot<Sep6Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
@@ -727,6 +757,36 @@ class Sep6ServiceTest {
       gson.toJson(response),
       JSONCompareMode.LENIENT
     )
+  }
+
+  @Test
+  fun `test withdraw with funding_method`() {
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val fundingMethod = "SWIFT"
+    val request =
+      StartWithdrawRequest.builder()
+        .assetCode(TEST_ASSET)
+        .account(TEST_ACCOUNT)
+        .fundingMethod(fundingMethod)
+        .amount("100")
+        .build()
+    sep6Service.withdraw(token, request)
+
+    // Verify validations
+    verify(exactly = 1) { requestValidator.getWithdrawAsset(TEST_ASSET) }
+    verify(exactly = 1) { requestValidator.validateAccount(TEST_ACCOUNT) }
+
+    // Verify effects
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+
+    // verify funding_method is saved
+    assertEquals(fundingMethod, slotTxn.captured.type)
   }
 
   @Test

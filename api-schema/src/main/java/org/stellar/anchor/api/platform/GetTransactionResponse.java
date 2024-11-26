@@ -12,4 +12,6 @@ import lombok.experimental.SuperBuilder;
  */
 @SuperBuilder
 @NoArgsConstructor
-public class GetTransactionResponse extends PlatformTransactionData {}
+public class GetTransactionResponse extends PlatformTransactionData {
+  String fundingMethod;
+}

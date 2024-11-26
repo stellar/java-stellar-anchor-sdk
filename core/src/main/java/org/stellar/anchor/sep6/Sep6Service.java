@@ -6,6 +6,7 @@ import static org.stellar.anchor.util.AssetHelper.isWithdrawEnabled;
 import static org.stellar.anchor.util.MemoHelper.*;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
+import com.google.common.collect.ImmutableMap;
 import io.micrometer.core.instrument.Counter;
 import java.time.Instant;
 import java.util.*;
@@ -548,6 +549,7 @@ public class Sep6Service {
                 .minAmount(asset.getSep6().getDeposit().getMinAmount())
                 .maxAmount(asset.getSep6().getDeposit().getMaxAmount())
                 .fundingMethods(methods)
+                .fields(ImmutableMap.of("type", type))
                 .build();
 
         response.getDeposit().put(asset.getCode(), deposit);
@@ -556,7 +558,10 @@ public class Sep6Service {
 
       if (isWithdrawEnabled(asset.getSep6())) {
         List<String> methods = asset.getSep6().getWithdraw().getMethods();
-
+        Map<String, WithdrawType> types = new HashMap<>();
+        for (String method : methods) {
+          types.put(method, WithdrawType.builder().fields(new HashMap<>()).build());
+        }
         WithdrawAssetResponse withdraw =
             WithdrawAssetResponse.builder()
                 .enabled(true)
@@ -564,6 +569,7 @@ public class Sep6Service {
                 .minAmount(asset.getSep6().getWithdraw().getMinAmount())
                 .maxAmount(asset.getSep6().getWithdraw().getMaxAmount())
                 .fundingMethods(methods)
+                .types(types)
                 .build();
 
         response.getWithdraw().put(asset.getCode(), withdraw);
