@@ -187,7 +187,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
               "type": {
                 "description": "type of deposit to make",
                 "choices": ["SEPA", "SWIFT"],
-                "optional": false
+                "optional": true
               }
             }
           }
@@ -203,7 +203,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
               "type": {
                 "description": "type of deposit to make",
                 "choices": ["SEPA", "SWIFT"],
-                "optional": false
+                "optional": true
               }
             }
           }

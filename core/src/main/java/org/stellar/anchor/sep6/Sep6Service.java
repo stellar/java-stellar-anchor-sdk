@@ -540,6 +540,7 @@ public class Sep6Service {
             AssetInfo.Field.builder()
                 .description("type of deposit to make")
                 .choices(methods)
+                .optional(true)
                 .build();
 
         DepositAssetResponse deposit =

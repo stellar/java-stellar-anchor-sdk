@@ -19,7 +19,7 @@ class Sep6ServiceTestData {
                                 "SEPA",
                                 "SWIFT"
                             ],
-                            "optional": false
+                            "optional": true
                         }
                     }
                 }
@@ -38,7 +38,7 @@ class Sep6ServiceTestData {
                                 "SEPA",
                                 "SWIFT"
                             ],
-                            "optional": false
+                            "optional": true
                         }
                     }
                 }
