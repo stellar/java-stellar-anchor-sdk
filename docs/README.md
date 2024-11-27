@@ -51,12 +51,31 @@ contribute to this project.
 
 ## Quickstart
 
-Anchor Platform can be run locally using Docker Compose. This will start an instance of the Anchor Platform and the
-Kotlin reference server.
+Anchor Platform can be run locally using Docker Compose. 
 
+### For version 2.x.x stable release
 ```shell
-docker build --build-arg BASE_IMAGE=gradle:7.6.4-jdk17 -t anchor-platform:local ./
-docker compose -f service-runner/src/main/resources/docker-compose.yaml up -d
+# In the root directory of the project
+docker compose --profile v2-stable up -d
+```
+
+### For latest release
+```shell
+# In the root directory of the project
+docker compose --profile latest up -d
+```
+
+### For locally built image
+To build the Anchor Platform image locally, run the following command in the root directory of the project.
+```shell
+# In the root directory of the project
+docker build -t stellar/anchor-platform:local .
+```
+
+Then, run the following command to start the Anchor Platform.
+```shell
+# In the root directory of the project
+docker compose --profile local up -d
 ```
 
 The [Stellar Demo Wallet](https://demo-wallet.stellar.org) can be used to interact with the Anchor Platform. To get
