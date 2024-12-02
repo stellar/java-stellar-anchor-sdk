@@ -782,8 +782,8 @@ data:
   server:
 
   # The name of the database.
-  # For `sqlite` and `aurora`, this is the path to the database file.
-  # For `postgres`, this is the name of the database.
+  # For `sqlite`, this is the path to the database file.
+  # For `postgres` and `aurora`, this is the name of the database.
   database:
 
   # The schema of the database.
