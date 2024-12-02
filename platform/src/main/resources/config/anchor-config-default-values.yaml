@@ -789,6 +789,8 @@ data:
   # The schema of the database.
   # For `postgres` and `aurora`, default is `public`
   # For `sqlite`, this is ignored.
+  # Note： If the schema is specified other than the default value, the tables will be created in the new schema.
+  #        The previously created tables may need to be moved from the default to the new schema.
   schema:
 
   # Initial number of connections
