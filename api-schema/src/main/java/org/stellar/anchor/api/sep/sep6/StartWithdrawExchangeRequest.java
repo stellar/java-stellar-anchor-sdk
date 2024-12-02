@@ -39,8 +39,12 @@ public class StartWithdrawExchangeRequest {
   /** The amount of the source asset the user would like to withdraw. */
   @NonNull String amount;
 
-  /** The type of withdrawal to make. */
-  @NonNull String type;
+  /** Withdraw method used for the transaction. */
+  @SerializedName("funding_method")
+  String fundingMethod;
+
+  /** The type of withdrawal to make. Deprecated in favor of funding_method */
+  @Deprecated String type;
 
   /** The ISO 3166-1 alpha-3 code of the user's current address. */
   @SerializedName("country_code")

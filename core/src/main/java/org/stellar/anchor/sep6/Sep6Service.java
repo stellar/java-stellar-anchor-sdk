@@ -107,10 +107,11 @@ public class Sep6Service {
     }
 
     StellarAssetInfo asset = requestValidator.getDepositAsset(request.getAssetCode());
-    if (request.getType() != null) {
-      requestValidator.validateTypes(
-          request.getType(), asset.getCode(), asset.getSep6().getDeposit().getMethods());
-    }
+    String fundingMethod =
+        request.getFundingMethod() != null ? request.getFundingMethod() : request.getType();
+    requestValidator.validateTypes(
+        fundingMethod, asset.getCode(), asset.getSep6().getDeposit().getMethods());
+
     if (request.getAmount() != null) {
       requestValidator.validateAmount(
           request.getAmount(),
@@ -130,7 +131,7 @@ public class Sep6Service {
             .transactionId(id)
             .status(SepTransactionStatus.INCOMPLETE.toString())
             .kind(Sep6Transaction.Kind.DEPOSIT.toString())
-            .type(request.getType())
+            .type(fundingMethod)
             .assetCode(request.getAssetCode())
             .assetIssuer(asset.getIssuer())
             .amountExpected(request.getAmount())
@@ -186,8 +187,10 @@ public class Sep6Service {
     }
 
     StellarAssetInfo buyAsset = requestValidator.getDepositAsset(request.getDestinationAsset());
+    String fundingMethod =
+        request.getFundingMethod() != null ? request.getFundingMethod() : request.getType();
     requestValidator.validateTypes(
-        request.getType(), buyAsset.getCode(), buyAsset.getSep6().getDeposit().getMethods());
+        fundingMethod, buyAsset.getCode(), buyAsset.getSep6().getDeposit().getMethods());
     requestValidator.validateAmount(
         request.getAmount(),
         buyAsset.getCode(),
@@ -224,7 +227,7 @@ public class Sep6Service {
             .transactionId(id)
             .status(SepTransactionStatus.INCOMPLETE.toString())
             .kind(Sep6Transaction.Kind.DEPOSIT_EXCHANGE.toString())
-            .type(request.getType())
+            .type(fundingMethod)
             .assetCode(buyAsset.getCode())
             .assetIssuer(buyAsset.getIssuer())
             .amountIn(amounts.getAmountIn())
@@ -281,10 +284,11 @@ public class Sep6Service {
     }
 
     StellarAssetInfo asset = requestValidator.getWithdrawAsset(request.getAssetCode());
-    if (request.getType() != null) {
-      requestValidator.validateTypes(
-          request.getType(), asset.getCode(), asset.getSep6().getWithdraw().getMethods());
-    }
+    String fundingMethod =
+        request.getFundingMethod() != null ? request.getFundingMethod() : request.getType();
+    requestValidator.validateTypes(
+        fundingMethod, asset.getCode(), asset.getSep6().getWithdraw().getMethods());
+
     if (request.getAmount() != null) {
       requestValidator.validateAmount(
           request.getAmount(),
@@ -304,7 +308,7 @@ public class Sep6Service {
             .transactionId(id)
             .status(SepTransactionStatus.INCOMPLETE.toString())
             .kind(Sep6Transaction.Kind.WITHDRAWAL.toString())
-            .type(request.getType())
+            .type(fundingMethod)
             .assetCode(request.getAssetCode())
             .assetIssuer(asset.getIssuer())
             .amountIn(request.getAmount())
@@ -357,8 +361,10 @@ public class Sep6Service {
     }
 
     StellarAssetInfo sellAsset = requestValidator.getWithdrawAsset(request.getSourceAsset());
+    String fundingMethod =
+        request.getFundingMethod() != null ? request.getFundingMethod() : request.getType();
     requestValidator.validateTypes(
-        request.getType(), sellAsset.getCode(), sellAsset.getSep6().getWithdraw().getMethods());
+        fundingMethod, sellAsset.getCode(), sellAsset.getSep6().getWithdraw().getMethods());
     requestValidator.validateAmount(
         request.getAmount(),
         sellAsset.getCode(),
@@ -395,7 +401,7 @@ public class Sep6Service {
             .transactionId(id)
             .status(SepTransactionStatus.INCOMPLETE.toString())
             .kind(Sep6Transaction.Kind.WITHDRAWAL_EXCHANGE.toString())
-            .type(request.getType())
+            .type(fundingMethod)
             .assetCode(sellAsset.getCode())
             .assetIssuer(sellAsset.getIssuer())
             .amountIn(amounts.getAmountIn())
@@ -534,6 +540,7 @@ public class Sep6Service {
             AssetInfo.Field.builder()
                 .description("type of deposit to make")
                 .choices(methods)
+                .optional(true)
                 .build();
 
         DepositAssetResponse deposit =
@@ -542,6 +549,7 @@ public class Sep6Service {
                 .authenticationRequired(true)
                 .minAmount(asset.getSep6().getDeposit().getMinAmount())
                 .maxAmount(asset.getSep6().getDeposit().getMaxAmount())
+                .fundingMethods(methods)
                 .fields(ImmutableMap.of("type", type))
                 .build();
 
@@ -555,13 +563,13 @@ public class Sep6Service {
         for (String method : methods) {
           types.put(method, WithdrawType.builder().fields(new HashMap<>()).build());
         }
-
         WithdrawAssetResponse withdraw =
             WithdrawAssetResponse.builder()
                 .enabled(true)
                 .authenticationRequired(true)
                 .minAmount(asset.getSep6().getWithdraw().getMinAmount())
                 .maxAmount(asset.getSep6().getWithdraw().getMaxAmount())
+                .fundingMethods(methods)
                 .types(types)
                 .build();
 

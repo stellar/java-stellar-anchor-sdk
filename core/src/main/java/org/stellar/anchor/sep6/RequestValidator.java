@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.KeyPair;
 
 /** SEP-6 request validations */
@@ -91,6 +92,12 @@ public class RequestValidator {
    */
   public void validateTypes(String requestType, String assetCode, List<String> validTypes)
       throws SepValidationException {
+    if (StringHelper.isEmpty(requestType)) {
+      throw new SepValidationException(
+          String.format(
+              "this field cannot be null or empty for asset %s, supported types are %s",
+              assetCode, validTypes));
+    }
     if (!validTypes.contains(requestType)) {
       throw new SepValidationException(
           String.format(

@@ -111,7 +111,7 @@ class Sep6ServiceTest {
       StartDepositRequest.builder()
         .assetCode(TEST_ASSET)
         .account(TEST_ACCOUNT)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .build()
     val response = sep6Service.deposit(token, request)
@@ -224,7 +224,7 @@ class Sep6ServiceTest {
       StartDepositRequest.builder()
         .assetCode(unsupportedAsset)
         .account(TEST_ACCOUNT)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .build()
     every { requestValidator.getDepositAsset(unsupportedAsset) } throws
@@ -247,7 +247,7 @@ class Sep6ServiceTest {
       StartDepositRequest.builder()
         .assetCode(TEST_ASSET)
         .account(TEST_ACCOUNT)
-        .type(unsupportedType)
+        .fundingMethod(unsupportedType)
         .amount("100")
         .build()
     every { requestValidator.validateTypes(unsupportedType, TEST_ASSET, any()) } throws
@@ -273,7 +273,7 @@ class Sep6ServiceTest {
       StartDepositRequest.builder()
         .assetCode(TEST_ASSET)
         .account(TEST_ACCOUNT)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount(badAmount)
         .build()
     every { requestValidator.validateAmount(badAmount, TEST_ASSET, any(), any(), any()) } throws
@@ -312,7 +312,7 @@ class Sep6ServiceTest {
       StartDepositRequest.builder()
         .assetCode(TEST_ASSET)
         .account(TEST_ACCOUNT)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .build()
 
@@ -369,7 +369,7 @@ class Sep6ServiceTest {
         .quoteId(TEST_QUOTE_ID)
         .amount(amount)
         .account(TEST_ACCOUNT)
-        .type("SWIFT")
+        .fundingMethod("SWIFT")
         .build()
     val response = sep6Service.depositExchange(token, request)
 
@@ -450,7 +450,7 @@ class Sep6ServiceTest {
         .sourceAsset(sourceAsset)
         .amount(amount)
         .account(TEST_ACCOUNT)
-        .type("SWIFT")
+        .fundingMethod("SWIFT")
         .build()
     val response = sep6Service.depositExchange(token, request)
 
@@ -509,7 +509,7 @@ class Sep6ServiceTest {
         .sourceAsset("iso4217:USD")
         .amount("100")
         .account(TEST_ACCOUNT)
-        .type("SWIFT")
+        .fundingMethod("SWIFT")
         .build()
     every { requestValidator.getDepositAsset(unsupportedAsset) } throws
       SepValidationException("unsupported asset")
@@ -534,7 +534,7 @@ class Sep6ServiceTest {
         .sourceAsset(unsupportedAsset)
         .amount("100")
         .account(TEST_ACCOUNT)
-        .type("SWIFT")
+        .fundingMethod("SWIFT")
         .build()
 
     assertThrows<SepValidationException> { sep6Service.depositExchange(token, request) }
@@ -554,7 +554,7 @@ class Sep6ServiceTest {
         .sourceAsset("iso4217:USD")
         .amount("100")
         .account(TEST_ACCOUNT)
-        .type(unsupportedType)
+        .fundingMethod(unsupportedType)
         .build()
     every { requestValidator.validateTypes(unsupportedType, TEST_ASSET, any()) } throws
       SepValidationException("unsupported type")
@@ -585,7 +585,7 @@ class Sep6ServiceTest {
         .sourceAsset(sourceAsset)
         .amount(badAmount)
         .account(TEST_ACCOUNT)
-        .type("SWIFT")
+        .fundingMethod("SWIFT")
         .build()
     every { requestValidator.validateAmount(badAmount, TEST_ASSET, any(), any(), any()) } throws
       SepValidationException("bad amount")
@@ -626,7 +626,7 @@ class Sep6ServiceTest {
         .sourceAsset("iso4217:USD")
         .amount("100")
         .account(TEST_ACCOUNT)
-        .type("SWIFT")
+        .fundingMethod("SWIFT")
         .build()
     assertThrows<java.lang.RuntimeException> { sep6Service.depositExchange(token, request) }
 
@@ -664,7 +664,7 @@ class Sep6ServiceTest {
     val request =
       StartWithdrawRequest.builder()
         .assetCode(TEST_ASSET)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .refundMemo("some text")
         .refundMemoType("text")
@@ -812,7 +812,7 @@ class Sep6ServiceTest {
     val request =
       StartWithdrawRequest.builder()
         .assetCode(unsupportedAsset)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .build()
     every { requestValidator.getWithdrawAsset(unsupportedAsset) } throws
@@ -834,7 +834,7 @@ class Sep6ServiceTest {
     val request =
       StartWithdrawRequest.builder()
         .assetCode(TEST_ASSET)
-        .type(unsupportedType)
+        .fundingMethod(unsupportedType)
         .amount("100")
         .build()
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
@@ -861,7 +861,7 @@ class Sep6ServiceTest {
     val request =
       StartWithdrawRequest.builder()
         .assetCode(TEST_ASSET)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount(badAmount)
         .build()
     every { requestValidator.validateAmount(badAmount, TEST_ASSET, any(), any(), any()) } throws
@@ -899,7 +899,7 @@ class Sep6ServiceTest {
     val request =
       StartWithdrawRequest.builder()
         .assetCode(TEST_ASSET)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .build()
 
@@ -951,7 +951,7 @@ class Sep6ServiceTest {
         .sourceAsset(sourceAsset)
         .destinationAsset(destinationAsset)
         .quoteId(TEST_QUOTE_ID)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .refundMemo("some text")
         .refundMemoType("text")
@@ -1025,7 +1025,7 @@ class Sep6ServiceTest {
       StartWithdrawExchangeRequest.builder()
         .sourceAsset(sourceAsset)
         .destinationAsset(destinationAsset)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .refundMemo("some text")
         .refundMemoType("text")
@@ -1104,7 +1104,7 @@ class Sep6ServiceTest {
       StartWithdrawExchangeRequest.builder()
         .sourceAsset(sourceAsset)
         .destinationAsset(destinationAsset)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .account("requested_account")
         .refundMemo("some text")
@@ -1128,7 +1128,7 @@ class Sep6ServiceTest {
       StartWithdrawExchangeRequest.builder()
         .sourceAsset(unsupportedAsset)
         .destinationAsset("iso4217:USD")
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .build()
     every { requestValidator.getWithdrawAsset(unsupportedAsset) } throws
@@ -1152,7 +1152,7 @@ class Sep6ServiceTest {
       StartWithdrawExchangeRequest.builder()
         .sourceAsset(TEST_ASSET)
         .destinationAsset(unsupportedAsset)
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .build()
 
@@ -1169,7 +1169,7 @@ class Sep6ServiceTest {
       StartWithdrawExchangeRequest.builder()
         .sourceAsset(TEST_ASSET)
         .destinationAsset("iso4217:USD")
-        .type(unsupportedType)
+        .fundingMethod(unsupportedType)
         .amount("100")
         .build()
     every { requestValidator.validateTypes(unsupportedType, TEST_ASSET, any()) } throws
@@ -1196,7 +1196,7 @@ class Sep6ServiceTest {
       StartWithdrawExchangeRequest.builder()
         .sourceAsset(TEST_ASSET)
         .destinationAsset("iso4217:USD")
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount(badAmount)
         .build()
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns
@@ -1238,7 +1238,7 @@ class Sep6ServiceTest {
       StartWithdrawExchangeRequest.builder()
         .sourceAsset(TEST_ASSET)
         .destinationAsset("iso4217:USD")
-        .type("bank_account")
+        .fundingMethod("bank_account")
         .amount("100")
         .build()
     every { requestValidator.getWithdrawAsset(TEST_ASSET) } returns

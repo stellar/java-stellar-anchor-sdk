@@ -182,11 +182,12 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
+            "funding_methods": ["SEPA", "SWIFT"],
             "fields": {
               "type": {
                 "description": "type of deposit to make",
                 "choices": ["SEPA", "SWIFT"],
-                "optional": false
+                "optional": true
               }
             }
           }
@@ -197,11 +198,12 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
+            "funding_methods": ["SEPA", "SWIFT"],
             "fields": {
               "type": {
                 "description": "type of deposit to make",
                 "choices": ["SEPA", "SWIFT"],
-                "optional": false
+                "optional": true
               }
             }
           }
@@ -212,6 +214,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
+            "funding_methods": ["bank_account", "cash"],
             "types": { "cash": { "fields": {} }, "bank_account": { "fields": {} } }
           }
         },
@@ -221,6 +224,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
+            "funding_methods": ["bank_account", "cash"],
             "types": { "cash": { "fields": {} }, "bank_account": { "fields": {} } }
           }
         },

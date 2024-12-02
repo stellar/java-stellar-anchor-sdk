@@ -32,8 +32,12 @@ public class StartDepositRequest {
   @SerializedName("email_address")
   String emailAddress;
 
-  /** Type of deposit. */
-  String type;
+  /** Deposit method used for the transaction. */
+  @SerializedName("funding_method")
+  String fundingMethod;
+
+  /** Type of deposit. Deprecated in favor of funding_method */
+  @Deprecated String type;
 
   /** Name of wallet to deposit to. Currently, ignored. */
   @SerializedName("wallet_name")

@@ -1,6 +1,7 @@
 package org.stellar.anchor.api.sep.sep6;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
@@ -77,13 +78,16 @@ public class InfoResponse {
     @SerializedName("max_amount")
     Long maxAmount;
 
+    @SerializedName("funding_methods")
+    List<String> fundingMethods;
+
     /**
      * The fields required to initiate a deposit.
      *
      * <p>The only field supported by the platform is <code>type</code>. Additional fields required
      * for KYC are supplied asynchronously through SEP-12 requests.
      */
-    Map<String, AssetInfo.Field> fields;
+    @Deprecated Map<String, AssetInfo.Field> fields;
   }
 
   /** Withdrawal configuration. */
@@ -109,6 +113,10 @@ public class InfoResponse {
     @SerializedName("max_amount")
     Long maxAmount;
 
+    /** The maximum amount that can be withdrawn. */
+    @SerializedName("funding_methods")
+    List<String> fundingMethods;
+
     /**
      * The types of withdrawal methods supported and their fields.
      *
@@ -116,7 +124,7 @@ public class InfoResponse {
      * account and KYC information is supplied asynchronously through PATCH requests and SEP-12
      * requests respectively.
      */
-    Map<String, WithdrawType> types;
+    @Deprecated Map<String, WithdrawType> types;
   }
 
   /** Withdrawal type configuration. */
