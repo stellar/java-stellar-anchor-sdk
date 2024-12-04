@@ -180,9 +180,13 @@ public class DataConfigAdapter extends SpringConfigAdapter {
   }
 
   private String constructPostgressUrl(ConfigMap config) {
+    String schema = config.getString("data.schema");
+    if (isEmpty(schema)) {
+      schema = "public";
+    }
     return String.format(
-        "jdbc:postgresql://%s/%s",
-        config.getString("data.server"), config.getString("data.database"));
+        "jdbc:postgresql://%s/%s?currentSchema=%s",
+        config.getString("data.server"), config.getString("data.database"), schema);
   }
 
   private String constructSQLiteUrl(ConfigMap config) {
