@@ -20,6 +20,7 @@ data.flyway_location:
 data.initial_connection_pool_size:
 data.max_active_connections:
 data.server:
+data.schema:
 data.type:
 event_processor.callback_api_request.enabled:
 event_processor.client_status_callback.enabled:
