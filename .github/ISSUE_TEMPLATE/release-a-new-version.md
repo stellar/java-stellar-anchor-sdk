@@ -31,5 +31,6 @@ assignees: ''
 - [ ] If necessary, update the badges versions in [docs/00 - Stellar Anchor Platform.md].
 - [ ] Create the pull request `release/2.2.x -> main`: this should require two approvals. DO NOT squash merge.
 - [ ] Create another pull request `release/2.2.x -> develop`: AFTER the release branch is merged with the `main` branch. DO NOT squash merge.
+- [ ] Publish the new version in the [#release](https://stellarfoundation.slack.com/archives/C04ECVCV162) Slack channel.
 - [ ] (Optional) Generate the new Anchor Platform documentation version in the stellar-docs repository if this is a new major or minor version.
 - [ ] (Optional) You'll need to manually publish a new version of the SDK to [Maven Central](https://search.maven.org/search?q=g:org.stellar.anchor-sdk) in the `legacy/release-1.0`.

@@ -1079,6 +1079,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
     },
     "transaction": {
       "hash": "testTxHash",
+      "memo": "12345",
+      "memo_type": "id",
       "ledger": 1234,
       "created_at": "2023-05-10T10:18:20Z",
       "source_account": "testSourceAccount",
