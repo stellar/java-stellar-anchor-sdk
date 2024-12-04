@@ -728,8 +728,17 @@ data:
   # The hostname and port of the database server.
   server:
 
-  # Name of the database.
+  # The name of the database.
+  # For `sqlite`, this is the path to the database file.
+  # For `postgres` and `aurora`, this is the name of the database.
   database:
+
+  # The schema of the database.
+  # For `postgres` and `aurora`, default is `public`
+  # For `sqlite`, this is ignored.
+  # Note： If the schema is specified other than the default value, the tables will be created in the new schema.
+  #        The previously created tables may need to be moved from the default to the new schema.
+  schema:
 
   # Initial number of connections
   # For `sqlite`, set this to 1 to avoid database file lock exception
