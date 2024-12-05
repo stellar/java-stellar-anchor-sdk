@@ -17,6 +17,10 @@
 Check out the [Stellar Contribution Guide](https://github.com/stellar/.github/blob/master/CONTRIBUTING.md) that apply to
 all Stellar projects.
 
+## Quick Start Anchor Platform
+
+Check out the [How to quick start Anchor Platform with default configuration](0%20-%20Quick%20Start.md) guide.
+
 ## Set up the Development Environment
 
 Check out
