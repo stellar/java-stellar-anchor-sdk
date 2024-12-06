@@ -186,8 +186,8 @@ public class DataConfigAdapter extends SpringConfigAdapter {
       schema = "public";
     }
     return String.format(
-            "jdbc:postgresql://%s/%s?currentSchema=%s",
-            config.getString("data.server"), config.getString("data.database"), schema);
+        "jdbc:postgresql://%s/%s?currentSchema=%s",
+        config.getString("data.server"), config.getString("data.database"), schema);
   }
 
   private String constructSQLiteUrl(ConfigMap config) {
