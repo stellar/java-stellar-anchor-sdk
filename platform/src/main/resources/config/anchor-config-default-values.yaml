@@ -166,7 +166,7 @@ event_processor:
   # The configuration of the event delivery to the anchor business server
   callback_api_request:
     # Whether to enable the event delivery to the anchor business server
-    enabled: true
+    enabled: false
 
 ######################
 ## Platform Server Configuration
