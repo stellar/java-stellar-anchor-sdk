@@ -161,6 +161,7 @@ class PlatformApiCustodyTests : AbstractIntegrationTests(TestConfig("custody")) 
       actualResult,
       CustomComparator(
         JSONCompareMode.LENIENT,
+        Customization("[*].result.transfer_received_at") { _, _ -> true },
         Customization("[*].result.started_at") { _, _ -> true },
         Customization("[*].result.updated_at") { _, _ -> true },
         Customization("[*].result.completed_at") { _, _ -> true },
