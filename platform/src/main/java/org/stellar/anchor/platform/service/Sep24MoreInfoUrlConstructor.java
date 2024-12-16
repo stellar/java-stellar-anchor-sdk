@@ -3,19 +3,22 @@ package org.stellar.anchor.platform.service;
 import java.time.Instant;
 import lombok.SneakyThrows;
 import org.stellar.anchor.SepTransaction;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.MoreInfoUrlJwt;
 import org.stellar.anchor.auth.MoreInfoUrlJwt.*;
-import org.stellar.anchor.config.ClientsConfig;
+import org.stellar.anchor.client.ClientConfig;
+import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.platform.config.MoreInfoUrlConfig;
-import org.stellar.anchor.platform.config.PropertyClientsConfig;
 import org.stellar.anchor.sep24.Sep24Transaction;
-import org.stellar.anchor.util.ConfigHelper;
 
 public class Sep24MoreInfoUrlConstructor extends SimpleMoreInfoUrlConstructor {
   public Sep24MoreInfoUrlConstructor(
-      PropertyClientsConfig clientsConfig, MoreInfoUrlConfig config, JwtService jwtService) {
-    super(clientsConfig, config, jwtService);
+      AssetService asserService,
+      ClientService clientsService,
+      MoreInfoUrlConfig config,
+      JwtService jwtService) {
+    super(asserService, clientsService, config, jwtService);
   }
 
   @Override
@@ -34,8 +37,8 @@ public class Sep24MoreInfoUrlConstructor extends SimpleMoreInfoUrlConstructor {
   @SneakyThrows
   public MoreInfoUrlJwt getBaseToken(
       String clientDomain, String sep10Account, String sep10AccountMemo, String transactionId) {
-    ClientsConfig.ClientConfig clientConfig =
-        ConfigHelper.getClientConfig(clientsConfig, clientDomain, sep10Account);
+    ClientConfig clientConfig =
+        clientsService.getClientConfigByDomainAndSep10Account(clientDomain, sep10Account);
     return new Sep24MoreInfoUrlJwt(
         UrlConstructorHelper.getAccount(sep10Account, sep10AccountMemo),
         transactionId,

@@ -12,7 +12,7 @@ data class Transaction(
   val message: String? = null,
   @SerialName("amount_in") val amountIn: Amount? = null,
   @SerialName("amount_out") val amountOut: Amount? = null,
-  @SerialName("amount_fee") val amountFee: Amount? = null,
+  @SerialName("fee_details") val feeDetails: FeeDetails? = null,
   @SerialName("amount_expected") val amountExpected: Amount? = null,
   @SerialName("memo") val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
@@ -38,7 +38,7 @@ data class PatchTransactionTransaction(
   val message: String? = null,
   @SerialName("amount_in") val amountIn: Amount? = null,
   @SerialName("amount_out") val amountOut: Amount? = null,
-  @SerialName("amount_fee") val amountFee: Amount? = null,
+  @SerialName("fee_details") val feeDetails: FeeDetails? = null,
   @SerialName("stellar_transactions") val stellarTransactions: List<StellarTransaction>? = null,
   val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
@@ -72,7 +72,7 @@ data class RequestOffchainFundsRequest(
   override val message: String,
   @SerialName("amount_in") val amountIn: AmountAssetRequest? = null,
   @SerialName("amount_out") val amountOut: AmountAssetRequest? = null,
-  @SerialName("amount_fee") val amountFee: AmountAssetRequest? = null,
+  @SerialName("fee_details") val feeDetails: FeeDetails? = null,
   @SerialName("amount_expected") val amountExpected: AmountRequest? = null,
   @SerialName("instructions") val instructions: Map<String, InstructionField>? = null,
 ) : RpcActionParamsRequest()
@@ -83,17 +83,11 @@ data class RequestOnchainFundsRequest(
   override val message: String,
   @SerialName("amount_in") val amountIn: AmountAssetRequest? = null,
   @SerialName("amount_out") val amountOut: AmountAssetRequest? = null,
-  @SerialName("amount_fee") val amountFee: AmountAssetRequest? = null,
+  @SerialName("fee_details") val feeDetails: FeeDetails? = null,
+  @SerialName("destination_account") val destinationAccount: String? = null,
+  @SerialName("memo_type") val memoType: String? = null,
+  @SerialName("memo") val memo: String? = null,
   @SerialName("amount_expected") val amountExpected: AmountRequest? = null,
-) : RpcActionParamsRequest()
-
-@Serializable
-data class RequestCustomerInfoUpdateHandler(
-  @SerialName("transaction_id") override val transactionId: String,
-  override val message: String?,
-  @SerialName("required_customer_info_message") val requiredCustomerInfoMessage: String? = null,
-  @SerialName("required_customer_info_updates")
-  val requiredCustomerInfoUpdates: List<String>? = null,
 ) : RpcActionParamsRequest()
 
 @Serializable
@@ -119,7 +113,7 @@ data class NotifyOffchainFundsReceivedRequest(
   @SerialName("external_transaction_id") val externalTransactionId: String? = null,
   @SerialName("amount_in") val amountIn: AmountAssetRequest? = null,
   @SerialName("amount_out") val amountOut: AmountAssetRequest? = null,
-  @SerialName("amount_fee") val amountFee: AmountAssetRequest? = null,
+  @SerialName("fee_details") val feeDetails: FeeDetails? = null,
 ) : RpcActionParamsRequest()
 
 @Serializable
@@ -141,7 +135,7 @@ data class NotifyAmountsUpdatedRequest(
   @SerialName("transaction_id") override val transactionId: String,
   override val message: String? = null,
   @SerialName("amount_out") val amountOut: AmountRequest,
-  @SerialName("amount_fee") val amountFee: AmountRequest,
+  @SerialName("fee_details") val feeDetails: FeeDetails,
 ) : RpcActionParamsRequest()
 
 @Serializable
@@ -163,6 +157,16 @@ data class NotifyTransactionErrorRequest(
   @SerialName("transaction_id") override val transactionId: String,
   override val message: String? = null,
 ) : RpcActionParamsRequest()
+
+@Serializable
+data class FeeDetails(
+  val total: String,
+  val asset: String,
+  val details: List<FeeDescription>? = null
+)
+
+@Serializable
+data class FeeDescription(val name: String, val description: String, val amount: String?)
 
 @Serializable data class AmountAssetRequest(val asset: String, val amount: String)
 

@@ -58,17 +58,13 @@ class Sep6EventProcessor(
         try {
           requestCustomerFunds(event.payload.transaction)
         } catch (e: Exception) {
-          log.error("Error requesting customer funds", e)
+          log.error(e) { "Error requesting customer funds" }
         }
       }
       else -> {
-        log.warn("Received transaction created event with unsupported kind: $kind")
+        log.warn { "Received transaction created event with unsupported kind: $kind" }
       }
     }
-  }
-
-  override suspend fun onTransactionError(event: SendEventRequest) {
-    log.warn("Received transaction error event: $event")
   }
 
   override suspend fun onTransactionStatusChanged(event: SendEventRequest) {
@@ -78,7 +74,7 @@ class Sep6EventProcessor(
       Kind.WITHDRAWAL,
       Kind.WITHDRAWAL_EXCHANGE -> onWithdrawTransactionStatusChanged(event)
       else -> {
-        log.warn("Received transaction created event with unsupported kind: $kind")
+        log.warn { "Received transaction created event with unsupported kind: $kind" }
       }
     }
   }
@@ -143,10 +139,10 @@ class Sep6EventProcessor(
           ),
         )
       COMPLETED -> {
-        log.info("Transaction ${transaction.id} completed")
+        log.info { "Transaction ${transaction.id} completed" }
       }
       else -> {
-        log.warn("Received transaction status changed event with unsupported status: $status")
+        log.warn { "Received transaction status changed event with unsupported status: $status" }
       }
     }
   }
@@ -169,7 +165,7 @@ class Sep6EventProcessor(
               NotifyAmountsUpdatedRequest(
                 transactionId = transaction.id,
                 amountOut = AmountRequest(amount = transaction.amountIn.amount),
-                amountFee = AmountRequest(amount = "0"),
+                feeDetails = FeeDetails(total = "0", asset = transaction.amountExpected.asset),
               ),
             )
           }
@@ -205,10 +201,10 @@ class Sep6EventProcessor(
           )
         }
       COMPLETED -> {
-        log.info("Transaction ${transaction.id} completed")
+        log.info { "Transaction ${transaction.id} completed" }
       }
       else -> {
-        log.warn("Received transaction status changed event with unsupported status: $status")
+        log.warn { "Received transaction status changed event with unsupported status: $status" }
       }
     }
   }
@@ -282,7 +278,7 @@ class Sep6EventProcessor(
                       asset = transaction.amountExpected.asset,
                       amount = transaction.amountExpected.amount,
                     ),
-                  amountFee = AmountAssetRequest(asset = sourceAsset, amount = "0"),
+                  feeDetails = FeeDetails(total = "0", asset = sourceAsset),
                   instructions = instructions,
                 ),
               )
@@ -295,7 +291,7 @@ class Sep6EventProcessor(
                   amountIn = AmountAssetRequest(asset = sourceAsset, amount = "0"),
                   amountOut =
                     AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0"),
-                  amountFee = AmountAssetRequest(asset = sourceAsset, amount = "0"),
+                  feeDetails = FeeDetails(total = "0", asset = sourceAsset),
                   instructions = instructions,
                 ),
               )
@@ -330,8 +326,7 @@ class Sep6EventProcessor(
                       asset = destinationAsset,
                       amount = transaction.amountExpected.amount,
                     ),
-                  amountFee =
-                    AmountAssetRequest(asset = transaction.amountExpected.asset, amount = "0"),
+                  feeDetails = FeeDetails(total = "0", asset = transaction.amountExpected.asset),
                 ),
               )
             } else {
@@ -342,7 +337,7 @@ class Sep6EventProcessor(
                   message = "Please deposit to the following address",
                   amountIn = AmountAssetRequest(transaction.amountExpected.asset, "0"),
                   amountOut = AmountAssetRequest(destinationAsset, "0"),
-                  amountFee = AmountAssetRequest(transaction.amountExpected.asset, "0"),
+                  feeDetails = FeeDetails("0", transaction.amountExpected.asset),
                 ),
               )
             }
@@ -350,7 +345,7 @@ class Sep6EventProcessor(
         }
       }
       else -> {
-        log.warn("Received transaction created event with unsupported kind: ${transaction.kind}")
+        log.warn { "Received transaction created event with unsupported kind: ${transaction.kind}" }
       }
     }
   }

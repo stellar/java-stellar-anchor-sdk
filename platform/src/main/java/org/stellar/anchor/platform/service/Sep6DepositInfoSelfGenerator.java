@@ -7,8 +7,9 @@ import java.util.Base64;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.sep6.Sep6DepositInfoGenerator;
@@ -27,6 +28,10 @@ public class Sep6DepositInfoSelfGenerator implements Sep6DepositInfoGenerator {
     memo = StringUtils.leftPad(memo, 32, '0');
     memo = new String(Base64.getEncoder().encode(memo.getBytes()));
     return new SepDepositInfo(
-        assetInfo.getDistributionAccount(), memo, memoTypeAsString(MEMO_HASH));
+        assetInfo instanceof StellarAssetInfo
+            ? ((StellarAssetInfo) assetInfo).getDistributionAccount()
+            : null,
+        memo,
+        memoTypeAsString(MEMO_HASH));
   }
 }

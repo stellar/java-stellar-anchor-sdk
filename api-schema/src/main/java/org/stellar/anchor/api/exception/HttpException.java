@@ -1,8 +1,8 @@
 package org.stellar.anchor.api.exception;
 
+import jakarta.annotation.Nullable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import reactor.util.annotation.Nullable;
 
 /** Thrown when an HTTP error occurs to wrap the original status code and errors. */
 @Data

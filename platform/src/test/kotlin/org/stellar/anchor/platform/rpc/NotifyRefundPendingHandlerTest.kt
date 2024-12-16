@@ -345,7 +345,6 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     val refundPayment = RefundPayment()
@@ -356,6 +355,8 @@ class NotifyRefundPendingHandlerTest {
     val refunded = Amount("1", txn24.amountInAsset)
     val refundedFee = Amount("0", txn24.amountInAsset)
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -462,7 +463,6 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2.2", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     val refundPayment = RefundPayment()
@@ -473,6 +473,8 @@ class NotifyRefundPendingHandlerTest {
     val refunded = Amount("2.2", txn24.amountInAsset)
     val refundedFee = Amount("0.2", txn24.amountInAsset)
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment, refundPayment))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -555,9 +557,10 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -747,11 +750,11 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn6.amountInAsset)
     refundPayment.fee = Amount("0", txn6.amountFeeAsset)
@@ -868,7 +871,6 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2.2", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
@@ -881,6 +883,8 @@ class NotifyRefundPendingHandlerTest {
     val refunded = Amount("2.2", txn6.amountInAsset)
     val refundedFee = Amount("0.2", txn6.amountFeeAsset)
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment, refundPayment))
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -973,11 +977,11 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.feeDetails = Amount("0.1", FIAT_USD).toRate()
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

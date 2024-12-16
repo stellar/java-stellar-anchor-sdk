@@ -41,10 +41,6 @@ public class PlatformTransactionData {
   @SerializedName("amount_out")
   Amount amountOut;
 
-  @SerializedName("amount_fee")
-  @Deprecated // ANCHOR-636
-  Amount amountFee;
-
   @SerializedName("fee_details")
   FeeDetails feeDetails;
 
@@ -110,14 +106,6 @@ public class PlatformTransactionData {
 
   @SerializedName("required_info_updates")
   List<String> requiredInfoUpdates;
-
-  @Deprecated
-  @SerializedName("required_customer_info_message")
-  String requiredCustomerInfoMessage;
-
-  @Deprecated
-  @SerializedName("required_customer_info_updates")
-  List<String> requiredCustomerInfoUpdates;
 
   Map<String, InstructionField> instructions;
 

@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.TransactionHelper.toCustodyTransaction;
+import static org.stellar.anchor.util.TransactionMapper.toCustodyTransaction;
 
 import java.util.Optional;
 import org.springframework.http.HttpStatus;

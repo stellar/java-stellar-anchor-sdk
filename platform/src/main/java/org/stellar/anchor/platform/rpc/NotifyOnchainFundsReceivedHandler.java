@@ -28,6 +28,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.metrics.MetricsService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
@@ -38,7 +39,7 @@ import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.sdk.responses.operations.OperationResponse;
 
 public class NotifyOnchainFundsReceivedHandler
-    extends RpcMethodHandler<NotifyOnchainFundsReceivedRequest> {
+    extends RpcTransactionStatusHandler<NotifyOnchainFundsReceivedRequest> {
 
   private final Horizon horizon;
 
@@ -70,14 +71,12 @@ public class NotifyOnchainFundsReceivedHandler
 
     if (!((request.getAmountIn() == null
             && request.getAmountOut() == null
-            && request.getAmountFee() == null
             && request.getFeeDetails() == null)
         || (request.getAmountIn() != null
             && request.getAmountOut() != null
-            && (request.getAmountFee() != null || request.getFeeDetails() != null))
+            && request.getFeeDetails() != null)
         || (request.getAmountIn() != null
             && request.getAmountOut() == null
-            && request.getAmountFee() == null
             && request.getFeeDetails() == null))) {
       throw new InvalidParamsException(
           "Invalid amounts combination provided: all, none or only amount_in should be set");
@@ -99,16 +98,6 @@ public class NotifyOnchainFundsReceivedHandler
               .amount(request.getAmountOut().getAmount())
               .asset(txn.getAmountOutAsset())
               .build(),
-          assetService);
-    }
-    if (request.getAmountFee() != null) {
-      AssetValidationUtils.validateAssetAmount(
-          "amount_fee",
-          AmountAssetRequest.builder()
-              .amount(request.getAmountFee().getAmount())
-              .asset(txn.getAmountFeeAsset())
-              .build(),
-          true,
           assetService);
     }
     if (request.getFeeDetails() != null) {
@@ -170,6 +159,11 @@ public class NotifyOnchainFundsReceivedHandler
     try {
       List<OperationResponse> txnOperations = horizon.getStellarTxnOperations(stellarTxnId);
       addStellarTransaction(txn, stellarTxnId, txnOperations);
+
+      if (Sep.SEP_31.equals(Sep.from(txn.getProtocol()))) {
+        JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+        txn31.setFromAccount(txnOperations.get(0).getSourceAccount());
+      }
     } catch (IOException ex) {
       errorEx(String.format("Failed to retrieve stellar transaction by ID[%s]", stellarTxnId), ex);
       throw new InternalErrorException(
@@ -181,9 +175,6 @@ public class NotifyOnchainFundsReceivedHandler
     }
     if (request.getAmountOut() != null) {
       txn.setAmountOut(request.getAmountOut().getAmount());
-    }
-    if (request.getAmountFee() != null) {
-      txn.setAmountFee(request.getAmountFee().getAmount());
     }
     if (request.getFeeDetails() != null) {
       txn.setAmountFee(request.getFeeDetails().getTotal());

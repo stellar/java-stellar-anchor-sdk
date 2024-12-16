@@ -21,11 +21,12 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestHelper
+import org.stellar.anchor.api.asset.AssetInfo
+import org.stellar.anchor.api.asset.AssetInfo.Field
+import org.stellar.anchor.api.asset.Sep31Info
+import org.stellar.anchor.api.asset.StellarAssetInfo
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
-import org.stellar.anchor.api.sep.AssetInfo
-import org.stellar.anchor.api.sep.AssetInfo.Field
-import org.stellar.anchor.api.sep.operation.Sep31Operation
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
@@ -35,8 +36,10 @@ import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.client.ClientConfig.CallbackUrls
+import org.stellar.anchor.client.ClientService
+import org.stellar.anchor.client.CustodialClient
 import org.stellar.anchor.config.*
-import org.stellar.anchor.config.ClientsConfig.ClientConfig
 import org.stellar.anchor.config.CustodyConfig.CustodyType.NONE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
@@ -49,7 +52,6 @@ import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.setupMock
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.sdk.Network.TESTNET
 
 @Order(13)
 class Sep31ServiceTest {
@@ -90,88 +92,28 @@ class Sep31ServiceTest {
     private const val assetJson =
       """
             {
-              "code": "USDC",
-              "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+              "id": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
               "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-              "schema": "stellar",
               "significant_decimals": 2,
-              "deposit": {
-                "enabled": true,
-                "fee_fixed": 0,
-                "fee_percent": 0,
-                "min_amount": 1,
-                "max_amount": 1000000,
-                "fee_minimum": 0
-              },
-              "withdraw": {
-                "enabled": false,
-                "fee_fixed": 0,
-                "fee_percent": 0,
-                "min_amount": 1,
-                "max_amount": 1000000
-              },
-              "send": {
-                "fee_fixed": 0,
-                "fee_percent": 0,
-                "min_amount": 1,
-                "max_amount": 1000000
-              },
               "sep31": {
-                "quotes_supported": true,
-                "quotes_required": true,
-                "sep12": {
-                  "sender": {
-                    "types": {
-                      "sep31-sender": {
-                        "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-                      },
-                      "sep31-large-sender": {
-                        "description": "U.S. citizens that do not have sending limits"
-                      },
-                      "sep31-foreign-sender": {
-                        "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-                      }
-                    }
-                  },
-                  "receiver": {
-                    "types": {
-                      "sep31-receiver": {
-                        "description": "U.S. citizens receiving USD"
-                      },
-                      "sep31-foreign-receiver": {
-                        "description": "non-U.S. citizens receiving USD"
-                      }
-                    }
-                  }
+                "enabled": true,
+                "receive": {
+                  "min_amount": 1,
+                  "max_amount": 1000000,
+                  "methods": [
+                    "SEPA",
+                    "SWIFT"
+                  ]
                 },
-                "fields": {
-                  "transaction": {
-                    "receiver_routing_number": {
-                      "description": "routing number of the destination bank account",
-                      "optional": false
-                    },
-                    "receiver_account_number": {
-                      "description": "bank account number of the destination",
-                      "optional": false
-                    },
-                    "type": {
-                      "description": "type of deposit to make",
-                      "choices": [
-                        "SEPA",
-                        "SWIFT"
-                      ],
-                      "optional": false
-                    }
-                  }
-                }
+                "quotes_supported": true,
+                "quotes_required": true
               },
               "sep38": {
+                "enabled": true,
                 "exchangeable_assets": [
                   "iso4217:USD"
                 ]
-              },
-              "sep31_enabled": true,
-              "sep38_enabled": true
+              }
             }
 
         """
@@ -188,7 +130,8 @@ class Sep31ServiceTest {
       "amountOutAsset": "USD",
       "amountFee": "2",
       "amountFeeAsset": "USDC",
-      "stellarAccountId": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      "toAccount": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      "fromAccount": "GDQPA2BWGDZJAOQRLEVLV2BQGD5NCU4PXIBCVHGZL5ILUSZKAAPNLYZL",
       "stellarMemo": "123456",
       "stellarMemoType": "text",
       "startedAt": "2022-04-18T14:00:00.000Z",
@@ -272,13 +215,16 @@ class Sep31ServiceTest {
         }
       }
   """
-    private val lobstrClientConfig =
-      ClientConfig.builder()
-        .name("lobstr")
-        .type(ClientsConfig.ClientType.NONCUSTODIAL)
-        .signingKeys(setOf("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"))
-        .domains(setOf("lobstr.co"))
-        .callbackUrl("https://callback.lobstr.co/api/v2/anchor/callback")
+
+    private val custodialClient =
+      CustodialClient.builder()
+        .name("custodialClient")
+        .signingKeys(setOf("GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEG"))
+        .callbackUrls(
+          CallbackUrls.builder().sep31("http://wallet-server:8092/callbacks/sep31").build()
+        )
+        .allowAnyDestination(false)
+        .destinationAccounts(emptySet())
         .build()
 
     @JvmStatic
@@ -286,8 +232,8 @@ class Sep31ServiceTest {
       return Stream.of(
         Arguments.of(listOf<String>(), false, null, false),
         Arguments.of(listOf<String>(), true, null, true),
-        Arguments.of(listOf(lobstrClientConfig.name), false, lobstrClientConfig.name, false),
-        Arguments.of(listOf(lobstrClientConfig.name), true, lobstrClientConfig.name, true),
+        Arguments.of(listOf(custodialClient.name), false, custodialClient.name, false),
+        Arguments.of(listOf(custodialClient.name), true, custodialClient.name, true),
       )
     }
   }
@@ -299,12 +245,12 @@ class Sep31ServiceTest {
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) lateinit var custodySecretConfig: CustodySecretConfig
-  @MockK(relaxed = true) lateinit var clientsConfig: ClientsConfig
+  @MockK(relaxed = true) lateinit var clientService: ClientService
   @MockK(relaxed = true) lateinit var sep10Config: Sep10Config
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
-  @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
+  @MockK(relaxed = true) lateinit var rateIntegration: RateIntegration
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) lateinit var custodyService: CustodyService
   @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
@@ -323,7 +269,6 @@ class Sep31ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     secretConfig.setupMock()
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
@@ -339,21 +284,17 @@ class Sep31ServiceTest {
         sep10Config,
         sep31Config,
         txnStore,
-        sep31DepositInfoGenerator,
         quoteStore,
-        clientsConfig,
+        clientService,
         assetService,
-        feeIntegration,
-        customerIntegration,
+        rateIntegration,
         eventService,
-        custodyService,
-        custodyConfig
       )
 
     request = gson.fromJson(requestJson, Sep31PostTransactionRequest::class.java)
     txn = gson.fromJson(txnJson, PojoSep31Transaction::class.java)
     fee = gson.fromJson(feeJson, Amount::class.java)
-    asset = gson.fromJson(assetJson, AssetInfo::class.java)
+    asset = gson.fromJson(assetJson, StellarAssetInfo::class.java)
     quote = gson.fromJson(quoteJson, PojoSep38Quote::class.java)
     patchRequest = gson.fromJson(patchTxnRequestJson, Sep31PatchTransactionRequest::class.java)
   }
@@ -382,30 +323,14 @@ class Sep31ServiceTest {
 
   @Test
   fun `test quotes supported and required validation`() {
-    val assetServiceQuotesNotSupported: AssetService =
+    val ex: AnchorException = assertThrows {
       DefaultAssetService.fromJsonResource(
         "test_assets.json.quotes_required_but_not_supported",
       )
-    val ex: AnchorException = assertThrows {
-      Sep31Service(
-        appConfig,
-        sep10Config,
-        sep31Config,
-        txnStore,
-        sep31DepositInfoGenerator,
-        quoteStore,
-        clientsConfig,
-        assetServiceQuotesNotSupported,
-        feeIntegration,
-        customerIntegration,
-        eventService,
-        custodyService,
-        custodyConfig
-      )
     }
-    assertInstanceOf(SepValidationException::class.java, ex)
+    assertInstanceOf(InvalidConfigException::class.java, ex)
     assertEquals(
-      "if quotes_required is true, quotes_supported must also be true",
+      "if quotes_required is true, quotes_supported must also be true for asset: " + asset.id,
       ex.message,
     )
   }
@@ -475,7 +400,7 @@ class Sep31ServiceTest {
         )
         .build()
 
-    val wantRequiredInfoUpdates = Sep31Operation.Fields()
+    val wantRequiredInfoUpdates = Sep31Info.Fields()
     wantRequiredInfoUpdates.transaction =
       mapOf("type" to Field("type of deposit to make", listOf("SEPA", "SWIFT"), false))
 
@@ -489,8 +414,6 @@ class Sep31ServiceTest {
           .amountInAsset("USDC")
           .amountOut("98")
           .amountOutAsset("USD")
-          .amountFee("2")
-          .amountFeeAsset("USDC")
           .feeDetails(FeeDetails("2", "USDC"))
           .quoteId("quote_id")
           .stellarAccountId("GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY")
@@ -598,36 +521,15 @@ class Sep31ServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("amount should be positive", ex.message)
 
-    // missing required fields
     postTxRequest.lang = "en"
     postTxRequest.amount = "1"
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("'fields' field cannot be empty", ex.message)
+    assertEquals("funding_method cannot be empty", ex.message)
 
-    // missing required fields.transaction
-    postTxRequest.fields = Sep31TxnFields(null)
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("'fields' field must have one 'transaction' field", ex.message)
-
-    // missing fields [receiver_routing_number, receiver_account_number, type]
-    postTxRequest.fields = Sep31TxnFields(hashMapOf())
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(Sep31MissingFieldException::class.java, ex)
-    val wantMissingFieldsNames =
-      listOf("receiver_account_number", "type", "receiver_routing_number")
-    val gotMissingFieldsNames = (ex as Sep31MissingFieldException).missingFields.transaction.keys
-    assertTrue(
-      wantMissingFieldsNames.containsAll(gotMissingFieldsNames),
-      "missing field names don't match",
-    )
-    assertTrue(
-      gotMissingFieldsNames.containsAll(wantMissingFieldsNames),
-      "missing field names don't match",
-    )
-
-    // missing receiver_id
+    postTxRequest.fundingMethod = "SEPA"
+    // ----- QUOTE_ID IS USED ⬇️ -----
+    // not found quote_id
     val fields =
       hashMapOf(
         "receiver_account_number" to "1",
@@ -635,57 +537,6 @@ class Sep31ServiceTest {
         "receiver_routing_number" to "SWIFT",
       )
     postTxRequest.fields = Sep31TxnFields(fields)
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("receiver_id cannot be empty.", ex.message)
-
-    // not found receiver_id
-    every { customerIntegration.getCustomer(any()) } returns null
-    postTxRequest.receiverId = "receiver_foo"
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
-    assertEquals("sep31-receiver", (ex as Sep31CustomerInfoNeededException).type)
-
-    // receiver status is not ACCEPTED
-    val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
-    postTxRequest.receiverId = receiverId
-    var request = GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
-    val mockReceiver = GetCustomerResponse()
-    mockReceiver.id = receiverId
-    every { customerIntegration.getCustomer(request) } returns mockReceiver
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
-    assertEquals("sep31-receiver", (ex as Sep31CustomerInfoNeededException).type)
-
-    // missing sender_id
-    mockReceiver.status = Sep12Status.ACCEPTED.name
-    every { customerIntegration.getCustomer(request) } returns mockReceiver
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sender_id cannot be empty.", ex.message)
-
-    // not found sender_id
-    postTxRequest.senderId = "sender_bar"
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
-    assertEquals("sep31-sender", (ex as Sep31CustomerInfoNeededException).type)
-
-    // sender status is not ACCEPTED
-    val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
-    postTxRequest.senderId = senderId
-    request = GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
-    val mockSender = GetCustomerResponse()
-    mockSender.id = receiverId
-    every { customerIntegration.getCustomer(request) } returns mockSender
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
-    assertEquals("sep31-sender", (ex as Sep31CustomerInfoNeededException).type)
-
-    // ----- QUOTE_ID IS USED ⬇️ -----
-    // not found quote_id
-    mockSender.status = Sep12Status.ACCEPTED.name
-    every { customerIntegration.getCustomer(request) } returns mockSender
-
     postTxRequest.quoteId = "not-found-quote-id"
     every { quoteStore.findByQuoteId(any()) } returns null
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
@@ -759,6 +610,7 @@ class Sep31ServiceTest {
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
     postTxRequest.quoteId = "my_quote_id"
+    postTxRequest.fundingMethod = "SEPA"
     postTxRequest.fields =
       Sep31TxnFields(
         hashMapOf(
@@ -782,16 +634,13 @@ class Sep31ServiceTest {
         var memo = StringUtils.truncate(tx.id, 32)
         memo = StringUtils.leftPad(memo, 32, '0')
         memo = String(Base64.getEncoder().encode(memo.toByteArray()))
-        SepDepositInfo(tx.stellarAccountId, memo, "hash")
+        SepDepositInfo(tx.toAccount, memo, "hash")
       }
 
     // mock client config
     every { sep10Config.allowedClientNames } returns listOf("vibrant")
-    every { clientsConfig.getClientConfigBySigningKey(any()) } returns
-      ClientsConfig.ClientConfig().apply {
-        domains = setOf("vibrant.stellar.org")
-        name = "vibrant"
-      }
+    every { clientService.getClientConfigBySigningKey(any()) } returns
+      CustodialClient().apply { name = "vibrant" }
 
     // mock transaction save
     val slotTxn = slot<Sep31Transaction>()
@@ -807,26 +656,18 @@ class Sep31ServiceTest {
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
     // verify if the mocks were called
-    var request = GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
-    verify(exactly = 1) { customerIntegration.getCustomer(request) }
-    request = GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
-    verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
-    verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
-    verify(exactly = 1) { custodyService.createTransaction(any() as Sep31Transaction) }
     verify(exactly = 1) { eventSession.publish(any()) }
 
     // validate the values of the saved sep31Transaction
     val gotTx = gson.toJson(slotTxn.captured)
     val txId = slotTxn.captured.id
-    var memo = StringUtils.truncate(txId, 32)
-    memo = StringUtils.leftPad(memo, 32, '0')
-    memo = String(Base64.getEncoder().encode(memo.toByteArray()))
     val txStartedAt = slotTxn.captured.startedAt
     val wantTx =
       """{
       "id": "$txId",
-      "status": "pending_sender",
+      "status": "pending_receiver",
+      "fundingMethod": "SEPA",
       "amountFee": "10",
       "amountFeeAsset": "$stellarUSDC",
       "startedAt": "$txStartedAt",
@@ -844,9 +685,6 @@ class Sep31ServiceTest {
       "amountInAsset": "$stellarUSDC",
       "amountOut": "12500",
       "amountOutAsset": "$stellarJPYC",
-      "stellarAccountId": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-      "stellarMemo": "$memo",
-      "stellarMemoType": "hash",
       "receiverId":"137938d4-43a7-4252-a452-842adcee474c",
       "senderId":"d2bd1412-e2f6-4047-ad70-a1a2f133b25c",
       "creator": {
@@ -858,13 +696,7 @@ class Sep31ServiceTest {
     JSONAssert.assertEquals(wantTx, gotTx, true)
 
     // validate the final response
-    val wantResponse =
-      Sep31PostTransactionResponse.builder()
-        .id(txId)
-        .stellarAccountId("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I")
-        .stellarMemo(memo)
-        .stellarMemoType("hash")
-        .build()
+    val wantResponse = Sep31PostTransactionResponse.builder().id(txId).build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -879,6 +711,7 @@ class Sep31ServiceTest {
     postTxRequest.assetIssuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
+    postTxRequest.fundingMethod = "SEPA"
     postTxRequest.fields =
       Sep31TxnFields(
         hashMapOf(
@@ -898,12 +731,6 @@ class Sep31ServiceTest {
     val ex: AnchorException = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("quotes_required is set to true; quote id cannot be empty", ex.message)
-
-    // verify if the mocks were called
-    var request = GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
-    verify(exactly = 1) { customerIntegration.getCustomer(request) }
-    request = GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
-    verify(exactly = 1) { customerIntegration.getCustomer(request) }
   }
 
   @Test
@@ -927,15 +754,11 @@ class Sep31ServiceTest {
         sep10Config,
         sep31Config,
         txnStore,
-        sep31DepositInfoGenerator,
         quoteStore,
-        clientsConfig,
+        clientService,
         assetServiceQuotesNotSupported,
-        feeIntegration,
-        customerIntegration,
-        eventService,
-        custodyService,
-        custodyConfig
+        rateIntegration,
+        eventService
       )
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
@@ -946,6 +769,7 @@ class Sep31ServiceTest {
     postTxRequest.assetIssuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
+    postTxRequest.fundingMethod = "SEPA"
     postTxRequest.fields =
       Sep31TxnFields(
         hashMapOf(
@@ -956,13 +780,8 @@ class Sep31ServiceTest {
       )
 
     // Provide fee response.
-    every { feeIntegration.getFee(any()) } returns
-      GetFeeResponse(
-        Amount(
-          "2",
-          "stellar:USDC",
-        ),
-      )
+    every { rateIntegration.getRate(any()) } returns
+      GetRateResponse(GetRateResponse.Rate.builder().fee(FeeDetails("2", "stellar:USDC")).build())
 
     // Make sure we can get the sender and receiver customers
     val mockCustomer = GetCustomerResponse()
@@ -974,25 +793,19 @@ class Sep31ServiceTest {
     var gotResponse: Sep31PostTransactionResponse? = null
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
-    val wantResponse =
-      Sep31PostTransactionResponse.builder()
-        .id(gotResponse!!.id)
-        .stellarAccountId("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I")
-        .stellarMemo("123456")
-        .stellarMemoType("id")
-        .build()
+    val wantResponse = Sep31PostTransactionResponse.builder().id(gotResponse!!.id).build()
     assertEquals(wantResponse, gotResponse)
   }
 
   private val jpycJson =
     """
-    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"sep12":{"sender":{"types":{"sep31-sender":{"description":"Japanese citizens"}}},"receiver":{"types":{"sep31-receiver":{"description":"Japanese citizens receiving USD"}}}},"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
-  """
+      {"enabled":true,"quotes_supported":true,"quotes_required":true,"min_amount":1,"max_amount":1000000,"funding_methods":["SEPA","SWIFT"]}
+    """
       .trimIndent()
 
   private val usdcJson =
     """
-    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"sep12":{"sender":{"types":{"sep31-sender":{"description":"U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"},"sep31-large-sender":{"description":"U.S. citizens that do not have sending limits"},"sep31-foreign-sender":{"description":"non-U.S. citizens sending payments of less than ${'$'}10,000 in value"}}},"receiver":{"types":{"sep31-receiver":{"description":"U.S. citizens receiving USD"},"sep31-foreign-receiver":{"description":"non-U.S. citizens receiving USD"}}}},"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false}, "receiver_phone_number": {"description": "phone number of the receiver", "optional": true},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
+    {"enabled":true,"quotes_supported":true,"quotes_required":true,"min_amount":1,"max_amount":1000000,"funding_methods":["SEPA","SWIFT"]}
   """
       .trimIndent()
 
@@ -1015,30 +828,16 @@ class Sep31ServiceTest {
     val ex1 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("Missing asset information.", ex1.message)
 
-    val assetInfo = assetService.getAsset("USDC")
+    val assetInfo = assetService.getAsset("USDC") as StellarAssetInfo
+    val originalId = assetInfo.id
     Context.get().asset = assetInfo
-    assetInfo.code = "BAD"
+    assetInfo.id = "stellar:BAD:issuer"
     val ex2 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("Asset [BAD] has no fields definition", ex2.message)
 
-    assetInfo.code = "USDC"
+    assetInfo.id = originalId
     val ex3 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("'fields' field must have one 'transaction' field", ex3.message)
-
-    Context.get().transactionFields = mapOf()
-    val ex4 = assertThrows<Sep31MissingFieldException> { sep31Service.validateRequiredFields() }
-    val wantMissingFields = Sep31Operation.Fields()
-    wantMissingFields.transaction =
-      mapOf(
-        "receiver_account_number" to Field("bank account number of the destination", null, false),
-        "type" to Field("type of deposit to make", listOf("SEPA", "SWIFT"), false),
-        "receiver_routing_number" to
-          Field("routing number of the destination bank account", null, false)
-      )
-    assertEquals(wantMissingFields, ex4.missingFields)
-
-    Context.get().transactionFields = txn.fields
-    assertDoesNotThrow { sep31Service.validateRequiredFields() }
   }
 
   @Test
@@ -1056,20 +855,30 @@ class Sep31ServiceTest {
     assertEquals(quote.fee.asset, fee.asset)
 
     // No quote
-    every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount("10", "USDC"))
+    every { rateIntegration.getRate(any()) } returns
+      GetRateResponse(
+        GetRateResponse.Rate.builder()
+          .fee(
+            FeeDetails(
+              "10",
+              "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+            )
+          )
+          .build()
+      )
     Context.get().quote = null
     Context.get().asset = asset
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
     fee = Context.get().fee
     assertEquals("10", fee.amount)
-    assertEquals("USDC", fee.asset)
+    assertEquals("stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN", fee.asset)
 
     request.destinationAsset = null
     sep31Service.updateFee()
     fee = Context.get().fee
     assertEquals("10", fee.amount)
-    assertEquals("USDC", fee.asset)
+    assertEquals("stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN", fee.asset)
   }
 
   @Test
@@ -1095,16 +904,15 @@ class Sep31ServiceTest {
   ) {
     every { sep10Config.allowedClientNames } returns allowedClientNames
     every { sep10Config.isClientAttributionRequired } returns isClientAttributionRequired
-    every {
-      clientsConfig.getClientConfigBySigningKey(lobstrClientConfig.signingKeys.first())
-    } returns lobstrClientConfig
+    every { clientService.getClientConfigBySigningKey(custodialClient.signingKeys.first()) } returns
+      custodialClient
 
     // client name should be returned for valid input
-    val clientName = sep31Service.getClientName(lobstrClientConfig.signingKeys.first())
+    val clientName = sep31Service.getClientName(custodialClient.signingKeys.first())
     assertEquals(expectedClientName, clientName)
 
     // exception maybe thrown for invalid input
-    every { clientsConfig.getClientConfigBySigningKey("Invalid Public Key") } returns null
+    every { clientService.getClientConfigBySigningKey("Invalid Public Key") } returns null
     if (!shouldThrowExceptionWithInvalidInput) {
       val clientNameNotFound = sep31Service.getClientName("Invalid Public Key")
       assertNull(clientNameNotFound)

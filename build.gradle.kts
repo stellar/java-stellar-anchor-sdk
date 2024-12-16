@@ -134,21 +134,9 @@ subprojects {
 
   dependencies {
     // `rootProject` is required here if we want to use the libs object in the root project.
-    implementation(rootProject.libs.findbugs.jsr305)
-    implementation(rootProject.libs.aws.sqs)
-    implementation(rootProject.libs.postgresql)
-    // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer
-    // one.
-    implementation(rootProject.libs.scala.library)
-    implementation(rootProject.libs.bundles.kafka)
-    implementation(rootProject.libs.spring.kafka)
+    implementation(rootProject.libs.spotbugs.annotations)
+    implementation(rootProject.libs.google.guava)
     implementation(rootProject.libs.log4j.template.json)
-
-    // Although the following libraries are transitive dependencies, we are including them here to
-    // override the version
-    // for security vulnerabilities.
-    implementation(rootProject.libs.spring.aws.messaging)
-    implementation(rootProject.libs.aws.java.sdk.s3)
 
     // The common dependencies are declared here because we would like to have a uniform unit
     // testing across all subprojects.
@@ -172,6 +160,7 @@ subprojects {
   tasks {
     compileJava {
       options.encoding = "UTF-8"
+      options.compilerArgs.add("-parameters")
 
       /** Enforces google-java-format at Java compilation. */
       dependsOn("spotlessApply")
@@ -216,13 +205,18 @@ subprojects {
       exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
       exclude(group = "org.slf4j", module = "slf4j-log4j12")
       exclude(group = "org.slf4j", module = "slf4j-simple")
-    }
+      exclude(group = "commons-logging", module = "commons-logging")
+     }
+  }
+
+  tasks.withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
   }
 }
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.12.0"
+  version = "3.0.0"
 
   tasks.jar {
     manifest {

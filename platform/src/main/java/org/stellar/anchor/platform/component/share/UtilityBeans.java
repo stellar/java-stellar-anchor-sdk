@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.component.share;
 
 import com.google.gson.Gson;
+import jakarta.validation.Validator;
 import java.util.List;
-import javax.validation.Validator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +12,7 @@ import org.stellar.anchor.MoreInfoUrlConstructor;
 import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.client.ClientService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.horizon.Horizon;
@@ -36,7 +37,7 @@ public class UtilityBeans {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "")
+  @ConfigurationProperties(prefix = "app")
   AppConfig appConfig() {
     return new PropertyAppConfig();
   }
@@ -44,15 +45,29 @@ public class UtilityBeans {
   @Bean
   @Qualifier("sep6MoreInfoUrlConstructor")
   MoreInfoUrlConstructor sep6MoreInfoUrlConstructor(
-      PropertyClientsConfig clientsConfig, PropertySep6Config sep6Config, JwtService jwtService) {
-    return new Sep6MoreInfoUrlConstructor(clientsConfig, sep6Config.getMoreInfoUrl(), jwtService);
+      AssetService assetService,
+      ClientService clientService,
+      PropertySep6Config sep6Config,
+      JwtService jwtService) {
+    return new Sep6MoreInfoUrlConstructor(
+        assetService, clientService, sep6Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean
   @Qualifier("sep24MoreInfoUrlConstructor")
   MoreInfoUrlConstructor sep24MoreInfoUrlConstructor(
-      PropertyClientsConfig clientsConfig, PropertySep24Config sep24Config, JwtService jwtService) {
-    return new Sep24MoreInfoUrlConstructor(clientsConfig, sep24Config.getMoreInfoUrl(), jwtService);
+      AssetService assetService,
+      ClientService clientService,
+      PropertySep24Config sep24Config,
+      JwtService jwtService) {
+    return new Sep24MoreInfoUrlConstructor(
+        assetService, clientService, sep24Config.getMoreInfoUrl(), jwtService);
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "sep31")
+  Sep31Config sep31Config(CustodyConfig custodyConfig, AssetService assetService) {
+    return new PropertySep31Config(custodyConfig, assetService);
   }
 
   @Bean

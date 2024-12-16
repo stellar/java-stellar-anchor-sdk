@@ -29,9 +29,11 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 import org.stellar.anchor.MoreInfoUrlConstructor;
+import org.stellar.anchor.api.asset.AssetInfo;
+import org.stellar.anchor.api.asset.DepositWithdrawOperation;
+import org.stellar.anchor.api.asset.StellarAssetInfo;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.GetTransactionRequest;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsResponse;
@@ -43,8 +45,9 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.client.ClientFinder;
+import org.stellar.anchor.client.ClientService;
+import org.stellar.anchor.client.CustodialClient;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.ClientsConfig;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
@@ -58,7 +61,7 @@ public class Sep24Service {
 
   final AppConfig appConfig;
   final Sep24Config sep24Config;
-  final ClientsConfig clientsConfig;
+  final ClientService clientService;
   final AssetService assetService;
   final JwtService jwtService;
   final ClientFinder clientFinder;
@@ -90,7 +93,7 @@ public class Sep24Service {
   public Sep24Service(
       AppConfig appConfig,
       Sep24Config sep24Config,
-      ClientsConfig clientsConfig,
+      ClientService clientsService,
       AssetService assetService,
       JwtService jwtService,
       ClientFinder clientFinder,
@@ -104,7 +107,7 @@ public class Sep24Service {
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
     this.sep24Config = sep24Config;
-    this.clientsConfig = clientsConfig;
+    this.clientService = clientsService;
     this.assetService = assetService;
     this.jwtService = jwtService;
     this.clientFinder = clientFinder;
@@ -153,15 +156,16 @@ public class Sep24Service {
     }
 
     // Verify that the asset code exists in our database, with withdraw enabled.
-    AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
+    StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode, assetIssuer);
     debugF("Asset: {}", asset);
-    if (asset == null || !asset.getWithdraw().getEnabled() || !asset.getSep24Enabled()) {
+    if (asset == null || !AssetHelper.isWithdrawEnabled(asset.getSep24())) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
 
     // Validate min amount
-    Long minAmount = asset.getWithdraw().getMinAmount();
+    DepositWithdrawOperation sep24WithdrawInfo = asset.getSep24().getWithdraw();
+    Long minAmount = sep24WithdrawInfo.getMinAmount();
     if (strAmount != null && minAmount != null) {
       if (decimal(strAmount).compareTo(decimal(minAmount)) < 0) {
         infoF("invalid amount {}", strAmount);
@@ -171,7 +175,7 @@ public class Sep24Service {
     }
 
     // Validate max amount
-    Long maxAmount = asset.getWithdraw().getMaxAmount();
+    Long maxAmount = sep24WithdrawInfo.getMaxAmount();
     if (strAmount != null && maxAmount != null) {
       if (decimal(strAmount).compareTo(decimal(maxAmount)) > 0) {
         infoF("invalid amount {}", strAmount);
@@ -215,10 +219,6 @@ public class Sep24Service {
             .clientDomain(token.getClientDomain())
             .clientName(clientFinder.getClientName(token));
 
-    if (!isEmpty(asset.getDistributionAccount())) {
-      builder.withdrawAnchorAccount(asset.getDistributionAccount());
-    }
-
     if (memo != null) {
       debug("transaction memo detected.", memo);
 
@@ -250,7 +250,7 @@ public class Sep24Service {
     }
 
     String quoteId = withdrawRequest.get("quote_id");
-    AssetInfo buyAsset = assetService.getAssetByName(withdrawRequest.get("destination_asset"));
+    AssetInfo buyAsset = assetService.getAssetById(withdrawRequest.get("destination_asset"));
     if (quoteId != null) {
       validateAndPopulateQuote(
           quoteId, asset, buyAsset, strAmount, builder, WITHDRAWAL.toString(), txnId);
@@ -258,7 +258,7 @@ public class Sep24Service {
       builder.amountExpected(strAmount);
       if (buyAsset != null) {
         builder.amountOut("0");
-        builder.amountOutAsset(buyAsset.getSep38AssetName());
+        builder.amountOutAsset(buyAsset.getId());
       }
     }
 
@@ -270,7 +270,7 @@ public class Sep24Service {
             .id(UUID.randomUUID().toString())
             .sep("24")
             .type(TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn, assetService))
             .build());
 
     infoF(
@@ -331,8 +331,7 @@ public class Sep24Service {
     }
 
     if (!destinationAccount.equals(token.getAccount())) {
-      ClientsConfig.ClientConfig clientConfig =
-          ConfigHelper.getClientConfig(clientsConfig, token.getClientDomain(), token.getAccount());
+      CustodialClient clientConfig = clientService.getClientConfigBySigningKey(token.getAccount());
       if (clientConfig != null && clientConfig.getDestinationAccounts() != null) {
         if (!clientConfig.getDestinationAccounts().contains(destinationAccount)) {
           infoF(
@@ -353,14 +352,15 @@ public class Sep24Service {
     }
 
     // Verify that the asset code exists in our database, with deposit enabled.
-    AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
-    if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep24Enabled()) {
+    StellarAssetInfo asset = (StellarAssetInfo) assetService.getAsset(assetCode, assetIssuer);
+    if (asset == null || !AssetHelper.isDepositEnabled(asset.getSep24())) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
 
     // Validate min amount
-    Long minAmount = asset.getDeposit().getMinAmount();
+    DepositWithdrawOperation sep24DepositInfo = asset.getSep24().getDeposit();
+    Long minAmount = sep24DepositInfo.getMinAmount();
     if (strAmount != null && minAmount != null) {
       if (decimal(strAmount).compareTo(decimal(minAmount)) < 0) {
         infoF("invalid amount {}", strAmount);
@@ -370,7 +370,7 @@ public class Sep24Service {
     }
 
     // Validate max amount
-    Long maxAmount = asset.getDeposit().getMaxAmount();
+    Long maxAmount = sep24DepositInfo.getMaxAmount();
     if (strAmount != null && maxAmount != null) {
       if (decimal(strAmount).compareTo(decimal(maxAmount)) > 0) {
         infoF("invalid amount {}", strAmount);
@@ -428,7 +428,7 @@ public class Sep24Service {
     }
 
     String quoteId = depositRequest.get("quote_id");
-    AssetInfo sellAsset = assetService.getAssetByName(depositRequest.get("source_asset"));
+    AssetInfo sellAsset = assetService.getAssetById(depositRequest.get("source_asset"));
     if (quoteId != null) {
       validateAndPopulateQuote(
           quoteId, sellAsset, asset, strAmount, builder, DEPOSIT.toString(), txnId);
@@ -436,7 +436,7 @@ public class Sep24Service {
       builder.amountExpected(strAmount);
       if (sellAsset != null) {
         builder.amountIn("0");
-        builder.amountInAsset(sellAsset.getSep38AssetName());
+        builder.amountInAsset(sellAsset.getId());
       }
     }
 
@@ -448,7 +448,7 @@ public class Sep24Service {
             .id(UUID.randomUUID().toString())
             .sep("24")
             .type(TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .transaction(TransactionMapper.toGetTransactionResponse(txn, assetService))
             .build());
 
     infoF(
@@ -565,23 +565,21 @@ public class Sep24Service {
 
   public InfoResponse getInfo() {
     info("Getting Sep24 info");
-    List<AssetInfo> assets = assetService.listAllAssets();
+    List<StellarAssetInfo> assets = assetService.getStellarAssets();
     debugF("{} assets found", assets.size());
 
     Map<String, InfoResponse.OperationResponse> depositMap = new HashMap<>();
     Map<String, InfoResponse.OperationResponse> withdrawMap = new HashMap<>();
-    for (AssetInfo asset : assets) {
+    for (StellarAssetInfo asset : assets) {
       // iso4217 assets do not have deposit/withdraw configurations
-      if (asset.getSchema().equals(AssetInfo.Schema.stellar)) {
-        if (asset.getDeposit().getEnabled())
-          depositMap.put(
-              asset.getCode(),
-              InfoResponse.OperationResponse.fromAssetOperation(asset.getDeposit()));
-        if (asset.getWithdraw().getEnabled())
-          withdrawMap.put(
-              asset.getCode(),
-              InfoResponse.OperationResponse.fromAssetOperation(asset.getWithdraw()));
-      }
+      if (AssetHelper.isDepositEnabled(asset.getSep24()))
+        depositMap.put(
+            asset.getCode(),
+            InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getDeposit()));
+      if (AssetHelper.isWithdrawEnabled(asset.getSep24()))
+        withdrawMap.put(
+            asset.getCode(),
+            InfoResponse.OperationResponse.fromAssetOperation(asset.getSep24().getWithdraw()));
     }
 
     return InfoResponse.builder()

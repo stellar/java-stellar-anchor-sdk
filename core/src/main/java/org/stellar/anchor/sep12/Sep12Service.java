@@ -4,7 +4,6 @@ import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_12
 import static org.stellar.anchor.util.Log.infoF;
 import static org.stellar.anchor.util.MetricConstants.*;
 import static org.stellar.anchor.util.MetricConstants.SEP12_CUSTOMER;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
@@ -12,20 +11,17 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.callback.*;
-import org.stellar.anchor.api.callback.GetCustomerRequest.GetCustomerRequestBuilder;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep12.*;
+import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.apiclient.PlatformApiClient;
-import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.util.Log;
@@ -40,27 +36,14 @@ public class Sep12Service {
       Metrics.counter(SEP12_CUSTOMER, TYPE, TV_SEP12_PUT_CUSTOMER);
   private final Counter sep12DeleteCustomerCounter =
       Metrics.counter(SEP12_CUSTOMER, TYPE, TV_SEP12_DELETE_CUSTOMER);
-
-  private final Set<String> knownTypes;
-
   private final PlatformApiClient platformApiClient;
   private final EventService.Session eventSession;
 
   public Sep12Service(
       CustomerIntegration customerIntegration,
-      AssetService assetService,
       PlatformApiClient platformApiClient,
       EventService eventService) {
     this.customerIntegration = customerIntegration;
-    Stream<String> receiverTypes =
-        assetService.listAllAssets().stream()
-            .filter(x -> x.getSep31() != null)
-            .flatMap(x -> x.getSep31().getSep12().getReceiver().getTypes().keySet().stream());
-    Stream<String> senderTypes =
-        assetService.listAllAssets().stream()
-            .filter(x -> x.getSep31() != null)
-            .flatMap(x -> x.getSep31().getSep12().getSender().getTypes().keySet().stream());
-    this.knownTypes = Stream.concat(receiverTypes, senderTypes).collect(Collectors.toSet());
     this.platformApiClient = platformApiClient;
     this.eventSession =
         eventService.createSession(this.getClass().getName(), EventService.EventQueue.TRANSACTION);
@@ -86,7 +69,7 @@ public class Sep12Service {
       throws AnchorException {
     populateRequestFromTransactionId(request);
 
-    validateRequest(request, token);
+    validateGetOrPutRequest(request, token);
     if (request.getId() == null && request.getAccount() == null && token.getAccount() != null) {
       request.setAccount(token.getAccount());
     }
@@ -104,7 +87,7 @@ public class Sep12Service {
       throws AnchorException {
     populateRequestFromTransactionId(request);
 
-    validateRequest(request, token);
+    validateGetOrPutRequest(request, token);
 
     if (request.getAccount() == null && token.getAccount() != null) {
       request.setAccount(token.getAccount());
@@ -126,15 +109,8 @@ public class Sep12Service {
       }
     }
 
-    PutCustomerResponse response =
+    PutCustomerResponse updatedCustomer =
         customerIntegration.putCustomer(PutCustomerRequest.from(request));
-    GetCustomerRequestBuilder gcrBuilder = GetCustomerRequest.builder().id(response.getId());
-
-    // Forward the transaction_id to the getCustomer call if it was provided in the request.
-    if (!isEmpty(request.getTransactionId())) {
-      gcrBuilder.transactionId(request.getTransactionId());
-    }
-    GetCustomerResponse updatedCustomer = customerIntegration.getCustomer(gcrBuilder.build());
 
     // Only publish event if the customer was updated.
     eventSession.publish(
@@ -147,7 +123,7 @@ public class Sep12Service {
 
     // increment counter
     sep12PutCustomerCounter.increment();
-    return PutCustomerResponse.to(response);
+    return Sep12PutCustomerResponse.builder().id(updatedCustomer.getId()).build();
   }
 
   public void deleteCustomer(Sep10Jwt sep10Jwt, String account, String memo, String memoType)
@@ -174,20 +150,14 @@ public class Sep12Service {
     }
 
     boolean existingCustomerMatch = false;
-    for (String customerType : knownTypes) {
-      GetCustomerResponse existingCustomer =
-          customerIntegration.getCustomer(
-              GetCustomerRequest.builder()
-                  .account(account)
-                  .memo(memo)
-                  .memoType(memoType)
-                  .type(customerType)
-                  .build());
-      if (existingCustomer.getId() != null) {
-        existingCustomerMatch = true;
-        customerIntegration.deleteCustomer(existingCustomer.getId());
-      }
+    GetCustomerResponse existingCustomer =
+        customerIntegration.getCustomer(
+            GetCustomerRequest.builder().account(account).memo(memo).memoType(memoType).build());
+    if (existingCustomer.getId() != null) {
+      existingCustomerMatch = true;
+      customerIntegration.deleteCustomer(existingCustomer.getId());
     }
+
     if (!existingCustomerMatch) {
       infoF(
           "No existing customer found for account={} memo={} memoType={}", account, memo, memoType);
@@ -198,10 +168,28 @@ public class Sep12Service {
     sep12DeleteCustomerCounter.increment();
   }
 
-  void validateRequest(Sep12CustomerRequestBase request, Sep10Jwt token) throws SepException {
-    validateRequestAndTokenAccounts(request, token);
-    validateRequestAndTokenMemos(request, token);
-    updateRequestMemoAndMemoType(request, token);
+  void validateGetOrPutRequest(Sep12CustomerRequestBase requestBase, Sep10Jwt token)
+      throws SepException {
+    if (requestBase.getTransactionId() != null) {
+      try {
+        // `transactionId` should be used in conjunction with customer type `type` (sep6,
+        // sep31-sender, sep-31-receiver) to get the customer account and memo
+        GetTransactionResponse txn =
+            platformApiClient.getTransaction(requestBase.getTransactionId());
+        StellarId customer =
+            "sep31-receiver".equals(requestBase.getType())
+                ? txn.getCustomers().getReceiver()
+                : txn.getCustomers().getSender();
+        requestBase.setId(customer.getId());
+        requestBase.setAccount(customer.getAccount());
+        requestBase.setMemo(customer.getMemo());
+      } catch (Exception e) {
+        throw new SepNotAuthorizedException("The transaction specified does not exist");
+      }
+    }
+    validateRequestAndTokenAccounts(requestBase, token);
+    validateRequestAndTokenMemos(requestBase, token);
+    updateRequestMemoAndMemoType(requestBase, token);
   }
 
   void validateRequestAndTokenAccounts(

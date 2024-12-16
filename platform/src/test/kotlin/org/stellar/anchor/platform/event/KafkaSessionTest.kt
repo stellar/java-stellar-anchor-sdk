@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.context.ConfigurableApplicationContext
 import org.stellar.anchor.LockAndMockStatic
 import org.stellar.anchor.LockAndMockTest
 import org.stellar.anchor.event.EventService.EventQueue
@@ -35,6 +36,7 @@ class KafkaSessionTest {
 
   @MockK(relaxed = true) lateinit var kafkaConfig: KafkaConfig
   @MockK(relaxed = true) lateinit var eventQueue: EventQueue
+  @MockK(relaxed = true) lateinit var appContext: ConfigurableApplicationContext
   private lateinit var kafkaSession: KafkaSession
 
   @BeforeEach

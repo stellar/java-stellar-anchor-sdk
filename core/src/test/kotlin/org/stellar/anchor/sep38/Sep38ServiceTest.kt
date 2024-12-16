@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.TestHelper.Companion.createSep10Jwt
+import org.stellar.anchor.api.asset.Sep38Info
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.FIRM
 import org.stellar.anchor.api.callback.GetRateRequest.Type.INDICATIVE
@@ -22,7 +23,6 @@ import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.platform.GetQuoteResponse
-import org.stellar.anchor.api.sep.operation.Sep38Operation
 import org.stellar.anchor.api.sep.sep38.*
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6
@@ -75,7 +75,7 @@ class Sep38ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
-    val assets = assetService.listAllAssets()
+    val assets = assetService.getAssets()
     this.sep38Service =
       Sep38Service(sep38Config, assetService, mockRateIntegration, mockQuoteStore, eventService)
     assertEquals(4, assets.size)
@@ -122,10 +122,10 @@ class Sep38ServiceTest {
     assertNotNull(fiatUSD)
     assertEquals(listOf("USA"), fiatUSD!!.countryCodes)
     val wantSellDeliveryMethod =
-      Sep38Operation.DeliveryMethod("WIRE", "Send USD directly to the Anchor's bank account.")
+      Sep38Info.DeliveryMethod("WIRE", "Send USD directly to the Anchor's bank account.")
     assertEquals(listOf(wantSellDeliveryMethod), fiatUSD.sellDeliveryMethods)
     val wantBuyDeliveryMethod =
-      Sep38Operation.DeliveryMethod("WIRE", "Have USD sent directly to your bank account.")
+      Sep38Info.DeliveryMethod("WIRE", "Have USD sent directly to your bank account.")
     assertEquals(listOf(wantBuyDeliveryMethod), fiatUSD.buyDeliveryMethods)
     wantAssets =
       listOf("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5", stellarUSDC)
@@ -222,8 +222,8 @@ class Sep38ServiceTest {
     var gotResponse: GetPricesResponse? = null
     assertDoesNotThrow { gotResponse = sep38Service.getPrices(fiatUSD, "100", null, null, null) }
     val wantResponse = GetPricesResponse()
-    wantResponse.addAsset(stellarJPYC, 7, "1")
-    wantResponse.addAsset(stellarUSDC, 7, "2")
+    wantResponse.addAsset(stellarJPYC, 2, "1")
+    wantResponse.addAsset(stellarUSDC, 2, "2")
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -260,8 +260,8 @@ class Sep38ServiceTest {
     var gotResponse: GetPricesResponse? = null
     assertDoesNotThrow { gotResponse = sep38Service.getPrices(fiatUSD, "100", "WIRE", null, "USA") }
     val wantResponse = GetPricesResponse()
-    wantResponse.addAsset(stellarJPYC, 7, "1.1")
-    wantResponse.addAsset(stellarUSDC, 7, "2.1")
+    wantResponse.addAsset(stellarJPYC, 2, "1.1")
+    wantResponse.addAsset(stellarUSDC, 2, "2.1")
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -286,13 +286,15 @@ class Sep38ServiceTest {
       gotResponse = sep38Service.getPrices(stellarUSDC, "100", null, "WIRE", null)
     }
     val wantResponse = GetPricesResponse()
-    wantResponse.addAsset(fiatUSD, 4, "1")
+    wantResponse.addAsset(fiatUSD, 2, "1")
     assertEquals(wantResponse, gotResponse)
   }
 
   @Test
   fun `test GET price failure`() {
     var getPriceRequestBuilder = Sep38GetPriceRequest.builder()
+    every { mockRateIntegration.getRate(any()) } returns
+      GetRateResponse.indicativePrice("1.02", "103", "100", mockSellAssetFee(fiatUSD))
 
     // empty rateIntegration should throw an error
     var ex: AnchorException = assertThrows {
@@ -401,27 +403,6 @@ class Sep38ServiceTest {
     ex = assertThrows { sep38Service.getPrice(null, getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
-
-    // sell_amount should be within limit
-    getPriceRequestBuilder = getPriceRequestBuilder.context(SEP31).sellAmount("100000000")
-    ex = assertThrows { sep38Service.getPrice(null, getPriceRequestBuilder.build()) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount exceeds max limit", ex.message)
-
-    // sell_amount should be positive
-    getPriceRequestBuilder = getPriceRequestBuilder.context(SEP31).sellAmount("0.5")
-    ex = assertThrows { sep38Service.getPrice(null, getPriceRequestBuilder.build()) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount less than min limit", ex.message)
-
-    // buy_amount specified, but resulting sell_amount should be within limit
-    getPriceRequestBuilder = getPriceRequestBuilder.sellAmount(null)
-    getPriceRequestBuilder = getPriceRequestBuilder.buyAssetName(stellarUSDC).buyAmount("100000000")
-    every { mockRateIntegration.getRate(any()) } returns
-      GetRateResponse.indicativePrice("1.02", "102000000", "100000000", mockSellAssetFee(fiatUSD))
-    ex = assertThrows { sep38Service.getPrice(null, getPriceRequestBuilder.build()) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount exceeds max limit", ex.message)
   }
 
   private fun mockSellAssetFee(sellAsset: String?): FeeDetails {
@@ -592,20 +573,17 @@ class Sep38ServiceTest {
   fun `test POST quote failures`() {
     // empty rateIntegration should throw an error
     this.sep38Service = Sep38Service(sep38Config, assetService, null, mockQuoteStore, eventService)
+    every { mockRateIntegration.getRate(any()) } returns
+      GetRateResponse.indicativePrice("1.02", "103", "100", mockSellAssetFee(fiatUSD))
 
     var ex: AnchorException = assertThrows {
       sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build())
     }
-    assertInstanceOf(ServerErrorException::class.java, ex)
-    assertEquals("internal server error", ex.message)
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("missing sep10 jwt token", ex.message)
 
     sep38Service =
       Sep38Service(sep38Config, sep38Service.assetService, mockRateIntegration, null, eventService)
-
-    // empty sep38QuoteStore should throw an error
-    ex = assertThrows { sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build()) }
-    assertInstanceOf(ServerErrorException::class.java, ex)
-    assertEquals("internal server error", ex.message)
 
     // mocked quote store
     sep38Service =
@@ -833,59 +811,6 @@ class Sep38ServiceTest {
     }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported context. Should be one of [sep6, sep24, sep31].", ex.message)
-
-    // sell_amount should be within limit
-    ex = assertThrows {
-      sep38Service.postQuote(
-        token,
-        Sep38PostQuoteRequest.builder()
-          .sellAssetName(fiatUSD)
-          .sellAmount("100000000")
-          .sellDeliveryMethod("WIRE")
-          .context(SEP31)
-          .buyAssetName(stellarUSDC)
-          .countryCode("USA")
-          .build()
-      )
-    }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount exceeds max limit", ex.message)
-
-    // sell_amount should be positive
-    ex = assertThrows {
-      sep38Service.postQuote(
-        token,
-        Sep38PostQuoteRequest.builder()
-          .sellAssetName(fiatUSD)
-          .sellAmount("0.5")
-          .sellDeliveryMethod("WIRE")
-          .context(SEP31)
-          .buyAssetName(stellarUSDC)
-          .countryCode("USA")
-          .build()
-      )
-    }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount less than min limit", ex.message)
-
-    // buy_amount specified, but resulting sell_amount should be within limit
-    every { mockRateIntegration.getRate(any()) } returns
-      GetRateResponse.indicativePrice("1.02", "102000000", "100000000", mockSellAssetFee(fiatUSD))
-    ex = assertThrows {
-      sep38Service.postQuote(
-        token,
-        Sep38PostQuoteRequest.builder()
-          .sellAssetName(fiatUSD)
-          .sellDeliveryMethod("WIRE")
-          .context(SEP31)
-          .buyAssetName(stellarUSDC)
-          .buyAmount("100000000")
-          .countryCode("USA")
-          .build()
-      )
-    }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount exceeds max limit", ex.message)
   }
 
   @Test
@@ -1151,8 +1076,9 @@ class Sep38ServiceTest {
         .totalPrice("1.0300000004")
         .sellAsset(fiatUSD)
         .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
         .buyAsset(stellarUSDC)
-        .buyAmount("97.0873786")
+        .buyAmount("97.09")
         .fee(mockFee)
         .build()
     assertEquals(wantResponse, gotResponse)
@@ -1168,7 +1094,7 @@ class Sep38ServiceTest {
     assertEquals("100", savedQuote.sellAmount)
     assertEquals("WIRE", savedQuote.sellDeliveryMethod)
     assertEquals(stellarUSDC, savedQuote.buyAsset)
-    assertEquals("97.0873786", savedQuote.buyAmount)
+    assertEquals("97.09", savedQuote.buyAmount)
     assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
     assertNotNull(savedQuote.createdAt)
     assertEquals(mockFee, savedQuote.fee)
@@ -1183,8 +1109,9 @@ class Sep38ServiceTest {
     wantEvent.quote.id = "123"
     wantEvent.quote.sellAsset = fiatUSD
     wantEvent.quote.sellAmount = "100"
+    wantEvent.quote.sellDeliveryMethod = "WIRE"
     wantEvent.quote.buyAsset = stellarUSDC
-    wantEvent.quote.buyAmount = "97.0873786"
+    wantEvent.quote.buyAmount = "97.09"
     wantEvent.quote.expiresAt = tomorrow
     wantEvent.quote.price = "1.02"
     wantEvent.quote.totalPrice = "1.0300000004"
@@ -1253,6 +1180,7 @@ class Sep38ServiceTest {
         .totalPrice("1.03")
         .sellAsset(fiatUSD)
         .sellAmount("103")
+        .sellDeliveryMethod("WIRE")
         .buyAsset(stellarUSDC)
         .buyAmount("100")
         .fee(mockFee)
@@ -1285,6 +1213,7 @@ class Sep38ServiceTest {
     wantEvent.quote.id = "456"
     wantEvent.quote.sellAsset = fiatUSD
     wantEvent.quote.sellAmount = "103"
+    wantEvent.quote.sellDeliveryMethod = "WIRE"
     wantEvent.quote.buyAsset = stellarUSDC
     wantEvent.quote.buyAmount = "100"
     wantEvent.quote.expiresAt = tomorrow
@@ -1363,6 +1292,7 @@ class Sep38ServiceTest {
         .totalPrice(anchorCalculatedPrice)
         .sellAsset(fiatUSD)
         .sellAmount(anchorCalculatedSellAmount)
+        .sellDeliveryMethod("WIRE")
         .buyAsset(stellarUSDC)
         .buyAmount(anchorCalculatedBuyAmount)
         .fee(mockFee)
@@ -1395,6 +1325,7 @@ class Sep38ServiceTest {
     wantEvent.quote.id = "456"
     wantEvent.quote.sellAsset = fiatUSD
     wantEvent.quote.sellAmount = anchorCalculatedSellAmount
+    wantEvent.quote.sellDeliveryMethod = "WIRE"
     wantEvent.quote.buyAsset = stellarUSDC
     wantEvent.quote.buyAmount = anchorCalculatedBuyAmount
     wantEvent.quote.expiresAt = tomorrow
@@ -1543,6 +1474,7 @@ class Sep38ServiceTest {
         .totalPrice("1.03")
         .sellAsset(fiatUSD)
         .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
         .buyAsset(stellarUSDC)
         .buyAmount("97.0873786")
         .fee(mockFee)

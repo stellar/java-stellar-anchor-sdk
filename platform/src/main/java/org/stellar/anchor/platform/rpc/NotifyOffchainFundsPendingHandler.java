@@ -26,7 +26,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 public class NotifyOffchainFundsPendingHandler
-    extends RpcMethodHandler<NotifyOffchainFundsPendingRequest> {
+    extends RpcTransactionStatusHandler<NotifyOffchainFundsPendingRequest> {
 
   public NotifyOffchainFundsPendingHandler(
       Sep6TransactionStore txn6Store,

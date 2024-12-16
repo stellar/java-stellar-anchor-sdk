@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.extendedtest.auth
 
+import org.stellar.anchor.auth.ApiAuthJwt.CustodyAuthJwt
+import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.platform.TestProfileExecutor
@@ -42,9 +44,19 @@ abstract class AbstractAuthIntegrationTest {
         (PLATFORM_TO_CUSTODY_SECRET + "bad")
       )
 
-    internal val jwtAuthHelper = AuthHelper.forJwtToken(jwtService, 10000)
-    internal val jwtWrongKeyAuthHelper = AuthHelper.forJwtToken(jwtWrongKeyService, 10000)
-    internal val jwtExpiredAuthHelper = AuthHelper.forJwtToken(jwtService, 0)
+    internal val platformJwtAuthHelper =
+      AuthHelper.forJwtToken(jwtService, 10000, PlatformAuthJwt::class.java)
+    internal val platformJwtWrongKeyAuthHelper =
+      AuthHelper.forJwtToken(jwtWrongKeyService, 10000, PlatformAuthJwt::class.java)
+    internal val platformJwtExpiredAuthHelper =
+      AuthHelper.forJwtToken(jwtService, 0, PlatformAuthJwt::class.java)
+
+    internal val custodyJwtAuthHelper =
+      AuthHelper.forJwtToken(jwtService, 10000, CustodyAuthJwt::class.java)
+    internal val custodyJwtWrongKeyAuthHelper =
+      AuthHelper.forJwtToken(jwtWrongKeyService, 10000, CustodyAuthJwt::class.java)
+    internal val custodyJwtExpiredAuthHelper =
+      AuthHelper.forJwtToken(jwtService, 0, CustodyAuthJwt::class.java)
     internal lateinit var testProfileRunner: TestProfileExecutor
   }
 }

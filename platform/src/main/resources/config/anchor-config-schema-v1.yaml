@@ -9,7 +9,9 @@ callback_api.auth.jwt.http_header:
 callback_api.auth.type:
 callback_api.base_url:
 callback_api.check_certificate:
-clients:
+clients.type:
+clients.value:
+clients.items:
 data.database:
 data.ddl_auto:
 data.flyway_baseline_on_migrate:
@@ -69,9 +71,6 @@ platform_api.auth.jwt.expiration_milliseconds:
 platform_api.auth.jwt.http_header:
 platform_api.auth.type:
 platform_api.base_url:
-platform_server.auth.api_key.http_header:
-platform_server.auth.jwt.http_header:
-platform_server.auth.type:
 platform_server.context_path:
 platform_server.management_server_port:
 platform_server.port:
@@ -82,7 +81,6 @@ sep10.auth_timeout:
 sep10.client_allow_list:
 sep10.client_attribution_required:
 sep10.enabled:
-sep10.home_domain:
 sep10.home_domains:
 sep10.jwt_timeout:
 sep10.web_auth_domain:

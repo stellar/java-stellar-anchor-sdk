@@ -4,7 +4,6 @@ import static org.stellar.anchor.util.Log.*;
 
 import java.util.Map;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
@@ -16,15 +15,15 @@ import org.stellar.reference.ReferenceServerStartKt;
 import org.stellar.reference.wallet.WalletServerStartKt;
 
 public class ServiceRunner {
-
   public static void main(String[] args) {
     printBanner();
+    startServers(args);
+  }
 
+  private static void startServers(String[] args) {
     Options options = getOptions();
-    CommandLineParser parser = new DefaultParser();
-
     try {
-      CommandLine cmd = parser.parse(options, args);
+      CommandLine cmd = new DefaultParser().parse(options, args);
       boolean anyServerStarted = false;
       if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
         startSepServer(null);

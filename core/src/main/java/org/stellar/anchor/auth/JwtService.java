@@ -1,7 +1,8 @@
 package org.stellar.anchor.auth;
 
 import static java.util.Date.from;
-import static org.stellar.anchor.auth.AuthHelper.jwtsBuilder;
+import static org.stellar.anchor.util.JwtUtil.jwtsBuilder;
+import static org.stellar.anchor.util.JwtUtil.jwtsParser;
 
 import io.jsonwebtoken.*;
 import java.lang.reflect.InvocationTargetException;
@@ -173,8 +174,11 @@ public class JwtService {
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public <T extends AbstractJwt> T decode(String cipher, Class<T> cls)
-      throws NotSupportedException, NoSuchMethodException, InvocationTargetException,
-          InstantiationException, IllegalAccessException {
+      throws NotSupportedException,
+          NoSuchMethodException,
+          InvocationTargetException,
+          InstantiationException,
+          IllegalAccessException {
     String secret;
     if (cls.equals(Sep6MoreInfoUrlJwt.class)) {
       secret = sep6MoreInfoUrlJwtSecret;
@@ -195,11 +199,7 @@ public class JwtService {
           String.format("The Jwt class:[%s] is not supported", cls.getName()));
     }
 
-    Jwt jwt =
-        AuthHelper.jwtsParser()
-            .verifyWith(KeyUtil.toSecretKeySpecOrNull(secret))
-            .build()
-            .parse(cipher);
+    Jwt jwt = jwtsParser().verifyWith(KeyUtil.toSecretKeySpecOrNull(secret)).build().parse(cipher);
 
     if (cls.equals(Sep6MoreInfoUrlJwt.class)) {
       return (T) Sep6MoreInfoUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);
@@ -229,7 +229,7 @@ public class JwtService {
     var jcaPublicKey = factory.generatePublic(x509KeySpec);
 
     try {
-      return AuthHelper.jwtsParser().verifyWith(jcaPublicKey).build().parseSignedClaims(cipher);
+      return jwtsParser().verifyWith(jcaPublicKey).build().parseSignedClaims(cipher);
     } catch (Exception e) {
       Log.debugF("Invalid header signature {}", e.getMessage());
       throw new SepValidationException("Invalid header signature");

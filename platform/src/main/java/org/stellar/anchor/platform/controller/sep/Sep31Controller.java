@@ -3,15 +3,15 @@ package org.stellar.anchor.platform.controller.sep;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.errorEx;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.stellar.anchor.api.asset.Sep31Info.Fields;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.Sep31CustomerInfoNeededException;
 import org.stellar.anchor.api.exception.Sep31MissingFieldException;
-import org.stellar.anchor.api.sep.operation.Sep31Operation.Fields;
 import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;

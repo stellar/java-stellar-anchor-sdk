@@ -33,7 +33,7 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 
-public class DoStellarPaymentHandler extends RpcMethodHandler<DoStellarPaymentRequest> {
+public class DoStellarPaymentHandler extends RpcTransactionStatusHandler<DoStellarPaymentRequest> {
 
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;

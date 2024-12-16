@@ -5,6 +5,7 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -138,6 +139,28 @@ public class SepHelper {
   }
 
   /**
+   * Validates whether a specified funding method is supported for a given asset.
+   *
+   * @param assetID the unique id of the asset being validated.
+   * @param method the funding method to validate.
+   * @param supportedMethods a list of funding methods supported for the asset.
+   * @throws BadRequestException if the provided funding method is not in the list of supported
+   *     methods.
+   */
+  public static void validateFundingMethod(
+      String assetID, String method, List<String> supportedMethods) throws BadRequestException {
+    if (StringHelper.isEmpty(method)) {
+      throw new BadRequestException("funding_method cannot be empty");
+    }
+    if (!supportedMethods.contains(method)) {
+      throw new BadRequestException(
+          String.format(
+              "invalid funding method %s for asset %s, supported types are %s",
+              method, assetID, supportedMethods));
+    }
+  }
+
+  /**
    * Checks if the status is valid in a SEP.
    *
    * @param sep The sep number.
@@ -172,24 +195,49 @@ public class SepHelper {
     }
   }
 
-  static final List<SepTransactionStatus> sep24Statuses =
-      List.of(
-          INCOMPLETE,
-          PENDING_USR_TRANSFER_START,
-          PENDING_USR_TRANSFER_COMPLETE,
+  public static final Set<SepTransactionStatus> sep6Statuses =
+      Set.of(
           PENDING_EXTERNAL,
           PENDING_ANCHOR,
+          ON_HOLD,
           PENDING_STELLAR,
           PENDING_TRUST,
           PENDING_USER,
+          PENDING_USR_TRANSFER_START,
+          PENDING_USR_TRANSFER_COMPLETE,
+          PENDING_CUSTOMER_INFO_UPDATE,
+          PENDING_TRANSACTION_INFO_UPDATE,
           COMPLETED,
+          INCOMPLETE,
+          EXPIRED,
           NO_MARKET,
           TOO_SMALL,
           TOO_LARGE,
-          ERROR);
+          ERROR,
+          REFUNDED);
 
-  static final List<SepTransactionStatus> sep31Statuses =
-      List.of(
+  public static final Set<SepTransactionStatus> sep24Statuses =
+      Set.of(
+          PENDING_EXTERNAL,
+          PENDING_ANCHOR,
+          ON_HOLD,
+          PENDING_STELLAR,
+          PENDING_TRUST,
+          PENDING_USER,
+          PENDING_USR_TRANSFER_START,
+          PENDING_USR_TRANSFER_COMPLETE,
+          PENDING_TRANSACTION_INFO_UPDATE,
+          COMPLETED,
+          INCOMPLETE,
+          EXPIRED,
+          NO_MARKET,
+          TOO_SMALL,
+          TOO_LARGE,
+          ERROR,
+          REFUNDED);
+
+  public static final Set<SepTransactionStatus> sep31Statuses =
+      Set.of(
           PENDING_SENDER,
           PENDING_STELLAR,
           PENDING_CUSTOMER_INFO_UPDATE,
@@ -198,5 +246,6 @@ public class SepHelper {
           PENDING_EXTERNAL,
           COMPLETED,
           EXPIRED,
-          ERROR);
+          ERROR,
+          REFUNDED);
 }

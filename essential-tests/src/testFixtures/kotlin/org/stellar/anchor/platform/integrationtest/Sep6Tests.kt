@@ -182,11 +182,12 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
+            "funding_methods": ["SEPA", "SWIFT"],
             "fields": {
               "type": {
                 "description": "type of deposit to make",
                 "choices": ["SEPA", "SWIFT"],
-                "optional": false
+                "optional": true
               }
             }
           }
@@ -197,11 +198,12 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
+            "funding_methods": ["SEPA", "SWIFT"],
             "fields": {
               "type": {
                 "description": "type of deposit to make",
                 "choices": ["SEPA", "SWIFT"],
-                "optional": false
+                "optional": true
               }
             }
           }
@@ -212,6 +214,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
+            "funding_methods": ["bank_account", "cash"],
             "types": { "cash": { "fields": {} }, "bank_account": { "fields": {} } }
           }
         },
@@ -221,6 +224,7 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
             "authentication_required": true,
             "min_amount": 0,
             "max_amount": 10,
+            "funding_methods": ["bank_account", "cash"],
             "types": { "cash": { "fields": {} }, "bank_account": { "fields": {} } }
           }
         },
@@ -253,8 +257,10 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "amount_in_asset": "iso4217:USD",
           "amount_out": "0",
           "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amount_fee": "0",
-          "amount_fee_asset": "iso4217:USD",
+          "fee_details": {
+              "total": "0",
+              "asset": "iso4217:USD"
+          },
           "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
       }
@@ -271,8 +277,10 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "amount_in_asset": "iso4217:USD",
           "amount_out": "8.8235",
           "amount_out_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amount_fee": "1.00",
-          "amount_fee_asset": "iso4217:USD",
+          "fee_details": {
+            "total": "1.00",
+            "asset": "iso4217:USD"
+          },
           "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
       }
@@ -301,8 +309,10 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
           "amount_out": "0",
           "amount_out_asset": "iso4217:USD",
-          "amount_fee": "0",
-          "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "fee_details": {
+            "total": "0",
+            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+          },
           "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
       }
@@ -317,10 +327,12 @@ class Sep6Tests : AbstractIntegrationTests(TestConfig()) {
           "status": "incomplete",
           "amount_in": "10",
           "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "amount_out": "8.57",
+          "amount_out": "8.5714",
           "amount_out_asset": "iso4217:USD",
-          "amount_fee": "1.00",
-          "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "fee_details": {
+            "total": "1.00",
+            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+          },
           "from": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
         }
       }

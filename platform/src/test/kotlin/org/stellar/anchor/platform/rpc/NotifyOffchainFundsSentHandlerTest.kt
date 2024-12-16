@@ -230,6 +230,8 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -305,6 +307,8 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -375,6 +379,8 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -454,6 +460,8 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -528,6 +536,8 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -609,7 +619,6 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.completedAt = sep31TxnCapture.captured.completedAt
     expectedResponse.amountIn = Amount()
     expectedResponse.amountOut = Amount()
-    expectedResponse.amountFee = Amount()
     expectedResponse.amountExpected = Amount()
     expectedResponse.customers = Customers(StellarId(), StellarId())
 
@@ -741,6 +750,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -818,6 +828,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.transferReceivedAt = sep6TxnCapture.captured.transferReceivedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -890,6 +901,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.updatedAt = sep6TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -972,6 +984,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.completedAt = sep6TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -1049,6 +1062,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.completedAt = sep6TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.customers = Customers(StellarId(null, null, null), StellarId(null, null, null))
+    expectedResponse.creator = StellarId(null, null, null)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

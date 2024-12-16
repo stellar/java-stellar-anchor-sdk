@@ -1,162 +1,105 @@
 package org.stellar.anchor.platform.config;
 
-import static io.jsonwebtoken.lang.Collections.setOf;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.anchor.util.Log.error;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import javax.annotation.PostConstruct;
+import java.nio.file.Path;
+import java.util.*;
 import lombok.Data;
+import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.client.*;
+import org.stellar.anchor.client.ClientConfig.ClientType;
 import org.stellar.anchor.config.ClientsConfig;
+import org.stellar.anchor.util.FileUtil;
+import org.stellar.anchor.util.GsonUtils;
+import org.yaml.snakeyaml.Yaml;
 
 @Data
 public class PropertyClientsConfig implements ClientsConfig, Validator {
-  List<ClientConfig> clients = Lists.newLinkedList();
-  Map<String, ClientConfig> clientMap = null;
-  Map<String, String> domainToClientNameMap = null;
-  Map<String, String> signingKeyToClientNameMap = null;
-
-  @PostConstruct
-  public void postConstruct() {
-    // In favor of migrating to signingKeys and domains, copy signingKey to signingKeys and domain
-    // to domains if signingKeys and domains are not set.
-    clients.forEach(
-        clientConfig -> {
-          if (!isEmpty(clientConfig.getSigningKey())) {
-            clientConfig.setSigningKeys(setOf(clientConfig.getSigningKey()));
-          }
-          if (!isEmpty(clientConfig.getDomain())) {
-            clientConfig.setDomains(setOf(clientConfig.getDomain()));
-          }
-        });
-  }
-
-  @Override
-  public ClientsConfig.ClientConfig getClientConfigBySigningKey(String signingKey) {
-    if (signingKeyToClientNameMap == null) {
-      signingKeyToClientNameMap = Maps.newHashMap();
-      clients.forEach(
-          clientConfig -> {
-            if (clientConfig.getSigningKeys() != null && !clientConfig.getSigningKeys().isEmpty()) {
-              for (String key : clientConfig.getSigningKeys()) {
-                signingKeyToClientNameMap.put(key, clientConfig.getName());
-              }
-            }
-          });
-    }
-    return getClientConfigByName(signingKeyToClientNameMap.get(signingKey));
-  }
-
-  @Override
-  public ClientConfig getClientConfigByDomain(String domain) {
-    if (domainToClientNameMap == null) {
-      domainToClientNameMap = Maps.newHashMap();
-      clients.forEach(
-          clientConfig -> {
-            if (clientConfig.getDomains() != null && !clientConfig.getDomains().isEmpty()) {
-              for (String domainName : clientConfig.getDomains()) {
-                domainToClientNameMap.put(domainName, clientConfig.getName());
-              }
-            }
-          });
-    }
-    return getClientConfigByName(domainToClientNameMap.get(domain));
-  }
-
-  public ClientConfig getClientConfigByName(String name) {
-    if (clientMap == null) {
-      clientMap = Maps.newHashMap();
-      clients.forEach(clientConfig -> clientMap.put(clientConfig.getName(), clientConfig));
-    }
-    return clientMap.get(name);
-  }
+  ClientsConfigType type;
+  String value;
+  List<RawClient> items = new ArrayList<>();
+  Gson gson = GsonUtils.getInstance();
 
   @Override
   public boolean supports(@NotNull Class<?> clazz) {
-    return PropertyClientsConfig.class.isAssignableFrom(clazz);
+    return ClientsConfig.class.isAssignableFrom(clazz);
   }
 
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    PropertyClientsConfig configs = (PropertyClientsConfig) target;
-    configs.clients.forEach(clientConfig -> validateClient(clientConfig, errors));
+    // Parse the file and validate the contents
+    try {
+      parseConfigIntoItemList();
+    } catch (InvalidConfigException e) {
+      error("Error loading clients config value", e);
+      errors.reject(
+          "clients-value-not-valid", "Cannot read from clients config value: " + this.getValue());
+    }
+
+    // validate custodial client and noncustodial client
+    for (RawClient item : items) {
+      if (ClientType.CUSTODIAL.equals(item.getType())) {
+        validateCustodialClient(item.toCustodialClient(), errors);
+      } else if (ClientType.NONCUSTODIAL.equals(item.getType())) {
+        validateNonCustodialClient(item.toNonCustodialClient(), errors);
+      } else {
+        errors.reject(
+            "invalid-client-type", String.format("Client type %s is invalid", item.getType()));
+      }
+    }
   }
 
-  private void validateClient(ClientConfig clientConfig, Errors errors) {
-    debugF("Validating client {}", clientConfig);
-    if (isEmpty(clientConfig.getName())) {
-      errors.reject("empty-client-name", "The client.name cannot be empty and must be defined");
+  void validateCustodialClient(CustodialClient client, Errors errors) {
+    debugF("Validating custodial client {}", client);
+    if (client.getSigningKeys() == null || client.getSigningKeys().isEmpty()) {
+      errors.reject(
+          "invalid-custodial-client-config",
+          String.format(
+              "Custodial client %s must have at least one signing key", client.getName()));
     }
-    if (clientConfig.getType().equals(ClientType.CUSTODIAL)) {
-      validateCustodialClient(clientConfig, errors);
-    } else {
-      validateNonCustodialClient(clientConfig, errors);
-    }
+    validateCallbackUrls(client, errors);
   }
 
-  public void validateCustodialClient(ClientConfig clientConfig, Errors errors) {
-    if (isEmpty(clientConfig.getSigningKey())
-        && (clientConfig.getSigningKeys() == null || clientConfig.getSigningKeys().isEmpty())) {
+  void validateNonCustodialClient(NonCustodialClient client, Errors errors) {
+    debugF("Validating noncustodial client {}", client);
+    if (client.getDomains() == null || client.getDomains().isEmpty()) {
       errors.reject(
-          "empty-client-signing-keys",
-          "The client.signingKeys cannot be empty and must be defined");
+          "invalid-noncustodial-client-config",
+          String.format("NonCustodial client %s must have at least one domain", client.getName()));
     }
-    if (!isEmpty(clientConfig.getSigningKey())
-        && clientConfig.getSigningKeys() != null
-        && !clientConfig.getSigningKeys().isEmpty()) {
-      errors.reject(
-          "client-signing-keys-conflict",
-          "The client.signingKey and The client.signingKeys cannot coexist, please choose one to use");
-    }
-
-    validateCallbackUrls(clientConfig, errors);
-  }
-
-  public void validateNonCustodialClient(ClientConfig clientConfig, Errors errors) {
-    if (isEmpty(clientConfig.getDomain())
-        && (clientConfig.getDomains() == null || clientConfig.getDomains().isEmpty())) {
-      errors.reject(
-          "empty-client-domains", "The client.domains cannot be empty and must be defined");
-    }
-    if (!isEmpty(clientConfig.getDomain())
-        && clientConfig.getDomains() != null
-        && !clientConfig.getDomains().isEmpty()) {
-      errors.reject(
-          "client-domains-conflict",
-          "The client.domain and the client.domains cannot coexist, please choose one to use");
-    }
-
-    validateCallbackUrls(clientConfig, errors);
-
-    if (clientConfig.getDestinationAccounts() != null) {
-      errors.reject(
-          "destination-accounts-noncustodial",
-          "Destination accounts list is not a valid configuration option for a non-custodial client");
-    }
+    validateCallbackUrls(client, errors);
   }
 
   void validateCallbackUrls(ClientConfig client, Errors errors) {
+    debugF("Validating client {}", client);
     ImmutableMap.of(
-            "callback_url",
-            Optional.ofNullable(client.getCallbackUrl()).orElse(""),
-            "callback_url_sep6",
-            Optional.ofNullable(client.getCallbackUrlSep6()).orElse(""),
-            "callback_url_sep24",
-            Optional.ofNullable(client.getCallbackUrlSep24()).orElse(""),
-            "callback_url_sep31",
-            Optional.ofNullable(client.getCallbackUrlSep31()).orElse(""),
-            "callback_url_sep12",
-            Optional.ofNullable(client.getCallbackUrlSep12()).orElse(""))
+            "callback_urls_sep6",
+            Optional.ofNullable(client.getCallbackUrls())
+                .map(ClientConfig.CallbackUrls::getSep6)
+                .orElse(""),
+            "callback_urls_sep24",
+            Optional.ofNullable(client.getCallbackUrls())
+                .map(ClientConfig.CallbackUrls::getSep24)
+                .orElse(""),
+            "callback_urls_sep31",
+            Optional.ofNullable(client.getCallbackUrls())
+                .map(ClientConfig.CallbackUrls::getSep31)
+                .orElse(""),
+            "callback_urls_sep12",
+            Optional.ofNullable(client.getCallbackUrls())
+                .map(ClientConfig.CallbackUrls::getSep12)
+                .orElse(""))
         .forEach(
             (key, value) -> {
               if (!isEmpty(value)) {
@@ -167,5 +110,60 @@ public class PropertyClientsConfig implements ClientsConfig, Validator {
                 }
               }
             });
+  }
+
+  private void parseConfigIntoItemList() throws InvalidConfigException {
+    if (this.getType().equals(ClientsConfigType.INLINE) || isEmpty(this.getValue())) {
+      return;
+    }
+
+    // 1. Parse the content into a map with "items" as the key and a List<Object> as the value.
+    Map<String, List<Object>> contentMap = new HashMap<>();
+    switch (this.getType()) {
+      case FILE:
+        contentMap = parseFileToMap(this.getValue());
+        break;
+      case JSON:
+        contentMap = parseJsonStringToMap(this.getValue());
+        break;
+      case YAML:
+        contentMap = parseYamlStringToMap(this.getValue());
+        break;
+      default:
+        throw new InvalidConfigException(
+            String.format("client file type %s is not supported", type));
+    }
+
+    // 2. Process the map into a list of RawClient objects.
+    contentMap.get("items").removeIf(Objects::isNull);
+    items =
+        gson.fromJson(
+            gson.toJson(contentMap.get("items")), new TypeToken<List<RawClient>>() {}.getType());
+  }
+
+  private Map<String, List<Object>> parseFileToMap(String filePath) throws InvalidConfigException {
+    try {
+      String fileContent = FileUtil.read(Path.of(filePath));
+      String fileExtension = FilenameUtils.getExtension(filePath).toLowerCase();
+      if ("yaml".equals(fileExtension) || "yml".equals(fileExtension)) {
+        return parseYamlStringToMap(fileContent);
+      } else if ("json".equals(fileExtension)) {
+        return parseJsonStringToMap(fileContent);
+      } else {
+        throw new InvalidConfigException(
+            String.format("%s is not a supported file format", filePath));
+      }
+    } catch (Exception ex) {
+      throw new InvalidConfigException(
+          List.of(String.format("Cannot read from clients file: %s", filePath)), ex);
+    }
+  }
+
+  private Map<String, List<Object>> parseYamlStringToMap(String yamlString) {
+    return new Yaml().load(yamlString);
+  }
+
+  private Map<String, List<Object>> parseJsonStringToMap(String jsonString) {
+    return gson.fromJson(jsonString, new TypeToken<Map<String, List<Object>>>() {}.getType());
   }
 }

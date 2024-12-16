@@ -3,6 +3,7 @@ package org.stellar.anchor.sep38;
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.*;
 import static org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse.*;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
+import static org.stellar.anchor.sep38.Sep38Helper.sep38QuoteResponseFromQuote;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -11,8 +12,6 @@ import static org.stellar.anchor.util.MetricConstants.SEP38_PRICE_QUERIED;
 import static org.stellar.anchor.util.MetricConstants.SEP38_QUOTE_CREATED;
 import static org.stellar.anchor.util.NumberHelper.DEFAULT_ROUNDING_MODE;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
-import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
-import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
@@ -20,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -27,7 +27,6 @@ import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.platform.GetQuoteResponse;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.*;
 import org.stellar.anchor.api.shared.FeeDetails;
 import org.stellar.anchor.api.shared.StellarId;
@@ -45,8 +44,8 @@ public class Sep38Service {
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
   final int pricePrecision = 10;
-  final Counter sep38PriceQueried = Metrics.counter(SEP38_PRICE_QUERIED);
-  final Counter sep38QuoteCreated = Metrics.counter(SEP38_QUOTE_CREATED);
+  final Counter sep38PriceQueriedCounter = Metrics.counter(SEP38_PRICE_QUERIED);
+  final Counter sep38QuoteCreatedCounter = Metrics.counter(SEP38_QUOTE_CREATED);
 
   public Sep38Service(
       Sep38Config sep38Config,
@@ -59,7 +58,7 @@ public class Sep38Service {
     this.rateIntegration = rateIntegration;
     this.sep38QuoteStore = sep38QuoteStore;
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
-    this.infoResponse = new InfoResponse(this.assetService.listAllAssets());
+    this.infoResponse = new InfoResponse(this.assetService.getAssets());
     assetMap = new HashMap<>();
     this.infoResponse.getAssets().forEach(asset -> assetMap.put(asset.getAsset(), asset));
     Log.info("Sep38Service initialized.");
@@ -122,7 +121,7 @@ public class Sep38Service {
     }
 
     // increment counter
-    sep38PriceQueried.increment();
+    sep38PriceQueriedCounter.increment();
     return response;
   }
 
@@ -201,22 +200,6 @@ public class Sep38Service {
       throw new BadRequestException("Unsupported context. Should be one of [sep6, sep31].");
     }
 
-    // Check SEP31 send limits
-    if (context == SEP31) {
-      if (sellAsset == null) {
-        throw new BadRequestException("Unsupported sell asset.");
-      }
-      String[] assetCode = sellAsset.getAsset().split(":");
-      AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
-
-      // When sell_amount is specified
-      if (sellAmount != null) {
-        validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
-      }
-    }
-
     GetRateRequest.GetRateRequestBuilder rrBuilder =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.INDICATIVE)
@@ -237,16 +220,6 @@ public class Sep38Service {
     GetRateRequest request = rrBuilder.build();
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
     GetRateResponse.Rate rate = rateResponse.getRate();
-
-    // Check SEP31 sell_amount from rate integration when buy_amount is specified
-    if (context == SEP31 && isNotEmpty(buyAmount)) {
-      String[] assetCode = sellAsset.getAsset().split(":");
-      AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
-
-      validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
-    }
 
     String totalPrice =
         getTotalPrice(
@@ -269,106 +242,97 @@ public class Sep38Service {
 
   public Sep38QuoteResponse postQuote(Sep10Jwt token, Sep38PostQuoteRequest request)
       throws AnchorException {
-    if (this.rateIntegration == null) {
-      throw new ServerErrorException("internal server error");
-    }
-
-    if (this.sep38QuoteStore == null) {
-      throw new ServerErrorException("internal server error");
-    }
-
     // validate token
-    if (token == null) {
-      throw new BadRequestException("missing sep10 jwt token");
-    }
-    String account, memo = null, memoType = null;
-    if (!Objects.toString(token.getMuxedAccount(), "").isEmpty()) {
-      account = token.getMuxedAccount();
-    } else if (!Objects.toString(token.getAccount(), "").isEmpty()) {
-      account = token.getAccount();
-      if (token.getAccountMemo() != null) {
-        memo = token.getAccountMemo();
-        memoType = "id";
-      }
-    } else {
-      throw new BadRequestException("sep10 token is malformed");
-    }
+    Pair<String, Pair<String, String>> accountInfo = validateToken(token);
+    String account = accountInfo.getLeft();
+    String memo = accountInfo.getRight().getLeft();
+    String memoType = accountInfo.getRight().getRight();
 
-    validateAsset("sell_", request.getSellAssetName());
-    validateAsset("buy_", request.getBuyAssetName());
+    // validate request
+    validateQuoteRequest(request);
 
-    if ((request.getSellAmount() == null && request.getBuyAmount() == null)
-        || (request.getSellAmount() != null && request.getBuyAmount() != null)) {
-      throw new BadRequestException("Please provide either sell_amount or buy_amount");
-    } else if (request.getSellAmount() != null) {
-      validateAmount("sell_", request.getSellAmount());
-    } else {
-      validateAmount("buy_", request.getBuyAmount());
-    }
+    // Get the rate
+    GetRateResponse.Rate rate = getRateFromQuoteRequest(token, request);
 
-    InfoResponse.Asset sellAsset = assetMap.get(request.getSellAssetName());
-    InfoResponse.Asset buyAsset = assetMap.get(request.getBuyAssetName());
+    // save firm quote in the local database
+    Sep38Quote quote =
+        new Sep38QuoteBuilder(sep38QuoteStore)
+            .id(rate.getId())
+            .price(rate.getPrice())
+            .totalPrice(
+                getTotalPrice(
+                    decimal(rate.getSellAmount(), pricePrecision),
+                    decimal(rate.getBuyAmount(), pricePrecision)))
+            .sellAsset(request.getSellAssetName())
+            .sellAmount(
+                formatAmount(
+                    decimal(rate.getSellAmount()),
+                    assetMap.get(request.getSellAssetName()).getDecimals()))
+            .sellDeliveryMethod(request.getSellDeliveryMethod())
+            .buyAsset(request.getBuyAssetName())
+            .buyAmount(
+                formatAmount(
+                    decimal(rate.getBuyAmount()),
+                    assetMap.get(request.getBuyAssetName()).getDecimals()))
+            .buyDeliveryMethod(request.getBuyDeliveryMethod())
+            .expiresAt(rate.getExpiresAt())
+            .createdAt(Instant.now())
+            .creatorAccountId(account)
+            .creatorMemo(memo)
+            .creatorMemoType(memoType)
+            .fee(rate.getFee())
+            .build();
 
-    // sellDeliveryMethod
-    if (!Objects.toString(request.getSellDeliveryMethod(), "").isEmpty()) {
-      if (!sellAsset.supportsSellDeliveryMethod(request.getSellDeliveryMethod())) {
-        throw new BadRequestException("Unsupported sell delivery method");
-      }
-    }
+    // TODO: open the connection with DB and only commit/save after publishing the event:
+    this.sep38QuoteStore.save(quote);
 
-    // buyDeliveryMethod
-    if (!Objects.toString(request.getBuyDeliveryMethod(), "").isEmpty()) {
-      if (!buyAsset.supportsBuyDeliveryMethod(request.getBuyDeliveryMethod())) {
-        throw new BadRequestException("Unsupported buy delivery method");
-      }
-    }
+    // send event
+    sendQuoteCreatedEvent(quote, rate);
 
-    // countryCode
-    if (!Objects.toString(request.getCountryCode(), "").isEmpty()) {
-      List<String> sellCountryCodes = sellAsset.getCountryCodes();
-      List<String> buyCountryCodes = buyAsset.getCountryCodes();
-      boolean bothCountryCodesAreNull = sellCountryCodes == null && buyCountryCodes == null;
-      boolean countryCodeIsSupportedForSell =
-          sellCountryCodes != null && sellCountryCodes.contains(request.getCountryCode());
-      boolean countryCodeIsSupportedForBuy =
-          buyCountryCodes != null && buyCountryCodes.contains(request.getCountryCode());
-      if (bothCountryCodesAreNull
-          || !(countryCodeIsSupportedForSell || countryCodeIsSupportedForBuy)) {
-        throw new BadRequestException("Unsupported country code");
-      }
-    }
+    // increment counter
+    sep38QuoteCreatedCounter.increment();
 
-    // expireAfter
-    if (!Objects.toString(request.getExpireAfter(), "").isEmpty()) {
-      try {
-        Instant.parse(request.getExpireAfter());
-      } catch (Exception ex) {
-        throw new BadRequestException("expire_after is invalid");
-      }
-    }
+    return sep38QuoteResponseFromQuote(quote);
+  }
 
-    // context
-    Sep38Context context = request.getContext();
-    if (context == null || !List.of(SEP6, SEP24, SEP31).contains(context)) {
-      throw new BadRequestException("Unsupported context. Should be one of [sep6, sep24, sep31].");
-    }
+  private void sendQuoteCreatedEvent(Sep38Quote quote, GetRateResponse.Rate rate)
+      throws AnchorException {
+    AnchorEvent event =
+        AnchorEvent.builder()
+            .type(AnchorEvent.Type.QUOTE_CREATED)
+            .id(UUID.randomUUID().toString())
+            .sep("38")
+            .quote(
+                GetQuoteResponse.builder()
+                    .creator(
+                        StellarId.builder()
+                            // TODO where to get StellarId.id?
+                            .account(quote.getCreatorAccountId())
+                            .build())
+                    .build())
+            .build();
 
-    // Check SEP31 send limits
-    if (context == SEP31) {
-      if (sellAsset == null) {
-        throw new BadRequestException("Unsupported sell asset.");
-      }
-      String[] assetCode = sellAsset.getAsset().split(":");
-      AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
+    updateField(quote, "id", event, "quote.id");
+    updateField(quote, "sellAsset", event, "quote.sellAsset");
+    updateField(quote, "sellAmount", event, "quote.sellAmount");
+    updateField(quote, "sellDeliveryMethod", event, "quote.sellDeliveryMethod");
+    updateField(quote, "buyAsset", event, "quote.buyAsset");
+    updateField(quote, "buyAmount", event, "quote.buyAmount");
+    updateField(quote, "buyDeliveryMethod", event, "quote.buyDeliveryMethod");
+    updateField(quote, "expiresAt", event, "quote.expiresAt");
+    updateField(quote, "createdAt", event, "quote.createdAt");
+    updateField(quote, "price", event, "quote.price");
+    updateField(quote, "totalPrice", event, "quote.totalPrice");
+    updateField(quote, "creatorAccountId", event, "quote.creator.account");
+    updateField(quote, "transactionId", event, "quote.transactionId");
+    updateField(rate, "fee", event, "quote.fee");
 
-      // When sell_amount is specified
-      if (request.getSellAmount() != null) {
-        validateAmountLimit("sell_", request.getSellAmount(), sendMinLimit, sendMaxLimit);
-      }
-    }
+    // publish event
+    eventSession.publish(event);
+  }
 
+  private GetRateResponse.Rate getRateFromQuoteRequest(
+      Sep10Jwt token, Sep38PostQuoteRequest request) throws AnchorException {
     GetRateRequest.GetRateRequestBuilder getRateRequestBuilder =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.FIRM)
@@ -396,101 +360,11 @@ public class Sep38Service {
               "Unable to calculate total_price with buy_amount: %s and sell_amount: %s",
               rate.getBuyAmount(), rate.getSellAmount()));
     }
-
-    String totalPrice =
-        getTotalPrice(
-            decimal(rate.getSellAmount(), pricePrecision),
-            decimal(rate.getBuyAmount(), pricePrecision));
-
-    Sep38QuoteResponse.Sep38QuoteResponseBuilder responseBuilder =
-        builder()
-            .id(rate.getId())
-            .expiresAt(rate.getExpiresAt())
-            .price(rate.getPrice())
-            .sellAsset(request.getSellAssetName())
-            .buyAsset(request.getBuyAssetName())
-            .fee(rate.getFee());
-
-    String sellAmount = formatAmount(decimal(rate.getSellAmount()), sellAsset.getDecimals());
-    String buyAmount = formatAmount(decimal(rate.getBuyAmount()), buyAsset.getDecimals());
-    responseBuilder =
-        responseBuilder.totalPrice(totalPrice).sellAmount(sellAmount).buyAmount(buyAmount);
-
-    // Check SEP31 sell_amount from rate integration when buy_amount is specified
-    if (context == SEP31 && isNotEmpty(buyAmount)) {
-      String[] assetCode = sellAsset.getAsset().split(":");
-      AssetInfo asset = assetService.getAsset(assetCode[1]);
-      Long sendMinLimit = asset.getSend().getMinAmount();
-      Long sendMaxLimit = asset.getSend().getMaxAmount();
-
-      validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
-    }
-
-    // save firm quote in the local database
-    Sep38Quote newQuote =
-        new Sep38QuoteBuilder(this.sep38QuoteStore)
-            .id(rate.getId())
-            .expiresAt(rate.getExpiresAt())
-            .price(rate.getPrice())
-            .totalPrice(totalPrice)
-            .sellAsset(request.getSellAssetName())
-            .sellAmount(sellAmount)
-            .sellDeliveryMethod(request.getSellDeliveryMethod())
-            .buyAsset(request.getBuyAssetName())
-            .buyAmount(buyAmount)
-            .buyDeliveryMethod(request.getBuyDeliveryMethod())
-            .createdAt(Instant.now())
-            .creatorAccountId(account)
-            .creatorMemo(memo)
-            .creatorMemoType(memoType)
-            .fee(rate.getFee())
-            .build();
-
-    // TODO: open the connection with DB and only commit/save after publishing the event:
-    this.sep38QuoteStore.save(newQuote);
-
-    AnchorEvent event =
-        AnchorEvent.builder()
-            .type(AnchorEvent.Type.QUOTE_CREATED)
-            .id(UUID.randomUUID().toString())
-            .sep("38")
-            .quote(
-                GetQuoteResponse.builder()
-                    .creator(
-                        StellarId.builder()
-                            // TODO where to get StellarId.id?
-                            .account(newQuote.getCreatorAccountId())
-                            .build())
-                    .build())
-            .build();
-
-    updateField(newQuote, "id", event, "quote.id");
-    updateField(newQuote, "sellAsset", event, "quote.sellAsset");
-    updateField(newQuote, "sellAmount", event, "quote.sellAmount");
-    updateField(newQuote, "buyAsset", event, "quote.buyAsset");
-    updateField(newQuote, "buyAmount", event, "quote.buyAmount");
-    updateField(newQuote, "expiresAt", event, "quote.expiresAt");
-    updateField(newQuote, "createdAt", event, "quote.createdAt");
-    updateField(newQuote, "price", event, "quote.price");
-    updateField(newQuote, "totalPrice", event, "quote.totalPrice");
-    updateField(newQuote, "creatorAccountId", event, "quote.creator.account");
-    updateField(newQuote, "transactionId", event, "quote.transactionId");
-    updateField(rate, "fee", event, "quote.fee");
-
-    // publish event
-    eventSession.publish(event);
-
-    // increment counter
-    sep38QuoteCreated.increment();
-    return responseBuilder.build();
+    return rate;
   }
 
-  public Sep38QuoteResponse getQuote(Sep10Jwt token, String quoteId) throws AnchorException {
-    if (this.sep38QuoteStore == null) {
-      throw new ServerErrorException("internal server error");
-    }
-
-    // validate token
+  private Pair<String, Pair<String, String>> validateToken(Sep10Jwt token)
+      throws BadRequestException {
     if (token == null) {
       throw new BadRequestException("missing sep10 jwt token");
     }
@@ -506,6 +380,19 @@ public class Sep38Service {
     } else {
       throw new BadRequestException("sep10 token is malformed");
     }
+    return Pair.of(account, Pair.of(memo, memoType));
+  }
+
+  public Sep38QuoteResponse getQuote(Sep10Jwt token, String quoteId) throws AnchorException {
+    if (this.sep38QuoteStore == null) {
+      throw new ServerErrorException("internal server error");
+    }
+
+    // validate token
+    Pair<String, Pair<String, String>> accountInfo = validateToken(token);
+    String account = accountInfo.getLeft();
+    String memo = accountInfo.getRight().getLeft();
+    String memoType = accountInfo.getRight().getRight();
 
     // empty quote id
     if (StringUtils.isEmpty(quoteId)) {
@@ -528,10 +415,74 @@ public class Sep38Service {
         .price(quote.getPrice())
         .sellAsset(quote.getSellAsset())
         .sellAmount(quote.getSellAmount())
+        .sellDeliveryMethod(quote.getSellDeliveryMethod())
         .buyAsset(quote.getBuyAsset())
         .buyAmount(quote.getBuyAmount())
+        .buyDeliveryMethod(quote.getBuyDeliveryMethod())
         .fee(quote.getFee())
         .build();
+  }
+
+  private void validateQuoteRequest(Sep38PostQuoteRequest request) throws AnchorException {
+    validateAsset("sell_", request.getSellAssetName());
+    validateAsset("buy_", request.getBuyAssetName());
+
+    // validate amounts
+    if ((request.getSellAmount() == null && request.getBuyAmount() == null)
+        || (request.getSellAmount() != null && request.getBuyAmount() != null)) {
+      throw new BadRequestException("Please provide either sell_amount or buy_amount");
+    } else if (request.getSellAmount() != null) {
+      validateAmount("sell_", request.getSellAmount());
+    } else {
+      validateAmount("buy_", request.getBuyAmount());
+    }
+
+    // validate sellDeliveryMethod
+    InfoResponse.Asset sellAsset = assetMap.get(request.getSellAssetName());
+    InfoResponse.Asset buyAsset = assetMap.get(request.getBuyAssetName());
+
+    if (!Objects.toString(request.getSellDeliveryMethod(), "").isEmpty()) {
+      if (!sellAsset.supportsSellDeliveryMethod(request.getSellDeliveryMethod())) {
+        throw new BadRequestException("Unsupported sell delivery method");
+      }
+    }
+
+    // validate buyDeliveryMethod
+    if (!Objects.toString(request.getBuyDeliveryMethod(), "").isEmpty()) {
+      if (!buyAsset.supportsBuyDeliveryMethod(request.getBuyDeliveryMethod())) {
+        throw new BadRequestException("Unsupported buy delivery method");
+      }
+    }
+
+    // validate countryCode
+    if (!Objects.toString(request.getCountryCode(), "").isEmpty()) {
+      List<String> sellCountryCodes = sellAsset.getCountryCodes();
+      List<String> buyCountryCodes = buyAsset.getCountryCodes();
+      boolean bothCountryCodesAreNull = sellCountryCodes == null && buyCountryCodes == null;
+      boolean countryCodeIsSupportedForSell =
+          sellCountryCodes != null && sellCountryCodes.contains(request.getCountryCode());
+      boolean countryCodeIsSupportedForBuy =
+          buyCountryCodes != null && buyCountryCodes.contains(request.getCountryCode());
+      if (bothCountryCodesAreNull
+          || !(countryCodeIsSupportedForSell || countryCodeIsSupportedForBuy)) {
+        throw new BadRequestException("Unsupported country code");
+      }
+    }
+
+    // validate expireAfter
+    if (!Objects.toString(request.getExpireAfter(), "").isEmpty()) {
+      try {
+        Instant.parse(request.getExpireAfter());
+      } catch (Exception ex) {
+        throw new BadRequestException("expire_after is invalid");
+      }
+    }
+
+    // validate context
+    Sep38Context context = request.getContext();
+    if (context == null || !List.of(SEP6, SEP24, SEP31).contains(context)) {
+      throw new BadRequestException("Unsupported context. Should be one of [sep6, sep24, sep31].");
+    }
   }
 
   private String getTotalPrice(BigDecimal bSellAmount, BigDecimal bBuyAmount) {

@@ -29,9 +29,6 @@ public enum RpcMethod {
   @SerializedName("notify_trust_set")
   NOTIFY_TRUST_SET("notify_trust_set"),
 
-  @SerializedName("request_customer_info_update")
-  REQUEST_CUSTOMER_INFO_UPDATE("request_customer_info_update"),
-
   @SerializedName("notify_customer_info_updated")
   NOTIFY_CUSTOMER_INFO_UPDATED("notify_customer_info_updated"),
 
@@ -69,7 +66,16 @@ public enum RpcMethod {
   NOTIFY_TRANSACTION_RECOVERY("notify_transaction_recovery"),
 
   @SerializedName("notify_transaction_on_hold")
-  NOTIFY_TRANSACTION_ON_HOLD("notify_transaction_on_hold");
+  NOTIFY_TRANSACTION_ON_HOLD("notify_transaction_on_hold"),
+
+  @SerializedName("get_transaction")
+  GET_TRANSACTION("get_transaction"),
+
+  @SerializedName("get_transactions")
+  GET_TRANSACTIONS("get_transactions"),
+
+  @SerializedName("get_quote")
+  GET_QUOTE("get_quote");
 
   private final String method;
 

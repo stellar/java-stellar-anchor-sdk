@@ -18,7 +18,7 @@ val RequestExceptionHandlerPlugin =
         is UnprocessableEntityException ->
           call.respond(HttpStatusCode.UnprocessableEntity, throwable)
         else -> {
-          log.error("Unexpected exception", throwable)
+          log.error(throwable) { "Unexpected exception" }
           call.respond(HttpStatusCode.InternalServerError)
         }
       }

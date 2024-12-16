@@ -4,9 +4,9 @@ import static org.stellar.anchor.util.Log.*;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

@@ -1,8 +1,8 @@
 package org.stellar.reference.sep24
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.math.BigDecimal
 import java.math.RoundingMode
-import mu.KotlinLogging
 import org.stellar.reference.data.*
 import org.stellar.reference.service.SepHelper
 import org.stellar.reference.transactionWithRetry
@@ -20,7 +20,7 @@ class DepositService(private val cfg: Config) {
     account: String,
     asset: String,
     memo: String?,
-    memoType: String?
+    memoType: String?,
   ) {
     try {
       var transaction = sep24.getTransaction(transactionId)
@@ -83,8 +83,8 @@ class DepositService(private val cfg: Config) {
           amountIn = AmountAssetRequest(asset = "iso4217:USD", amount = amount.toPlainString()),
           amountOut =
             AmountAssetRequest(asset = stellarAsset, amount = amount.subtract(fee).toPlainString()),
-          amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = fee.toPlainString())
-        )
+          feeDetails = FeeDetails(total = fee.toPlainString(), asset = "iso4217:USD"),
+        ),
       )
     } else {
       sep24.patchTransaction(
@@ -94,7 +94,7 @@ class DepositService(private val cfg: Config) {
           message = "waiting on the user to transfer funds",
           amountIn = Amount(amount.toPlainString(), stellarAsset),
           amountOut = Amount(amount.subtract(fee).toPlainString(), stellarAsset),
-          amountFee = Amount(fee.toPlainString(), stellarAsset)
+          feeDetails = FeeDetails(fee.toPlainString(), stellarAsset),
         )
       )
     }
@@ -106,19 +106,19 @@ class DepositService(private val cfg: Config) {
         "notify_offchain_funds_received",
         NotifyOffchainFundsReceivedRequest(
           transactionId = transactionId,
-          message = "funds received, transaction is being processed"
-        )
+          message = "funds received, transaction is being processed",
+        ),
       )
     } else {
       sep24.patchTransaction(
         transactionId,
         "pending_anchor",
-        "funds received, transaction is being processed"
+        "funds received, transaction is being processed",
       )
       sep24.patchTransaction(
         transactionId,
         "pending_stellar",
-        "funds received, transaction is being processed"
+        "funds received, transaction is being processed",
       )
     }
   }
@@ -143,15 +143,15 @@ class DepositService(private val cfg: Config) {
     transactionId: String,
     stellarTransactionId: String,
     asset: String,
-    amount: BigDecimal
+    amount: BigDecimal,
   ) {
     if (cfg.appSettings.rpcEnabled) {
       sep24.rpcAction(
         "notify_onchain_funds_sent",
         NotifyOnchainFundsSentRequest(
           transactionId = transactionId,
-          stellarTransactionId = stellarTransactionId
-        )
+          stellarTransactionId = stellarTransactionId,
+        ),
       )
     } else {
       val operationId: Long =
@@ -177,11 +177,11 @@ class DepositService(private val cfg: Config) {
                   listOf(
                     StellarPayment(
                       id = operationId.toString(),
-                      Amount(amount.toPlainString(), asset)
+                      Amount(amount.toPlainString(), asset),
                     )
-                  )
+                  ),
               )
-            )
+            ),
         )
       )
     }
@@ -191,7 +191,7 @@ class DepositService(private val cfg: Config) {
     if (cfg.appSettings.rpcEnabled) {
       sep24.rpcAction(
         "notify_transaction_error",
-        NotifyTransactionErrorRequest(transactionId = transactionId, message = message)
+        NotifyTransactionErrorRequest(transactionId = transactionId, message = message),
       )
     } else {
       sep24.patchTransaction(transactionId, "error", message)

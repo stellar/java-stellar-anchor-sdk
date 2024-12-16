@@ -1,32 +1,45 @@
 {
-  "assets": [
+  "items": [
     {
-      "schema": "stellar",
-      "code": "USDC",
-      "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      "id": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
       "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
       "significant_decimals": 2,
-      "deposit" : {
-        "enabled": true,
-        "fee_minimum": 0,
-        "fee_percent": 0,
-        "min_amount": 1,
-        "max_amount": 10000
+      "sep6":{
+        "enabled": false,
+        "deposit" : {
+          "enabled": true,
+          "min_amount": 1,
+          "max_amount": 10000
+        },
+        "withdraw": {
+          "enabled": true,
+          "min_amount": 1,
+          "max_amount": 10000
+        }
       },
-      "withdraw": {
-        "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
-        "min_amount": 1,
-        "max_amount": 10000
-      },
-      "send": {
-        "fee_fixed": 0,
-        "fee_percent": 0,
-        "min_amount": 1,
-        "max_amount": 1000000
+      "sep24":{
+        "enabled": false,
+        "deposit" : {
+          "enabled": true,
+          "min_amount": 1,
+          "max_amount": 10000
+        },
+        "withdraw": {
+          "enabled": true,
+          "min_amount": 1,
+          "max_amount": 10000
+        }
       },
       "sep31" : {
+        "enabled": true,
+        "receive": {
+          "min_amount": 1,
+          "max_amount": 1000000,
+          "methods": [
+            "SEPA",
+            "SWIFT"
+          ]
+        },
         "quotes_supported": false,
         "quotes_required": false,
         "fields": {
@@ -39,10 +52,9 @@
           }
         }
       },
-      "sep6_enabled": false,
-      "sep24_enabled": false,
-      "sep31_enabled": true,
-      "sep38_enabled": false
+      "sep38": {
+        "enabled": false
+      }
     }
   ]
 }

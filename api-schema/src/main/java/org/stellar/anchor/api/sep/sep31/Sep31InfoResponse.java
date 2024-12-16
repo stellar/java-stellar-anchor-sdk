@@ -1,10 +1,9 @@
 package org.stellar.anchor.api.sep.sep31;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
-import org.stellar.anchor.api.sep.operation.Sep12Operation;
-import org.stellar.anchor.api.sep.operation.Sep31Operation;
 
 /**
  * The response body of the /info endpoint of the SEP-31.
@@ -27,19 +26,13 @@ public class Sep31InfoResponse {
     @SerializedName("quotes_required")
     Boolean quotesRequired;
 
-    @SerializedName("fee_fixed")
-    Integer feeFixed;
-
-    @SerializedName("fee_percent")
-    Integer feePercent;
-
     @SerializedName("min_amount")
     Long minAmount;
 
     @SerializedName("max_amount")
     Long maxAmount;
 
-    Sep12Operation sep12;
-    Sep31Operation.Fields fields;
+    @SerializedName("funding_methods")
+    List<String> fundingMethods;
   }
 }

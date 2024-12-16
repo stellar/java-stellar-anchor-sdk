@@ -1,52 +1,79 @@
 package org.stellar.anchor.config;
 
+import com.google.gson.annotations.SerializedName;
+import java.util.List;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import lombok.*;
+import org.stellar.anchor.client.ClientConfig;
+import org.stellar.anchor.client.CustodialClient;
+import org.stellar.anchor.client.NonCustodialClient;
 
 public interface ClientsConfig {
+
+  ClientsConfigType getType();
+
+  String getValue();
+
+  List<RawClient> getItems();
+
+  enum ClientsConfigType {
+    @SerializedName("file")
+    FILE,
+    @SerializedName("inline")
+    INLINE,
+    @SerializedName("json")
+    JSON,
+    @SerializedName("yaml")
+    YAML,
+  }
+
   @Data
+  @Builder
   @AllArgsConstructor
   @NoArgsConstructor
-  @Builder
-  class ClientConfig {
-    String name;
-    ClientType type;
-    @Deprecated String signingKey; // ANCHOR-696
-    Set<String> signingKeys;
-    @Deprecated String domain; // ANCHOR-696
-    Set<String> domains;
-    @Deprecated String callbackUrl; // ANCHOR-755
-    String callbackUrlSep6;
-    String callbackUrlSep24;
-    String callbackUrlSep31;
-    String callbackUrlSep12;
-    boolean allowAnyDestination = false;
-    Set<String> destinationAccounts;
+  class RawClient {
 
     /**
-     * Returns true if any of the callback URLs are set.
-     *
-     * @return true if any of the callback URLs are set
+     * Represents a temporary client object used exclusively for loading client details from inline
+     * YAML configuration. This class is intended as a temporary workaround to facilitate the
+     * deserialization of client configurations. Note: If you add any new fields to the
+     * CustodialClient or NonCustodialClient classes, ensure that you also add those fields here to
+     * maintain consistency.
      */
-    public boolean isCallbackEnabled() {
-      return !(StringUtils.isEmpty(callbackUrl)
-          && StringUtils.isEmpty(callbackUrlSep6)
-          && StringUtils.isEmpty(callbackUrlSep24)
-          && StringUtils.isEmpty(callbackUrlSep31)
-          && StringUtils.isEmpty(callbackUrlSep12));
+    @NonNull String name;
+
+    ClientConfig.ClientType type;
+
+    Set<String> domains;
+
+    @SerializedName("signing_keys")
+    Set<String> signingKeys;
+
+    @SerializedName("callback_urls")
+    ClientConfig.CallbackUrls callbackUrls;
+
+    @SerializedName("allow_any_destination")
+    boolean allowAnyDestination = false;
+
+    @SerializedName("destination_accounts")
+    Set<String> destinationAccounts;
+
+    public CustodialClient toCustodialClient() {
+      return CustodialClient.builder()
+          .name(name)
+          .signingKeys(signingKeys)
+          .callbackUrls(callbackUrls)
+          .allowAnyDestination(allowAnyDestination)
+          .destinationAccounts(destinationAccounts)
+          .build();
+    }
+
+    public NonCustodialClient toNonCustodialClient() {
+      return NonCustodialClient.builder()
+          .name(name)
+          .domains(domains)
+          .callbackUrls(callbackUrls)
+          .build();
     }
   }
-
-  enum ClientType {
-    CUSTODIAL,
-    NONCUSTODIAL
-  }
-
-  ClientConfig getClientConfigBySigningKey(String signingKey);
-
-  ClientConfig getClientConfigByDomain(String domain);
 }

@@ -1,9 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Reference Server: default" type="JetRunConfigurationType" folderName="Run Single Server">
     <envs>
-      <env name="app.enableTest" value="true" />
       <env name="TEST_PROFILE_NAME" value="default" />
-      <env name="KT_REFERENCE_SERVER_CONFIG" value="service-runner/src/main/resources/config/reference-config.yaml" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunKotlinReferenceServer" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
