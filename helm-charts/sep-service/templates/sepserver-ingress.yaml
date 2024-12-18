@@ -16,11 +16,12 @@ metadata:
   name: {{ .Values.ingress.name }}
   namespace: {{ .Values.namespace }}
   annotations:
-    nginx.ingress.kubernetes.io/customer-headers: {{ .Values.namespace }}/{{ .Values.ingress.name }}-configmap
+    {{- $annotations := dict "nginx.ingress.kubernetes.io/custom-headers" (printf "%s/%s-configmap" .Values.namespace .Values.ingress.name) }}
     {{- if .Values.ingress.annotations }}
-    {{- range $key, $value := .Values.ingress.annotations }}
-    {{ $key }}: {{ $value | quote }}
+      {{- $annotations = merge $annotations .Values.ingress.annotations }}
     {{- end }}
+    {{- range $key, $value := $annotations }}
+      {{ $key }}: {{ $value | quote }}
     {{- end }}
   labels:
     app.kubernetes.io/name: {{ .Values.fullName }}-ingress
