@@ -28,6 +28,10 @@ dependencies {
     implementation(libs.reactor.core)
     implementation(libs.jakarta.xml.bind.api)
     implementation(libs.java.stellar.sdk)
+    implementation("org.glassfish.jaxb:jaxb-runtime:4.0.2")
+    testImplementation("org.glassfish.jaxb:jaxb-runtime:4.0.2")
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.18.2")
 
     testImplementation(libs.servlet.api)
     testImplementation(libs.slf4j.api)
