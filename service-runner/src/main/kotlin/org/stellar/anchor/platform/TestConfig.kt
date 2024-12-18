@@ -19,13 +19,16 @@ import org.stellar.anchor.util.StringHelper.isNotEmpty
  * @constructor creates a TestConfig instance
  */
 class TestConfig {
+  companion object {
+    const val TEST_PROFILE_NAME = "TEST_PROFILE_NAME"
+  }
   val env = mutableMapOf<String, String>()
   // override test profile name with TEST_PROFILE_NAME system env variable
-  private val envProfileName = System.getenv("TEST_PROFILE_NAME") ?: null
+  private val envProfileName = System.getenv(TEST_PROFILE_NAME) ?: null
 
   constructor(testProfileName: String? = null, customize: () -> Unit = {}) {
     var profileName = testProfileName
-    if (System.getenv("TEST_PROFILE_NAME") != null) profileName = System.getenv("TEST_PROFILE_NAME")
+    if (System.getenv(TEST_PROFILE_NAME) != null) profileName = System.getenv(TEST_PROFILE_NAME)
 
     if (this.envProfileName != null) profileName = this.envProfileName
     // starting from the default test.env file

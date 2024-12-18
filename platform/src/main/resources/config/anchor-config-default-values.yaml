@@ -11,7 +11,9 @@ version: 1
 ##############################
 
 #
-# The default language of the application
+# A list of languages supported by the anchor for localization content, such as the "moreInfoUrl" in a transaction response.
+# When constructing URLs or providing content, one of these languages may be selected based on user preference or availability.
+#
 # The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)
 #
 languages: en
@@ -164,7 +166,7 @@ event_processor:
   # The configuration of the event delivery to the anchor business server
   callback_api_request:
     # Whether to enable the event delivery to the anchor business server
-    enabled: true
+    enabled: false
 
 ######################
 ## Platform Server Configuration
@@ -728,8 +730,17 @@ data:
   # The hostname and port of the database server.
   server:
 
-  # Name of the database.
+  # The name of the database.
+  # For `sqlite`, this is the path to the database file.
+  # For `postgres` and `aurora`, this is the name of the database.
   database:
+
+  # The schema of the database.
+  # For `postgres` and `aurora`, default is `public`
+  # For `sqlite`, this is ignored.
+  # Note： If the schema is specified other than the default value, the tables will be created in the new schema.
+  #        The previously created tables may need to be moved from the default to the new schema.
+  schema:
 
   # Initial number of connections
   # For `sqlite`, set this to 1 to avoid database file lock exception

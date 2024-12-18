@@ -1,9 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Test Profile: rpc" type="JetRunConfigurationType" folderName="Run Test Profile">
     <envs>
-      <env name="app.enableTest" value="true" />
       <env name="TEST_PROFILE_NAME" value="rpc" />
-      <env name="KT_REFERENCE_SERVER_CONFIG" value="service-runner/src/main/resources/config/reference-config.yaml" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunTestProfile" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />

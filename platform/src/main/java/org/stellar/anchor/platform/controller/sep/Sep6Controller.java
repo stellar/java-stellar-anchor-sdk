@@ -47,6 +47,7 @@ public class Sep6Controller {
       @RequestParam(value = "memo_type", required = false) String memoType,
       @RequestParam(value = "memo", required = false) String memo,
       @RequestParam(value = "email_address", required = false) String emailAddress,
+      @RequestParam(value = "funding_method", required = false) String fundingMethod,
       @RequestParam(value = "type", required = false) String type,
       @RequestParam(value = "wallet_name", required = false) String walletName,
       @RequestParam(value = "wallet_url", required = false) String walletUrl,
@@ -65,6 +66,7 @@ public class Sep6Controller {
             .memoType(memoType)
             .memo(memo)
             .emailAddress(emailAddress)
+            .fundingMethod(fundingMethod)
             .type(type)
             .walletName(walletName)
             .walletUrl(walletUrl)
@@ -90,7 +92,8 @@ public class Sep6Controller {
       @RequestParam(value = "account") String account,
       @RequestParam(value = "memo_type", required = false) String memoType,
       @RequestParam(value = "memo", required = false) String memo,
-      @RequestParam(value = "type") String type,
+      @RequestParam(value = "funding_method", required = false) String fundingMethod,
+      @RequestParam(value = "type", required = false) String type,
       @RequestParam(value = "lang", required = false) String lang,
       @RequestParam(value = "country_code", required = false) String countryCode,
       @RequestParam(value = "claimable_balances_supported", required = false)
@@ -107,6 +110,7 @@ public class Sep6Controller {
             .account(account)
             .memoType(memoType)
             .memo(memo)
+            .fundingMethod(fundingMethod)
             .type(type)
             .lang(lang)
             .countryCode(countryCode)
@@ -123,6 +127,7 @@ public class Sep6Controller {
   public StartWithdrawResponse withdraw(
       HttpServletRequest request,
       @RequestParam(value = "asset_code") String assetCode,
+      @RequestParam(value = "funding_method", required = false) String fundingMethod,
       @RequestParam(value = "type", required = false) String type,
       @RequestParam(value = "amount", required = false) String amount,
       @RequestParam(value = "country_code", required = false) String countryCode,
@@ -134,6 +139,7 @@ public class Sep6Controller {
     StartWithdrawRequest startWithdrawRequest =
         StartWithdrawRequest.builder()
             .assetCode(assetCode)
+            .fundingMethod(fundingMethod)
             .type(type)
             .amount(amount)
             .countryCode(countryCode)
@@ -154,7 +160,8 @@ public class Sep6Controller {
       @RequestParam(value = "destination_asset") String destinationAsset,
       @RequestParam(value = "quote_id", required = false) String quoteId,
       @RequestParam(value = "amount") String amount,
-      @RequestParam(value = "type") String type,
+      @RequestParam(value = "funding_method", required = false) String fundingMethod,
+      @RequestParam(value = "type", required = false) String type,
       @RequestParam(value = "country_code", required = false) String countryCode,
       @RequestParam(value = "refund_memo", required = false) String refundMemo,
       @RequestParam(value = "refund_memo_type", required = false) String refundMemoType)
@@ -167,6 +174,7 @@ public class Sep6Controller {
             .destinationAsset(destinationAsset)
             .quoteId(quoteId)
             .amount(amount)
+            .fundingMethod(fundingMethod)
             .type(type)
             .countryCode(countryCode)
             .refundMemo(refundMemo)

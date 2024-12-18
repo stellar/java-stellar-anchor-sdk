@@ -1,5 +1,6 @@
 package org.stellar.anchor.util
 
+import com.google.gson.JsonObject
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -47,6 +48,7 @@ class TransactionMapperTest {
   }
 
   @MockK(relaxed = true) private lateinit var assertService: AssetService
+  val gson = GsonUtils.getInstance()
 
   @BeforeEach
   fun setup() {
@@ -344,47 +346,53 @@ class TransactionMapperTest {
     val actual =
       GsonUtils.getInstance()
         .toJson(TransactionMapper.toGetTransactionResponse(sepTxn, assertService))
-    val expected =
-      GsonUtils.getInstance()
-        .toJson(
-          PlatformTransactionData.builder()
-            .id(sepTxn.id)
-            .sep(PlatformTransactionData.Sep.SEP_6)
-            .kind(PlatformTransactionData.Kind.DEPOSIT)
-            .status(SepTransactionStatus.COMPLETED)
-            .type("bank_account")
-            .amountExpected(Amount("100.0", "stellar:USDC:issuer"))
-            .amountIn(Amount("100.0", "USD"))
-            .amountOut(Amount("100.0", "USDC"))
-            .feeDetails(FeeDetails("10.0", "USD"))
-            .quoteId(sepTxn.quoteId)
-            .startedAt(sepTxn.startedAt)
-            .updatedAt(sepTxn.updatedAt)
-            .completedAt(sepTxn.completedAt)
-            .userActionRequiredBy(sepTxn.userActionRequiredBy)
-            .transferReceivedAt(sepTxn.transferReceivedAt)
-            .message(sepTxn.message)
-            .refunds(sepTxn.refunds)
-            .stellarTransactions(listOf(stellarTransaction))
-            .sourceAccount(sepTxn.fromAccount)
-            .destinationAccount(sepTxn.toAccount)
-            .externalTransactionId(sepTxn.externalTransactionId)
-            .memo(sepTxn.memo)
-            .memoType(sepTxn.memoType)
-            .refundMemo(sepTxn.refundMemo)
-            .refundMemoType(sepTxn.refundMemoType)
-            .clientDomain(sepTxn.clientDomain)
-            .clientName(sepTxn.clientName)
-            .customers(
-              Customers.builder()
-                .sender(StellarId(null, sepTxn.sep10Account, sepTxn.sep10AccountMemo))
-                .receiver(StellarId(null, sepTxn.sep10Account, sepTxn.sep10AccountMemo))
-                .build()
-            )
-            .creator(StellarId(null, sepTxn.sep10Account, sepTxn.sep10AccountMemo))
+
+    val platformTxn =
+      PlatformTransactionData.builder()
+        .id(sepTxn.id)
+        .sep(PlatformTransactionData.Sep.SEP_6)
+        .kind(PlatformTransactionData.Kind.DEPOSIT)
+        .status(SepTransactionStatus.COMPLETED)
+        .type("bank_account")
+        .amountExpected(Amount("100.0", "stellar:USDC:issuer"))
+        .amountIn(Amount("100.0", "USD"))
+        .amountOut(Amount("100.0", "USDC"))
+        .feeDetails(FeeDetails("10.0", "USD"))
+        .quoteId(sepTxn.quoteId)
+        .startedAt(sepTxn.startedAt)
+        .updatedAt(sepTxn.updatedAt)
+        .completedAt(sepTxn.completedAt)
+        .userActionRequiredBy(sepTxn.userActionRequiredBy)
+        .transferReceivedAt(sepTxn.transferReceivedAt)
+        .message(sepTxn.message)
+        .refunds(sepTxn.refunds)
+        .stellarTransactions(listOf(stellarTransaction))
+        .sourceAccount(sepTxn.fromAccount)
+        .destinationAccount(sepTxn.toAccount)
+        .externalTransactionId(sepTxn.externalTransactionId)
+        .memo(sepTxn.memo)
+        .memoType(sepTxn.memoType)
+        .refundMemo(sepTxn.refundMemo)
+        .refundMemoType(sepTxn.refundMemoType)
+        .clientDomain(sepTxn.clientDomain)
+        .clientName(sepTxn.clientName)
+        .customers(
+          Customers.builder()
+            .sender(StellarId(null, sepTxn.sep10Account, sepTxn.sep10AccountMemo))
+            .receiver(StellarId(null, sepTxn.sep10Account, sepTxn.sep10AccountMemo))
             .build()
         )
+        .creator(StellarId(null, sepTxn.sep10Account, sepTxn.sep10AccountMemo))
+        .build()
 
-    JSONAssert.assertEquals(expected, actual, true)
+    val jsonString = gson.toJson(platformTxn)
+    val jsonObject = gson.fromJson(jsonString, JsonObject::class.java)
+
+    // Add the "funding_method" field
+    jsonObject.addProperty("fundingMethod", sepTxn.type)
+    // Convert back to JSON string if needed
+    val expectedJsonString = gson.toJson(jsonObject)
+
+    JSONAssert.assertEquals(expectedJsonString, actual, true)
   }
 }
