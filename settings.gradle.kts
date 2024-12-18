@@ -27,6 +27,8 @@ dependencyResolutionManagement {
       alias("slf4j.api").to("org.slf4j:slf4j-api:1.7.35")
       alias("slf4j.log4j12").to("org.slf4j:slf4j-log4j12:1.7.33")
       alias("toml4j").to("com.moandjiezana.toml:toml4j:0.7.2")
+      alias("jaxb-runtime").to("org.glassfish.jaxb:jaxb-runtime:4.0.2")
+      alias("jackson-annotations").to("com.fasterxml.jackson.core:jackson-annotations:2.15.4")
     }
   }
 }
