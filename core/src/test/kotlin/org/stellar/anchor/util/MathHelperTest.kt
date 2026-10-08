@@ -3,6 +3,7 @@ package org.stellar.anchor.util
 import io.mockk.every
 import io.mockk.mockk
 import java.math.BigDecimal
+import java.util.Locale
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -193,5 +194,38 @@ class MathHelperTest {
     assertTrue(MathHelper.isWithinArithmeticRange(BigDecimal("0e-100")))
     assertFalse(MathHelper.isWithinArithmeticRange(BigDecimal("0e-101")))
     assertFalse(MathHelper.isWithinArithmeticRange(BigDecimal("0e+101")))
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    value =
+      [
+        "12.3456789,7,12.3456789",
+        "12.34564,7,12.34564",
+        "12.3456,7,12.3456",
+        "10.0000000,7,10",
+        "0.0000000,7,0",
+        "10.005,2,10",
+        "10.006,2,10.01",
+        "1000000.5,7,1000000.5"
+      ]
+  )
+  fun `test formatAmount keeps the requested scale without trailing zeros or grouping`(
+    value: String,
+    scale: Int,
+    expected: String
+  ) {
+    assertEquals(expected, MathHelper.formatAmount(BigDecimal(value), scale))
+  }
+
+  @Test
+  fun `test formatAmount ignores the JVM default locale`() {
+    val previous = Locale.getDefault()
+    try {
+      Locale.setDefault(Locale("pt", "BR"))
+      assertEquals("12.3456789", MathHelper.formatAmount(BigDecimal("12.3456789"), 7))
+    } finally {
+      Locale.setDefault(previous)
+    }
   }
 }
