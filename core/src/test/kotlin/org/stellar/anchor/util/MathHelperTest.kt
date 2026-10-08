@@ -103,7 +103,7 @@ class MathHelperTest {
     )
     assertEquals(
       rangeMessage,
-      assertThrows<ArithmeticException> { MathHelper.formatAmount(BigDecimal("0e-50000000")) }
+      assertThrows<ArithmeticException> { MathHelper.formatAmount(BigDecimal("0e-50000000"), 7) }
         .message,
     )
   }
@@ -173,9 +173,8 @@ class MathHelperTest {
     assertEquals(BigDecimal("0.0000000"), MathHelper.decimal("0", 7))
     assertEquals(BigDecimal("500.0000000"), MathHelper.decimal("5e2", asset7()))
     assertEquals(BigDecimal("3.5000000"), MathHelper.sum(asset7(), "1", "2.5"))
-    // integers only: DecimalFormat uses the default locale for the decimal separator
     assertEquals("15", MathHelper.formatAmount(BigDecimal("15"), 4))
-    assertEquals("100", MathHelper.formatAmount(BigDecimal("1e2")))
+    assertEquals("100", MathHelper.formatAmount(BigDecimal("1e2"), 4))
     assertNull(MathHelper.decimal(null as String?, 7))
   }
 
@@ -227,5 +226,12 @@ class MathHelperTest {
     } finally {
       Locale.setDefault(previous)
     }
+  }
+
+  @Test
+  fun `test formatAmount has no overload without an explicit scale`() {
+    val overloads = MathHelper::class.java.methods.filter { it.name == "formatAmount" }
+    assertTrue(overloads.isNotEmpty())
+    assertTrue(overloads.all { it.parameterCount == 2 })
   }
 }
