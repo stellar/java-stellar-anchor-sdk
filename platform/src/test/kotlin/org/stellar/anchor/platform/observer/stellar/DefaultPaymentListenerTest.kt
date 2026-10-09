@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
+import java.math.BigDecimal
 import java.math.BigInteger
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,17 +14,21 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.stellar.anchor.api.asset.AssetInfo
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.apiclient.PlatformApiClient
+import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.ledger.LedgerTransaction
 import org.stellar.anchor.ledger.LedgerTransaction.LedgerOperation
 import org.stellar.anchor.ledger.PaymentTransferEvent
 import org.stellar.anchor.platform.config.RpcConfig
 import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.platform.service.AnchorMetrics
+import org.stellar.anchor.platform.utils.AssetValidationUtils
 import org.stellar.anchor.util.AssetHelper.fromXdrAmount
 import org.stellar.anchor.util.AssetHelper.getSep11AssetName
 import org.stellar.anchor.util.Log
+import org.stellar.sdk.MuxedAccount
 import org.stellar.sdk.TOID
 import org.stellar.sdk.xdr.Asset
 import org.stellar.sdk.xdr.AssetType.ASSET_TYPE_POOL_SHARE
@@ -40,6 +45,7 @@ class DefaultPaymentListenerTest {
   @MockK(relaxed = true) private lateinit var sep6TransactionStore: JdbcSep6TransactionStore
   @MockK(relaxed = true) private lateinit var platformApiClient: PlatformApiClient
   @MockK(relaxed = true) private lateinit var rpcConfig: RpcConfig
+  @MockK(relaxed = true) private lateinit var assetService: AssetService
 
   private lateinit var paymentListener: DefaultPaymentListener
 
@@ -64,6 +70,7 @@ class DefaultPaymentListenerTest {
           sep6TransactionStore,
           platformApiClient,
           rpcConfig,
+          assetService,
         )
       )
   }
@@ -1321,6 +1328,259 @@ class DefaultPaymentListenerTest {
       )
     } finally {
       Metrics.removeRegistry(registry)
+    }
+  }
+
+  // ---- ANCHOR-1364: credit payments finer than the asset's significant_decimals ----
+
+  private val fooAssetId = "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
+
+  private fun fooAsset(decimals: Int?): AssetInfo {
+    val asset = mockk<AssetInfo>()
+    every { asset.id } returns fooAssetId
+    every { asset.significantDecimals } returns decimals
+    return asset
+  }
+
+  private fun sep31TxnForFoo(): JdbcSep31Transaction {
+    val txn = JdbcSep31Transaction()
+    txn.id = "123"
+    txn.amountInAsset = fooAssetId
+    return txn
+  }
+
+  /** The event's payment with the on-chain amount set in stroops (7 decimals). */
+  private fun eventWithStroops(stroops: Long): PaymentTransferEvent {
+    val event = createTestTransferEvent()
+    event.amount = BigInteger.valueOf(stroops)
+    event.ledgerTransaction.operations[0].paymentOperation.amount = BigInteger.valueOf(stroops)
+    return event
+  }
+
+  /** Handles a SEP-31 payment and returns the amount passed to the notification, if any. */
+  private fun notifiedAmountSep31(stroops: Long, assets: List<AssetInfo>): String? {
+    every { assetService.assets } returns assets
+    val event = eventWithStroops(stroops)
+    val txn = event.ledgerTransaction
+    val payment = txn.operations[0].paymentOperation
+    val amount = slot<String>()
+    every {
+      platformApiClient.notifyOnchainFundsReceived(any(), any(), capture(amount), any())
+    } just Runs
+
+    paymentListener.handleSep31Transaction(txn, payment, sep31TxnForFoo())
+
+    return if (amount.isCaptured) amount.captured else null
+  }
+
+  private fun truncatedCount(registry: SimpleMeterRegistry) =
+    registry.counter(AnchorMetrics.PAYMENT_OBSERVER_AMOUNT_TRUNCATED.toString()).count()
+
+  @Test
+  fun `test handleSep31Transaction truncates 1_2345678 to 1_23 for a 2-decimal asset`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      assertEquals("1.23", notifiedAmountSep31(12345678, listOf(fooAsset(2))))
+      assertEquals(1.0, truncatedCount(registry))
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+  }
+
+  @Test
+  fun `test handleSep31Transaction truncates 1_2345678 to 1_2345 for a 4-decimal asset`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      assertEquals("1.2345", notifiedAmountSep31(12345678, listOf(fooAsset(4))))
+      assertEquals(1.0, truncatedCount(registry))
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+  }
+
+  @Test
+  fun `test handleSep31Transaction rounds down, never up`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      // 1.2399999 must become 1.23, not 1.24
+      assertEquals("1.23", notifiedAmountSep31(12399999, listOf(fooAsset(2))))
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+  }
+
+  @Test
+  fun `test handleSep31Transaction keeps the amount for a 7-decimal asset and does not count a truncation`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      assertEquals("1.2345678", notifiedAmountSep31(12345678, listOf(fooAsset(7))))
+      assertEquals(0.0, truncatedCount(registry))
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+  }
+
+  @Test
+  fun `test handleSep31Transaction passes 1_23 for an exactly representable 1_2300000 and does not count a truncation`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      assertEquals("1.23", notifiedAmountSep31(12300000, listOf(fooAsset(2))))
+      assertEquals(0.0, truncatedCount(registry))
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+  }
+
+  @Test
+  fun `test handleSep31Transaction notifies an amount the platform validator accepts and that is not above the on-chain amount`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      for (decimals in 0..7) {
+        val asset = fooAsset(decimals)
+        val notified = notifiedAmountSep31(98765432109L, listOf(asset))!!
+        assertDoesNotThrow { AssetValidationUtils.valiateAssetDecimals(listOf(asset), notified) }
+        assertTrue(BigDecimal(notified) <= BigDecimal("9876.5432109"), "decimals=$decimals")
+      }
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+  }
+
+  @Test
+  fun `test handleSep31Transaction passes the on-chain amount when the asset is not configured`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      assertEquals("1.2345678", notifiedAmountSep31(12345678, emptyList()))
+      assertEquals(0.0, truncatedCount(registry))
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+  }
+
+  @Test
+  fun `test handleSep31Transaction passes the on-chain amount when the asset id matches more than one configured asset`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      val assets = listOf(fooAsset(2), fooAsset(4))
+      assertEquals("1.2345678", notifiedAmountSep31(12345678, assets))
+      assertEquals(0.0, truncatedCount(registry))
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+  }
+
+  @Test
+  fun `test handleSep31Transaction passes the on-chain amount when significant_decimals is null`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      assertEquals("1.2345678", notifiedAmountSep31(12345678, listOf(fooAsset(null))))
+      assertEquals(0.0, truncatedCount(registry))
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+  }
+
+  @Test
+  fun `test handleSep31Transaction logs a warning with the amounts when it truncates`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    mockkStatic(Log::class)
+    try {
+      every { Log.warnF(any(), *anyVararg()) } just Runs
+      every { Log.debugF(any(), *anyVararg()) } just Runs
+
+      notifiedAmountSep31(12345678, listOf(fooAsset(2)))
+
+      verify(exactly = 1) {
+        Log.warnF(
+          match { it.contains("truncat") },
+          any(),
+          any(),
+          fooAssetId,
+          "1.2345678",
+          "1.23",
+        )
+      }
+    } finally {
+      Metrics.removeRegistry(registry)
+      unmockkStatic(Log::class)
+    }
+  }
+
+  @Test
+  fun `test handleSep31Transaction skips a payment that truncates to zero without notifying the platform`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    mockkStatic(Log::class)
+    try {
+      every { Log.errorF(any(), *anyVararg()) } just Runs
+      every { Log.debugF(any(), *anyVararg()) } just Runs
+
+      // 0.0000001 at 2 decimals
+      val amount = notifiedAmountSep31(1, listOf(fooAsset(2)))
+
+      assertEquals(null, amount)
+      verify(exactly = 0) {
+        platformApiClient.notifyOnchainFundsReceived(any(), any(), any(), any())
+      }
+      verify(exactly = 1) {
+        Log.errorF(
+          match { it.contains("truncates to zero") },
+          any(),
+          any(),
+          fooAssetId,
+          "0.0000001"
+        )
+      }
+      assertEquals(
+        1.0,
+        registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+      )
+    } finally {
+      Metrics.removeRegistry(registry)
+      unmockkStatic(Log::class)
+    }
+  }
+
+  @Test
+  fun `test onReceived truncates the amount when the SEP-31 match comes from the muxed-account fallback`() {
+    every { assetService.assets } returns listOf(fooAsset(2))
+    val muxedTo =
+      MuxedAccount(
+          "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+          BigInteger.valueOf(123)
+        )
+        .address
+    val event = eventWithStroops(12345678)
+    event.to = muxedTo
+    event.ledgerTransaction.operations[0].paymentOperation.to = muxedTo
+    xdrMemoText.text = XdrString("my_memo")
+    event.ledgerTransaction.memo = xdrMemoText
+
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(muxedTo, any(), any())
+    } returns emptyList()
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "123",
+        any(),
+      )
+    } returns listOf(sep31TxnForFoo())
+
+    paymentListener.onReceived(event)
+
+    verify(exactly = 1) {
+      platformApiClient.notifyOnchainFundsReceived("123", any(), "1.23", any())
     }
   }
 }
