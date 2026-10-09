@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.observer.stellar
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import java.math.BigInteger
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -11,6 +12,7 @@ import org.stellar.anchor.ledger.Horizon
 import org.stellar.anchor.ledger.LedgerTransaction
 import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig
 import org.stellar.anchor.platform.observer.PaymentListener
+import org.stellar.anchor.platform.observer.stellar.AbstractPaymentObserver.ObserverStatus
 import org.stellar.anchor.util.AssetHelper
 import org.stellar.sdk.Asset
 import org.stellar.sdk.KeyPair
@@ -307,5 +309,91 @@ class HorizonPaymentObserverTest {
     assertThrows(LedgerException::class.java) {
       observer.toPaymentTransferEvent(contractTransfer())
     }
+  }
+
+  private fun observerWith(listener: PaymentListener): HorizonPaymentObserver =
+    HorizonPaymentObserver(
+      horizon,
+      StellarPaymentObserverConfig().apply {
+        silenceCheckInterval = 60
+        silenceTimeout = 300
+        silenceTimeoutRetries = 3
+        initialStreamBackoffTime = 1000
+        maxStreamBackoffTime = 10000
+        initialEventBackoffTime = 500
+        maxEventBackoffTime = 5000
+      },
+      listOf(listener),
+      paymentObservingAccountsManager,
+      paymentStreamerCursorStore,
+    )
+
+  private fun observedPayment(): PaymentOperationResponse {
+    val op = mockk<PaymentOperationResponse>()
+    every { op.to } returns KeyPair.random().accountId
+    every { op.from } returns KeyPair.random().accountId
+    every { op.asset } returns Asset.createNativeAsset()
+    every { op.amount } returns "100.0"
+    every { op.id } returns 123L
+    every { op.transactionHash } returns "txHash"
+    every { op.pagingToken } returns "999"
+    every { paymentObservingAccountsManager.lookupAndUpdate(any()) } returns true
+    return op
+  }
+
+  private fun observedPathPayment(): PathPaymentBaseOperationResponse {
+    val op = mockk<PathPaymentBaseOperationResponse>()
+    every { op.to } returns KeyPair.random().accountId
+    every { op.from } returns KeyPair.random().accountId
+    every { op.asset } returns Asset.createNativeAsset()
+    every { op.amount } returns "200.0"
+    every { op.id } returns 456L
+    every { op.transactionHash } returns "txHash2"
+    every { op.pagingToken } returns "1000"
+    every { paymentObservingAccountsManager.lookupAndUpdate(any()) } returns true
+    return op
+  }
+
+  @Test
+  fun `processOperation holds the cursor when the transaction lookup of a PAYMENT fails`() {
+    val listener = mockk<PaymentListener>(relaxed = true)
+    val observer = observerWith(listener)
+    every { horizon.getTransaction(any()) } throws LedgerException("Error getting transaction")
+
+    observer.processOperation(observedPayment())
+
+    verify(exactly = 0) { paymentStreamerCursorStore.saveHorizonCursor(any()) }
+    verify(exactly = 0) { listener.onReceived(any()) }
+    assertEquals(ObserverStatus.PUBLISHER_ERROR, observer.status)
+  }
+
+  @Test
+  fun `processOperation holds the cursor when the transaction lookup of a PATH_PAYMENT fails`() {
+    val listener = mockk<PaymentListener>(relaxed = true)
+    val observer = observerWith(listener)
+    every { horizon.getTransaction(any()) } throws LedgerException("Error getting transaction")
+
+    observer.processOperation(observedPathPayment())
+
+    verify(exactly = 0) { paymentStreamerCursorStore.saveHorizonCursor(any()) }
+    verify(exactly = 0) { listener.onReceived(any()) }
+    assertEquals(ObserverStatus.PUBLISHER_ERROR, observer.status)
+  }
+
+  @Test
+  fun `processOperation dispatches the event and saves the cursor once the transaction lookup recovers`() {
+    val listener = mockk<PaymentListener>(relaxed = true)
+    val observer = observerWith(listener)
+    val op = observedPayment()
+    every { horizon.getTransaction(any()) } throws LedgerException("Error getting transaction")
+
+    observer.processOperation(op)
+    verify(exactly = 0) { paymentStreamerCursorStore.saveHorizonCursor(any()) }
+
+    every { horizon.getTransaction(any()) } returns mockk()
+    observer.processOperation(op)
+
+    verify(exactly = 1) { listener.onReceived(match { it.operationId == "123" }) }
+    verify(exactly = 1) { paymentStreamerCursorStore.saveHorizonCursor("999") }
   }
 }
