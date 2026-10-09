@@ -1357,21 +1357,45 @@ class DefaultPaymentListenerTest {
     return event
   }
 
-  /** Handles a SEP-31 payment and returns the amount passed to the notification, if any. */
-  private fun notifiedAmountSep31(stroops: Long, assets: List<AssetInfo>): String? {
+  /** Handles the event's payment with [handle] and returns the notified amount, if any. */
+  private fun notifiedAmount(
+    event: PaymentTransferEvent,
+    assets: List<AssetInfo>,
+    handle: (LedgerTransaction, LedgerTransaction.LedgerPayment) -> Unit,
+  ): String? {
     every { assetService.assets } returns assets
-    val event = eventWithStroops(stroops)
     val txn = event.ledgerTransaction
-    val payment = txn.operations[0].paymentOperation
+    val operation = txn.operations[0]
+    val payment = operation.paymentOperation ?: operation.pathPaymentOperation
     val amount = slot<String>()
     every {
       platformApiClient.notifyOnchainFundsReceived(any(), any(), capture(amount), any())
     } just Runs
 
-    paymentListener.handleSep31Transaction(txn, payment, sep31TxnForFoo())
+    handle(txn, payment)
 
     return if (amount.isCaptured) amount.captured else null
   }
+
+  /** Handles a SEP-31 payment and returns the amount passed to the notification, if any. */
+  private fun notifiedAmountSep31(stroops: Long, assets: List<AssetInfo>): String? =
+    notifiedAmount(eventWithStroops(stroops), assets) { txn, payment ->
+      paymentListener.handleSep31Transaction(txn, payment, sep31TxnForFoo())
+    }
+
+  private fun sep24TxnForFoo(kind: PlatformTransactionData.Kind) =
+    JdbcSep24Transaction().apply {
+      id = "123"
+      amountInAsset = fooAssetId
+      this.kind = kind.kind
+    }
+
+  private fun sep6TxnForFoo(kind: PlatformTransactionData.Kind) =
+    JdbcSep6Transaction().apply {
+      id = "123"
+      amountInAsset = fooAssetId
+      this.kind = kind.kind
+    }
 
   private fun truncatedCount(registry: SimpleMeterRegistry) =
     registry.counter(AnchorMetrics.PAYMENT_OBSERVER_AMOUNT_TRUNCATED.toString()).count()
@@ -1581,6 +1605,159 @@ class DefaultPaymentListenerTest {
 
     verify(exactly = 1) {
       platformApiClient.notifyOnchainFundsReceived("123", any(), "1.23", any())
+    }
+  }
+
+  @Test
+  fun `test handleSep24Transaction truncates a withdrawal amount to the asset precision`() {
+    val amount =
+      notifiedAmount(eventWithStroops(12345678), listOf(fooAsset(2))) { txn, payment ->
+        paymentListener.handleSep24Transaction(
+          txn,
+          payment,
+          sep24TxnForFoo(PlatformTransactionData.Kind.WITHDRAWAL),
+        )
+      }
+    assertEquals("1.23", amount)
+  }
+
+  @Test
+  fun `test handleSep6Transaction truncates a withdrawal amount to the asset precision`() {
+    val amount =
+      notifiedAmount(eventWithStroops(12345678), listOf(fooAsset(2))) { txn, payment ->
+        paymentListener.handleSep6Transaction(
+          txn,
+          payment,
+          sep6TxnForFoo(PlatformTransactionData.Kind.WITHDRAWAL),
+        )
+      }
+    assertEquals("1.23", amount)
+  }
+
+  @Test
+  fun `test handleSep6Transaction truncates a withdrawal-exchange amount to the asset precision`() {
+    val amount =
+      notifiedAmount(eventWithStroops(12345678), listOf(fooAsset(2))) { txn, payment ->
+        paymentListener.handleSep6Transaction(
+          txn,
+          payment,
+          sep6TxnForFoo(PlatformTransactionData.Kind.WITHDRAWAL_EXCHANGE),
+        )
+      }
+    assertEquals("1.23", amount)
+  }
+
+  @Test
+  fun `test handleSep24Transaction truncates a PATH_PAYMENT_STRICT_SEND amount like a PAYMENT`() {
+    val nativeAsset =
+      mockk<AssetInfo> {
+        every { id } returns "stellar:native"
+        every { significantDecimals } returns 2
+      }
+    val event =
+      createTestPathPaymentTransferEvent(
+        eventAmount = BigInteger.valueOf(12345678),
+        ledgerAmount = BigInteger.valueOf(12345678),
+      )
+    val amount =
+      notifiedAmount(event, listOf(nativeAsset)) { txn, payment ->
+        paymentListener.handleSep24Transaction(
+          txn,
+          payment,
+          sep24TxnForFoo(PlatformTransactionData.Kind.WITHDRAWAL).apply {
+            amountInAsset = "stellar:native"
+          },
+        )
+      }
+    assertEquals("1.23", amount)
+  }
+
+  @Test
+  fun `test deposits are not truncated or altered`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      every { assetService.assets } returns listOf(fooAsset(2))
+      val event = eventWithStroops(12345678)
+      val txn = event.ledgerTransaction
+      val payment = txn.operations[0].paymentOperation
+
+      paymentListener.handleSep24Transaction(
+        txn,
+        payment,
+        sep24TxnForFoo(PlatformTransactionData.Kind.DEPOSIT),
+      )
+      paymentListener.handleSep6Transaction(
+        txn,
+        payment,
+        sep6TxnForFoo(PlatformTransactionData.Kind.DEPOSIT),
+      )
+
+      verify(exactly = 2) { platformApiClient.notifyOnchainFundsSent("123", txn.hash, any()) }
+      verify(exactly = 0) {
+        platformApiClient.notifyOnchainFundsReceived(any(), any(), any(), any())
+      }
+      assertEquals(0.0, truncatedCount(registry))
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+  }
+
+  @Test
+  fun `test SEP-24 and SEP-6 withdrawals pass the on-chain amount when the asset is not configured`() {
+    val sep24 =
+      notifiedAmount(eventWithStroops(12345678), emptyList()) { txn, payment ->
+        paymentListener.handleSep24Transaction(
+          txn,
+          payment,
+          sep24TxnForFoo(PlatformTransactionData.Kind.WITHDRAWAL),
+        )
+      }
+    val sep6 =
+      notifiedAmount(eventWithStroops(12345678), emptyList()) { txn, payment ->
+        paymentListener.handleSep6Transaction(
+          txn,
+          payment,
+          sep6TxnForFoo(PlatformTransactionData.Kind.WITHDRAWAL),
+        )
+      }
+    assertEquals("1.2345678", sep24)
+    assertEquals("1.2345678", sep6)
+  }
+
+  @Test
+  fun `test SEP-24 and SEP-6 withdrawals that truncate to zero are skipped without notifying`() {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      val sep24 =
+        notifiedAmount(eventWithStroops(1), listOf(fooAsset(2))) { txn, payment ->
+          paymentListener.handleSep24Transaction(
+            txn,
+            payment,
+            sep24TxnForFoo(PlatformTransactionData.Kind.WITHDRAWAL),
+          )
+        }
+      val sep6 =
+        notifiedAmount(eventWithStroops(1), listOf(fooAsset(2))) { txn, payment ->
+          paymentListener.handleSep6Transaction(
+            txn,
+            payment,
+            sep6TxnForFoo(PlatformTransactionData.Kind.WITHDRAWAL),
+          )
+        }
+
+      assertEquals(null, sep24)
+      assertEquals(null, sep6)
+      verify(exactly = 0) {
+        platformApiClient.notifyOnchainFundsReceived(any(), any(), any(), any())
+      }
+      assertEquals(
+        2.0,
+        registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+      )
+    } finally {
+      Metrics.removeRegistry(registry)
     }
   }
 }

@@ -361,10 +361,14 @@ public class DefaultPaymentListener implements PaymentListener {
           ledgerTransaction.getHash(),
           rpcConfig.getCustomMessages().getOutgoingPaymentSent());
     } else if (WITHDRAWAL.getKind().equals(sep24Txn.getKind())) {
+      String receivedAmount = amountToNotify(ledgerTransaction, ledgerPayment, sepTransaction);
+      if (receivedAmount == null) {
+        return;
+      }
       platformApiClient.notifyOnchainFundsReceived(
           sepTransaction.getId(),
           ledgerTransaction.getHash(),
-          AssetHelper.fromXdrAmount(ledgerPayment.getAmount()),
+          receivedAmount,
           rpcConfig.getCustomMessages().getIncomingPaymentReceived());
     } else {
       throw new IllegalStateException(
@@ -406,10 +410,14 @@ public class DefaultPaymentListener implements PaymentListener {
           rpcConfig.getCustomMessages().getOutgoingPaymentSent());
     } else if (WITHDRAWAL.getKind().equals(sep6Txn.getKind())
         || WITHDRAWAL_EXCHANGE.getKind().equals(sep6Txn.getKind())) {
+      String receivedAmount = amountToNotify(ledgerTransaction, ledgerPayment, sepTransaction);
+      if (receivedAmount == null) {
+        return;
+      }
       platformApiClient.notifyOnchainFundsReceived(
           sepTransaction.getId(),
           ledgerTransaction.getHash(),
-          AssetHelper.fromXdrAmount(ledgerPayment.getAmount()),
+          receivedAmount,
           rpcConfig.getCustomMessages().getIncomingPaymentReceived());
     } else {
       throw new IllegalStateException(
