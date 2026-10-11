@@ -14,22 +14,31 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import java.time.Instant
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import org.stellar.reference.di.AUTH_CONFIG_ENDPOINT
 
+@Timeout(60)
 class EventRouteTest {
   private val maxBody = 1_048_576
 
+  // one timestamp per test instance: its string length must not change between two body() calls
+  private val timestamp = Instant.now().toString()
+
   private fun body(idPadding: Int = 0) =
-    """{"id":"evt-${"A".repeat(idPadding)}","type":"unsupported_type","timestamp":"${Instant.now()}","payload":{}}"""
+    """{"id":"evt-${"A".repeat(idPadding)}","type":"unsupported_type","timestamp":"$timestamp","payload":{}}"""
 
   // A valid event body of exactly `size` bytes, padded through the id field.
   private fun bodyOfSize(size: Int): String {
@@ -160,27 +169,50 @@ class EventRouteTest {
         assertEquals(0, service.getEvents(null).size)
 
         // consume the 16 pending events: their permits come back and the next request is accepted
-        repeat(16) { service.channel.receive() }
-        val accepted = calls.filter { !it.isCompleted }.map { it.await() }
+        val pendingCalls = calls.filter { !it.isCompleted }
+        repeat(16) { withTimeout(5_000) { service.channel.receive() } }
+        // none of the 24 refused events was delivered
+        assertTrue(service.channel.tryReceive().isFailure)
+        val accepted = pendingCalls.map { it.await() }
         assertEquals(16, accepted.size)
         assertEquals(16, accepted.count { it.status == HttpStatusCode.OK })
         val next = async(Dispatchers.Default) { postEvent(body()) }
-        service.channel.receive()
+        withTimeout(5_000) { service.channel.receive() }
         assertEquals(HttpStatusCode.OK, next.await().status)
       }
     }
 
+  // Sends a burst of 20 probes. Admitted ones stay suspended in `channel.send` (the consumer is
+  // stalled) and never complete, so one 503 proves that all 16 permits are taken.
+  private suspend fun CoroutineScope.awaitSaturated(post: suspend () -> HttpResponse) {
+    val probes = (1..20).map { async(Dispatchers.Default) { post() } }
+    withTimeout(10_000) {
+      while (
+        probes.none { it.isCompleted && it.await().status == HttpStatusCode.ServiceUnavailable }
+      ) delay(10)
+    }
+  }
+
   @Test
-  fun `refuses with 503, not 413, an oversized body once 16 are in flight`() =
+  fun `refuses with 503 without reading the body once 16 are in flight`() =
     routeTest(drainChannel = false) { _ ->
       coroutineScope {
-        val pending = (1..16).map { async(Dispatchers.Default) { postEvent(body()) } }
-        delay(500)
-        val response = postEvent(bodyOfSize(maxBody + 1))
+        awaitSaturated { postEvent(body()) }
+        val stalledBody =
+          object : OutgoingContent.WriteChannelContent() {
+            override val contentType = ContentType.Application.Json
+            // a body that never completes: reading it would block the handler forever
+            override suspend fun writeTo(channel: ByteWriteChannel) {
+              channel.writeFully(ByteArray(1024) { 'A'.code.toByte() })
+              channel.flush()
+              awaitCancellation()
+            }
+          }
 
-        // 413 would mean the body was read before the gate
+        val response = withTimeout(5_000) { client.post("/event") { setBody(stalledBody) } }
+
         assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
-        pending.forEach { it.cancel() }
+        coroutineContext.cancelChildren()
       }
     }
 

@@ -3,6 +3,7 @@ package org.stellar.reference.event
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -17,16 +18,20 @@ import java.util.Date
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Timeout
 import org.stellar.reference.di.AUTH_CONFIG_ENDPOINT
 
 // `POST /event` under `auth.type: JWT`. The `auth.type: NONE` case (200 without credentials) is
 // asserted by EventRouteTest, whose harness uses the same `basic { skipWhen { true } }` provider.
+@Timeout(60)
 class EventRouteAuthTest {
   private val secret = "platform_to_anchor_secret_for_tests_0123456789_abcd"
 
@@ -110,8 +115,10 @@ class EventRouteAuthTest {
   fun `answers 401, not 503, to a request without credentials while 16 are in flight`() =
     routeTest(drainChannel = false) { _ ->
       coroutineScope {
-        val pending =
-          (1..16).map {
+        // probes launched until one is refused prove that all 16 permits are taken
+        // a burst of 20 authenticated probes: one 503 proves that all 16 permits are taken
+        val probes =
+          (1..20).map {
             async(Dispatchers.Default) {
               client.post("/event") {
                 contentType(ContentType.Application.Json)
@@ -120,7 +127,11 @@ class EventRouteAuthTest {
               }
             }
           }
-        delay(500)
+        withTimeout(10_000) {
+          while (
+            probes.none { it.isCompleted && it.await().status == HttpStatusCode.ServiceUnavailable }
+          ) delay(10)
+        }
         val response =
           client.post("/event") {
             contentType(ContentType.Application.Json)
@@ -128,7 +139,7 @@ class EventRouteAuthTest {
           }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        pending.forEach { it.cancel() }
+        coroutineContext.cancelChildren()
       }
     }
 }
