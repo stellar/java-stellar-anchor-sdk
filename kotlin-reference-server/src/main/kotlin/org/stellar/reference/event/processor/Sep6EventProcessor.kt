@@ -85,7 +85,7 @@ class Sep6EventProcessor(
       Kind.WITHDRAWAL_EXCHANGE -> {
         requestKyc(event)
         try {
-          requestCustomerFunds(event.payload?.transaction!!)
+          requestCustomerFunds(event.payload.transaction)
         } catch (e: Exception) {
           log.error(e) { "Error requesting customer funds" }
         }

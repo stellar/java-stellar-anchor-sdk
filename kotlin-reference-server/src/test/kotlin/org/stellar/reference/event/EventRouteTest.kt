@@ -137,9 +137,12 @@ class EventRouteTest {
     coVerify(exactly = 0) { eventService.processEvent(any()) }
   }
 
-  @Test
-  fun `timestamp outside LocalDateTime range returns 400`() = routeTest {
-    val response = post(body(id, type, """"timestamp":"+1000000000-12-31T23:59:59Z"""", payload))
+  // Both values are outside LocalDateTime's range in every time zone, so they do not flake on a
+  // differently configured machine (values near LocalDateTime.MIN/MAX depend on the zone offset).
+  @ParameterizedTest
+  @ValueSource(strings = ["+1000000000-12-31T23:59:59Z", "-1000000000-01-01T00:00:00Z"])
+  fun `timestamp outside LocalDateTime range returns 400`(ts: String) = routeTest {
+    val response = post(body(id, type, """"timestamp":"$ts"""", payload))
 
     assertEquals(HttpStatusCode.BadRequest, response.status)
     assertEquals(
