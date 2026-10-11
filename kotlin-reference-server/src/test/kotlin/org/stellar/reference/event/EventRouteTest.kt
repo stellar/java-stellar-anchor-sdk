@@ -6,15 +6,21 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import java.time.Instant
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.stellar.reference.di.AUTH_CONFIG_ENDPOINT
@@ -31,24 +37,33 @@ class EventRouteTest {
     return body(padding).also { assertEquals(size, it.toByteArray().size) }
   }
 
-  private fun routeTest(block: suspend ApplicationTestBuilder.(EventService) -> Unit) =
-    testApplication {
-      val service = EventService(retainEvents = true)
-      application {
-        install(ContentNegotiation) { json() }
-        authentication { basic(AUTH_CONFIG_ENDPOINT) { skipWhen { true } } }
-        routing { event(service, enableTestEndpoints = true) }
-      }
-      val drain =
-        kotlinx.coroutines.CoroutineScope(Dispatchers.Default).launch {
-          service.channel.consumeEach {}
+  // `drainChannel = false` stalls the consumer: events pile up in `channel.send`.
+  private fun routeTest(
+    drainChannel: Boolean = true,
+    block: suspend ApplicationTestBuilder.(EventService) -> Unit
+  ) = testApplication {
+    val service = EventService(retainEvents = true)
+    application {
+      install(ContentNegotiation) { json() }
+      // the production RequestExceptionHandlerPlugin turns handler exceptions into responses
+      install(
+        createApplicationPlugin("test-call-failed") {
+          on(CallFailed) { call, _ -> call.respond(HttpStatusCode.InternalServerError) }
         }
-      try {
-        block(service)
-      } finally {
-        drain.cancel()
-      }
+      )
+      authentication { basic(AUTH_CONFIG_ENDPOINT) { skipWhen { true } } }
+      routing { event(service, enableTestEndpoints = true) }
     }
+    val drain =
+      kotlinx.coroutines.CoroutineScope(Dispatchers.Default).launch {
+        if (drainChannel) service.channel.consumeEach {}
+      }
+    try {
+      block(service)
+    } finally {
+      drain.cancel()
+    }
+  }
 
   @Test
   fun `rejects a fixed-length body over 1 MiB with 413 and retains nothing`() =
@@ -123,4 +138,64 @@ class EventRouteTest {
 
       assertEquals(32, service.getEvents(null).size)
     }
+
+  private suspend fun ApplicationTestBuilder.postEvent(payload: String) =
+    client.post("/event") {
+      contentType(ContentType.Application.Json)
+      setBody(payload)
+    }
+
+  @Test
+  fun `answers 503 with Retry-After to requests beyond 16 in flight and releases them later`() =
+    routeTest(drainChannel = false) { service ->
+      coroutineScope {
+        val calls = (1..40).map { async(Dispatchers.Default) { postEvent(body()) } }
+        // 24 are refused at once; the other 16 stay suspended in channel.send
+        withTimeout(10_000) { while (calls.count { it.isCompleted } < 24) delay(10) }
+        delay(300)
+        val refused = calls.filter { it.isCompleted }.map { it.await() }
+        assertEquals(24, refused.size)
+        assertEquals(24, refused.count { it.status == HttpStatusCode.ServiceUnavailable })
+        assertEquals(24, refused.count { it.headers[HttpHeaders.RetryAfter] == "1" })
+        assertEquals(0, service.getEvents(null).size)
+
+        // consume the 16 pending events: their permits come back and the next request is accepted
+        repeat(16) { service.channel.receive() }
+        val accepted = calls.filter { !it.isCompleted }.map { it.await() }
+        assertEquals(16, accepted.size)
+        assertEquals(16, accepted.count { it.status == HttpStatusCode.OK })
+        val next = async(Dispatchers.Default) { postEvent(body()) }
+        service.channel.receive()
+        assertEquals(HttpStatusCode.OK, next.await().status)
+      }
+    }
+
+  @Test
+  fun `refuses with 503, not 413, an oversized body once 16 are in flight`() =
+    routeTest(drainChannel = false) { _ ->
+      coroutineScope {
+        val pending = (1..16).map { async(Dispatchers.Default) { postEvent(body()) } }
+        delay(500)
+        val response = postEvent(bodyOfSize(maxBody + 1))
+
+        // 413 would mean the body was read before the gate
+        assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
+        pending.forEach { it.cancel() }
+      }
+    }
+
+  @Test
+  fun `releases the permit after oversized and failing requests`() = routeTest { service ->
+    repeat(20) {
+      assertEquals(HttpStatusCode.PayloadTooLarge, postEvent(bodyOfSize(maxBody + 1)).status)
+    }
+    repeat(20) {
+      // invalid timestamp: processEvent throws after the permit was taken
+      val failing = body().replace(Regex("\"timestamp\":\"[^\"]*\""), "\"timestamp\":\"nope\"")
+      assertEquals(HttpStatusCode.InternalServerError, postEvent(failing).status)
+    }
+
+    assertEquals(HttpStatusCode.OK, postEvent(body()).status)
+    assertEquals(1, service.getEvents(null).size)
+  }
 }

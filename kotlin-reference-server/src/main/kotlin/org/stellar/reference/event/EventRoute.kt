@@ -8,6 +8,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.core.readBytes
+import kotlinx.coroutines.sync.Semaphore
 import org.apache.hc.core5.http.HttpStatus
 import org.stellar.anchor.api.callback.SendEventResponse
 import org.stellar.anchor.util.GsonUtils
@@ -16,27 +17,43 @@ import org.stellar.reference.di.AUTH_CONFIG_ENDPOINT
 
 const val MAX_EVENT_BODY_BYTES = 1_048_576
 
+// `EventService.channel` is a rendezvous channel, so every handler waits in `channel.send` holding
+// its body and parsed event until the consumer takes it. The Platform sends one event at a time and
+// retries a non-2xx with backoff, so a handful of concurrent handlers is plenty.
+const val MAX_IN_FLIGHT_EVENTS = 16
+
 fun Route.event(eventService: EventService, enableTestEndpoints: Boolean) {
   val gson: Gson = GsonUtils.getInstance()
+  val inFlight = Semaphore(MAX_IN_FLIGHT_EVENTS)
 
   authenticate(AUTH_CONFIG_ENDPOINT) {
     route("/event") {
       // The `POST /event` endpoint of the Callback API to receive an event.
       post {
-        // Read at most MAX_EVENT_BODY_BYTES + 1 bytes: enough to tell that the body is too
-        // large, without buffering an attacker-sized body (a chunked body has no Content-Length).
-        val bodyBytes = call.receiveChannel().readRemaining(MAX_EVENT_BODY_BYTES + 1L).readBytes()
-        if (bodyBytes.size > MAX_EVENT_BODY_BYTES) {
-          call.respond(
-            HttpStatusCode.PayloadTooLarge,
-            "Event body exceeds $MAX_EVENT_BODY_BYTES bytes"
-          )
+        // Refuse before reading the body: a refused request must not cost memory.
+        if (!inFlight.tryAcquire()) {
+          call.response.header(HttpHeaders.RetryAfter, "1")
+          call.respond(HttpStatusCode.ServiceUnavailable, "Too many events in flight")
           return@post
         }
-        val receivedEventJson = String(bodyBytes, Charsets.UTF_8)
-        val receivedEvent = gson.fromJson(receivedEventJson, SendEventRequest::class.java)
-        eventService.processEvent(receivedEvent, bodyBytes.size)
-        call.respond(gson.toJson(SendEventResponse(HttpStatus.SC_OK, "event processed")))
+        try {
+          // Read at most MAX_EVENT_BODY_BYTES + 1 bytes: enough to tell that the body is too
+          // large, without buffering an attacker-sized body (a chunked body has no Content-Length).
+          val bodyBytes = call.receiveChannel().readRemaining(MAX_EVENT_BODY_BYTES + 1L).readBytes()
+          if (bodyBytes.size > MAX_EVENT_BODY_BYTES) {
+            call.respond(
+              HttpStatusCode.PayloadTooLarge,
+              "Event body exceeds $MAX_EVENT_BODY_BYTES bytes"
+            )
+            return@post
+          }
+          val receivedEventJson = String(bodyBytes, Charsets.UTF_8)
+          val receivedEvent = gson.fromJson(receivedEventJson, SendEventRequest::class.java)
+          eventService.processEvent(receivedEvent, bodyBytes.size)
+          call.respond(gson.toJson(SendEventResponse(HttpStatus.SC_OK, "event processed")))
+        } finally {
+          inFlight.release()
+        }
       }
     }
 
