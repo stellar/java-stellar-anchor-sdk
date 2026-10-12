@@ -222,7 +222,11 @@ class Sep10RpcThresholdSignExtensionTest {
 
     val ex = assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
 
-    assertEquals("Signers with weight 0 do not meet threshold 200.", ex.message)
+    // The weight-0 master is dropped by Sep10Service.fetchSigners, leaving no verifiable signer.
+    assertEquals(
+      "No verifiable signers provided, at least one G... address must be provided.",
+      ex.message,
+    )
   }
 
   @Test
