@@ -424,7 +424,8 @@ class PaymentObservingAccountsManagerTest {
 
   @Test
   fun `test evict continues with the remaining accounts when a store delete throws`() {
-    val obs = SnapshotPaymentObservingAccountsManager(DeleteFailingPaymentObservingAccountStore())
+    val store = DeleteFailingPaymentObservingAccountStore()
+    val obs = SnapshotPaymentObservingAccountsManager(store)
     obs.initialize()
     obs.upsert(staleAccount(testAcct1))
     obs.upsert(staleAccount(testAcct2))
@@ -433,6 +434,17 @@ class PaymentObservingAccountsManagerTest {
     assertDoesNotThrow { obs.evict(Duration.of(30, DAYS)) }
 
     assertEquals(0, obs.accounts.size)
+    assertEquals(setOf(testAcct1, testAcct2), store.deleteAttempts.toSet())
+  }
+
+  @Test
+  fun `test ObservingAccount is compared by identity so a re-armed entry never matches the snapshot`() {
+    val lastObserved = Instant.now()
+    val a = PaymentObservingAccountsManager.ObservingAccount(testAcct1, lastObserved, TRANSIENT)
+    val b = PaymentObservingAccountsManager.ObservingAccount(testAcct1, lastObserved, TRANSIENT)
+
+    assertNotEquals(a, b)
+    assertEquals(a, a)
   }
 
   @Test
@@ -588,11 +600,14 @@ class FlakyPaymentObservingAccountStore : PaymentObservingAccountStore(null) {
 }
 
 class DeleteFailingPaymentObservingAccountStore : PaymentObservingAccountStore(null) {
+  val deleteAttempts = java.util.concurrent.CopyOnWriteArrayList<String>()
+
   override fun list(): List<PaymentObservingAccount> = emptyList()
 
   override fun upsert(account: String?, lastObserved: Instant?) {}
 
   override fun delete(account: String) {
+    deleteAttempts.add(account)
     throw RuntimeException("store unavailable")
   }
 }
