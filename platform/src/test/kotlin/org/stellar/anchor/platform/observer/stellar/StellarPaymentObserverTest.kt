@@ -356,6 +356,52 @@ class StellarPaymentObserverTest {
   }
 
   @Test
+  fun `start logs a startInternal failure at ERROR level`() {
+    val observer = newSpiedHorizonObserver()
+    val failure = RuntimeException("Horizon is down")
+    every { observer.startSSEStream() } throws failure
+    mockkStatic(org.stellar.anchor.util.Log::class)
+    try {
+      observer.start()
+      // HZSTART-03
+      verify { org.stellar.anchor.util.Log.errorEx(any<String>(), failure) }
+    } finally {
+      unmockkStatic(org.stellar.anchor.util.Log::class)
+      observer.statusWatcher.shutdownNow()
+      observer.silenceWatcher.shutdownNow()
+    }
+  }
+
+  @Test
+  fun `start schedules the status watcher before it invokes startInternal`() {
+    val observer = newSpiedHorizonObserver()
+    var queuedWatcherTasksAtStart = -1
+    every { observer.startSSEStream() } answers
+      {
+        queuedWatcherTasksAtStart =
+          (observer.statusWatcher as java.util.concurrent.ScheduledThreadPoolExecutor).queue.size
+        mockk<SSEStream<OperationResponse>>(relaxed = true)
+      }
+    observer.start()
+    // HZSTART-02
+    assertEquals(1, queuedWatcherTasksAtStart)
+    observer.statusWatcher.shutdownNow()
+    observer.silenceWatcher.shutdownNow()
+  }
+
+  @Test
+  fun `start sets RUNNING when startInternal succeeds`() {
+    val observer = newSpiedHorizonObserver()
+    every { observer.startSSEStream() } returns mockk<SSEStream<OperationResponse>>(relaxed = true)
+    observer.status = ObserverStatus.STREAM_ERROR
+    observer.start()
+    // HZSTART-04
+    assertEquals(ObserverStatus.RUNNING, observer.status)
+    observer.statusWatcher.shutdownNow()
+    observer.silenceWatcher.shutdownNow()
+  }
+
+  @Test
   fun `start arms the status watcher so a failed start recovers once Horizon is back`() {
     val observer = newSpiedHorizonObserver()
     val stream: SSEStream<OperationResponse> = mockk(relaxed = true)
