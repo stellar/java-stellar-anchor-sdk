@@ -421,6 +421,83 @@ class PaymentObservingAccountsManagerTest {
       pool.shutdownNow()
     }
   }
+
+  @Test
+  fun `test evict continues with the remaining accounts when a store delete throws`() {
+    val obs = SnapshotPaymentObservingAccountsManager(DeleteFailingPaymentObservingAccountStore())
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct1))
+    obs.upsert(staleAccount(testAcct2))
+    obs.snapshot = obs.accounts
+
+    assertDoesNotThrow { obs.evict(Duration.of(30, DAYS)) }
+
+    assertEquals(0, obs.accounts.size)
+  }
+
+  @Test
+  fun `test evictAndPersist persists every account still in the live map after eviction`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = PaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct1))
+    obs.upsert(testAcct2, TRANSIENT)
+    obs.upsert(staleAccount(testAcct3, type = RESIDENTIAL))
+
+    obs.evictAndPersist()
+
+    assertEquals(setOf(testAcct2, testAcct3), obs.accounts.map { it.account }.toSet())
+    assertEquals(setOf(testAcct2, testAcct3), store.list().map { it.account }.toSet())
+  }
+
+  @Test
+  fun `test evict keeps an account re-armed several times after the snapshot`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = SnapshotPaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct1))
+    val snapshot = obs.accounts
+
+    obs.upsert(testAcct1, TRANSIENT)
+    assertTrue(obs.lookupAndUpdate(testAcct1))
+    obs.upsert(testAcct1, TRANSIENT)
+    obs.snapshot = snapshot
+    obs.evict(Duration.of(30, DAYS))
+
+    assertEquals(listOf(testAcct1), obs.accounts.map { it.account })
+    assertEquals(emptyList<String>(), store.deleted)
+  }
+
+  @Test
+  fun `test evict keeps the canonical entry when the account is re-armed through a muxed address`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = SnapshotPaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct4))
+    val snapshot = obs.accounts
+
+    obs.upsert(testMuxAcct100, TRANSIENT)
+    obs.snapshot = snapshot
+    obs.evict(Duration.of(30, DAYS))
+
+    assertEquals(listOf(testAcct4), obs.accounts.map { it.account })
+    assertTrue(obs.lookupAndUpdate(testMuxAcct200))
+    assertFalse(store.deleted.contains(testAcct4))
+  }
+
+  @Test
+  fun `test evict does nothing for an empty snapshot`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = SnapshotPaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct1))
+    obs.snapshot = emptyList()
+
+    assertDoesNotThrow { obs.evict(Duration.of(30, DAYS)) }
+
+    assertEquals(1, obs.accounts.size)
+    assertEquals(emptyList<String>(), store.deleted)
+  }
 }
 
 /**
@@ -507,5 +584,15 @@ class FlakyPaymentObservingAccountStore : PaymentObservingAccountStore(null) {
 
   public override fun delete(account: String) {
     accounts.removeIf { it.account == account }
+  }
+}
+
+class DeleteFailingPaymentObservingAccountStore : PaymentObservingAccountStore(null) {
+  override fun list(): List<PaymentObservingAccount> = emptyList()
+
+  override fun upsert(account: String?, lastObserved: Instant?) {}
+
+  override fun delete(account: String) {
+    throw RuntimeException("store unavailable")
   }
 }
