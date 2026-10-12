@@ -246,6 +246,8 @@ class EventRouteTest {
       val response = withTimeout(5_000) { client.post("/event") { setBody(stalledBody()) } }
 
       assertEquals(HttpStatusCode.RequestTimeout, response.status)
+      // the half-read request must not keep its connection
+      assertEquals("close", response.headers[HttpHeaders.Connection])
       assertTrue(service.channel.tryReceive().isFailure)
       assertEquals(0, service.getEvents(null).size)
     }
@@ -261,9 +263,13 @@ class EventRouteTest {
         val responses = withTimeout(10_000) { trickles.awaitAll() }
 
         assertEquals(16, responses.count { it.status == HttpStatusCode.RequestTimeout })
-        // every permit is back: a valid event is accepted, not refused with 503
-        assertEquals(HttpStatusCode.OK, postEvent(body()).status)
-        assertEquals(1, service.getEvents(null).size)
+        // every one of the 16 permits is back: 16 concurrent valid events, none refused with 503
+        val valid = (1..16).map { async(Dispatchers.Default) { postEvent(body()) } }
+        assertEquals(
+          16,
+          withTimeout(10_000) { valid.awaitAll() }.count { it.status == HttpStatusCode.OK }
+        )
+        assertEquals(16, service.getEvents(null).size)
       }
     }
 
@@ -280,4 +286,9 @@ class EventRouteTest {
         assertEquals(HttpStatusCode.OK, withTimeout(5_000) { call.await() }.status)
       }
     }
+
+  @Test
+  fun `defaults the body read timeout to 10 seconds`() {
+    assertEquals(10.seconds, EVENT_BODY_READ_TIMEOUT)
+  }
 }

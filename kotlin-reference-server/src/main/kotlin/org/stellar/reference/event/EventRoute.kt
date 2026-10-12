@@ -56,6 +56,8 @@ fun Route.event(
               call.receiveChannel().readRemaining(MAX_EVENT_BODY_BYTES + 1L).readBytes()
             }
           if (bodyBytes == null) {
+            // the request body is half read: do not keep that connection
+            call.response.header(HttpHeaders.Connection, "close")
             call.respond(HttpStatusCode.RequestTimeout, "Timed out reading the event body")
             return@post
           }
