@@ -780,4 +780,67 @@ class HorizonPaymentObserverTest {
     }
     verify(exactly = 1) { paymentStreamerCursorStore.saveHorizonCursor("555") }
   }
+
+  // ---- ANCHOR-1364: a classic payment whose transaction is not yet available ----
+
+  @Test
+  fun `processOperation holds the cursor when the transaction of a PAYMENT is not yet available`() {
+    val listener = mockk<PaymentListener>(relaxed = true)
+    val observer = observerWith(listener)
+    every { horizon.getTransaction(any()) } returns null
+
+    observer.processOperation(observedPayment())
+
+    verify(exactly = 0) { listener.onReceived(any()) }
+    verify(exactly = 0) { paymentStreamerCursorStore.saveHorizonCursor(any()) }
+    assertEquals(ObserverStatus.PUBLISHER_ERROR, observer.status)
+  }
+
+  @Test
+  fun `processOperation holds the cursor when the transaction of a PATH_PAYMENT is not yet available`() {
+    val listener = mockk<PaymentListener>(relaxed = true)
+    val observer = observerWith(listener)
+    every { horizon.getTransaction(any()) } returns null
+
+    observer.processOperation(observedPathPayment())
+
+    verify(exactly = 0) { listener.onReceived(any()) }
+    verify(exactly = 0) { paymentStreamerCursorStore.saveHorizonCursor(any()) }
+    assertEquals(ObserverStatus.PUBLISHER_ERROR, observer.status)
+  }
+
+  @Test
+  fun `processOperation credits a PAYMENT and saves the cursor once its transaction becomes available`() {
+    val listener = mockk<PaymentListener>(relaxed = true)
+    val observer = observerWith(listener)
+    val op = observedPayment()
+    every { horizon.getTransaction(any()) } returns null
+
+    observer.processOperation(op)
+    verify(exactly = 0) { paymentStreamerCursorStore.saveHorizonCursor(any()) }
+
+    every { horizon.getTransaction(any()) } returns mockk()
+    observer.processOperation(op)
+
+    verify(exactly = 1) { listener.onReceived(match { it.operationId == "123" }) }
+    verify(exactly = 1) { paymentStreamerCursorStore.saveHorizonCursor("999") }
+  }
+
+  @Test
+  fun `toPaymentTransferEvent names the transaction hash when a classic payment transaction is not available`() {
+    every { paymentObservingAccountsManager.lookupAndUpdate(any()) } returns true
+    every { horizon.getTransaction(any()) } returns null
+
+    val payment =
+      assertThrows(LedgerException::class.java) {
+        observer.toPaymentTransferEvent(observedPayment())
+      }
+    val pathPayment =
+      assertThrows(LedgerException::class.java) {
+        observer.toPaymentTransferEvent(observedPathPayment())
+      }
+
+    assertTrue(payment.message!!.contains("txHash"))
+    assertTrue(pathPayment.message!!.contains("txHash2"))
+  }
 }

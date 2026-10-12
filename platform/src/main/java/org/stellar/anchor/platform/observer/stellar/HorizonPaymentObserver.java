@@ -251,7 +251,7 @@ public class HorizonPaymentObserver extends AbstractPaymentObserver {
             .amount(AssetHelper.toXdrAmount(paymentOp.getAmount()).toBigInteger())
             .operationId(String.valueOf(operation.getId()))
             .txHash(paymentOp.getTransactionHash())
-            .ledgerTransaction(horizon.getTransaction(operation.getTransactionHash()))
+            .ledgerTransaction(requireLedgerTransaction(operation.getTransactionHash()))
             .build();
       } else {
         return null;
@@ -266,7 +266,7 @@ public class HorizonPaymentObserver extends AbstractPaymentObserver {
             .sep11Asset(AssetHelper.getSep11AssetName(pathPaymentOp.getAsset().toXdr()))
             .operationId(String.valueOf(operation.getId()))
             .txHash(pathPaymentOp.getTransactionHash())
-            .ledgerTransaction(horizon.getTransaction(operation.getTransactionHash()))
+            .ledgerTransaction(requireLedgerTransaction(operation.getTransactionHash()))
             .build();
       } else {
         return null;
@@ -316,11 +316,7 @@ public class HorizonPaymentObserver extends AbstractPaymentObserver {
       }
       String operationId = String.valueOf(invokeOp.getId());
       if (ledgerTransaction == null) {
-        ledgerTransaction = horizon.getTransaction(invokeOp.getTransactionHash());
-        if (ledgerTransaction == null) {
-          throw new LedgerException(
-              "Transaction is not yet available: " + invokeOp.getTransactionHash());
-        }
+        ledgerTransaction = requireLedgerTransaction(invokeOp.getTransactionHash());
       }
       events.add(
           PaymentTransferEvent.builder()
@@ -334,6 +330,19 @@ public class HorizonPaymentObserver extends AbstractPaymentObserver {
               .build());
     }
     return events;
+  }
+
+  /**
+   * Fetches the ledger transaction of an operation seen on the stream. It exists, so a missing one
+   * means the queried Horizon replica is behind: throw so the cursor is held and the operation is
+   * delivered again, instead of handing the listener an event it would skip as handled.
+   */
+  private LedgerTransaction requireLedgerTransaction(String txHash) throws LedgerException {
+    LedgerTransaction ledgerTransaction = horizon.getTransaction(txHash);
+    if (ledgerTransaction == null) {
+      throw new LedgerException("Transaction is not yet available: " + txHash);
+    }
+    return ledgerTransaction;
   }
 
   static String toMuxedAddress(AssetContractBalanceChange assetBalanceChange) {
