@@ -8,7 +8,7 @@ import io.mockk.impl.annotations.MockK
 import javax.net.ssl.SSLProtocolException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -76,7 +76,8 @@ class StellarPaymentObserverTest {
         paymentStreamerCursorStore,
       )
 
-    // 2.1 If fetching from the network throws an error, we return `null`
+    // 2.1 If fetching from the network throws an error, we throw instead of returning `null`
+    // (HZCUR-01)
     every {
       constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
         .payments()
@@ -85,7 +86,7 @@ class StellarPaymentObserverTest {
         .execute()
     } throws NetworkException(null, "Some IO Problem happened!")
 
-    gotCursor = stellarObserver.fetchStreamingCursor()
+    assertThrows<RuntimeException> { stellarObserver.fetchStreamingCursor() }
     verify(exactly = 2) { paymentStreamerCursorStore.loadHorizonCursor() }
     verify(exactly = 1) {
       constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
@@ -94,9 +95,9 @@ class StellarPaymentObserverTest {
         .limit(1)
         .execute()
     }
-    assertNull(gotCursor)
 
-    // 2.2 If fetching from the network does not return any result, we return `null`
+    // 2.2 If fetching from the network does not return any result, the network has no payments
+    // yet, so we stream from the tip (HZCUR-04)
     every {
       constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
         .payments()
@@ -114,7 +115,7 @@ class StellarPaymentObserverTest {
         .limit(1)
         .execute()
     }
-    assertNull(gotCursor)
+    assertEquals("now", gotCursor)
 
     // 2.3 If fetching from the network returns a value, use that.
     val opPageJson =
@@ -372,5 +373,102 @@ class StellarPaymentObserverTest {
     verify(exactly = 2) { observer.startSSEStream() }
     observer.statusWatcher.shutdownNow()
     observer.silenceWatcher.shutdownNow()
+  }
+
+  private fun observerWithMockedLatestFetch(
+    storedCursor: String?,
+    latest: () -> Unit,
+  ): HorizonPaymentObserver {
+    every { paymentStreamerCursorStore.loadHorizonCursor() } returns storedCursor
+    latest()
+    return HorizonPaymentObserver(
+      Horizon(TEST_HORIZON_URI),
+      stellarPaymentObserverConfig,
+      null,
+      paymentObservingAccountsManager,
+      paymentStreamerCursorStore,
+    )
+  }
+
+  private fun mockLatestPayments(page: Page<OperationResponse>?, throwing: Throwable? = null) {
+    mockkConstructor(Server::class)
+    if (throwing != null) {
+      every {
+        constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
+          .payments()
+          .order(RequestBuilder.Order.DESC)
+          .limit(1)
+          .execute()
+      } throws throwing
+    } else {
+      every {
+        constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
+          .payments()
+          .order(RequestBuilder.Order.DESC)
+          .limit(1)
+          .execute()
+      } returns page
+    }
+  }
+
+  @Test
+  fun `fetchStreamingCursor throws a RuntimeException other than NumberFormatException when a cursor is stored and the latest fetch fails`() {
+    // HZCUR-02
+    val observer =
+      observerWithMockedLatestFetch("123") {
+        mockLatestPayments(null, NetworkException(null, "Some IO Problem happened!"))
+      }
+    val ex = assertThrows<RuntimeException> { observer.fetchStreamingCursor() }
+    assertTrue(ex !is NumberFormatException)
+  }
+
+  @Test
+  fun `fetchStreamingCursor returns now when a cursor is stored and the network has no payments`() {
+    // HZCUR-04
+    val emptyPage: Page<OperationResponse> =
+      GsonSingleton.getInstance()
+        .fromJson(
+          """{"_embedded": {"records": []}}""",
+          object : TypeToken<Page<OperationResponse?>?>() {}.type,
+        )
+    val observer = observerWithMockedLatestFetch("123") { mockLatestPayments(emptyPage) }
+    assertEquals("now", observer.fetchStreamingCursor())
+  }
+
+  @Test
+  fun `fetchStreamingCursor returns the latest cursor when the stored cursor is not behind it`() {
+    // HZCUR-05
+    val observer = spyk(observerWithMockedLatestFetch("2000") {})
+    every { observer.fetchLatestCursorFromHorizon() } returns "1000"
+    assertEquals("1000", observer.fetchStreamingCursor())
+    every { paymentStreamerCursorStore.loadHorizonCursor() } returns "1000"
+    assertEquals("1000", observer.fetchStreamingCursor())
+  }
+
+  @Test
+  fun `fetchStreamingCursor throws a RuntimeException when the stored cursor is not a number`() {
+    // HZREG-01
+    val observer = spyk(observerWithMockedLatestFetch("not-a-number") {})
+    every { observer.fetchLatestCursorFromHorizon() } returns "1000"
+    assertThrows<RuntimeException> { observer.fetchStreamingCursor() }
+  }
+
+  @Test
+  fun `startSSEStream does not open a payments stream when the cursor cannot be determined`() {
+    // HZCUR-03
+    val horizon: Horizon = mockk(relaxed = true)
+    val observer =
+      spyk(
+        HorizonPaymentObserver(
+          horizon,
+          stellarPaymentObserverConfig,
+          null,
+          paymentObservingAccountsManager,
+          paymentStreamerCursorStore,
+        )
+      )
+    every { observer.fetchStreamingCursor() } throws RuntimeException("Horizon is down")
+    assertThrows<RuntimeException> { observer.startSSEStream() }
+    verify(exactly = 0) { horizon.server }
   }
 }
