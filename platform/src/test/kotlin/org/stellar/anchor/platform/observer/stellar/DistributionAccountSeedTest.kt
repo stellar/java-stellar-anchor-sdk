@@ -64,6 +64,8 @@ class DistributionAccountSeedTest {
 
     assertEquals(1, manager.accounts.size)
     assertEquals(RESIDENTIAL, manager.typeOf(distribution1))
+    val lastObserved = manager.accounts.first { it.account == distribution1 }.lastObserved
+    assertTrue(Duration.between(lastObserved, Instant.now()).abs() < Duration.ofMinutes(1))
   }
 
   @Test
