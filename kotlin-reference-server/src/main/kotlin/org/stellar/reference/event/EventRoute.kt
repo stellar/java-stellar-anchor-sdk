@@ -8,7 +8,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.core.readBytes
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.withTimeoutOrNull
 import org.apache.hc.core5.http.HttpStatus
 import org.stellar.anchor.api.callback.SendEventResponse
 import org.stellar.anchor.util.GsonUtils
@@ -22,7 +25,16 @@ const val MAX_EVENT_BODY_BYTES = 1_048_576
 // retries a non-2xx with backoff, so a handful of concurrent handlers is plenty.
 const val MAX_IN_FLIGHT_EVENTS = 16
 
-fun Route.event(eventService: EventService, enableTestEndpoints: Boolean) {
+// A permit is held while the body is read, so a client that trickles its body must not keep it
+// forever. The Platform sends the whole body at once. Only the body read is timed out, never the
+// wait for the consumer (`channel.send`), whose speed is the server's own.
+val EVENT_BODY_READ_TIMEOUT = 10.seconds
+
+fun Route.event(
+  eventService: EventService,
+  enableTestEndpoints: Boolean,
+  bodyReadTimeout: Duration = EVENT_BODY_READ_TIMEOUT,
+) {
   val gson: Gson = GsonUtils.getInstance()
   val inFlight = Semaphore(MAX_IN_FLIGHT_EVENTS)
 
@@ -39,7 +51,14 @@ fun Route.event(eventService: EventService, enableTestEndpoints: Boolean) {
         try {
           // Read at most MAX_EVENT_BODY_BYTES + 1 bytes: enough to tell that the body is too
           // large, without buffering an attacker-sized body (a chunked body has no Content-Length).
-          val bodyBytes = call.receiveChannel().readRemaining(MAX_EVENT_BODY_BYTES + 1L).readBytes()
+          val bodyBytes =
+            withTimeoutOrNull(bodyReadTimeout) {
+              call.receiveChannel().readRemaining(MAX_EVENT_BODY_BYTES + 1L).readBytes()
+            }
+          if (bodyBytes == null) {
+            call.respond(HttpStatusCode.RequestTimeout, "Timed out reading the event body")
+            return@post
+          }
           if (bodyBytes.size > MAX_EVENT_BODY_BYTES) {
             call.respond(
               HttpStatusCode.PayloadTooLarge,

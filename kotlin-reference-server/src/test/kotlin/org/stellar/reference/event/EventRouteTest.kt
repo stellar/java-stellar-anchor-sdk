@@ -14,9 +14,13 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import java.time.Instant
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.consumeEach
@@ -25,6 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
@@ -49,6 +54,7 @@ class EventRouteTest {
   // `drainChannel = false` stalls the consumer: events pile up in `channel.send`.
   private fun routeTest(
     drainChannel: Boolean = true,
+    bodyReadTimeout: Duration = 10.seconds,
     block: suspend ApplicationTestBuilder.(EventService) -> Unit
   ) = testApplication {
     val service = EventService(retainEvents = true)
@@ -61,7 +67,7 @@ class EventRouteTest {
         }
       )
       authentication { basic(AUTH_CONFIG_ENDPOINT) { skipWhen { true } } }
-      routing { event(service, enableTestEndpoints = true) }
+      routing { event(service, enableTestEndpoints = true, bodyReadTimeout = bodyReadTimeout) }
     }
     val drain =
       kotlinx.coroutines.CoroutineScope(Dispatchers.Default).launch {
@@ -193,21 +199,24 @@ class EventRouteTest {
     }
   }
 
+  // A body that sends 1 KiB and then never completes: reading it to the end blocks forever.
+  private fun stalledBody() =
+    object : OutgoingContent.WriteChannelContent() {
+      override val contentType = ContentType.Application.Json
+
+      override suspend fun writeTo(channel: ByteWriteChannel) {
+        channel.writeFully(ByteArray(1024) { 'A'.code.toByte() })
+        channel.flush()
+        awaitCancellation()
+      }
+    }
+
   @Test
   fun `refuses with 503 without reading the body once 16 are in flight`() =
     routeTest(drainChannel = false) { _ ->
       coroutineScope {
         awaitSaturated { postEvent(body()) }
-        val stalledBody =
-          object : OutgoingContent.WriteChannelContent() {
-            override val contentType = ContentType.Application.Json
-            // a body that never completes: reading it would block the handler forever
-            override suspend fun writeTo(channel: ByteWriteChannel) {
-              channel.writeFully(ByteArray(1024) { 'A'.code.toByte() })
-              channel.flush()
-              awaitCancellation()
-            }
-          }
+        val stalledBody = stalledBody()
 
         val response = withTimeout(5_000) { client.post("/event") { setBody(stalledBody) } }
 
@@ -230,4 +239,45 @@ class EventRouteTest {
     assertEquals(HttpStatusCode.OK, postEvent(body()).status)
     assertEquals(1, service.getEvents(null).size)
   }
+
+  @Test
+  fun `answers 408 to a body that never completes and delivers nothing`() =
+    routeTest(drainChannel = false, bodyReadTimeout = 300.milliseconds) { service ->
+      val response = withTimeout(5_000) { client.post("/event") { setBody(stalledBody()) } }
+
+      assertEquals(HttpStatusCode.RequestTimeout, response.status)
+      assertTrue(service.channel.tryReceive().isFailure)
+      assertEquals(0, service.getEvents(null).size)
+    }
+
+  @Test
+  fun `releases all 16 permits when 16 trickling bodies time out`() =
+    routeTest(bodyReadTimeout = 300.milliseconds) { service ->
+      coroutineScope {
+        val trickles =
+          (1..16).map {
+            async(Dispatchers.Default) { client.post("/event") { setBody(stalledBody()) } }
+          }
+        val responses = withTimeout(10_000) { trickles.awaitAll() }
+
+        assertEquals(16, responses.count { it.status == HttpStatusCode.RequestTimeout })
+        // every permit is back: a valid event is accepted, not refused with 503
+        assertEquals(HttpStatusCode.OK, postEvent(body()).status)
+        assertEquals(1, service.getEvents(null).size)
+      }
+    }
+
+  @Test
+  fun `does not time out the wait for a stalled consumer once the body is complete`() =
+    routeTest(drainChannel = false, bodyReadTimeout = 300.milliseconds) { service ->
+      coroutineScope {
+        val call = async(Dispatchers.Default) { postEvent(body()) }
+        // well past the read timeout: the handler is waiting for the consumer, not reading
+        delay(1_500)
+        assertFalse(call.isCompleted)
+
+        withTimeout(5_000) { service.channel.receive() }
+        assertEquals(HttpStatusCode.OK, withTimeout(5_000) { call.await() }.status)
+      }
+    }
 }
