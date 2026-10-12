@@ -517,4 +517,94 @@ class StellarPaymentObserverTest {
     assertThrows<RuntimeException> { observer.startSSEStream() }
     verify(exactly = 0) { horizon.server }
   }
+
+  private val elderLedger = 1000L
+  private val elderBoundary = elderLedger shl 32
+  private val latestCursor = "9000000000000000"
+
+  private fun rootResponse(json: String): org.stellar.sdk.responses.RootResponse =
+    GsonSingleton.getInstance().fromJson(json, org.stellar.sdk.responses.RootResponse::class.java)
+
+  private fun retentionObserver(
+    stored: String?,
+    latest: String = latestCursor
+  ): HorizonPaymentObserver {
+    every { paymentStreamerCursorStore.loadHorizonCursor() } returns stored
+    val observer =
+      spyk(
+        HorizonPaymentObserver(
+          Horizon(TEST_HORIZON_URI),
+          stellarPaymentObserverConfig,
+          null,
+          paymentObservingAccountsManager,
+          paymentStreamerCursorStore,
+        )
+      )
+    every { observer.fetchLatestCursorFromHorizon() } returns latest
+    return observer
+  }
+
+  private fun mockRoot(
+    response: org.stellar.sdk.responses.RootResponse?,
+    throwing: Throwable? = null
+  ) {
+    mockkConstructor(Server::class)
+    if (throwing != null) {
+      every { constructedWith<Server>(EqMatcher(TEST_HORIZON_URI)).root().execute() } throws
+        throwing
+    } else {
+      every { constructedWith<Server>(EqMatcher(TEST_HORIZON_URI)).root().execute() } returns
+        response!!
+    }
+  }
+
+  @Test
+  fun `fetchStreamingCursor rejects a stored cursor at or below the elder ledger`() {
+    // HZRET-01, HZRET-02
+    mockRoot(rootResponse("""{"history_elder_ledger": $elderLedger}"""))
+    for (stored in listOf("1", (elderBoundary - 1).toString(), elderBoundary.toString())) {
+      val observer = retentionObserver(stored)
+      val ex = assertThrows<RuntimeException> { observer.fetchStreamingCursor() }
+      assertTrue(
+        ex.message!!.contains(stored),
+        "message should name the stored cursor: ${ex.message}"
+      )
+      assertTrue(
+        ex.message!!.contains(elderLedger.toString()),
+        "message should name the elder ledger"
+      )
+    }
+  }
+
+  @Test
+  fun `fetchStreamingCursor keeps a stored cursor after the elder ledger`() {
+    // HZRET-02 (accept side)
+    mockRoot(rootResponse("""{"history_elder_ledger": $elderLedger}"""))
+    val stored = (elderBoundary + 1).toString()
+    assertEquals(stored, retentionObserver(stored).fetchStreamingCursor())
+  }
+
+  @Test
+  fun `fetchStreamingCursor keeps the stored cursor when the root response has no elder ledger`() {
+    // HZRET-03
+    mockRoot(rootResponse("""{}"""))
+    assertEquals("5", retentionObserver("5").fetchStreamingCursor())
+  }
+
+  @Test
+  fun `fetchStreamingCursor throws a RuntimeException when the root request fails`() {
+    // HZRET-04
+    mockRoot(null, NetworkException(null, "Some IO Problem happened!"))
+    assertThrows<RuntimeException> { retentionObserver("5").fetchStreamingCursor() }
+  }
+
+  @Test
+  fun `fetchStreamingCursor does not request the root resource when there is nothing to protect`() {
+    // HZRET-05
+    mockRoot(rootResponse("""{"history_elder_ledger": $elderLedger}"""))
+    retentionObserver(null).fetchStreamingCursor()
+    retentionObserver("9000000000000001").fetchStreamingCursor()
+    retentionObserver("5", "now").fetchStreamingCursor()
+    verify(exactly = 0) { constructedWith<Server>(EqMatcher(TEST_HORIZON_URI)).root() }
+  }
 }

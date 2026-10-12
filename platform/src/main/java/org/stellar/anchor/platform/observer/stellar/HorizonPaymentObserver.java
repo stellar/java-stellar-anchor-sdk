@@ -174,7 +174,40 @@ public class HorizonPaymentObserver extends AbstractPaymentObserver {
           strLatestFromNetwork);
       return String.valueOf(latest);
     }
+    verifyCursorWithinRetention(lastStored);
     return strLastStored;
+  }
+
+  /**
+   * Horizon silently moves an ascending query whose cursor is older than its retention window to
+   * the oldest retained ledger, so the observer would skip every payment in between and persist the
+   * advanced position. Reject such a cursor instead. The condition is Horizon's own definition of
+   * "before history": {@code cursor <= toid(historyElderLedger, 0, 0)}.
+   *
+   * @throws IllegalStateException if the stored cursor is older than the retained history.
+   * @throws NetworkException if the root resource cannot be fetched.
+   */
+  void verifyCursorWithinRetention(long storedCursor) {
+    Long elderLedger;
+    try {
+      elderLedger = horizon.getServer().root().execute().getHistoryElderLedger();
+    } catch (NetworkException e) {
+      Log.errorEx("Error fetching the Horizon root resource.", e);
+      throw e;
+    }
+    if (elderLedger == null) {
+      warn(
+          "The Horizon root resource has no history_elder_ledger. Cannot verify the stored cursor.");
+      return;
+    }
+    if (storedCursor <= (elderLedger << 32)) {
+      throw new IllegalStateException(
+          String.format(
+              "The stored cursor %d is older than the history retained by Horizon (elder ledger %d). "
+                  + "Horizon would skip the payments in between. Reset the stored cursor and "
+                  + "reprocess from a Horizon or history archive that still has them.",
+              storedCursor, elderLedger));
+    }
   }
 
   String fetchLatestCursorFromHorizon() {
