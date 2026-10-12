@@ -11,7 +11,9 @@ import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import org.springframework.transaction.CannotCreateTransactionException
 import org.stellar.anchor.api.platform.HealthCheckStatus.RED
 import org.stellar.anchor.ledger.Horizon
 import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig
@@ -317,5 +319,58 @@ class StellarPaymentObserverTest {
 
     verify(exactly = 0) { paymentStreamerCursorStore.saveHorizonCursor(any()) }
     assertEquals(ObserverStatus.PUBLISHER_ERROR, observer.status)
+  }
+
+  private fun newSpiedHorizonObserver() =
+    spyk(
+      HorizonPaymentObserver(
+        Horizon(TEST_HORIZON_URI),
+        stellarPaymentObserverConfig,
+        null,
+        paymentObservingAccountsManager,
+        paymentStreamerCursorStore,
+      )
+    )
+
+  @Test
+  fun `start does not propagate a startInternal failure and leaves the observer in STREAM_ERROR`() {
+    val observer = newSpiedHorizonObserver()
+    every { observer.startSSEStream() } throws RuntimeException("Horizon is down")
+    // HZSTART-01
+    assertDoesNotThrow { observer.start() }
+    assertEquals(ObserverStatus.STREAM_ERROR, observer.status)
+    observer.statusWatcher.shutdownNow()
+    observer.silenceWatcher.shutdownNow()
+  }
+
+  @Test
+  fun `start sets DATABASE_ERROR when startInternal fails with a TransactionException`() {
+    val observer = newSpiedHorizonObserver()
+    every { observer.startSSEStream() } throws CannotCreateTransactionException("db down")
+    // HZSTART-04
+    assertDoesNotThrow { observer.start() }
+    assertEquals(ObserverStatus.DATABASE_ERROR, observer.status)
+    observer.statusWatcher.shutdownNow()
+    observer.silenceWatcher.shutdownNow()
+  }
+
+  @Test
+  fun `start arms the status watcher so a failed start recovers once Horizon is back`() {
+    val observer = newSpiedHorizonObserver()
+    val stream: SSEStream<OperationResponse> = mockk(relaxed = true)
+    every { observer.startSSEStream() } throws RuntimeException("Horizon is down") andThen stream
+
+    // HZSTART-02, HZSTART-04: no manual checkStatus(); only the watcher scheduled by start() runs.
+    observer.start()
+    assertEquals(ObserverStatus.STREAM_ERROR, observer.status)
+
+    val deadline = System.currentTimeMillis() + 10_000
+    while (observer.status != ObserverStatus.RUNNING && System.currentTimeMillis() < deadline) {
+      Thread.sleep(100)
+    }
+    assertEquals(ObserverStatus.RUNNING, observer.status)
+    verify(exactly = 2) { observer.startSSEStream() }
+    observer.statusWatcher.shutdownNow()
+    observer.silenceWatcher.shutdownNow()
   }
 }
