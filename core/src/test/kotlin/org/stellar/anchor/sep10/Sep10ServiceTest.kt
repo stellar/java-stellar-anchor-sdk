@@ -381,7 +381,12 @@ internal class Sep10ServiceTest {
       0,
     )
 
-    assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+    val ex = assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+
+    assertEquals(
+      "Transaction not signed by any client signer.",
+      ex.message,
+    )
   }
 
   @Test
@@ -393,7 +398,12 @@ internal class Sep10ServiceTest {
       0,
     )
 
-    assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+    val ex = assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+
+    assertEquals(
+      "No verifiable signers provided, at least one G... address must be provided.",
+      ex.message,
+    )
   }
 
   @Test
@@ -410,7 +420,12 @@ internal class Sep10ServiceTest {
       0,
     )
 
-    assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+    val ex = assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+
+    assertEquals(
+      "Transaction has unrecognized signatures.",
+      ex.message,
+    )
   }
 
   @Test
@@ -426,7 +441,12 @@ internal class Sep10ServiceTest {
       1,
     )
 
-    assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+    val ex = assertThrows<InvalidSep10ChallengeException> { sep10Service.validateChallenge(vr) }
+
+    assertEquals(
+      "Transaction not signed by any client signer.",
+      ex.message,
+    )
   }
 
   @Test
