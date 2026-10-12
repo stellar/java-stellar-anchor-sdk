@@ -5,6 +5,7 @@ package org.stellar.anchor.platform.observer.stellar
 import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.HOURS
 import java.util.concurrent.CountDownLatch
@@ -232,6 +233,176 @@ class PaymentObservingAccountsManagerTest {
     val expectedMax = base.plusNanos((threadCount.toLong() * perThread - 1) * 1000)
     val finalAccount = obs.accounts.first { it.account == testAcct1 }
     assertEquals(expectedMax, finalAccount.lastObserved)
+  }
+
+  private fun staleAccount(
+    account: String,
+    idleDays: Long = 31,
+    type: PaymentObservingAccountsManager.AccountType = TRANSIENT
+  ) =
+    PaymentObservingAccountsManager.ObservingAccount(
+      account,
+      Instant.now().minus(idleDays, DAYS),
+      type
+    )
+
+  @Test
+  fun `test evict keeps an account re-armed by upsert after the snapshot`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = SnapshotPaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct1))
+    val snapshot = obs.accounts
+    val snapshotLastObserved = snapshot[0].lastObserved
+
+    obs.upsert(testAcct1, TRANSIENT)
+    obs.snapshot = snapshot
+    obs.evict(Duration.of(30, DAYS))
+
+    assertEquals(1, obs.accounts.size)
+    assertTrue(obs.accounts[0].lastObserved.isAfter(snapshotLastObserved))
+    assertTrue(obs.lookupAndUpdate(testAcct1))
+    assertEquals(emptyList<String>(), store.deleted)
+    assertEquals(listOf(testAcct1), store.list().map { it.account })
+  }
+
+  @Test
+  fun `test evict keeps an account re-armed by lookupAndUpdate after the snapshot`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = SnapshotPaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct1))
+    val snapshot = obs.accounts
+
+    assertTrue(obs.lookupAndUpdate(testAcct1))
+    obs.snapshot = snapshot
+    obs.evict(Duration.of(30, DAYS))
+
+    assertEquals(1, obs.accounts.size)
+    assertEquals(emptyList<String>(), store.deleted)
+    assertEquals(listOf(testAcct1), store.list().map { it.account })
+  }
+
+  @Test
+  fun `test evict removes an idle account untouched since the snapshot`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = SnapshotPaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct1))
+    obs.snapshot = obs.accounts
+
+    obs.evict(Duration.of(30, DAYS))
+
+    assertEquals(0, obs.accounts.size)
+    assertFalse(obs.lookupAndUpdate(testAcct1))
+    assertEquals(listOf(testAcct1), store.deleted)
+    assertEquals(0, store.list().size)
+  }
+
+  @Test
+  fun `test evict keeps an account idle for less than maxIdleTime and evicts one idle for more`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = PaymentObservingAccountsManager(store)
+    obs.initialize()
+    val maxIdle = Duration.of(30, DAYS)
+    obs.upsert(
+      PaymentObservingAccountsManager.ObservingAccount(
+        testAcct1,
+        Instant.now().minus(maxIdle).plus(1, ChronoUnit.MINUTES),
+        TRANSIENT
+      )
+    )
+    obs.upsert(
+      PaymentObservingAccountsManager.ObservingAccount(
+        testAcct2,
+        Instant.now().minus(maxIdle).minus(1, ChronoUnit.MINUTES),
+        TRANSIENT
+      )
+    )
+
+    obs.evict(maxIdle)
+
+    assertEquals(listOf(testAcct1), obs.accounts.map { it.account })
+    assertEquals(listOf(testAcct2), store.deleted)
+  }
+
+  @Test
+  fun `test evict never removes a residential account however long idle`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = SnapshotPaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct1, idleDays = 400, type = RESIDENTIAL))
+    obs.snapshot = obs.accounts
+
+    obs.evict(Duration.of(30, DAYS))
+
+    assertEquals(1, obs.accounts.size)
+    assertTrue(obs.lookupAndUpdate(testAcct1))
+    assertEquals(emptyList<String>(), store.deleted)
+  }
+
+  @Test
+  fun `test evict skips only the re-armed account when two idle accounts are in the snapshot`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = SnapshotPaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct1))
+    obs.upsert(staleAccount(testAcct2))
+    val snapshot = obs.accounts
+
+    obs.upsert(testAcct1, TRANSIENT)
+    obs.snapshot = snapshot
+    obs.evict(Duration.of(30, DAYS))
+
+    assertEquals(listOf(testAcct1), obs.accounts.map { it.account })
+    assertEquals(listOf(testAcct2), store.deleted)
+  }
+
+  @Test
+  fun `test evict does not delete the row of an account another caller already removed`() {
+    val store = RecordingPaymentObservingAccountStore()
+    val obs = SnapshotPaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.upsert(staleAccount(testAcct1))
+    obs.snapshot = obs.accounts
+
+    obs.allAccounts.remove(testAcct1)
+    obs.evict(Duration.of(30, DAYS))
+
+    assertEquals(emptyList<String>(), store.deleted)
+    assertEquals(listOf(testAcct1), store.list().map { it.account })
+  }
+}
+
+/**
+ * Models the eviction snapshot: the next [getAccounts] call returns [snapshot] once, then clears
+ * it.
+ */
+class SnapshotPaymentObservingAccountsManager(store: PaymentObservingAccountStore) :
+  PaymentObservingAccountsManager(store) {
+  var snapshot: List<ObservingAccount>? = null
+
+  override fun getAccounts(): List<ObservingAccount> {
+    val pending = snapshot
+    snapshot = null
+    return pending ?: super.getAccounts()
+  }
+}
+
+class RecordingPaymentObservingAccountStore : PaymentObservingAccountStore(null) {
+  private val accounts = java.util.concurrent.CopyOnWriteArrayList<PaymentObservingAccount>()
+  val deleted = java.util.concurrent.CopyOnWriteArrayList<String>()
+
+  public override fun list(): List<PaymentObservingAccount> = accounts
+
+  public override fun upsert(account: String?, lastObserved: Instant?) {
+    accounts.removeIf { it.account == account }
+    accounts.add(PaymentObservingAccount(account, lastObserved))
+  }
+
+  public override fun delete(account: String) {
+    deleted.add(account)
+    accounts.removeIf { it.account == account }
   }
 }
 
