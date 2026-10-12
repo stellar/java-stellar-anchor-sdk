@@ -8,8 +8,10 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.time.temporal.ChronoUnit.DAYS
 import java.time.temporal.ChronoUnit.HOURS
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
@@ -371,6 +373,53 @@ class PaymentObservingAccountsManagerTest {
 
     assertEquals(emptyList<String>(), store.deleted)
     assertEquals(listOf(testAcct1), store.list().map { it.account })
+  }
+
+  @Test
+  fun `test concurrent lookupAndUpdate during evict never drops an account that was re-armed`() {
+    val rounds = 30
+    val accountCount = 200
+    val lookupThreads = 32
+    val pool = Executors.newFixedThreadPool(lookupThreads + 1)
+
+    try {
+      repeat(rounds) {
+        val store = RecordingPaymentObservingAccountStore()
+        val obs = PaymentObservingAccountsManager(store)
+        obs.initialize()
+        val accounts = List(accountCount) { KeyPair.random().accountId }
+        accounts.forEach { obs.upsert(staleAccount(it)) }
+
+        val rearmed = ConcurrentHashMap.newKeySet<String>()
+        val start = CountDownLatch(1)
+        val futures = mutableListOf<Future<*>>()
+        repeat(lookupThreads) {
+          futures.add(
+            pool.submit {
+              start.await()
+              accounts.shuffled().forEach { if (obs.lookupAndUpdate(it)) rearmed.add(it) }
+            }
+          )
+        }
+        futures.add(
+          pool.submit {
+            start.await()
+            obs.evict(Duration.of(30, DAYS))
+          }
+        )
+        start.countDown()
+        futures.forEach { assertDoesNotThrow { it.get(30, TimeUnit.SECONDS) } }
+
+        val live = obs.accounts.map { it.account }.toSet()
+        val persisted = store.list().map { it.account }.toSet()
+        rearmed.forEach {
+          assertTrue(live.contains(it), "re-armed account $it was dropped from the live map")
+          assertTrue(persisted.contains(it), "re-armed account $it lost its durable row")
+        }
+      }
+    } finally {
+      pool.shutdownNow()
+    }
   }
 }
 
