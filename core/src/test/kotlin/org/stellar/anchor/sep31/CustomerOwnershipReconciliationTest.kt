@@ -51,6 +51,26 @@ class CustomerOwnershipReconciliationTest {
   }
 
   @Test
+  fun `tryReconcile hands a muxed token's muxed account and id to the store`() {
+    val muxed = TestHelper.createMuxedWebAuthJwt(muxedId = 456L)
+    muxed.clientName = "vibrant"
+    every { customerIntegration.getCustomer(any()) } returns
+      GetCustomerResponse().apply { id = "customer-1" }
+    every { store.getCreatorMemo("customer-1") } returns null
+    every {
+      store.reconcileLegacyKey(
+        "customer-1",
+        "vibrant",
+        null,
+        "vibrant:${muxed.ownerAccount}",
+        "456"
+      )
+    } returns true
+
+    assertTrue(reconcile(muxed))
+  }
+
+  @Test
   fun `tryReconcile refuses and writes nothing when the business server returns a different id`() {
     every { customerIntegration.getCustomer(any()) } returns
       GetCustomerResponse().apply { id = "customer-2" }

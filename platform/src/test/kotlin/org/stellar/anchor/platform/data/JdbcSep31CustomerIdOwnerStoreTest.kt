@@ -256,6 +256,45 @@ class JdbcSep31CustomerIdOwnerStoreTest {
     } returns 1
 
     assertTrue(store.reconcileLegacyKey("cust-1", "vibrant", null, "vibrant:GALICE", "111"))
+    verify(exactly = 1) {
+      repo.reassignIfCreatorAccountMatches(
+        "cust-1",
+        "vibrant:GBOTHER",
+        null,
+        "vibrant:GALICE",
+        "111"
+      )
+    }
+  }
+
+  @Test
+  fun `reconcileLegacyKey updates the memo when the row has the same account under another memo`() {
+    // Two sub-users of one account are told apart by memo; the confirmed one must still recover.
+    every { repo.reassignIfCreatorAccountMatches("cust-1", "vibrant", null, any(), any()) } returns
+      0
+    every { repo.findById("cust-1") } returns
+      Optional.of(ownerRow("cust-1", "vibrant:GALICE", "222")) andThen
+      Optional.of(ownerRow("cust-1", "vibrant:GALICE", "111"))
+    every {
+      repo.reassignIfCreatorAccountMatches(
+        "cust-1",
+        "vibrant:GALICE",
+        "222",
+        "vibrant:GALICE",
+        "111"
+      )
+    } returns 1
+
+    assertTrue(store.reconcileLegacyKey("cust-1", "vibrant", null, "vibrant:GALICE", "111"))
+    verify(exactly = 1) {
+      repo.reassignIfCreatorAccountMatches(
+        "cust-1",
+        "vibrant:GALICE",
+        "222",
+        "vibrant:GALICE",
+        "111"
+      )
+    }
   }
 
   @ParameterizedTest
