@@ -1195,7 +1195,7 @@ class StellarRpcPaymentObserverTest {
     distributionAccounts(3)
     every { sorobanServer.getEvents(any()) } returns
       emptyResponse("0003") andThenThrows
-      IOException("rpc down")
+      NetworkException(503, "rpc down")
     justRun { paymentStreamerCursorStore.saveStellarRpcCursor(any()) }
     observer.cursor = "0001"
 
@@ -1206,12 +1206,60 @@ class StellarRpcPaymentObserverTest {
   }
 
   @Test
+  fun `fetchEvents holds the cursor when the first request fails and the second succeeds`() {
+    distributionAccounts(3)
+    every { sorobanServer.getEvents(any()) } throws
+      NetworkException(503, "rpc down") andThen
+      emptyResponse("0003")
+    justRun { paymentStreamerCursorStore.saveStellarRpcCursor(any()) }
+    observer.cursor = "0001"
+
+    observer.fetchEvents()
+
+    assertEquals("0001", observer.cursor)
+    verify(exactly = 0) { paymentStreamerCursorStore.saveStellarRpcCursor(any()) }
+  }
+
+  @Test
+  fun `fetchEvents holds the cursor when the first event of a request fails transiently`() {
+    distributionAccounts(1)
+    val e1 = eventWithId("e1")
+    processAll()
+    every { observer.processTransferEvent(any()) } throws NetworkException(503, "unavailable")
+    val response = mockk<GetEventsResponse>()
+    every { response.events } returns listOf(e1)
+    every { response.latestLedger } returns 100L
+    every { response.cursor } returns "0003"
+    every { sorobanServer.getEvents(any()) } returns response
+    justRun { paymentStreamerCursorStore.saveStellarRpcCursor(any()) }
+    observer.cursor = "0001"
+
+    observer.fetchEvents()
+
+    assertEquals("0001", observer.cursor)
+    verify(exactly = 0) { paymentStreamerCursorStore.saveStellarRpcCursor(any()) }
+  }
+
+  @Test
+  fun `fetchEvents leaves lastActivityTime alone during an outage`() {
+    distributionAccounts(1)
+    every { sorobanServer.getEvents(any()) } throws NetworkException(503, "outage")
+    observer.cursor = "0001"
+    val old = java.time.Instant.now().minusSeconds(60)
+    observer.lastActivityTime = old
+
+    observer.fetchEvents()
+
+    assertEquals(old, observer.lastActivityTime)
+  }
+
+  @Test
   fun `fetchEvents does not save a cursor when no cursor was sent and one request fails`() {
     distributionAccounts(3)
     every { paymentStreamerCursorStore.loadStellarRpcCursor() } returns null
     every { sorobanServer.getEvents(any()) } returns
       emptyResponse("0003") andThenThrows
-      IOException("rpc down")
+      NetworkException(503, "rpc down")
 
     observer.fetchEvents()
 
