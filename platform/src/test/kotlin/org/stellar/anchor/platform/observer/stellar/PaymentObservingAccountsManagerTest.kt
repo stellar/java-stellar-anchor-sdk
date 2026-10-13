@@ -340,6 +340,7 @@ class PaymentObservingAccountsManagerTest {
     obs.evict(Duration.ZERO)
     assertEquals(0, obs.accounts.size)
 
+    val before = Instant.now()
     val threadCount = 16
     val pool = Executors.newFixedThreadPool(threadCount)
     val start = CountDownLatch(1)
@@ -362,6 +363,7 @@ class PaymentObservingAccountsManagerTest {
     val entry = obs.accounts.single()
     assertEquals(testAcct1, entry.account)
     assertEquals(RESIDENTIAL, entry.type)
+    assertFalse(entry.lastObserved.isBefore(before))
   }
 }
 
