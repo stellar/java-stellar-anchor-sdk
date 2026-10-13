@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.asset.StellarAssetInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.ledger.LedgerClientHelper
@@ -1095,6 +1096,51 @@ class StellarRpcPaymentObserverTest {
     every { response.latestLedger } returns 777L
     every { response.cursor } returns "POISON_CUR"
     return response
+  }
+
+  @Test
+  fun `fetchEvents holds the cursor when the observing account lookup fails`() {
+    setupTransferEvent(
+      KeyPair.random().accountId,
+      KeyPair.random().accountId,
+      BigInteger.valueOf(1_000_000L),
+      "txHashLookupFails",
+      operationIndex = 0L,
+    )
+    every { paymentObservingAccountsManager.lookupAndUpdate(any()) } throws
+      RuntimeException("store unavailable")
+    observer.setStatus(ObserverStatus.RUNNING)
+
+    observer.fetchEvents()
+
+    verify(exactly = 0) { paymentStreamerCursorStore.saveStellarRpcCursor(any()) }
+    assertEquals(ObserverStatus.STREAM_ERROR, observer.getStatus())
+  }
+
+  @Test
+  fun `processEvents propagates an observing account lookup failure`() {
+    val event =
+      setupTransferEvent(
+        KeyPair.random().accountId,
+        KeyPair.random().accountId,
+        BigInteger.valueOf(1_000_000L),
+        "txHashLookupFails",
+        operationIndex = 0L,
+      )
+    every { paymentObservingAccountsManager.lookupAndUpdate(any()) } throws
+      RuntimeException("store unavailable")
+
+    assertThrows<RuntimeException> { observer.processEvents(listOf(event), "END") }
+  }
+
+  @Test
+  fun `processEvents skips an event that cannot be decoded without consulting the observing accounts`() {
+    val event = eventWithId("e1")
+    every { event.topic } returns listOf("not-xdr", "not-xdr", "not-xdr", "not-xdr")
+
+    assertEquals("END", observer.processEvents(listOf(event), "END"))
+    verify(exactly = 0) { paymentObservingAccountsManager.lookupAndUpdate(any()) }
+    verify(exactly = 0) { observer.processTransferEvent(any()) }
   }
 }
 
