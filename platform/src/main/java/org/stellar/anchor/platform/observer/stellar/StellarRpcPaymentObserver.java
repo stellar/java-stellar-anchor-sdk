@@ -15,6 +15,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -72,6 +74,16 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
 
   volatile int consecutiveFailedPolls = 0;
 
+  /**
+   * The last cursor each request (chunk of filters) completed, by chunk index. Kept in memory only:
+   * the persisted cursor is the minimum of these, so a restart safely re-reads from it. A request
+   * that is ahead of the others resumes from its own cursor instead of re-reading events it has
+   * already processed.
+   */
+  final Map<Integer, String> chunkCursors = new ConcurrentHashMap<>();
+
+  int chunkCount = 0;
+
   public StellarRpcPaymentObserver(
       StellarRpc stellarRpc,
       StellarPaymentObserverConfig config,
@@ -92,6 +104,7 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
   void startInternal() {
     info("Starting Soroban RPC payment observer");
     consecutiveFailedPolls = 0;
+    chunkCursors.clear();
     if (executorService == null || executorService.isShutdown()) {
       executorService = Executors.newSingleThreadScheduledExecutor();
     }
@@ -154,11 +167,12 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
       long latestLedger = 0;
       String nextCursor = null;
 
-      for (GetEventsRequest request : requests) {
-        // A request that does not complete holds the cursor at what it was sent.
-        String requestCursor = cursor;
+      for (int i = 0; i < requests.size(); i++) {
+        // A request that does not complete holds its cursor at what it was sent.
+        String sentCursor = chunkCursors.getOrDefault(i, cursor);
+        String requestCursor = sentCursor;
         try {
-          GetEventsResponse response = sorobanServer.getEvents(request);
+          GetEventsResponse response = sorobanServer.getEvents(requests.get(i));
           latestLedger = response.getLatestLedger();
           String processed = processEvents(response.getEvents(), response.getCursor());
           if (processed != null) {
@@ -177,8 +191,11 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
         }
         if (requestCursor == null) {
           canPersist = false;
-        } else if (nextCursor == null || requestCursor.compareTo(nextCursor) < 0) {
-          nextCursor = requestCursor;
+        } else {
+          chunkCursors.put(i, requestCursor);
+          if (nextCursor == null || requestCursor.compareTo(nextCursor) < 0) {
+            nextCursor = requestCursor;
+          }
         }
       }
 
@@ -193,7 +210,9 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
         consecutiveFailedPolls = 0;
         lastActivityTime = Instant.now();
         silenceTimeoutCount = 0;
-        metricLatestBlockRead.set(latestLedger);
+        if (!requests.isEmpty()) {
+          metricLatestBlockRead.set(latestLedger);
+        }
       }
 
       if (canPersist && nextCursor != null) {
@@ -459,23 +478,35 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
       return List.of();
     }
 
-    Long startLedger = null;
-    if (isEmpty(cursor)) {
-      startLedger = Math.max(1, getLatestLedger() - 5);
+    int chunks = (filters.size() + MAX_FILTERS_PER_REQUEST - 1) / MAX_FILTERS_PER_REQUEST;
+    if (chunks != chunkCount) {
+      // The chunk layout changed, so the indexes no longer name the same filters.
+      chunkCursors.clear();
+      chunkCount = chunks;
     }
 
+    Long startLedger = null;
     List<GetEventsRequest> requests = new ArrayList<>();
-    for (int i = 0; i < filters.size(); i += MAX_FILTERS_PER_REQUEST) {
+    for (int i = 0; i < chunks; i++) {
       List<EventFilter> chunk =
-          filters.subList(i, Math.min(i + MAX_FILTERS_PER_REQUEST, filters.size()));
-      if (startLedger != null) {
+          filters.subList(
+              i * MAX_FILTERS_PER_REQUEST,
+              Math.min((i + 1) * MAX_FILTERS_PER_REQUEST, filters.size()));
+      String chunkCursor = chunkCursors.getOrDefault(i, cursor);
+      if (isEmpty(chunkCursor)) {
+        if (startLedger == null) {
+          startLedger = Math.max(1, getLatestLedger() - 5);
+        }
         requests.add(GetEventsRequest.builder().filters(chunk).startLedger(startLedger).build());
       } else {
         requests.add(
             GetEventsRequest.builder()
                 .filters(chunk)
                 .pagination(
-                    GetEventsRequest.PaginationOptions.builder().limit(100L).cursor(cursor).build())
+                    GetEventsRequest.PaginationOptions.builder()
+                        .limit(100L)
+                        .cursor(chunkCursor)
+                        .build())
                 .build());
       }
     }

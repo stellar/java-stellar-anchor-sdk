@@ -1106,6 +1106,15 @@ class StellarRpcPaymentObserverTest {
     return accounts
   }
 
+  private fun scripted(sent: MutableList<GetEventsRequest>, vararg items: Any) {
+    val queue = ArrayDeque(items.toList())
+    every { sorobanServer.getEvents(capture(sent)) } answers
+      {
+        val next = queue.removeFirst()
+        if (next is Throwable) throw next else next as GetEventsResponse
+      }
+  }
+
   private fun rejection() = SorobanRpcException(-32602, "too many filters", null)
 
   private fun emptyResponse(cursor: String): GetEventsResponse {
@@ -1454,6 +1463,153 @@ class StellarRpcPaymentObserverTest {
 
     assertEquals(0, observer.consecutiveFailedPolls)
     observer.shutdownInternal()
+  }
+
+  @Test
+  fun `the next poll resumes each request from its own cursor`() {
+    distributionAccounts(3)
+    val sent = mutableListOf<GetEventsRequest>()
+    every { sorobanServer.getEvents(capture(sent)) } returnsMany
+      listOf(
+        emptyResponse("0003"),
+        emptyResponse("0002"),
+        emptyResponse("0004"),
+        emptyResponse("0004"),
+      )
+    justRun { paymentStreamerCursorStore.saveStellarRpcCursor(any()) }
+    observer.cursor = "0001"
+
+    observer.fetchEvents()
+    observer.fetchEvents()
+
+    assertEquals("0001", sent[0].pagination.cursor)
+    assertEquals("0001", sent[1].pagination.cursor)
+    assertEquals("0003", sent[2].pagination.cursor)
+    assertEquals("0002", sent[3].pagination.cursor)
+  }
+
+  @Test
+  fun `a failed request does not make the healthy request re-read its events`() {
+    distributionAccounts(3)
+    val sent = mutableListOf<GetEventsRequest>()
+    scripted(
+      sent,
+      emptyResponse("0003"),
+      NetworkException(503, "rpc down"),
+      emptyResponse("0004"),
+      NetworkException(503, "rpc down"),
+    )
+    justRun { paymentStreamerCursorStore.saveStellarRpcCursor(any()) }
+    observer.cursor = "0001"
+
+    observer.fetchEvents()
+    observer.fetchEvents()
+
+    assertEquals("0003", sent[2].pagination.cursor)
+    assertEquals("0001", sent[3].pagination.cursor)
+    assertEquals("0001", observer.cursor)
+    verify(exactly = 0) { paymentStreamerCursorStore.saveStellarRpcCursor(any()) }
+  }
+
+  @Test
+  fun `a request without a cursor starts from startLedger while another resumes from its cursor`() {
+    distributionAccounts(3)
+    observer.chunkCursors[0] = "0003"
+    observer.chunkCount = 2
+
+    val requests = observer.buildEventRequests(null)
+
+    assertEquals("0003", requests[0].pagination.cursor)
+    assertEquals(5L, requests[1].startLedger)
+  }
+
+  @Test
+  fun `startInternal forgets the per-request cursors so a restart re-reads from the persisted one`() {
+    observer.chunkCursors[0] = "0003"
+
+    observer.startInternal()
+
+    assertTrue(observer.chunkCursors.isEmpty())
+    observer.shutdownInternal()
+  }
+
+  @Test
+  fun `a change in the number of requests drops the per-request cursors`() {
+    distributionAccounts(3)
+    observer.buildEventRequests("0001")
+    observer.chunkCursors[0] = "0003"
+
+    distributionAccounts(6)
+    assertEquals(3, observer.buildEventRequests("0001").size)
+
+    assertTrue(observer.chunkCursors.isEmpty())
+  }
+
+  @Test
+  fun `fetchEvents does not reset the latest block read metric when there are no accounts`() {
+    every { assetService.stellarAssets } returns emptyList()
+    observer.cursor = "0001"
+    observer.metricLatestBlockRead.set(7)
+
+    observer.fetchEvents()
+
+    assertEquals(7, observer.metricLatestBlockRead.get())
+  }
+
+  @Test
+  fun `an outage between rejections leaves the rejection count as it was`() {
+    distributionAccounts(1)
+    observer.cursor = "0001"
+
+    every { sorobanServer.getEvents(any()) } throws rejection()
+    repeat(3) { observer.fetchEvents() }
+    assertEquals(3, observer.consecutiveFailedPolls)
+
+    every { sorobanServer.getEvents(any()) } throws NetworkException(503, "outage")
+    repeat(4) { observer.fetchEvents() }
+    assertEquals(3, observer.consecutiveFailedPolls)
+    assertEquals(ObserverStatus.RUNNING, observer.getStatus())
+
+    every { sorobanServer.getEvents(any()) } throws rejection()
+    observer.fetchEvents()
+    assertEquals(ObserverStatus.RUNNING, observer.getStatus())
+    observer.fetchEvents()
+    assertEquals(ObserverStatus.STREAM_ERROR, observer.getStatus())
+  }
+
+  @Test
+  fun `promoteIfStarting moves STARTING to RUNNING and leaves any other status alone`() {
+    val starting = newStartingObserver()
+    starting.promoteIfStarting()
+    assertEquals(ObserverStatus.RUNNING, starting.getStatus())
+
+    val failed = newStartingObserver()
+    failed.setStatus(ObserverStatus.STREAM_ERROR)
+    failed.promoteIfStarting()
+    assertEquals(ObserverStatus.STREAM_ERROR, failed.getStatus())
+  }
+
+  @Test
+  fun `a request that fails after it advanced holds its own cursor not the persisted one`() {
+    distributionAccounts(3)
+    val sent = mutableListOf<GetEventsRequest>()
+    scripted(
+      sent,
+      emptyResponse("0002"),
+      emptyResponse("0003"),
+      emptyResponse("0004"),
+      NetworkException(503, "rpc down"),
+      emptyResponse("0005"),
+      emptyResponse("0004"),
+    )
+    justRun { paymentStreamerCursorStore.saveStellarRpcCursor(any()) }
+    observer.cursor = "0001"
+
+    repeat(3) { observer.fetchEvents() }
+
+    assertEquals("0003", sent[3].pagination.cursor)
+    assertEquals("0003", sent[5].pagination.cursor)
+    verify(exactly = 1) { paymentStreamerCursorStore.saveStellarRpcCursor("0003") }
   }
 }
 
