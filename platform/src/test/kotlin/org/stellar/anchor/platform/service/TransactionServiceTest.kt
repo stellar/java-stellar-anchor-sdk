@@ -1473,4 +1473,62 @@ class TransactionServiceTest {
     assertNull(tx.memo)
     verify(exactly = 0) { sep24TransactionStore.save(any()) }
   }
+
+  @Test
+  fun `test patchTransactions stores non-ASCII decimal digits of a SEP-24 id memo as ASCII`() {
+    val tx = patchSep24Withdrawal(JdbcSep24Transaction(), "\u0661\u0662\u0663", "id")
+
+    assertEquals("123", tx.memo)
+  }
+
+  @Test
+  fun `test patchTransactions rejects a SEP-24 id memo above the uint64 maximum`() {
+    val tx = JdbcSep24Transaction()
+
+    assertThrows<AnchorException> { patchSep24Withdrawal(tx, "18446744073709551616", "id") }
+
+    assertNull(tx.memo)
+    verify(exactly = 0) { sep24TransactionStore.save(any()) }
+  }
+
+  @Test
+  fun `test patchTransactions rejects a SEP-24 return-hash memo type`() {
+    val tx = JdbcSep24Transaction()
+
+    val ex =
+      assertThrows<AnchorException> {
+        patchSep24Withdrawal(tx, "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=", "return")
+      }
+
+    assertEquals("Unsupported value: return", ex.message)
+    assertNull(tx.memo)
+    verify(exactly = 0) { sep24TransactionStore.save(any()) }
+  }
+
+  @Test
+  fun `test patchTransactions does not touch updatedAt when the SEP-24 memo is already canonical`() {
+    val updatedAt = java.time.Instant.parse("2026-01-01T00:00:00Z")
+    val tx = JdbcSep24Transaction()
+    tx.status = SepTransactionStatus.PENDING_ANCHOR.toString()
+    tx.kind = "withdrawal"
+    tx.memo = "7"
+    tx.memoType = "id"
+    tx.updatedAt = updatedAt
+    val data = PlatformTransactionData()
+    data.id = "testTxId"
+    data.memo = "7"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_ANCHOR
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep6TransactionStore.findByTransactionId(any()) } returns null
+    every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+
+    transactionService.patchTransactions(request)
+
+    assertEquals("7", tx.memo)
+    assertEquals(updatedAt, tx.updatedAt)
+  }
 }
