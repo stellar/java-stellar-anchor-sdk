@@ -1407,6 +1407,54 @@ class StellarRpcPaymentObserverTest {
 
     assertEquals(ObserverStatus.STREAM_ERROR, observer.getStatus())
   }
+
+  private fun newStartingObserver() =
+    spyk(
+      StellarRpcPaymentObserver(
+        stellarRpc,
+        config,
+        paymentListeners,
+        paymentObservingAccountsManager,
+        paymentStreamerCursorStore,
+        sacToAssetMapper,
+        assetService,
+      ),
+      recordPrivateCalls = true,
+    )
+
+  @Test
+  fun `start promotes a STARTING observer to RUNNING`() {
+    val starting = newStartingObserver()
+    justRun { starting.startInternal() }
+
+    starting.start()
+
+    assertEquals(ObserverStatus.RUNNING, starting.getStatus())
+    starting.silenceWatcher.shutdownNow()
+    starting.statusWatcher.shutdownNow()
+  }
+
+  @Test
+  fun `start does not overwrite an error status set while startInternal ran`() {
+    val starting = newStartingObserver()
+    every { starting.startInternal() } answers { starting.setStatus(ObserverStatus.DATABASE_ERROR) }
+
+    starting.start()
+
+    assertEquals(ObserverStatus.DATABASE_ERROR, starting.getStatus())
+    starting.silenceWatcher.shutdownNow()
+    starting.statusWatcher.shutdownNow()
+  }
+
+  @Test
+  fun `startInternal resets the consecutive rejection count so each restart gets a fresh budget`() {
+    observer.consecutiveFailedPolls = 4
+
+    observer.startInternal()
+
+    assertEquals(0, observer.consecutiveFailedPolls)
+    observer.shutdownInternal()
+  }
 }
 
 /**

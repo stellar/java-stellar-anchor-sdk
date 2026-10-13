@@ -70,7 +70,7 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
   /** The number of consecutive rejected polls after which the observer goes to STREAM_ERROR. */
   static final int RPC_REJECTION_LIMIT = 5;
 
-  int consecutiveFailedPolls = 0;
+  volatile int consecutiveFailedPolls = 0;
 
   public StellarRpcPaymentObserver(
       StellarRpc stellarRpc,
@@ -91,6 +91,7 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
   @Override
   void startInternal() {
     info("Starting Soroban RPC payment observer");
+    consecutiveFailedPolls = 0;
     if (executorService == null || executorService.isShutdown()) {
       executorService = Executors.newSingleThreadScheduledExecutor();
     }

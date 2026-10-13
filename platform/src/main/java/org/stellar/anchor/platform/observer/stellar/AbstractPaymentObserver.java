@@ -56,7 +56,7 @@ public abstract class AbstractPaymentObserver implements HealthCheckable {
   final ExponentialBackoffTimer databaseBackoffTimer = new ExponentialBackoffTimer(1, 20);
 
   int silenceTimeoutCount = 0;
-  ObserverStatus status = RUNNING;
+  volatile ObserverStatus status = RUNNING;
   Instant lastActivityTime;
   AtomicLong metricLatestBlockRead = new AtomicLong(0);
   AtomicLong metricLatestBlockProcessed = new AtomicLong(0);
@@ -103,7 +103,11 @@ public abstract class AbstractPaymentObserver implements HealthCheckable {
     infoF("Starting the status watcher");
     statusWatcher.scheduleWithFixedDelay(this::checkStatus, 1, 1, TimeUnit.SECONDS);
 
-    setStatus(RUNNING);
+    // startInternal() may already have started work that reports an error status; only a
+    // observer that is still STARTING is promoted, so an error is never overwritten.
+    if (status == STARTING) {
+      setStatus(RUNNING);
+    }
   }
 
   /** Gracefully shutdown the payment observer. */
