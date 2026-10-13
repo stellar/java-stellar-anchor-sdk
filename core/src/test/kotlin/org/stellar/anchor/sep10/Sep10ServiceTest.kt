@@ -403,6 +403,31 @@ internal class Sep10ServiceTest {
   }
 
   @Test
+  fun `test validate challenge counts a duplicated key once at its highest weight and sums mixed weights`() {
+    val other = KeyPair.random().accountId
+    assertDoesNotThrow {
+      sep10Service.validateVerifiedSignersWeight(
+        setOf(clientKeyPair.accountId),
+        setOf(
+          Sep10Challenge.Signer(clientKeyPair.accountId, 0),
+          Sep10Challenge.Signer(clientKeyPair.accountId, 1),
+        ),
+        null,
+        clientKeyPair.accountId,
+      )
+      sep10Service.validateVerifiedSignersWeight(
+        setOf(clientKeyPair.accountId, other),
+        setOf(
+          Sep10Challenge.Signer(clientKeyPair.accountId, 0),
+          Sep10Challenge.Signer(other, 1),
+        ),
+        null,
+        clientKeyPair.accountId,
+      )
+    }
+  }
+
+  @Test
   fun `test validate challenge succeeds with the master key at weight 1 and medium threshold 0`() {
     mockAccount(listOf(signer(clientKeyPair, 1)), 0)
 
