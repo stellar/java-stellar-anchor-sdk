@@ -438,6 +438,7 @@ public abstract class AbstractPaymentObserver implements HealthCheckable {
 
     // Build the state transition
     static {
+      addStateTransition(STARTING, RUNNING, DATABASE_ERROR, STREAM_ERROR, NEEDS_SHUTDOWN, SHUTDOWN);
       addStateTransition(
           RUNNING,
           DATABASE_ERROR,

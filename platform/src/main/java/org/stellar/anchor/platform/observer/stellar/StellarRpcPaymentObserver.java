@@ -12,6 +12,7 @@ import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -45,6 +46,7 @@ import org.stellar.sdk.MuxedAccount;
 import org.stellar.sdk.SorobanServer;
 import org.stellar.sdk.TOID;
 import org.stellar.sdk.exception.NetworkException;
+import org.stellar.sdk.exception.SorobanRpcException;
 import org.stellar.sdk.requests.sorobanrpc.EventFilterType;
 import org.stellar.sdk.requests.sorobanrpc.GetEventsRequest;
 import org.stellar.sdk.requests.sorobanrpc.GetEventsRequest.EventFilter;
@@ -61,7 +63,14 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
   @Getter final SorobanServer sorobanServer;
   final SacToAssetMapper sacToAssetMapper;
   final AssetService assetService;
-  ObserverStatus status = ObserverStatus.STARTING;
+
+  /** The maximum number of filters stellar-rpc accepts in one getEvents request. */
+  static final int MAX_FILTERS_PER_REQUEST = 5;
+
+  /** The number of consecutive rejected polls after which the observer goes to STREAM_ERROR. */
+  static final int RPC_REJECTION_LIMIT = 5;
+
+  int consecutiveFailedPolls = 0;
 
   public StellarRpcPaymentObserver(
       StellarRpc stellarRpc,
@@ -76,6 +85,7 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
     this.assetService = assetService;
     this.sorobanServer = stellarRpc.getSorobanServer();
     this.sacToAssetMapper = sacToAssetMapper;
+    this.status = ObserverStatus.STARTING;
   }
 
   @Override
@@ -87,14 +97,12 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
     task =
         executorService.scheduleAtFixedRate(
             this::fetchEvents, 0, 1, java.util.concurrent.TimeUnit.SECONDS);
-    status = ObserverStatus.RUNNING;
   }
 
   @Override
   void shutdownInternal() {
     task.cancel(true);
     executorService.shutdownNow();
-    status = ObserverStatus.SHUTDOWN;
   }
 
   @Override
@@ -129,34 +137,94 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
 
   void fetchEvents() {
     String cursor = (this.cursor != null) ? this.cursor : loadStellarRpcCursor();
+    // Arm the silence detector at the first poll: a backend that never completes a poll must
+    // still be able to trip it (checkSilence ignores a null lastActivityTime).
+    if (lastActivityTime == null) {
+      lastActivityTime = Instant.now();
+    }
 
     try {
-      GetEventsResponse response = sorobanServer.getEvents(buildEventRequest(cursor));
-      lastActivityTime = Instant.now();
-      silenceTimeoutCount = 0;
-      metricLatestBlockRead.set(response.getLatestLedger());
-      String nextCursor = processEvents(response.getEvents(), response.getCursor());
-      if (nextCursor != null) {
+      List<GetEventsRequest> requests = buildEventRequests(cursor);
+
+      boolean pollFailed = false;
+      boolean pollRejected = false;
+      boolean caughtUp = true;
+      boolean canPersist = true;
+      long latestLedger = 0;
+      String nextCursor = null;
+
+      for (GetEventsRequest request : requests) {
+        // A request that does not complete holds the cursor at what it was sent.
+        String requestCursor = cursor;
         try {
-          saveCursor(nextCursor);
-          if (nextCursor.equals(response.getCursor())) {
+          GetEventsResponse response = sorobanServer.getEvents(request);
+          latestLedger = response.getLatestLedger();
+          String processed = processEvents(response.getEvents(), response.getCursor());
+          if (processed != null) {
+            requestCursor = processed;
+          }
+          if (processed == null || !processed.equals(response.getCursor())) {
+            caughtUp = false;
+          }
+        } catch (SorobanRpcException rex) {
+          // The RPC answered with an error: the request itself is rejected, so it will not heal.
+          warnF("RPC rejected the events request: {}. ex={}", rex.toString(), rex.getMessage());
+          pollRejected = true;
+        } catch (NetworkException nex) {
+          warnF("Network error in RPC observer loop: {}. ex={}", nex.toString(), nex.getMessage());
+          pollFailed = true;
+        }
+        if (requestCursor == null) {
+          canPersist = false;
+        } else if (nextCursor == null || requestCursor.compareTo(nextCursor) < 0) {
+          nextCursor = requestCursor;
+        }
+      }
+
+      if (pollRejected) {
+        recordFailedPoll();
+        caughtUp = false;
+      } else if (pollFailed) {
+        // An outage is waited out, as before: it neither counts as a rejection nor resets the
+        // count.
+        caughtUp = false;
+      } else {
+        consecutiveFailedPolls = 0;
+        lastActivityTime = Instant.now();
+        silenceTimeoutCount = 0;
+        metricLatestBlockRead.set(latestLedger);
+      }
+
+      if (canPersist && nextCursor != null) {
+        try {
+          if (!nextCursor.equals(cursor)) {
+            saveCursor(nextCursor);
+          }
+          if (caughtUp) {
             streamBackoffTimer.reset();
-            metricLatestBlockProcessed.set(response.getLatestLedger());
+            metricLatestBlockProcessed.set(latestLedger);
           }
         } catch (Exception tex) {
           warnF("Failed to persist RPC cursor. Will retry next tick. ex={}", tex.getMessage());
           setStatus(ObserverStatus.DATABASE_ERROR);
         }
       }
-    } catch (IOException ioex) {
+    } catch (IOException | NetworkException ex) {
       warnF(
-          "Error fetching latest ledger: {}. ex={}. Wait for next retry.",
-          ioex.toString(),
-          ioex.getMessage());
-    } catch (NetworkException nex) {
-      warnF("Network error in RPC observer loop: {}. ex={}", nex.toString(), nex.getMessage());
+          "Error building the RPC events request: {}. ex={}. Wait for next retry.",
+          ex.toString(),
+          ex.getMessage());
     } catch (Throwable t) {
       errorEx("Unhandled error in RPC observer loop", t);
+      setStatus(ObserverStatus.STREAM_ERROR);
+    }
+  }
+
+  private void recordFailedPoll() {
+    if (++consecutiveFailedPolls >= RPC_REJECTION_LIMIT) {
+      errorF(
+          "The RPC rejected {} polls in a row. Setting status to STREAM_ERROR",
+          consecutiveFailedPolls);
       setStatus(ObserverStatus.STREAM_ERROR);
     }
   }
@@ -342,7 +410,7 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
     }
   }
 
-  GetEventsRequest buildEventRequest(String cursor) throws IOException {
+  List<GetEventsRequest> buildEventRequests(String cursor) throws IOException {
     List<String> uniqueDistributionAccounts =
         assetService.getStellarAssets().stream()
             .filter(asset -> asset.getSchema() == AssetInfo.Schema.STELLAR)
@@ -386,17 +454,31 @@ public class StellarRpcPaymentObserver extends AbstractPaymentObserver {
                 })
             .toList();
 
-    if (isEmpty(cursor)) {
-      long latestLedger = getLatestLedger();
-      long startLedger = Math.max(1, latestLedger - 5);
-      return GetEventsRequest.builder().filters(filters).startLedger(startLedger).build();
-    } else {
-      return GetEventsRequest.builder()
-          .filters(filters)
-          .pagination(
-              GetEventsRequest.PaginationOptions.builder().limit(100L).cursor(cursor).build())
-          .build();
+    if (filters.isEmpty()) {
+      return List.of();
     }
+
+    Long startLedger = null;
+    if (isEmpty(cursor)) {
+      startLedger = Math.max(1, getLatestLedger() - 5);
+    }
+
+    List<GetEventsRequest> requests = new ArrayList<>();
+    for (int i = 0; i < filters.size(); i += MAX_FILTERS_PER_REQUEST) {
+      List<EventFilter> chunk =
+          filters.subList(i, Math.min(i + MAX_FILTERS_PER_REQUEST, filters.size()));
+      if (startLedger != null) {
+        requests.add(GetEventsRequest.builder().filters(chunk).startLedger(startLedger).build());
+      } else {
+        requests.add(
+            GetEventsRequest.builder()
+                .filters(chunk)
+                .pagination(
+                    GetEventsRequest.PaginationOptions.builder().limit(100L).cursor(cursor).build())
+                .build());
+      }
+    }
+    return requests;
   }
 
   void processOperation(
