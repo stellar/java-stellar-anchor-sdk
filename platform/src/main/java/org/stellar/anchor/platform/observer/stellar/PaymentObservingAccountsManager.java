@@ -155,6 +155,10 @@ public class PaymentObservingAccountsManager {
    * Look up if the account is being observed. If the account is being observed, the lastObserved
    * timestamp of the observing account will be updated.
    *
+   * <p>An account that is not in the in-memory list is looked up in the store, because another
+   * process (for example the platform server) may have armed it after this instance was
+   * initialized. A store failure is propagated rather than reported as "not observed".
+   *
    * @param account The account to be checked. The account can be a muxed account or a G-account.
    * @return true if the account is being observed. false, otherwise.
    */
@@ -170,7 +174,22 @@ public class PaymentObservingAccountsManager {
             canonicalAccount,
             (key, existing) ->
                 new ObservingAccount(existing.account, Instant.now(), existing.type));
-    return updated != null;
+    if (updated != null) {
+      return true;
+    }
+
+    if (store.find(canonicalAccount) == null) {
+      return false;
+    }
+
+    allAccounts.compute(
+        canonicalAccount,
+        (key, existing) ->
+            existing == null
+                ? new ObservingAccount(canonicalAccount, Instant.now(), AccountType.TRANSIENT)
+                : new ObservingAccount(existing.account, Instant.now(), existing.type));
+    Log.debugF("Loaded observing account {} from the store", canonicalAccount);
+    return true;
   }
 
   /**
