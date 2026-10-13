@@ -330,6 +330,39 @@ class PaymentObservingAccountsManagerTest {
 
     assertTrue(obs.lookupAndUpdate(testAcct1))
   }
+
+  @Test
+  fun `test concurrent fallback lookups and upserts keep one entry and the upserted type`() {
+    val store = CountingPaymentObservingAccountStore()
+    store.upsert(testAcct1, Instant.now())
+    val obs = PaymentObservingAccountsManager(store)
+    obs.initialize()
+    obs.evict(Duration.ZERO)
+    assertEquals(0, obs.accounts.size)
+
+    val threadCount = 16
+    val pool = Executors.newFixedThreadPool(threadCount)
+    val start = CountDownLatch(1)
+    try {
+      repeat(threadCount) { threadIndex ->
+        pool.submit {
+          start.await()
+          if (threadIndex % 2 == 0) obs.upsert(testAcct1, RESIDENTIAL)
+          else obs.lookupAndUpdate(testAcct1)
+        }
+      }
+      start.countDown()
+      pool.shutdown()
+      assertTrue(pool.awaitTermination(30, TimeUnit.SECONDS), "pool did not finish in time")
+    } finally {
+      pool.shutdownNow()
+    }
+
+    assertTrue(obs.lookupAndUpdate(testAcct1))
+    val entry = obs.accounts.single()
+    assertEquals(testAcct1, entry.account)
+    assertEquals(RESIDENTIAL, entry.type)
+  }
 }
 
 class MemoryPaymentObservingAccountStore : PaymentObservingAccountStore(null) {
