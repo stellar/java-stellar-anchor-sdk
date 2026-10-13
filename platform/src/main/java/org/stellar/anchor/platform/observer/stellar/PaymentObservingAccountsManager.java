@@ -82,6 +82,24 @@ public class PaymentObservingAccountsManager {
    * @param observingAccount The account being observed.
    */
   public void upsert(ObservingAccount observingAccount) {
+    upsert(observingAccount, false);
+  }
+
+  /**
+   * Adds an account to be observed like {@link #upsert(String, AccountType)}, but a failed durable
+   * write is thrown instead of logged. Use it where a missing row would leave a payment that no
+   * other process can match, so the caller can fail and retry.
+   *
+   * @param account The account being observed.
+   * @param type The account type.
+   */
+  public void upsertOrThrow(String account, AccountType type) {
+    if (account != null && type != null) {
+      upsert(new ObservingAccount(account, Instant.now(), type), true);
+    }
+  }
+
+  private void upsert(ObservingAccount observingAccount, boolean failOnPersistError) {
     if (observingAccount != null) {
       String canonicalAccount = safeCanonicalize(observingAccount.account);
       ObservingAccount merged =
@@ -101,7 +119,7 @@ public class PaymentObservingAccountsManager {
                 return new ObservingAccount(canonicalAccount, lastObserved, type);
               });
 
-      boolean persisted = persistUpsert(merged.account, merged.lastObserved);
+      boolean persisted = persistUpsert(merged.account, merged.lastObserved, failOnPersistError);
       if (persisted && !canonicalAccount.equals(observingAccount.account)) {
         persistDelete(observingAccount.account);
       }
@@ -124,14 +142,21 @@ public class PaymentObservingAccountsManager {
     }
   }
 
-  private boolean persistUpsert(String account, Instant lastObserved) {
+  private boolean persistUpsert(String account, Instant lastObserved, boolean failOnError) {
     try {
       store.upsert(account, lastObserved);
       return true;
     } catch (RuntimeException ex) {
       Log.errorEx(String.format("Failed to persist observing account %s", account), ex);
+      if (failOnError) {
+        throw ex;
+      }
       return false;
     }
+  }
+
+  private boolean persistUpsert(String account, Instant lastObserved) {
+    return persistUpsert(account, lastObserved, false);
   }
 
   private void persistDelete(String account) {

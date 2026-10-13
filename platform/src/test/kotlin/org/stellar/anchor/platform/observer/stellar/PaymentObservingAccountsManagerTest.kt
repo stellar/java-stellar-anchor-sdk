@@ -365,6 +365,39 @@ class PaymentObservingAccountsManagerTest {
     assertEquals(RESIDENTIAL, entry.type)
     assertFalse(entry.lastObserved.isBefore(before))
   }
+
+  @Test
+  fun `test upsertOrThrow propagates a store failure while upsert swallows it`() {
+    val obs = PaymentObservingAccountsManager(ThrowingPaymentObservingAccountStore())
+    obs.initialize()
+
+    assertDoesNotThrow { obs.upsert(testAcct1, TRANSIENT) }
+    assertThrows<RuntimeException> { obs.upsertOrThrow(testAcct2, TRANSIENT) }
+  }
+
+  @Test
+  fun `test upsertOrThrow persists the row so another manager finds it`() {
+    val platformSide = PaymentObservingAccountsManager(paymentObservingAccountStore)
+    platformSide.initialize()
+    val observerSide = PaymentObservingAccountsManager(paymentObservingAccountStore)
+    observerSide.initialize()
+
+    platformSide.upsertOrThrow(testAcct1, TRANSIENT)
+
+    assertTrue(observerSide.lookupAndUpdate(testAcct1))
+  }
+
+  @Test
+  fun `test upsertOrThrow ignores a null account or type`() {
+    val obs = PaymentObservingAccountsManager(ThrowingPaymentObservingAccountStore())
+    obs.initialize()
+
+    assertDoesNotThrow {
+      obs.upsertOrThrow(null, TRANSIENT)
+      obs.upsertOrThrow(testAcct1, null)
+    }
+    assertEquals(0, obs.accounts.size)
+  }
 }
 
 class MemoryPaymentObservingAccountStore : PaymentObservingAccountStore(null) {
