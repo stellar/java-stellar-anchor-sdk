@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.observer.stellar
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import java.math.BigInteger
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -11,6 +12,7 @@ import org.stellar.anchor.ledger.Horizon
 import org.stellar.anchor.ledger.LedgerTransaction
 import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig
 import org.stellar.anchor.platform.observer.PaymentListener
+import org.stellar.anchor.platform.observer.stellar.AbstractPaymentObserver.ObserverStatus
 import org.stellar.anchor.util.AssetHelper
 import org.stellar.sdk.Asset
 import org.stellar.sdk.KeyPair
@@ -307,5 +309,21 @@ class HorizonPaymentObserverTest {
     assertThrows(LedgerException::class.java) {
       observer.toPaymentTransferEvent(contractTransfer())
     }
+  }
+
+  @Test
+  fun `processOperation holds the cursor when the observing account lookup fails`() {
+    val op = mockk<PaymentOperationResponse>()
+    every { op.to } returns "toAccount"
+    every { op.from } returns "fromAccount"
+    every { op.pagingToken } returns "cursor-1"
+    every { paymentObservingAccountsManager.lookupAndUpdate(any()) } throws
+      RuntimeException("store unavailable")
+    observer.setStatus(ObserverStatus.RUNNING)
+
+    observer.processOperation(op)
+
+    verify(exactly = 0) { paymentStreamerCursorStore.saveHorizonCursor(any()) }
+    assertEquals(ObserverStatus.PUBLISHER_ERROR, observer.getStatus())
   }
 }
