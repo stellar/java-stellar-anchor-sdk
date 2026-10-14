@@ -13,11 +13,14 @@ import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_SEP38_FORMAT
 import org.stellar.anchor.TestHelper
+import org.stellar.anchor.TestHelper.Companion.createMuxedWebAuthJwt
+import org.stellar.anchor.TestHelper.Companion.createWebAuthJwt
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.shared.FeeDetails
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
+import org.stellar.anchor.auth.WebAuthJwt
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.ExchangeAmountsCalculator.Amounts
@@ -371,5 +374,143 @@ class ExchangeAmountsCalculatorTest {
         .build(),
       result,
     )
+  }
+
+  // --- quote ownership: the caller must be the quote's creator (SEP38OW) ---
+
+  private val ownerToken = createWebAuthJwt(TEST_ACCOUNT, TestConstants.TEST_MEMO)
+
+  /** A quote created by [ownerToken]'s identity. */
+  private fun ownedQuote() =
+    usdcQuote().apply {
+      creatorAccountId = TEST_ACCOUNT
+      creatorMemo = TestConstants.TEST_MEMO
+      creatorMemoType = "id"
+    }
+
+  private fun calculateAs(caller: WebAuthJwt?, amount: String = "100") =
+    calculator.calculateFromQuote(
+      "id",
+      caller,
+      assetService.getAsset("USDC"),
+      null,
+      amount,
+      null,
+      null,
+    )
+
+  @Test
+  fun `test calculateFromQuote with the caller accepts the creator`() {
+    every { sep38QuoteStore.findByQuoteId("id") } returns ownedQuote()
+    assertEquals(
+      Amounts.builder()
+        .amountIn("100")
+        .amountInAsset(TEST_ASSET_SEP38_FORMAT)
+        .amountOut("98")
+        .amountOutAsset("iso4217:USD")
+        .feeDetails(FeeDetails("2", "iso4217:USD"))
+        .build(),
+      calculateAs(ownerToken),
+    )
+  }
+
+  @Test
+  fun `test validateQuoteAgainstRequestInfo with the caller accepts the creator`() {
+    every { sep38QuoteStore.findByQuoteId("id") } returns ownedQuote()
+    val result =
+      calculator.validateQuoteAgainstRequestInfo(
+        "id",
+        ownerToken,
+        assetService.getAsset("USDC"),
+        null,
+        "100",
+      )
+    assertEquals(TEST_ASSET_SEP38_FORMAT, result.sellAsset)
+  }
+
+  @Test
+  fun `test calculateFromQuote with the caller accepts a muxed creator`() {
+    val muxed = createMuxedWebAuthJwt(TEST_ACCOUNT, 7)
+    every { sep38QuoteStore.findByQuoteId("id") } returns
+      ownedQuote().apply {
+        creatorAccountId = muxed.muxedAccount
+        creatorMemo = null
+        creatorMemoType = null
+      }
+    assertEquals("100", calculateAs(muxed).amountIn)
+  }
+
+  @Test
+  fun `test calculateFromQuote with the caller rejects another account as Quote not found`() {
+    every { sep38QuoteStore.findByQuoteId("id") } returns ownedQuote()
+    val other = createWebAuthJwt(TestHelper.TEST_ACCOUNT, TestConstants.TEST_MEMO)
+    val ex = assertThrows<BadRequestException> { calculateAs(other) }
+    assertEquals("Quote not found", ex.message)
+  }
+
+  @Test
+  fun `test validateQuoteAgainstRequestInfo with the caller rejects another account as Quote not found`() {
+    every { sep38QuoteStore.findByQuoteId("id") } returns ownedQuote()
+    val other = createWebAuthJwt(TestHelper.TEST_ACCOUNT, TestConstants.TEST_MEMO)
+    val ex =
+      assertThrows<BadRequestException> {
+        calculator.validateQuoteAgainstRequestInfo(
+          "id",
+          other,
+          assetService.getAsset("USDC"),
+          null,
+          "100",
+        )
+      }
+    assertEquals("Quote not found", ex.message)
+  }
+
+  @Test
+  fun `test calculateFromQuote with the caller rejects the same account under another memo`() {
+    every { sep38QuoteStore.findByQuoteId("id") } returns ownedQuote()
+    val otherMemo = createWebAuthJwt(TEST_ACCOUNT, "999")
+    val ex = assertThrows<BadRequestException> { calculateAs(otherMemo) }
+    assertEquals("Quote not found", ex.message)
+  }
+
+  @Test
+  fun `test calculateFromQuote with a null caller is Quote not found`() {
+    every { sep38QuoteStore.findByQuoteId("id") } returns ownedQuote()
+    val ex = assertThrows<BadRequestException> { calculateAs(null) }
+    assertEquals("Quote not found", ex.message)
+  }
+
+  @Test
+  fun `test a non-owner gets Quote not found for a used quote`() {
+    every { sep38QuoteStore.findByQuoteId("id") } returns
+      ownedQuote().apply { transactionId = "existing-txn-id" }
+    val other = createWebAuthJwt(TestHelper.TEST_ACCOUNT, TestConstants.TEST_MEMO)
+    val ex = assertThrows<BadRequestException> { calculateAs(other) }
+    assertEquals("Quote not found", ex.message)
+  }
+
+  @Test
+  fun `test a non-owner gets Quote not found for an expired quote`() {
+    every { sep38QuoteStore.findByQuoteId("id") } returns
+      ownedQuote().apply { expiresAt = Instant.parse("2000-01-01T00:00:00Z") }
+    val other = createWebAuthJwt(TestHelper.TEST_ACCOUNT, TestConstants.TEST_MEMO)
+    val ex = assertThrows<BadRequestException> { calculateAs(other) }
+    assertEquals("Quote not found", ex.message)
+  }
+
+  @Test
+  fun `test a non-owner gets Quote not found for a mismatched amount`() {
+    every { sep38QuoteStore.findByQuoteId("id") } returns ownedQuote()
+    val other = createWebAuthJwt(TestHelper.TEST_ACCOUNT, TestConstants.TEST_MEMO)
+    val ex = assertThrows<BadRequestException> { calculateAs(other, amount = "99") }
+    assertEquals("Quote not found", ex.message)
+  }
+
+  @Test
+  fun `test the owner of a used quote still gets the already used message`() {
+    every { sep38QuoteStore.findByQuoteId("id") } returns
+      ownedQuote().apply { transactionId = "existing-txn-id" }
+    val ex = assertThrows<BadRequestException> { calculateAs(ownerToken) }
+    assertEquals("quote(id=id) has already been used", ex.message)
   }
 }
