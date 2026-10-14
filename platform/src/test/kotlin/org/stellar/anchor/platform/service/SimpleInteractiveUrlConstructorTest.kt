@@ -129,6 +129,51 @@ class SimpleInteractiveUrlConstructorTest {
     assertEquals("some-wallet", claims["client_name"] as String)
   }
 
+  private fun newConstructor() =
+    SimpleInteractiveUrlConstructor(
+      assetService,
+      clientService,
+      sep24Config,
+      customerIntegration,
+      jwtService,
+      customerIdOwnerStore,
+    )
+
+  @Test
+  fun `data client_domain is absent when the transaction has no verified client_domain even if the request carries one`() {
+    txn.clientDomain = null
+    request["client_domain"] = "lobstr.co"
+
+    val jwt = parseJwtFromUrl(newConstructor().construct(txn, request, testAsset, webAuthJwt))
+
+    val data = jwt.claims()["data"] as Map<String, String>
+    assertFalse(data.containsKey("client_domain"))
+    assertNull(jwt.claims()["client_domain"])
+  }
+
+  @Test
+  fun `data client_domain is the transaction client_domain, not the request value`() {
+    txn.clientDomain = "wallet.example"
+    request["client_domain"] = "lobstr.co"
+
+    val jwt = parseJwtFromUrl(newConstructor().construct(txn, request, testAsset, webAuthJwt))
+
+    val data = jwt.claims()["data"] as Map<String, String>
+    assertEquals("wallet.example", data["client_domain"])
+    assertEquals("wallet.example", jwt.claims()["client_domain"])
+  }
+
+  @Test
+  fun `data client_domain is the transaction client_domain when the request carries none`() {
+    txn.clientDomain = "wallet.example"
+    request.remove("client_domain")
+
+    val jwt = parseJwtFromUrl(newConstructor().construct(txn, request, testAsset, webAuthJwt))
+
+    val data = jwt.claims()["data"] as Map<String, String>
+    assertEquals("wallet.example", data["client_domain"])
+  }
+
   @Test
   fun `when kycFieldsForwarding is enabled, the customerIntegration should receive the kyc fields`() {
     val customerIntegration: CustomerIntegration = mockk()

@@ -112,6 +112,11 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
     // Add required JWT fields from request
     Map<String, String> data =
         new HashMap<>(extractRequiredJwtFieldsFromRequest(request, asset, homeDomain));
+    // The request is caller-controlled: data.client_domain is only the SEP-10 verified value
+    data.remove("client_domain");
+    if (txn.getClientDomain() != null) {
+      data.put("client_domain", txn.getClientDomain());
+    }
     // Add fields defined in txnFields
     addTxnFields(assetService, data, txn, sep24Config.getInteractiveUrl().getTxnFields());
 
