@@ -95,52 +95,6 @@ public class ExchangeAmountsCalculator {
         quote, quoteId, sellAsset, buyAsset, sellAmount, sellDeliveryMethod, buyDeliveryMethod);
   }
 
-  /**
-   * Calculates the amounts from a saved quote.
-   *
-   * @param quoteId The quote ID
-   * @param sellAsset The asset the user is selling
-   * @param buyAsset The asset the user is buying (the request's destination asset)
-   * @param sellAmount The amount the user is selling
-   * @return The amounts
-   * @throws AnchorException if the quote is invalid
-   */
-  public Amounts calculateFromQuote(
-      String quoteId, AssetInfo sellAsset, AssetInfo buyAsset, String sellAmount)
-      throws AnchorException {
-    return calculateFromQuote(quoteId, sellAsset, buyAsset, sellAmount, null, null);
-  }
-
-  /**
-   * Calculates the amounts from a saved quote, also checking the request's funding method against
-   * the quote's delivery method. Only SEP-6 passes delivery methods; SEP-24 and SEP-31 keep using
-   * the 4-arg overload, which delegates here with {@code null, null} (no funding-method check).
-   *
-   * @param quoteId The quote ID
-   * @param sellAsset The asset the user is selling
-   * @param buyAsset The asset the user is buying (the request's destination asset)
-   * @param sellAmount The amount the user is selling
-   * @param sellDeliveryMethod The funding method for a deposit-exchange request, checked against
-   *     the quote's {@code sellDeliveryMethod}; null to skip the check
-   * @param buyDeliveryMethod The funding method for a withdraw-exchange request, checked against
-   *     the quote's {@code buyDeliveryMethod}; null to skip the check
-   * @return The amounts
-   * @throws AnchorException if the quote is invalid
-   */
-  public Amounts calculateFromQuote(
-      String quoteId,
-      AssetInfo sellAsset,
-      AssetInfo buyAsset,
-      String sellAmount,
-      String sellDeliveryMethod,
-      String buyDeliveryMethod)
-      throws AnchorException {
-    Sep38Quote quote =
-        validateQuoteAgainstRequestInfo(
-            quoteId, sellAsset, buyAsset, sellAmount, sellDeliveryMethod, buyDeliveryMethod);
-    return amountsOf(quote);
-  }
-
   private static Amounts amountsOf(Sep38Quote quote) {
     return Amounts.builder()
         .amountIn(quote.getSellAmount())
@@ -149,55 +103,6 @@ public class ExchangeAmountsCalculator {
         .amountOutAsset(quote.getBuyAsset())
         .feeDetails(quote.getFee())
         .build();
-  }
-
-  /**
-   * validate the quote info against Sep6 or Sep24 or request info.
-   *
-   * @param quoteId The quote ID
-   * @param sellAsset The asset the user is selling. It can be null for sep24 deposit request
-   * @param buyAsset The amount the user is buying. It can be null for sep24 withdraw request
-   * @param sellAmount The amount the user is selling. It can be null for sep24 deposit and withdraw
-   *     requests
-   * @return The quote
-   * @throws AnchorException if the quote is invalid
-   */
-  public Sep38Quote validateQuoteAgainstRequestInfo(
-      String quoteId, AssetInfo sellAsset, AssetInfo buyAsset, String sellAmount)
-      throws AnchorException {
-    return validateQuoteAgainstRequestInfo(quoteId, sellAsset, buyAsset, sellAmount, null, null);
-  }
-
-  /**
-   * validate the quote info against Sep6 or Sep24 or request info, also checking the request's
-   * funding method against the quote's delivery method. Only SEP-6 passes delivery methods.
-   *
-   * @param quoteId The quote ID
-   * @param sellAsset The asset the user is selling. It can be null for sep24 deposit request
-   * @param buyAsset The amount the user is buying. It can be null for sep24 withdraw request
-   * @param sellAmount The amount the user is selling. It can be null for sep24 deposit and withdraw
-   *     requests
-   * @param sellDeliveryMethod The funding method for a deposit-exchange request, checked against
-   *     the quote's {@code sellDeliveryMethod}; null to skip the check
-   * @param buyDeliveryMethod The funding method for a withdraw-exchange request, checked against
-   *     the quote's {@code buyDeliveryMethod}; null to skip the check
-   * @return The quote
-   * @throws AnchorException if the quote is invalid
-   */
-  public Sep38Quote validateQuoteAgainstRequestInfo(
-      String quoteId,
-      AssetInfo sellAsset,
-      AssetInfo buyAsset,
-      String sellAmount,
-      String sellDeliveryMethod,
-      String buyDeliveryMethod)
-      throws AnchorException {
-    Sep38Quote quote = sep38QuoteStore.findByQuoteId(quoteId);
-    if (quote == null) {
-      throw new BadRequestException("Quote not found");
-    }
-    return validateLoadedQuote(
-        quote, quoteId, sellAsset, buyAsset, sellAmount, sellDeliveryMethod, buyDeliveryMethod);
   }
 
   private Sep38Quote validateLoadedQuote(
