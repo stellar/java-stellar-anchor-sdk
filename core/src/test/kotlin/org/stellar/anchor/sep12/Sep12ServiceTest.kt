@@ -1276,6 +1276,8 @@ class Sep12ServiceTest {
       }
       assertInstanceOf(SepNotAuthorizedException::class.java, ex)
     }
+    verify(exactly = 1) { customerIdOwnerStore.verify("custodial-id", "vibrant", "999", false) }
+    verify(exactly = 1) { customerIdOwnerStore.verify("custodial-id", "other", TEST_MEMO, false) }
   }
 
   @Test
@@ -1302,6 +1304,71 @@ class Sep12ServiceTest {
       )
     }
     assertInstanceOf(SepNotAuthorizedException::class.java, ex)
+  }
+
+  @Test
+  fun `test id path authorizes a custodial muxed token by client name and muxed id`() {
+    registerCustodial("vibrant")
+    every { customerIdOwnerStore.isClaimed("custodial-muxed-id") } returns true
+    every { customerIdOwnerStore.verify("custodial-muxed-id", "vibrant", TEST_MEMO, false) } returns
+      true
+    every { customerIntegration.getCustomer(any()) } returns null
+
+    assertDoesNotThrow {
+      sep12Service.validateGetOrPutRequest(
+        Sep12GetCustomerRequest.builder().id("custodial-muxed-id").build(),
+        createJwtToken(TEST_MUXED_ACCOUNT, "vibrant"),
+      )
+    }
+    verify(exactly = 1) {
+      customerIdOwnerStore.verify("custodial-muxed-id", "vibrant", TEST_MEMO, false)
+    }
+  }
+
+  @Test
+  fun `test put customer claims a new customer of a custodial client under the client name`() {
+    registerCustodial("vibrant")
+    every { customerIdOwnerStore.isClaimed(any()) } returns true
+    every { customerIntegration.putCustomer(any()) } returns
+      PutCustomerResponse.builder().id("new-custodial-id").status(Sep12Status.ACCEPTED.name).build()
+
+    val request = Sep12PutCustomerRequest.builder().type("sep31-sender").firstName("John").build()
+    assertDoesNotThrow {
+      sep12Service.putCustomer(createJwtToken("$OTHER_KEY:$TEST_MEMO", "vibrant"), request)
+    }
+
+    verify(exactly = 1) {
+      customerIdOwnerStore.verifyOrClaim("new-custodial-id", "vibrant", TEST_MEMO)
+    }
+    verify(exactly = 0) {
+      customerIdOwnerStore.verifyOrClaim(any(), match { it.startsWith("vibrant:") }, any())
+    }
+  }
+
+  @Test
+  fun `test put customer verifies an already claimed id of a custodial client under the client name`() {
+    registerCustodial("vibrant")
+    every { customerIdOwnerStore.isClaimed("claimed-custodial-id") } returns true
+    every { customerIdOwnerStore.verify("claimed-custodial-id", "vibrant", TEST_MEMO) } returns true
+    every { customerIntegration.getCustomer(any()) } returns
+      GetCustomerResponse.builder().id("claimed-custodial-id").build()
+    every { customerIntegration.putCustomer(any()) } returns
+      PutCustomerResponse.builder()
+        .id("claimed-custodial-id")
+        .status(Sep12Status.ACCEPTED.name)
+        .build()
+
+    val request = Sep12PutCustomerRequest.builder().type("sep31-sender").firstName("John").build()
+    assertDoesNotThrow {
+      sep12Service.putCustomer(createJwtToken("$OTHER_KEY:$TEST_MEMO", "vibrant"), request)
+    }
+
+    verify(exactly = 1) {
+      customerIdOwnerStore.verify("claimed-custodial-id", "vibrant", TEST_MEMO)
+    }
+    verify(exactly = 0) {
+      customerIdOwnerStore.reconcileLegacyKey(any(), any(), any(), any(), any())
+    }
   }
 
   @Test

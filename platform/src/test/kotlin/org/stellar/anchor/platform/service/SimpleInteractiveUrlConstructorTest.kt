@@ -411,6 +411,43 @@ class SimpleInteractiveUrlConstructorTest {
   }
 
   @Test
+  fun `when the forwarded id is already claimed by a custodial client, it is verified under the client name`() {
+    val customerIntegration: CustomerIntegration = mockk()
+    val customerIdOwnerStore: Sep31CustomerIdOwnerStore = mockk()
+    val custodialClients: ClientService = mockk(relaxed = true)
+    every { custodialClients.getClientConfigByName("vibrant") } returns
+      CustodialClient.builder().name("vibrant").signingKeys(setOf("test_account")).build()
+    every { customerIntegration.getCustomer(any()) } returns
+      GetCustomerResponse.builder().id("claimed-customer-id").build()
+    every { customerIntegration.putCustomer(any()) } returns
+      PutCustomerResponse.builder().id("claimed-customer-id").build()
+    every { customerIdOwnerStore.isClaimed(any()) } returns true
+    every { customerIdOwnerStore.verify("claimed-customer-id", "vibrant", "123") } returns true
+    every { customerIdOwnerStore.verifyOrClaim("claimed-customer-id", "vibrant", "123") } returns
+      true
+    val constructor =
+      SimpleInteractiveUrlConstructor(
+        assetService,
+        custodialClients,
+        sep24Config,
+        customerIntegration,
+        jwtService,
+        customerIdOwnerStore,
+      )
+    sep24Config.kycFieldsForwarding.isEnabled = true
+    every { webAuthJwt.account }.returns("test_account")
+    every { webAuthJwt.accountMemo }.returns("123")
+    every { webAuthJwt.ownerAccount }.returns("test_account")
+    every { webAuthJwt.ownerMemo }.returns("123")
+    every { webAuthJwt.clientName }.returns("vibrant")
+    every { webAuthJwt.ownerKey }.returns("vibrant:test_account")
+
+    constructor.construct(txn, request as HashMap<String, String>?, testAsset, webAuthJwt)
+
+    verify(exactly = 1) { customerIdOwnerStore.verify("claimed-customer-id", "vibrant", "123") }
+  }
+
+  @Test
   fun `when the forwarded id is a legacy wallet-only key, the callback confirms it and it is reconciled`() {
     val customerIntegration: CustomerIntegration = mockk()
     val customerIdOwnerStore: Sep31CustomerIdOwnerStore = mockk()

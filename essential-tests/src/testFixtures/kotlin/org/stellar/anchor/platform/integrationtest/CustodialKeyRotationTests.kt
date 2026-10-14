@@ -54,7 +54,7 @@ class CustodialKeyRotationTests : IntegrationTestBase(TestConfig()) {
             )
           )
           .execute()
-      assertEquals(200, created.code)
+      assertEquals(200, created.use { it.code })
 
       val customer =
         sep12Client(authenticate(firstKey))
@@ -69,7 +69,7 @@ class CustodialKeyRotationTests : IntegrationTestBase(TestConfig()) {
               .build()
           )
           .execute()
-      assertEquals(200, added.code)
+      assertEquals(200, added.use { it.code })
       val removed =
         httpClient
           .newCall(
@@ -79,7 +79,7 @@ class CustodialKeyRotationTests : IntegrationTestBase(TestConfig()) {
               .build()
           )
           .execute()
-      assertEquals(204, removed.code)
+      assertEquals(204, removed.use { it.code })
 
       // Authorized by the owner row alone: the second key was never used before the rotation.
       val afterRotation = sep12Client(authenticate(secondKey)).getCustomer(id = customer.id)
