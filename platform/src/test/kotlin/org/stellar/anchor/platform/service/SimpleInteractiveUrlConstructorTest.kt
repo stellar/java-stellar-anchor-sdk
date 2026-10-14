@@ -208,6 +208,29 @@ class SimpleInteractiveUrlConstructorTest {
   }
 
   @Test
+  fun `a customer_id claimed by a memo-bearing caller is verified with the owner memo`() {
+    givenCaller("vibrant")
+    every { webAuthJwt.ownerMemo }.returns("42")
+    every { customerIdOwnerStore.isClaimed("123") }.returns(true)
+    every { customerIdOwnerStore.verify("123", "vibrant:test_account", "42") }.returns(true)
+    every { customerIdOwnerStore.verify("123", "vibrant:test_account", null) }.returns(false)
+
+    val jwt = parseJwtFromUrl(newConstructor().construct(txn, request, testAsset, webAuthJwt))
+
+    assertEquals("123", (jwt.claims()["data"] as Map<String, String>)["customer_id"])
+  }
+
+  @Test
+  fun `an empty request client_domain is not signed when the transaction has none`() {
+    txn.clientDomain = null
+    request["client_domain"] = ""
+
+    val jwt = parseJwtFromUrl(newConstructor().construct(txn, request, testAsset, webAuthJwt))
+
+    assertFalse((jwt.claims()["data"] as Map<String, String>).containsKey("client_domain"))
+  }
+
+  @Test
   fun `an unclaimed customer_id is signed unchanged without an ownership verification`() {
     givenCaller("vibrant")
     every { customerIdOwnerStore.isClaimed("123") }.returns(false)
