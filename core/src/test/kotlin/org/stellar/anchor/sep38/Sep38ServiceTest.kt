@@ -1712,4 +1712,114 @@ class Sep38ServiceTest {
     sep38Service.getPrice(token, getPriceRequest)
     assertEquals(account, slotGetRateRequest.captured.clientId)
   }
+
+  // --- POST /quote delivery-method rules (SEP38DM) ---
+
+  /** USD lists two sell and two buy methods, EUR lists one of each, USDC (Stellar) lists none. */
+  private fun deliveryMethodsService(): Sep38Service {
+    val rate =
+      GetRateResponse.Rate.builder()
+        .id("123")
+        .price("1.02")
+        .sellAmount("103")
+        .buyAmount("100")
+        .expiresAt(Instant.now().plus(1, ChronoUnit.DAYS))
+        .fee(mockSellAssetFee(fiatUSD))
+        .build()
+    every { mockRateIntegration.getRate(any()) } returns GetRateResponse(rate)
+    every { mockQuoteStore.save(any()) } returns null
+    every { eventSession.publish(any()) } just Runs
+    return Sep38Service(
+      sep38Config,
+      DefaultAssetService.fromJsonResource("test_assets_sep38_delivery_methods.json"),
+      mockRateIntegration,
+      mockQuoteStore,
+      eventService,
+    )
+  }
+
+  private fun quoteRequest(
+    sellAsset: String,
+    buyAsset: String,
+    sellDeliveryMethod: String? = null,
+    buyDeliveryMethod: String? = null,
+  ) =
+    Sep38PostQuoteRequest.builder()
+      .context(SEP31)
+      .sellAssetName(sellAsset)
+      .sellAmount("103")
+      .sellDeliveryMethod(sellDeliveryMethod)
+      .buyAssetName(buyAsset)
+      .buyDeliveryMethod(buyDeliveryMethod)
+      .build()
+
+  private val eurFiat = "iso4217:EUR"
+
+  @Test
+  fun `test POST quote requires a delivery method when the sell asset lists two`() {
+    val service = deliveryMethodsService()
+    val ex =
+      assertThrows<BadRequestException> {
+        service.postQuote(createWebAuthJwt(ACCOUNT), quoteRequest(fiatUSD, stellarUSDC))
+      }
+    assertEquals("sell_delivery_method or buy_delivery_method is required", ex.message)
+  }
+
+  @Test
+  fun `test POST quote requires a delivery method when the buy asset lists two`() {
+    val service = deliveryMethodsService()
+    val ex =
+      assertThrows<BadRequestException> {
+        service.postQuote(createWebAuthJwt(ACCOUNT), quoteRequest(stellarUSDC, fiatUSD))
+      }
+    assertEquals("sell_delivery_method or buy_delivery_method is required", ex.message)
+  }
+
+  @Test
+  fun `test POST quote rejects both delivery methods`() {
+    val service = deliveryMethodsService()
+    val ex =
+      assertThrows<BadRequestException> {
+        service.postQuote(
+          createWebAuthJwt(ACCOUNT),
+          quoteRequest(fiatUSD, eurFiat, sellDeliveryMethod = "WIRE", buyDeliveryMethod = "SEPA"),
+        )
+      }
+    assertEquals(
+      "Please provide either sell_delivery_method or buy_delivery_method, not both",
+      ex.message,
+    )
+  }
+
+  @Test
+  fun `test POST quote accepts one listed sell delivery method and echoes it`() {
+    val service = deliveryMethodsService()
+    val response =
+      service.postQuote(
+        createWebAuthJwt(ACCOUNT),
+        quoteRequest(fiatUSD, stellarUSDC, sellDeliveryMethod = "WIRE"),
+      )
+    assertEquals("WIRE", response.sellDeliveryMethod)
+    assertNull(response.buyDeliveryMethod)
+  }
+
+  @Test
+  fun `test POST quote accepts one listed buy delivery method and echoes it`() {
+    val service = deliveryMethodsService()
+    val response =
+      service.postQuote(
+        createWebAuthJwt(ACCOUNT),
+        quoteRequest(stellarUSDC, fiatUSD, buyDeliveryMethod = "ACH"),
+      )
+    assertEquals("ACH", response.buyDeliveryMethod)
+    assertNull(response.sellDeliveryMethod)
+  }
+
+  @Test
+  fun `test POST quote needs no delivery method when the asset lists only one`() {
+    val service = deliveryMethodsService()
+    val response = service.postQuote(createWebAuthJwt(ACCOUNT), quoteRequest(eurFiat, stellarUSDC))
+    assertNull(response.sellDeliveryMethod)
+    assertNull(response.buyDeliveryMethod)
+  }
 }

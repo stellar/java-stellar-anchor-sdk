@@ -477,6 +477,22 @@ public class Sep38Service {
       }
     }
 
+    // SEP-38: provide either sell_delivery_method or buy_delivery_method, but not both. Unless the
+    // asset lists at most one method, one of them must be provided.
+    boolean hasSellDeliveryMethod =
+        !Objects.toString(request.getSellDeliveryMethod(), "").isEmpty();
+    boolean hasBuyDeliveryMethod = !Objects.toString(request.getBuyDeliveryMethod(), "").isEmpty();
+    if (hasSellDeliveryMethod && hasBuyDeliveryMethod) {
+      throw new BadRequestException(
+          "Please provide either sell_delivery_method or buy_delivery_method, not both");
+    }
+    if (!hasSellDeliveryMethod
+        && !hasBuyDeliveryMethod
+        && (listsMoreThanOne(sellAsset.getSellDeliveryMethods())
+            || listsMoreThanOne(buyAsset.getBuyDeliveryMethods()))) {
+      throw new BadRequestException("sell_delivery_method or buy_delivery_method is required");
+    }
+
     // validate countryCode
     if (!Objects.toString(request.getCountryCode(), "").isEmpty()) {
       List<String> sellCountryCodes = sellAsset.getCountryCodes();
@@ -523,6 +539,10 @@ public class Sep38Service {
     if (context == null || !List.of(SEP6, SEP24, SEP31).contains(context)) {
       throw new BadRequestException("Unsupported context. Should be one of [sep6, sep24, sep31].");
     }
+  }
+
+  private static boolean listsMoreThanOne(List<?> deliveryMethods) {
+    return deliveryMethods != null && deliveryMethods.size() > 1;
   }
 
   private String getTotalPrice(BigDecimal bSellAmount, BigDecimal bBuyAmount) {
