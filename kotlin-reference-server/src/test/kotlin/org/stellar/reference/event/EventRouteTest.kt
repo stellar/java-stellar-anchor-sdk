@@ -3,292 +3,184 @@ package org.stellar.reference.event
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.application.hooks.*
 import io.ktor.server.auth.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.*
-import java.time.Instant
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
+import io.mockk.coVerify
+import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Timeout
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.reference.di.AUTH_CONFIG_ENDPOINT
 
-@Timeout(60)
 class EventRouteTest {
-  private val maxBody = 1_048_576
+  private val eventService: EventService = mockk(relaxed = true)
 
-  // one timestamp per test instance: its string length must not change between two body() calls
-  private val timestamp = Instant.now().toString()
+  private val valid =
+    """{"id":"e1","type":"transaction_status_changed","timestamp":"2024-01-01T00:00:00Z",""" +
+      """"payload":{"transaction":{"id":"t1"}}}"""
 
-  private fun body(idPadding: Int = 0) =
-    """{"id":"evt-${"A".repeat(idPadding)}","type":"unsupported_type","timestamp":"$timestamp","payload":{}}"""
-
-  // A valid event body of exactly `size` bytes, padded through the id field.
-  private fun bodyOfSize(size: Int): String {
-    val padding = size - body().length
-    return body(padding).also { assertEquals(size, it.toByteArray().size) }
-  }
-
-  // `drainChannel = false` stalls the consumer: events pile up in `channel.send`.
-  private fun routeTest(
-    drainChannel: Boolean = true,
-    bodyReadTimeout: Duration = 10.seconds,
-    block: suspend ApplicationTestBuilder.(EventService) -> Unit
-  ) = testApplication {
-    val service = EventService(retainEvents = true)
+  private fun routeTest(block: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
     application {
-      install(ContentNegotiation) { json() }
-      // the production RequestExceptionHandlerPlugin turns handler exceptions into responses
-      install(
-        createApplicationPlugin("test-call-failed") {
-          on(CallFailed) { call, _ -> call.respond(HttpStatusCode.InternalServerError) }
-        }
-      )
       authentication { basic(AUTH_CONFIG_ENDPOINT) { skipWhen { true } } }
-      routing { event(service, enableTestEndpoints = true, bodyReadTimeout = bodyReadTimeout) }
+      routing { event(eventService, true) }
     }
-    val drain =
-      kotlinx.coroutines.CoroutineScope(Dispatchers.Default).launch {
-        if (drainChannel) service.channel.consumeEach {}
-      }
-    try {
-      block(service)
-    } finally {
-      drain.cancel()
-    }
+    block()
   }
 
-  @Test
-  fun `rejects a fixed-length body over 1 MiB with 413 and retains nothing`() =
-    routeTest { service ->
-      val response =
-        client.post("/event") {
-          contentType(ContentType.Application.Json)
-          setBody(bodyOfSize(maxBody + 1))
-        }
+  private fun body(vararg fields: String) = "{" + fields.joinToString(",") + "}"
 
-      assertEquals(HttpStatusCode.PayloadTooLarge, response.status)
-      assertEquals(0, service.getEvents(null).size)
+  private val id = """"id":"e1""""
+  private val type = """"type":"transaction_status_changed""""
+  private val timestamp = """"timestamp":"2024-01-01T00:00:00Z""""
+  private val payload = """"payload":{}"""
+
+  private suspend fun ApplicationTestBuilder.post(json: String) =
+    client.post("/event") {
+      contentType(ContentType.Application.Json)
+      setBody(json)
     }
 
   @Test
-  fun `rejects a chunked body growing past 1 MiB with 413 and retains nothing`() =
-    routeTest { service ->
-      val chunk = ByteArray(64 * 1024) { 'A'.code.toByte() }
-      val response =
-        client.post("/event") {
-          setBody(
-            object : OutgoingContent.WriteChannelContent() {
-              override val contentType = ContentType.Application.Json
-              // no contentLength: the server cannot rely on a Content-Length header
-              override suspend fun writeTo(channel: ByteWriteChannel) {
-                repeat(32) { channel.writeFully(chunk) }
-              }
-            }
-          )
-        }
-
-      assertEquals(HttpStatusCode.PayloadTooLarge, response.status)
-      assertEquals(0, service.getEvents(null).size)
-    }
-
-  @Test
-  fun `accepts a valid body of exactly 1 MiB and delivers it`() = routeTest { service ->
-    val response =
-      client.post("/event") {
-        contentType(ContentType.Application.Json)
-        setBody(bodyOfSize(maxBody))
-      }
-
-    assertEquals(HttpStatusCode.OK, response.status)
-    assertEquals(1, service.getEvents(null).size)
-  }
-
-  @Test
-  fun `accepts a typical event and answers with the unchanged body`() = routeTest { service ->
-    val response =
-      client.post("/event") {
-        contentType(ContentType.Application.Json)
-        setBody(body())
-      }
+  fun `valid event returns 200 and is processed`() = routeTest {
+    val response = post(valid)
 
     assertEquals(HttpStatusCode.OK, response.status)
     assertEquals("""{"code":200,"message":"event processed"}""", response.bodyAsText())
-    assertEquals(1, service.getEvents(null).size)
+    coVerify(exactly = 1) { eventService.processEvent(match { it.id == "e1" }) }
   }
 
   @Test
-  fun `retains at most 32 events when 33 bodies of exactly 1 MiB are posted`() =
-    routeTest { service ->
-      repeat(33) {
-        val response =
-          client.post("/event") {
-            contentType(ContentType.Application.Json)
-            setBody(bodyOfSize(maxBody))
-          }
-        assertEquals(HttpStatusCode.OK, response.status)
-      }
+  fun `payload with no inner fields is accepted`() = routeTest {
+    val response = post(body(id, type, timestamp, payload))
 
-      assertEquals(32, service.getEvents(null).size)
-    }
-
-  private suspend fun ApplicationTestBuilder.postEvent(payload: String) =
-    client.post("/event") {
-      contentType(ContentType.Application.Json)
-      setBody(payload)
-    }
-
-  @Test
-  fun `answers 503 with Retry-After to requests beyond 16 in flight and releases them later`() =
-    routeTest(drainChannel = false) { service ->
-      coroutineScope {
-        val calls = (1..40).map { async(Dispatchers.Default) { postEvent(body()) } }
-        // 24 are refused at once; the other 16 stay suspended in channel.send
-        withTimeout(10_000) { while (calls.count { it.isCompleted } < 24) delay(10) }
-        delay(300)
-        val refused = calls.filter { it.isCompleted }.map { it.await() }
-        assertEquals(24, refused.size)
-        assertEquals(24, refused.count { it.status == HttpStatusCode.ServiceUnavailable })
-        assertEquals(24, refused.count { it.headers[HttpHeaders.RetryAfter] == "1" })
-        assertEquals(0, service.getEvents(null).size)
-
-        // consume the 16 pending events: their permits come back and the next request is accepted
-        val pendingCalls = calls.filter { !it.isCompleted }
-        repeat(16) { withTimeout(5_000) { service.channel.receive() } }
-        // none of the 24 refused events was delivered
-        assertTrue(service.channel.tryReceive().isFailure)
-        val accepted = pendingCalls.map { it.await() }
-        assertEquals(16, accepted.size)
-        assertEquals(16, accepted.count { it.status == HttpStatusCode.OK })
-        val next = async(Dispatchers.Default) { postEvent(body()) }
-        withTimeout(5_000) { service.channel.receive() }
-        assertEquals(HttpStatusCode.OK, next.await().status)
-      }
-    }
-
-  // Sends a burst of 20 probes. Admitted ones stay suspended in `channel.send` (the consumer is
-  // stalled) and never complete, so one 503 proves that all 16 permits are taken.
-  private suspend fun CoroutineScope.awaitSaturated(post: suspend () -> HttpResponse) {
-    val probes = (1..20).map { async(Dispatchers.Default) { post() } }
-    withTimeout(10_000) {
-      while (
-        probes.none { it.isCompleted && it.await().status == HttpStatusCode.ServiceUnavailable }
-      ) delay(10)
-    }
-  }
-
-  // A body that sends 1 KiB and then never completes: reading it to the end blocks forever.
-  private fun stalledBody() =
-    object : OutgoingContent.WriteChannelContent() {
-      override val contentType = ContentType.Application.Json
-
-      override suspend fun writeTo(channel: ByteWriteChannel) {
-        channel.writeFully(ByteArray(1024) { 'A'.code.toByte() })
-        channel.flush()
-        awaitCancellation()
-      }
-    }
-
-  @Test
-  fun `refuses with 503 without reading the body once 16 are in flight`() =
-    routeTest(drainChannel = false) { _ ->
-      coroutineScope {
-        awaitSaturated { postEvent(body()) }
-        val stalledBody = stalledBody()
-
-        val response = withTimeout(5_000) { client.post("/event") { setBody(stalledBody) } }
-
-        assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
-        coroutineContext.cancelChildren()
-      }
-    }
-
-  @Test
-  fun `releases the permit after oversized and failing requests`() = routeTest { service ->
-    repeat(20) {
-      assertEquals(HttpStatusCode.PayloadTooLarge, postEvent(bodyOfSize(maxBody + 1)).status)
-    }
-    repeat(20) {
-      // invalid timestamp: processEvent throws after the permit was taken
-      val failing = body().replace(Regex("\"timestamp\":\"[^\"]*\""), "\"timestamp\":\"nope\"")
-      assertEquals(HttpStatusCode.InternalServerError, postEvent(failing).status)
-    }
-
-    assertEquals(HttpStatusCode.OK, postEvent(body()).status)
-    assertEquals(1, service.getEvents(null).size)
+    assertEquals(HttpStatusCode.OK, response.status)
+    coVerify(exactly = 1) { eventService.processEvent(any()) }
   }
 
   @Test
-  fun `answers 408 to a body that never completes and delivers nothing`() =
-    routeTest(drainChannel = false, bodyReadTimeout = 300.milliseconds) { service ->
-      val response = withTimeout(5_000) { client.post("/event") { setBody(stalledBody()) } }
+  fun `missing payload returns 400 and nothing is processed`() = routeTest {
+    val response = post(body(id, type, timestamp))
 
-      assertEquals(HttpStatusCode.RequestTimeout, response.status)
-      // the half-read request must not keep its connection
-      assertEquals("close", response.headers[HttpHeaders.Connection])
-      assertTrue(service.channel.tryReceive().isFailure)
-      assertEquals(0, service.getEvents(null).size)
-    }
-
-  @Test
-  fun `releases all 16 permits when 16 trickling bodies time out`() =
-    routeTest(bodyReadTimeout = 300.milliseconds) { service ->
-      coroutineScope {
-        val trickles =
-          (1..16).map {
-            async(Dispatchers.Default) { client.post("/event") { setBody(stalledBody()) } }
-          }
-        val responses = withTimeout(10_000) { trickles.awaitAll() }
-
-        assertEquals(16, responses.count { it.status == HttpStatusCode.RequestTimeout })
-        // every one of the 16 permits is back: 16 concurrent valid events, none refused with 503
-        val valid = (1..16).map { async(Dispatchers.Default) { postEvent(body()) } }
-        assertEquals(
-          16,
-          withTimeout(10_000) { valid.awaitAll() }.count { it.status == HttpStatusCode.OK }
-        )
-        assertEquals(16, service.getEvents(null).size)
-      }
-    }
+    assertEquals(HttpStatusCode.BadRequest, response.status)
+    assertEquals(
+      """{"code":400,"message":"Invalid event: payload is required"}""",
+      response.bodyAsText(),
+    )
+    coVerify(exactly = 0) { eventService.processEvent(any()) }
+  }
 
   @Test
-  fun `does not time out the wait for a stalled consumer once the body is complete`() =
-    routeTest(drainChannel = false, bodyReadTimeout = 300.milliseconds) { service ->
-      coroutineScope {
-        val call = async(Dispatchers.Default) { postEvent(body()) }
-        // well past the read timeout: the handler is waiting for the consumer, not reading
-        delay(1_500)
-        assertFalse(call.isCompleted)
+  fun `null payload returns 400`() = routeTest {
+    val response = post(body(id, type, timestamp, """"payload":null"""))
 
-        withTimeout(5_000) { service.channel.receive() }
-        assertEquals(HttpStatusCode.OK, withTimeout(5_000) { call.await() }.status)
-      }
-    }
+    assertEquals(HttpStatusCode.BadRequest, response.status)
+    assertEquals(
+      """{"code":400,"message":"Invalid event: payload is required"}""",
+      response.bodyAsText(),
+    )
+  }
 
   @Test
-  fun `defaults the body read timeout to 10 seconds`() {
-    assertEquals(10.seconds, EVENT_BODY_READ_TIMEOUT)
+  fun `missing id type or timestamp returns 400 naming the field`() = routeTest {
+    val cases =
+      mapOf(
+        body(type, timestamp, payload) to "id",
+        body(id, timestamp, payload) to "type",
+        body(id, type, payload) to "timestamp",
+      )
+    for ((json, field) in cases) {
+      val response = post(json)
+      assertEquals(HttpStatusCode.BadRequest, response.status)
+      assertEquals(
+        """{"code":400,"message":"Invalid event: $field is required"}""",
+        response.bodyAsText(),
+      )
+    }
+    coVerify(exactly = 0) { eventService.processEvent(any()) }
+  }
+
+  @Test
+  fun `several missing fields report the first in id type timestamp payload order`() = routeTest {
+    val response = post("{}")
+
+    assertEquals(
+      """{"code":400,"message":"Invalid event: id is required"}""",
+      response.bodyAsText(),
+    )
+  }
+
+  @Test
+  fun `unparseable timestamp returns 400`() = routeTest {
+    val response = post(body(id, type, """"timestamp":"yesterday"""", payload))
+
+    assertEquals(HttpStatusCode.BadRequest, response.status)
+    assertEquals(
+      """{"code":400,"message":"Invalid event: timestamp must be an ISO-8601 instant"}""",
+      response.bodyAsText(),
+    )
+    coVerify(exactly = 0) { eventService.processEvent(any()) }
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["not json", "null", "{\"id\":", "{\"payload\":\"text\"}"])
+  fun `malformed or null body returns 400`(json: String) = routeTest {
+    val response = post(json)
+
+    assertEquals(HttpStatusCode.BadRequest, response.status)
+    assertEquals(
+      """{"code":400,"message":"Invalid event: malformed JSON"}""",
+      response.bodyAsText(),
+    )
+    coVerify(exactly = 0) { eventService.processEvent(any()) }
+  }
+
+  // Both values are outside LocalDateTime's range in every time zone, so they do not flake on a
+  // differently configured machine (values near LocalDateTime.MIN/MAX depend on the zone offset).
+  @ParameterizedTest
+  @ValueSource(strings = ["+1000000000-12-31T23:59:59Z", "-1000000000-01-01T00:00:00Z"])
+  fun `timestamp outside LocalDateTime range returns 400`(ts: String) = routeTest {
+    val response = post(body(id, type, """"timestamp":"$ts"""", payload))
+
+    assertEquals(HttpStatusCode.BadRequest, response.status)
+    assertEquals(
+      """{"code":400,"message":"Invalid event: timestamp must be an ISO-8601 instant"}""",
+      response.bodyAsText(),
+    )
+    coVerify(exactly = 0) { eventService.processEvent(any()) }
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+    strings =
+      [
+        """"payload":{"transaction":{"id":"t","started_at":"garbage"}}""",
+        """"payload":{"transaction":{"id":"t","started_at":{}}}""",
+        """"payload":{"transaction":{"id":"t","transfer_received_at":"x"}}""",
+        """"payload":{"quote":{"id":"q","expires_at":"garbage"}}""",
+      ]
+  )
+  fun `invalid nested Instant field returns 400 malformed JSON`(payloadField: String) = routeTest {
+    val response = post(body(id, type, timestamp, payloadField))
+
+    assertEquals(HttpStatusCode.BadRequest, response.status)
+    assertEquals(
+      """{"code":400,"message":"Invalid event: malformed JSON"}""",
+      response.bodyAsText(),
+    )
+    coVerify(exactly = 0) { eventService.processEvent(any()) }
+  }
+
+  @Test
+  fun `empty body returns 400`() = routeTest {
+    val response = post("")
+
+    assertEquals(HttpStatusCode.BadRequest, response.status)
+    assertEquals(
+      """{"code":400,"message":"Invalid event: malformed JSON"}""",
+      response.bodyAsText(),
+    )
   }
 }

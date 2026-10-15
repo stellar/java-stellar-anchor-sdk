@@ -17,23 +17,24 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.data.SendEventRequest
 import org.stellar.reference.data.SendEventRequestPayload
 
 class EventServiceTest {
   private val cap = 10_000
-  private val byteCap = 33_554_432
   private val oneMiB = 1_048_576
 
   private fun event(
     id: String,
     type: String = "unsupported_type",
-    txnId: String? = null
+    txnId: String? = null,
+    timestamp: String = Instant.now().toString(),
   ): SendEventRequest =
     SendEventRequest(
       id = id,
       type = type,
-      timestamp = Instant.now().toString(),
+      timestamp = timestamp,
       payload =
         SendEventRequestPayload(
           transaction = txnId?.let { GetTransactionResponse.builder().id(it).build() },
@@ -41,6 +42,20 @@ class EventServiceTest {
           customer = null,
         )
     )
+
+  private fun serializedSize(e: SendEventRequest) =
+    GsonUtils.getInstance().toJson(e).toByteArray(Charsets.UTF_8).size
+
+  // An event whose JSON is exactly `size` bytes (the unit the byte cap counts), padded through the
+  // id. The timestamp is fixed because its string length would otherwise vary between calls.
+  private fun sizedEvent(index: Int, size: Int): SendEventRequest {
+    val timestamp = "2026-01-01T00:00:00Z"
+    val base = event("e$index:", timestamp = timestamp)
+    val padded = base.copy(id = base.id + "A".repeat(size - serializedSize(base)))
+    return padded.also { assertEquals(size, serializedSize(it)) }
+  }
+
+  private fun indexOf(e: SendEventRequest) = e.id.substringBefore(':')
 
   // Drains the rendezvous channel the way EventConsumer does and records what it delivered.
   private fun withService(
@@ -149,32 +164,32 @@ class EventServiceTest {
   @Test
   fun `keeps the newest 32 events when 40 events of 1 MiB are accepted`() =
     withService(retainEvents = true) { service, _ ->
-      repeat(40) { service.processEvent(event("e$it"), oneMiB) }
+      repeat(40) { service.processEvent(sizedEvent(it, oneMiB)) }
 
       val events = service.getEvents(null)
       assertEquals(32, events.size)
-      assertEquals("e8", events.first().id)
-      assertEquals("e39", events.last().id)
+      assertEquals("e8", indexOf(events.first()))
+      assertEquals("e39", indexOf(events.last()))
     }
 
   @Test
   fun `evicts nothing when retained bodies total exactly 32 MiB`() =
     withService(retainEvents = true) { service, _ ->
-      repeat(32) { service.processEvent(event("e$it"), oneMiB) }
+      repeat(32) { service.processEvent(sizedEvent(it, oneMiB)) }
 
       assertEquals(32, service.getEvents(null).size)
-      assertEquals("e0", service.getEvents(null).first().id)
+      assertEquals("e0", indexOf(service.getEvents(null).first()))
     }
 
   @Test
   fun `evicts the oldest as soon as retained bodies pass 32 MiB`() =
     withService(retainEvents = true) { service, _ ->
-      repeat(32) { service.processEvent(event("e$it"), oneMiB) }
-      service.processEvent(event("e32"), 1)
+      repeat(32) { service.processEvent(sizedEvent(it, oneMiB)) }
+      service.processEvent(event("e32"))
 
       val events = service.getEvents(null)
       assertEquals(32, events.size)
-      assertEquals("e1", events.first().id)
+      assertEquals("e1", indexOf(events.first()))
       assertEquals("e32", events.last().id)
     }
 
