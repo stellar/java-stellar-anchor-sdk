@@ -1,9 +1,14 @@
 package org.stellar.anchor.platform.integrationtest
 
+import com.google.gson.JsonParser
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.Executors
 import kotlin.test.assertEquals
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -256,5 +261,82 @@ class Sep38Tests : IntegrationTestBase(TestConfig()) {
     assert(error.message!!.contains("has already been used")) {
       "Expected 'has already been used' but got: ${error.message}"
     }
+  }
+
+  // --- raw HTTP: exact status and body, with or without a token ---
+
+  private val http = OkHttpClient()
+  private val quoteServer = toml.getString("ANCHOR_QUOTE_SERVER")
+
+  private fun raw(
+    method: String,
+    path: String,
+    authorization: String? = null,
+    json: String? = null,
+  ): Pair<Int, String> {
+    val builder = Request.Builder().url("$quoteServer$path")
+    if (authorization != null) builder.header("Authorization", authorization)
+    if (method == "POST") builder.post(json!!.toRequestBody("application/json".toMediaType()))
+    else builder.get()
+    http.newCall(builder.build()).execute().use { response ->
+      return Pair(response.code, response.body?.string() ?: "")
+    }
+  }
+
+  private val usdcAsset = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+  private val usdAsset = "iso4217:USD"
+  private val unknownQuoteId = "00000000-0000-4000-8000-000000000000"
+  private val quoteBody =
+    """{"sell_asset":"$usdAsset","sell_amount":"100","buy_asset":"$usdcAsset","context":"sep31"}"""
+
+  private fun assertForbidden(result: Pair<Int, String>) {
+    assertEquals(403, result.first, "answered ${result.first}: ${result.second}")
+    assertEquals(
+      JsonParser.parseString("""{"error":"forbidden"}"""),
+      JsonParser.parseString(result.second)
+    )
+  }
+
+  // SEP38AU-01
+  @Test
+  fun `test GET quote without an Authorization header is forbidden`() {
+    assertForbidden(raw("GET", "/quote/$unknownQuoteId"))
+    // the same request with the class JWT is authenticated: an unknown id is a 404, not a 403
+    assertEquals(404, raw("GET", "/quote/$unknownQuoteId", "Bearer ${this.token.token}").first)
+  }
+
+  // SEP38AU-02
+  @Test
+  fun `test GET quote with a bearer token that is not a JWT is forbidden`() {
+    assertForbidden(raw("GET", "/quote/$unknownQuoteId", "Bearer not-a-jwt"))
+  }
+
+  // SEP38AU-03
+  @Test
+  fun `test POST quote without an Authorization header is forbidden`() {
+    assertForbidden(raw("POST", "/quote", json = quoteBody))
+    // the same request with the class JWT creates a quote
+    assertEquals(201, raw("POST", "/quote", "Bearer ${this.token.token}", quoteBody).first)
+  }
+
+  // SEP38AU-04
+  @Test
+  fun `test POST quote with a bearer token that is not a JWT is forbidden`() {
+    assertForbidden(raw("POST", "/quote", "Bearer not-a-jwt", quoteBody))
+  }
+
+  // SEP38AU-05: sep38.auth_enforced defaults to false, so these three need no token.
+  @Test
+  fun `test info, prices and price answer 200 without an Authorization header`() {
+    assertEquals(200, raw("GET", "/info").first)
+    assertEquals(200, raw("GET", "/prices?sell_asset=$usdAsset&sell_amount=100").first)
+    assertEquals(
+      200,
+      raw(
+          "GET",
+          "/price?sell_asset=$usdAsset&sell_amount=100&buy_asset=$usdcAsset&context=sep31",
+        )
+        .first,
+    )
   }
 }
