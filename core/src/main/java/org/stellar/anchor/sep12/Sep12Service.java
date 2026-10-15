@@ -220,8 +220,13 @@ public class Sep12Service {
 
     boolean isMemoMissingAuthentication = false;
     String muxedAccountId = Objects.toString(token.getMuxedAccountId(), null);
+    boolean isOwnMuxedAddress =
+        muxedAccountId != null && Objects.equals(token.getMuxedAccount(), account);
     if (muxedAccountId != null) {
-      if (!Objects.equals(token.getMuxedAccount(), account)) {
+      if (isOwnMuxedAddress) {
+        // The muxed address already names the sub-account, so the memo may be left out.
+        isMemoMissingAuthentication = memo != null && !Objects.equals(muxedAccountId, memo);
+      } else {
         isMemoMissingAuthentication = !Objects.equals(muxedAccountId, memo);
       }
     } else if (token.getAccountMemo() != null) {
@@ -234,10 +239,27 @@ public class Sep12Service {
           String.format("Not authorized to delete account [%s] with memo [%s]", account, memo));
     }
 
+    // PUT stores a muxed caller's customer as (base account, muxed id, "id"); look it up the same
+    // way. A memo sent without its type is an id memo, as on GET and PUT.
+    String lookupAccount = account;
+    String lookupMemo = memo;
+    String lookupMemoType = memoType;
+    if (isOwnMuxedAddress) {
+      lookupAccount = token.getAccount();
+      lookupMemo = muxedAccountId;
+      lookupMemoType = MemoHelper.memoTypeAsString(MemoType.MEMO_ID);
+    } else if (memo != null && memoType == null) {
+      lookupMemoType = MemoHelper.memoTypeAsString(MemoType.MEMO_ID);
+    }
+
     boolean existingCustomerMatch = false;
     GetCustomerResponse existingCustomer =
         customerIntegration.getCustomer(
-            GetCustomerRequest.builder().account(account).memo(memo).memoType(memoType).build());
+            GetCustomerRequest.builder()
+                .account(lookupAccount)
+                .memo(lookupMemo)
+                .memoType(lookupMemoType)
+                .build());
     if (existingCustomer != null && existingCustomer.getId() != null) {
       existingCustomerMatch = true;
       customerIntegration.deleteCustomer(existingCustomer.getId());
@@ -245,7 +267,10 @@ public class Sep12Service {
 
     if (!existingCustomerMatch) {
       infoF(
-          "No existing customer found for account={} memo={} memoType={}", account, memo, memoType);
+          "No existing customer found for account={} memo={} memoType={}",
+          lookupAccount,
+          lookupMemo,
+          lookupMemoType);
       throw new SepNotFoundException("User not found.");
     }
 
