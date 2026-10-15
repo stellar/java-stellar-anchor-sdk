@@ -997,6 +997,114 @@ class Sep12ServiceTest {
     assertEquals(TEST_ACCOUNT, mockGetRequest.account)
   }
 
+  private fun captureGetCustomerRequest(): CapturingSlot<GetCustomerRequest> {
+    val slot = slot<GetCustomerRequest>()
+    every { customerIntegration.getCustomer(capture(slot)) } returns
+      GetCustomerResponse.builder().status(Sep12Status.NEEDS_INFO.name).build()
+    return slot
+  }
+
+  @Test
+  fun `test get customer without id, account or memo uses the memo of a memo token`() {
+    val slot = captureGetCustomerRequest()
+
+    sep12Service.getCustomer(
+      createJwtToken("$TEST_ACCOUNT:$TEST_MEMO"),
+      Sep12GetCustomerRequest.builder().type("sep24").build(),
+    )
+
+    assertEquals(
+      GetCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sep24")
+        .build(),
+      slot.captured,
+    )
+  }
+
+  @Test
+  fun `test get customer without id, account or memo uses the base account and muxed id of a muxed token`() {
+    val slot = captureGetCustomerRequest()
+
+    sep12Service.getCustomer(
+      createJwtToken(TEST_MUXED_ACCOUNT),
+      Sep12GetCustomerRequest.builder().type("sep24").build(),
+    )
+
+    assertEquals(
+      GetCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sep24")
+        .build(),
+      slot.captured,
+    )
+  }
+
+  @Test
+  fun `test get customer with the token memo sent explicitly resolves the same customer`() {
+    val slot = captureGetCustomerRequest()
+
+    sep12Service.getCustomer(
+      createJwtToken("$TEST_ACCOUNT:$TEST_MEMO"),
+      Sep12GetCustomerRequest.builder().memo(TEST_MEMO).type("sep24").build(),
+    )
+
+    assertEquals(
+      GetCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sep24")
+        .build(),
+      slot.captured,
+    )
+  }
+
+  @Test
+  fun `test get customer with an explicit account and no memo is refused for a memo token`() {
+    val ex: SepNotAuthorizedException = assertThrows {
+      sep12Service.getCustomer(
+        createJwtToken("$TEST_ACCOUNT:$TEST_MEMO"),
+        Sep12GetCustomerRequest.builder().account(TEST_ACCOUNT).type("sep24").build(),
+      )
+    }
+
+    assertEquals("The memo specified does not match the memo ID authorized via SEP-10", ex.message)
+    verify(exactly = 0) { customerIntegration.getCustomer(any()) }
+  }
+
+  @Test
+  fun `test get customer with a memo other than the token memo is refused`() {
+    val ex: SepNotAuthorizedException = assertThrows {
+      sep12Service.getCustomer(
+        createJwtToken("$TEST_ACCOUNT:$TEST_MEMO"),
+        Sep12GetCustomerRequest.builder().memo("bar").type("sep24").build(),
+      )
+    }
+
+    assertEquals("The memo specified does not match the memo ID authorized via SEP-10", ex.message)
+    verify(exactly = 0) { customerIntegration.getCustomer(any()) }
+  }
+
+  @Test
+  fun `test get customer without id, account or memo leaves the memo empty for a memo-less token`() {
+    val slot = captureGetCustomerRequest()
+
+    sep12Service.getCustomer(
+      createJwtToken(TEST_ACCOUNT),
+      Sep12GetCustomerRequest.builder().type("sep24").build(),
+    )
+
+    assertEquals(
+      GetCustomerRequest.builder().account(TEST_ACCOUNT).type("sep24").build(),
+      slot.captured,
+    )
+  }
+
   @Test
   fun `Test get customer request with id injects account`() {
     val callbackApiGetRequestSlot = slot<GetCustomerRequest>()

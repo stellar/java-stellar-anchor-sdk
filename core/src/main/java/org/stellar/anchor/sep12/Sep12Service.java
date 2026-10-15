@@ -59,13 +59,8 @@ public class Sep12Service {
 
   public Sep12GetCustomerResponse getCustomer(WebAuthJwt token, Sep12GetCustomerRequest request)
       throws AnchorException {
+    fillIdentityFromToken(request, token);
     validateGetOrPutRequest(request, token);
-    if (request.getAccount() == null
-        && token.getAccount() != null
-        && request.getId() == null
-        && request.getTransactionId() == null) {
-      request.setAccount(token.getAccount());
-    }
 
     GetCustomerResponse response =
         customerIntegration.getCustomer(GetCustomerRequest.from(request));
@@ -81,17 +76,7 @@ public class Sep12Service {
 
     boolean isNewCustomer = request.getId() == null && request.getTransactionId() == null;
 
-    if (request.getAccount() == null
-        && token.getAccount() != null
-        && request.getId() == null
-        && request.getTransactionId() == null) {
-      request.setAccount(token.getAccount());
-
-      if (request.getMemo() == null && token.getOwnerMemo() != null) {
-        request.setMemo(token.getOwnerMemo());
-        request.setMemoType(MemoHelper.memoTypeAsString(MemoType.MEMO_ID));
-      }
-    }
+    fillIdentityFromToken(request, token);
 
     validateGetOrPutRequest(request, token);
 
@@ -206,6 +191,24 @@ public class Sep12Service {
     // increment counter
     sep12PutCustomerCounter.increment();
     return Sep12PutCustomerResponse.builder().id(updatedCustomer.getId()).build();
+  }
+
+  /**
+   * A request that names no customer means the one the token identifies: its account and, when the
+   * token carries a memo or a muxed id, that memo.
+   */
+  private static void fillIdentityFromToken(Sep12CustomerRequestBase request, WebAuthJwt token) {
+    if (request.getAccount() == null
+        && token.getAccount() != null
+        && request.getId() == null
+        && request.getTransactionId() == null) {
+      request.setAccount(token.getAccount());
+
+      if (request.getMemo() == null && token.getOwnerMemo() != null) {
+        request.setMemo(token.getOwnerMemo());
+        request.setMemoType(MemoHelper.memoTypeAsString(MemoType.MEMO_ID));
+      }
+    }
   }
 
   public void deleteCustomer(WebAuthJwt token, String account, String memo, String memoType)
