@@ -422,4 +422,88 @@ class Sep38Tests : IntegrationTestBase(TestConfig()) {
         assertSepFormulas(sep38Client.getPrice(sell, null, buy, SEP31, buyAmount = "100"))
       }
   }
+
+  // --- quotes and prices agree ---
+
+  private fun assertSameAmounts(
+    expected: org.stellar.anchor.api.sep.sep38.GetPriceResponse,
+    actual: org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse,
+  ) {
+    assertDec(expected.sellAmount!!, actual.sellAmount, "sell_amount")
+    assertDec(expected.buyAmount!!, actual.buyAmount, "buy_amount")
+    assertDec(expected.price!!, actual.price, "price")
+    assertDec(expected.totalPrice!!, actual.totalPrice, "total_price")
+    assertDec(expected.fee.total, actual.fee.total, "fee.total")
+    assertEquals(expected.fee.asset, actual.fee.asset)
+  }
+
+  private fun assertFeeDetailsSumToTotal(fee: org.stellar.anchor.api.shared.FeeDetails) {
+    val sum =
+      (fee.details ?: emptyList())
+        .map { dec(it.amount) }
+        .fold(java.math.BigDecimal.ZERO) { acc, amount -> acc.add(amount) }
+    assertDec(sum.toPlainString(), fee.total, "fee.details[] sum vs fee.total")
+  }
+
+  // SEP38PM-06
+  @Test
+  fun `test POST quote by sell_amount agrees with GET price for the same input`() {
+    val price = sep38Client.getPrice(usdAsset, "100", usdcAsset, SEP31)
+    val quote = sep38Client.postQuote(usdAsset, "100", usdcAsset, SEP31)
+
+    assertSameAmounts(price, quote)
+  }
+
+  // SEP38PM-07
+  @Test
+  fun `test POST quote by buy_amount matches the hand-computed amounts and the formulas`() {
+    val quote = sep38Client.postQuote(usdAsset, null, usdcAsset, SEP31, buyAmount = "100")
+
+    assertDec("100", quote.buyAmount, "buy_amount")
+    assertDec("103", quote.sellAmount, "sell_amount")
+    assertDec("1.02", quote.price, "price")
+    assertDec("1.03", quote.totalPrice, "total_price")
+    assertSepFormulas(
+      org.stellar.anchor.api.sep.sep38.GetPriceResponse.builder()
+        .price(quote.price)
+        .totalPrice(quote.totalPrice)
+        .sellAmount(quote.sellAmount)
+        .buyAmount(quote.buyAmount)
+        .fee(quote.fee)
+        .build()
+    )
+  }
+
+  // SEP38PM-05
+  @Test
+  fun `test fee details sum to the fee total on GET price, POST quote and GET quote`() {
+    val price = sep38Client.getPrice(usdAsset, "100", usdcAsset, SEP31)
+    val quote = sep38Client.postQuote(usdAsset, "100", usdcAsset, SEP31)
+    val fetched = sep38Client.getQuote(quote.id)
+
+    assertFeeDetailsSumToTotal(price.fee)
+    assertFeeDetailsSumToTotal(quote.fee)
+    assertFeeDetailsSumToTotal(fetched.fee)
+    assertEquals(1, quote.fee.details.size) // the "Sell fee" of 1.00, so the sum is not vacuous
+  }
+
+  // SEP38PM-08
+  @Test
+  fun `test GET prices lists the exchangeable assets and agrees with GET price`() {
+    val prices = sep38Client.getPrices(usdAsset, "100")
+
+    val wantDecimals =
+      mapOf(
+        "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP" to 7,
+        "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5" to 4,
+        "stellar:native" to 7,
+      )
+    assertEquals(wantDecimals.keys, prices.buyAssets.map { it.asset }.toSet())
+    assertEquals(3, prices.buyAssets.size)
+    prices.buyAssets.forEach { entry ->
+      assertEquals(wantDecimals[entry.asset], entry.decimals, "decimals of ${entry.asset}")
+      val price = sep38Client.getPrice(usdAsset, "100", entry.asset, SEP31)
+      assertDec(price.price!!, entry.price, "price of ${entry.asset}")
+    }
+  }
 }
