@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import java.time.Clock
 import java.time.Instant
+import java.time.ZoneOffset
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -596,5 +597,41 @@ class ExchangeAmountsCalculatorTest {
       ownedQuote().apply { transactionId = "existing-txn-id" }
     val ex = assertThrows<BadRequestException> { calculateAs(ownerToken) }
     assertEquals("quote(id=id) has already been used", ex.message)
+  }
+
+  // --- expiry (SEP38EX): an expired quote is rejected with its exact message; the instant of
+  // expiry itself counts as expired ---
+
+  private val fixedNow = Instant.parse("2030-01-01T00:00:00Z")
+
+  private fun calculatorAtFixedNow() =
+    ExchangeAmountsCalculator(sep38QuoteStore, Clock.fixed(fixedNow, ZoneOffset.UTC))
+
+  private fun calculateOwnedQuoteExpiringAt(expiresAt: Instant) =
+    calculatorAtFixedNow()
+      .also {
+        every { sep38QuoteStore.findByQuoteId("id") } returns
+          ownedQuote().apply { this.expiresAt = expiresAt }
+      }
+      .calculateFromQuote("id", ownerToken, assetService.getAsset("USDC"), null, "100", null, null)
+
+  @Test
+  fun `test an expired quote of the caller is rejected with the expiry message`() {
+    val ex =
+      assertThrows<BadRequestException> {
+        calculateOwnedQuoteExpiringAt(Instant.parse("2000-01-01T00:00:00Z"))
+      }
+    assertEquals("quote(id=id) has expired at 2000-01-01T00:00:00Z", ex.message)
+  }
+
+  @Test
+  fun `test a quote whose expires_at equals the clock instant is expired`() {
+    val ex = assertThrows<BadRequestException> { calculateOwnedQuoteExpiringAt(fixedNow) }
+    assertEquals("quote(id=id) has expired at 2030-01-01T00:00:00Z", ex.message)
+  }
+
+  @Test
+  fun `test a quote expiring one second after the clock instant is accepted`() {
+    assertEquals("100", calculateOwnedQuoteExpiringAt(fixedNow.plusSeconds(1)).amountIn)
   }
 }
