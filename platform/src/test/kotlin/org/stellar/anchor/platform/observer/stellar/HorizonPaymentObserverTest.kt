@@ -322,6 +322,41 @@ class HorizonPaymentObserverTest {
     }
   }
 
+  @Test
+  fun `processOperation keeps the cursor and goes to PUBLISHER_ERROR when a listener throws IOException`() {
+    val listener = mockk<PaymentListener>()
+    every { listener.onReceived(any()) } throws IOException("lookup failed")
+    val retryingObserver =
+      HorizonPaymentObserver(
+        horizon,
+        StellarPaymentObserverConfig().apply {
+          initialEventBackoffTime = 500
+          maxEventBackoffTime = 5000
+          initialStreamBackoffTime = 1000
+          maxStreamBackoffTime = 10000
+        },
+        listOf(listener),
+        paymentObservingAccountsManager,
+        paymentStreamerCursorStore,
+      )
+    val op = mockk<PaymentOperationResponse>()
+    every { op.to } returns KeyPair.random().accountId
+    every { op.from } returns KeyPair.random().accountId
+    every { op.asset } returns Asset.createNativeAsset()
+    every { op.amount } returns "100.0"
+    every { op.id } returns 123L
+    every { op.pagingToken } returns "123"
+    every { op.transactionHash } returns "txHash"
+    every { paymentObservingAccountsManager.lookupAndUpdate(any()) } returns true
+    every { horizon.getTransaction(any()) } returns mockk()
+
+    retryingObserver.processOperation(op)
+
+    verify(exactly = 1) { listener.onReceived(any()) }
+    verify(exactly = 0) { paymentStreamerCursorStore.saveHorizonCursor(any()) }
+    assertEquals(AbstractPaymentObserver.ObserverStatus.PUBLISHER_ERROR, retryingObserver.status)
+  }
+
   private fun observerWith(listener: PaymentListener): HorizonPaymentObserver =
     HorizonPaymentObserver(
       horizon,

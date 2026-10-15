@@ -7,13 +7,20 @@ import io.mockk.impl.annotations.MockK
 import java.io.IOException
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.sql.SQLException
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.dao.InvalidDataAccessResourceUsageException
+import org.springframework.dao.QueryTimeoutException
+import org.springframework.jdbc.CannotGetJdbcConnectionException
+import org.springframework.transaction.CannotCreateTransactionException
 import org.stellar.anchor.api.asset.AssetInfo
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.apiclient.PlatformApiClient
@@ -29,6 +36,7 @@ import org.stellar.anchor.util.AssetHelper.fromXdrAmount
 import org.stellar.anchor.util.AssetHelper.getSep11AssetName
 import org.stellar.anchor.util.Log
 import org.stellar.sdk.MuxedAccount
+import org.stellar.sdk.StrKey
 import org.stellar.sdk.TOID
 import org.stellar.sdk.xdr.Asset
 import org.stellar.sdk.xdr.AssetType.ASSET_TYPE_POOL_SHARE
@@ -327,6 +335,48 @@ class DefaultPaymentListenerTest {
   }
 
   @Test
+  fun `test onReceived() ignores a SEP-24 payment whose stored amountExpected is out of range and still processes the next payment`() {
+    val event = createTestTransferEvent()
+    val payment = event.ledgerTransaction.operations[0].paymentOperation
+    xdrMemoText.text = XdrString("my_memo_1")
+    event.ledgerTransaction.memo = xdrMemoText
+
+    // 1e20000000 is far above the payment, so checkAssetAmountSufficient tries to format it
+    val poisoned = JdbcSep24Transaction()
+    poisoned.id = "poisoned"
+    poisoned.kind = "withdrawal"
+    poisoned.amountInAsset = "stellar:" + getSep11AssetName(payment.asset)
+    poisoned.amountExpected = "1e20000000"
+
+    val valid = JdbcSep24Transaction()
+    valid.id = "valid"
+    valid.kind = "withdrawal"
+    valid.amountInAsset = "stellar:" + getSep11AssetName(payment.asset)
+    valid.amountExpected = fromXdrAmount(payment.amount)
+
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      emptyList()
+    every {
+      sep6TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
+    } returns emptyList()
+    every {
+      sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
+    } returns listOf(poisoned) andThen listOf(valid)
+
+    assertDoesNotThrow { paymentListener.onReceived(event) }
+    verify(exactly = 0) { platformApiClient.notifyOnchainFundsReceived(any(), any(), any(), any()) }
+
+    // the same listener keeps processing: the next payment, with a valid stored amount, is credited
+    assertDoesNotThrow { paymentListener.onReceived(event) }
+    verify(exactly = 1) {
+      platformApiClient.notifyOnchainFundsReceived("valid", any(), any(), any())
+    }
+    verify(exactly = 0) {
+      platformApiClient.notifyOnchainFundsReceived("poisoned", any(), any(), any())
+    }
+  }
+
+  @Test
   fun `test handleSep6Transaction are called properly`() {
     val event = createTestTransferEvent()
     val ledgerTransaction = event.ledgerTransaction
@@ -367,6 +417,129 @@ class DefaultPaymentListenerTest {
     assertEquals("my_memo_1", slotMemo.captured)
     assertEquals("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364", slotAccount.captured)
     assertEquals("pending_user_transfer_start", slotStatus.captured)
+  }
+
+  @Test
+  fun `test validate() rejects a text memo containing a NUL byte and counts the skip`() {
+    val event = createEventWithTextMemo("ab\u0000c")
+    val payment = event.ledgerTransaction.operations[0].paymentOperation
+
+    val registry = withMetrics {
+      assertFalse(paymentListener.validate(event.ledgerTransaction, payment, event))
+    }
+
+    assertEquals(
+      1.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+    )
+  }
+
+  @Test
+  fun `test onReceived() does not query any transaction store for a text memo containing a NUL byte`() {
+    val event = createEventWithTextMemo("ab\u0000c")
+
+    assertDoesNotThrow { paymentListener.onReceived(event) }
+
+    verify { sep31TransactionStore wasNot Called }
+    verify { sep24TransactionStore wasNot Called }
+    verify { sep6TransactionStore wasNot Called }
+    verify(exactly = 0) { platformApiClient.notifyOnchainFundsReceived(any(), any(), any(), any()) }
+  }
+
+  @Test
+  fun `test onReceived() routes a contract-to-muxed payment with a NUL text memo by the muxed id`() {
+    val event = createEventWithTextMemo("ab\u0000c")
+    val payment = event.ledgerTransaction.operations[0].paymentOperation
+    payment.from = StrKey.encodeContract(ByteArray(32))
+    payment.to =
+      MuxedAccount(
+          "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+          BigInteger.valueOf(42)
+        )
+        .address
+    // The database rejects a NUL in a text parameter.
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), "ab\u0000c", any())
+    } throws DataIntegrityViolationException("invalid byte sequence")
+
+    val registry = withMetrics { assertDoesNotThrow { paymentListener.onReceived(event) } }
+
+    verify(exactly = 0) {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), "ab\u0000c", any())
+    }
+    verify(exactly = 1) {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "42",
+        "pending_sender",
+      )
+    }
+    verify(exactly = 1) {
+      sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "42",
+        "pending_user_transfer_start",
+      )
+    }
+    assertEquals(
+      0.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+    )
+  }
+
+  @Test
+  fun `test onReceived() still queries the SEP-31 store for an ordinary text memo`() {
+    val event = createEventWithTextMemo("ordinary_memo")
+
+    paymentListener.onReceived(event)
+
+    verify(exactly = 1) {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "ordinary_memo",
+        "pending_sender",
+      )
+    }
+  }
+
+  /** Runs [block] with a fresh meter registry attached and returns that registry. */
+  private fun withMetrics(block: () -> Unit): SimpleMeterRegistry {
+    val registry = SimpleMeterRegistry()
+    Metrics.addRegistry(registry)
+    try {
+      block()
+    } finally {
+      Metrics.removeRegistry(registry)
+    }
+    return registry
+  }
+
+  private fun createEventWithTextMemo(memo: String): PaymentTransferEvent {
+    val event = createTestTransferEvent()
+    xdrMemoText.text = XdrString(memo)
+    event.ledgerTransaction.memo = xdrMemoText
+    return event
+  }
+
+  /**
+   * Asserts that [onReceived][DefaultPaymentListener.onReceived] fails with an IOException caused
+   * by [cause], counts exactly one `lookup_failed` for [sep], and does not count a skipped event.
+   */
+  private fun assertLookupHeld(event: PaymentTransferEvent, cause: Throwable, sep: String) {
+    lateinit var thrown: IOException
+    val registry = withMetrics {
+      thrown = assertThrows(IOException::class.java) { paymentListener.onReceived(event) }
+    }
+
+    assertSame(cause, thrown.cause)
+    assertEquals(
+      1.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_LOOKUP_FAILED.toString(), "sep", sep).count(),
+    )
+    assertEquals(
+      0.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+    )
   }
 
   private val ledgerSequence = 1234567
@@ -600,7 +773,12 @@ class DefaultPaymentListenerTest {
       )
     } throws RuntimeException("Something went wrong")
 
-    paymentListener.onReceived(event)
+    val registry = withMetrics { paymentListener.onReceived(event) }
+
+    assertEquals(
+      1.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+    )
 
     verify(exactly = 1) {
       sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
@@ -637,7 +815,12 @@ class DefaultPaymentListenerTest {
       )
     } throws RuntimeException("Something went wrong")
 
-    paymentListener.onReceived(event)
+    val registry = withMetrics { paymentListener.onReceived(event) }
+
+    assertEquals(
+      1.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+    )
 
     verify(exactly = 1) {
       sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
@@ -677,7 +860,12 @@ class DefaultPaymentListenerTest {
       )
     } throws RuntimeException("Something went wrong")
 
-    paymentListener.onReceived(event)
+    val registry = withMetrics { paymentListener.onReceived(event) }
+
+    assertEquals(
+      1.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+    )
 
     verify(exactly = 1) {
       sep6TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
@@ -693,6 +881,489 @@ class DefaultPaymentListenerTest {
         ledgerTransaction.operations[0].paymentOperation,
         any(),
       )
+    }
+  }
+
+  @Test
+  fun `test if the Sep31 lookup throws a non-database error, the Sep24 and Sep6 lookups still run`() {
+    val event = createEventWithTextMemo("my_memo_3")
+
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } throws
+      IllegalArgumentException("bad data")
+
+    val registry = withMetrics { paymentListener.onReceived(event) }
+
+    verify(exactly = 1) {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any())
+    }
+    verify(exactly = 1) {
+      sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "my_memo_3",
+        "pending_user_transfer_start",
+      )
+    }
+    verify(exactly = 1) {
+      sep6TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "my_memo_3",
+        "pending_user_transfer_start",
+      )
+    }
+    assertEquals(
+      1.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+    )
+  }
+
+  @Test
+  fun `test the lookup failed counter keeps the metric name operators alert on`() {
+    assertEquals(
+      "payment_observer.lookup_failed",
+      AnchorMetrics.PAYMENT_OBSERVER_LOOKUP_FAILED.toString(),
+    )
+  }
+
+  @Test
+  fun `test onReceived() holds the payment when the Sep31 lookup throws a QueryTimeoutException`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val cause = QueryTimeoutException("timeout")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } throws
+      cause
+
+    assertLookupHeld(event, cause, "31")
+  }
+
+  @Test
+  fun `test onReceived() holds the payment when the Sep24 lookup throws a QueryTimeoutException`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val cause = QueryTimeoutException("timeout")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      emptyList()
+    every {
+      sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
+    } throws cause
+
+    assertLookupHeld(event, cause, "24")
+  }
+
+  @Test
+  fun `test onReceived() holds the payment when the Sep6 lookup throws a QueryTimeoutException`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val cause = QueryTimeoutException("timeout")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      emptyList()
+    every {
+      sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
+    } returns emptyList()
+    every {
+      sep6TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(any(), any(), any())
+    } throws cause
+
+    assertLookupHeld(event, cause, "6")
+  }
+
+  @Test
+  fun `test onReceived() holds the payment on the permission error from the reported PoC and runs no later lookup`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val cause = InvalidDataAccessResourceUsageException("permission denied for table")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } throws
+      cause
+
+    assertLookupHeld(event, cause, "31")
+
+    verify { sep24TransactionStore wasNot Called }
+    verify { sep6TransactionStore wasNot Called }
+    verify(exactly = 0) { platformApiClient.notifyOnchainFundsReceived(any(), any(), any(), any()) }
+  }
+
+  @Test
+  fun `test onReceived() holds the payment when the lookup throws a TransactionException`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val cause = CannotCreateTransactionException("could not open connection")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } throws
+      cause
+
+    assertLookupHeld(event, cause, "31")
+  }
+
+  @Test
+  fun `test onReceived() holds the payment when the muxed fallback lookup throws a DataAccessException`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val muxedTo =
+      MuxedAccount(
+          "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+          BigInteger.valueOf(42)
+        )
+        .address
+    event.ledgerTransaction.operations[0].paymentOperation.to = muxedTo
+    val cause = QueryTimeoutException("timeout")
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(muxedTo, "my_memo_5", any())
+    } returns emptyList()
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "42",
+        any(),
+      )
+    } throws cause
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    } throws cause
+
+    assertLookupHeld(event, cause, "31")
+  }
+
+  @Test
+  fun `test onReceived() credits a payment exactly once when the database recovers on the retry`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } throws
+      CannotGetJdbcConnectionException("pool exhausted", SQLException("timeout")) andThen
+      listOf(JdbcSep31Transaction().apply { id = "sep31-retried" })
+    every { paymentListener.checkAssetAmountSufficient(any(), any(), any(), any()) } returns true
+
+    assertThrows(IOException::class.java) { paymentListener.onReceived(event) }
+    verify(exactly = 0) { platformApiClient.notifyOnchainFundsReceived(any(), any(), any(), any()) }
+
+    paymentListener.onReceived(event)
+
+    verify(exactly = 1) {
+      platformApiClient.notifyOnchainFundsReceived(
+        "sep31-retried",
+        event.ledgerTransaction.hash,
+        any(),
+        any(),
+      )
+    }
+  }
+
+  @Test
+  fun `test onReceived() rethrows a failed platform notification unchanged and does not count a lookup failure`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      listOf(JdbcSep31Transaction().apply { id = "sep31-id" })
+    every { paymentListener.handleSep31Transaction(any(), any(), any()) } throws
+      IOException("platform unavailable")
+
+    val registry = withMetrics {
+      val thrown = assertThrows(IOException::class.java) { paymentListener.onReceived(event) }
+      assertEquals("platform unavailable", thrown.message)
+    }
+
+    assertEquals(
+      0.0,
+      registry
+        .counter(AnchorMetrics.PAYMENT_OBSERVER_LOOKUP_FAILED.toString(), "sep", "31")
+        .count(),
+    )
+  }
+
+  @Test
+  fun `test onReceived() holds the payment when the probe fails with a non-database error`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val cause = QueryTimeoutException("timeout")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } throws
+      cause
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    } throws IllegalStateException("probe failed")
+
+    assertLookupHeld(event, cause, "31")
+  }
+
+  @Test
+  fun `test onReceived() credits the payment without a hold or a skip when the retry succeeds after the probe`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } throws
+      QueryTimeoutException("timeout") andThen
+      listOf(JdbcSep31Transaction().apply { id = "sep31-blip" })
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    } returns emptyList()
+    every { paymentListener.checkAssetAmountSufficient(any(), any(), any(), any()) } returns true
+
+    val registry = withMetrics { paymentListener.onReceived(event) }
+
+    verify(exactly = 1) {
+      platformApiClient.notifyOnchainFundsReceived(
+        "sep31-blip",
+        event.ledgerTransaction.hash,
+        any(),
+        any(),
+      )
+    }
+    assertEquals(
+      0.0,
+      registry
+        .counter(AnchorMetrics.PAYMENT_OBSERVER_LOOKUP_FAILED.toString(), "sep", "31")
+        .count(),
+    )
+    assertEquals(
+      0.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+    )
+  }
+
+  @Test
+  fun `test onReceived() skips a payment whose own input breaks the Sep31 lookup and still runs the later lookups`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), "my_memo_5", any())
+    } throws DataIntegrityViolationException("bad parameter")
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    } returns emptyList()
+
+    val registry = withMetrics { assertDoesNotThrow { paymentListener.onReceived(event) } }
+
+    verify(exactly = 0) { platformApiClient.notifyOnchainFundsReceived(any(), any(), any(), any()) }
+    assertEquals(
+      1.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+    )
+    assertEquals(
+      0.0,
+      registry
+        .counter(AnchorMetrics.PAYMENT_OBSERVER_LOOKUP_FAILED.toString(), "sep", "31")
+        .count(),
+    )
+    verify(exactly = 1) {
+      sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "my_memo_5",
+        "pending_user_transfer_start",
+      )
+    }
+    verify(exactly = 1) {
+      sep6TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "my_memo_5",
+        "pending_user_transfer_start",
+      )
+    }
+  }
+
+  @Test
+  fun `test the probe repeats the same Sep24 lookup with the same account and status and the fixed memo`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } returns
+      emptyList()
+    every {
+      sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
+        any(),
+        "my_memo_5",
+        any()
+      )
+    } throws DataIntegrityViolationException("bad parameter")
+    every {
+      sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    } returns emptyList()
+
+    paymentListener.onReceived(event)
+
+    verify(exactly = 2) {
+      sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        "pending_user_transfer_start",
+      )
+    }
+    verify(exactly = 2) {
+      sep24TransactionStore.findAllByWithdrawAnchorAccountAndMemoAndStatus(
+        "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "my_memo_5",
+        "pending_user_transfer_start",
+      )
+    }
+  }
+
+  @Test
+  fun `test a skipped poison payment is logged at ERROR with its identifiers`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), "my_memo_5", any())
+    } throws DataIntegrityViolationException("bad parameter")
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    } returns emptyList()
+
+    mockkStatic(Log::class)
+    try {
+      every { Log.debugF(any(), *anyVararg()) } just Runs
+      every { Log.errorF(any(), *anyVararg()) } just Runs
+
+      paymentListener.onReceived(event)
+
+      verify(exactly = 1) {
+        Log.errorF(
+          match { it.contains("this payment only") },
+          "31",
+          event.ledgerTransaction.hash,
+          event.operationId,
+          "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        )
+      }
+    } finally {
+      unmockkStatic(Log::class)
+    }
+  }
+
+  @Test
+  fun `test onReceived() runs no probe when the lookup finds nothing`() {
+    val event = createEventWithTextMemo("my_memo_5")
+
+    paymentListener.onReceived(event)
+
+    verify(exactly = 0) {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    }
+    verify(exactly = 1) {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any())
+    }
+  }
+
+  @Test
+  fun `test onReceived() treats a DataAccessException wrapped in another RuntimeException as a non-database failure`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } throws
+      RuntimeException("wrapped", QueryTimeoutException("timeout"))
+
+    val registry = withMetrics { assertDoesNotThrow { paymentListener.onReceived(event) } }
+
+    assertEquals(
+      1.0,
+      registry.counter(AnchorMetrics.PAYMENT_OBSERVER_EVENT_SKIPPED.toString()).count(),
+    )
+    assertEquals(
+      0.0,
+      registry
+        .counter(AnchorMetrics.PAYMENT_OBSERVER_LOOKUP_FAILED.toString(), "sep", "31")
+        .count(),
+    )
+    verify(exactly = 1) {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any())
+    }
+  }
+
+  @Test
+  fun `test onReceived() holds the payment when the database fails again on the probe after the retry`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val cause = QueryTimeoutException("timeout")
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), "my_memo_5", any())
+    } throws cause
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    } returns emptyList() andThenThrows IllegalStateException("database failed again")
+
+    assertLookupHeld(event, cause, "31")
+
+    verify(exactly = 2) {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    }
+  }
+
+  @Test
+  fun `test onReceived() holds a connection failure on the retry without a second probe`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val cause = CannotGetJdbcConnectionException("pool exhausted", SQLException("timeout"))
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), "my_memo_5", any())
+    } throws QueryTimeoutException("timeout") andThenThrows cause
+    every {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    } returns emptyList()
+
+    assertLookupHeld(event, cause, "31")
+
+    verify(exactly = 1) {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    }
+  }
+
+  @Test
+  fun `test onReceived() holds a connection failure without running a probe`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val cause = CannotGetJdbcConnectionException("pool exhausted", SQLException("timeout"))
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } throws
+      cause
+
+    assertLookupHeld(event, cause, "31")
+
+    verify(exactly = 0) {
+      sep31TransactionStore.findAllByToAccountAndMemoAndStatus(
+        any(),
+        DefaultPaymentListener.LOOKUP_PROBE_MEMO,
+        any(),
+      )
+    }
+  }
+
+  @Test
+  fun `test a held payment logs the root-cause database exception`() {
+    val event = createEventWithTextMemo("my_memo_5")
+    val cause = QueryTimeoutException("timeout")
+    every { sep31TransactionStore.findAllByToAccountAndMemoAndStatus(any(), any(), any()) } throws
+      cause
+
+    mockkStatic(Log::class)
+    try {
+      every { Log.debugF(any(), *anyVararg()) } just Runs
+      every { Log.errorF(any(), *anyVararg()) } just Runs
+      every { Log.errorEx(any<Throwable>()) } just Runs
+      every { Log.errorEx(any<String>(), any()) } just Runs
+
+      assertThrows(IOException::class.java) { paymentListener.onReceived(event) }
+
+      verify(exactly = 1) { Log.errorEx(cause) }
+      verify(exactly = 1) { Log.errorEx("The probe lookup failed too.", any()) }
+    } finally {
+      unmockkStatic(Log::class)
     }
   }
 
