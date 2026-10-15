@@ -1822,4 +1822,49 @@ class Sep38ServiceTest {
     assertNull(response.sellDeliveryMethod)
     assertNull(response.buyDeliveryMethod)
   }
+
+  // SEP38EX-01: a quote that other SEPs reference must stay readable after it expires.
+  @ValueSource(strings = [ACCOUNT, SMART_WALLET_ACCOUNT])
+  @ParameterizedTest
+  fun `test GET quote still returns a quote whose expires_at has passed`(account: String) {
+    val mockFee = mockSellAssetFee(fiatUSD)
+    sep38Service =
+      Sep38Service(sep38Config, sep38Service.assetService, null, mockQuoteStore, eventService)
+    val now = Instant.now()
+    val yesterday = now.minus(1, ChronoUnit.DAYS)
+    val expiredQuote =
+      Sep38QuoteBuilder(mockQuoteStore)
+        .id("123")
+        .expiresAt(yesterday)
+        .price("1.02")
+        .totalPrice("1.03")
+        .sellAsset(fiatUSD)
+        .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
+        .buyAsset(stellarUSDC)
+        .buyAmount("97.0873786")
+        .createdAt(now.minus(2, ChronoUnit.DAYS))
+        .creatorAccountId(account)
+        .fee(mockFee)
+        .build()
+    every { mockQuoteStore.findByQuoteId("123") } returns expiredQuote
+
+    val got = sep38Service.getQuote(createWebAuthJwt(account), "123")
+
+    assertEquals(
+      Sep38QuoteResponse.builder()
+        .id("123")
+        .expiresAt(yesterday)
+        .price("1.02")
+        .totalPrice("1.03")
+        .sellAsset(fiatUSD)
+        .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
+        .buyAsset(stellarUSDC)
+        .buyAmount("97.0873786")
+        .fee(mockFee)
+        .build(),
+      got,
+    )
+  }
 }
