@@ -339,4 +339,87 @@ class Sep38Tests : IntegrationTestBase(TestConfig()) {
         .first,
     )
   }
+
+  // --- amounts: hand-computed values and the SEP-38 price formulas ---
+  // The reference rate callback prices USD -> USDC at 1.02 and USDC -> USD at 1.05, with a fee of
+  // 1.00 in the sell asset (`RateService.kt`).
+
+  private fun dec(value: String?) = java.math.BigDecimal(value!!)
+
+  private fun assertDec(expected: String, actual: String?, what: String) =
+    assertEquals(
+      0,
+      dec(expected).compareTo(dec(actual)),
+      "$what: expected $expected but was $actual",
+    )
+
+  /** T = unit * 1e-4 + buy_amount * 1e-10: the quantization of the reference rate callback. */
+  private fun tolerance(unitPrice: String?, buyAmount: String?) =
+    dec(unitPrice)
+      .multiply(java.math.BigDecimal("0.0001"))
+      .add(dec(buyAmount).multiply(java.math.BigDecimal("0.0000000001")))
+
+  private fun assertWithin(
+    tolerance: java.math.BigDecimal,
+    left: java.math.BigDecimal,
+    right: java.math.BigDecimal,
+    what: String
+  ) =
+    assert(left.subtract(right).abs() <= tolerance) { "$what: |$left - $right| exceeds $tolerance" }
+
+  private fun assertSepFormulas(response: org.stellar.anchor.api.sep.sep38.GetPriceResponse) {
+    val sell = dec(response.sellAmount)
+    val buy = dec(response.buyAmount)
+    val fee = dec(response.fee.total)
+    // SEP38PM-03: sell_amount = total_price * buy_amount
+    assertWithin(
+      tolerance(response.totalPrice, response.buyAmount),
+      sell,
+      dec(response.totalPrice).multiply(buy),
+      "sell_amount vs total_price * buy_amount",
+    )
+    // SEP38PM-04, the fee being in the sell asset: sell_amount - fee = price * buy_amount
+    assertWithin(
+      tolerance(response.price, response.buyAmount),
+      sell.subtract(fee),
+      dec(response.price).multiply(buy),
+      "sell_amount - fee vs price * buy_amount",
+    )
+  }
+
+  // SEP38PM-01
+  @Test
+  fun `test GET price by sell_amount matches the hand-computed amounts`() {
+    val price = sep38Client.getPrice(usdAsset, "100", usdcAsset, SEP31)
+
+    assertDec("100", price.sellAmount, "sell_amount")
+    assertDec("97.0588", price.buyAmount, "buy_amount") // (100 - 1.00) / 1.02
+    assertDec("1.00", price.fee.total, "fee.total")
+    assertEquals(usdAsset, price.fee.asset)
+  }
+
+  // SEP38PM-02
+  @Test
+  fun `test GET price by buy_amount matches the hand-computed amounts`() {
+    val price = sep38Client.getPrice(usdAsset, null, usdcAsset, SEP31, buyAmount = "100")
+
+    assertDec("100", price.buyAmount, "buy_amount")
+    assertDec("103", price.sellAmount, "sell_amount") // 100 * 1.02 + 1.00
+    assertDec("1.02", price.price, "price")
+    assertDec("1.03", price.totalPrice, "total_price") // 103 / 100
+    assertDec("1.00", price.fee.total, "fee.total")
+  }
+
+  // SEP38PM-03, SEP38PM-04
+  @Test
+  fun `test GET price satisfies the SEP-38 formulas in both directions and by both amounts`() {
+    listOf(
+        Pair(usdAsset, usdcAsset),
+        Pair(usdcAsset, usdAsset),
+      )
+      .forEach { (sell, buy) ->
+        assertSepFormulas(sep38Client.getPrice(sell, "100", buy, SEP31))
+        assertSepFormulas(sep38Client.getPrice(sell, null, buy, SEP31, buyAmount = "100"))
+      }
+  }
 }
