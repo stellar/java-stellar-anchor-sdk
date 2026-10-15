@@ -5,6 +5,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.Executors
 import kotlin.test.assertEquals
+import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -31,6 +32,8 @@ import org.stellar.anchor.platform.printRequest
 import org.stellar.anchor.platform.printResponse
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.KeyPair
+import org.stellar.walletsdk.anchor.auth
+import org.stellar.walletsdk.horizon.SigningKeyPair
 
 @Order(RUN_AFTER_PLATFORM_API_TESTS)
 class Sep38Tests : IntegrationTestBase(TestConfig()) {
@@ -505,5 +508,158 @@ class Sep38Tests : IntegrationTestBase(TestConfig()) {
       val price = sep38Client.getPrice(usdAsset, "100", entry.asset, SEP31)
       assertDec(price.price!!, entry.price, "price of ${entry.asset}")
     }
+  }
+
+  // --- shape of the responses, read from the raw JSON so a missing field fails ---
+
+  private fun jsonObject(body: String) = JsonParser.parseString(body).asJsonObject
+
+  private fun walletJwt() = "Bearer ${this.token.token}"
+
+  private fun postQuoteRaw(json: String = quoteBody): Pair<Int, String> =
+    raw("POST", "/quote", walletJwt(), json)
+
+  private fun newIdentityJwt() =
+    "Bearer " + runBlocking { anchor.auth().authenticate(SigningKeyPair(KeyPair.random())) }.token
+
+  // SEP38RS-01
+  @Test
+  fun `test GET info lists the fiat assets with their country codes and delivery methods`() {
+    val (status, body) = raw("GET", "/info")
+    assertEquals(200, status)
+    val assets =
+      jsonObject(body)
+        .getAsJsonArray("assets")
+        .map { it.asJsonObject }
+        .associateBy { it.get("asset").asString }
+
+    fun methods(asset: String, key: String) =
+      assets
+        .getValue(asset)
+        .getAsJsonArray(key)
+        .map { it.asJsonObject }
+        .map { Pair(it.get("name").asString, it.get("description").asString) }
+
+    assertEquals(
+      listOf("US"),
+      assets.getValue(usdAsset).getAsJsonArray("country_codes").map { it.asString }
+    )
+    assertEquals(
+      listOf(Pair("WIRE", "Send USD directly to the Anchor's bank account.")),
+      methods(usdAsset, "sell_delivery_methods")
+    )
+    assertEquals(
+      listOf(Pair("WIRE", "Have USD sent directly to your bank account.")),
+      methods(usdAsset, "buy_delivery_methods")
+    )
+    assertEquals(
+      listOf("CA"),
+      assets.getValue("iso4217:CAD").getAsJsonArray("country_codes").map { it.asString }
+    )
+    assertEquals(
+      listOf(Pair("WIRE", "Send CAD directly to the Anchor's bank account.")),
+      methods("iso4217:CAD", "sell_delivery_methods")
+    )
+    assertEquals(
+      listOf(Pair("WIRE", "Have CAD sent directly to your bank account.")),
+      methods("iso4217:CAD", "buy_delivery_methods")
+    )
+    val native = assets.getValue("stellar:native")
+    listOf("country_codes", "sell_delivery_methods", "buy_delivery_methods").forEach {
+      assertEquals(false, native.has(it), "stellar:native must not carry $it")
+    }
+  }
+
+  // SEP38RS-02, SEP38RS-03, SEP38DM-03
+  @Test
+  fun `test POST quote answers 201 with every SEP-38 field and no delivery method when none was sent`() {
+    val before = Instant.now()
+    val (status, body) = postQuoteRaw()
+    assertEquals(201, status, body)
+    val quote = jsonObject(body)
+
+    java.util.UUID.fromString(quote.get("id").asString)
+    assert(Instant.parse(quote.get("expires_at").asString).isAfter(before)) {
+      "expires_at must be in the future: $body"
+    }
+    listOf("total_price", "price", "sell_amount", "buy_amount").forEach {
+      dec(quote.get(it).asString)
+    }
+    assertEquals(usdAsset, quote.get("sell_asset").asString)
+    assertEquals(usdcAsset, quote.get("buy_asset").asString)
+    val fee = quote.getAsJsonObject("fee")
+    dec(fee.get("total").asString)
+    assertEquals(usdAsset, fee.get("asset").asString)
+    assertEquals(true, fee.get("details").isJsonArray)
+    listOf("sell_delivery_method", "buy_delivery_method").forEach {
+      assertEquals(false, quote.has(it), "$it must be absent when it was not sent")
+    }
+  }
+
+  // SEP38RS-03, SEP38DM-04
+  @Test
+  fun `test POST quote echoes the delivery method it was sent`() {
+    val withMethod =
+      """{"sell_asset":"$usdAsset","sell_amount":"100","sell_delivery_method":"WIRE","buy_asset":"$usdcAsset","context":"sep31"}"""
+    val (status, body) = postQuoteRaw(withMethod)
+    assertEquals(201, status, body)
+    assertEquals("WIRE", jsonObject(body).get("sell_delivery_method").asString)
+    assertEquals(false, jsonObject(body).has("buy_delivery_method"))
+  }
+
+  // SEP38RS-04
+  @Test
+  fun `test GET quote returns the body POST quote returned`() {
+    val created = postQuoteRaw()
+    assertEquals(201, created.first, created.second)
+    val id = jsonObject(created.second).get("id").asString
+
+    val (status, body) = raw("GET", "/quote/$id", walletJwt())
+
+    assertEquals(200, status, body)
+    assertEquals(JsonParser.parseString(created.second), JsonParser.parseString(body))
+  }
+
+  // SEP38RS-05
+  @Test
+  fun `test GET quote of an unknown id is 404 quote not found`() {
+    val (status, body) = raw("GET", "/quote/$unknownQuoteId", walletJwt())
+
+    assertEquals(404, status, body)
+    assertEquals(
+      JsonParser.parseString("""{"error":"quote not found"}"""),
+      JsonParser.parseString(body)
+    )
+  }
+
+  // SEP38RS-06
+  @Test
+  fun `test GET quote of another identity's quote is 404 quote not found`() {
+    val id = jsonObject(postQuoteRaw().second).get("id").asString
+
+    val (status, body) = raw("GET", "/quote/$id", newIdentityJwt())
+
+    assertEquals(404, status, body)
+    assertEquals(
+      JsonParser.parseString("""{"error":"quote not found"}"""),
+      JsonParser.parseString(body)
+    )
+  }
+
+  // SEP38RS-07, SEP38DM-05
+  @Test
+  fun `test GET price and GET prices answer the same with or without a delivery method`() {
+    assertEquals(
+      sep38Client.getPrice(usdAsset, "100", usdcAsset, SEP31),
+      sep38Client.getPrice(usdAsset, "100", usdcAsset, SEP31, sellDeliveryMethod = "WIRE"),
+    )
+    assertEquals(
+      sep38Client.getPrice(usdcAsset, "100", usdAsset, SEP31),
+      sep38Client.getPrice(usdcAsset, "100", usdAsset, SEP31, buyDeliveryMethod = "WIRE"),
+    )
+    assertEquals(
+      sep38Client.getPrices(usdAsset, "100"),
+      sep38Client.getPrices(usdAsset, "100", sellDeliveryMethod = "WIRE"),
+    )
   }
 }
