@@ -662,4 +662,100 @@ class Sep38Tests : IntegrationTestBase(TestConfig()) {
       sep38Client.getPrices(usdAsset, "100", sellDeliveryMethod = "WIRE"),
     )
   }
+
+  // --- invalid requests: the exact 400, each paired with the passing variant ---
+
+  private fun assertBadRequest(expectedMessage: String, result: Pair<Int, String>) {
+    assertEquals(400, result.first, "answered ${result.first}: ${result.second}")
+    assertEquals(expectedMessage, jsonObject(result.second).get("error").asString)
+  }
+
+  private fun priceQuery(extra: String) = "/price?sell_asset=$usdAsset&buy_asset=$usdcAsset$extra"
+
+  private fun quoteJson(extra: String) =
+    """{"sell_asset":"$usdAsset","buy_asset":"$usdcAsset"$extra}"""
+
+  private val eitherAmount = "Please provide either sell_amount or buy_amount"
+
+  // SEP38VL-01
+  @Test
+  fun `test GET price with both amounts or neither is a 400`() {
+    assertBadRequest(
+      eitherAmount,
+      raw("GET", priceQuery("&sell_amount=100&buy_amount=100&context=sep31")),
+    )
+    assertBadRequest(eitherAmount, raw("GET", priceQuery("&context=sep31")))
+    assertEquals(200, raw("GET", priceQuery("&sell_amount=100&context=sep31")).first)
+  }
+
+  // SEP38VL-02
+  @Test
+  fun `test POST quote with both amounts or neither is a 400`() {
+    assertBadRequest(
+      eitherAmount,
+      postQuoteRaw(quoteJson(""","sell_amount":"100","buy_amount":"100","context":"sep31"""")),
+    )
+    assertBadRequest(eitherAmount, postQuoteRaw(quoteJson(""","context":"sep31"""")))
+    assertEquals(201, postQuoteRaw(quoteJson(""","sell_amount":"100","context":"sep31"""")).first)
+  }
+
+  // SEP38VL-03
+  @Test
+  fun `test GET price with context sep24 or none is a 400`() {
+    val message = "Unsupported context. Should be one of [sep6, sep31]."
+    assertBadRequest(message, raw("GET", priceQuery("&sell_amount=100&context=sep24")))
+    assertBadRequest(message, raw("GET", priceQuery("&sell_amount=100")))
+    assertEquals(200, raw("GET", priceQuery("&sell_amount=100&context=sep31")).first)
+  }
+
+  // SEP38VL-04
+  @Test
+  fun `test POST quote accepts context sep24 and refuses an unknown context`() {
+    assertEquals(201, postQuoteRaw(quoteJson(""","sell_amount":"100","context":"sep24"""")).first)
+    assertBadRequest(
+      "Unsupported context. Should be one of [sep6, sep24, sep31].",
+      postQuoteRaw(quoteJson(""","sell_amount":"100","context":"sep99"""")),
+    )
+  }
+
+  private fun quoteExpiringAfter(value: String) =
+    quoteJson(""","sell_amount":"100","context":"sep31","expire_after":"$value"""")
+
+  // SEP38VL-05
+  @Test
+  fun `test POST quote with a malformed expire_after is a 400`() {
+    assertBadRequest("expire_after is invalid", postQuoteRaw(quoteExpiringAfter("not-a-date")))
+  }
+
+  // SEP38VL-06
+  @Test
+  fun `test POST quote with an expire_after in the past is a 400`() {
+    val tenMinutesAgo = Instant.now().minus(10, ChronoUnit.MINUTES)
+    assertBadRequest(
+      "expire_after cannot be in the past",
+      postQuoteRaw(quoteExpiringAfter(tenMinutesAgo.toString())),
+    )
+  }
+
+  // SEP38VL-07
+  @Test
+  fun `test POST quote with an expire_after beyond the maximum is a 400`() {
+    val eightDays = Instant.now().plus(8, ChronoUnit.DAYS)
+    assertBadRequest(
+      "expire_after exceeds the maximum quote expiration of 604800 seconds",
+      postQuoteRaw(quoteExpiringAfter(eightDays.toString())),
+    )
+  }
+
+  // SEP38VL-08
+  @Test
+  fun `test POST quote with an in-range expire_after expires no earlier than requested`() {
+    val oneHour = Instant.now().plus(1, ChronoUnit.HOURS)
+    val (status, body) = postQuoteRaw(quoteExpiringAfter(oneHour.toString()))
+
+    assertEquals(201, status, body)
+    assert(!Instant.parse(jsonObject(body).get("expires_at").asString).isBefore(oneHour)) {
+      "expires_at must not be earlier than expire_after: $body"
+    }
+  }
 }
