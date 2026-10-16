@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.integrationtest
 
+import com.google.gson.JsonParser
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -9,11 +10,16 @@ import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse
 import org.stellar.anchor.api.sep.sep12.Sep12Status
+import org.stellar.anchor.client.Sep12Client
 import org.stellar.anchor.platform.*
 import org.stellar.sdk.KeyPair
 import org.stellar.walletsdk.anchor.auth
@@ -206,6 +212,102 @@ open class Sep12Tests : IntegrationTestBase(TestConfig()) {
 
     val victimGr = anchor.sep12(victimToken).get(victimCustomerId, type = "sep24")
     assert(victimGr.providedFields!!.containsKey("bank_account_number"))
+  }
+
+  private fun newToken(keyPair: SigningKeyPair, memoId: ULong? = null): String =
+    runBlocking { anchor.auth().authenticate(keyPair, memoId = memoId) }.token
+
+  private fun putSep24Customer(jwt: String): String {
+    val request = gson.fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
+    request.type = "sep24"
+    return Sep12Client(toml.getString("KYC_SERVER"), jwt).putCustomer(request)!!.id
+  }
+
+  /** The status, content type and body of a raw `PUT /customer`. */
+  private fun putCustomerRaw(jwt: String, body: String) = runBlocking {
+    HttpClient().use { client ->
+      val response =
+        client.put("${config.env["anchor.domain"]!!}/sep12/customer") {
+          headers { bearerAuth(jwt) }
+          contentType(ContentType.Application.Json)
+          setBody(body)
+        }
+      Triple(response.status, response.contentType(), response.body<String>())
+    }
+  }
+
+  private fun errorOf(body: String): String =
+    JsonParser.parseString(body).asJsonObject.get("error").asString
+
+  // SEP12CV-01
+  @Test
+  fun `test memos differentiate customers registered by the same account`() {
+    val keyPair = SigningKeyPair(KeyPair.random())
+
+    val first = putSep24Customer(newToken(keyPair, 1uL))
+    val second = putSep24Customer(newToken(keyPair, 2uL))
+
+    assertTrue(first.isNotEmpty())
+    assertTrue(second.isNotEmpty())
+    assertNotEquals(first, second)
+  }
+
+  // SEP12CV-02
+  @Test
+  fun `test GET with an account other than the token account is refused`() {
+    val jwt = newToken(SigningKeyPair(KeyPair.random()))
+
+    val (status, body) =
+      runBlocking {
+        HttpClient().use { client ->
+          val response =
+            client.get("${config.env["anchor.domain"]!!}/sep12/customer") {
+              headers { bearerAuth(jwt) }
+              parameter("account", KeyPair.random().accountId)
+              parameter("type", "sep24")
+            }
+          response.status to response.body<String>()
+        }
+      }
+
+    assertEquals(HttpStatusCode.Forbidden, status)
+    assertEquals("The account specified does not match authorization token", errorOf(body))
+  }
+
+  // SEP12CV-03
+  @Test
+  fun `test PUT with an account other than the token account is refused and creates nothing`() {
+    val jwt = newToken(SigningKeyPair(KeyPair.random()))
+    val otherKeyPair = SigningKeyPair(KeyPair.random())
+
+    val (status, _, body) =
+      putCustomerRaw(
+        jwt,
+        """{"account":"${otherKeyPair.address}","first_name":"x","type":"sep24"}""",
+      )
+
+    assertEquals(HttpStatusCode.Forbidden, status)
+    assertEquals("The account specified does not match authorization token", errorOf(body))
+    val other =
+      Sep12Client(toml.getString("KYC_SERVER"), newToken(otherKeyPair))
+        .getCustomer(type = "sep24")!!
+    assertNull(other.id)
+    assertEquals(Sep12Status.NEEDS_INFO, other.status)
+  }
+
+  // SEP12CV-07
+  @Test
+  fun `test PUT answers 202 with a JSON body that carries the customer id`() {
+    val jwt = newToken(SigningKeyPair(KeyPair.random()))
+
+    val (status, contentType, body) = putCustomerRaw(jwt, testCustomer1Json)
+
+    assertEquals(HttpStatusCode.Accepted, status)
+    assertTrue(contentType!!.match(ContentType.Application.Json)) {
+      "Content-Type was $contentType"
+    }
+    val id = JsonParser.parseString(body).asJsonObject.get("id")
+    assertTrue(id.isJsonPrimitive && id.asJsonPrimitive.isString && id.asString.isNotEmpty())
   }
 
   companion object {
