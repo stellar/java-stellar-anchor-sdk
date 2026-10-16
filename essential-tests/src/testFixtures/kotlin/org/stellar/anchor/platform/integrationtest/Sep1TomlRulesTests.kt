@@ -1,6 +1,11 @@
 package org.stellar.anchor.platform.integrationtest
 
+import com.moandjiezana.toml.Toml
+import java.net.URI
+import java.nio.file.Files
+import java.nio.file.Path
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -193,5 +198,32 @@ class Sep1TomlRulesTests {
 
     assertEquals(emptyList<String>(), violations(nft))
     assertEquals(emptyList<String>(), violations(withoutDocumentation))
+  }
+
+  private fun repoFile(relative: String): Path {
+    var dir: Path? = Path.of(System.getProperty("user.dir")).toAbsolutePath()
+    while (dir != null) {
+      if (Files.exists(dir.resolve(relative))) return dir.resolve(relative)
+      dir = dir.parent
+    }
+    fail<Unit>("$relative not found above ${System.getProperty("user.dir")}")
+    throw IllegalStateException()
+  }
+
+  // SEP1TF-11: each template is checked against the host its own WEB_AUTH_ENDPOINT names.
+  @ParameterizedTest
+  @ValueSource(
+    strings =
+      [
+        "service-runner/src/main/resources/config/stellar.localhost.toml",
+        "service-runner/src/main/resources/config/stellar.host.docker.internal.toml",
+        "docs/resources/deployment-examples/example-fargate/example_config/stellar.toml",
+      ]
+  )
+  fun `test a TOML shipped for operators follows every rule`(relative: String) {
+    val toml = Files.readString(repoFile(relative))
+    val servedFrom = URI(Toml().read(toml).getString("WEB_AUTH_ENDPOINT")).host
+
+    assertEquals(emptyList<String>(), violations(toml, servedFrom), relative)
   }
 }
