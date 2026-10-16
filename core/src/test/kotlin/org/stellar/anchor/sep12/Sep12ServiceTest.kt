@@ -1689,6 +1689,33 @@ class Sep12ServiceTest {
   }
 
   @Test
+  fun `test delete by a caller whose token carries a memo looks the customer up with memo type id`() {
+    val slot = captureDeleteLookup()
+
+    sep12Service.deleteCustomer(
+      createJwtToken("$TEST_ACCOUNT:$TEST_MEMO"),
+      TEST_ACCOUNT,
+      TEST_MEMO,
+      "text",
+    )
+    assertEquals(
+      GetCustomerRequest.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).memoType("id").build(),
+      slot.captured,
+    )
+
+    sep12Service.deleteCustomer(
+      createJwtToken(TEST_MUXED_ACCOUNT),
+      TEST_ACCOUNT,
+      TEST_MEMO,
+      "text",
+    )
+    assertEquals(
+      GetCustomerRequest.builder().account(TEST_ACCOUNT).memo(TEST_MEMO).memoType("id").build(),
+      slot.captured,
+    )
+  }
+
+  @Test
   fun `test delete through the muxed address with no customer answers not found`() {
     every { customerIntegration.getCustomer(any()) } returns GetCustomerResponse()
 

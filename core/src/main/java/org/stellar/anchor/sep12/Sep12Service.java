@@ -248,7 +248,8 @@ public class Sep12Service {
       lookupAccount = token.getAccount();
       lookupMemo = muxedAccountId;
       lookupMemoType = MemoHelper.memoTypeAsString(MemoType.MEMO_ID);
-    } else if (memo != null && memoType == null) {
+    } else if (memo != null && (memoType == null || token.getOwnerMemo() != null)) {
+      // SEP-12: when the token carries a memo, the memo type can be ignored, as on GET and PUT.
       lookupMemoType = MemoHelper.memoTypeAsString(MemoType.MEMO_ID);
     }
 
