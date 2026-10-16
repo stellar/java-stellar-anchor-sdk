@@ -220,4 +220,21 @@ class Sep12DeleteOwnershipTests : IntegrationTestBase(TestConfig()) {
     assertEquals(HttpStatusCode.OK, status)
     assertEquals(HttpStatusCode.NotFound, getStatus(jwt, id))
   }
+
+  // SEP12DO-14
+  @Test
+  fun `test a memo-less token cannot delete the customer a memo token registered under that memo`() {
+    val keyPair = newKeyPair()
+    val memo = randomMemoId()
+    val memoJwt = authenticate(keyPair, memo)
+    val memoLessJwt = authenticate(keyPair)
+    val id = putCustomer(memoJwt)
+
+    val (status, error) =
+      delete(memoLessJwt, keyPair.address, """{"memo":"$memo","memo_type":"id"}""")
+
+    assertEquals(HttpStatusCode.Forbidden, status)
+    assertEquals("not authorized for customer id", error)
+    assertEquals(HttpStatusCode.OK, getStatus(memoJwt, id))
+  }
 }
