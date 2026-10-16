@@ -207,4 +207,17 @@ class Sep12DeleteOwnershipTests : IntegrationTestBase(TestConfig()) {
     assertEquals(HttpStatusCode.OK, status)
     assertEquals(HttpStatusCode.NotFound, getStatus(jwt, id))
   }
+
+  @Test
+  fun `test a memo token deletes its customer whatever memo type it sends`() {
+    val keyPair = newKeyPair()
+    val memo = randomMemoId()
+    val jwt = authenticate(keyPair, memo)
+    val id = putCustomer(jwt)
+
+    val (status, _) = delete(jwt, keyPair.address, """{"memo":"$memo","memo_type":"text"}""")
+
+    assertEquals(HttpStatusCode.OK, status)
+    assertEquals(HttpStatusCode.NotFound, getStatus(jwt, id))
+  }
 }
