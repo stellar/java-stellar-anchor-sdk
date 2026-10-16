@@ -10,6 +10,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -308,6 +309,75 @@ open class Sep12Tests : IntegrationTestBase(TestConfig()) {
     }
     val id = JsonParser.parseString(body).asJsonObject.get("id")
     assertTrue(id.isJsonPrimitive && id.asJsonPrimitive.isString && id.asString.isNotEmpty())
+  }
+
+  private fun putCustomerOf(jwt: String, fields: Map<String, String>, type: String): String {
+    val request =
+      gson.fromJson(gson.toJson(fields), Sep12PutCustomerRequest::class.java).also {
+        it.type = type
+      }
+    return Sep12Client(toml.getString("KYC_SERVER"), jwt).putCustomer(request)!!.id
+  }
+
+  private fun getCustomerOf(jwt: String, id: String, type: String) =
+    Sep12Client(toml.getString("KYC_SERVER"), jwt).getCustomer(id, type)!!
+
+  // SEP12CV-04
+  @Test
+  fun `test NEEDS_INFO lists the missing required field`() {
+    val jwt = newToken(SigningKeyPair(KeyPair.random()))
+    val id = putCustomerOf(jwt, mapOf("first_name" to "John", "last_name" to "Doe"), "sep24")
+
+    val customer = getCustomerOf(jwt, id, "sep24")
+
+    assertEquals(Sep12Status.NEEDS_INFO, customer.status)
+    assertEquals(false, customer.fields!!["email_address"]!!.optional)
+  }
+
+  // SEP12CV-05
+  @Test
+  fun `test ACCEPTED has no required field left to provide`() {
+    val jwt = newToken(SigningKeyPair(KeyPair.random()))
+    val id = putCustomerOf(jwt, Json.decodeFromString(testCustomer1Json), "sep24")
+
+    val customer = getCustomerOf(jwt, id, "sep24")
+
+    assertEquals(Sep12Status.ACCEPTED, customer.status)
+    assertTrue(customer.fields.orEmpty().values.none { it.optional == false }) {
+      "required fields still listed: ${customer.fields}"
+    }
+  }
+
+  // SEP12CV-06
+  @Test
+  fun `test the status of one customer depends on the type asked for`() {
+    val jwt = newToken(SigningKeyPair(KeyPair.random()))
+    val id =
+      putCustomerOf(
+        jwt,
+        mapOf(
+          "first_name" to "John",
+          "last_name" to "Doe",
+          "email_address" to "johndoe@test.com",
+        ),
+        "sep24",
+      )
+
+    val sep24 = getCustomerOf(jwt, id, "sep24")
+    val receiver = getCustomerOf(jwt, id, "sep31-receiver")
+
+    assertEquals(Sep12Status.ACCEPTED, sep24.status)
+    assertEquals(Sep12Status.NEEDS_INFO, receiver.status)
+    assertEquals(false, receiver.fields!!["bank_account_number"]!!.optional)
+  }
+
+  // SEP12CV-08
+  @Test
+  fun `test the TOML KYC_SERVER is the SEP-12 endpoint of the anchor`() {
+    val kycServer = toml.getString("KYC_SERVER")
+
+    assertEquals("${config.env["anchor.domain"]!!}/sep12", kycServer)
+    assertFalse(kycServer.endsWith("/"))
   }
 
   companion object {
