@@ -1795,6 +1795,19 @@ class Sep12ServiceTest {
     )
   }
 
+  // SEP12DO-14
+  @Test
+  fun `test delete refuses a customer of a memo for a memo-less token that sends the memo in the body`() {
+    assertDeleteRefusedForCaller(
+      createJwtToken(TEST_ACCOUNT),
+      TEST_ACCOUNT,
+      TEST_MEMO,
+      "id",
+      TEST_ACCOUNT,
+      null,
+    )
+  }
+
   // SEP12DO-12
   @Test
   fun `test delete refuses a customer claimed by another identity through the muxed address`() {
