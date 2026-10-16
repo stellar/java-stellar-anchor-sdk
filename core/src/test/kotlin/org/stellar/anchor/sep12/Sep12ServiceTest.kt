@@ -1715,6 +1715,102 @@ class Sep12ServiceTest {
     )
   }
 
+  // SEP12DO-12
+  @Test
+  fun `test delete refuses a customer claimed by another client for the same account`() {
+    captureDeleteLookup()
+    every { customerIdOwnerStore.isClaimed("existing-customer-id") } returns true
+    every {
+      customerIdOwnerStore.verify("existing-customer-id", "walletA:$TEST_ACCOUNT", null, false)
+    } returns true
+
+    val ex: SepNotAuthorizedException = assertThrows {
+      sep12Service.deleteCustomer(
+        createJwtToken(TEST_ACCOUNT, "walletB"),
+        TEST_ACCOUNT,
+        null,
+        null,
+      )
+    }
+
+    assertEquals("not authorized for customer id", ex.message)
+    verify(exactly = 1) {
+      customerIdOwnerStore.verify("existing-customer-id", "walletB:$TEST_ACCOUNT", null, false)
+    }
+    verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
+  }
+
+  // SEP12DO-12
+  @Test
+  fun `test delete refuses a customer claimed by another identity when the token has no client`() {
+    captureDeleteLookup()
+    every { customerIdOwnerStore.isClaimed("existing-customer-id") } returns true
+    every {
+      customerIdOwnerStore.verify("existing-customer-id", "walletA:$TEST_ACCOUNT", null, false)
+    } returns true
+
+    val ex: SepNotAuthorizedException = assertThrows {
+      sep12Service.deleteCustomer(createJwtToken(TEST_ACCOUNT), TEST_ACCOUNT, null, null)
+    }
+
+    assertEquals("not authorized for customer id", ex.message)
+    verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
+  }
+
+  // SEP12DO-13
+  @Test
+  fun `test delete lets the claimed owner delete its customer`() {
+    captureDeleteLookup()
+    every { customerIdOwnerStore.isClaimed("existing-customer-id") } returns true
+    every {
+      customerIdOwnerStore.verify("existing-customer-id", "walletA:$TEST_ACCOUNT", null, false)
+    } returns true
+
+    sep12Service.deleteCustomer(createJwtToken(TEST_ACCOUNT, "walletA"), TEST_ACCOUNT, null, null)
+
+    verify(exactly = 1) { customerIntegration.deleteCustomer("existing-customer-id") }
+  }
+
+  // SEP12DO-13
+  @Test
+  fun `test delete lets a muxed owner delete through its muxed address and its base account`() {
+    captureDeleteLookup()
+    every { customerIdOwnerStore.isClaimed("existing-customer-id") } returns true
+    every {
+      customerIdOwnerStore.verify("existing-customer-id", TEST_MUXED_ACCOUNT, TEST_MEMO, false)
+    } returns true
+    val jwtToken = createJwtToken(TEST_MUXED_ACCOUNT)
+
+    sep12Service.deleteCustomer(jwtToken, TEST_MUXED_ACCOUNT, null, null)
+    sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, "id")
+
+    verify(exactly = 2) { customerIntegration.deleteCustomer("existing-customer-id") }
+  }
+
+  // SEP12DO-13
+  @Test
+  fun `test delete lets a legacy-key owner that the business server confirms delete`() {
+    captureDeleteLookup()
+    every { customerIdOwnerStore.isClaimed("existing-customer-id") } returns true
+    every {
+      customerIdOwnerStore.verify("existing-customer-id", "vibrant:$TEST_ACCOUNT", null, false)
+    } returns false
+    every { customerIdOwnerStore.getCreatorMemo("existing-customer-id") } returns null
+    every {
+      customerIdOwnerStore.reconcileLegacyKey(
+        "existing-customer-id",
+        "vibrant",
+        null,
+        "vibrant:$TEST_ACCOUNT",
+        null,
+      )
+    } returns true
+
+    sep12Service.deleteCustomer(createJwtToken(TEST_ACCOUNT, "vibrant"), TEST_ACCOUNT, null, null)
+
+    verify(exactly = 1) { customerIntegration.deleteCustomer("existing-customer-id") }
+  }
+
   @Test
   fun `test delete through the muxed address with no customer answers not found`() {
     every { customerIntegration.getCustomer(any()) } returns GetCustomerResponse()

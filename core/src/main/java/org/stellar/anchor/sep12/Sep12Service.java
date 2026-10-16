@@ -263,6 +263,7 @@ public class Sep12Service {
                 .build());
     if (existingCustomer != null && existingCustomer.getId() != null) {
       existingCustomerMatch = true;
+      verifyCustomerIdOwner(existingCustomer.getId(), token);
       customerIntegration.deleteCustomer(existingCustomer.getId());
     }
 
@@ -280,6 +281,23 @@ public class Sep12Service {
   }
 
   private static final String ERR_CUSTOMER_ID_NOT_AUTHORIZED = "not authorized for customer id";
+
+  /**
+   * A customer id claimed in the owner registry belongs to the identity that registered it (client
+   * name, account and memo). Like GET and PUT by id, a DELETE only reaches it for that identity or
+   * for a legacy-key owner the business server confirms. An unclaimed id is the caller's by the
+   * lookup that found it.
+   */
+  private void verifyCustomerIdOwner(String customerId, WebAuthJwt token)
+      throws SepNotAuthorizedException {
+    if (customerIdOwnerStore.isClaimed(customerId)
+        && !customerIdOwnerStore.verify(
+            customerId, token.getOwnerKey(), token.getOwnerMemo(), false)
+        && !CustomerOwnershipReconciliation.tryReconcile(
+            customerIdOwnerStore, customerIntegration, customerId, token, null)) {
+      throw new SepNotAuthorizedException(ERR_CUSTOMER_ID_NOT_AUTHORIZED);
+    }
+  }
 
   void validateGetOrPutRequest(Sep12CustomerRequestBase requestBase, WebAuthJwt token)
       throws SepException {
