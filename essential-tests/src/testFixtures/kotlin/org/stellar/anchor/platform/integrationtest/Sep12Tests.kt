@@ -343,7 +343,7 @@ open class Sep12Tests : IntegrationTestBase(TestConfig()) {
     val customer = getCustomerOf(jwt, id, "sep24")
 
     assertEquals(Sep12Status.ACCEPTED, customer.status)
-    assertTrue(customer.fields.orEmpty().values.none { it.optional == false }) {
+    assertTrue(customer.fields.orEmpty().values.all { it.optional == true }) {
       "required fields still listed: ${customer.fields}"
     }
   }
