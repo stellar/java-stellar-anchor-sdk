@@ -1689,6 +1689,23 @@ class Sep12ServiceTest {
   }
 
   @Test
+  fun `test delete through the muxed address with no customer answers not found`() {
+    every { customerIntegration.getCustomer(any()) } returns GetCustomerResponse()
+
+    val ex: SepNotFoundException = assertThrows {
+      sep12Service.deleteCustomer(
+        createJwtToken(TEST_MUXED_ACCOUNT),
+        TEST_MUXED_ACCOUNT,
+        null,
+        null,
+      )
+    }
+
+    assertEquals("User not found.", ex.message)
+    verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
+  }
+
+  @Test
   fun `test delete forwards an explicit memo type unchanged`() {
     val slot = captureDeleteLookup()
 
