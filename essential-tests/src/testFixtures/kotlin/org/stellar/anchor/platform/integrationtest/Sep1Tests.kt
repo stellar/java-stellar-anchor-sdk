@@ -1,11 +1,13 @@
 package org.stellar.anchor.platform.integrationtest
 
+import com.google.gson.JsonParser
 import com.moandjiezana.toml.Toml
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.coroutines.runBlocking
@@ -13,7 +15,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.stellar.anchor.platform.Sep1TomlRules
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.sdk.KeyPair
 
 /**
  * `/.well-known/stellar.toml` over HTTP: media types, content type, the served bytes, size, CORS,
@@ -123,6 +127,71 @@ class Sep1Tests {
     assertEquals(HttpStatusCode.Found, response.status)
     assertTrue(response.headers[HttpHeaders.Location]!!.endsWith("/.well-known/stellar.toml")) {
       "Location was ${response.headers[HttpHeaders.Location]}"
+    }
+  }
+
+  private fun servedToml(): String = withClient { it.get(tomlUrl).bodyAsText() }
+
+  // SEP1TF-01, SEP1TF-02, SEP1TF-04..08
+  @Test
+  fun `test the served TOML follows every content rule`() {
+    val host = URI(domain).host
+
+    assertEquals(emptyList<String>(), Sep1TomlRules.violations(servedToml(), host))
+  }
+
+  // SEP1TF-03
+  @Test
+  fun `test the TOML SIGNING_KEY is the account of the SEP-10 signing seed`() {
+    val signingKey = Toml().read(servedToml()).getString("SIGNING_KEY")
+    val seedAccount = KeyPair.fromSecretSeed(config.env["secret.sep10.signing_seed"]!!).accountId
+
+    assertEquals(seedAccount, signingKey)
+  }
+
+  // SEP1TF-09
+  @Test
+  fun `test every endpoint the TOML advertises is served by the stack`() {
+    val toml = Toml().read(servedToml())
+    val advertised =
+      listOf(
+          "TRANSFER_SERVER",
+          "TRANSFER_SERVER_SEP0024",
+          "DIRECT_PAYMENT_SERVER",
+          "ANCHOR_QUOTE_SERVER",
+          "KYC_SERVER",
+          "WEB_AUTH_ENDPOINT",
+          "WEB_AUTH_FOR_CONTRACTS_ENDPOINT",
+        )
+        .associateWith { toml.getString(it) }
+
+    advertised.forEach { (field, url) ->
+      assertNotNull(url) { "$field is not in the TOML" }
+      assertTrue(url.startsWith("$domain/")) { "$field is $url, not under $domain" }
+    }
+    listOf(
+        "TRANSFER_SERVER",
+        "TRANSFER_SERVER_SEP0024",
+        "DIRECT_PAYMENT_SERVER",
+        "ANCHOR_QUOTE_SERVER"
+      )
+      .forEach { field ->
+        val response = withClient { it.get("${advertised[field]}/info") }
+        assertEquals(HttpStatusCode.OK, response.status, "$field /info")
+        assertTrue(response.contentType()!!.match(ContentType.Application.Json)) { "$field /info" }
+      }
+    val kyc = withClient { it.get("${advertised["KYC_SERVER"]}/customer") }
+    assertEquals(HttpStatusCode.Forbidden, kyc.status)
+    assertEquals(
+      "forbidden",
+      JsonParser.parseString(runBlocking { kyc.bodyAsText() }).asJsonObject.get("error").asString
+    )
+    listOf("WEB_AUTH_ENDPOINT", "WEB_AUTH_FOR_CONTRACTS_ENDPOINT").forEach { field ->
+      assertEquals(
+        HttpStatusCode.BadRequest,
+        withClient { it.get(advertised[field]!!) }.status,
+        field
+      )
     }
   }
 }
