@@ -63,7 +63,7 @@ class Sep12CallbackSignatureTests : IntegrationTestBase(TestConfig()) {
       rawCallbacks,
       toml.getString("SIGNING_KEY"),
       config.env["wallet.hostname"],
-      rawCallbacks.size,
+      1,
       notBefore,
     )
   }
