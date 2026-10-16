@@ -135,6 +135,42 @@ class Sep12TokenResolutionTests : IntegrationTestBase(TestConfig()) {
     assertTrue(response.fields!!.isNotEmpty())
   }
 
+  // SEP12TK-08
+  @Test
+  fun `test a memo-less token cannot read by id the customer registered under a memo`() {
+    val keyPair = newKeyPair()
+    val memoJwt = authenticate(keyPair, randomMemoId())
+    val memoLessJwt = authenticate(keyPair)
+    val id = putCustomer(memoJwt)
+
+    val (status, body) = get(memoLessJwt, "id" to id, "type" to "sep24")
+
+    assertEquals(HttpStatusCode.Forbidden, status)
+    assertEquals(
+      "not authorized for customer id",
+      JsonParser.parseString(body).asJsonObject.get("error").asString,
+    )
+    assertEquals(id, getCustomer(memoJwt, "id" to id, "type" to "sep24").id)
+  }
+
+  // SEP12TK-09
+  @Test
+  fun `test a memo token cannot read by id the customer registered without a memo`() {
+    val keyPair = newKeyPair()
+    val memoLessJwt = authenticate(keyPair)
+    val memoJwt = authenticate(keyPair, randomMemoId())
+    val id = putCustomer(memoLessJwt)
+
+    val (status, body) = get(memoJwt, "id" to id, "type" to "sep24")
+
+    assertEquals(HttpStatusCode.Forbidden, status)
+    assertEquals(
+      "not authorized for customer id",
+      JsonParser.parseString(body).asJsonObject.get("error").asString,
+    )
+    assertEquals(id, getCustomer(memoLessJwt, "id" to id, "type" to "sep24").id)
+  }
+
   companion object {
     /**
      * A SEP-10 token whose `sub` is the muxed address of [muxedId] on [keyPair]. AP's own SEP-10
