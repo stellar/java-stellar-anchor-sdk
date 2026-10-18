@@ -169,11 +169,8 @@ class CorsTests : IntegrationTestBase(TestConfig()) {
       assertEquals(HttpStatusCode.Forbidden, response.status, what)
       assertEquals("*", response.headers[HttpHeaders.AccessControlAllowOrigin], what)
       assertEquals(
-        "forbidden",
-        JsonParser.parseString(runBlocking { response.bodyAsText() })
-          .asJsonObject
-          .get("error")
-          .asString,
+        JsonParser.parseString("""{"error":"forbidden"}"""),
+        JsonParser.parseString(runBlocking { response.bodyAsText() }),
         what,
       )
     }

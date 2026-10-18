@@ -5,6 +5,7 @@ import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -198,6 +199,193 @@ class Sep1TomlRulesTests {
 
     assertEquals(emptyList<String>(), violations(nft))
     assertEquals(emptyList<String>(), violations(withoutDocumentation))
+  }
+
+  // SEP1TF-01: both official passphrases, and none
+  @Test
+  fun `test the public passphrase is accepted and a missing passphrase is not`() {
+    assertEquals(
+      emptyList<String>(),
+      violations(
+        good.replace(
+          "Test SDF Network ; September 2015",
+          "Public Global Stellar Network ; September 2015"
+        )
+      ),
+    )
+    assertEquals(
+      listOf("NETWORK_PASSPHRASE"),
+      violations(good.replace("NETWORK_PASSPHRASE = \"Test SDF Network ; September 2015\"\n", "")),
+    )
+  }
+
+  // SEP1TF-02
+  @Test
+  fun `test a missing signing key and a key with a bad checksum are refused`() {
+    assertEquals(
+      listOf("SIGNING_KEY"),
+      violations(good.replace("SIGNING_KEY = \"$signingKey\"\n", "")),
+    )
+    assertEquals(
+      listOf("SIGNING_KEY"),
+      violations(good.replace(signingKey, signingKey.dropLast(1) + "A")),
+    )
+  }
+
+  // SEP1TF-04: the accepted side of every value set and the boundaries
+  @Test
+  fun `test every accepted status, asset type and code length passes`() {
+    listOf("live", "dead", "test", "private").forEach { status ->
+      assertEquals(
+        emptyList<String>(),
+        violations(good.replaceFirst("status = \"test\"", "status = \"$status\"")),
+        "status $status",
+      )
+    }
+    listOf("fiat", "crypto", "nft", "stock", "bond", "commodity", "realestate", "other").forEach {
+      type ->
+      assertEquals(
+        emptyList<String>(),
+        violations(
+          good.replaceFirst("anchor_asset_type = \"crypto\"", "anchor_asset_type = \"$type\"")
+        ),
+        "type $type",
+      )
+    }
+    assertEquals(
+      emptyList<String>(),
+      violations(good.replace("\"USDC\"", "\"ABCDEFGHIJKL\"")),
+      "a 12 character code",
+    )
+    assertEquals(
+      listOf("CURRENCY[0]:desc"),
+      violations(good.replace("desc = \"Anchor Issued USDC Token\"", "desc = 5")),
+    )
+  }
+
+  // SEP1TF-06 (size): exactly under and exactly at the bound
+  @Test
+  fun `test the size bound is 100000 bytes`() {
+    val under = good + "\n" + "#".repeat(99_999 - good.length - 1)
+    val at = good + "\n" + "#".repeat(100_000 - good.length - 1)
+
+    assertEquals(99_999, under.toByteArray().size)
+    assertEquals(100_000, at.toByteArray().size)
+    assertEquals(emptyList<String>(), violations(under))
+    assertEquals(listOf("SIZE"), violations(at))
+  }
+
+  private val topUrlFields =
+    listOf(
+      "FEDERATION_SERVER",
+      "AUTH_SERVER",
+      "TRANSFER_SERVER",
+      "TRANSFER_SERVER_SEP0024",
+      "KYC_SERVER",
+      "WEB_AUTH_ENDPOINT",
+      "WEB_AUTH_FOR_CONTRACTS_ENDPOINT",
+      "HORIZON_URL",
+      "DIRECT_PAYMENT_SERVER",
+      "ANCHOR_QUOTE_SERVER",
+    )
+  private val documentationUrlFields =
+    listOf(
+      "ORG_URL",
+      "ORG_LOGO",
+      "ORG_PHYSICAL_ADDRESS_ATTESTATION",
+      "ORG_PHONE_NUMBER_ATTESTATION"
+    )
+  private val currencyUrlFields = listOf("image", "attestation_of_reserve", "approval_server")
+
+  /** `good` with [field] set to [url], in the section the field belongs to. */
+  private fun withUrl(field: String, url: String): String =
+    when (field) {
+      in topUrlFields ->
+        good.replaceFirst("VERSION = \"0.1.0\"\n", "VERSION = \"0.1.0\"\n$field = \"$url\"\n").let {
+          if (good.contains("\n$field = "))
+            good.replace(Regex("\n$field = \"[^\"]*\""), "\n$field = \"$url\"")
+          else it
+        }
+      in documentationUrlFields ->
+        if (good.contains("\n$field = "))
+          good.replace(Regex("\n$field = \"[^\"]*\""), "\n$field = \"$url\"")
+        else good + "\n$field = \"$url\""
+      else ->
+        good.replaceFirst(
+          "anchor_asset_type = \"crypto\"",
+          "anchor_asset_type = \"crypto\"\n$field = \"$url\""
+        )
+    }
+
+  private fun code(field: String) =
+    if (field in currencyUrlFields) "CURRENCIES[0].$field" else field
+
+  // SEP1TF-06, SEP1TF-07: every one of the 17 URL fields is checked
+  @Test
+  fun `test every URL field must be https and must not end with a slash`() {
+    (topUrlFields + documentationUrlFields + currencyUrlFields).forEach { field ->
+      assertEquals(
+        listOf("NOT_HTTPS:${code(field)}"),
+        violations(withUrl(field, "http://$host/x")),
+        "http for $field",
+      )
+      assertEquals(
+        listOf("TRAILING_SLASH:${code(field)}"),
+        violations(withUrl(field, "https://$host/x/")),
+        "trailing slash for $field",
+      )
+      assertEquals(
+        emptyList<String>(),
+        violations(withUrl(field, "https://$host/x")),
+        "https without a slash for $field",
+      )
+    }
+  }
+
+  // SEP1TF-06: the local-host exception is an exact host match
+  @ParameterizedTest
+  @ValueSource(
+    strings =
+      [
+        "notlocalhost",
+        "localhost.evil.com",
+        "127.0.0.10",
+        "host.docker.internal.evil.com",
+        "xlocalhost"
+      ]
+  )
+  fun `test a host that only resembles a local development host gets no exception`(
+    lookalike: String
+  ) {
+    val http = good.replace("https://$host", "http://$lookalike")
+
+    assertTrue(violations(http, lookalike).contains("NOT_HTTPS:KYC_SERVER"), lookalike)
+  }
+
+  // SEP1TF-05
+  @Test
+  fun `test a linked TOML with a trailing slash is refused`() {
+    assertEquals(
+      listOf("LINKED_TOML[2]:URL"),
+      violations(good + "\n[[CURRENCIES]]\ntoml = \"https://$host/USDC.toml/\"\n"),
+    )
+  }
+
+  // SEP1TF-08: look-alike suffixes, subdomains (accepted, spec A13) and the phone attestation
+  @Test
+  fun `test the attestation domain must be the ORG_URL domain or a subdomain of it`() {
+    assertEquals(
+      listOf("ATTESTATION_DOMAIN:ORG_PHYSICAL_ADDRESS_ATTESTATION"),
+      violations(good.replace("https://$host/address.pdf", "https://evil$host/address.pdf")),
+    )
+    assertEquals(
+      emptyList<String>(),
+      violations(good.replace("https://$host/address.pdf", "https://docs.$host/address.pdf")),
+    )
+    assertEquals(
+      listOf("ATTESTATION_DOMAIN:ORG_PHONE_NUMBER_ATTESTATION"),
+      violations(withUrl("ORG_PHONE_NUMBER_ATTESTATION", "https://other.example.org/phone.pdf")),
+    )
   }
 
   private fun repoFile(relative: String): Path {

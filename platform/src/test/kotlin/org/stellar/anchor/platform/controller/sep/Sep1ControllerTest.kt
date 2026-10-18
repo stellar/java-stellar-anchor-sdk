@@ -93,7 +93,7 @@ class Sep1ControllerTest {
       mvc(enabled = false)
         .perform(get(path))
         .andExpect(status().isNotFound)
-        .andExpect(content().json("""{"error":"Not Found"}"""))
+        .andExpect(content().json("""{"error":"Not Found"}""", true))
     }
   }
 }

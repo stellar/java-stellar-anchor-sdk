@@ -116,6 +116,7 @@ class Sep1Tests {
 
     assertEquals(HttpStatusCode.OK, head.status)
     assertEquals(get.contentType(), head.contentType())
+    assertNotNull(get.contentLength(), "GET carries no Content-Length")
     assertEquals(get.contentLength(), head.contentLength())
   }
 
@@ -183,8 +184,8 @@ class Sep1Tests {
     val kyc = withClient { it.get("${advertised["KYC_SERVER"]}/customer") }
     assertEquals(HttpStatusCode.Forbidden, kyc.status)
     assertEquals(
-      "forbidden",
-      JsonParser.parseString(runBlocking { kyc.bodyAsText() }).asJsonObject.get("error").asString
+      JsonParser.parseString("""{"error":"forbidden"}"""),
+      JsonParser.parseString(runBlocking { kyc.bodyAsText() }),
     )
     listOf("WEB_AUTH_ENDPOINT", "WEB_AUTH_FOR_CONTRACTS_ENDPOINT").forEach { field ->
       assertEquals(

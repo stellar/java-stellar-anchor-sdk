@@ -103,4 +103,43 @@ class CallbackSignaturesTests {
     assertThrows(AssertionError::class.java) { check(listOf(signed()), expectedCount = 2) }
     assertThrows(AssertionError::class.java) { check(emptyList(), expectedCount = 1) }
   }
+
+  // SEP1CS-03: a real signature in a wrong envelope must fail at the header, not at the signature
+  @Test
+  fun `test a valid signature in a wrong header envelope fails`() {
+    val valid = signed()
+    val s = valid.signature!!.substringAfter("s=")
+    listOf(
+        "t=$now,s=$s",
+        "s=$s, t=$now",
+        "t=$now, s=$s, x=1",
+        " t=$now, s=$s",
+        "t=$now, s=$s ",
+        "t=-1, s=$s",
+      )
+      .forEach { header ->
+        assertThrows(
+          AssertionError::class.java,
+          { check(listOf(valid.copy(signature = header))) },
+          "header: $header"
+        )
+      }
+  }
+
+  // SEP1CS-03, SEP1CS-04: the window bounds are inclusive at the start and exclusive before it
+  @Test
+  fun `test the lower bound of the timestamp window`() {
+    assertDoesNotThrow { check(listOf(signed(t = now - 5)), notBefore = now - 5) }
+    assertThrows(AssertionError::class.java) {
+      check(listOf(signed(t = now - 6)), notBefore = now - 5)
+    }
+  }
+
+  // SEP1CS-03: more callbacks than expected
+  @Test
+  fun `test more callbacks than expected fails`() {
+    assertThrows(AssertionError::class.java) {
+      check(listOf(signed(), signed()), expectedCount = 1)
+    }
+  }
 }
