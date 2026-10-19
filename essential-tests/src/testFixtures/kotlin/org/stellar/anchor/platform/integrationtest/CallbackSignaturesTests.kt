@@ -117,6 +117,7 @@ class CallbackSignaturesTests {
     listOf(
         "t=$now,s=$s",
         "$now, s=$s",
+        "t=$now, $s",
         "s=$s, t=$now",
         "t=$now, s=$s, x=1",
         " t=$now, s=$s",
@@ -178,5 +179,18 @@ class CallbackSignaturesTests {
   @Test
   fun `test a timestamp a few seconds ahead fails`() {
     assertThrows(AssertionError::class.java) { check(listOf(signed(t = now + 10))) }
+  }
+
+  // SEP1CS-03: the host is checked on every callback, and must match exactly at both ends
+  @Test
+  fun `test a wrong host in the middle of a list and a host with a prefix both fail`() {
+    val good = signed()
+    val otherHost = signed(signHost = "other:8092", receivedHost = "other:8092")
+    val longer = "evil.$host"
+
+    assertThrows(AssertionError::class.java) { check(listOf(good, otherHost, good)) }
+    assertThrows(AssertionError::class.java) {
+      check(listOf(signed(signHost = longer, receivedHost = longer)))
+    }
   }
 }

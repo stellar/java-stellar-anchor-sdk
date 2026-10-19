@@ -405,6 +405,15 @@ class Sep1TomlRulesTests {
     assertEquals(listOf("ORG_URL_DOMAIN"), violations(toml, host), orgHost)
   }
 
+  // SEP1TF-08: an ORG_URL without a parseable host is not on the served domain
+  @Test
+  fun `test an ORG_URL without a parseable host is refused`() {
+    val toml =
+      withoutAttestation.replace("ORG_URL = \"https://$host\"", "ORG_URL = \"https://bad_host\"")
+
+    assertEquals(listOf("ORG_URL_DOMAIN"), violations(toml, host))
+  }
+
   // SEP1TF-08: an attestation host that merely contains the ORG_URL host is not on its domain
   @Test
   fun `test an attestation host that contains the ORG_URL host as a prefix or middle is refused`() {
