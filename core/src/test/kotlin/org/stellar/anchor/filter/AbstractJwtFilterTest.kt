@@ -65,6 +65,7 @@ class AbstractJwtFilterTest {
   private fun refusalOf(
     authorization: String?,
     chain: FilterChain = mockk(relaxed = true),
+    origin: String? = null,
     check: (String?) -> Unit = {},
   ): Refusal {
     val request = mockk<HttpServletRequest>(relaxed = true)
@@ -72,6 +73,7 @@ class AbstractJwtFilterTest {
     val body = StringWriter()
     every { request.method } returns "GET"
     every { request.getHeader("Authorization") } returns authorization
+    every { request.getHeader("Origin") } returns origin
     every { response.writer } returns PrintWriter(body)
     val filter =
       object : AbstractJwtFilter(jwtService, "Authorization") {
@@ -121,5 +123,15 @@ class AbstractJwtFilterTest {
     verify(exactly = 1) { chain.doFilter(any(), any()) }
     verify(exactly = 0) { refusal.response.setHeader(any(), any()) }
     verify(exactly = 0) { refusal.response.setStatus(any()) }
+  }
+
+  // SEP1CR-07 (spec A15): the header is sent whether or not the request names an Origin
+  @Test
+  fun `test the 403 allows any origin with or without an Origin request header`() {
+    listOf(null, "", "null", "https://wallet.example").forEach { origin ->
+      val refusal = refusalOf(null, origin = origin)
+
+      verify(exactly = 1) { refusal.response.setHeader("Access-Control-Allow-Origin", "*") }
+    }
   }
 }

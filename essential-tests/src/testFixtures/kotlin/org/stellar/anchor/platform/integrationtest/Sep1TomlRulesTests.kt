@@ -351,7 +351,9 @@ class Sep1TomlRulesTests {
         "localhost.evil.com",
         "127.0.0.10",
         "host.docker.internal.evil.com",
-        "xlocalhost"
+        "xlocalhost",
+        "evil.localhost",
+        "x.host.docker.internal",
       ]
   )
   fun `test a host that only resembles a local development host gets no exception`(
@@ -386,6 +388,96 @@ class Sep1TomlRulesTests {
       listOf("ATTESTATION_DOMAIN:ORG_PHONE_NUMBER_ATTESTATION"),
       violations(withUrl("ORG_PHONE_NUMBER_ATTESTATION", "https://other.example.org/phone.pdf")),
     )
+  }
+
+  private val withoutAttestation =
+    good.replace("\nORG_PHYSICAL_ADDRESS_ATTESTATION = \"https://$host/address.pdf\"", "")
+
+  // SEP1TF-08: the ORG_URL host is the host the TOML is served from, exactly
+  @ParameterizedTest
+  @ValueSource(
+    strings = ["x.anchor.example.com", "evilanchor.example.com", "anchor.example.com.evil.com"]
+  )
+  fun `test the ORG_URL host must equal the served host exactly`(orgHost: String) {
+    val toml =
+      withoutAttestation.replace("ORG_URL = \"https://$host\"", "ORG_URL = \"https://$orgHost\"")
+
+    assertEquals(listOf("ORG_URL_DOMAIN"), violations(toml, host), orgHost)
+  }
+
+  // SEP1TF-08: an attestation host that merely contains the ORG_URL host is not on its domain
+  @Test
+  fun `test an attestation host that contains the ORG_URL host as a prefix or middle is refused`() {
+    listOf("x.anchor.example.com.evil.com", "anchor.example.com.evil.com").forEach { attestationHost
+      ->
+      assertEquals(
+        listOf("ATTESTATION_DOMAIN:ORG_PHYSICAL_ADDRESS_ATTESTATION"),
+        violations(
+          good.replace("https://$host/address.pdf", "https://$attestationHost/address.pdf")
+        ),
+        attestationHost,
+      )
+    }
+  }
+
+  // SEP1TF-04: every required currency field, on any entry
+  @Test
+  fun `test a currency missing a required field is refused, on any entry`() {
+    listOf(
+        "code = \"USDC\"\n" to "code",
+        "status = \"test\"\n" to "status",
+        "is_asset_anchored = false\n" to "is_asset_anchored",
+        "anchor_asset_type = \"crypto\"\n" to "anchor_asset_type",
+      )
+      .forEach { (line, field) ->
+        assertEquals(
+          listOf("CURRENCY[0]:$field"),
+          violations(good.replaceFirst(line, "")),
+          "currency 0 without $field",
+        )
+      }
+    assertEquals(
+      listOf("CURRENCY[1]:status"),
+      violations(
+        good.replace(
+          "status = \"test\"\nis_asset_anchored = false\nanchor_asset_type = \"crypto\"\ndesc = \"XLM",
+          "status = \"foo\"\nis_asset_anchored = false\nanchor_asset_type = \"crypto\"\ndesc = \"XLM"
+        )
+      ),
+    )
+    assertEquals(
+      listOf("NOT_HTTPS:CURRENCIES[1].image"),
+      violations(
+        good.replace(
+          "anchor_asset_type = \"crypto\"\ndesc = \"XLM",
+          "anchor_asset_type = \"crypto\"\nimage = \"http://$host/xlm.png\"\ndesc = \"XLM"
+        )
+      ),
+    )
+  }
+
+  // SEP1TF-04, SEP1TF-05: an issuer with a bad checksum and a non-string link
+  @Test
+  fun `test an issuer with a bad checksum and a non-string linked TOML are refused`() {
+    assertEquals(
+      listOf("CURRENCY[0]:issuer"),
+      violations(good.replace(issuer, issuer.dropLast(1) + "A")),
+    )
+    assertEquals(
+      listOf("LINKED_TOML[2]:URL"),
+      violations(good + "\n[[CURRENCIES]]\ntoml = 5\n"),
+    )
+  }
+
+  // SEP1TF-06: only http or https, never another scheme, even on a local host
+  @Test
+  fun `test another scheme is refused even on a local development host`() {
+    val ftp =
+      good
+        .replace("https://$host/sep12", "ftp://localhost:8080/sep12")
+        .replace("https://$host", "http://localhost:8080")
+
+    assertEquals(listOf("NOT_HTTPS:KYC_SERVER"), violations(ftp, "localhost"))
   }
 
   private fun repoFile(relative: String): Path {

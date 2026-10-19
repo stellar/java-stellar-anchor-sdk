@@ -26,9 +26,14 @@ class CallbackSignaturesTests {
     signBody: String = body,
     sentBody: String = signBody,
     key: KeyPair = anchorKey,
+    receivedHost: String = host,
   ): RawCallback {
     val signature = key.sign("$t.$signHost.$signBody".toByteArray())
-    return RawCallback("t=$t, s=${Base64.getEncoder().encodeToString(signature)}", host, sentBody)
+    return RawCallback(
+      "t=$t, s=${Base64.getEncoder().encodeToString(signature)}",
+      receivedHost,
+      sentBody,
+    )
   }
 
   private fun check(
@@ -111,6 +116,7 @@ class CallbackSignaturesTests {
     val s = valid.signature!!.substringAfter("s=")
     listOf(
         "t=$now,s=$s",
+        "$now, s=$s",
         "s=$s, t=$now",
         "t=$now, s=$s, x=1",
         " t=$now, s=$s",
@@ -141,5 +147,36 @@ class CallbackSignaturesTests {
     assertThrows(AssertionError::class.java) {
       check(listOf(signed(), signed()), expectedCount = 1)
     }
+  }
+
+  // SEP1CS-03: one bad callback among good ones fails, whichever position it has
+  @Test
+  fun `test one bad callback in a list fails wherever it is`() {
+    val good = signed()
+    val badBody = signed(sentBody = body.replace("completed", "refunded"))
+    val badKey = signed(key = KeyPair.random())
+    val stale = signed(t = now - 600)
+
+    listOf(badBody, badKey, stale).forEach { bad ->
+      assertThrows(AssertionError::class.java) { check(listOf(bad, good)) }
+      assertThrows(AssertionError::class.java) { check(listOf(good, bad)) }
+      assertThrows(AssertionError::class.java) { check(listOf(good, bad, good)) }
+    }
+  }
+
+  // SEP1CS-03: the host must be given and must match exactly
+  @Test
+  fun `test a missing expected host or a host that only starts with it fails`() {
+    assertThrows(AssertionError::class.java) { check(listOf(signed()), expectedHost = null) }
+    val longer = "$host.evil.com"
+    assertThrows(AssertionError::class.java) {
+      check(listOf(signed(signHost = longer, receivedHost = longer)))
+    }
+  }
+
+  // SEP1CS-03: a timestamp a few seconds ahead is outside the window
+  @Test
+  fun `test a timestamp a few seconds ahead fails`() {
+    assertThrows(AssertionError::class.java) { check(listOf(signed(t = now + 10))) }
   }
 }
