@@ -58,6 +58,9 @@ val essentialSuites =
         "integrationtest.PlatformServerHealthTests",
         "integrationtest.KafkaTests",
         "integrationtest.LedgerClientTests",
+        "integrationtest.Sep1Tests",
+        "integrationtest.Sep1TomlRulesTests",
+        "integrationtest.CorsTests",
       ),
     "Sep10" to listOf("integrationtest.Sep10Tests", "integrationtest.Sep10ServiceIntegrationTests"),
     "Sep12" to listOf("integrationtest.Sep12Tests"),
@@ -90,6 +93,7 @@ val essentialSuites =
       listOf(
         "integrationtest.CallbackApiTests",
         "integrationtest.CallbackSignatureTest",
+        "integrationtest.CallbackSignaturesTests",
         "integrationtest.ClientConfigApiTests",
         "integrationtest.EventProcessingServerTests",
         "integrationtest.MultiClientCallbackTests",
