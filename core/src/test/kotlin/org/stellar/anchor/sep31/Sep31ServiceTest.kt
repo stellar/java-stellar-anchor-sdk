@@ -199,7 +199,10 @@ class Sep31ServiceTest {
         "fee": {
           "total": "10.00",
           "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-        }
+        },
+        "creatorAccountId": "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2",
+        "creatorMemo": "123456",
+        "creatorMemoType": "id"
       }
   """
     private const val patchTxnRequestJson =
@@ -796,6 +799,7 @@ class Sep31ServiceTest {
     expiredQuote.creatorAccountId = TestHelper.TEST_ACCOUNT
     expiredQuote.expiresAt = Instant.parse("2000-01-01T00:00:00Z")
     expiredQuote.fee = FeeDetails("2", stellarUSDC)
+    expiredQuote.creatorAccountId = TestHelper.TEST_ACCOUNT
     postTxRequest.amount = "100"
     postTxRequest.quoteId = expiredQuoteId
     every { quoteStore.findByQuoteId(expiredQuoteId) } returns expiredQuote
@@ -845,6 +849,39 @@ class Sep31ServiceTest {
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(SepValidationException::class.java, ex)
     assertEquals("Quote is missing the 'fee' field", ex.message)
+  }
+
+  @Test
+  fun `test POST transaction rejects a quote_id owned by a different account`() {
+    quote.expiresAt = Instant.now().plus(1, ChronoUnit.DAYS)
+    quote.sellAsset = stellarUSDC
+    quote.sellAmount = "100"
+    every { quoteStore.findByQuoteId(quote.id) } returns quote
+
+    val postTxRequest = Sep31PostTransactionRequest()
+    postTxRequest.amount = "100"
+    postTxRequest.assetCode = "USDC"
+    postTxRequest.assetIssuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    postTxRequest.quoteId = quote.id
+    postTxRequest.fundingMethod = "SEPA"
+    postTxRequest.fields =
+      Sep31TxnFields(
+        hashMapOf(
+          "receiver_account_number" to "1",
+          "type" to "1",
+          "receiver_routing_number" to "SWIFT",
+        )
+      )
+
+    val jwtToken =
+      TestHelper.createWebAuthJwt(
+        "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+        TestHelper.TEST_MEMO
+      )
+    val ex =
+      assertThrows<BadRequestException> { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertEquals("quote(id=${quote.id}) was not found.", ex.message)
+    verify(exactly = 0) { txnStore.save(any()) }
   }
 
   @Test
@@ -1691,6 +1728,9 @@ class Sep31ServiceTest {
         expiresAt = tomorrow
         fee = FeeDetails("10", stellarUSDC)
         transactionId = "already-used-txn"
+        creatorAccountId = TestHelper.TEST_ACCOUNT
+        creatorMemo = TestHelper.TEST_MEMO
+        creatorMemoType = "id"
       }
     every { quoteStore.findByQuoteId("bound-quote-id") } returns boundQuote
 
@@ -1731,6 +1771,9 @@ class Sep31ServiceTest {
         buyAmount = "12500"
         expiresAt = tomorrow
         fee = FeeDetails("10", stellarUSDC)
+        creatorAccountId = TestHelper.TEST_ACCOUNT
+        creatorMemo = TestHelper.TEST_MEMO
+        creatorMemoType = "id"
       }
     every { quoteStore.findByQuoteId(quoteId) } returns freshQuote
     every { exchangeAmountsCalculator.bindQuoteToTransaction(quoteId, any()) } throws

@@ -80,7 +80,10 @@ internal class Sep24ServiceTest {
         "fee": {
           "total": "42.00",
           "asset": "iso4217:USD"
-        }
+        },
+        "creatorAccountId": "$TEST_ACCOUNT",
+        "creatorMemo": "$TEST_MEMO",
+        "creatorMemoType": "id"
       }
       """
         .trimIndent()
@@ -101,7 +104,10 @@ internal class Sep24ServiceTest {
         "fee": {
           "total": "42",
           "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-        }
+        },
+        "creatorAccountId": "$TEST_ACCOUNT",
+        "creatorMemo": "$TEST_MEMO",
+        "creatorMemoType": "id"
       }
     """
         .trimIndent()
@@ -123,7 +129,10 @@ internal class Sep24ServiceTest {
         "fee": {
           "total": "42",
           "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-        }
+        },
+        "creatorAccountId": "$TEST_ACCOUNT",
+        "creatorMemo": "$TEST_MEMO",
+        "creatorMemoType": "id"
       }
       """
         .trimIndent()
@@ -145,7 +154,10 @@ internal class Sep24ServiceTest {
         "fee": {
           "total": "42.00",
           "asset": "iso4217:USD"
-        }
+        },
+        "creatorAccountId": "$TEST_ACCOUNT",
+        "creatorMemo": "$TEST_MEMO",
+        "creatorMemoType": "id"
       }
       """
         .trimIndent()
@@ -408,6 +420,59 @@ internal class Sep24ServiceTest {
     assertEquals("amount is less than asset's minimum limit: 0", depositAmountError("0"))
     assertEquals("amount exceeds asset's maximum limit: 10001", withdrawAmountError("10001"))
     assertEquals("amount exceeds asset's maximum limit: 10001", depositAmountError("10001"))
+  }
+
+  @Test
+  fun `test withdraw rejects a quote_id owned by the same account with a different memo`() {
+    every { sep38QuoteStore.findByQuoteId(any()) } returns withdrawQuote
+    val ex =
+      assertThrows<BadRequestException> {
+        sep24Service.withdraw(
+          createTestWebAuthJwt(),
+          createTestTransactionRequest(withdrawQuote.id)
+        )
+      }
+    assertEquals("Quote not found", ex.message)
+    verify(exactly = 0) { txnStore.save(any()) }
+  }
+
+  @Test
+  fun `test deposit rejects a quote_id owned by the same account with a different memo`() {
+    every { sep38QuoteStore.findByQuoteId(any()) } returns depositQuote
+    val ex =
+      assertThrows<BadRequestException> {
+        sep24Service.deposit(createTestWebAuthJwt(), createTestTransactionRequest(depositQuote.id))
+      }
+    assertEquals("Quote not found", ex.message)
+    verify(exactly = 0) { txnStore.save(any()) }
+  }
+
+  @Test
+  fun `test withdraw rejects a quote_id owned by a different account`() {
+    every { sep38QuoteStore.findByQuoteId(any()) } returns withdrawQuote
+    val ex =
+      assertThrows<BadRequestException> {
+        sep24Service.withdraw(
+          createTestWebAuthJwtDifferentAccount(),
+          createTestTransactionRequest(withdrawQuote.id, TestHelper.TEST_ACCOUNT)
+        )
+      }
+    assertEquals("Quote not found", ex.message)
+    verify(exactly = 0) { txnStore.save(any()) }
+  }
+
+  @Test
+  fun `test deposit rejects a quote_id owned by a different account`() {
+    every { sep38QuoteStore.findByQuoteId(any()) } returns depositQuote
+    val ex =
+      assertThrows<BadRequestException> {
+        sep24Service.deposit(
+          createTestWebAuthJwtDifferentAccount(),
+          createTestTransactionRequest(depositQuote.id, TestHelper.TEST_ACCOUNT)
+        )
+      }
+    assertEquals("Quote not found", ex.message)
+    verify(exactly = 0) { txnStore.save(any()) }
   }
 
   @Test
@@ -1282,6 +1347,16 @@ internal class Sep24ServiceTest {
   private fun createTestWebAuthJwtWithMemo(): WebAuthJwt {
     return TestHelper.createWebAuthJwt(
         TEST_ACCOUNT,
+        TEST_MEMO,
+        TEST_HOME_DOMAIN,
+        TEST_CLIENT_DOMAIN,
+      )
+      .apply { clientName = TEST_CLIENT_NAME }
+  }
+
+  private fun createTestWebAuthJwtDifferentAccount(): WebAuthJwt {
+    return TestHelper.createWebAuthJwt(
+        TestHelper.TEST_ACCOUNT,
         TEST_MEMO,
         TEST_HOME_DOMAIN,
         TEST_CLIENT_DOMAIN,
