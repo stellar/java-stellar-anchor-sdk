@@ -43,10 +43,6 @@ suites_for() {
   hit=$SUITES
 }
 
-with_validation() {
-  if [[ " $1 " =~ \ Sep(6|10|12|24|31|38)\  ]]; then echo "$1 validation"; else echo "$1"; fi
-}
-
 select_suites() {
   local picked="" out="" f s
 
@@ -60,7 +56,7 @@ select_suites() {
     if [[ " $picked " == *" $s "* ]]; then out="$out $s"; fi
   done
 
-  with_validation "${out# }"
+  echo "${out# }"
 }
 
 select_extended() {
@@ -99,7 +95,6 @@ fingerprints() {
   for s in $SUITES; do echo "$s $(sha256sum < "$tmp/$s" | cut -c1-16)"; done > "$tmp/all"
 
   cat "$tmp/all"
-  echo "validation $(grep -E '^Sep(6|10|12|24|31|38) ' "$tmp/all" | sha256sum | cut -c1-16)"
 
   echo "extended-tests $(git ls-files -s extended-tests | sha256sum | cut -c1-16)" >> "$tmp/all"
 
@@ -121,18 +116,14 @@ check_names() {
 essential_matrix() {
   local fps entries="" s
 
-  if [ "$*" = all ]; then set -- $SUITES validation; fi
+  if [ "$*" = all ]; then set -- $SUITES; fi
 
-  check_names "$SUITES validation" "$@"
+  check_names "$SUITES" "$@"
 
   fps=$(fingerprints)
 
   for s in "$@"; do
-    if [ "$s" = validation ]; then
-      echo "validation=$(grep '^validation ' <<< "$fps" | cut -d' ' -f2)"
-    else
-      entries="$entries{\"suite\":\"$s\",\"fingerprint\":\"$(grep "^$s " <<< "$fps" | cut -d' ' -f2)\"},"
-    fi
+    entries="$entries{\"suite\":\"$s\",\"fingerprint\":\"$(grep "^$s " <<< "$fps" | cut -d' ' -f2)\"},"
   done
 
   echo "matrix=[${entries%,}]"
@@ -169,9 +160,9 @@ matrix() {
 
   for job in "${EXTENDED[@]}"; do names="$names ${job%% <=*}"; done
 
-  if [ "$*" = all ]; then set -- $SUITES validation $names; fi
+  if [ "$*" = all ]; then set -- $SUITES $names; fi
 
-  check_names "$SUITES validation $names" "$@"
+  check_names "$SUITES $names" "$@"
 
   for s in "$@"; do
     if [[ " $names " == *" $s "* ]]; then extended="$extended $s"; else essential="$essential $s"; fi

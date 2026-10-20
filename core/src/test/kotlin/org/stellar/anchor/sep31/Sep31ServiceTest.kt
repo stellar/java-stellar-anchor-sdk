@@ -1656,7 +1656,7 @@ class Sep31ServiceTest {
 
   @Test
   fun `test postTransaction claims a customer_id registered under a different identity than the caller`() {
-    // Mirrors stellar-anchor-tests' "differentMemosSameAccount" pattern: a sending anchor
+    // A common sending-anchor pattern: a sending anchor
     // registers a sender and a receiver customer via SEP-12 under the same Stellar account but
     // different memos, then calls POST /transactions authenticated as just one of those memos.
     // The receiver is already claimed under its own memo by then (Sep12Service claims any new

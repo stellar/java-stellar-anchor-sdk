@@ -5,10 +5,9 @@ import java.net.URI
 import org.stellar.sdk.KeyPair
 
 /**
- * The SEP-1 content rules of a `stellar.toml`, as the SEP and `stellar-anchor-tests` state them,
- * for the tests to run on the TOML the stack serves and on the TOMLs the repository ships. AP
- * serves an operator-supplied TOML verbatim, so these rules live in the tests, not in production
- * code.
+ * The SEP-1 content rules of a `stellar.toml`, as the SEP states them, for the tests to run on the
+ * TOML the stack serves and on the TOMLs the repository ships. AP serves an operator-supplied TOML
+ * verbatim, so these rules live in the tests, not in production code.
  *
  * [violations] answers one stable code per broken rule, empty when the TOML follows every rule:
  * `NOT_TOML`, `SIZE`, `NETWORK_PASSPHRASE`, `SIGNING_KEY`, `CURRENCY[i]:<field>`,

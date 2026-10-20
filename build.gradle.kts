@@ -317,7 +317,6 @@ tasks.register("printUsage") {
                     - ${bold}startServersWithTestProfile${reset}: Starts the servers based on the test configuration specified by the TEST_PROFILE_NAME environment variable.
                     - ${bold}dockerComposeStart${reset}: Runs docker-compose up to start Postgres, Kafka, etc.
                     - ${bold}dockerComposeStop${reset}: Runs docker-compose down to stop Postgres, Kafka, etc.
-                    - ${bold}anchorTest${reset}: Runs stellar anchor tests. Set `TEST_HOME_DOMAIN` and `TEST_SEPS` environment variables to customize the tests.
                     
     """
             .trimIndent())
