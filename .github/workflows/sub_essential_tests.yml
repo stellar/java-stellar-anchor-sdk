@@ -36,6 +36,9 @@ on:
       TEST_DEPOSIT_FUND_CLIENT_SECRET_2:
         required: true
 
+permissions:
+  contents: read
+
 concurrency:
   group: ap-test-job
   cancel-in-progress: false
