@@ -100,6 +100,30 @@ listOf("Infrastructure", "Sep10", "Sep12", "Sep38", "Sep6", "Sep24", "Sep31", "S
       }
     }
 
+mapOf("AuthApikey" to 8085, "AuthJwt" to 8085, "ClientsDb" to 8080, "End2EndHorizon" to 8080)
+    .forEach { (suite, port) ->
+      tasks.register("run${suite}Tests") {
+        group = "github"
+        description = "Run the $suite extended tests."
+        dependsOn(":extended-tests:test$suite")
+
+        doLast {
+          if (!isPortActive(port = port)) {
+            println("************************************************************")
+            println(
+                "ERROR: The AnchorPlatform server is not running on port $port. Please start the server before running the tests.")
+            throw GradleException("AnchorPlatform server is not running.")
+          }
+        }
+
+        subprojects {
+          if (name == "extended-tests") {
+            skipNonCriticalTasks(tasks)
+          }
+        }
+      }
+    }
+
 // The printVersionName task is used to print the version name of the project. This
 // is useful for CI/CD pipelines to get the version string of the project.
 tasks.register("printVersionName") { 

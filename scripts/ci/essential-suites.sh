@@ -17,6 +17,18 @@ RULES=(
   "^platform/.*/platform/(rpc|observer|callback|controller/platform)/|^api-schema/.*/api/(rpc|platform|callback)/ => $RPC"
 )
 
+EXTENDED=(
+  "AuthApikey <= Platform"
+  "AuthJwt <= Platform"
+  "ClientsDb <= Sep10"
+  "End2EndHorizon <= Sep6 Sep24 Sep31"
+)
+
+EXTENDED_JOBS=(
+  "AuthAndClients <= AuthApikey AuthJwt ClientsDb"
+  "End2EndHorizon <= End2EndHorizon"
+)
+
 suites_for() {
   local rule
 
@@ -51,8 +63,28 @@ select_suites() {
   with_validation "${out# }"
 }
 
+select_extended() {
+  local changed essential out="" entry s
+
+  changed=$(git diff --no-renames --name-only "$(git merge-base "$1" HEAD)" HEAD)
+
+  if grep -q '^extended-tests/' <<< "$changed"; then
+    essential=$SUITES
+  else
+    essential=$(select_suites "$1")
+  fi
+
+  for entry in "${EXTENDED[@]}"; do
+    for s in ${entry#*<= }; do
+      if [[ " $essential " == *" $s "* ]]; then out="$out ${entry%% <=*}"; break; fi
+    done
+  done
+
+  echo "${out# }"
+}
+
 fingerprints() {
-  local tmp meta path s
+  local tmp meta path s entry
 
   tmp=$(mktemp -d)
 
@@ -69,13 +101,94 @@ fingerprints() {
   cat "$tmp/all"
   echo "validation $(grep -E '^Sep(6|10|12|24|31|38) ' "$tmp/all" | sha256sum | cut -c1-16)"
 
+  echo "extended-tests $(git ls-files -s extended-tests | sha256sum | cut -c1-16)" >> "$tmp/all"
+
+  for entry in "${EXTENDED[@]}"; do
+    echo "${entry%% <=*} $(for s in ${entry#*<= } extended-tests; do grep "^$s " "$tmp/all"; done | sha256sum | cut -c1-16)"
+  done
+
   rm -rf "$tmp"
+}
+
+check_names() {
+  local s
+
+  for s in ${*:2}; do
+    if [[ " $1 " != *" $s "* ]]; then echo "Unknown suite: $s" >&2; return 1; fi
+  done
+}
+
+essential_matrix() {
+  local fps entries="" s
+
+  if [ "$*" = all ]; then set -- $SUITES validation; fi
+
+  check_names "$SUITES validation" "$@"
+
+  fps=$(fingerprints)
+
+  for s in "$@"; do
+    if [ "$s" = validation ]; then
+      echo "validation=$(grep '^validation ' <<< "$fps" | cut -d' ' -f2)"
+    else
+      entries="$entries{\"suite\":\"$s\",\"fingerprint\":\"$(grep "^$s " <<< "$fps" | cut -d' ' -f2)\"},"
+    fi
+  done
+
+  echo "matrix=[${entries%,}]"
+}
+
+extended_matrix() {
+  local fps entries="" names="" job members s
+
+  for job in "${EXTENDED[@]}"; do names="$names ${job%% <=*}"; done
+
+  if [ "$*" = all ]; then set -- $names; fi
+
+  check_names "$names" "$@"
+
+  fps=$(fingerprints)
+
+  for job in "${EXTENDED_JOBS[@]}"; do
+    members=""
+
+    for s in ${job#*<= }; do
+      if [[ " $* " == *" $s "* ]]; then members="$members $s"; fi
+    done
+
+    if [ -z "$members" ]; then continue; fi
+
+    entries="$entries{\"group\":\"${job%% <=*}\",\"suites\":\"${members# }\",\"fingerprint\":\"$(for s in $members; do grep "^$s " <<< "$fps"; done | sha256sum | cut -c1-16)\"},"
+  done
+
+  echo "matrix=[${entries%,}]"
+}
+
+matrix() {
+  local names="" essential="" extended="" job s
+
+  for job in "${EXTENDED[@]}"; do names="$names ${job%% <=*}"; done
+
+  if [ "$*" = all ]; then set -- $SUITES validation $names; fi
+
+  check_names "$SUITES validation $names" "$@"
+
+  for s in "$@"; do
+    if [[ " $names " == *" $s "* ]]; then extended="$extended $s"; else essential="$essential $s"; fi
+  done
+
+  essential_matrix $essential | sed 's/^matrix=/essential=/'
+  extended_matrix $extended | sed 's/^matrix=/extended=/'
 }
 
 case "${1:-}" in
   select) select_suites "$2" ;;
 
+  select-extended) select_extended "$2" ;;
+
   fingerprints) fingerprints ;;
+
+  matrix) matrix "${@:2}" ;;
   
-  *) echo "usage: essential-suites.sh select <base> | fingerprints" >&2; exit 1 ;;
+  *) echo "usage: essential-suites.sh select|select-extended <base> | matrix <suites...|all> | fingerprints" >&2; exit 1 ;;
 esac

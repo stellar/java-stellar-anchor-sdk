@@ -40,7 +40,7 @@ kill-servers:
 	for port in 8080 8083 8085 8088 8091 8092 9083 9080 5432; do lsof -ti :$$port 2>/dev/null | xargs kill -9 2>/dev/null; done; echo "done"
 
 start-test-profile-servers:
-	export TEST_PROFILE_NAME=default && ./gradlew dockerComposeStart && \
+	export TEST_PROFILE_NAME=$(or $(PROFILE),default) && ./gradlew dockerComposeStart && \
 	db_container=$$(docker ps --filter "name=-db-1" --format "{{.Names}}" | grep -v "reference-db" | head -1) && \
 	echo "Waiting for postgres in $$db_container to accept connections..." && \
 	for i in $$(seq 1 30); do docker exec $$db_container pg_isready -U postgres >/dev/null 2>&1 && break; sleep 1; done && \
@@ -176,3 +176,46 @@ run-stellar-observer-tests:
 
 run-wallet-callback-record-tests:
 	$(call run-suite-tests,Platform,integrationtest.WalletCallbackRecordTests)
+
+run-extended-suite-tests = export TEST_PROFILE_NAME=$(2) && ./gradlew run$(1)Tests :extended-tests:test$(1) --rerun $(if $(TESTS),--tests '$(TESTS)')
+
+run-extended-auth-apikey-tests:
+	$(call run-extended-suite-tests,AuthApikey,auth-apikey-platform)
+
+run-extended-auth-jwt-tests:
+	$(call run-extended-suite-tests,AuthJwt,auth-jwt-platform)
+
+run-extended-clients-db-tests:
+	$(call run-extended-suite-tests,ClientsDb,clients-db)
+
+run-extended-e2e-horizon-tests:
+	$(call run-extended-suite-tests,End2EndHorizon,default-horizon)
+
+extended-profile-AuthApikey = auth-apikey-platform
+extended-url-AuthApikey = http://localhost:8085/health
+
+extended-profile-AuthJwt = auth-jwt-platform
+extended-url-AuthJwt = http://localhost:8085/health
+
+extended-profile-ClientsDb = clients-db
+extended-url-ClientsDb = http://host.docker.internal:8080/.well-known/stellar.toml
+extended-env-ClientsDb = SEP1_TOML_VALUE=$(ROOT_DIR)/service-runner/src/main/resources/config/stellar.host.docker.internal.toml SEP10_WEB_AUTH_DOMAIN=host.docker.internal:8080 SEP10_HOME_DOMAINS='host.docker.internal:8080,*.stellar.org' ANCHOR_DOMAIN=http://host.docker.internal:8080
+
+extended-profile-End2EndHorizon = default-horizon
+extended-url-End2EndHorizon = http://localhost:8080/.well-known/stellar.toml
+
+run-extended-suite-%:
+	$(if $(extended-env-$*),export $(extended-env-$*);) \
+	mkdir -p build; \
+	TEST_PROFILE_NAME=$(extended-profile-$*) ./gradlew startServersWithTestProfile > build/servers-$*.log 2>&1 & \
+	pid=$$!; \
+	up=1; for i in $$(seq 600); do if curl -sf -o /dev/null $(extended-url-$*); then up=0; break; fi; sleep 1; done; \
+	if [ $$up -eq 0 ]; then $(call run-extended-suite-tests,$*,$(extended-profile-$*)); status=$$?; else echo "Servers did not start, see build/servers-$*.log"; status=1; fi; \
+	kill -9 $$pid; \
+	for i in $$(seq 120); do curl -s -o /dev/null $(extended-url-$*) || break; sleep 1; done; \
+	exit $$status
+
+run-extended-suites:
+	@failed=""; \
+	for suite in $(SUITES); do $(MAKE) run-extended-suite-$$suite || failed="$$failed $$suite"; done; \
+	if [ -n "$$failed" ]; then echo "Failed:$$failed"; exit 1; fi

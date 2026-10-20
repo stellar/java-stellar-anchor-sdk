@@ -1,10 +1,10 @@
-name: Run Essential Tests Workflow
+name: Run Tests Workflow
 
 on:
   workflow_dispatch:
     inputs:
       suites:
-        description: 'Suites to run, space separated (Infrastructure Sep10 Sep12 Sep38 Sep6 Sep24 Sep31 Sep45 Platform validation), or "all"'
+        description: 'Suites to run, space separated (Infrastructure Sep10 Sep12 Sep38 Sep6 Sep24 Sep31 Sep45 Platform validation AuthApikey AuthJwt ClientsDb End2EndHorizon), or "all"'
         default: all
       tests:
         description: 'Optional gradle --tests filter, used with a single suite'
@@ -39,10 +39,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ap-test-job
-  cancel-in-progress: false
-
 env:
   # Anchor Platform secrets
   SECRET_SEP10_SIGNING_SEED: ${{ secrets.SECRET_SEP10_SIGNING_SEED }}
@@ -61,15 +57,23 @@ env:
 
 jobs:
   changes:
-    name: Pick Essential Suites
+    name: Pick Test Suites
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.pick.outputs.matrix }}
+      essential: ${{ steps.pick.outputs.essential }}
       validation: ${{ steps.pick.outputs.validation }}
+      extended: ${{ steps.pick.outputs.extended }}
+      gradle_cache: ${{ steps.gradle.outputs.key }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Compute the Gradle cache key
+        id: gradle
+        env:
+          KEY: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', 'gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+        run: echo "key=$KEY" >> "$GITHUB_OUTPUT"
 
       - name: Pick the suites to test
         id: pick
@@ -78,38 +82,23 @@ jobs:
           EVENT: ${{ github.event_name }}
           WANTED: ${{ inputs.suites }}
         run: |
-          all="Infrastructure Sep10 Sep12 Sep38 Sep6 Sep24 Sep31 Sep45 Platform validation"
+          suites=${WANTED:-all}
           if [ "$EVENT" = pull_request ]; then
-            picked=$(bash scripts/ci/essential-suites.sh select "$BASE")
-          elif [ -n "$WANTED" ] && [ "$WANTED" != all ]; then
-            picked="$WANTED"
-          else
-            picked="$all"
+            suites=$({ bash scripts/ci/essential-suites.sh select "$BASE"; bash scripts/ci/essential-suites.sh select-extended "$BASE"; } | xargs)
           fi
-          fingerprints=$(bash scripts/ci/essential-suites.sh fingerprints)
-          fingerprint() { echo "$fingerprints" | awk -v s="$1" '$1 == s { print $2 }'; }
-          entries=""
-          for s in $picked; do
-            case " $all " in *" $s "*) ;; *) echo "Unknown suite: $s"; exit 1 ;; esac
-            [ "$s" = validation ] && continue
-            entries="$entries{\"suite\":\"$s\",\"fingerprint\":\"$(fingerprint "$s")\"},"
-          done
-          echo "matrix=[${entries%,}]" >> "$GITHUB_OUTPUT"
-          if [[ " $picked " == *" validation "* ]]; then
-            echo "validation=$(fingerprint validation)" >> "$GITHUB_OUTPUT"
-          fi
-          echo "Testing: ${picked:-nothing (no essential test input changed)}" >> "$GITHUB_STEP_SUMMARY"
+          bash scripts/ci/essential-suites.sh matrix $suites >> "$GITHUB_OUTPUT"
+          echo "Testing: ${suites:-nothing (no test input changed)}" >> "$GITHUB_STEP_SUMMARY"
 
-  suite_tests:
-    name: Run ${{ matrix.suite }} Tests
+  essential:
+    name: Essential ${{ matrix.suite }}
     needs: changes
-    if: needs.changes.outputs.matrix != '[]'
+    if: needs.changes.outputs.essential != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(needs.changes.outputs.matrix) }}
+        include: ${{ fromJSON(needs.changes.outputs.essential) }}
     steps:
       - name: Look up a pass with the same inputs
         id: passed
@@ -130,6 +119,16 @@ jobs:
         with:
           java-version: '17'
           distribution: 'adopt'
+
+      - name: Restore Gradle dependencies
+        if: steps.passed.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ needs.changes.outputs.gradle_cache }}
+          restore-keys: gradle-${{ runner.os }}-
 
       - name: Download anchor-platform.tar
         if: steps.passed.outputs.cache-hit != 'true'
@@ -214,10 +213,10 @@ jobs:
           path: /home/runner/anchor-platform/essential-tests/build/reports/
           retention-days: 7
 
-  stellar_validation:
-    name: Run Stellar Validation Tool
-    needs: [changes, suite_tests]
-    if: ${{ !cancelled() && needs.changes.outputs.validation != '' && contains(fromJSON('["success","skipped"]'), needs.suite_tests.result) }}
+  validation:
+    name: Stellar Validation
+    needs: changes
+    if: needs.changes.outputs.validation != ''
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -240,6 +239,16 @@ jobs:
         with:
           java-version: '17'
           distribution: 'adopt'
+
+      - name: Restore Gradle dependencies
+        if: steps.passed.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ needs.changes.outputs.gradle_cache }}
+          restore-keys: gradle-${{ runner.os }}-
 
       - name: Download anchor-platform.tar
         if: steps.passed.outputs.cache-hit != 'true'
@@ -314,14 +323,115 @@ jobs:
           path: essential-passed
           key: essential-passed-validation-${{ needs.changes.outputs.validation }}
 
-  essential_tests:
-    name: Essential Tests
-    needs: [changes, suite_tests, stellar_validation]
+  extended:
+    name: Extended ${{ matrix.group }}
+    needs: changes
+    if: needs.changes.outputs.extended != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.changes.outputs.extended) }}
+    steps:
+      - name: Look up a pass with the same inputs
+        id: passed
+        if: inputs.ignore_cache != true
+        uses: actions/cache/restore@v4
+        with:
+          path: extended-passed
+          key: extended-passed-${{ matrix.group }}-${{ matrix.fingerprint }}
+          lookup-only: true
+
+      - name: Already passed
+        if: steps.passed.outputs.cache-hit == 'true'
+        run: echo "${{ matrix.suites }} already passed with fingerprint ${{ matrix.fingerprint }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up JDK 17
+        if: steps.passed.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Restore Gradle dependencies
+        if: steps.passed.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ needs.changes.outputs.gradle_cache }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Download anchor-platform.tar
+        if: steps.passed.outputs.cache-hit != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: anchor-platform-tar
+          path: /home/runner/
+
+      - name: Extract anchor-platform.tar
+        if: steps.passed.outputs.cache-hit != 'true'
+        run: |
+          cd /home/runner
+          tar -xf /home/runner/anchor-platform.tar
+
+      - name: Set up hostnames (/etc/hosts)
+        if: steps.passed.outputs.cache-hit != 'true'
+        run: |
+          sudo echo "127.0.0.1 db" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 kafka" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 sep24-reference-ui" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 reference-server" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 reference-db" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 wallet-server" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts
+
+      - name: Run Kafka, Postgres, and Sep24 UI with docker compose
+        if: steps.passed.outputs.cache-hit != 'true'
+        run: docker compose -f /home/runner/anchor-platform/service-runner/src/main/resources/docker-compose-test.yaml up -d --build
+
+      - name: Run ${{ matrix.suites }} Tests
+        if: steps.passed.outputs.cache-hit != 'true'
+        env:
+          SUITES: ${{ matrix.suites }}
+          TESTS: ${{ inputs.tests }}
+          KT_REFERENCE_SERVER_CONFIG: /home/runner/anchor-platform/service-runner/src/main/resources/config/reference-config.yaml
+        run: |
+          cd /home/runner/anchor-platform
+          make run-extended-suites SUITES="$SUITES"
+
+      - name: Mark these inputs as passed
+        if: steps.passed.outputs.cache-hit != 'true' && !inputs.tests
+        run: echo "${{ github.run_id }}" > extended-passed
+
+      - name: Save the pass
+        if: steps.passed.outputs.cache-hit != 'true' && !inputs.tests
+        uses: actions/cache/save@v4
+        with:
+          path: extended-passed
+          key: extended-passed-${{ matrix.group }}-${{ matrix.fingerprint }}
+
+      - name: Upload ${{ matrix.group }} Tests report
+        if: always() && steps.passed.outputs.cache-hit != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: extended-${{ matrix.group }}-tests-report-${{ github.run_attempt }}
+          path: |
+            /home/runner/anchor-platform/extended-tests/build/reports/
+            /home/runner/anchor-platform/build/servers-*.log
+          retention-days: 7
+
+  tests:
+    name: Tests
+    needs: [changes, essential, validation, extended]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for r in "${{ needs.changes.result }}" "${{ needs.suite_tests.result }}" "${{ needs.stellar_validation.result }}"; do
-            case "$r" in success|skipped) ;; *) echo "Essential tests failed: $r"; exit 1 ;; esac
+          for r in "${{ needs.changes.result }}" "${{ needs.essential.result }}" "${{ needs.validation.result }}" "${{ needs.extended.result }}"; do
+            case "$r" in success|skipped) ;; *) echo "Tests failed: $r"; exit 1 ;; esac
           done
-          echo "All selected essential suites passed."
+          echo "All selected test suites passed."
