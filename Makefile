@@ -1,5 +1,9 @@
--include .env
-export
+ifneq ($(wildcard .env),)
+include .env
+export $(shell sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' .env)
+endif
+
+unexport MAKEOVERRIDES
 
 # Check if we need to prepend docker command with sudo
 SUDO := $(shell docker version >/dev/null 2>&1 || echo "sudo")
