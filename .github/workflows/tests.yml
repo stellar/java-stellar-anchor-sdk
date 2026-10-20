@@ -186,6 +186,7 @@ jobs:
           TEST_PROFILE_NAME: default
           RUN_DOCKER: false
           ANCHOR_DOMAIN: http://host.docker.internal:8080
+          SEP1_TOML_VALUE: /home/runner/anchor-platform/service-runner/src/main/resources/config/stellar.host.docker.internal.toml
           TESTS: ${{ inputs.tests }}
         run: |
           cd /home/runner/anchor-platform
