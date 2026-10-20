@@ -191,28 +191,37 @@ run-extended-clients-db-tests:
 run-extended-e2e-horizon-tests:
 	$(call run-extended-suite-tests,End2EndHorizon,default-horizon)
 
+ALL_SERVER_PORTS = 8080 8083 8085 8088 8091 8092
+
+wait-for-ports = for port in $(1); do up=1; for i in $$(seq 600); do code=$$(curl -s -o /dev/null -w '%{http_code}' http://localhost:$$port/); if [ "$$code" != 000 ]; then up=0; break; fi; sleep 1; done; if [ $$up -ne 0 ]; then echo "Nothing answering on port $$port"; break; fi; done
+
+wait-for-ports-down = for port in $(1); do for i in $$(seq 120); do curl -s -o /dev/null http://localhost:$$port/ || break; sleep 1; done; done
+
+wait-for-servers:
+	@$(call wait-for-ports,$(or $(PORTS),$(ALL_SERVER_PORTS))); exit $$up
+
 extended-profile-AuthApikey = auth-apikey-platform
-extended-url-AuthApikey = http://localhost:8085/health
+extended-ports-AuthApikey = 8085
 
 extended-profile-AuthJwt = auth-jwt-platform
-extended-url-AuthJwt = http://localhost:8085/health
+extended-ports-AuthJwt = 8085 8091
 
 extended-profile-ClientsDb = clients-db
-extended-url-ClientsDb = http://host.docker.internal:8080/.well-known/stellar.toml
+extended-ports-ClientsDb = $(ALL_SERVER_PORTS)
 extended-env-ClientsDb = SEP1_TOML_VALUE=$(ROOT_DIR)/service-runner/src/main/resources/config/stellar.host.docker.internal.toml SEP10_WEB_AUTH_DOMAIN=host.docker.internal:8080 SEP10_HOME_DOMAINS='host.docker.internal:8080,*.stellar.org' ANCHOR_DOMAIN=http://host.docker.internal:8080
 
 extended-profile-End2EndHorizon = default-horizon
-extended-url-End2EndHorizon = http://localhost:8080/.well-known/stellar.toml
+extended-ports-End2EndHorizon = $(ALL_SERVER_PORTS)
 
 run-extended-suite-%:
 	$(if $(extended-env-$*),export $(extended-env-$*);) \
 	mkdir -p build; \
 	TEST_PROFILE_NAME=$(extended-profile-$*) ./gradlew startServersWithTestProfile > build/servers-$*.log 2>&1 & \
 	pid=$$!; \
-	up=1; for i in $$(seq 600); do if curl -sf -o /dev/null $(extended-url-$*); then up=0; break; fi; sleep 1; done; \
+	$(call wait-for-ports,$(extended-ports-$*)); \
 	if [ $$up -eq 0 ]; then $(call run-extended-suite-tests,$*,$(extended-profile-$*)); status=$$?; else echo "Servers did not start, see build/servers-$*.log"; status=1; fi; \
 	kill -9 $$pid; \
-	for i in $$(seq 120); do curl -s -o /dev/null $(extended-url-$*) || break; sleep 1; done; \
+	$(call wait-for-ports-down,$(extended-ports-$*)); \
 	exit $$status
 
 run-extended-suites:

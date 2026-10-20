@@ -175,15 +175,11 @@ jobs:
           ./gradlew startServersWithTestProfile &
           echo "PID=$!" >> $GITHUB_ENV
 
-      - name: Wait for the sep server to start and get ready
+      - name: Wait for all servers to start
         if: steps.passed.outputs.cache-hit != 'true'
         run: |
-          for _ in $(seq 600); do
-            if curl -sf -o /dev/null http://host.docker.internal:8080/.well-known/stellar.toml; then exit 0; fi
-            sleep 1
-          done
-          echo "Timed out waiting for the sep server"
-          exit 1
+          cd /home/runner/anchor-platform
+          make wait-for-servers
 
       - name: Run ${{ matrix.suite }} Tests
         if: steps.passed.outputs.cache-hit != 'true'
@@ -301,15 +297,11 @@ jobs:
           ./gradlew startServersWithTestProfile &
           echo "PID=$!" >> $GITHUB_ENV
 
-      - name: Wait for the sep server to start and get ready
+      - name: Wait for all servers to start
         if: steps.passed.outputs.cache-hit != 'true'
         run: |
-          for _ in $(seq 600); do
-            if curl -sf -o /dev/null http://host.docker.internal:8080/.well-known/stellar.toml; then exit 0; fi
-            sleep 1
-          done
-          echo "Timed out waiting for the sep server"
-          exit 1
+          cd /home/runner/anchor-platform
+          make wait-for-servers
 
       - name: Run Stellar validation tool
         if: steps.passed.outputs.cache-hit != 'true'
