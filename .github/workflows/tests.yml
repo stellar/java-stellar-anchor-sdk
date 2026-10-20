@@ -58,14 +58,14 @@ env:
 jobs:
   changes:
     name: Pick Test Suites
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       essential: ${{ steps.pick.outputs.essential }}
       validation: ${{ steps.pick.outputs.validation }}
       extended: ${{ steps.pick.outputs.extended }}
       gradle_cache: ${{ steps.gradle.outputs.key }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -93,7 +93,7 @@ jobs:
     name: Essential ${{ matrix.suite }}
     needs: changes
     if: needs.changes.outputs.essential != '[]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -103,7 +103,7 @@ jobs:
       - name: Look up a pass with the same inputs
         id: passed
         if: inputs.ignore_cache != true
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: essential-passed
           key: essential-passed-${{ matrix.suite }}-${{ matrix.fingerprint }}
@@ -115,14 +115,14 @@ jobs:
 
       - name: Set up JDK 17
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
-          distribution: 'adopt'
+          distribution: 'temurin'
 
       - name: Restore Gradle dependencies
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.gradle/caches
@@ -132,7 +132,7 @@ jobs:
 
       - name: Download anchor-platform.tar
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: anchor-platform-tar
           path: /home/runner/
@@ -177,11 +177,13 @@ jobs:
 
       - name: Wait for the sep server to start and get ready
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: mydea/action-wait-for-api@v1
-        with:
-          url: "http://host.docker.internal:8080/.well-known/stellar.toml"
-          interval: "1"
-          timeout: "600"
+        run: |
+          for _ in $(seq 600); do
+            if curl -sf -o /dev/null http://host.docker.internal:8080/.well-known/stellar.toml; then exit 0; fi
+            sleep 1
+          done
+          echo "Timed out waiting for the sep server"
+          exit 1
 
       - name: Run ${{ matrix.suite }} Tests
         if: steps.passed.outputs.cache-hit != 'true'
@@ -200,14 +202,14 @@ jobs:
 
       - name: Save the pass
         if: steps.passed.outputs.cache-hit != 'true' && !inputs.tests
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: essential-passed
           key: essential-passed-${{ matrix.suite }}-${{ matrix.fingerprint }}
 
       - name: Upload ${{ matrix.suite }} Tests report
         if: always() && steps.passed.outputs.cache-hit != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.suite }}-tests-report-${{ github.run_attempt }}
           path: /home/runner/anchor-platform/essential-tests/build/reports/
@@ -217,13 +219,13 @@ jobs:
     name: Stellar Validation
     needs: changes
     if: needs.changes.outputs.validation != ''
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - name: Look up a pass with the same inputs
         id: passed
         if: inputs.ignore_cache != true
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: essential-passed
           key: essential-passed-validation-${{ needs.changes.outputs.validation }}
@@ -235,14 +237,14 @@ jobs:
 
       - name: Set up JDK 17
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
-          distribution: 'adopt'
+          distribution: 'temurin'
 
       - name: Restore Gradle dependencies
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.gradle/caches
@@ -252,7 +254,7 @@ jobs:
 
       - name: Download anchor-platform.tar
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: anchor-platform-tar
           path: /home/runner/
@@ -301,11 +303,13 @@ jobs:
 
       - name: Wait for the sep server to start and get ready
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: mydea/action-wait-for-api@v1
-        with:
-          url: "http://host.docker.internal:8080/.well-known/stellar.toml"
-          interval: "1"
-          timeout: "600"
+        run: |
+          for _ in $(seq 600); do
+            if curl -sf -o /dev/null http://host.docker.internal:8080/.well-known/stellar.toml; then exit 0; fi
+            sleep 1
+          done
+          echo "Timed out waiting for the sep server"
+          exit 1
 
       - name: Run Stellar validation tool
         if: steps.passed.outputs.cache-hit != 'true'
@@ -318,7 +322,7 @@ jobs:
 
       - name: Save the pass
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: essential-passed
           key: essential-passed-validation-${{ needs.changes.outputs.validation }}
@@ -327,7 +331,7 @@ jobs:
     name: Extended ${{ matrix.group }}
     needs: changes
     if: needs.changes.outputs.extended != '[]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -337,7 +341,7 @@ jobs:
       - name: Look up a pass with the same inputs
         id: passed
         if: inputs.ignore_cache != true
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: extended-passed
           key: extended-passed-${{ matrix.group }}-${{ matrix.fingerprint }}
@@ -349,14 +353,14 @@ jobs:
 
       - name: Set up JDK 17
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
-          distribution: 'adopt'
+          distribution: 'temurin'
 
       - name: Restore Gradle dependencies
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: |
             ~/.gradle/caches
@@ -366,7 +370,7 @@ jobs:
 
       - name: Download anchor-platform.tar
         if: steps.passed.outputs.cache-hit != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: anchor-platform-tar
           path: /home/runner/
@@ -409,14 +413,14 @@ jobs:
 
       - name: Save the pass
         if: steps.passed.outputs.cache-hit != 'true' && !inputs.tests
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: extended-passed
           key: extended-passed-${{ matrix.group }}-${{ matrix.fingerprint }}
 
       - name: Upload ${{ matrix.group }} Tests report
         if: always() && steps.passed.outputs.cache-hit != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: extended-${{ matrix.group }}-tests-report-${{ github.run_attempt }}
           path: |
@@ -428,7 +432,7 @@ jobs:
     name: Tests
     needs: [changes, essential, validation, extended]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - run: |
           for r in "${{ needs.changes.result }}" "${{ needs.essential.result }}" "${{ needs.validation.result }}" "${{ needs.extended.result }}"; do
