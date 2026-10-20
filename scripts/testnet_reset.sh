@@ -184,8 +184,8 @@ issue_and_fund_usdc() {
         amount=100000000000  # 10000 USDC in stroops
         amount_human="10000"
       elif [[ "$account_var" == "TEST_CLIENT_WALLET_SECRET" ]]; then
-        amount=1000000000  # 100 USDC in stroops
-        amount_human="100"
+        amount=100000000000  # 100 USDC in stroops
+        amount_human="10000"
       else
         amount=1000000  # 0.1 USDC in stroops
         amount_human="0.1"

@@ -50,6 +50,25 @@ open class IntegrationTestBase(val config: TestConfig) {
       .collect {}
 
   init {
-    runBlocking { token = anchor.auth().authenticate(walletKeyPair) }
+    runBlocking { token = withAuthRetry { anchor.auth().authenticate(walletKeyPair) } }
+  }
+
+  suspend fun <T> withAuthRetry(
+    maxAttempts: Int = 4,
+    delaySeconds: Int = 2,
+    block: suspend () -> T,
+  ): T {
+    lateinit var lastError: Exception
+    repeat(maxAttempts) { attempt ->
+      try {
+        return block()
+      } catch (e: Exception) {
+        lastError = e
+        if (attempt < maxAttempts - 1) {
+          delay(delaySeconds.seconds)
+        }
+      }
+    }
+    throw lastError
   }
 }
