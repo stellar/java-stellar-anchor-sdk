@@ -299,11 +299,10 @@ public class Sep31Service {
    * caller's own identity. There's no general way to independently verify a
    * `sender_id`/`receiver_id` against SEP-12 before that first reference, since SEP-12 registration
    * doesn't require declaring a `sep31-sender`/ `sep31-receiver` `type` -- many real clients
-   * (including the `stellar-anchor-tests` compliance suite) register a customer under an
-   * account/memo that differs from whatever authenticates the later `POST /transactions` call (e.g.
-   * a sending anchor registering both a sender and a receiver customer under the same Stellar
-   * account, differentiated only by memo). See ANCHOR-1248's "Known limitations" for the same
-   * accepted trade-off applied to this ownership model generally.
+   * register a customer under an account/memo that differs from whatever authenticates the later
+   * `POST /transactions` call (e.g. a sending anchor registering both a sender and a receiver
+   * customer under the same Stellar account, differentiated only by memo). See ANCHOR-1248's "Known
+   * limitations" for the same accepted trade-off applied to this ownership model generally.
    *
    * <p>Once ownership is established, if {@code kycRequired}, this fetches the customer's SEP-12
    * status by id: a `customerId` that doesn't correspond to a real customer (a fabricated id) is

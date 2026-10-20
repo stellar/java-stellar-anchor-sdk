@@ -27,19 +27,6 @@ docker-push:
 testnet-reset:
 	bash scripts/testnet_reset.sh
 
-run-anchor-tests:
-	export TEST_PROFILE_NAME=default \
-	&& docker run \
-	--platform linux/amd64 \
-	--network host \
-	-v $(ROOT_DIR)/platform/src/test/resources:/config \
-	stellar/anchor-tests:latest \
-	--home-domain http://host.docker.internal:8080 \
-	--seps 1 6 10 12 24 31 38 \
-	--sep-config /config/stellar-anchor-tests-sep-config.json \
-	--asset-code USDC \
-	--verbose
-
 kill-servers:
 	for port in 8080 8083 8085 8088 8091 8092 9083 9080 5432; do lsof -ti :$$port 2>/dev/null | xargs kill -9 2>/dev/null; done; echo "done"
 
