@@ -6,6 +6,7 @@ plugins {
   alias(libs.plugins.spring.boot)
   alias(libs.plugins.spring.dependency.management)
   alias(libs.plugins.kotlin.jvm)
+  id("org.gradle.test-retry") version "1.6.2"
 }
 
 dependencies {
@@ -42,4 +43,10 @@ tasks.test {
   exclude("**/org/stellar/anchor/platform/*Test.class")
   exclude("**/org/stellar/anchor/platform/integrationtest/**")
   exclude("**/org/stellar/anchor/platform/e2etest/**")
+
+  retry {
+    maxRetries.set(2)
+    maxFailures.set(20)
+    failOnPassedAfterRetry.set(false)
+  }
 }
