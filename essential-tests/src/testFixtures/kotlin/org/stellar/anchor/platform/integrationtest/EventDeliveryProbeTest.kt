@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.readiness
+package org.stellar.anchor.platform.integrationtest
 
 import io.ktor.http.Url
 import java.time.Duration
