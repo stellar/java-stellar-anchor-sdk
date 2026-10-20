@@ -1,5 +1,11 @@
+-include .env
+export
+
 # Check if we need to prepend docker command with sudo
 SUDO := $(shell docker version >/dev/null 2>&1 || echo "sudo")
+
+# Absolute path to the directory containing this Makefile (the anchor-platform repo root)
+ROOT_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 # If LABEL is not provided set default value
 LABEL ?= $(shell git rev-parse --short HEAD)$(and $(shell git status -s),-dirty-$(shell id -u -n))
@@ -13,3 +19,160 @@ docker-build:
 
 docker-push:
 	$(SUDO) docker push $(TAG)
+
+testnet-reset:
+	bash scripts/testnet_reset.sh
+
+run-anchor-tests:
+	export TEST_PROFILE_NAME=default \
+	&& docker run \
+	--platform linux/amd64 \
+	--network host \
+	-v $(ROOT_DIR)/platform/src/test/resources:/config \
+	stellar/anchor-tests:latest \
+	--home-domain http://host.docker.internal:8080 \
+	--seps 1 6 10 12 24 31 38 \
+	--sep-config /config/stellar-anchor-tests-sep-config.json \
+	--asset-code USDC \
+	--verbose
+
+kill-servers:
+	for port in 8080 8083 8085 8088 8091 8092 9083 9080 5432; do lsof -ti :$$port 2>/dev/null | xargs kill -9 2>/dev/null; done; echo "done"
+
+start-test-profile-servers:
+	export TEST_PROFILE_NAME=default && ./gradlew dockerComposeStart && \
+	db_container=$$(docker ps --filter "name=-db-1" --format "{{.Names}}" | grep -v "reference-db" | head -1) && \
+	echo "Waiting for postgres in $$db_container to accept connections..." && \
+	for i in $$(seq 1 30); do docker exec $$db_container pg_isready -U postgres >/dev/null 2>&1 && break; sleep 1; done && \
+	./gradlew startServersWithTestProfile
+
+restart-test-profile-servers:
+	./gradlew dockerComposeStop && cd ../ && make kill-servers && make start-test-profile-servers
+
+run-essential-tests:
+	export TEST_PROFILE_NAME=default && ./gradlew runEssentialTests
+
+run-suite-tests = export TEST_PROFILE_NAME=default && ./gradlew run$(1)Tests :essential-tests:test$(1) --rerun $(if $(2),--tests 'org.stellar.anchor.platform.$(2)',$(if $(TESTS),--tests '$(TESTS)'))
+
+run-sep6-tests:
+	$(call run-suite-tests,Sep6)
+
+run-sep10-tests:
+	$(call run-suite-tests,Sep10)
+
+run-sep12-tests:
+	$(call run-suite-tests,Sep12)
+
+run-sep24-tests:
+	$(call run-suite-tests,Sep24)
+
+run-sep31-tests:
+	$(call run-suite-tests,Sep31)
+
+run-sep38-tests:
+	$(call run-suite-tests,Sep38)
+
+run-sep45-tests:
+	$(call run-suite-tests,Sep45)
+
+run-platform-tests:
+	$(call run-suite-tests,Platform)
+
+run-infrastructure-tests:
+	$(call run-suite-tests,Infrastructure)
+
+run-server-health-tests:
+	$(call run-suite-tests,Infrastructure,integrationtest.PlatformServerHealthTests)
+
+run-kafka-tests:
+	$(call run-suite-tests,Infrastructure,integrationtest.KafkaTests)
+
+run-ledger-client-tests:
+	$(call run-suite-tests,Infrastructure,integrationtest.LedgerClientTests)
+
+run-sep10-integration-tests:
+	$(call run-suite-tests,Sep10,integrationtest.Sep10Tests)
+
+run-sep10-service-tests:
+	$(call run-suite-tests,Sep10,integrationtest.Sep10ServiceIntegrationTests)
+
+run-sep12-integration-tests:
+	$(call run-suite-tests,Sep12,integrationtest.Sep12Tests)
+
+run-sep38-integration-tests:
+	$(call run-suite-tests,Sep38,integrationtest.Sep38Tests)
+
+run-sep38-platform-api-tests:
+	$(call run-suite-tests,Sep38,integrationtest.Sep38PlatformApiTests)
+
+run-sep6-integration-tests:
+	$(call run-suite-tests,Sep6,integrationtest.Sep6Tests)
+
+run-sep6-platform-api-tests:
+	$(call run-suite-tests,Sep6,integrationtest.Sep6PlatformApiTests)
+
+run-sep6-reference-server-client-request-tests:
+	$(call run-suite-tests,Sep6,integrationtest.AnchorReferenceServerClientRequestTests)
+
+run-sep6-end2end-tests:
+	$(call run-suite-tests,Sep6,e2etest.Sep6End2EndTest)
+
+run-sep24-integration-tests:
+	$(call run-suite-tests,Sep24,integrationtest.Sep24Tests)
+
+run-sep24-platform-api-tests:
+	$(call run-suite-tests,Sep24,integrationtest.Sep24PlatformApiTests)
+
+run-sep24-account-isolation-tests:
+	$(call run-suite-tests,Sep24,integrationtest.Sep24AccountIsolationTests)
+
+run-sep24-client-request-tests:
+	$(call run-suite-tests,Sep24,integrationtest.Sep24ClientRequestTests)
+
+run-sep24-transaction-schema-tests:
+	$(call run-suite-tests,Sep24,integrationtest.Sep24TransactionSchemaTests)
+
+run-sep24-end2end-tests:
+	$(call run-suite-tests,Sep24,e2etest.Sep24End2EndTests)
+
+run-sep31-integration-tests:
+	$(call run-suite-tests,Sep31,integrationtest.Sep31Tests)
+
+run-sep31-platform-api-tests:
+	$(call run-suite-tests,Sep31,integrationtest.Sep31PlatformApiTests)
+
+run-sep31-customer-ownership-tests:
+	$(call run-suite-tests,Sep31,integrationtest.Sep31CustomerOwnershipTests)
+
+run-sep31-end2end-tests:
+	$(call run-suite-tests,Sep31,e2etest.Sep31End2EndTests)
+
+run-sep45-integration-tests:
+	$(call run-suite-tests,Sep45,integrationtest.Sep45Tests)
+
+run-callback-api-tests:
+	$(call run-suite-tests,Platform,integrationtest.CallbackApiTests)
+
+run-callback-signature-tests:
+	$(call run-suite-tests,Platform,integrationtest.CallbackSignatureTest)
+
+run-client-config-api-tests:
+	$(call run-suite-tests,Platform,integrationtest.ClientConfigApiTests)
+
+run-event-processing-tests:
+	$(call run-suite-tests,Platform,integrationtest.EventProcessingServerTests)
+
+run-multi-client-callback-tests:
+	$(call run-suite-tests,Platform,integrationtest.MultiClientCallbackTests)
+
+run-payment-observer-tests:
+	$(call run-suite-tests,Platform,integrationtest.PaymentObserverTests)
+
+run-rpc-platform-api-tests:
+	$(call run-suite-tests,Platform,integrationtest.RpcPlatformApiTests)
+
+run-stellar-observer-tests:
+	$(call run-suite-tests,Platform,integrationtest.StellarObserverTests)
+
+run-wallet-callback-record-tests:
+	$(call run-suite-tests,Platform,integrationtest.WalletCallbackRecordTests)

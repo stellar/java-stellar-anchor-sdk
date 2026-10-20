@@ -13,6 +13,17 @@ jobs:
   essential_tests:
     needs: [ gradle_build ]
     uses: ./.github/workflows/sub_essential_tests.yml
+    secrets:
+      SECRET_SEP10_SIGNING_SEED: ${{ secrets.SECRET_SEP10_SIGNING_SEED }}
+      APP__PAYMENT_SIGNING_SEED: ${{ secrets.APP__PAYMENT_SIGNING_SEED }}
+      SECRET__KEY: ${{ secrets.SECRET__KEY }}
+      TEST_CLIENT_WALLET_SECRET: ${{ secrets.TEST_CLIENT_WALLET_SECRET }}
+      TEST_CLIENT_WALLET_EXTRA_SIGNER_1_SECRET: ${{ secrets.TEST_CLIENT_WALLET_EXTRA_SIGNER_1_SECRET }}
+      TEST_CLIENT_WALLET_EXTRA_SIGNER_2_SECRET: ${{ secrets.TEST_CLIENT_WALLET_EXTRA_SIGNER_2_SECRET }}
+      TEST_WITHDRAW_FUND_CLIENT_SECRET_1: ${{ secrets.TEST_WITHDRAW_FUND_CLIENT_SECRET_1 }}
+      TEST_WITHDRAW_FUND_CLIENT_SECRET_2: ${{ secrets.TEST_WITHDRAW_FUND_CLIENT_SECRET_2 }}
+      TEST_DEPOSIT_FUND_CLIENT_SECRET_1: ${{ secrets.TEST_DEPOSIT_FUND_CLIENT_SECRET_1 }}
+      TEST_DEPOSIT_FUND_CLIENT_SECRET_2: ${{ secrets.TEST_DEPOSIT_FUND_CLIENT_SECRET_2 }}
     concurrency:
       group: ap-test-job
       cancel-in-progress: false
