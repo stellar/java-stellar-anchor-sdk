@@ -2,6 +2,7 @@ package org.stellar.anchor.platform
 
 import io.ktor.client.plugins.*
 import io.ktor.http.*
+import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
@@ -25,7 +26,17 @@ open class IntegrationTestBase(val config: TestConfig) {
   var wallet =
     Wallet(
       StellarConfiguration.Testnet,
-      ApplicationConfiguration { defaultRequest { url { protocol = URLProtocol.HTTP } } },
+      ApplicationConfiguration {
+        defaultRequest { url { protocol = URLProtocol.HTTP } }
+        engine {
+          config {
+            connectTimeout(Duration.ofSeconds(30))
+            readTimeout(Duration.ofSeconds(60))
+            writeTimeout(Duration.ofSeconds(60))
+            callTimeout(Duration.ofSeconds(90))
+          }
+        }
+      },
     )
   var walletKeyPair = SigningKeyPair.fromSecret(CLIENT_WALLET_SECRET)
   var anchor = wallet.anchor(config.env["anchor.domain"]!!)
