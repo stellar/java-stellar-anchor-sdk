@@ -221,7 +221,7 @@ public class Sep24Service {
     AssetInfo buyAsset = assetService.getAssetById(withdrawRequest.get("destination_asset"));
     if (quoteId != null) {
       Sep38Quote quote =
-          validateAndPopulateQuote(quoteId, asset, buyAsset, strAmount, builder, txnId);
+          validateAndPopulateQuote(token, quoteId, asset, buyAsset, strAmount, builder, txnId);
       validateAmountLimits(quote.getSellAmount(), minAmount, maxAmount);
     } else {
       builder.amountExpected(strAmount);
@@ -312,8 +312,8 @@ public class Sep24Service {
     }
 
     if (assetService.getAsset(assetCode, assetIssuer) == null) {
-      infoF("The asset_code of the deposit request must be set.");
-      throw new SepValidationException("The asset_code of the deposit request must be set");
+      infoF("invalid operation for asset {}", assetCode);
+      throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
 
     if (!(assetService.getAsset(assetCode, assetIssuer) instanceof StellarAssetInfo asset)) {
@@ -385,7 +385,7 @@ public class Sep24Service {
     AssetInfo sellAsset = assetService.getAssetById(depositRequest.get("source_asset"));
     if (quoteId != null) {
       Sep38Quote quote =
-          validateAndPopulateQuote(quoteId, sellAsset, asset, strAmount, builder, txnId);
+          validateAndPopulateQuote(token, quoteId, sellAsset, asset, strAmount, builder, txnId);
       validateAmountLimits(quote.getBuyAmount(), minAmount, maxAmount);
     } else {
       builder.amountExpected(strAmount);
@@ -434,6 +434,11 @@ public class Sep24Service {
       throw new SepNotAuthorizedException("missing token");
     }
 
+    if (txReq == null) {
+      info("missing request object");
+      throw new SepValidationException("missing request object");
+    }
+
     String assetCode = txReq.getAssetCode();
     String assetIssuer = null;
 
@@ -456,7 +461,8 @@ public class Sep24Service {
     }
     String tokenAccount = Objects.requireNonNullElse(token.getMuxedAccount(), token.getAccount());
     List<Sep24Transaction> txns =
-        txnStore.findTransactions(tokenAccount, token.getAccountMemo(), txReq);
+        txnStore.findTransactions(
+            tokenAccount, token.getAccountMemo(), assetCode, assetIssuer, txReq);
     GetTransactionsResponse result = new GetTransactionsResponse();
     List<TransactionResponse> list = new ArrayList<>();
     debugF("found {} transactions", txns.size());
@@ -560,13 +566,23 @@ public class Sep24Service {
    * Validates that the given amount is within the asset's configured min/max limits, using the same
    * error messages for both the explicit-amount and quote_id (quote-derived amount) paths.
    *
-   * @param amount the amount to validate; if null, validation is skipped
+   * @param amount the amount to validate; if null or empty, the amount validation is skipped
    * @param minAmount the asset's minimum amount limit, or null if unset
    * @param maxAmount the asset's maximum amount limit, or null if unset
    * @throws SepValidationException if the amount is outside the min/max limits
    */
   private void validateAmountLimits(String amount, Long minAmount, Long maxAmount)
       throws SepValidationException {
+    // The amount is stored and later scaled and summed, so it must be a sane number before it is
+    // compared. An absent amount is not validated.
+    if (!isEmpty(amount)) {
+      try {
+        SepRequestValidator.validateAmount("", amount, true);
+      } catch (BadRequestException ex) {
+        throw new SepValidationException(ex.getMessage());
+      }
+    }
+
     if (amount != null && minAmount != null) {
       if (decimal(amount).compareTo(decimal(minAmount)) < 0) {
         infoF("invalid amount {}", amount);
@@ -585,6 +601,7 @@ public class Sep24Service {
   }
 
   private Sep38Quote validateAndPopulateQuote(
+      WebAuthJwt token,
       String quoteId,
       AssetInfo sellAsset,
       AssetInfo buyAsset,
@@ -594,7 +611,7 @@ public class Sep24Service {
       throws AnchorException {
     Sep38Quote quote =
         exchangeAmountsCalculator.validateQuoteAgainstRequestInfo(
-            quoteId, sellAsset, buyAsset, strAmount);
+            quoteId, token, sellAsset, buyAsset, strAmount);
 
     debugF("Updating transaction ({}) with quote ({})", txnId, quoteId);
     builder.quoteId(quoteId);
