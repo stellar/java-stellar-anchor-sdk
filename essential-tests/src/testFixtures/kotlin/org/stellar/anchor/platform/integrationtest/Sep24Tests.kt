@@ -406,7 +406,7 @@ class Sep24Tests : IntegrationTestBase(TestConfig()) {
 
   private fun JsonObject.string(field: String): String = requireJsonString(this, field)
 
-  /** The SEP-24 transaction shape `stellar-anchor-tests` requires, on the raw list item. */
+  /** The SEP-24 transaction shape, checked on the raw list item. */
   private fun assertListItem(
     item: JsonObject,
     kind: String,
@@ -713,8 +713,8 @@ class Sep24Tests : IntegrationTestBase(TestConfig()) {
 
   @Test
   fun `test sep24 TOML has a valid transfer server URL`() {
-    // No fallback to TRANSFER_SERVER: stellar-anchor-tests accepts that for anchors that omit the
-    // SEP-24 key, but AP's own TOML sets it, so a fallback would hide its removal.
+    // No fallback to TRANSFER_SERVER: AP's own TOML sets the SEP-24 key, so a fallback would
+    // hide its removal.
     val transferServer = toml.getString("TRANSFER_SERVER_SEP0024")
 
     assertTrue(!transferServer.isNullOrBlank()) {
