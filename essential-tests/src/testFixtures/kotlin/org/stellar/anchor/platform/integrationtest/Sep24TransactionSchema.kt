@@ -109,11 +109,11 @@ private fun requiredFor(schemaCase: Sep24SchemaCase): List<String> =
     }
 
 /**
- * Checks the raw `transaction` object of a SEP-24 `GET /transaction` answer against the schema
- * `stellar-anchor-tests` applies (`schemas/sep24.ts`, `getTransactionSchema`): the fields it
- * requires for [schemaCase] are present, and every field it lists has an allowed type. Fields the
- * schema does not list are allowed. Works on the raw JSON: Gson silently nulls absent fields and
- * drops unknown ones, so a parsed object cannot back a schema check.
+ * Checks the raw `transaction` object of a SEP-24 `GET /transaction` answer against the SEP-24
+ * transaction schema: the fields it requires for [schemaCase] are present, and every field it lists
+ * has an allowed type. Fields the schema does not list are allowed. Works on the raw JSON: Gson
+ * silently nulls absent fields and drops unknown ones, so a parsed object cannot back a schema
+ * check.
  *
  * Every failure names the offending field.
  */
