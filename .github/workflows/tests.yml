@@ -171,7 +171,8 @@ jobs:
           KT_REFERENCE_SERVER_CONFIG: /home/runner/anchor-platform/service-runner/src/main/resources/config/reference-config.yaml
         run: |
           cd /home/runner/anchor-platform
-          ./gradlew startServersWithTestProfile &
+          mkdir -p /home/runner/stack-logs
+          ./gradlew startServersWithTestProfile > /home/runner/stack-logs/default.log 2>&1 &
           echo "PID=$!" >> $GITHUB_ENV
 
       - name: Wait for all servers to start
@@ -208,7 +209,9 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.suite }}-tests-report-${{ github.run_attempt }}
-          path: /home/runner/anchor-platform/essential-tests/build/reports/
+          path: |
+            /home/runner/anchor-platform/essential-tests/build/reports/
+            /home/runner/stack-logs/
           retention-days: 7
 
   extended:

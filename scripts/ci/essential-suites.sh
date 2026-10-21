@@ -6,7 +6,7 @@ RPC="Platform Sep6 Sep24 Sep31 Sep38"
 
 RULES=(
   "^(docs|helm-charts|extended-tests)/|\.md$|/src/test/kotlin/|^(LICENSE|icon\.png)$ =>"
-  "^essential-tests/.*/(ServerHealth|Kafka|LedgerClient|Sep1|Sep1TomlRules|Cors)Tests\.kt$ => Infrastructure"
+  "^essential-tests/.*/((ServerHealth|Kafka|LedgerClient|Sep1|Sep1TomlRules|Cors)Tests|EventDeliveryProbeTest)\.kt$ => Infrastructure"
   "^essential-tests/.*/(Callback[A-Za-z]*|ClientConfigApiTests|EventProcessingTests|MultiClientCallbackTests|PaymentObserverTests|StellarObserverTests|WalletCallbackRecordTests|PlatformApiTests)\.kt$ => Platform"
   "[Ss]ep6[/A-Z] => Sep6 Sep38 Platform"
   "[Ss]ep(12|9)[/A-Z]|callbacks/customer/|RestCustomerIntegration|NotifyCustomerInfoUpdated => Sep12 Sep6 Sep24 Sep31 Sep38 Platform"
