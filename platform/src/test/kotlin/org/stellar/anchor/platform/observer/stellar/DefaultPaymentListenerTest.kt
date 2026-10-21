@@ -1463,6 +1463,41 @@ class DefaultPaymentListenerTest {
   }
 
   @Test
+  fun `test checkAssetAmountSufficient logs the expected and received amounts at full precision`() {
+    val event = createTestTransferEvent()
+    val testTxn = event.ledgerTransaction
+    val testPayment = testTxn.operations[0].paymentOperation
+
+    val testJdbcSepTransaction = JdbcSep31Transaction()
+    testJdbcSepTransaction.id = "123"
+    testJdbcSepTransaction.amountInAsset = "stellar:" + getSep11AssetName(testPayment.asset)
+    val expected = fromXdrAmount(testPayment.amount + BigInteger.ONE)
+    testJdbcSepTransaction.amountExpected = expected
+    val received = fromXdrAmount(testPayment.amount)
+
+    mockkStatic(Log::class)
+    try {
+      every { Log.debugF(any(), *anyVararg()) } just Runs
+      every { Log.errorF(any(), *anyVararg()) } just Runs
+
+      paymentListener.checkAssetAmountSufficient(testTxn, testPayment, testJdbcSepTransaction, true)
+
+      verify(exactly = 1) {
+        Log.errorF(
+          match { it.contains("amount was insufficient") },
+          any(),
+          any(),
+          any(),
+          BigDecimal(expected).toPlainString(),
+          BigDecimal(received).toPlainString(),
+        )
+      }
+    } finally {
+      unmockkStatic(Log::class)
+    }
+  }
+
+  @Test
   fun `test checkAssetAmountSufficient rejects a withdrawal paid in the wrong asset even when the amount is sufficient`() {
     val event = createTestTransferEvent()
     val testTxn = event.ledgerTransaction

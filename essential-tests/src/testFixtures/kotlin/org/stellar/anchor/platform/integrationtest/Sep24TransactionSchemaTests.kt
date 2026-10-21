@@ -9,8 +9,8 @@ import org.stellar.anchor.platform.integrationtest.Sep24SchemaCase.*
 
 /**
  * Proves the hand-written SEP-24 transaction schema check accepts a compliant object and rejects
- * each way an object can break the schema `stellar-anchor-tests` applies. The e2e tests in
- * [Sep24Tests] lean on this check, so it must not be one that accepts anything.
+ * each way an object can break that schema. The e2e tests in [Sep24Tests] lean on this check, so it
+ * must not be one that accepts anything.
  *
  * Needs no running stack.
  */
@@ -310,7 +310,7 @@ class Sep24TransactionSchemaTests {
   }
 
   @Test
-  fun `accepts each of the 15 statuses stellar-anchor-tests lists`() {
+  fun `accepts each of the 15 statuses the schema lists`() {
     listOf(
         "incomplete",
         "pending_anchor",
@@ -336,7 +336,7 @@ class Sep24TransactionSchemaTests {
       }
   }
 
-  // SEP24IF-18: SEP-24 lists 16 statuses; stellar-anchor-tests' schema predates `on_hold`.
+  // SEP24IF-18: SEP-24 lists 16 statuses; the schema's 15 predate `on_hold`.
   @Test
   fun `accepts on_hold, which SEP-24 lists`() {
     assertSep24TransactionSchema(pendingDeposit().with("status", "\"on_hold\""), DEPOSIT_PENDING)
