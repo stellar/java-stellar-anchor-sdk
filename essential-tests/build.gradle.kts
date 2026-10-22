@@ -52,13 +52,22 @@ fun Test.reportFlakyTests() {
     object : TestListener {
       override fun beforeSuite(suite: TestDescriptor) {}
 
-      override fun beforeTest(testDescriptor: TestDescriptor) {}
+      override fun beforeTest(testDescriptor: TestDescriptor) {
+        val key = "${testDescriptor.className} > ${testDescriptor.name}"
+        val prior = attempts[key]
+        if (prior != null && prior.contains(TestResult.ResultType.FAILURE)) {
+          logger.lifecycle("RETRYING (attempt ${prior.size + 1}): $key")
+        }
+      }
 
       override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
         val key = "${testDescriptor.className} > ${testDescriptor.name}"
-        attempts
-          .getOrPut(key) { Collections.synchronizedList(mutableListOf()) }
-          .add(result.resultType)
+        val list = attempts.getOrPut(key) { Collections.synchronizedList(mutableListOf()) }
+        val hadFailed = list.contains(TestResult.ResultType.FAILURE)
+        list.add(result.resultType)
+        if (result.resultType == TestResult.ResultType.SUCCESS && hadFailed) {
+          logger.lifecycle("RETRY PASSED (attempt ${list.size}): $key")
+        }
       }
 
       override fun afterSuite(suite: TestDescriptor, result: TestResult) {
