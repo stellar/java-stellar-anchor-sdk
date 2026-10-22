@@ -94,7 +94,8 @@ public class PaymentObserverBeans {
       JdbcSep24TransactionStore sep24TransactionStore,
       JdbcSep6TransactionStore sep6TransactionStore,
       PlatformApiClient platformApiClient,
-      RpcConfig rpcConfig) {
+      RpcConfig rpcConfig,
+      AssetService assetService) {
 
     return new DefaultPaymentListener(
         paymentObservingAccountsManager,
@@ -102,7 +103,8 @@ public class PaymentObserverBeans {
         sep24TransactionStore,
         sep6TransactionStore,
         platformApiClient,
-        rpcConfig);
+        rpcConfig,
+        assetService);
   }
 
   /**
