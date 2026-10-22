@@ -1,3 +1,9 @@
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
+import org.gradle.api.tasks.testing.TestDescriptor
+import org.gradle.api.tasks.testing.TestListener
+import org.gradle.api.tasks.testing.TestResult
+
 // The alias call in plugins scope produces IntelliJ false error which is suppressed here.
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
@@ -39,10 +45,51 @@ dependencies {
 
 tasks { bootJar { enabled = false } }
 
+fun Test.reportFlakyTests() {
+  val attempts = ConcurrentHashMap<String, MutableList<TestResult.ResultType>>()
+  val taskName = name
+  addTestListener(
+    object : TestListener {
+      override fun beforeSuite(suite: TestDescriptor) {}
+
+      override fun beforeTest(testDescriptor: TestDescriptor) {}
+
+      override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
+        val key = "${testDescriptor.className} > ${testDescriptor.name}"
+        attempts
+          .getOrPut(key) { Collections.synchronizedList(mutableListOf()) }
+          .add(result.resultType)
+      }
+
+      override fun afterSuite(suite: TestDescriptor, result: TestResult) {
+        if (suite.parent != null) return
+        val pass = TestResult.ResultType.SUCCESS
+        val fail = TestResult.ResultType.FAILURE
+        val flaky = attempts.filterValues { it.contains(fail) && it.contains(pass) }.keys.sorted()
+        val failed = attempts.filterValues { it.contains(fail) && !it.contains(pass) }.keys.sorted()
+        logger.lifecycle("")
+        logger.lifecycle(
+          "=== $taskName: ${failed.size} failed, ${flaky.size} flaky (passed after retry, not counted as failed) ==="
+        )
+        if (flaky.isNotEmpty()) {
+          logger.lifecycle("FLAKY (passed after retry):")
+          flaky.forEach { logger.lifecycle("  - $it") }
+        }
+        if (failed.isNotEmpty()) {
+          logger.lifecycle("FAILED:")
+          failed.forEach { logger.lifecycle("  - $it") }
+        }
+      }
+    }
+  )
+}
+
 tasks.test {
   exclude("**/org/stellar/anchor/platform/*Test.class")
   exclude("**/org/stellar/anchor/platform/integrationtest/**")
   exclude("**/org/stellar/anchor/platform/e2etest/**")
+
+  reportFlakyTests()
 
   retry {
     maxRetries.set(2)
@@ -135,6 +182,9 @@ essentialSuites.forEach { (suite, classes) ->
       showStandardStreams = true
       exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
+
+    reportFlakyTests()
+
     retry {
       maxRetries.set(2)
       maxFailures.set(20)
