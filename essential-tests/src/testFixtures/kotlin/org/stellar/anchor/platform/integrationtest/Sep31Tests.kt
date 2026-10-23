@@ -53,6 +53,7 @@ lateinit var savedTxn: Sep31GetTransactionResponse
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(SAME_THREAD)
+@Order(RUN_AFTER_PLATFORM_API_TESTS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class Sep31Tests : IntegrationTestBase(TestConfig()) {
   private val sep12Client: Sep12Client = Sep12Client(toml.getString("KYC_SERVER"), this.token.token)
@@ -160,8 +161,8 @@ class Sep31Tests : IntegrationTestBase(TestConfig()) {
   private fun assertCompliesWithProtocolSchema(rawJson: String, txn: Sep31GetTransactionResponse) {
     val root = com.google.gson.JsonParser.parseString(rawJson).asJsonObject
     assertTrue(root.has("transaction"), "response body must have a 'transaction' object")
-    // The stellar-anchor-tests getTransactionSchema sets `additionalProperties: false` on the
-    // root object -- deserialization alone can't catch a violation of that (Gson silently drops
+    // The expected response allows no root fields besides `transaction` -- deserialization alone
+    // can't catch a violation of that (Gson silently drops
     // unknown fields), so the raw JSON's key set must be checked explicitly here.
     assertEquals(
       setOf("transaction"),
